@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -192,8 +192,8 @@ Ext.ux.TabScrollerMenu =  Ext.extend(Object, {
 			}
 			else {
 				this.items.each(function(item) {
-					if (item.id != curActive.id && ! item.hidden) {
-						menuItems.push(this.autoGenMenuItem(item));
+					if (item.id != curActive.id && !item.hidden) {
+                        this.tabsMenu.add(this.autoGenMenuItem(item));
 					}
 				}, this);
 			}

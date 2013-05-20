@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -97,21 +97,25 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * <p>See <tt>{@link #autoExpandMax}</tt> and <tt>{@link #autoExpandMin}</tt> also.</p>
      */
     autoExpandColumn : false,
+    
     /**
      * @cfg {Number} autoExpandMax The maximum width the <tt>{@link #autoExpandColumn}</tt>
      * can have (if enabled). Defaults to <tt>1000</tt>.
      */
     autoExpandMax : 1000,
+    
     /**
      * @cfg {Number} autoExpandMin The minimum width the <tt>{@link #autoExpandColumn}</tt>
      * can have (if enabled). Defaults to <tt>50</tt>.
      */
     autoExpandMin : 50,
+    
     /**
      * @cfg {Boolean} columnLines <tt>true</tt> to add css for column separation lines.
      * Default is <tt>false</tt>.
      */
     columnLines : false,
+    
     /**
      * @cfg {Object} cm Shorthand for <tt>{@link #colModel}</tt>.
      */
@@ -135,12 +139,14 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * <tt>{0}</tt> is replaced with the number of selected rows.
      */
     ddText : '{0} selected row{1}',
+    
     /**
      * @cfg {Boolean} deferRowRender <P>Defaults to <tt>true</tt> to enable deferred row rendering.</p>
      * <p>This allows the GridPanel to be initially rendered empty, with the expensive update of the row
      * structure deferred so that layouts with GridPanels appear more quickly.</p>
      */
     deferRowRender : true,
+    
     /**
      * @cfg {Boolean} disableSelection <p><tt>true</tt> to disable selections in the grid. Defaults to <tt>false</tt>.</p>
      * <p>Ignored if a {@link #selModel SelectionModel} is specified.</p>
@@ -154,11 +160,13 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * with the {@link #enableHdMenu header menu}.
      */
     enableColumnHide : true,
+    
     /**
      * @cfg {Boolean} enableColumnMove Defaults to <tt>true</tt> to enable drag and drop reorder of columns. <tt>false</tt>
      * to turn off column reordering via drag drop.
      */
     enableColumnMove : true,
+    
     /**
      * @cfg {Boolean} enableDragDrop <p>Enables dragging of the selected rows of the GridPanel. Defaults to <tt>false</tt>.</p>
      * <p>Setting this to <b><tt>true</tt></b> causes this GridPanel's {@link #getView GridView} to
@@ -171,10 +179,12 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * to process the {@link Ext.grid.GridDragZone#getDragData data} which is provided.</p>
      */
     enableDragDrop : false,
+    
     /**
      * @cfg {Boolean} enableHdMenu Defaults to <tt>true</tt> to enable the drop down button for menu in the headers.
      */
     enableHdMenu : true,
+    
     /**
      * @cfg {Boolean} hideHeaders True to hide the grid's header. Defaults to <code>false</code>.
      */
@@ -183,6 +193,7 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * loading. Defaults to <code>false</code>.
      */
     loadMask : false,
+    
     /**
      * @cfg {Number} maxHeight Sets the maximum height of the grid - ignored if <tt>autoHeight</tt> is not on.
      */
@@ -190,6 +201,7 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * @cfg {Number} minColumnWidth The minimum width a column can be resized to. Defaults to <tt>25</tt>.
      */
     minColumnWidth : 25,
+    
     /**
      * @cfg {Object} sm Shorthand for <tt>{@link #selModel}</tt>.
      */
@@ -208,11 +220,13 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * modifier, or which uses a CSS selector of higher specificity.</p>
      */
     stripeRows : false,
+    
     /**
      * @cfg {Boolean} trackMouseOver True to highlight rows when the mouse is over. Default is <tt>true</tt>
      * for GridPanel, but <tt>false</tt> for EditorGridPanel.
      */
     trackMouseOver : true,
+    
     /**
      * @cfg {Array} stateEvents
      * An array of events that, when fired, should trigger this component to save its state.
@@ -225,6 +239,7 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
      * Component state.</p>
      */
     stateEvents : ['columnmove', 'columnresize', 'sortchange', 'groupchange'],
+    
     /**
      * @cfg {Object} view The {@link Ext.grid.GridView} used by the grid. This can be set
      * before a call to {@link Ext.Component#render render()}.
@@ -247,14 +262,15 @@ Ext.grid.GridPanel = Ext.extend(Ext.Panel, {
 
     // private
     rendered : false,
+    
     // private
     viewReady : false,
 
     // private
-    initComponent : function(){
+    initComponent : function() {
         Ext.grid.GridPanel.superclass.initComponent.call(this);
 
-        if(this.columnLines){
+        if (this.columnLines) {
             this.cls = (this.cls || '') + ' x-grid-with-col-lines';
         }
         // override any provided value since it isn't valid
@@ -656,8 +672,10 @@ function(grid, rowIndex, columnIndex, e) {
                 s = cs[i];
                 c = cm.getColumnById(s.id);
                 if(c){
-                    c.hidden = s.hidden;
-                    c.width = s.width;
+                    cm.setState(s.id, {
+                        hidden: s.hidden,
+                        width: s.width    
+                    });
                     oldIndex = cm.getIndexById(s.id);
                     if(oldIndex != i){
                         cm.moveColumn(oldIndex, i);
@@ -721,7 +739,7 @@ function(grid, rowIndex, columnIndex, e) {
         Ext.grid.GridPanel.superclass.afterRender.call(this);
         var v = this.view;
         this.on('bodyresize', v.layout, v);
-        v.layout();
+        v.layout(true);
         if(this.deferRowRender){
             if (!this.deferRowRenderTask){
                 this.deferRowRenderTask = new Ext.util.DelayedTask(v.afterRender, this.view);
@@ -898,10 +916,11 @@ function(grid, rowIndex, columnIndex, e) {
      * Returns the grid's GridView object.
      * @return {Ext.grid.GridView} The grid view
      */
-    getView : function(){
-        if(!this.view){
+    getView : function() {
+        if (!this.view) {
             this.view = new Ext.grid.GridView(this.viewConfig);
         }
+        
         return this.view;
     },
     /**

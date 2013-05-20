@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -11,7 +11,6 @@
  * See {@link Ext.EventObject} for more details on normalized event objects.
  * @singleton
  */
-
 Ext.EventManager = function(){
     var docReadyEvent,
         docReadyProcId,
@@ -34,11 +33,11 @@ Ext.EventManager = function(){
         var id = false,
             i = 0,
             len = specialElCache.length,
-            id = false,
             skip = false,
             o;
-        if(el){
-            if(el.getElementById || el.navigator){
+            
+        if (el) {
+            if (el.getElementById || el.navigator) {
                 // look up the id
                 for(; i < len; ++i){
                     o = specialElCache[i];
@@ -67,7 +66,7 @@ Ext.EventManager = function(){
             }
         }
         return id;
-     };
+     }
 
     /// There is some jquery work around stuff here that isn't needed in Ext Core.
     function addListener(el, ename, fn, task, wrap, scope){
@@ -103,7 +102,7 @@ Ext.EventManager = function(){
         if(el == DOC && ename == "mousedown"){
             Ext.EventManager.stoppedMouseDownEvent.addListener(wrap);
         }
-    };
+    }
 
     function doScrollChk(){
         /* Notes:
@@ -177,7 +176,7 @@ Ext.EventManager = function(){
             docReadyEvent.listeners = [];
         }
 
-    };
+    }
 
     function initDocReady(){
         docReadyEvent || (docReadyEvent = new Ext.util.Event());
@@ -211,7 +210,7 @@ Ext.EventManager = function(){
         }
         // no matter what, make sure it fires on load
         E.on(WINDOW, "load", fireDocReady);
-    };
+    }
 
     function createTargeted(h, o){
         return function(){
@@ -220,21 +219,21 @@ Ext.EventManager = function(){
                 h.apply(this, args);
             }
         };
-    };
+    }
 
     function createBuffered(h, o, task){
         return function(e){
             // create new event object impl so new events don't wipe out properties
             task.delay(o.buffer, h, null, [new Ext.EventObjectImpl(e)]);
         };
-    };
+    }
 
     function createSingle(h, el, ename, fn, scope){
         return function(e){
             Ext.EventManager.removeListener(el, ename, fn, scope);
             h(e);
         };
-    };
+    }
 
     function createDelayed(h, o, fn){
         return function(e){
@@ -245,10 +244,10 @@ Ext.EventManager = function(){
             fn.tasks.push(task);
             task.delay(o.delay || 10, h, null, [new Ext.EventObjectImpl(e)]);
         };
-    };
+    }
 
     function listen(element, ename, opt, fn, scope){
-        var o = !Ext.isObject(opt) ? {} : opt,
+        var o = (!opt || typeof opt == "boolean") ? {} : opt,
             el = Ext.getDom(element), task;
 
         fn = fn || o.fn;
@@ -280,12 +279,12 @@ Ext.EventManager = function(){
             if (o.stopPropagation) {
                 e.stopPropagation();
             }
-            if (o.normalized) {
+            if (o.normalized === false) {
                 e = e.browserEvent;
             }
 
             fn.call(scope || el, e, t, o);
-        };
+        }
         if(o.target){
             h = createTargeted(h, o);
         }
@@ -302,7 +301,7 @@ Ext.EventManager = function(){
 
         addListener(el, ename, fn, task, h, scope);
         return h;
-    };
+    }
 
     var pub = {
         /**
@@ -336,7 +335,7 @@ Ext.EventManager = function(){
          * <p>See {@link Ext.Element#addListener} for examples of how to use these options.</p>
          */
         addListener : function(element, eventName, fn, scope, options){
-            if(Ext.isObject(eventName)){
+            if(typeof eventName == 'object'){
                 var o = eventName, e, val;
                 for(e in o){
                     val = o[e];
@@ -516,7 +515,7 @@ Ext.EventManager = function(){
                 conn,
                 tid,
                 ajax = Ext.lib.Ajax;
-            (Ext.isObject(ajax.conn)) ? conn = ajax.conn : conn = {};
+            (typeof ajax.conn == 'object') ? conn = ajax.conn : conn = {};
             for (tid in conn) {
                 c = conn[tid];
                 if (c) {
@@ -533,13 +532,13 @@ Ext.EventManager = function(){
          * <code>{single: true}</code> be used so that the handler is removed on first invocation.
          */
         onDocumentReady : function(fn, scope, options){
-            if(Ext.isReady){ // if it already fired or document.body is present
+            if (Ext.isReady) { // if it already fired or document.body is present
                 docReadyEvent || (docReadyEvent = new Ext.util.Event());
                 docReadyEvent.addListener(fn, scope, options);
                 docReadyEvent.fire();
                 docReadyEvent.listeners = [];
-            }else{
-                if(!docReadyEvent){
+            } else {
+                if (!docReadyEvent) {
                     initDocReady();
                 }
                 options = options || {};
@@ -595,42 +594,109 @@ Ext.onReady = Ext.EventManager.onDocumentReady;
 
 //Initialize doc classes
 (function(){
-
-    var initExtCss = function(){
+    var initExtCss = function() {
         // find the body element
         var bd = document.body || document.getElementsByTagName('body')[0];
-        if(!bd){ return false; }
+        if (!bd) {
+            return false;
+        }
+        
         var cls = [' ',
                 Ext.isIE ? "ext-ie " + (Ext.isIE6 ? 'ext-ie6' : (Ext.isIE7 ? 'ext-ie7' : 'ext-ie8'))
                 : Ext.isGecko ? "ext-gecko " + (Ext.isGecko2 ? 'ext-gecko2' : 'ext-gecko3')
                 : Ext.isOpera ? "ext-opera"
                 : Ext.isWebKit ? "ext-webkit" : ""];
 
-        if(Ext.isSafari){
+        if (Ext.isSafari) {
             cls.push("ext-safari " + (Ext.isSafari2 ? 'ext-safari2' : (Ext.isSafari3 ? 'ext-safari3' : 'ext-safari4')));
-        }else if(Ext.isChrome){
+        } else if(Ext.isChrome) {
             cls.push("ext-chrome");
         }
 
-        if(Ext.isMac){
+        if (Ext.isMac) {
             cls.push("ext-mac");
         }
-        if(Ext.isLinux){
+        if (Ext.isLinux) {
             cls.push("ext-linux");
         }
 
-        if(Ext.isStrict || Ext.isBorderBox){ // add to the parent to allow for selectors like ".ext-strict .ext-ie"
+        // add to the parent to allow for selectors like ".ext-strict .ext-ie"
+        if (Ext.isStrict || Ext.isBorderBox) {
             var p = bd.parentNode;
-            if(p){
-                p.className += Ext.isStrict ? ' ext-strict' : ' ext-border-box';
+            if (p) {
+                Ext.fly(p, '_internal').addClass(((Ext.isStrict && Ext.isIE ) || (!Ext.enableForcedBoxModel && !Ext.isIE)) ? ' ext-strict' : ' ext-border-box');
             }
         }
-        bd.className += cls.join(' ');
+        // Forced border box model class applied to all elements. Bypassing javascript based box model adjustments
+        // in favor of css.  This is for non-IE browsers.
+        if (Ext.enableForcedBoxModel && !Ext.isIE) {
+            Ext.isForcedBorderBox = true;
+            cls.push("ext-forced-border-box");
+        }
+        
+        Ext.fly(bd, '_internal').addClass(cls);
         return true;
-    }
+    };
 
-    if(!initExtCss()){
+    /*
+     * Assert Ext.isReady here. If Ext is loaded after the document is ready, none of the native 
+     * DOM onReady events will fire, because they have already passed.
+     */
+    Ext.isReady = initExtCss();
+    
+    if (!Ext.isReady) {
         Ext.onReady(initExtCss);
+    }
+})();
+
+/**
+ * Code used to detect certain browser feature/quirks/bugs at startup.
+ */
+(function(){
+    var supports = Ext.apply(Ext.supports, {
+        /**
+         * In Webkit, there is an issue with getting the margin right property, see
+         * https://bugs.webkit.org/show_bug.cgi?id=13343
+         */
+        correctRightMargin: true,
+        
+        /**
+         * Webkit browsers return rgba(0, 0, 0) when a transparent color is used
+         */
+        correctTransparentColor: true,
+        
+        /**
+         * IE uses styleFloat, not cssFloat for the float property.
+         */
+        cssFloat: true
+    });
+    
+    var supportTests = function(){
+            var div = document.createElement('div'),
+                doc = document,
+                view,
+                last;
+                
+            div.innerHTML = '<div style="height:30px;width:50px;"><div style="height:20px;width:20px;"></div></div><div style="float:left;background-color:transparent;">';
+            doc.body.appendChild(div);
+            last = div.lastChild;
+            
+            if((view = doc.defaultView)){
+                if(view.getComputedStyle(div.firstChild.firstChild, null).marginRight != '0px'){
+                    supports.correctRightMargin = false;
+                }
+                if(view.getComputedStyle(last, null).backgroundColor != 'transparent'){
+                    supports.correctTransparentColor = false;
+                }
+            }
+            supports.cssFloat = !!last.style.cssFloat;
+            doc.body.removeChild(div);
+    };
+    
+    if (Ext.isReady) {
+        supportTests();    
+    } else {
+        Ext.onReady(supportTests);
     }
 })();
 
@@ -661,6 +727,7 @@ Ext.EventManager.addListener("myDiv", 'click', handleClick);
  */
 Ext.EventObject = function(){
     var E = Ext.lib.Event,
+        clickRe = /(dbl)?click/,
         // safari keypress events for special keys return bad keycodes
         safariKeys = {
             3 : 13, // enter
@@ -675,8 +742,7 @@ Ext.EventObject = function(){
             63275 : 35  // end
         },
         // normalize button clicks
-        btnMap = Ext.isIE ? {1:0,4:1,2:2} :
-                (Ext.isWebKit ? {1:0,2:1,3:2} : {0:0,1:1,2:2});
+        btnMap = Ext.isIE ? {1:0,4:1,2:2} : {0:0,1:1,2:2};
 
     Ext.EventObjectImpl = function(e){
         if(e){
@@ -695,7 +761,7 @@ Ext.EventObject = function(){
             if(e){
                 // normalize buttons
                 me.button = e.button ? btnMap[e.button] : (e.which ? e.which - 1 : -1);
-                if(e.type == 'click' && me.button == -1){
+                if(clickRe.test(e.type) && me.button == -1){
                     me.button = 0;
                 }
                 me.type = e.type;
@@ -771,7 +837,7 @@ Ext.EventObject = function(){
          * @return {Number} The key code
          */
         getKey : function(){
-            return this.normalizeKey(this.keyCode || this.charCode)
+            return this.normalizeKey(this.keyCode || this.charCode);
         },
 
         // private

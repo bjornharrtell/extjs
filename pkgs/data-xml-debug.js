@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -102,7 +102,7 @@ Ext.extend(Ext.data.XmlWriter, Ext.data.DataWriter, {
      * </ul>
      */
     // Encoding the ? here in case it's being included by some kind of page that will parse it (eg. PHP)
-    tpl: '<tpl for="."><\u003fxml version="{version}" encoding="{encoding}"\u003f><tpl if="documentRoot"><{documentRoot}><tpl for="baseParams"><tpl for="."><{name}>{value}</{name}</tpl></tpl></tpl><tpl if="records.length&gt;1"><{root}></tpl><tpl for="records"><{parent.record}><tpl for="."><{name}>{value}</{name}></tpl></{parent.record}></tpl><tpl if="records.length&gt;1"></{root}></tpl><tpl if="documentRoot"></{documentRoot}></tpl></tpl>',
+    tpl: '<tpl for="."><\u003fxml version="{version}" encoding="{encoding}"\u003f><tpl if="documentRoot"><{documentRoot}><tpl for="baseParams"><tpl for="."><{name}>{value}</{name}></tpl></tpl></tpl><tpl if="records.length&gt;1"><{root}></tpl><tpl for="records"><{parent.record}><tpl for="."><{name}>{value}</{name}></tpl></{parent.record}></tpl><tpl if="records.length&gt;1"></{root}></tpl><tpl if="documentRoot"></{documentRoot}></tpl></tpl>',
 
 
     /**
@@ -277,15 +277,16 @@ Ext.extend(Ext.data.XmlReader, Ext.data.DataReader, {
      * @return {Ext.data.Response} An instance of {@link Ext.data.Response}
      */
     readResponse : function(action, response) {
-        var q   = Ext.DomQuery,
-        doc     = response.responseXML;
+        var q = Ext.DomQuery,
+            doc = response.responseXML,
+            root = doc.documentElement || doc;
 
         // create general Response instance.
         var res = new Ext.data.Response({
             action: action,
-            success : this.getSuccess(doc),
-            message: this.getMessage(doc),
-            data: this.extractData(q.select(this.meta.record, doc) || q.select(this.meta.root, doc), false),
+            success : this.getSuccess(root),
+            message: this.getMessage(root),
+            data: this.extractData(q.select(this.meta.record, root) || q.select(this.meta.root, root), false),
             raw: doc
         });
 

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -1179,7 +1179,7 @@ Ext.dd.DragDrop.prototype = {
 };
 
 })();
-/*!
+/*
  * The drag and drop utility provides a framework for building drag and drop
  * applications.  In addition to enabling drag and drop for specific elements,
  * the drag and drop elements are tracked by the manager class, and the
@@ -1664,7 +1664,7 @@ Ext.dd.DragDropMgr = function() {
          */
         handleMouseDown: function(e, oDD) {
             if(Ext.QuickTips){
-                Ext.QuickTips.disable();
+                Ext.QuickTips.ddDisable();
             }
             if(this.dragCurrent){
                 // the original browser mouseup wasn't handled (e.g. outside FF browser window)
@@ -1722,7 +1722,7 @@ Ext.dd.DragDropMgr = function() {
         handleMouseUp: function(e) {
 
             if(Ext.QuickTips){
-                Ext.QuickTips.enable();
+                Ext.QuickTips.ddEnable();
             }
             if (! this.dragCurrent) {
                 return;
@@ -3159,11 +3159,11 @@ Ext.extend(Ext.dd.DDTarget, Ext.dd.DragDrop, {
  * @class Ext.dd.DragTracker
  * @extends Ext.util.Observable
  * A DragTracker listens for drag events on an Element and fires events at the start and end of the drag,
- * as well as during the drag. This is useful for components such as {@link Ext.Slider}, where there is
+ * as well as during the drag. This is useful for components such as {@link Ext.slider.MultiSlider}, where there is
  * an element that can be dragged around to change the Slider's value.
  * DragTracker provides a series of template methods that should be overridden to provide functionality
  * in response to detected drag operations. These are onBeforeStart, onStart, onDrag and onEnd.
- * See {@link Ext.Slider}'s initEvents function for an example implementation.
+ * See {@link Ext.slider.MultiSlider}'s initEvents function for an example implementation.
  */
 Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {    
     /**
@@ -3207,7 +3207,7 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
 	        /**
 	         * @event dragstart
 	         * @param {Object} this
-	         * @param {Object} startXY the page coordinates of the event
+	         * @param {Object} e event object
 	         */
 	        'dragstart',
 	        /**
@@ -3240,6 +3240,7 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
 
     destroy : function(){
         this.el.un('mousedown', this.onMouseDown, this);
+        delete this.el;
     },
 
     onMouseDown: function(e, target){
@@ -3249,12 +3250,14 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
             if(this.preventDefault !== false){
                 e.preventDefault();
             }
-            var doc = Ext.getDoc();
-            doc.on('mouseup', this.onMouseUp, this);
-            doc.on('mousemove', this.onMouseMove, this);
-            doc.on('selectstart', this.stopSelect, this);
+            Ext.getDoc().on({
+                scope: this,
+                mouseup: this.onMouseUp,
+                mousemove: this.onMouseMove,
+                selectstart: this.stopSelect
+            });
             if(this.autoStart){
-                this.timer = this.triggerStart.defer(this.autoStart === true ? 1000 : this.autoStart, this);
+                this.timer = this.triggerStart.defer(this.autoStart === true ? 1000 : this.autoStart, this, [e]);
             }
         }
     },
@@ -3272,7 +3275,7 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
         this.lastXY = xy;
         if(!this.active){
             if(Math.abs(s[0]-xy[0]) > this.tolerance || Math.abs(s[1]-xy[1]) > this.tolerance){
-                this.triggerStart();
+                this.triggerStart(e);
             }else{
                 return;
             }
@@ -3283,13 +3286,14 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
     },
 
     onMouseUp: function(e) {
-        var doc = Ext.getDoc();
+        var doc = Ext.getDoc(),
+            wasActive = this.active;
+            
         doc.un('mousemove', this.onMouseMove, this);
         doc.un('mouseup', this.onMouseUp, this);
         doc.un('selectstart', this.stopSelect, this);
         e.preventDefault();
         this.clearStart();
-        var wasActive = this.active;
         this.active = false;
         delete this.elRegion;
         this.fireEvent('mouseup', this, e);
@@ -3299,11 +3303,11 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
         }
     },
 
-    triggerStart: function(isTimer) {
+    triggerStart: function(e) {
         this.clearStart();
         this.active = true;
-        this.onStart(this.startXY);
-        this.fireEvent('dragstart', this, this.startXY);
+        this.onStart(e);
+        this.fireEvent('dragstart', this, e);
     },
 
     clearStart : function() {
@@ -3330,7 +3334,7 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
     /**
      * Template method which should be overridden by each DragTracker instance. Called when a drag operation starts
      * (e.g. the user has moved the tracked element beyond the specified tolerance)
-     * @param {Array} xy x and y co-ordinates of the original location of the tracked element
+     * @param {Ext.EventObject} e The event object
      */
     onStart : function(xy) {
 
@@ -3371,8 +3375,8 @@ Ext.dd.DragTracker = Ext.extend(Ext.util.Observable,  {
     },
 
     getOffset : function(constrain){
-        var xy = this.getXY(constrain);
-        var s = this.startXY;
+        var xy = this.getXY(constrain),
+            s = this.startXY;
         return [s[0]-xy[0], s[1]-xy[1]];
     },
 
@@ -3455,14 +3459,19 @@ Ext.dd.ScrollManager = function(){
         proc.el = null;
         proc.dir = "";
     };
-    
+
     var startProc = function(el, dir){
         clearProc();
         proc.el = el;
         proc.dir = dir;
-        var freq = (el.ddScrollConfig && el.ddScrollConfig.frequency) ? 
-                el.ddScrollConfig.frequency : Ext.dd.ScrollManager.frequency;
-        proc.id = setInterval(doScroll, freq);
+        var group = el.ddScrollConfig ? el.ddScrollConfig.ddGroup : undefined,
+            freq  = (el.ddScrollConfig && el.ddScrollConfig.frequency)
+                  ? el.ddScrollConfig.frequency
+                  : Ext.dd.ScrollManager.frequency;
+
+        if (group === undefined || ddm.dragCurrent.ddGroup == group) {
+            proc.id = setInterval(doScroll, freq);
+        }
     };
     
     var onFire = function(e, isDrop){
@@ -3554,7 +3563,7 @@ Ext.dd.ScrollManager = function(){
         hthresh : 25,
 
         /**
-         * The number of pixels to scroll in each scroll increment (defaults to 50)
+         * The number of pixels to scroll in each scroll increment (defaults to 100)
          * @type Number
          */
         increment : 100,
@@ -3577,6 +3586,13 @@ Ext.dd.ScrollManager = function(){
          * @type Number
          */
         animDuration: .4,
+        
+        /**
+         * The named drag drop {@link Ext.dd.DragSource#ddGroup group} to which this container belongs (defaults to undefined). 
+         * If a ddGroup is specified, then container scrolling will only occur when a dragged object is in the same ddGroup.
+         * @type String
+         */
+        ddGroup: undefined,
         
         /**
          * Manually trigger a cache refresh.
@@ -4249,21 +4265,21 @@ Ext.extend(Ext.dd.DragSource, Ext.dd.DDProxy, {
  * @param {Mixed} el The container element
  * @param {Object} config
  */
-Ext.dd.DropTarget = function(el, config){
-    this.el = Ext.get(el);
+Ext.dd.DropTarget = Ext.extend(Ext.dd.DDTarget, {
     
-    Ext.apply(this, config);
+    constructor : function(el, config){
+        this.el = Ext.get(el);
     
-    if(this.containerScroll){
-        Ext.dd.ScrollManager.register(this.el);
-    }
+        Ext.apply(this, config);
     
-    Ext.dd.DropTarget.superclass.constructor.call(this, this.el.dom, this.ddGroup || this.group, 
-          {isTarget: true});
-
-};
-
-Ext.extend(Ext.dd.DropTarget, Ext.dd.DDTarget, {
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.register(this.el);
+        }
+    
+        Ext.dd.DropTarget.superclass.constructor.call(this, this.el.dom, this.ddGroup || this.group, 
+              {isTarget: true});        
+    },
+    
     /**
      * @cfg {String} ddGroup
      * A named drag drop group to which this object belongs.  If a group is specified, then this object will only
@@ -4347,6 +4363,13 @@ Ext.extend(Ext.dd.DropTarget, Ext.dd.DDTarget, {
      */
     notifyDrop : function(dd, e, data){
         return false;
+    },
+    
+    destroy : function(){
+        Ext.dd.DropTarget.superclass.destroy.call(this);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.unregister(this.el);
+        }
     }
 });/**
  * @class Ext.dd.DragZone
@@ -4406,14 +4429,15 @@ myDataView.on('render', function(v) {
  * @param {Mixed} el The container element
  * @param {Object} config
  */
-Ext.dd.DragZone = function(el, config){
-    Ext.dd.DragZone.superclass.constructor.call(this, el, config);
-    if(this.containerScroll){
-        Ext.dd.ScrollManager.register(this.el);
-    }
-};
-
-Ext.extend(Ext.dd.DragZone, Ext.dd.DragSource, {
+Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
+    
+    constructor : function(el, config){
+        Ext.dd.DragZone.superclass.constructor.call(this, el, config);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.register(this.el);
+        }
+    },
+    
     /**
      * This property contains the data representing the dragged object. This data is set up by the implementation
      * of the {@link #getDragData} method. It must contain a <tt>ddel</tt> property, but can contain
@@ -4473,6 +4497,13 @@ Ext.extend(Ext.dd.DragZone, Ext.dd.DragSource, {
      */
     getRepairXY : function(e){
         return Ext.Element.fly(this.dragData.ddel).getXY();  
+    },
+    
+    destroy : function(){
+        Ext.dd.DragZone.superclass.destroy.call(this);
+        if(this.containerScroll){
+            Ext.dd.ScrollManager.unregister(this.el);
+        }
     }
 });/**
  * @class Ext.dd.DropZone

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -16,7 +16,7 @@ if(typeof YAHOO == "undefined"){
         A = YAHOO.util.Anim,
         libFlyweight,
         version = YAHOO.env.getVersion('yahoo').version.split('.'),
-        mouseEnterSupported = parseInt(version[0]) >= 3,
+        mouseEnterSupported = parseInt(version[0], 10) >= 3,
         mouseCache = {},
         elContains = function(parent, child){
             if(parent && parent.firstChild){

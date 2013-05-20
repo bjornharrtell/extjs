@@ -1,4 +1,4 @@
-<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.XTemplate-props"><img src="../resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.XTemplate-methods"><img src="../resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.XTemplate-events"><img src="../resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.XTemplate-configs"><img src="../resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.XTemplate"><img src="../resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.Template.html" ext:member="" ext:cls="Ext.Template">Template</a>&#13;&nbsp;&nbsp;<img src="resources/elbow-end.gif">XTemplate</pre></div><h1>Class <a href="source/XTemplate.html#cls-Ext.XTemplate">Ext.XTemplate</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.Template.html" ext:cls="Ext.Template" ext:member="">Template</a></td></tr></table><div class="description"><p>A template class that supports advanced functionality like:<div class="mdetail-params"><ul>
+<div class="body-wrap" xmlns:ext="http://www.extjs.com"><div class="top-tools"><a class="inner-link" href="#Ext.XTemplate-props"><img src="resources/images/default/s.gif" class="item-icon icon-prop">Properties</a>&#13;<a class="inner-link" href="#Ext.XTemplate-methods"><img src="resources/images/default/s.gif" class="item-icon icon-method">Methods</a>&#13;<a class="inner-link" href="#Ext.XTemplate-events"><img src="resources/images/default/s.gif" class="item-icon icon-event">Events</a>&#13;<a class="inner-link" href="#Ext.XTemplate-configs"><img src="resources/images/default/s.gif" class="item-icon icon-config">Config Options</a>&#13;<a class="bookmark" href="../docs/?class=Ext.XTemplate"><img src="resources/images/default/s.gif" class="item-icon icon-fav">Direct Link</a>&#13;</div><div class="inheritance res-block"><pre class="res-block-inner"><a href="output/Ext.Template.html" ext:member="" ext:cls="Ext.Template">Template</a>&#13;&nbsp;&nbsp;<img src="resources/elbow-end.gif">XTemplate</pre></div><h1>Class <a href="source/XTemplate.html#cls-Ext.XTemplate">Ext.XTemplate</a></h1><table cellspacing="0"><tr><td class="label">Package:</td><td class="hd-info">Ext</td></tr><tr><td class="label">Defined In:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate.js</a></td></tr><tr><td class="label">Class:</td><td class="hd-info"><a href="source/XTemplate.html#cls-Ext.XTemplate">XTemplate</a></td></tr><tr><td class="label">Extends:</td><td class="hd-info"><a href="output/Ext.Template.html" ext:cls="Ext.Template" ext:member="">Template</a></td></tr></table><div class="description"><p>A template class that supports advanced functionality like:<div class="mdetail-params"><ul>
 <li>Autofilling arrays using templates and sub-templates</li>
 <li>Conditional processing with basic comparison operators</li>
 <li>Basic math function support</li>
@@ -32,7 +32,7 @@ to true will reduce <code><a href="output/Ext.Template.html#Ext.Template-apply" 
     {
         compiled: true,      <i>// <a href="output/Ext.Template.html#Ext.Template-compile" ext:member="compile" ext:cls="Ext.Template">compile</a> immediately</i>
         disableFormats: true <i>// reduce <code><a href="output/Ext.Template.html#Ext.Template-apply" ext:member="apply" ext:cls="Ext.Template">apply</a></i></code> time since no formatting
-    }    
+    }
 );
 </code></pre>
 For a list of available format functions, see <a href="output/Ext.util.Format.html" ext:cls="Ext.util.Format">Ext.util.Format</a>.</div></div></td><td class="msource"><a href="output/Ext.Template.html#disableFormats" ext:member="#disableFormats" ext:cls="Ext.Template">Template</a></td></tr><tr class="config-row expandable inherited"><td class="micon"><a href="#expand" class="exi">&nbsp;</a></td><td class="sig"><a id="Ext.Template-re"></a><b><a href="source/Template.html#cfg-Ext.Template-re">re</a></b> : RegExp<div class="mdesc"><div class="short">The regular expression used to match template variables.
@@ -45,7 +45,7 @@ examples d...</div><div class="long">The <a href="output/Ext.Template.html#Ext.T
 the acceptable parameters to pass to the constructor. The following
 examples demonstrate all of the supported features.</p>
 <div class="mdetail-params"><ul>
-<li><b><u>Sample Data</u></b> 
+<li><b><u>Sample Data</u></b>
 <div class="sub-desc">
 <p>This is the data object used for reference in each code example:</p>
 <pre><code><b>var</b> data = {
@@ -71,7 +71,7 @@ examples demonstrate all of the supported features.</p>
 };</code></pre>
 </div>
 </li>
-<li><b><u>Auto filling of arrays</u></b> 
+<li><b><u>Auto filling of arrays</u></b>
 <div class="sub-desc">
 <p>The <b><tt>tpl</tt></b> tag and the <b><tt>for</tt></b> operator are used
 to process the provided data object:
@@ -132,7 +132,7 @@ you can access the parent object's members via the <b><tt>parent</tt></b> object
 tpl.overwrite(panel.body, data);</code></pre>
 </div>
 </li>
-<li><b><u>Conditional processing with basic comparison operators</u></b> 
+<li><b><u>Conditional processing with basic comparison operators</u></b>
 <div class="sub-desc">
 <p>The <b><tt>tpl</tt></b> tag and the <b><tt>if</tt></b> operator are used
 to provide conditional checks for deciding whether or not to render specific
@@ -163,7 +163,7 @@ Using the sample data above:
 tpl.overwrite(panel.body, data);</code></pre>
 </div>
 </li>
-<li><b><u>Basic math support</u></b> 
+<li><b><u>Basic math support</u></b>
 <div class="sub-desc">
 <p>The following basic math operators may be applied directly on numeric
 data values:</p><pre>
@@ -184,7 +184,7 @@ For example:
 tpl.overwrite(panel.body, data);</code></pre>
 </div>
 </li>
-<li><b><u>Execute arbitrary inline code with special built-in template variables</u></b> 
+<li><b><u>Execute arbitrary inline code with special built-in template variables</u></b>
 <div class="sub-desc">
 <p>Anything between <code>{[ ... ]}</code> is considered code to be executed
 in the scope of the template. There are some special variables available in that code:
@@ -213,7 +213,7 @@ This example demonstrates basic row striping using an inline code block and the
 tpl.overwrite(panel.body, data);</code></pre>
 </div>
 </li>
-<li><b><u>Template member functions</u></b> 
+<li><b><u>Template member functions</u></b>
 <div class="sub-desc">
 <p>One or more member functions can be specified in a configuration
 object passed into the XTemplate constructor for more complex processing:</p>

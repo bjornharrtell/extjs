@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -27,7 +27,7 @@ Ext.History = (function () {
     var currentToken;
 
     function getHash() {
-        var href = top.location.href, i = href.indexOf("#");
+        var href = location.href, i = href.indexOf("#");
         return i >= 0 ? href.substr(i + 1) : null;
     }
 

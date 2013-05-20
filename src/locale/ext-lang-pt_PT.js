@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -191,12 +191,12 @@ if(Ext.form.HtmlEditor){
         cls: 'x-html-editor-tip'
       },
       italic : {
-        title: 'Italico (Ctrl+I)',
-        text: 'Transforma o texto em italico.',
+        title: 'It&aacute;lico (Ctrl+I)',
+        text: 'Transforma o texto em it&aacute;lico.',
         cls: 'x-html-editor-tip'
       },
       underline : {
-        title: 'SUblinhar (Ctrl+U)',
+        title: 'Sublinhar (Ctrl+U)',
         text: 'Sublinha o texto.',
         cls: 'x-html-editor-tip'
       },

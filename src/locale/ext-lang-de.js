@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -173,7 +173,8 @@ if(Ext.form.DateField){
       maxText           : "Das Datum in diesem Feld muss vor dem {0} liegen",
       invalidText       : "{0} ist kein gültiges Datum - es muss im Format {1} eingegeben werden",
       format            : "d.m.Y",
-      altFormats        : "j.n.Y|j.n.y|j.n.|j.|j/n/Y|j/n/y|j-n-y|j-n-Y|j/n|j-n|dm|dmy|dmY|j|Y-n-j"
+      altFormats        : "j.n.Y|j.n.y|j.n.|j.|j/n/Y|j/n/y|j-n-y|j-n-Y|j/n|j-n|dm|dmy|dmY|j|Y-n-j",
+      startDay          : 1
    });
 }
 
@@ -330,4 +331,16 @@ if(Ext.form.TimeField){
     invalidText : "{0} ist keine gültige Zeit",
     format : "H:i"
    });
+}
+
+if(Ext.form.CheckboxGroup){
+  Ext.apply(Ext.form.CheckboxGroup.prototype, {
+    blankText : "Du mußt mehr als einen Eintrag aus der Gruppe auswählen"
+  });
+}
+
+if(Ext.form.RadioGroup){
+  Ext.apply(Ext.form.RadioGroup.prototype, {
+    blankText : "Du mußt einen Eintrag aus der Gruppe auswählen"
+  });
 }

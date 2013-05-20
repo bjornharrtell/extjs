@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -8,17 +8,17 @@ Ext.ns('Ext.ux');
 
 Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
     tabPosition: 'left',
-    
+
     alternateColor: false,
-    
+
     alternateCls: 'x-grouptabs-panel-alt',
-    
+
     defaultType: 'grouptab',
-    
+
     deferredRender: false,
-    
+
     activeGroup : null,
-    
+
     initComponent: function(){
         Ext.ux.GroupTabPanel.superclass.initComponent.call(this);
         
@@ -28,28 +28,33 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         );
         this.elements = 'body,header';
         this.stripTarget = 'header';
-        
+
         this.tabPosition = this.tabPosition == 'right' ? 'right' : 'left';
-        
+
         this.addClass('x-grouptabs-panel');
-        
+
         if (this.tabStyle && this.tabStyle != '') {
             this.addClass('x-grouptabs-panel-' + this.tabStyle);
         }
-        
+
         if (this.alternateColor) {
             this.addClass(this.alternateCls);
         }
-        
+
         this.on('beforeadd', function(gtp, item, index){
             this.initGroup(item, index);
-        });		     
+        });
+        this.items.each(function(item){
+            item.on('tabchange',function(item){
+                this.fireEvent('tabchange', this, item.activeTab);
+            }, this);
+        },this);
     },
-    
+
     initEvents : function() {
         this.mon(this.strip, 'mousedown', this.onStripMouseDown, this);
     },
-        
+
     onRender: function(ct, position){
         Ext.TabPanel.superclass.onRender.call(this, ct, position);
         if(this.plain){
@@ -65,16 +70,16 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         var beforeEl = (this.tabPosition=='bottom' ? this.stripWrap : null);
         this.strip = new Ext.Element(this.stripWrap.dom.firstChild);
 
-		this.header.addClass('x-grouptabs-panel-header');
-		this.bwrap.addClass('x-grouptabs-bwrap');
+        this.header.addClass('x-grouptabs-panel-header');
+        this.bwrap.addClass('x-grouptabs-bwrap');
         this.body.addClass('x-tab-panel-body-'+this.tabPosition + ' x-grouptabs-panel-body');
 
         if (!this.groupTpl) {
             var tt = new Ext.Template(
-                '<li class="{cls}" id="{id}">', 
-                '<a class="x-grouptabs-expand" onclick="return false;"></a>', 
+                '<li class="{cls}" id="{id}">',
+                '<a class="x-grouptabs-expand" onclick="return false;"></a>',
                 '<a class="x-grouptabs-text {iconCls}" href="#" onclick="return false;">',
-                '<span>{text}</span></a>', 
+                '<span>{text}</span></a>',
                 '</li>'
             );
             tt.disableFormats = true;
@@ -83,17 +88,17 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         }
         this.items.each(this.initGroup, this);
     },
-    
+
     afterRender: function(){
         Ext.ux.GroupTabPanel.superclass.afterRender.call(this);
-        
+
         this.tabJoint = Ext.fly(this.body.dom.parentNode).createChild({
             cls: 'x-tab-joint'
         });
-        
+
         this.addClass('x-tab-panel-' + this.tabPosition);
         this.header.setWidth(this.tabWidth);
-        
+
         if (this.activeGroup !== undefined) {
             var group = (typeof this.activeGroup == 'object') ? this.activeGroup : this.items.get(this.activeGroup);
             delete this.activeGroup;
@@ -103,7 +108,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
     },
 
     getGroupEl : Ext.TabPanel.prototype.getTabEl,
-        
+
     // private
     findTargets: function(e){
         var item = null,
@@ -125,7 +130,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             el: itemEl
         };
     },
-    
+
     // private
     onStripMouseDown: function(e){
         if (e.button != 0) {
@@ -145,78 +150,78 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             }
         }
     },
-    
+
     expandGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
         }
         Ext.fly(groupEl).addClass('x-grouptabs-expanded');
-		this.syncTabJoint();
+        this.syncTabJoint();
     },
-    
+
     toggleGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
-        }        
+        }
         Ext.fly(groupEl).toggleClass('x-grouptabs-expanded');
-		this.syncTabJoint();
-    },    
+        this.syncTabJoint();
+    },
 
     collapseGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
         }
         Ext.fly(groupEl).removeClass('x-grouptabs-expanded');
-		this.syncTabJoint();
+        this.syncTabJoint();
     },
-        
+
     syncTabJoint: function(groupEl){
         if (!this.tabJoint) {
             return;
         }
-        
+
         groupEl = groupEl || this.getGroupEl(this.activeGroup);
         if(groupEl) {
-            this.tabJoint.setHeight(Ext.fly(groupEl).getHeight() - 2); 
-			
+            this.tabJoint.setHeight(Ext.fly(groupEl).getHeight() - 2);
+
             var y = Ext.isGecko2 ? 0 : 1;
             if (this.tabPosition == 'left'){
                 this.tabJoint.alignTo(groupEl, 'tl-tr', [-2,y]);
             }
             else {
                 this.tabJoint.alignTo(groupEl, 'tr-tl', [1,y]);
-            }           
+            }
         }
         else {
             this.tabJoint.hide();
         }
     },
-    
+
     getActiveTab : function() {
         if(!this.activeGroup) return null;
-        return this.activeGroup.getTabEl(this.activeGroup.activeTab) || null;  
+        return this.activeGroup.getTabEl(this.activeGroup.activeTab) || null;
     },
-    
+
     onResize: function(){
         Ext.ux.GroupTabPanel.superclass.onResize.apply(this, arguments);
         this.syncTabJoint();
     },
-    
+
     createCorner: function(el, pos){
         return Ext.fly(el).createChild({
             cls: 'x-grouptabs-corner x-grouptabs-corner-' + pos
         });
     },
-    
+
     initGroup: function(group, index){
-        var before = this.strip.dom.childNodes[index],   
+        var before = this.strip.dom.childNodes[index],
             p = this.getTemplateArgs(group);
         if (index === 0) {
             p.cls += ' x-tab-first';
         }
         p.cls += ' x-grouptabs-main';
         p.text = group.getMainItem().title;
-        
+
         var el = before ? this.groupTpl.insertBefore(before, p) : this.groupTpl.append(this.strip, p),
             tl = this.createCorner(el, 'top-' + this.tabPosition),
             bl = this.createCorner(el, 'bottom-' + this.tabPosition);
@@ -239,7 +244,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             beforetabchange: this.onGroupBeforeTabChange
         });
     },
-    
+
     setActiveGroup : function(group) {
         group = this.getComponent(group);
         if(!group){
@@ -260,7 +265,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
 
             var groupEl = this.getGroupEl(group);
             Ext.fly(groupEl).addClass('x-grouptabs-strip-active');
-                        
+
             this.activeGroup = group;
             this.stack.add(group);
 
@@ -270,27 +275,27 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             this.fireEvent('groupchange', this, group);
             return true;
         }
-        return false; 
+        return false;
     },
-    
+
     onGroupBeforeTabChange: function(group, newTab, oldTab){
         if(group !== this.activeGroup || newTab !== oldTab) {
             this.strip.select('.x-grouptabs-sub > li.x-grouptabs-strip-active', true).removeClass('x-grouptabs-strip-active');
-        } 
+        }
         this.expandGroup(this.getGroupEl(group));
         if(group !== this.activeGroup) {
             return this.setActiveGroup(group);
-        }        
+        }
     },
-    
+
     getFrameHeight: function(){
         var h = this.el.getFrameWidth('tb');
         h += (this.tbar ? this.tbar.getHeight() : 0) +
         (this.bbar ? this.bbar.getHeight() : 0);
-        
+
         return h;
     },
-    
+
     adjustBodyWidth: function(w){
         return w - this.tabWidth;
     }

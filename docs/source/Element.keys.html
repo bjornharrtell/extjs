@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -26,7 +26,7 @@ Ext.Element.addMethods({
      */
     addKeyListener : function(key, fn, scope){
         var config;
-        if(!Ext.isObject(key) || Ext.isArray(key)){
+        if(typeof key != 'object' || Ext.isArray(key)){
             config = {
                 key: key,
                 fn: fn,
@@ -53,6 +53,10 @@ Ext.Element.addMethods({
     addKeyMap : function(config){
         return new Ext.KeyMap(this, config);
     }
-});</pre>    
+});
+
+//Import the newly-added Ext.Element functions into CompositeElementLite. We call this here because
+//Element.keys.js is the last extra Ext.Element include in the ext-all.js build
+Ext.CompositeElementLite.importElementMethods();</pre>    
 </body>
 </html>

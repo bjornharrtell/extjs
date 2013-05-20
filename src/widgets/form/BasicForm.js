@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -479,7 +479,16 @@ myFormPanel.getForm().submit({
         fs.each(function(f){
             var field = this.findField(f.name);
             if(field){
-                record.set(f.name, field.getValue());
+                var value = field.getValue();
+                if ( value.getGroupValue ) {
+                    value = value.getGroupValue();
+                } else if ( field.eachItem ) {
+                    value = [];
+                    field.eachItem(function(item){
+                        value.push(item.getValue());
+                    });
+                }
+                record.set(f.name, value);
             }
         }, this);
         record.endEdit();
@@ -563,6 +572,8 @@ myFormPanel.getForm().submit({
                         return false;
                     } else if (f.isComposite) {
                         return f.items.each(findMatchingField);
+                    } else if (f instanceof Ext.form.CheckboxGroup && f.rendered) {
+                        return f.eachItem(findMatchingField);
                     }
                 }
             };
@@ -668,7 +679,7 @@ myFormPanel.getForm().submit({
             key,
             val;
         this.items.each(function(f) {
-            if (dirtyOnly !== true || f.isDirty()) {
+            if (!f.disabled && (dirtyOnly !== true || f.isDirty())) {
                 n = f.getName();
                 key = o[n];
                 val = f.getValue();
@@ -735,6 +746,13 @@ myFormPanel.getForm().submit({
     remove : function(field){
         this.items.remove(field);
         return this;
+    },
+
+    /**
+     * Removes all fields from the collection that have been destroyed.
+     */
+    cleanDestroyed : function() {
+        this.items.filterBy(function(o) { return !!o.isDestroyed; }).each(this.remove, this);
     },
 
     /**

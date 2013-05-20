@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -10,21 +10,21 @@
  * @author Chris Scott
  */
 Ext.App = function(config) {
-
-    // set up StateProvider
-    this.initStateProvider();
-
-    // array of views
     this.views = [];
-
+    
+    this.initStateProvider();
+    
     Ext.apply(this, config);
-    if (!this.api.actions) { this.api.actions = {}; }
-
-    // init when onReady fires.
+    
+    if (!this.api.actions) {
+        this.api.actions = {};
+    }
+    
     Ext.onReady(this.onReady, this);
-
+    
     Ext.App.superclass.constructor.apply(this, arguments);
-}
+};
+
 Ext.extend(Ext.App, Ext.util.Observable, {
 
     /***

@@ -4,8 +4,9 @@
 <title>Ext JS Themes Example</title>
 
 	<!-- Standard includes -->
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-    <link rel="stylesheet" type="text/css" href="../../resources/css/xtheme-blue.css" /> 
+<!--     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" /> -->
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all-notheme.css" />
+<!--     <link rel="stylesheet" type="text/css" href="../../resources/css/xtheme-blue.css" />  -->
     <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
     <script type="text/javascript" src="../../ext-all-debug.js"></script>
 
@@ -24,8 +25,12 @@
 	<script type="text/javascript" src="styleswitcher.js"></script>
 	     
     <style type="text/css">
+    
+        .x-viewport, .x-viewport body {
+        }
+
         body {
-            font-family: 'Helvetica Neue',tahoma,helvetica,sans-serif;
+            font-family: Helvetica, Arial, sans-serif;
             font-size: 12px;
         }
         
@@ -44,8 +49,9 @@
             margin: 0 50px;
         }
         div#header h1 {
-            font-family: MyriadPro-Semibold, 'Myriad Pro Semibold', 'Myriad Pro', 'Trebuchet MS', Tahoma, arial, sans-serif;
-            font-size: 250%;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 24px;
+            font-weight: 600;
         }
 	    .x-viewport body {
 	        overflow: auto;
@@ -67,15 +73,15 @@
             width: auto;
         }
         form#styleswitcher select {
-            font-size: 16px;
-            line-height: 16px;
+            font-size: 13px;
+            line-height: 13px;
         }
         div#header h1 span {
             color: inherit;
-            font-family: 'Helvetica Neue',tahoma,helvetica,verdana, sans-serif;
-            font-size: 12px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 13px;
             font-weight: normal;
-            line-height: 16px;
+            line-height: 30px;
             padding-left: 25px;
         }
     </style>

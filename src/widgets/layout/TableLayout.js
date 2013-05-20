@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -182,18 +182,23 @@ Ext.layout.TableLayout = Ext.extend(Ext.layout.ContainerLayout, {
         }
         if(c && !c.rendered){
             c.render(this.getNextCell(c));
-            this.configureItem(c, position);
+            this.configureItem(c);
         }else if(c && !this.isValidParent(c, target)){
             var container = this.getNextCell(c);
             container.insertBefore(c.getPositionEl().dom, null);
             c.container = Ext.get(container);
-            this.configureItem(c, position);
+            this.configureItem(c);
         }
     },
 
     // private
     isValidParent : function(c, target){
         return c.getPositionEl().up('table', 5).dom.parentNode === (target.dom || target);
+    },
+    
+    destroy: function(){
+        delete this.table;
+        Ext.layout.TableLayout.superclass.destroy.call(this);
     }
 
     /**

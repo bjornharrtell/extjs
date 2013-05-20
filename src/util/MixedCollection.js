@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -333,7 +333,7 @@ mc.add(otherEl);
     item : function(key){
         var mk = this.map[key],
             item = mk !== undefined ? mk : (typeof key == 'number') ? this.items[key] : undefined;
-        return !Ext.isFunction(item) || this.allowFunctions ? item : null; // for prototype!
+        return typeof item != 'function' || this.allowFunctions ? item : null; // for prototype!
     },
 
     /**
@@ -412,26 +412,26 @@ mc.add(otherEl);
     _sort : function(property, dir, fn){
         var i, len,
             dsc   = String(dir).toUpperCase() == 'DESC' ? -1 : 1,
-            
+
             //this is a temporary array used to apply the sorting function
             c     = [],
             keys  = this.keys,
             items = this.items;
-        
+
         //default to a simple sorter function if one is not provided
         fn = fn || function(a, b) {
             return a - b;
         };
-        
+
         //copy all the items into a temporary array, which we will sort
         for(i = 0, len = items.length; i < len; i++){
             c[c.length] = {
-                key  : keys[i], 
-                value: items[i], 
+                key  : keys[i],
+                value: items[i],
                 index: i
             };
         }
-        
+
         //sort the temporary array
         c.sort(function(a, b){
             var v = fn(a[property], b[property]) * dsc;
@@ -440,13 +440,13 @@ mc.add(otherEl);
             }
             return v;
         });
-        
+
         //copy the temporary array back into the main this.items and this.keys objects
         for(i = 0, len = c.length; i < len; i++){
             items[i] = c[i].value;
             keys[i]  = c[i].key;
         }
-        
+
         this.fireEvent('sort', this);
     },
 
@@ -459,7 +459,7 @@ mc.add(otherEl);
     sort : function(dir, fn){
         this._sort('value', dir, fn);
     },
-    
+
     /**
      * Reorders each of the items based on a mapping from old index to new index. Internally this
      * just translates into a sort. The 'sort' event is fired whenever reordering has occured.
@@ -467,33 +467,34 @@ mc.add(otherEl);
      */
     reorder: function(mapping) {
         this.suspendEvents();
-        
-        var items     = this.items,
-            index     = 0,
-            length    = items.length,
-            order     = [],
-            remaining = [];
-        
+
+        var items = this.items,
+            index = 0,
+            length = items.length,
+            order = [],
+            remaining = [],
+            oldIndex;
+
         //object of {oldPosition: newPosition} reversed to {newPosition: oldPosition}
         for (oldIndex in mapping) {
             order[mapping[oldIndex]] = items[oldIndex];
-        } 
-        
+        }
+
         for (index = 0; index < length; index++) {
             if (mapping[index] == undefined) {
                 remaining.push(items[index]);
             }
         }
-        
+
         for (index = 0; index < length; index++) {
             if (order[index] == undefined) {
                 order[index] = remaining.shift();
             }
         }
-        
+
         this.clear();
         this.addAll(order);
-        
+
         this.resumeEvents();
         this.fireEvent('sort', this);
     },
@@ -628,7 +629,7 @@ mc.add(otherEl);
         if (!value.exec) { // not a regex
             var er = Ext.escapeRe;
             value = String(value);
-            
+
             if (anyMatch === true) {
                 value = er(value);
             } else {

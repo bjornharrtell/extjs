@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -132,7 +132,7 @@ Ext.extend(T, Ext.Container, {
 
     /**
      * @cfg {Boolean} enableOverflow
-     * Defaults to false. Configure <code>true<code> to make the toolbar provide a button
+     * Defaults to false. Configure <tt>true</tt> to make the toolbar provide a button
      * which activates a dropdown Menu to show items which overflow the Toolbar's width.
      */
     /**
@@ -376,6 +376,9 @@ Ext.extend(T, Ext.Container, {
     // private
     onRemove : function(c){
         Ext.Toolbar.superclass.onRemove.call(this);
+        if (c == this.activeMenuBtn) {
+            delete this.activeMenuBtn;
+        }
         this.trackMenu(c, true);
     },
 

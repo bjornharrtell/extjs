@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -25,7 +25,7 @@ Ext.apply(Ext.form.VTypes, {
     timeMask: /[\d\s:amp]/i
 });
  * </code></pre>
- * Another example: 
+ * Another example:
  * <pre><code>
 // custom Vtype for vtype:'IPAddress'
 Ext.apply(Ext.form.VTypes, {
@@ -51,7 +51,7 @@ Ext.form.VTypes = function(){
          * The function used to validate email addresses.  Note that this is a very basic validation -- complete
          * validation per the email RFC specifications is very complex and beyond the scope of this class, although
          * this function can be overridden if a more comprehensive validation scheme is desired.  See the validation
-         * section of the <a href="http://en.wikipedia.org/wiki/E-mail_address">Wikipedia article on email addresses</a> 
+         * section of the <a href="http://en.wikipedia.org/wiki/E-mail_address">Wikipedia article on email addresses</a>
          * for additional information.  This implementation is intended to validate the following emails:<tt>
          * 'barney@example.de', 'barney.rubble@example.com', 'barney-rubble@example.coop', 'barney+rubble@example.com'
          * </tt>.
@@ -68,12 +68,12 @@ Ext.form.VTypes = function(){
          */
         'emailText' : 'This field should be an e-mail address in the format "user@example.com"',
         /**
-         * The keystroke filter mask to be applied on email input.  See the {@link #email} method for 
+         * The keystroke filter mask to be applied on email input.  See the {@link #email} method for
          * information about more complex email validation. Defaults to:
          * <tt>/[a-z0-9_\.\-@]/i</tt>
          * @type RegExp
          */
-        'emailMask' : /[a-z0-9_\.\-@]/i,
+        'emailMask' : /[a-z0-9_\.\-@\+]/i,
 
         /**
          * The function used to validate URLs
@@ -89,7 +89,7 @@ Ext.form.VTypes = function(){
          * @type String
          */
         'urlText' : 'This field should be a URL in the format "http:/'+'/www.example.com"',
-        
+
         /**
          * The function used to validate alpha values
          * @param {String} value The value

@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -37,17 +37,18 @@
  * Create a new CookieProvider
  * @param {Object} config The configuration object
  */
-Ext.state.CookieProvider = function(config){
-    Ext.state.CookieProvider.superclass.constructor.call(this);
-    this.path = "/";
-    this.expires = new Date(new Date().getTime()+(1000*60*60*24*7)); //7 days
-    this.domain = null;
-    this.secure = false;
-    Ext.apply(this, config);
-    this.state = this.readCookies();
-};
-
-Ext.extend(Ext.state.CookieProvider, Ext.state.Provider, {
+Ext.state.CookieProvider = Ext.extend(Ext.state.Provider, {
+    
+    constructor : function(config){
+        Ext.state.CookieProvider.superclass.constructor.call(this);
+        this.path = "/";
+        this.expires = new Date(new Date().getTime()+(1000*60*60*24*7)); //7 days
+        this.domain = null;
+        this.secure = false;
+        Ext.apply(this, config);
+        this.state = this.readCookies();
+    },
+    
     // private
     set : function(name, value){
         if(typeof value == "undefined" || value === null){
@@ -66,13 +67,15 @@ Ext.extend(Ext.state.CookieProvider, Ext.state.Provider, {
 
     // private
     readCookies : function(){
-        var cookies = {};
-        var c = document.cookie + ";";
-        var re = /\s?(.*?)=(.*?);/g;
-    	var matches;
+        var cookies = {},
+            c = document.cookie + ";",
+            re = /\s?(.*?)=(.*?);/g,
+    	    matches,
+            name,
+            value;
     	while((matches = re.exec(c)) != null){
-            var name = matches[1];
-            var value = matches[2];
+            name = matches[1];
+            value = matches[2];
             if(name && name.substring(0,3) == "ys-"){
                 cookies[name.substr(3)] = this.decodeValue(value);
             }

@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -34,17 +34,17 @@
  * <li>{@link Ext.layout.MenuLayout}</li>
  * <li>{@link Ext.ColorPalette}</li>
  * </ul></div></p>
- * 
- * <p>For example usage {@link #XTemplate see the constructor}.</p>  
- *   
+ *
+ * <p>For example usage {@link #XTemplate see the constructor}.</p>
+ *
  * @constructor
  * The {@link Ext.Template#Template Ext.Template constructor} describes
  * the acceptable parameters to pass to the constructor. The following
  * examples demonstrate all of the supported features.</p>
- * 
+ *
  * <div class="mdetail-params"><ul>
- * 
- * <li><b><u>Sample Data</u></b> 
+ *
+ * <li><b><u>Sample Data</u></b>
  * <div class="sub-desc">
  * <p>This is the data object used for reference in each code example:</p>
  * <pre><code>
@@ -72,9 +72,9 @@ var data = {
  * </code></pre>
  * </div>
  * </li>
- * 
- * 
- * <li><b><u>Auto filling of arrays</u></b> 
+ *
+ *
+ * <li><b><u>Auto filling of arrays</u></b>
  * <div class="sub-desc">
  * <p>The <b><tt>tpl</tt></b> tag and the <b><tt>for</tt></b> operator are used
  * to process the provided data object:
@@ -145,9 +145,9 @@ tpl.overwrite(panel.body, data);
  * </code></pre>
  * </div>
  * </li>
- * 
- * 
- * <li><b><u>Conditional processing with basic comparison operators</u></b> 
+ *
+ *
+ * <li><b><u>Conditional processing with basic comparison operators</u></b>
  * <div class="sub-desc">
  * <p>The <b><tt>tpl</tt></b> tag and the <b><tt>if</tt></b> operator are used
  * to provide conditional checks for deciding whether or not to render specific
@@ -182,9 +182,9 @@ tpl.overwrite(panel.body, data);
  * </code></pre>
  * </div>
  * </li>
- * 
- * 
- * <li><b><u>Basic math support</u></b> 
+ *
+ *
+ * <li><b><u>Basic math support</u></b>
  * <div class="sub-desc">
  * <p>The following basic math operators may be applied directly on numeric
  * data values:</p><pre>
@@ -208,8 +208,8 @@ tpl.overwrite(panel.body, data);
  * </div>
  * </li>
  *
- * 
- * <li><b><u>Execute arbitrary inline code with special built-in template variables</u></b> 
+ *
+ * <li><b><u>Execute arbitrary inline code with special built-in template variables</u></b>
  * <div class="sub-desc">
  * <p>Anything between <code>{[ ... ]}</code> is considered code to be executed
  * in the scope of the template. There are some special variables available in that code:
@@ -240,8 +240,8 @@ tpl.overwrite(panel.body, data);
  * </code></pre>
  * </div>
  * </li>
- * 
- * <li><b><u>Template member functions</u></b> 
+ *
+ * <li><b><u>Template member functions</u></b>
  * <div class="sub-desc">
  * <p>One or more member functions can be specified in a configuration
  * object passed into the XTemplate constructor for more complex processing:</p>
@@ -278,40 +278,40 @@ tpl.overwrite(panel.body, data);
  * </code></pre>
  * </div>
  * </li>
- * 
+ *
  * </ul></div>
- * 
+ *
  * @param {Mixed} config
  */
 Ext.XTemplate = function(){
     Ext.XTemplate.superclass.constructor.apply(this, arguments);
 
     var me = this,
-    	s = me.html,
-    	re = /<tpl\b[^>]*>((?:(?=([^<]+))\2|<(?!tpl\b[^>]*>))*?)<\/tpl>/,
-    	nameRe = /^<tpl\b[^>]*?for="(.*?)"/,
-    	ifRe = /^<tpl\b[^>]*?if="(.*?)"/,
-    	execRe = /^<tpl\b[^>]*?exec="(.*?)"/,
-    	m,
-    	id = 0,
-    	tpls = [],
-    	VALUES = 'values',
-    	PARENT = 'parent',
-    	XINDEX = 'xindex',
-    	XCOUNT = 'xcount',
-    	RETURN = 'return ',
-    	WITHVALUES = 'with(values){ ';
+        s = me.html,
+        re = /<tpl\b[^>]*>((?:(?=([^<]+))\2|<(?!tpl\b[^>]*>))*?)<\/tpl>/,
+        nameRe = /^<tpl\b[^>]*?for="(.*?)"/,
+        ifRe = /^<tpl\b[^>]*?if="(.*?)"/,
+        execRe = /^<tpl\b[^>]*?exec="(.*?)"/,
+        m,
+        id = 0,
+        tpls = [],
+        VALUES = 'values',
+        PARENT = 'parent',
+        XINDEX = 'xindex',
+        XCOUNT = 'xcount',
+        RETURN = 'return ',
+        WITHVALUES = 'with(values){ ';
 
     s = ['<tpl>', s, '</tpl>'].join('');
 
     while((m = s.match(re))){
-       	var m2 = m[0].match(nameRe),
-			m3 = m[0].match(ifRe),
-       		m4 = m[0].match(execRe),
-       		exp = null,
-       		fn = null,
-       		exec = null,
-       		name = m2 && m2[1] ? m2[1] : '';
+        var m2 = m[0].match(nameRe),
+            m3 = m[0].match(ifRe),
+            m4 = m[0].match(execRe),
+            exp = null,
+            fn = null,
+            exec = null,
+            name = m2 && m2[1] ? m2[1] : '';
 
        if (m3) {
            exp = m3 && m3[1] ? m3[1] : null;
@@ -342,9 +342,9 @@ Ext.XTemplate = function(){
        s = s.replace(m[0], '{xtpl'+ id + '}');
        ++id;
     }
-	Ext.each(tpls, function(t) {
-        me.compileTpl(t);
-    });
+    for(var i = tpls.length-1; i >= 0; --i){
+        me.compileTpl(tpls[i]);
+    }
     me.master = tpls[tpls.length-1];
     me.tpls = tpls;
 };
@@ -357,10 +357,10 @@ Ext.extend(Ext.XTemplate, Ext.Template, {
     // private
     applySubTemplate : function(id, values, parent, xindex, xcount){
         var me = this,
-        	len,
-        	t = me.tpls[id],
-        	vs,
-        	buf = [];
+            len,
+            t = me.tpls[id],
+            vs,
+            buf = [];
         if ((t.test && !t.test.call(me, values, parent, xindex, xcount)) ||
             (t.exec && t.exec.call(me, values, parent, xindex, xcount))) {
             return '';
@@ -369,9 +369,9 @@ Ext.extend(Ext.XTemplate, Ext.Template, {
         len = vs.length;
         parent = t.target ? values : parent;
         if(t.target && Ext.isArray(vs)){
-	        Ext.each(vs, function(v, i) {
-                buf[buf.length] = t.compiled.call(me, v, parent, i+1, len);
-            });
+            for(var i = 0, len = vs.length; i < len; i++){
+                buf[buf.length] = t.compiled.call(me, vs[i], parent, i+1, len);
+            }
             return buf.join('');
         }
         return t.compiled.call(me, vs, parent, xindex, xcount);
@@ -380,7 +380,7 @@ Ext.extend(Ext.XTemplate, Ext.Template, {
     // private
     compileTpl : function(tpl){
         var fm = Ext.util.Format,
-       		useF = this.disableFormats !== true,
+            useF = this.disableFormats !== true,
             sep = Ext.isGecko ? "+" : ",",
             body;
 
@@ -483,6 +483,7 @@ Ext.XTemplate.prototype.apply = Ext.XTemplate.prototype.applyTemplate;
 Ext.XTemplate.from = function(el){
     el = Ext.getDom(el);
     return new Ext.XTemplate(el.value || el.innerHTML);
-};</pre>    
+};
+</pre>    
 </body>
 </html>

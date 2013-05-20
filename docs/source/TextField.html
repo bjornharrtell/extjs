@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -330,14 +330,16 @@ var myField = new Ext.form.NumberField({
 
     // private
     preFocus : function(){
-        var el = this.el;
+        var el = this.el,
+            isEmpty;
         if(this.emptyText){
             if(el.dom.value == this.emptyText){
                 this.setRawValue('');
+                isEmpty = true;
             }
             el.removeClass(this.emptyClass);
         }
-        if(this.selectOnFocus){
+        if(this.selectOnFocus || isEmpty){
             el.dom.select();
         }
     },
@@ -446,12 +448,21 @@ var myField = new Ext.form.NumberField({
     getErrors: function(value) {
         var errors = Ext.form.TextField.superclass.getErrors.apply(this, arguments);
         
-        value = value || this.processValue(this.getRawValue());        
+        value = Ext.isDefined(value) ? value : this.processValue(this.getRawValue());        
         
-        if(Ext.isFunction(this.validator)){
+        if (Ext.isFunction(this.validator)) {
             var msg = this.validator(value);
             if (msg !== true) {
                 errors.push(msg);
+            }
+        }
+        
+        if (value.length < 1 || value === this.emptyText) {
+            if (this.allowBlank) {
+                //if value is blank and allowBlank is true, there cannot be any additional errors
+                return errors;
+            } else {
+                errors.push(this.blankText);
             }
         }
         

@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -35,7 +35,7 @@
             this.itemTpl = Ext.layout.MenuLayout.prototype.itemTpl = new Ext.XTemplate(
                 '<li id="{itemId}" class="{itemCls}">',
                     '<tpl if="needsIcon">',
-                        '<img src="{icon}" class="{iconCls}"/>',
+                        '<img alt="{altText}" src="{icon}" class="{iconCls}"/>',
                     '</tpl>',
                 '</li>'
             );
@@ -60,7 +60,7 @@
             if (!a.isMenuItem && a.needsIcon) {
                 c.positionEl.addClass('x-menu-list-item-indent');
             }
-            this.configureItem(c, position);
+            this.configureItem(c);
         }else if(c && !this.isValidParent(c, target)){
             if(Ext.isNumber(position)){
                 position = target.dom.childNodes[position];
@@ -70,14 +70,17 @@
     },
 
     getItemArgs : function(c) {
-        var isMenuItem = c instanceof Ext.menu.Item;
+        var isMenuItem = c instanceof Ext.menu.Item,
+            canHaveIcon = !(isMenuItem || c instanceof Ext.menu.Separator);
+
         return {
             isMenuItem: isMenuItem,
-            needsIcon: !isMenuItem && (c.icon || c.iconCls),
+            needsIcon: canHaveIcon && (c.icon || c.iconCls),
             icon: c.icon || Ext.BLANK_IMAGE_URL,
             iconCls: 'x-menu-item-icon ' + (c.iconCls || ''),
             itemId: 'x-menu-el-' + c.id,
-            itemCls: 'x-menu-list-item '
+            itemCls: 'x-menu-list-item ',
+            altText: c.altText || ''
         };
     },
 

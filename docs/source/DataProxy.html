@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -61,7 +61,7 @@ Ext.data.DataProxy.on('write', function(proxy, action, data, res, rs) {
 });
 
 // Listen to "exception" event fired by all proxies
-Ext.data.DataProxy.on('exception', function(proxy, type, action) {
+Ext.data.DataProxy.on('exception', function(proxy, type, action, exception) {
     console.error(type + action + ' exception);
 });
  * </code></pre>
@@ -160,7 +160,7 @@ myStore.on({
          * so any Store instance may observe this event.</p>
          * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
          * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of exception events from <b>all</b>
-         * DataProxies by attaching a listener to the Ext.data.Proxy class itself.</p>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
          * <p>This event can be fired for one of two reasons:</p>
          * <div class="mdetail-params"><ul>
          * <li>remote-request <b>failed</b> : <div class="sub-desc">
@@ -248,7 +248,7 @@ myStore.on({
          * <p>Fires before a request is generated for one of the actions Ext.data.Api.actions.create|update|destroy</p>
          * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
          * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of beforewrite events from <b>all</b>
-         * DataProxies by attaching a listener to the Ext.data.Proxy class itself.</p>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
          * @param {DataProxy} this The proxy for the request
          * @param {String} action [Ext.data.Api.actions.create|update|destroy]
          * @param {Record/Record[]} rs The Record(s) to create|update|destroy.
@@ -260,7 +260,7 @@ myStore.on({
          * <p>Fires before the request-callback is called</p>
          * <p>In addition to being fired through the DataProxy instance that raised the event, this event is also fired
          * through the Ext.data.DataProxy <i>class</i> to allow for centralized processing of write events from <b>all</b>
-         * DataProxies by attaching a listener to the Ext.data.Proxy class itself.</p>
+         * DataProxies by attaching a listener to the Ext.data.DataProxy class itself.</p>
          * @param {DataProxy} this The proxy that sent the request
          * @param {String} action [Ext.data.Api.actions.create|upate|destroy]
          * @param {Object} data The data object extracted from the server-response

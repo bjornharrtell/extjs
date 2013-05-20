@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -36,15 +36,15 @@ Ext.ux.Portal = Ext.extend(Ext.Panel, {
 
 Ext.reg('portal', Ext.ux.Portal);
 
-
-Ext.ux.Portal.DropZone = function(portal, cfg){
-    this.portal = portal;
-    Ext.dd.ScrollManager.register(portal.body);
-    Ext.ux.Portal.DropZone.superclass.constructor.call(this, portal.bwrap.dom, cfg);
-    portal.body.ddScrollConfig = this.ddScrollConfig;
-};
-
-Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
+Ext.ux.Portal.DropZone = Ext.extend(Ext.dd.DropTarget, {
+    
+    constructor : function(portal, cfg){
+        this.portal = portal;
+        Ext.dd.ScrollManager.register(portal.body);
+        Ext.ux.Portal.DropZone.superclass.constructor.call(this, portal.bwrap.dom, cfg);
+        portal.body.ddScrollConfig = this.ddScrollConfig;
+    },
+    
     ddScrollConfig : {
         vthresh: 50,
         hthresh: -1,
@@ -150,24 +150,23 @@ Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
         if(!this.lastPos){
             return;
         }
-        var c = this.lastPos.c, col = this.lastPos.col, pos = this.lastPos.p;
-
-        var dropEvent = this.createEvent(dd, e, data, col, c,
-            pos !== false ? pos : c.items.getCount());
+        var c = this.lastPos.c, 
+            col = this.lastPos.col, 
+            pos = this.lastPos.p,
+            panel = dd.panel,
+            dropEvent = this.createEvent(dd, e, data, col, c,
+                pos !== false ? pos : c.items.getCount());
 
         if(this.portal.fireEvent('validatedrop', dropEvent) !== false &&
            this.portal.fireEvent('beforedrop', dropEvent) !== false){
 
             dd.proxy.getProxy().remove();
-            dd.panel.el.dom.parentNode.removeChild(dd.panel.el.dom);
+            panel.el.dom.parentNode.removeChild(dd.panel.el.dom);
             
             if(pos !== false){
-                if(c == dd.panel.ownerCt && (c.items.items.indexOf(dd.panel) <= pos)){
-                    pos++;
-                }
-                c.insert(pos, dd.panel);
+                c.insert(pos, panel);
             }else{
-                c.add(dd.panel);
+                c.add(panel);
             }
             
             c.doLayout();
@@ -199,7 +198,7 @@ Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
 
     // unregister the dropzone from ScrollManager
     unreg: function() {
-        //Ext.dd.ScrollManager.unregister(this.portal.body);
+        Ext.dd.ScrollManager.unregister(this.portal.body);
         Ext.ux.Portal.DropZone.superclass.unreg.call(this);
     }
 });

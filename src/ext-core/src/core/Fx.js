@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -222,8 +222,8 @@ el.slideIn('t', {
                 }
                 style[s1] = style[s2] = "0";                    
                 if(w){
-                    ret.width = w
-                };
+                    ret.width = w;
+                }
                 if(h){
                     ret.height = h;
                 }

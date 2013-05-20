@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -40,14 +40,6 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
         }else if(Ext.isObject(l) && !l.load){
             l = new Ext.ux.tree.TreeGridLoader(l);
         }
-        else if(l) {
-            l.createNode = function(attr) {
-                if (!attr.uiProvider) {
-                    attr.uiProvider = Ext.ux.tree.TreeGridNodeUI;
-                }
-                return Ext.tree.TreeLoader.prototype.createNode.call(this, attr);
-            }
-        }
         this.loader = l;
                             
         Ext.ux.tree.TreeGrid.superclass.initComponent.call(this);                    
@@ -69,7 +61,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
                 '<div class="x-grid3-header">',
                     '<div class="x-treegrid-header-inner">',
                         '<div class="x-grid3-header-offset">',
-                            '<table cellspacing="0" cellpadding="0" border="0"><colgroup><tpl for="columns"><col /></tpl></colgroup>',
+                            '<table style="table-layout: fixed;" cellspacing="0" cellpadding="0" border="0"><colgroup><tpl for="columns"><col /></tpl></colgroup>',
                             '<thead><tr class="x-grid3-hd-row">',
                             '<tpl for="columns">',
                             '<td class="x-grid3-hd x-grid3-cell x-treegrid-hd" style="text-align: {align};" id="', this.id, '-xlhd-{#}">',
@@ -79,7 +71,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
                                  '</div>',
                             '</td></tpl>',
                             '</tr></thead>',
-                        '</div></table>',
+                        '</table>',
                     '</div></div>',
                 '</div>',
                 '<div class="x-treegrid-root-node">',
@@ -138,7 +130,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
         this.colgroupTpl.insertFirst(this.innerCt, {columns: this.columns});
         
         if(this.hideHeaders){
-            this.header.dom.style.display = 'none';
+            this.el.child('.x-grid3-header').setDisplayed('none');
         }
         else if(this.enableHdMenu !== false){
             this.hmenu = new Ext.menu.Menu({id: this.id + '-hctx'});

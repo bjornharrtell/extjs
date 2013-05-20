@@ -1,10 +1,9 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
  */
-
 // for old browsers
 window.undefined = window.undefined;
 
@@ -19,7 +18,12 @@ Ext = {
      * The version of the framework
      * @type String
      */
-    version : '3.2.0'
+    version : '3.3.0',
+    versionDetail : {
+        major : 3,
+        minor : 3,
+        patch : 0
+    }
 };
 
 /**
@@ -51,6 +55,7 @@ Ext.apply = function(o, c, defaults){
             return r.test(ua);
         },
         DOC = document,
+        docMode = DOC.documentMode,
         isStrict = DOC.compatMode == "CSS1Compat",
         isOpera = check(/opera/),
         isChrome = check(/\bchrome\b/),
@@ -60,8 +65,8 @@ Ext.apply = function(o, c, defaults){
         isSafari3 = isSafari && check(/version\/3/),
         isSafari4 = isSafari && check(/version\/4/),
         isIE = !isOpera && check(/msie/),
-        isIE7 = isIE && check(/msie 7/),
-        isIE8 = isIE && check(/msie 8/),
+        isIE7 = isIE && (check(/msie 7/) || docMode == 7),
+        isIE8 = isIE && (check(/msie 8/) && docMode != 7),
         isIE6 = isIE && !isIE7 && !isIE8,
         isGecko = !isWebKit && check(/gecko/),
         isGecko2 = isGecko && check(/rv:1\.8/),
@@ -108,6 +113,14 @@ Ext.apply = function(o, c, defaults){
          * @type Boolean
          * @property enableFx
          */
+
+        /**
+         * HIGHLY EXPERIMENTAL
+         * True to force css based border-box model override and turning off javascript based adjustments. This is a
+         * runtime configuration and must be set before onReady.
+         * @type Boolean
+         */
+        enableForcedBoxModel : false,
 
         /**
          * True to automatically uncache orphaned Ext.Elements periodically (defaults to true)
@@ -227,7 +240,7 @@ MyGridPanel = Ext.extend(Ext.grid.GridPanel, {
             var oc = Object.prototype.constructor;
 
             return function(sb, sp, overrides){
-                if(Ext.isObject(sp)){
+                if(typeof sp == 'object'){
                     overrides = sp;
                     sp = sb;
                     sb = overrides.constructor != oc ? overrides.constructor : function(){sp.apply(this, arguments);};
@@ -394,7 +407,7 @@ Ext.urlDecode("foo=1&bar=2&bar=3&bar=4", false); // returns {foo: "1", bar: ["2"
                  } :
                  function(a, i, j){
                      return Array.prototype.slice.call(a, i || 0, j || a.length);
-                 }
+                 };
          }(),
 
         isIterable : function(v){
@@ -475,7 +488,7 @@ Ext.urlDecode("foo=1&bar=2&bar=3&bar=4", false); // returns {foo: "1", bar: ["2"
             if(Ext.isIterable(obj)){
                 Ext.each(obj, fn, scope);
                 return;
-            }else if(Ext.isObject(obj)){
+            }else if(typeof obj == 'object'){
                 for(var prop in obj){
                     if(obj.hasOwnProperty(prop)){
                         if(fn.call(scope || obj, prop, obj[prop], obj) === false){
@@ -516,7 +529,7 @@ function(el){
             if (el.dom){
                 return el.dom;
             } else {
-                if (Ext.isString(el)) {
+                if (typeof el == 'string') {
                     var e = DOC.getElementById(el);
                     // IE returns elements with the 'name' and 'id' attribute.
                     // we do a strict check to return the element with only the id attribute
@@ -541,6 +554,22 @@ function(el){
         getBody : function(){
             return Ext.get(DOC.body || DOC.documentElement);
         },
+        
+        /**
+         * Returns the current document body as an {@link Ext.Element}.
+         * @return Ext.Element The document body
+         */
+        getHead : function() {
+            var head;
+            
+            return function() {
+                if (head == undefined) {
+                    head = Ext.get(DOC.getElementsByTagName("head")[0]);
+                }
+                
+                return head;
+            };
+        }(),
 
         /**
          * Removes a DOM node from the document.
@@ -562,7 +591,7 @@ function(el){
                     d.innerHTML = '';
                     delete Ext.elCache[n.id];
                 }
-            }
+            };
         }() : function(n){
             if(n && n.parentNode && n.tagName != 'BODY'){
                 (Ext.enableNestedListenerRemoval) ? Ext.EventManager.purgeElement(n, true) : Ext.EventManager.removeAll(n);
@@ -792,7 +821,7 @@ Company.data.CustomStore = function(config) { ... }
     Ext.ns = Ext.namespace;
 })();
 
-Ext.ns("Ext.util", "Ext.lib", "Ext.data");
+Ext.ns('Ext.util', 'Ext.lib', 'Ext.data', 'Ext.supports');
 
 Ext.elCache = {};
 

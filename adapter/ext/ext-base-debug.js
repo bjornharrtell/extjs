@@ -1,10 +1,9 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
  */
-
 // for old browsers
 window.undefined = window.undefined;
 
@@ -19,7 +18,12 @@ Ext = {
      * The version of the framework
      * @type String
      */
-    version : '3.2.0'
+    version : '3.3.0',
+    versionDetail : {
+        major : 3,
+        minor : 3,
+        patch : 0
+    }
 };
 
 /**
@@ -51,6 +55,7 @@ Ext.apply = function(o, c, defaults){
             return r.test(ua);
         },
         DOC = document,
+        docMode = DOC.documentMode,
         isStrict = DOC.compatMode == "CSS1Compat",
         isOpera = check(/opera/),
         isChrome = check(/\bchrome\b/),
@@ -60,8 +65,8 @@ Ext.apply = function(o, c, defaults){
         isSafari3 = isSafari && check(/version\/3/),
         isSafari4 = isSafari && check(/version\/4/),
         isIE = !isOpera && check(/msie/),
-        isIE7 = isIE && check(/msie 7/),
-        isIE8 = isIE && check(/msie 8/),
+        isIE7 = isIE && (check(/msie 7/) || docMode == 7),
+        isIE8 = isIE && (check(/msie 8/) && docMode != 7),
         isIE6 = isIE && !isIE7 && !isIE8,
         isGecko = !isWebKit && check(/gecko/),
         isGecko2 = isGecko && check(/rv:1\.8/),
@@ -108,6 +113,14 @@ Ext.apply = function(o, c, defaults){
          * @type Boolean
          * @property enableFx
          */
+
+        /**
+         * HIGHLY EXPERIMENTAL
+         * True to force css based border-box model override and turning off javascript based adjustments. This is a
+         * runtime configuration and must be set before onReady.
+         * @type Boolean
+         */
+        enableForcedBoxModel : false,
 
         /**
          * True to automatically uncache orphaned Ext.Elements periodically (defaults to true)
@@ -227,7 +240,7 @@ MyGridPanel = Ext.extend(Ext.grid.GridPanel, {
             var oc = Object.prototype.constructor;
 
             return function(sb, sp, overrides){
-                if(Ext.isObject(sp)){
+                if(typeof sp == 'object'){
                     overrides = sp;
                     sp = sb;
                     sb = overrides.constructor != oc ? overrides.constructor : function(){sp.apply(this, arguments);};
@@ -394,7 +407,7 @@ Ext.urlDecode("foo=1&bar=2&bar=3&bar=4", false); // returns {foo: "1", bar: ["2"
                  } :
                  function(a, i, j){
                      return Array.prototype.slice.call(a, i || 0, j || a.length);
-                 }
+                 };
          }(),
 
         isIterable : function(v){
@@ -475,7 +488,7 @@ Ext.urlDecode("foo=1&bar=2&bar=3&bar=4", false); // returns {foo: "1", bar: ["2"
             if(Ext.isIterable(obj)){
                 Ext.each(obj, fn, scope);
                 return;
-            }else if(Ext.isObject(obj)){
+            }else if(typeof obj == 'object'){
                 for(var prop in obj){
                     if(obj.hasOwnProperty(prop)){
                         if(fn.call(scope || obj, prop, obj[prop], obj) === false){
@@ -516,7 +529,7 @@ function(el){
             if (el.dom){
                 return el.dom;
             } else {
-                if (Ext.isString(el)) {
+                if (typeof el == 'string') {
                     var e = DOC.getElementById(el);
                     // IE returns elements with the 'name' and 'id' attribute.
                     // we do a strict check to return the element with only the id attribute
@@ -541,6 +554,22 @@ function(el){
         getBody : function(){
             return Ext.get(DOC.body || DOC.documentElement);
         },
+        
+        /**
+         * Returns the current document body as an {@link Ext.Element}.
+         * @return Ext.Element The document body
+         */
+        getHead : function() {
+            var head;
+            
+            return function() {
+                if (head == undefined) {
+                    head = Ext.get(DOC.getElementsByTagName("head")[0]);
+                }
+                
+                return head;
+            };
+        }(),
 
         /**
          * Removes a DOM node from the document.
@@ -562,7 +591,7 @@ function(el){
                     d.innerHTML = '';
                     delete Ext.elCache[n.id];
                 }
-            }
+            };
         }() : function(n){
             if(n && n.parentNode && n.tagName != 'BODY'){
                 (Ext.enableNestedListenerRemoval) ? Ext.EventManager.purgeElement(n, true) : Ext.EventManager.removeAll(n);
@@ -792,7 +821,7 @@ Company.data.CustomStore = function(config) { ... }
     Ext.ns = Ext.namespace;
 })();
 
-Ext.ns("Ext.util", "Ext.lib", "Ext.data");
+Ext.ns('Ext.util', 'Ext.lib', 'Ext.data', 'Ext.supports');
 
 Ext.elCache = {};
 
@@ -1018,688 +1047,6 @@ Ext.applyIf(Array.prototype, {
             this.splice(index, 1);
         }
         return this;
-    }
-});
-/**
- * @class Ext
- */
-
-Ext.ns("Ext.grid", "Ext.list", "Ext.dd", "Ext.tree", "Ext.form", "Ext.menu",
-       "Ext.state", "Ext.layout", "Ext.app", "Ext.ux", "Ext.chart", "Ext.direct");
-    /**
-     * Namespace alloted for extensions to the framework.
-     * @property ux
-     * @type Object
-     */
-
-Ext.apply(Ext, function(){
-    var E = Ext, 
-        idSeed = 0,
-        scrollWidth = null;
-
-    return {
-        /**
-        * A reusable empty function
-        * @property
-        * @type Function
-        */
-        emptyFn : function(){},
-
-        /**
-         * URL to a 1x1 transparent gif image used by Ext to create inline icons with CSS background images. 
-         * In older versions of IE, this defaults to "http://extjs.com/s.gif" and you should change this to a URL on your server.
-         * For other browsers it uses an inline data URL.
-         * @type String
-         */
-        BLANK_IMAGE_URL : Ext.isIE6 || Ext.isIE7 || Ext.isAir ?
-                            'http:/' + '/extjs.com/s.gif' :
-                            'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-
-        extendX : function(supr, fn){
-            return Ext.extend(supr, fn(supr.prototype));
-        },
-
-        /**
-         * Returns the current HTML document object as an {@link Ext.Element}.
-         * @return Ext.Element The document
-         */
-        getDoc : function(){
-            return Ext.get(document);
-        },
-
-        /**
-         * Utility method for validating that a value is numeric, returning the specified default value if it is not.
-         * @param {Mixed} value Should be a number, but any type will be handled appropriately
-         * @param {Number} defaultValue The value to return if the original value is non-numeric
-         * @return {Number} Value, if numeric, else defaultValue
-         */
-        num : function(v, defaultValue){
-            v = Number(Ext.isEmpty(v) || Ext.isArray(v) || Ext.isBoolean(v) || (Ext.isString(v) && v.trim().length == 0) ? NaN : v);
-            return isNaN(v) ? defaultValue : v;
-        },
-
-        /**
-         * <p>Utility method for returning a default value if the passed value is empty.</p>
-         * <p>The value is deemed to be empty if it is<div class="mdetail-params"><ul>
-         * <li>null</li>
-         * <li>undefined</li>
-         * <li>an empty array</li>
-         * <li>a zero length string (Unless the <tt>allowBlank</tt> parameter is <tt>true</tt>)</li>
-         * </ul></div>
-         * @param {Mixed} value The value to test
-         * @param {Mixed} defaultValue The value to return if the original value is empty
-         * @param {Boolean} allowBlank (optional) true to allow zero length strings to qualify as non-empty (defaults to false)
-         * @return {Mixed} value, if non-empty, else defaultValue
-         */
-        value : function(v, defaultValue, allowBlank){
-            return Ext.isEmpty(v, allowBlank) ? defaultValue : v;
-        },
-
-        /**
-         * Escapes the passed string for use in a regular expression
-         * @param {String} str
-         * @return {String}
-         */
-        escapeRe : function(s) {
-            return s.replace(/([-.*+?^${}()|[\]\/\\])/g, "\\$1");
-        },
-
-        sequence : function(o, name, fn, scope){
-            o[name] = o[name].createSequence(fn, scope);
-        },
-
-        /**
-         * Applies event listeners to elements by selectors when the document is ready.
-         * The event name is specified with an <tt>&#64;</tt> suffix.
-         * <pre><code>
-Ext.addBehaviors({
-    // add a listener for click on all anchors in element with id foo
-    '#foo a&#64;click' : function(e, t){
-        // do something
-    },
-    
-    // add the same listener to multiple selectors (separated by comma BEFORE the &#64;)
-    '#foo a, #bar span.some-class&#64;mouseover' : function(){
-        // do something
-    }
-});
-         * </code></pre> 
-         * @param {Object} obj The list of behaviors to apply
-         */
-        addBehaviors : function(o){
-            if(!Ext.isReady){
-                Ext.onReady(function(){
-                    Ext.addBehaviors(o);
-                });
-            } else {
-                var cache = {}, // simple cache for applying multiple behaviors to same selector does query multiple times
-                    parts,
-                    b,
-                    s;
-                for (b in o) {
-                    if ((parts = b.split('@'))[1]) { // for Object prototype breakers
-                        s = parts[0];
-                        if(!cache[s]){
-                            cache[s] = Ext.select(s);
-                        }
-                        cache[s].on(parts[1], o[b]);
-                    }
-                }
-                cache = null;
-            }
-        },
-        
-        /**
-         * Utility method for getting the width of the browser scrollbar. This can differ depending on
-         * operating system settings, such as the theme or font size.
-         * @param {Boolean} force (optional) true to force a recalculation of the value.
-         * @return {Number} The width of the scrollbar.
-         */
-        getScrollBarWidth: function(force){
-            if(!Ext.isReady){
-                return 0;
-            }
-            
-            if(force === true || scrollWidth === null){
-                    // Append our div, do our calculation and then remove it
-                var div = Ext.getBody().createChild('<div class="x-hide-offsets" style="width:100px;height:50px;overflow:hidden;"><div style="height:200px;"></div></div>'),
-                    child = div.child('div', true);
-                var w1 = child.offsetWidth;
-                div.setStyle('overflow', (Ext.isWebKit || Ext.isGecko) ? 'auto' : 'scroll');
-                var w2 = child.offsetWidth;
-                div.remove();
-                // Need to add 2 to ensure we leave enough space
-                scrollWidth = w1 - w2 + 2;
-            }
-            return scrollWidth;
-        },
-
-
-        // deprecated
-        combine : function(){
-            var as = arguments, l = as.length, r = [];
-            for(var i = 0; i < l; i++){
-                var a = as[i];
-                if(Ext.isArray(a)){
-                    r = r.concat(a);
-                }else if(a.length !== undefined && !a.substr){
-                    r = r.concat(Array.prototype.slice.call(a, 0));
-                }else{
-                    r.push(a);
-                }
-            }
-            return r;
-        },
-
-        /**
-         * Copies a set of named properties fom the source object to the destination object.
-         * <p>example:<pre><code>
-ImageComponent = Ext.extend(Ext.BoxComponent, {
-    initComponent: function() {
-        this.autoEl = { tag: 'img' };
-        MyComponent.superclass.initComponent.apply(this, arguments);
-        this.initialBox = Ext.copyTo({}, this.initialConfig, 'x,y,width,height');
-    }
-});
-         * </code></pre> 
-         * @param {Object} dest The destination object.
-         * @param {Object} source The source object.
-         * @param {Array/String} names Either an Array of property names, or a comma-delimited list
-         * of property names to copy.
-         * @return {Object} The modified object.
-        */
-        copyTo : function(dest, source, names){
-            if(Ext.isString(names)){
-                names = names.split(/[,;\s]/);
-            }
-            Ext.each(names, function(name){
-                if(source.hasOwnProperty(name)){
-                    dest[name] = source[name];
-                }
-            }, this);
-            return dest;
-        },
-
-        /**
-         * Attempts to destroy any objects passed to it by removing all event listeners, removing them from the
-         * DOM (if applicable) and calling their destroy functions (if available).  This method is primarily
-         * intended for arguments of type {@link Ext.Element} and {@link Ext.Component}, but any subclass of
-         * {@link Ext.util.Observable} can be passed in.  Any number of elements and/or components can be
-         * passed into this function in a single call as separate arguments.
-         * @param {Mixed} arg1 An {@link Ext.Element}, {@link Ext.Component}, or an Array of either of these to destroy
-         * @param {Mixed} arg2 (optional)
-         * @param {Mixed} etc... (optional)
-         */
-        destroy : function(){
-            Ext.each(arguments, function(arg){
-                if(arg){
-                    if(Ext.isArray(arg)){
-                        this.destroy.apply(this, arg);
-                    }else if(Ext.isFunction(arg.destroy)){
-                        arg.destroy();
-                    }else if(arg.dom){
-                        arg.remove();
-                    }    
-                }
-            }, this);
-        },
-
-        /**
-         * Attempts to destroy and then remove a set of named properties of the passed object.
-         * @param {Object} o The object (most likely a Component) who's properties you wish to destroy.
-         * @param {Mixed} arg1 The name of the property to destroy and remove from the object.
-         * @param {Mixed} etc... More property names to destroy and remove.
-         */
-        destroyMembers : function(o, arg1, arg2, etc){
-            for(var i = 1, a = arguments, len = a.length; i < len; i++) {
-                Ext.destroy(o[a[i]]);
-                delete o[a[i]];
-            }
-        },
-
-        /**
-         * Creates a copy of the passed Array with falsy values removed.
-         * @param {Array/NodeList} arr The Array from which to remove falsy values.
-         * @return {Array} The new, compressed Array.
-         */
-        clean : function(arr){
-            var ret = [];
-            Ext.each(arr, function(v){
-                if(!!v){
-                    ret.push(v);
-                }
-            });
-            return ret;
-        },
-
-        /**
-         * Creates a copy of the passed Array, filtered to contain only unique values.
-         * @param {Array} arr The Array to filter
-         * @return {Array} The new Array containing unique values.
-         */
-        unique : function(arr){
-            var ret = [],
-                collect = {};
-
-            Ext.each(arr, function(v) {
-                if(!collect[v]){
-                    ret.push(v);
-                }
-                collect[v] = true;
-            });
-            return ret;
-        },
-
-        /**
-         * Recursively flattens into 1-d Array. Injects Arrays inline.
-         * @param {Array} arr The array to flatten
-         * @return {Array} The new, flattened array.
-         */
-        flatten : function(arr){
-            var worker = [];
-            function rFlatten(a) {
-                Ext.each(a, function(v) {
-                    if(Ext.isArray(v)){
-                        rFlatten(v);
-                    }else{
-                        worker.push(v);
-                    }
-                });
-                return worker;
-            }
-            return rFlatten(arr);
-        },
-
-        /**
-         * Returns the minimum value in the Array.
-         * @param {Array|NodeList} arr The Array from which to select the minimum value.
-         * @param {Function} comp (optional) a function to perform the comparision which determines minimization.
-         *                   If omitted the "<" operator will be used. Note: gt = 1; eq = 0; lt = -1
-         * @return {Object} The minimum value in the Array.
-         */
-        min : function(arr, comp){
-            var ret = arr[0];
-            comp = comp || function(a,b){ return a < b ? -1 : 1; };
-            Ext.each(arr, function(v) {
-                ret = comp(ret, v) == -1 ? ret : v;
-            });
-            return ret;
-        },
-
-        /**
-         * Returns the maximum value in the Array
-         * @param {Array|NodeList} arr The Array from which to select the maximum value.
-         * @param {Function} comp (optional) a function to perform the comparision which determines maximization.
-         *                   If omitted the ">" operator will be used. Note: gt = 1; eq = 0; lt = -1
-         * @return {Object} The maximum value in the Array.
-         */
-        max : function(arr, comp){
-            var ret = arr[0];
-            comp = comp || function(a,b){ return a > b ? 1 : -1; };
-            Ext.each(arr, function(v) {
-                ret = comp(ret, v) == 1 ? ret : v;
-            });
-            return ret;
-        },
-
-        /**
-         * Calculates the mean of the Array
-         * @param {Array} arr The Array to calculate the mean value of.
-         * @return {Number} The mean.
-         */
-        mean : function(arr){
-           return arr.length > 0 ? Ext.sum(arr) / arr.length : undefined;
-        },
-
-        /**
-         * Calculates the sum of the Array
-         * @param {Array} arr The Array to calculate the sum value of.
-         * @return {Number} The sum.
-         */
-        sum : function(arr){
-           var ret = 0;
-           Ext.each(arr, function(v) {
-               ret += v;
-           });
-           return ret;
-        },
-
-        /**
-         * Partitions the set into two sets: a true set and a false set.
-         * Example: 
-         * Example2: 
-         * <pre><code>
-// Example 1:
-Ext.partition([true, false, true, true, false]); // [[true, true, true], [false, false]]
-
-// Example 2:
-Ext.partition(
-    Ext.query("p"),
-    function(val){
-        return val.className == "class1"
-    }
-);
-// true are those paragraph elements with a className of "class1",
-// false set are those that do not have that className.
-         * </code></pre>
-         * @param {Array|NodeList} arr The array to partition
-         * @param {Function} truth (optional) a function to determine truth.  If this is omitted the element
-         *                   itself must be able to be evaluated for its truthfulness.
-         * @return {Array} [true<Array>,false<Array>]
-         */
-        partition : function(arr, truth){
-            var ret = [[],[]];
-            Ext.each(arr, function(v, i, a) {
-                ret[ (truth && truth(v, i, a)) || (!truth && v) ? 0 : 1].push(v);
-            });
-            return ret;
-        },
-
-        /**
-         * Invokes a method on each item in an Array.
-         * <pre><code>
-// Example:
-Ext.invoke(Ext.query("p"), "getAttribute", "id");
-// [el1.getAttribute("id"), el2.getAttribute("id"), ..., elN.getAttribute("id")]
-         * </code></pre>
-         * @param {Array|NodeList} arr The Array of items to invoke the method on.
-         * @param {String} methodName The method name to invoke.
-         * @param {...*} args Arguments to send into the method invocation.
-         * @return {Array} The results of invoking the method on each item in the array.
-         */
-        invoke : function(arr, methodName){
-            var ret = [],
-                args = Array.prototype.slice.call(arguments, 2);
-            Ext.each(arr, function(v,i) {
-                if (v && Ext.isFunction(v[methodName])) {
-                    ret.push(v[methodName].apply(v, args));
-                } else {
-                    ret.push(undefined);
-                }
-            });
-            return ret;
-        },
-
-        /**
-         * Plucks the value of a property from each item in the Array
-         * <pre><code>
-// Example:
-Ext.pluck(Ext.query("p"), "className"); // [el1.className, el2.className, ..., elN.className]
-         * </code></pre>
-         * @param {Array|NodeList} arr The Array of items to pluck the value from.
-         * @param {String} prop The property name to pluck from each element.
-         * @return {Array} The value from each item in the Array.
-         */
-        pluck : function(arr, prop){
-            var ret = [];
-            Ext.each(arr, function(v) {
-                ret.push( v[prop] );
-            });
-            return ret;
-        },
-
-        /**
-         * <p>Zips N sets together.</p>
-         * <pre><code>
-// Example 1:
-Ext.zip([1,2,3],[4,5,6]); // [[1,4],[2,5],[3,6]]
-// Example 2:
-Ext.zip(
-    [ "+", "-", "+"],
-    [  12,  10,  22],
-    [  43,  15,  96],
-    function(a, b, c){
-        return "$" + a + "" + b + "." + c
-    }
-); // ["$+12.43", "$-10.15", "$+22.96"]
-         * </code></pre>
-         * @param {Arrays|NodeLists} arr This argument may be repeated. Array(s) to contribute values.
-         * @param {Function} zipper (optional) The last item in the argument list. This will drive how the items are zipped together.
-         * @return {Array} The zipped set.
-         */
-        zip : function(){
-            var parts = Ext.partition(arguments, function( val ){ return !Ext.isFunction(val); }),
-                arrs = parts[0],
-                fn = parts[1][0],
-                len = Ext.max(Ext.pluck(arrs, "length")),
-                ret = [];
-
-            for (var i = 0; i < len; i++) {
-                ret[i] = [];
-                if(fn){
-                    ret[i] = fn.apply(fn, Ext.pluck(arrs, i));
-                }else{
-                    for (var j = 0, aLen = arrs.length; j < aLen; j++){
-                        ret[i].push( arrs[j][i] );
-                    }
-                }
-            }
-            return ret;
-        },
-
-        /**
-         * This is shorthand reference to {@link Ext.ComponentMgr#get}.
-         * Looks up an existing {@link Ext.Component Component} by {@link Ext.Component#id id}
-         * @param {String} id The component {@link Ext.Component#id id}
-         * @return Ext.Component The Component, <tt>undefined</tt> if not found, or <tt>null</tt> if a
-         * Class was found.
-        */
-        getCmp : function(id){
-            return Ext.ComponentMgr.get(id);
-        },
-
-        /**
-         * By default, Ext intelligently decides whether floating elements should be shimmed. If you are using flash,
-         * you may want to set this to true.
-         * @type Boolean
-         */
-        useShims: E.isIE6 || (E.isMac && E.isGecko2),
-
-        // inpired by a similar function in mootools library
-        /**
-         * Returns the type of object that is passed in. If the object passed in is null or undefined it
-         * return false otherwise it returns one of the following values:<div class="mdetail-params"><ul>
-         * <li><b>string</b>: If the object passed is a string</li>
-         * <li><b>number</b>: If the object passed is a number</li>
-         * <li><b>boolean</b>: If the object passed is a boolean value</li>
-         * <li><b>date</b>: If the object passed is a Date object</li>
-         * <li><b>function</b>: If the object passed is a function reference</li>
-         * <li><b>object</b>: If the object passed is an object</li>
-         * <li><b>array</b>: If the object passed is an array</li>
-         * <li><b>regexp</b>: If the object passed is a regular expression</li>
-         * <li><b>element</b>: If the object passed is a DOM Element</li>
-         * <li><b>nodelist</b>: If the object passed is a DOM NodeList</li>
-         * <li><b>textnode</b>: If the object passed is a DOM text node and contains something other than whitespace</li>
-         * <li><b>whitespace</b>: If the object passed is a DOM text node and contains only whitespace</li>
-         * </ul></div>
-         * @param {Mixed} object
-         * @return {String}
-         */
-        type : function(o){
-            if(o === undefined || o === null){
-                return false;
-            }
-            if(o.htmlElement){
-                return 'element';
-            }
-            var t = typeof o;
-            if(t == 'object' && o.nodeName) {
-                switch(o.nodeType) {
-                    case 1: return 'element';
-                    case 3: return (/\S/).test(o.nodeValue) ? 'textnode' : 'whitespace';
-                }
-            }
-            if(t == 'object' || t == 'function') {
-                switch(o.constructor) {
-                    case Array: return 'array';
-                    case RegExp: return 'regexp';
-                    case Date: return 'date';
-                }
-                if(Ext.isNumber(o.length) && Ext.isFunction(o.item)) {
-                    return 'nodelist';
-                }
-            }
-            return t;
-        },
-
-        intercept : function(o, name, fn, scope){
-            o[name] = o[name].createInterceptor(fn, scope);
-        },
-
-        // internal
-        callback : function(cb, scope, args, delay){
-            if(Ext.isFunction(cb)){
-                if(delay){
-                    cb.defer(delay, scope, args || []);
-                }else{
-                    cb.apply(scope, args || []);
-                }
-            }
-        }
-    };
-}());
-
-/**
- * @class Function
- * These functions are available on every Function object (any JavaScript function).
- */
-Ext.apply(Function.prototype, {
-    /**
-     * Create a combined function call sequence of the original function + the passed function.
-     * The resulting function returns the results of the original function.
-     * The passed fcn is called with the parameters of the original function. Example usage:
-     * <pre><code>
-var sayHi = function(name){
-    alert('Hi, ' + name);
-}
-
-sayHi('Fred'); // alerts "Hi, Fred"
-
-var sayGoodbye = sayHi.createSequence(function(name){
-    alert('Bye, ' + name);
-});
-
-sayGoodbye('Fred'); // both alerts show
-</code></pre>
-     * @param {Function} fcn The function to sequence
-     * @param {Object} scope (optional) The scope (<code><b>this</b></code> reference) in which the passed function is executed.
-     * <b>If omitted, defaults to the scope in which the original function is called or the browser window.</b>
-     * @return {Function} The new function
-     */
-    createSequence : function(fcn, scope){
-        var method = this;
-        return !Ext.isFunction(fcn) ?
-                this :
-                function(){
-                    var retval = method.apply(this || window, arguments);
-                    fcn.apply(scope || this || window, arguments);
-                    return retval;
-                };
-    }
-});
-
-
-/**
- * @class String
- * These functions are available as static methods on the JavaScript String object.
- */
-Ext.applyIf(String, {
-
-    /**
-     * Escapes the passed string for ' and \
-     * @param {String} string The string to escape
-     * @return {String} The escaped string
-     * @static
-     */
-    escape : function(string) {
-        return string.replace(/('|\\)/g, "\\$1");
-    },
-
-    /**
-     * Pads the left side of a string with a specified character.  This is especially useful
-     * for normalizing number and date strings.  Example usage:
-     * <pre><code>
-var s = String.leftPad('123', 5, '0');
-// s now contains the string: '00123'
-     * </code></pre>
-     * @param {String} string The original string
-     * @param {Number} size The total length of the output string
-     * @param {String} char (optional) The character with which to pad the original string (defaults to empty string " ")
-     * @return {String} The padded string
-     * @static
-     */
-    leftPad : function (val, size, ch) {
-        var result = String(val);
-        if(!ch) {
-            ch = " ";
-        }
-        while (result.length < size) {
-            result = ch + result;
-        }
-        return result;
-    }
-});
-
-/**
- * Utility function that allows you to easily switch a string between two alternating values.  The passed value
- * is compared to the current string, and if they are equal, the other value that was passed in is returned.  If
- * they are already different, the first value passed in is returned.  Note that this method returns the new value
- * but does not change the current string.
- * <pre><code>
-// alternate sort directions
-sort = sort.toggle('ASC', 'DESC');
-
-// instead of conditional logic:
-sort = (sort == 'ASC' ? 'DESC' : 'ASC');
-</code></pre>
- * @param {String} value The value to compare to the current string
- * @param {String} other The new value to use if the string already equals the first value passed in
- * @return {String} The new value
- */
-String.prototype.toggle = function(value, other){
-    return this == value ? other : value;
-};
-
-/**
- * Trims whitespace from either end of a string, leaving spaces within the string intact.  Example:
- * <pre><code>
-var s = '  foo bar  ';
-alert('-' + s + '-');         //alerts "- foo bar -"
-alert('-' + s.trim() + '-');  //alerts "-foo bar-"
-</code></pre>
- * @return {String} The trimmed string
- */
-String.prototype.trim = function(){
-    var re = /^\s+|\s+$/g;
-    return function(){ return this.replace(re, ""); };
-}();
-
-// here to prevent dependency on Date.js
-/**
- Returns the number of milliseconds between this date and date
- @param {Date} date (optional) Defaults to now
- @return {Number} The diff in milliseconds
- @member Date getElapsed
- */
-Date.prototype.getElapsed = function(date) {
-    return Math.abs((date || new Date()).getTime()-this.getTime());
-};
-
-
-/**
- * @class Number
- */
-Ext.applyIf(Number.prototype, {
-    /**
-     * Checks whether or not the current number is within a desired range.  If the number is already within the
-     * range it is returned, otherwise the min or max value is returned depending on which side of the range is
-     * exceeded.  Note that this method returns the constrained value but does not change the current number.
-     * @param {Number} min The minimum number in the range
-     * @param {Number} max The maximum number in the range
-     * @return {Number} The constrained value if outside the range, otherwise the current value
-     */
-    constrain : function(min, max){
-        return Math.min(Math.max(this, min), max);
     }
 });
 /**
@@ -2014,7 +1361,7 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
 		            ret = [x,y];
 	            }
          	}
-            return ret
+            return ret;
         },
 
         setXY : function(el, xy) {
@@ -2025,7 +1372,9 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
             	pos;            	
             
             for (pos in pts) {	            
-	            if(!isNaN(pts[pos])) style[pos] = pts[pos] + "px"
+	            if (!isNaN(pts[pos])) {
+	                style[pos] = pts[pos] + "px";
+                }
             }
         },
 
@@ -2037,9 +1386,7 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
             this.setXY(el, [false, y]);
         }
     };
-})();Ext.lib.Dom.getRegion = function(el) {
-    return Ext.lib.Region.getRegion(el);
-};Ext.lib.Event = function() {
+})();Ext.lib.Event = function() {
     var loadComplete = false,
         unloadListeners = {},
         retryCount = 0,
@@ -2052,10 +1399,8 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
         // constants
         POLL_RETRYS = 200,
         POLL_INTERVAL = 20,
-        EL = 0,
         TYPE = 0,
         FN = 1,
-        WFN = 2,
         OBJ = 2,
         ADJ_SCOPE = 3,
         SCROLLLEFT = 'scrollLeft',
@@ -2134,20 +1479,22 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
     function _tryPreloadAttach() {
         var ret = false,
             notAvail = [],
-            element, i, len, v,
+            element, i, v, override,
             tryAgain = !loadComplete || (retryCount > 0);
 
-        if (!locked) {
+        if(!locked){
             locked = true;
-
-            for (i = 0, len = onAvailStack.length; i < len; i++) {
+            
+            for(i = 0; i < onAvailStack.length; ++i){
                 v = onAvailStack[i];
                 if(v && (element = doc.getElementById(v.id))){
                     if(!v.checkReady || loadComplete || element.nextSibling || (doc && doc.body)) {
-                        element = v.override ? (v.override === true ? v.obj : v.override) : element;
+                        override = v.override;
+                        element = override ? (override === true ? v.obj : override) : element;
                         v.fn.call(element, v.obj);
                         onAvailStack.remove(v);
-                    } else {
+                        --i;
+                    }else{
                         notAvail.push(v);
                     }
                 }
@@ -2161,7 +1508,6 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
                 clearInterval(_interval);
                 _interval = null;
             }
-
             ret = !(locked = false);
         }
         return ret;
@@ -2276,8 +1622,8 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
         getRelatedTarget : function(ev) {
             ev = ev.browserEvent || ev;
             return this.resolveTextNode(ev.relatedTarget ||
-                    (ev.type == MOUSEOUT ? ev.toElement :
-                     ev.type == MOUSEOVER ? ev.fromElement : null));
+                (/(mouseout|mouseleave)/.test(ev.type) ? ev.toElement :
+                 /(mouseover|mouseenter)/.test(ev.type) ? ev.fromElement : null));
         },
 
         getPageX : function(ev) {
@@ -2349,18 +1695,17 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
 
         _load : function(e) {
             loadComplete = true;
-            var EU = Ext.lib.Event;
+            
             if (Ext.isIE && e !== true) {
-        // IE8 complains that _load is null or not an object
-        // so lets remove self via arguments.callee
+                // IE8 complains that _load is null or not an object
+                // so lets remove self via arguments.callee
                 doRemove(win, "load", arguments.callee);
             }
         },
 
         _unload : function(e) {
              var EU = Ext.lib.Event,
-                i, j, l, v, ul, id, len, index, scope;
-
+                i, v, ul, id, len, scope;
 
             for (id in unloadListeners) {
                 ul = unloadListeners[id];
@@ -2401,15 +1746,16 @@ Ext.TaskMgr = new Ext.util.TaskRunner();(function(){
 * http://developer.yahoo.net/yui/license.txt
 */
 Ext.lib.Ajax = function() {
-    var activeX = ['MSXML2.XMLHTTP.3.0',
-                   'MSXML2.XMLHTTP',
-                   'Microsoft.XMLHTTP'],
+    var activeX = ['Msxml2.XMLHTTP.6.0',
+                   'Msxml2.XMLHTTP.3.0',
+                   'Msxml2.XMLHTTP'],
         CONTENTTYPE = 'Content-Type';
 
     // private
     function setHeader(o) {
         var conn = o.conn,
-            prop;
+            prop,
+            headers = {};
 
         function setTheHeaders(conn, headers){
             for (prop in headers) {
@@ -2419,14 +1765,9 @@ Ext.lib.Ajax = function() {
             }
         }
 
-        if (pub.defaultHeaders) {
-            setTheHeaders(conn, pub.defaultHeaders);
-        }
-
-        if (pub.headers) {
-            setTheHeaders(conn, pub.headers);
-            delete pub.headers;
-        }
+        Ext.apply(headers, pub.headers, pub.defaultHeaders);
+        setTheHeaders(conn, headers);
+        delete pub.headers;
     }
 
     // private
@@ -2476,7 +1817,7 @@ Ext.lib.Ajax = function() {
             status : isBrokenStatus ? 204 : conn.status,
             statusText : isBrokenStatus ? 'No Content' : conn.statusText,
             getResponseHeader : function(header){return headerObj[header.toLowerCase()];},
-            getAllResponseHeaders : function(){return headerStr},
+            getAllResponseHeaders : function(){return headerStr;},
             responseText : conn.responseText,
             responseXML : conn.responseXML,
             argument : callbackArg
@@ -2558,10 +1899,28 @@ Ext.lib.Ajax = function() {
         releaseObject(o);
         responseObject = null;
     }
+    
+    function checkResponse(o, callback, conn, tId, poll, cbTimeout){
+        if (conn && conn.readyState == 4) {
+            clearInterval(poll[tId]);
+            poll[tId] = null;
+
+            if (cbTimeout) {
+                clearTimeout(pub.timeout[tId]);
+                pub.timeout[tId] = null;
+            }
+            handleTransactionResponse(o, callback);
+        }
+    }
+    
+    function checkTimeout(o, callback){
+        pub.abort(o, callback, true);
+    }
+    
 
     // private
     function handleReadyState(o, callback){
-    callback = callback || {};
+        callback = callback || {};
         var conn = o.conn,
             tId = o.tId,
             poll = pub.poll,
@@ -2569,26 +1928,9 @@ Ext.lib.Ajax = function() {
 
         if (cbTimeout) {
             pub.conn[tId] = conn;
-            pub.timeout[tId] = setTimeout(function() {
-                pub.abort(o, callback, true);
-            }, cbTimeout);
+            pub.timeout[tId] = setTimeout(checkTimeout.createCallback(o, callback), cbTimeout);
         }
-
-        poll[tId] = setInterval(
-            function() {
-                if (conn && conn.readyState == 4) {
-                    clearInterval(poll[tId]);
-                    poll[tId] = null;
-
-                    if (cbTimeout) {
-                        clearTimeout(pub.timeout[tId]);
-                        pub.timeout[tId] = null;
-                    }
-
-                    handleTransactionResponse(o, callback);
-                }
-            },
-            pub.pollInterval);
+        poll[tId] = setInterval(checkResponse.createCallback(o, callback, conn, tId, poll, cbTimeout), pub.pollInterval);
     }
 
     // private
@@ -2670,33 +2012,31 @@ Ext.lib.Ajax = function() {
         },
 
         serializeForm : function(form) {
-            var fElements = form.elements || (document.forms[form] || Ext.getDom(form)).elements,
-                hasSubmit = false,
-                encoder = encodeURIComponent,
-                element,
-                options,
-                name,
-                val,
-                data = '',
-                type;
-
-            Ext.each(fElements, function(element) {
+            var fElements = form.elements || (document.forms[form] || Ext.getDom(form)).elements, 
+                hasSubmit = false, 
+                encoder = encodeURIComponent, 
+                name, 
+                data = '', 
+                type, 
+                hasValue;
+    
+            Ext.each(fElements, function(element){
                 name = element.name;
                 type = element.type;
-
-                if (!element.disabled && name){
-                    if(/select-(one|multiple)/i.test(type)) {
-                        Ext.each(element.options, function(opt) {
+        
+                if (!element.disabled && name) {
+                    if (/select-(one|multiple)/i.test(type)) {
+                        Ext.each(element.options, function(opt){
                             if (opt.selected) {
-                                data += String.format("{0}={1}&", encoder(name), encoder((opt.hasAttribute ? opt.hasAttribute('value') : opt.getAttribute('value') !== null) ? opt.value : opt.text));
+                                hasValue = opt.hasAttribute ? opt.hasAttribute('value') : opt.getAttributeNode('value').specified;
+                                data += String.format("{0}={1}&", encoder(name), encoder(hasValue ? opt.value : opt.text));
                             }
                         });
-                    } else if(!/file|undefined|reset|button/i.test(type)) {
-                            if(!(/radio|checkbox/i.test(type) && !element.checked) && !(type == 'submit' && hasSubmit)){
-
-                                data += encoder(name) + '=' + encoder(element.value) + '&';
-                                hasSubmit = /submit/i.test(type);
-                            }
+                    } else if (!(/file|undefined|reset|button/i.test(type))) {
+                        if (!(/radio|checkbox/i.test(type) && !element.checked) && !(type == 'submit' && hasSubmit)) {
+                            data += encoder(name) + '=' + encoder(element.value) + '&';
+                            hasSubmit = /submit/i.test(type);
+                        }
                     }
                 }
             });
@@ -2763,92 +2103,7 @@ Ext.lib.Ajax = function() {
         }
     };
     return pub;
-}();	Ext.lib.Region = function(t, r, b, l) {
-		var me = this;
-        me.top = t;
-        me[1] = t;
-        me.right = r;
-        me.bottom = b;
-        me.left = l;
-        me[0] = l;
-    };
-
-    Ext.lib.Region.prototype = {
-        contains : function(region) {
-	        var me = this;
-            return ( region.left >= me.left &&
-                     region.right <= me.right &&
-                     region.top >= me.top &&
-                     region.bottom <= me.bottom );
-
-        },
-
-        getArea : function() {
-	        var me = this;
-            return ( (me.bottom - me.top) * (me.right - me.left) );
-        },
-
-        intersect : function(region) {
-            var me = this,
-            	t = Math.max(me.top, region.top),
-            	r = Math.min(me.right, region.right),
-            	b = Math.min(me.bottom, region.bottom),
-            	l = Math.max(me.left, region.left);
-
-            if (b >= t && r >= l) {
-                return new Ext.lib.Region(t, r, b, l);
-            }
-        },
-        
-        union : function(region) {
-	        var me = this,
-            	t = Math.min(me.top, region.top),
-            	r = Math.max(me.right, region.right),
-            	b = Math.max(me.bottom, region.bottom),
-            	l = Math.min(me.left, region.left);
-
-            return new Ext.lib.Region(t, r, b, l);
-        },
-
-        constrainTo : function(r) {
-	        var me = this;
-            me.top = me.top.constrain(r.top, r.bottom);
-            me.bottom = me.bottom.constrain(r.top, r.bottom);
-            me.left = me.left.constrain(r.left, r.right);
-            me.right = me.right.constrain(r.left, r.right);
-            return me;
-        },
-
-        adjust : function(t, l, b, r) {
-	        var me = this;
-            me.top += t;
-            me.left += l;
-            me.right += r;
-            me.bottom += b;
-            return me;
-        }
-    };
-
-    Ext.lib.Region.getRegion = function(el) {
-        var p = Ext.lib.Dom.getXY(el),
-        	t = p[1],
-        	r = p[0] + el.offsetWidth,
-        	b = p[1] + el.offsetHeight,
-        	l = p[0];
-
-        return new Ext.lib.Region(t, r, b, l);
-    };	Ext.lib.Point = function(x, y) {
-        if (Ext.isArray(x)) {
-            y = x[1];
-            x = x[0];
-        }
-        var me = this;
-        me.x = me.right = me.left = me[0] = x;
-        me.y = me.top = me.bottom = me[1] = y;
-    };
-
-    Ext.lib.Point.prototype = new Ext.lib.Region();
-(function(){
+}();(function(){
     var EXTLIB = Ext.lib,
         noNegatives = /width|height|opacity|padding/i,
         offsetAttribute = /^((width|height)|(top|left))$/,
@@ -3220,7 +2475,6 @@ Ext.lib.Ajax = function() {
         Ext.extend(EXTLIB.Motion, Ext.lib.AnimBase);
 
         var superclass = EXTLIB.Motion.superclass,
-            proto = EXTLIB.Motion.prototype,
             pointsRe = /^points$/i;
 
         Ext.apply(EXTLIB.Motion.prototype, {
@@ -3453,7 +2707,7 @@ Ext.lib.Ajax = function() {
     // Color Animation
     EXTLIB.Anim.color = function(el, args, duration, easing, cb, scope) {
         return EXTLIB.Anim.run(el, args, duration, easing, cb, scope, EXTLIB.ColorAnim);
-    }
+    };
 
     EXTLIB.ColorAnim = function(el, attributes, duration, method) {
         EXTLIB.ColorAnim.superclass.constructor.call(this, el, attributes, duration, method);
@@ -3616,7 +2870,7 @@ Ext.lib.Ajax = function() {
         }
     });
 })();	
-	if(Ext.isIE) {
+	if (Ext.isIE) {
         function fnCleanUp() {
             var p = Function.prototype;
             delete p.createSequence;

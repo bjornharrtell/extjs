@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -150,6 +150,11 @@ var grid = new Ext.grid.GridPanel({
      * @cfg {Function} groupRenderer This property must be configured in the {@link Ext.grid.Column} for
      * each column.
      */
+    
+    /**
+     * @cfg {Boolean} cancelEditOnToggle True to cancel any editing when the group header is toggled. Defaults to <tt>true</tt>.
+     */
+    cancelEditOnToggle: true,
 
     // private
     initTemplates : function(){
@@ -226,14 +231,13 @@ var grid = new Ext.grid.GridPanel({
         }
         if((item = items.get('showGroups'))){
             item.setDisabled(disabled);
-            item.setChecked(this.enableGrouping, true);
+            item.setChecked(this.canGroup(), true);
         }
     },
 
     // private
     renderUI : function(){
-        Ext.grid.GroupingView.superclass.renderUI.call(this);
-        this.mainBody.on('mousedown', this.interceptMouse, this);
+        var markup = Ext.grid.GroupingView.superclass.renderUI.call(this);
 
         if(this.enableGroupingMenu && this.hmenu){
             this.hmenu.add('-',{
@@ -254,6 +258,7 @@ var grid = new Ext.grid.GridPanel({
             }
             this.hmenu.on('beforeshow', this.beforeMenuShow, this);
         }
+        return markup;
     },
 
     processEvent: function(name, e){
@@ -263,12 +268,18 @@ var grid = new Ext.grid.GridPanel({
             // group value is at the end of the string
             var field = this.getGroupField(),
                 prefix = this.getPrefix(field),
-                groupValue = hd.id.substring(prefix.length);
+                groupValue = hd.id.substring(prefix.length),
+                emptyRe = new RegExp('gp-' + Ext.escapeRe(field) + '--hd');
 
             // remove trailing '-hd'
             groupValue = groupValue.substr(0, groupValue.length - 3);
-            if(groupValue){
+            
+            // also need to check for empty groups
+            if(groupValue || emptyRe.test(hd.id)){
                 this.grid.fireEvent('group' + name, this.grid, field, groupValue, e);
+            }
+            if(name == 'mousedown' && e.button == 0){
+                this.toggleGroup(hd.parentNode);
             }
         }
 
@@ -318,7 +329,9 @@ var grid = new Ext.grid.GridPanel({
         var gel = Ext.get(group);
         expanded = Ext.isDefined(expanded) ? expanded : gel.hasClass('x-grid-group-collapsed');
         if(this.state[gel.id] !== expanded){
-            this.grid.stopEditing(true);
+            if (this.cancelEditOnToggle !== false) {
+                this.grid.stopEditing(true);
+            }
             this.state[gel.id] = expanded;
             gel[expanded ? 'removeClass' : 'addClass']('x-grid-group-collapsed');
         }
@@ -350,19 +363,11 @@ var grid = new Ext.grid.GridPanel({
     },
 
     // private
-    interceptMouse : function(e){
-        var hd = e.getTarget('.x-grid-group-hd', this.mainBody);
-        if(hd){
-            e.stopEvent();
-            this.toggleGroup(hd.parentNode);
-        }
-    },
-
-    // private
     getGroup : function(v, r, groupRenderer, rowIndex, colIndex, ds){
-        var g = groupRenderer ? groupRenderer(v, {}, r, rowIndex, colIndex, ds) : String(v);
+        var column = this.cm.config[colIndex],
+            g = groupRenderer ? groupRenderer.call(column.scope, v, {}, r, rowIndex, colIndex, ds) : String(v);
         if(g === '' || g === '&#160;'){
-            g = this.cm.config[colIndex].emptyGroupText || this.emptyGroupText;
+            g = column.emptyGroupText || this.emptyGroupText;
         }
         return g;
     },
@@ -380,6 +385,32 @@ var grid = new Ext.grid.GridPanel({
         Ext.grid.GroupingView.superclass.afterRender.call(this);
         if(this.grid.deferRowRender){
             this.updateGroupWidths();
+        }
+    },
+    
+    afterRenderUI: function () {
+        Ext.grid.GroupingView.superclass.afterRenderUI.call(this);
+
+        if (this.enableGroupingMenu && this.hmenu) {
+            this.hmenu.add('-',{
+                itemId:'groupBy',
+                text: this.groupByText,
+                handler: this.onGroupByClick,
+                scope: this,
+                iconCls:'x-group-by-icon'
+            });
+            
+            if (this.enableNoGroups) {
+                this.hmenu.add({
+                    itemId:'showGroups',
+                    text: this.showGroupsText,
+                    checked: true,
+                    checkHandler: this.onShowGroupsClick,
+                    scope: this
+                });
+            }
+            
+            this.hmenu.on('beforeshow', this.beforeMenuShow, this);
         }
     },
 

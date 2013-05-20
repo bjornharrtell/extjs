@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -178,6 +178,18 @@ Ext.Window = Ext.extend(Ext.Panel, {
      * {@link #collapsed}) when displayed (defaults to true).
      */
     expandOnShow : true,
+    
+    /**
+     * @cfg {Number} showAnimDuration The number of seconds that the window show animation takes if enabled.
+     * Defaults to 0.25
+     */
+    showAnimDuration: 0.25,
+    
+    /**
+     * @cfg {Number} hideAnimDuration The number of seconds that the window hide animation takes if enabled.
+     * Defaults to 0.25
+     */
+    hideAnimDuration: 0.25,
 
     // inherited docs, same default
     collapsible : false,
@@ -460,7 +472,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
             el = f.getEl();
             ct = Ext.getDom(this.container);
             if (el && ct) {
-                if (!Ext.lib.Region.getRegion(ct).contains(Ext.lib.Region.getRegion(el.dom))){
+                if (ct != document.body && !Ext.lib.Region.getRegion(ct).contains(Ext.lib.Region.getRegion(el.dom))){
                     return;
                 }
             }
@@ -580,7 +592,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
             callback: this.afterShow.createDelegate(this, [true], false),
             scope: this,
             easing: 'easeNone',
-            duration: 0.25,
+            duration: this.showAnimDuration,
             opacity: 0.5
         }));
     },
@@ -640,7 +652,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
         this.proxy.shift(Ext.apply(this.animateTarget.getBox(), {
             callback: this.afterHide,
             scope: this,
-            duration: 0.25,
+            duration: this.hideAnimDuration,
             easing: 'easeNone',
             opacity: 0
         }));
@@ -986,19 +998,20 @@ Ext.Window = Ext.extend(Ext.Panel, {
 Ext.reg('window', Ext.Window);
 
 // private - custom Window DD implementation
-Ext.Window.DD = function(win){
-    this.win = win;
-    Ext.Window.DD.superclass.constructor.call(this, win.el.id, 'WindowDD-'+win.id);
-    this.setHandleElId(win.header.id);
-    this.scroll = false;
-};
-
-Ext.extend(Ext.Window.DD, Ext.dd.DD, {
+Ext.Window.DD = Ext.extend(Ext.dd.DD, {
+    
+    constructor : function(win){
+        this.win = win;
+        Ext.Window.DD.superclass.constructor.call(this, win.el.id, 'WindowDD-'+win.id);
+        this.setHandleElId(win.header.id);
+        this.scroll = false;        
+    },
+    
     moveOnly:true,
     headerOffsets:[100, 25],
     startDrag : function(){
         var w = this.win;
-        this.proxy = w.ghost();
+        this.proxy = w.ghost(w.initialConfig.cls);
         if(w.constrain !== false){
             var so = w.el.shadowOffset;
             this.constrainTo(w.container, {right: so, left: so, bottom: so});

@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -130,6 +130,7 @@ Ext.layout.ToolbarLayout = Ext.extend(Ext.layout.ContainerLayout, {
                 position = -1;
             } else if (!c.rendered) {
                 c.render(this.insertCell(c, side, position));
+                this.configureItem(c);
             } else {
                 if (!c.xtbHidden && !this.isValidParent(c, side.childNodes[position])) {
                     var td = this.insertCell(c, side, position);

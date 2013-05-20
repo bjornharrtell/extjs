@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -15,18 +15,21 @@ Ext.Element.addMethods({
      * @param {Boolean/Object} animate (optional) true for the default animation or a standard Element animation config object
      * @return {Element} this
      */
-    scrollTo : function(side, value, animate){
-        var top = /top/i.test(side), //check if we're scrolling top or left
-        	me = this,
-        	dom = me.dom,
+    scrollTo : function(side, value, animate) {
+        //check if we're scrolling top or left
+        var top = /top/i.test(side),
+            me = this,
+            dom = me.dom,
             prop;
         if (!animate || !me.anim) {
-            prop = 'scroll' + (top ? 'Top' : 'Left'), // just setting the value, so grab the direction
+            // just setting the value, so grab the direction
+            prop = 'scroll' + (top ? 'Top' : 'Left');
             dom[prop] = value;
-        }else{
-            prop = 'scroll' + (top ? 'Left' : 'Top'), // if scrolling top, we need to grab scrollLeft, if left, scrollTop
-            me.anim({scroll: {to: top ? [dom[prop], value] : [value, dom[prop]]}},
-            		 me.preanim(arguments, 2), 'scroll');
+        }
+        else {
+            // if scrolling top, we need to grab scrollLeft, if left, scrollTop
+            prop = 'scroll' + (top ? 'Left' : 'Top');
+            me.anim({scroll: {to: top ? [dom[prop], value] : [value, dom[prop]]}}, me.preanim(arguments, 2), 'scroll');
         }
         return me;
     },
@@ -38,31 +41,34 @@ Ext.Element.addMethods({
      * @param {Boolean} hscroll (optional) False to disable horizontal scroll (defaults to true)
      * @return {Ext.Element} this
      */
-    scrollIntoView : function(container, hscroll){
+    scrollIntoView : function(container, hscroll) {
         var c = Ext.getDom(container) || Ext.getBody().dom,
-        	el = this.dom,
-        	o = this.getOffsetsTo(c),
+            el = this.dom,
+            o = this.getOffsetsTo(c),
             l = o[0] + c.scrollLeft,
             t = o[1] + c.scrollTop,
             b = t + el.offsetHeight,
             r = l + el.offsetWidth,
-        	ch = c.clientHeight,
-        	ct = parseInt(c.scrollTop, 10),
-        	cl = parseInt(c.scrollLeft, 10),
-        	cb = ct + ch,
-        	cr = cl + c.clientWidth;
+            ch = c.clientHeight,
+            ct = parseInt(c.scrollTop, 10),
+            cl = parseInt(c.scrollLeft, 10),
+            cb = ct + ch,
+            cr = cl + c.clientWidth;
 
         if (el.offsetHeight > ch || t < ct) {
-        	c.scrollTop = t;
-        } else if (b > cb){
+            c.scrollTop = t;
+        }
+        else if (b > cb) {
             c.scrollTop = b-ch;
         }
-        c.scrollTop = c.scrollTop; // corrects IE, other browsers will ignore
+        // corrects IE, other browsers will ignore
+        c.scrollTop = c.scrollTop;
 
-        if(hscroll !== false){
-			if(el.offsetWidth > c.clientWidth || l < cl){
+        if (hscroll !== false) {
+            if (el.offsetWidth > c.clientWidth || l < cl) {
                 c.scrollLeft = l;
-            }else if(r > cr){
+            }
+            else if (r > cr) {
                 c.scrollLeft = r - c.clientWidth;
             }
             c.scrollLeft = c.scrollLeft;
@@ -71,7 +77,7 @@ Ext.Element.addMethods({
     },
 
     // private
-    scrollChildIntoView : function(child, hscroll){
+    scrollChildIntoView : function(child, hscroll) {
         Ext.fly(child, '_scrollChildIntoView').scrollIntoView(this, hscroll);
     },
     
@@ -84,11 +90,11 @@ Ext.Element.addMethods({
      * @return {Boolean} Returns true if a scroll was triggered or false if the element
      * was scrolled as far as it could go.
      */
-     scroll : function(direction, distance, animate){
-         if(!this.isScrollable()){
-             return;
-         }
-         var el = this.dom,
+     scroll : function(direction, distance, animate) {
+        if (!this.isScrollable()) {
+            return false;
+        }
+        var el = this.dom,
             l = el.scrollLeft, t = el.scrollTop,
             w = el.scrollWidth, h = el.scrollHeight,
             cw = el.clientWidth, ch = el.clientHeight,
@@ -101,12 +107,12 @@ Ext.Element.addMethods({
             };
             hash.d = hash.b;
             hash.u = hash.t;
-            
-         direction = direction.substr(0, 1);
-         if((v = hash[direction]) > -1){
+        
+        direction = direction.substr(0, 1);
+        if ((v = hash[direction]) > -1) {
             scrolled = true;
             this.scrollTo(direction == 'l' || direction == 'r' ? 'left' : 'top', v, this.preanim(arguments, 2));
-         }
-         return scrolled;
+        }
+        return scrolled;
     }
 });

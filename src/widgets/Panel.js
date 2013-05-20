@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -95,7 +95,7 @@ new Ext.Panel({
     },
     footerCfg: {
         tag: 'h2',
-        cls: 'x-panel-footer'        // same as the Default class
+        cls: 'x-panel-footer',        // same as the Default class
         html: 'footer html'
     },
     footerCssClass: 'custom-footer', // additional css class, see {@link Ext.element#addClass addClass}
@@ -1071,7 +1071,7 @@ new Ext.Panel({
                     var hdspan = hd.child('span.' + this.headerTextCls);
                     if (hdspan) {
                         Ext.DomHelper.insertBefore(hdspan.dom, {
-                            tag:'img', src: Ext.BLANK_IMAGE_URL, cls:'x-panel-inline-icon '+this.iconCls
+                            tag:'img', alt: '', src: Ext.BLANK_IMAGE_URL, cls:'x-panel-inline-icon '+this.iconCls
                         });
                     }
                  }
@@ -1106,7 +1106,7 @@ new Ext.Panel({
     getBottomToolbar : function(){
         return this.bottomToolbar;
     },
-    
+
     /**
      * Returns the {@link Ext.Toolbar toolbar} from the footer (<code>{@link #fbar}</code>) section of the panel.
      * @return {Ext.Toolbar} The toolbar
@@ -1387,7 +1387,7 @@ new Ext.Panel({
         // Reset lastSize of all sub-components so they KNOW they are in a collapsed container
         this.cascade(function(c) {
             if (c.lastSize) {
-                c.lastSize = { width: 0, height: 0 };
+                c.lastSize = { width: undefined, height: undefined };
             }
         });
         this.fireEvent('collapse', this);
@@ -1590,26 +1590,17 @@ new Ext.Panel({
      * @return {Number} The frame height
      */
     getFrameHeight : function() {
-        var h = Math.max(0, this.getHeight() - this.body.getHeight());
+        var h  = this.el.getFrameWidth('tb') + this.bwrap.getFrameWidth('tb');
+        h += (this.tbar ? this.tbar.getHeight() : 0) +
+             (this.bbar ? this.bbar.getHeight() : 0);
 
-        if (isNaN(h)) {
-            h = 0;
+        if(this.frame){
+            h += this.el.dom.firstChild.offsetHeight + this.ft.dom.offsetHeight + this.mc.getFrameWidth('tb');
+        }else{
+            h += (this.header ? this.header.getHeight() : 0) +
+                (this.footer ? this.footer.getHeight() : 0);
         }
         return h;
-
-        /* Deprecate
-            var h  = this.el.getFrameWidth('tb') + this.bwrap.getFrameWidth('tb');
-            h += (this.tbar ? this.tbar.getHeight() : 0) +
-                 (this.bbar ? this.bbar.getHeight() : 0);
-
-            if(this.frame){
-                h += this.el.dom.firstChild.offsetHeight + this.ft.dom.offsetHeight + this.mc.getFrameWidth('tb');
-            }else{
-                h += (this.header ? this.header.getHeight() : 0) +
-                    (this.footer ? this.footer.getHeight() : 0);
-            }
-            return h;
-        */
     },
 
     /**
@@ -1732,12 +1723,12 @@ panel.load({
                 this.ft,
                 this.header,
                 this.footer,
-                this.toolbars,
                 this.tbar,
                 this.bbar,
                 this.body,
                 this.mc,
-                this.bwrap
+                this.bwrap,
+                this.dd
             );
             if (this.fbar) {
                 Ext.destroy(
@@ -1745,12 +1736,8 @@ panel.load({
                     this.fbar.el
                 );
             }
-        }else{
-            Ext.destroy(
-                this.topToolbar,
-                this.bottomToolbar
-            );
         }
+        Ext.destroy(this.toolbars);
     },
 
     // private

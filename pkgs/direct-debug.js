@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -904,6 +904,7 @@ TestAction.multiply(
              * executing.
              * @param {Ext.direct.RemotingProvider} provider
              * @param {Ext.Direct.Transaction} transaction
+             * @param {Object} meta The meta data
              */            
             'beforecall',            
             /**
@@ -912,6 +913,7 @@ TestAction.multiply(
              * NOT fire after the response has come back from the call.
              * @param {Ext.direct.RemotingProvider} provider
              * @param {Ext.Direct.Transaction} transaction
+             * @param {Object} meta The meta data
              */            
             'call'
         );
@@ -1069,10 +1071,10 @@ TestAction.multiply(
             cb: scope && Ext.isFunction(hs) ? hs.createDelegate(scope) : hs
         });
 
-        if(this.fireEvent('beforecall', this, t) !== false){
+        if(this.fireEvent('beforecall', this, t, m) !== false){
             Ext.Direct.addTransaction(t);
             this.queueTransaction(t);
-            this.fireEvent('call', this, t);
+            this.fireEvent('call', this, t, m);
         }
     },
 
@@ -1086,7 +1088,7 @@ TestAction.multiply(
             isForm: true
         });
 
-        if(this.fireEvent('beforecall', this, t) !== false){
+        if(this.fireEvent('beforecall', this, t, m) !== false){
             Ext.Direct.addTransaction(t);
             var isUpload = String(form.getAttribute("enctype")).toLowerCase() == 'multipart/form-data',
                 params = {
@@ -1104,7 +1106,7 @@ TestAction.multiply(
                 isUpload: isUpload,
                 params: callback && Ext.isObject(callback.params) ? Ext.apply(params, callback.params) : params
             });
-            this.fireEvent('call', this, t);
+            this.fireEvent('call', this, t, m);
             this.processForm(t);
         }
     },

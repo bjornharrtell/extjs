@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -43,6 +43,7 @@
      * <p>Be aware that file upload packets are sent with the content type <a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form</a>
      * and some server technologies (notably JEE) may require some custom processing in order to
      * retrieve parameter names and parameter values from the packet content.</p>
+     * <p>Also note that it's not possible to check the response code of the hidden iframe, so the success handler will ALWAYS fire.</p>
      * @constructor
      * @param {Object} config a configuration object.
      */
@@ -243,7 +244,7 @@ Ext.Ajax.request({
                           failure: me.handleFailure,
                           scope: me,
                           argument: {options: o},
-                          timeout : o.timeout || me.timeout
+                          timeout : Ext.num(o.timeout, me.timeout)
                     },
                     form,
                     serForm;
@@ -261,7 +262,7 @@ Ext.Ajax.request({
 
                 if((form = Ext.getDom(o.form))){
                     url = url || form.action;
-                     if(o.isUpload || /multipart\/form-data/i.test(form.getAttribute("enctype"))) {
+                     if(o.isUpload || (/multipart\/form-data/i.test(form.getAttribute("enctype")))) {
                          return me.doFormUpload.call(me, o, p, url);
                      }
                     serForm = Ext.lib.Ajax.serializeForm(form);
@@ -355,19 +356,19 @@ Ext.Ajax.request({
                     action: form.action
                 };
 
+            /*
+             * Originally this behaviour was modified for Opera 10 to apply the secure URL after
+             * the frame had been added to the document. It seems this has since been corrected in
+             * Opera so the behaviour has been reverted, the URL will be set before being added.
+             */
             Ext.fly(frame).set({
                 id: id,
                 name: id,
-                cls: 'x-hidden'
-
-            });
+                cls: 'x-hidden',
+                src: Ext.SSL_SECURE_URL
+            }); 
 
             doc.body.appendChild(frame);
-
-            //Reset the Frame to neutral domain
-            Ext.fly(frame).set({
-               src : Ext.SSL_SECURE_URL
-            });
 
             // This is required so that IE doesn't pop the response up in a new window.
             if(Ext.isIE){

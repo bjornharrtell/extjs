@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -41,23 +41,23 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
     },
 
     handleHdMove : function(e, t){
-        var hw = 5,
+        var handleWidth = 5,
             x = e.getPageX(),
-            hd = e.getTarget('em', 3, true);
-        if(hd){
-            var r = hd.getRegion(),
-                ss = hd.dom.style,
-                pn = hd.dom.parentNode;
+            header = e.getTarget('em', 3, true);
+        if(header){
+            var region = header.getRegion(),
+                style = header.dom.style,
+                parentNode = header.dom.parentNode;
 
-            if(x - r.left <= hw && pn != pn.parentNode.firstChild){
-                this.activeHd = Ext.get(pn.previousSibling.firstChild);
-                ss.cursor = Ext.isWebKit ? 'e-resize' : 'col-resize';
-            } else if(r.right - x <= hw && pn != pn.parentNode.lastChild.previousSibling){
-                this.activeHd = hd;
-                ss.cursor = Ext.isWebKit ? 'w-resize' : 'col-resize';
+            if(x - region.left <= handleWidth && parentNode != parentNode.parentNode.firstChild){
+                this.activeHd = Ext.get(parentNode.previousSibling.firstChild);
+                style.cursor = Ext.isWebKit ? 'e-resize' : 'col-resize';
+            } else if(region.right - x <= handleWidth && parentNode != parentNode.parentNode.lastChild.previousSibling){
+                this.activeHd = header;
+                style.cursor = Ext.isWebKit ? 'w-resize' : 'col-resize';
             } else{
                 delete this.activeHd;
-                ss.cursor = '';
+                style.cursor = '';
             }
         }
     },
@@ -68,59 +68,89 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
     },
 
     onStart: function(e){
-        this.view.disableHeaders = true;
-        this.proxy = this.view.el.createChild({cls:'x-list-resizer'});
-        this.proxy.setHeight(this.view.el.getHeight());
-
-        var x = this.tracker.getXY()[0],
-            w = this.view.innerHd.getWidth();
-
-        this.hdX = this.dragHd.getX();
-        this.hdIndex = this.view.findHeaderIndex(this.dragHd);
-
-        this.proxy.setX(this.hdX);
-        this.proxy.setWidth(x-this.hdX);
-
-        this.minWidth = w*this.minPct;
-        this.maxWidth = w - (this.minWidth*(this.view.columns.length-1-this.hdIndex));
+        
+        var me = this,
+            view = me.view,
+            dragHeader = me.dragHd,
+            x = me.tracker.getXY()[0];            
+        
+        me.proxy = view.el.createChild({cls:'x-list-resizer'});
+        me.dragX = dragHeader.getX();
+        me.headerIndex = view.findHeaderIndex(dragHeader);
+        
+        me.headersDisabled = view.disableHeaders;
+        view.disableHeaders = true;
+        
+        me.proxy.setHeight(view.el.getHeight());
+        me.proxy.setX(me.dragX);
+        me.proxy.setWidth(x - me.dragX);
+        
+        this.setBoundaries();
+        
+    },
+    
+    // Sets up the boundaries for the drag/drop operation
+    setBoundaries: function(relativeX){
+        var view = this.view,
+            headerIndex = this.headerIndex,
+            width = view.innerHd.getWidth(),
+            relativeX = view.innerHd.getX(),
+            minWidth = Math.ceil(width * this.minPct),
+            maxWidth = width - minWidth,
+            numColumns = view.columns.length,
+            headers = view.innerHd.select('em', true),
+            minX = minWidth + relativeX,
+            maxX = maxWidth + relativeX,
+            header;
+          
+        if (numColumns == 2) {
+            this.minX = minX;
+            this.maxX = maxX;
+        }else{
+            header = headers.item(headerIndex + 2);
+            this.minX = headers.item(headerIndex).getX() + minWidth;
+            this.maxX = header ? header.getX() - minWidth : maxX;
+            if (headerIndex == 0) {
+                // First
+                this.minX = minX;
+            } else if (headerIndex == numColumns - 2) {
+                // Last
+                this.maxX = maxX;
+            }
+        }
     },
 
     onDrag: function(e){
-        var cursorX = this.tracker.getXY()[0];
-        this.proxy.setWidth((cursorX-this.hdX).constrain(this.minWidth, this.maxWidth));
+        var me = this,
+            cursorX = me.tracker.getXY()[0].constrain(me.minX, me.maxX);
+            
+        me.proxy.setWidth(cursorX - this.dragX);
     },
 
     onEnd: function(e){
         /* calculate desired width by measuring proxy and then remove it */
-        var nw = this.proxy.getWidth();
+        var newWidth = this.proxy.getWidth(),
+            index = this.headerIndex,
+            view = this.view,
+            columns = view.columns,
+            width = view.innerHd.getWidth(),
+            newPercent = Math.ceil(newWidth * view.maxColumnWidth / width) / 100,
+            disabled = this.headersDisabled,
+            headerCol = columns[index],
+            otherCol = columns[index + 1],
+            totalPercent = headerCol.width + otherCol.width;
+
         this.proxy.remove();
 
-        var index = this.hdIndex,
-            vw = this.view,
-            cs = vw.columns,
-            len = cs.length,
-            w = this.view.innerHd.getWidth(),
-            minPct = this.minPct * 100,
-            pct = Math.ceil((nw * vw.maxWidth) / w),
-            diff = (cs[index].width * 100) - pct,
-            eachItem = Math.floor(diff / (len-1-index)),
-            mod = diff - (eachItem * (len-1-index));
-
-        for(var i = index+1; i < len; i++){
-            var cw = (cs[i].width * 100) + eachItem,
-                ncw = Math.max(minPct, cw);
-            if(cw != ncw){
-                mod += cw - ncw;
-            }
-            cs[i].width = ncw / 100;
-        }
-        cs[index].width = pct / 100;
-        cs[index+1].width += (mod / 100);
+        headerCol.width = newPercent;
+        otherCol.width = totalPercent - newPercent;
+      
         delete this.dragHd;
-        vw.setHdWidths();
-        vw.refresh();
+        view.setHdWidths();
+        view.refresh();
+        
         setTimeout(function(){
-            vw.disableHeaders = false;
+            view.disableHeaders = disabled;
         }, 100);
     }
 });

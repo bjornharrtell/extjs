@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -108,6 +108,11 @@ Ext.apply(Ext.EventManager, function(){
         * Url used for onDocumentReady with using SSL (defaults to Ext.SSL_SECURE_URL)
         */
        ieDeferSrc : false,
+       
+       // protected, short accessor for useKeydown
+       getKeyEvent : function(){
+           return useKeydown ? 'keydown' : 'keypress';
+       },
 
        // protected for use inside the framework
        // detects whether we should use keydown or keypress based on the browser.

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -288,7 +288,7 @@ myGrid.on('render', function(grid) {
     // private
     afterRender : function(){
         Ext.ToolTip.superclass.afterRender.call(this);
-        this.anchorEl.setStyle('z-index', this.el.getZIndex() + 1);
+        this.anchorEl.setStyle('z-index', this.el.getZIndex() + 1).setVisibilityMode(Ext.Element.DISPLAY);
     },
 
     /**
@@ -555,8 +555,8 @@ myGrid.on('render', function(grid) {
         this.showAt(this.getTargetXY());
 
         if(this.anchor){
-            this.syncAnchor();
             this.anchorEl.show();
+            this.syncAnchor();
             this.constrainPosition = this.origConstrainPosition;
         }else{
             this.anchorEl.hide();
@@ -574,6 +574,8 @@ myGrid.on('render', function(grid) {
         if(this.anchor && !this.anchorEl.isVisible()){
             this.syncAnchor();
             this.anchorEl.show();
+        }else{
+            this.anchorEl.hide();
         }
     },
 
@@ -915,7 +917,7 @@ Ext.reg('quicktip', Ext.QuickTip);/**
  * configuration properties of Ext.QuickTip. These settings will apply to all
  * tooltips shown by the singleton.</p>
  * <p>Below is the summary of the configuration properties which can be used.
- * For detailed descriptions see {@link #getQuickTip}</p>
+ * For detailed descriptions see the config options for the {@link Ext.QuickTip QuickTip} class</p>
  * <p><b>QuickTips singleton configs (all are optional)</b></p>
  * <div class="mdetail-params"><ul><li>dismissDelay</li>
  * <li>hideDelay</li>
@@ -940,7 +942,7 @@ Ext.QuickTips.init();
 Ext.apply(Ext.QuickTips.getQuickTip(), {
     maxWidth: 200,
     minWidth: 100,
-    showDelay: 50,
+    showDelay: 50,      // Show 50ms after entering target
     trackMouse: true
 });
 
@@ -950,7 +952,7 @@ Ext.QuickTips.register({
     title: 'My Tooltip',
     text: 'This tooltip was added in code',
     width: 100,
-    dismissDelay: 20
+    dismissDelay: 10000 // Hide after 10 seconds hover
 });
 </code></pre>
  * <p>To register a quick tip in markup, you simply add one or more of the valid QuickTip attributes prefixed with
@@ -971,7 +973,9 @@ Ext.QuickTips.register({
  * @singleton
  */
 Ext.QuickTips = function(){
-    var tip, locks = [];
+    var tip,
+        disabled = false;
+        
     return {
         /**
          * Initialize the global QuickTips instance and prepare any quick tips.
@@ -985,10 +989,29 @@ Ext.QuickTips = function(){
                     });
                     return;
                 }
-                tip = new Ext.QuickTip({elements:'header,body'});
+                tip = new Ext.QuickTip({
+                    elements:'header,body', 
+                    disabled: disabled
+                });
                 if(autoRender !== false){
                     tip.render(Ext.getBody());
                 }
+            }
+        },
+        
+        // Protected method called by the dd classes
+        ddDisable : function(){
+            // don't disable it if we don't need to
+            if(tip && !disabled){
+                tip.disable();
+            }    
+        },
+        
+        // Protected method called by the dd classes
+        ddEnable : function(){
+            // only enable it if it hasn't been disabled
+            if(tip && !disabled){
+                tip.enable();
             }
         },
 
@@ -997,11 +1020,9 @@ Ext.QuickTips = function(){
          */
         enable : function(){
             if(tip){
-                locks.pop();
-                if(locks.length < 1){
-                    tip.enable();
-                }
+                tip.enable();
             }
+            disabled = false;
         },
 
         /**
@@ -1011,7 +1032,7 @@ Ext.QuickTips = function(){
             if(tip){
                 tip.disable();
             }
-            locks.push(1);
+            disabled = true;
         },
 
         /**
@@ -1023,7 +1044,8 @@ Ext.QuickTips = function(){
         },
 
         /**
-         * Gets the global QuickTips instance.
+         * Gets the single {@link Ext.QuickTip QuickTip} instance used to show tips from all registered elements.
+         * @return {Ext.QuickTip}
          */
         getQuickTip : function(){
             return tip;
@@ -1050,10 +1072,10 @@ Ext.QuickTips = function(){
          * Alias of {@link #register}.
          * @param {Object} config The config object
          */
-        tips :function(){
+        tips : function(){
             tip.register.apply(tip, arguments);
         }
-    }
+    };
 }();/**
  * @class Ext.slider.Tip
  * @extends Ext.Tip

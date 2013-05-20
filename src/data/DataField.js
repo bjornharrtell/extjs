@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -130,6 +130,14 @@ var myData = [
      * javascript millisecond timestamp. See {@link Date}</p>
      */
     dateFormat: null,
+    
+    /**
+     * @cfg {Boolean} useNull
+     * <p>(Optional) Use when converting received data into a Number type (either int or float). If the value cannot be parsed,
+     * null will be used if useNull is true, otherwise the value will be 0. Defaults to <tt>false</tt>
+     */
+    useNull: false,
+    
     /**
      * @cfg {Mixed} defaultValue
      * (Optional) The default value used <b>when a Record is being created by a {@link Ext.data.Reader Reader}</b>

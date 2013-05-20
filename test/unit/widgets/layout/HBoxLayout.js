@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -154,6 +154,95 @@
             assert.areEqual(50, boxes[1].width);
             assert.areEqual(50, boxes[2].width);
             assert.areEqual(50, boxes[3].width);
+        }
+    }));
+    
+    suite.add(new Y.Test.Case({
+        name: 'minWidth of items',
+        
+        setUp: function() {
+            this.layout = buildLayout();
+            
+            this.layout.beforeCt = {
+                getWidth: function() {
+                    return 0;
+                },
+                createChild: Ext.emptyFn
+            };
+            
+            this.layout.afterCt = {
+                getWidth: function() {
+                    return 0;
+                },
+                createChild: Ext.emptyFn
+            };
+            
+            this.items = [
+                buildFakeChild({width: 100, minWidth: 100}),
+                buildFakeChild({width: 200, minWidth: 120}),
+                buildFakeChild({width: 200, minWidth: 120}),
+                buildFakeChild({width: 200, minWidth: 120})
+            ];
+        },
+        
+        testAvailableWidthIsSufficient: function() {
+            var targetSize = {
+                width : 700,
+                height: 25
+            };
+            
+            var calcs = this.layout.calculateChildBoxes(this.items, targetSize),
+                boxes = calcs.boxes;
+            
+            assert.areEqual(0,   boxes[0].left);
+            assert.areEqual(100, boxes[1].left);
+            assert.areEqual(300, boxes[2].left);
+            assert.areEqual(500, boxes[3].left);
+            
+            assert.areEqual(100, boxes[0].width);
+            assert.areEqual(200, boxes[1].width);
+            assert.areEqual(200, boxes[2].width);
+            assert.areEqual(200, boxes[3].width);
+        },
+        
+        testHasShortfall: function() {
+            var targetSize = {
+                width : 500,
+                height: 25
+            };
+            
+            var calcs = this.layout.calculateChildBoxes(this.items, targetSize),
+                boxes = calcs.boxes;
+            
+            assert.areEqual(100, boxes[0].width);
+            assert.areEqual(133, boxes[1].width);
+            assert.areEqual(133, boxes[2].width);
+            assert.areEqual(134, boxes[3].width);
+            
+            assert.areEqual(0,   boxes[0].left);
+            assert.areEqual(100, boxes[1].left);
+            assert.areEqual(233, boxes[2].left);
+            assert.areEqual(366, boxes[3].left);
+        },
+        
+        testTooNarrow: function() {
+            var targetSize = {
+                width : 400,
+                height: 25
+            };
+            
+            var calcs = this.layout.calculateChildBoxes(this.items, targetSize),
+                boxes = calcs.boxes;
+            
+            assert.areEqual(0,   boxes[0].left);
+            assert.areEqual(100, boxes[1].left);
+            assert.areEqual(220, boxes[2].left);
+            assert.areEqual(340, boxes[3].left);
+            
+            assert.areEqual(100, boxes[0].width);
+            assert.areEqual(120, boxes[1].width);
+            assert.areEqual(120, boxes[2].width);
+            assert.areEqual(120, boxes[3].width);
         }
     }));
     

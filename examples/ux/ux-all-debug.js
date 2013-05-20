@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -75,15 +75,15 @@ Ext.ux.grid.BufferView = Ext.extend(Ext.grid.GridView, {
 	},
 
 	getVisibleRowCount : function(){
-		var rh = this.getCalculatedRowHeight();
-		var visibleHeight = this.scroller.dom.clientHeight;
+		var rh = this.getCalculatedRowHeight(),
+		    visibleHeight = this.scroller.dom.clientHeight;
 		return (visibleHeight < 1) ? 0 : Math.ceil(visibleHeight / rh);
 	},
 
 	getVisibleRows: function(){
-		var count = this.getVisibleRowCount();
-		var sc = this.scroller.dom.scrollTop;
-		var start = (sc == 0 ? 0 : Math.floor(sc/this.getCalculatedRowHeight())-1);
+		var count = this.getVisibleRowCount(),
+		    sc = this.scroller.dom.scrollTop,
+		    start = (sc === 0 ? 0 : Math.floor(sc/this.getCalculatedRowHeight())-1);
 		return {
 			first: Math.max(start, 0),
 			last: Math.min(start + count + 2, this.ds.getCount()-1)
@@ -91,25 +91,34 @@ Ext.ux.grid.BufferView = Ext.extend(Ext.grid.GridView, {
 	},
 
 	doRender : function(cs, rs, ds, startRow, colCount, stripe, onlyBody){
-		var ts = this.templates, ct = ts.cell, rt = ts.row, rb = ts.rowBody, last = colCount-1;
-		var rh = this.getStyleRowHeight();
-		var vr = this.getVisibleRows();
-		var tstyle = 'width:'+this.getTotalWidth()+';height:'+rh+'px;';
-		// buffers
-		var buf = [], cb, c, p = {}, rp = {tstyle: tstyle}, r;
+		var ts = this.templates, 
+            ct = ts.cell, 
+            rt = ts.row, 
+            rb = ts.rowBody, 
+            last = colCount-1,
+		    rh = this.getStyleRowHeight(),
+		    vr = this.getVisibleRows(),
+		    tstyle = 'width:'+this.getTotalWidth()+';height:'+rh+'px;',
+		    // buffers
+		    buf = [], 
+            cb, 
+            c, 
+            p = {}, 
+            rp = {tstyle: tstyle}, 
+            r;
 		for (var j = 0, len = rs.length; j < len; j++) {
 			r = rs[j]; cb = [];
-			var rowIndex = (j+startRow);
-			var visible = rowIndex >= vr.first && rowIndex <= vr.last;
+			var rowIndex = (j+startRow),
+			    visible = rowIndex >= vr.first && rowIndex <= vr.last;
 			if (visible) {
 				for (var i = 0; i < colCount; i++) {
 					c = cs[i];
 					p.id = c.id;
-					p.css = i == 0 ? 'x-grid3-cell-first ' : (i == last ? 'x-grid3-cell-last ' : '');
+					p.css = i === 0 ? 'x-grid3-cell-first ' : (i == last ? 'x-grid3-cell-last ' : '');
 					p.attr = p.cellAttr = "";
 					p.value = c.renderer(r.data[c.name], p, r, rowIndex, i, ds);
 					p.style = c.style;
-					if (p.value == undefined || p.value === "") {
+					if (p.value === undefined || p.value === "") {
 						p.value = "&#160;";
 					}
 					if (r.dirty && typeof r.modified[c.name] !== 'undefined') {
@@ -119,7 +128,7 @@ Ext.ux.grid.BufferView = Ext.extend(Ext.grid.GridView, {
 				}
 			}
 			var alt = [];
-			if(stripe && ((rowIndex+1) % 2 == 0)){
+			if(stripe && ((rowIndex+1) % 2 === 0)){
 			    alt[0] = "x-grid3-row-alt";
 			}
 			if(r.dirty){
@@ -167,15 +176,17 @@ Ext.ux.grid.BufferView = Ext.extend(Ext.grid.GridView, {
 
 	doUpdate: function(){
 		if (this.getVisibleRowCount() > 0) {
-			var g = this.grid, cm = g.colModel, ds = g.store;
-		        var cs = this.getColumnData();
-
-		        var vr = this.getVisibleRows();
+			var g = this.grid, 
+                cm = g.colModel, 
+                ds = g.store,
+    	        cs = this.getColumnData(),
+		        vr = this.getVisibleRows(),
+                row;
 			for (var i = vr.first; i <= vr.last; i++) {
 				// if row is NOT rendered and is visible, render it
-				if(!this.isRowRendered(i)){
+				if(!this.isRowRendered(i) && (row = this.getRow(i))){
 					var html = this.doRender(cs, [ds.getAt(i)], ds, i, cm.getColumnCount(), g.stripeRows, true);
-					this.getRow(i).innerHTML = html;
+					row.innerHTML = html;
 				}
 			}
 			this.clean();
@@ -211,13 +222,26 @@ Ext.ux.grid.BufferView = Ext.extend(Ext.grid.GridView, {
 			}
 		}
 	},
+    
+    removeTask: function(name){
+        var task = this[name];
+        if(task && task.cancel){
+            task.cancel();
+            this[name] = null;
+        }
+    },
+    
+    destroy : function(){
+        this.removeTask('cleanTask');
+        this.removeTask('renderTask');  
+        Ext.ux.grid.BufferView.superclass.destroy.call(this);
+    },
 
 	layout: function(){
 		Ext.ux.grid.BufferView.superclass.layout.call(this);
 		this.update();
 	}
-});
-// We are adding these custom layouts to a namespace that does not
+});// We are adding these custom layouts to a namespace that does not
 // exist by default in Ext, so we have to add the namespace first:
 Ext.ns('Ext.ux.layout');
 
@@ -277,80 +301,67 @@ Ext.ns('Ext.ux.grid');
 
 /**
  * @class Ext.ux.grid.CheckColumn
- * @extends Object
- * GridPanel plugin to add a column with check boxes to a grid.
+ * @extends Ext.grid.Column
+ * <p>A Column subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.</p>
+ * <p><b>Note. As of ExtJS 3.3 this no longer has to be configured as a plugin of the GridPanel.</b></p>
  * <p>Example usage:</p>
  * <pre><code>
-// create the column
-var checkColumn = new Ext.grid.CheckColumn({
-   header: 'Indoor?',
-   dataIndex: 'indoor',
-   id: 'check',
-   width: 55
-});
-
-// add the column to the column model
 var cm = new Ext.grid.ColumnModel([{
        header: 'Foo',
        ...
-    },
-    checkColumn
+    },{
+       xtype: 'checkcolumn',
+       header: 'Indoor?',
+       dataIndex: 'indoor',
+       width: 55
+    }
 ]);
 
 // create the grid
 var grid = new Ext.grid.EditorGridPanel({
     ...
-    cm: cm,
-    plugins: [checkColumn], // include plugin
+    colModel: cm,
     ...
 });
  * </code></pre>
- * In addition to storing a Boolean value within the record data, this
+ * In addition to toggling a Boolean value within the record data, this
  * class toggles a css class between <tt>'x-grid3-check-col'</tt> and
  * <tt>'x-grid3-check-col-on'</tt> to alter the background image used for
  * a column.
  */
-Ext.ux.grid.CheckColumn = function(config){
-    Ext.apply(this, config);
-    if(!this.id){
-        this.id = Ext.id();
-    }
-    this.renderer = this.renderer.createDelegate(this);
-};
+Ext.ux.grid.CheckColumn = Ext.extend(Ext.grid.Column, {
 
-Ext.ux.grid.CheckColumn.prototype ={
-    init : function(grid){
-        this.grid = grid;
-        this.grid.on('render', function(){
-            var view = this.grid.getView();
-            view.mainBody.on('mousedown', this.onMouseDown, this);
-        }, this);
-    },
-
-    onMouseDown : function(e, t){
-        if(Ext.fly(t).hasClass(this.createId())){
-            e.stopEvent();
-            var index = this.grid.getView().findRowIndex(t);
-            var record = this.grid.store.getAt(index);
+    /**
+     * @private
+     * Process and refire events routed from the GridView's processEvent method.
+     */
+    processEvent : function(name, e, grid, rowIndex, colIndex){
+        if (name == 'mousedown') {
+            var record = grid.store.getAt(rowIndex);
             record.set(this.dataIndex, !record.data[this.dataIndex]);
+            return false; // Cancel row selection.
+        } else {
+            return Ext.grid.ActionColumn.superclass.processEvent.apply(this, arguments);
         }
     },
 
     renderer : function(v, p, record){
         p.css += ' x-grid3-check-col-td'; 
-        return String.format('<div class="x-grid3-check-col{0} {1}">&#160;</div>', v ? '-on' : '', this.createId());
+        return String.format('<div class="x-grid3-check-col{0}">&#160;</div>', v ? '-on' : '');
     },
-    
-    createId : function(){
-        return 'x-grid3-cc-' + this.id;
-    }
-};
 
-// register ptype
+    // Deprecate use as a plugin. Remove in 4.0
+    init: Ext.emptyFn
+});
+
+// register ptype. Deprecate. Remove in 4.0
 Ext.preg('checkcolumn', Ext.ux.grid.CheckColumn);
 
-// backwards compat
-Ext.grid.CheckColumn = Ext.ux.grid.CheckColumn;Ext.ns('Ext.ux.grid');
+// backwards compat. Remove in 4.0
+Ext.grid.CheckColumn = Ext.ux.grid.CheckColumn;
+
+// register Column xtype
+Ext.grid.Column.types.checkcolumn = Ext.ux.grid.CheckColumn;Ext.ns('Ext.ux.grid');
 
 Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
 
@@ -513,7 +524,7 @@ Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
                     ds.sort(cm.getDataIndex(index), 'DESC');
                     break;
                 default:
-                    if(id.substr(0, 5) == 'group'){
+                    if(id.substr(0, 6) == 'group-'){
                         var i = id.split('-'), row = parseInt(i[1], 10), col = parseInt(i[2], 10), r = this.cm.rows[row], group, gcol = 0;
                         for(var i = 0, len = r.length; i < len; i++){
                             group = r[i];
@@ -539,7 +550,7 @@ Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
                                 cm.setHidden(i, item.checked);
                             }
                         }
-                    }else{
+                    }else if(id.substr(0, 4) == 'col-'){
                         index = cm.getIndexById(id.substr(4));
                         if(index != -1){
                             if(item.checked && cm.getColumnsBy(this.isHideableColumn, this).length <= 1){
@@ -549,31 +560,33 @@ Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
                             cm.setHidden(index, item.checked);
                         }
                     }
-                    item.checked = !item.checked;
-                    if(item.menu){
-                        var updateChildren = function(menu){
-                            menu.items.each(function(childItem){
-                                if(!childItem.disabled){
-                                    childItem.setChecked(item.checked, false);
-                                    if(childItem.menu){
-                                        updateChildren(childItem.menu);
+                    if(id.substr(0, 6) == 'group-' || id.substr(0, 4) == 'col-'){
+                        item.checked = !item.checked;
+                        if(item.menu){
+                            var updateChildren = function(menu){
+                                menu.items.each(function(childItem){
+                                    if(!childItem.disabled){
+                                        childItem.setChecked(item.checked, false);
+                                        if(childItem.menu){
+                                            updateChildren(childItem.menu);
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
+                            updateChildren(item.menu);
                         }
-                        updateChildren(item.menu);
-                    }
-                    var parentMenu = item, parentItem;
-                    while(parentMenu = parentMenu.parentMenu){
-                        if(!parentMenu.parentMenu || !(parentItem = parentMenu.parentMenu.items.get(parentMenu.getItemId())) || !parentItem.setChecked){
-                            break;
+                        var parentMenu = item, parentItem;
+                        while(parentMenu = parentMenu.parentMenu){
+                            if(!parentMenu.parentMenu || !(parentItem = parentMenu.parentMenu.items.get(parentMenu.getItemId())) || !parentItem.setChecked){
+                                break;
+                            }
+                            var checked = parentMenu.items.findIndexBy(function(m){
+                                return m.checked;
+                            }) >= 0;
+                            parentItem.setChecked(checked, true);
                         }
-                        var checked = parentMenu.items.findIndexBy(function(m){
-                            return m.checked;
-                        }) >= 0;
-                        parentItem.setChecked(checked, true);
+                        item.checked = !item.checked;
                     }
-                    item.checked = !item.checked;
             }
             return true;
         },
@@ -595,9 +608,9 @@ Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
                         }
                         if(group && group.header){
                             if(cm.hierarchicalColMenu){
-                                var gid = 'group-' + row + '-' + gcol;
-                                var item = menu.items.item(gid);
-                                var submenu = item ? item.menu : null;
+                                var gid = 'group-' + row + '-' + gcol,
+                                    item = menu.items ? menu.getComponent(gid) : null,
+                                    submenu = item ? item.menu : null;
                                 if(!submenu){
                                     submenu = new Ext.menu.Menu({
                                         itemId: gid
@@ -639,8 +652,8 @@ Ext.ux.grid.ColumnHeaderGroup = Ext.extend(Ext.util.Observable, {
             }
         },
 
-        renderUI: function(){
-            this.constructor.prototype.renderUI.apply(this, arguments);
+        afterRenderUI: function(){
+            this.constructor.prototype.afterRenderUI.apply(this, arguments);
             Ext.apply(this.columnDrop, Ext.ux.grid.ColumnHeaderGroup.prototype.columnDropConfig);
             Ext.apply(this.splitZone, Ext.ux.grid.ColumnHeaderGroup.prototype.splitZoneConfig);
         }
@@ -1713,6 +1726,7 @@ Ext.ux.grid.GridFilters = Ext.extend(Ext.util.Observable, {
             this.reload();
         }
         delete this.applyingState;
+        delete state.filters;
     },
 
     /**
@@ -2029,7 +2043,7 @@ TODO: lazy rendering
                         // filter type is specified in order of preference:
                         //     filter type specified in config
                         //     type specified in store's field's type config
-                        filter.type = filter.type || this.store.fields.get(dI).type;
+                        filter.type = filter.type || this.store.fields.get(dI).type.type;
                     }
                 } else {
                     filter = filters[i];
@@ -2184,6 +2198,9 @@ filters[0][data][value]="someValue3"&
             case 'int':
             case 'float':
               type = 'numeric';
+              break;
+            case 'bool':
+              type = 'boolean';
               break;
         }
         return Ext.ux.grid.filter[type.substr(0, 1).toUpperCase() + type.substr(1) + 'Filter'];
@@ -3554,12 +3571,6 @@ Ext.ux.menu.RangeMenu = Ext.extend(Ext.menu.Menu, {
         this.updateTask.delay(this.updateBuffer);
     }
 });
-/*!
- * Ext JS Library 3.2.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
- */
 Ext.ns('Ext.ux.grid');
 
 /**
@@ -4217,17 +4228,17 @@ Ext.ns('Ext.ux');
 
 Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
     tabPosition: 'left',
-    
+
     alternateColor: false,
-    
+
     alternateCls: 'x-grouptabs-panel-alt',
-    
+
     defaultType: 'grouptab',
-    
+
     deferredRender: false,
-    
+
     activeGroup : null,
-    
+
     initComponent: function(){
         Ext.ux.GroupTabPanel.superclass.initComponent.call(this);
         
@@ -4237,28 +4248,33 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         );
         this.elements = 'body,header';
         this.stripTarget = 'header';
-        
+
         this.tabPosition = this.tabPosition == 'right' ? 'right' : 'left';
-        
+
         this.addClass('x-grouptabs-panel');
-        
+
         if (this.tabStyle && this.tabStyle != '') {
             this.addClass('x-grouptabs-panel-' + this.tabStyle);
         }
-        
+
         if (this.alternateColor) {
             this.addClass(this.alternateCls);
         }
-        
+
         this.on('beforeadd', function(gtp, item, index){
             this.initGroup(item, index);
-        });		     
+        });
+        this.items.each(function(item){
+            item.on('tabchange',function(item){
+                this.fireEvent('tabchange', this, item.activeTab);
+            }, this);
+        },this);
     },
-    
+
     initEvents : function() {
         this.mon(this.strip, 'mousedown', this.onStripMouseDown, this);
     },
-        
+
     onRender: function(ct, position){
         Ext.TabPanel.superclass.onRender.call(this, ct, position);
         if(this.plain){
@@ -4274,16 +4290,16 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         var beforeEl = (this.tabPosition=='bottom' ? this.stripWrap : null);
         this.strip = new Ext.Element(this.stripWrap.dom.firstChild);
 
-		this.header.addClass('x-grouptabs-panel-header');
-		this.bwrap.addClass('x-grouptabs-bwrap');
+        this.header.addClass('x-grouptabs-panel-header');
+        this.bwrap.addClass('x-grouptabs-bwrap');
         this.body.addClass('x-tab-panel-body-'+this.tabPosition + ' x-grouptabs-panel-body');
 
         if (!this.groupTpl) {
             var tt = new Ext.Template(
-                '<li class="{cls}" id="{id}">', 
-                '<a class="x-grouptabs-expand" onclick="return false;"></a>', 
+                '<li class="{cls}" id="{id}">',
+                '<a class="x-grouptabs-expand" onclick="return false;"></a>',
                 '<a class="x-grouptabs-text {iconCls}" href="#" onclick="return false;">',
-                '<span>{text}</span></a>', 
+                '<span>{text}</span></a>',
                 '</li>'
             );
             tt.disableFormats = true;
@@ -4292,17 +4308,17 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
         }
         this.items.each(this.initGroup, this);
     },
-    
+
     afterRender: function(){
         Ext.ux.GroupTabPanel.superclass.afterRender.call(this);
-        
+
         this.tabJoint = Ext.fly(this.body.dom.parentNode).createChild({
             cls: 'x-tab-joint'
         });
-        
+
         this.addClass('x-tab-panel-' + this.tabPosition);
         this.header.setWidth(this.tabWidth);
-        
+
         if (this.activeGroup !== undefined) {
             var group = (typeof this.activeGroup == 'object') ? this.activeGroup : this.items.get(this.activeGroup);
             delete this.activeGroup;
@@ -4312,7 +4328,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
     },
 
     getGroupEl : Ext.TabPanel.prototype.getTabEl,
-        
+
     // private
     findTargets: function(e){
         var item = null,
@@ -4334,7 +4350,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             el: itemEl
         };
     },
-    
+
     // private
     onStripMouseDown: function(e){
         if (e.button != 0) {
@@ -4354,78 +4370,78 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             }
         }
     },
-    
+
     expandGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
         }
         Ext.fly(groupEl).addClass('x-grouptabs-expanded');
-		this.syncTabJoint();
+        this.syncTabJoint();
     },
-    
+
     toggleGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
-        }        
+        }
         Ext.fly(groupEl).toggleClass('x-grouptabs-expanded');
-		this.syncTabJoint();
-    },    
+        this.syncTabJoint();
+    },
 
     collapseGroup: function(groupEl){
         if(groupEl.isXType) {
             groupEl = this.getGroupEl(groupEl);
         }
         Ext.fly(groupEl).removeClass('x-grouptabs-expanded');
-		this.syncTabJoint();
+        this.syncTabJoint();
     },
-        
+
     syncTabJoint: function(groupEl){
         if (!this.tabJoint) {
             return;
         }
-        
+
         groupEl = groupEl || this.getGroupEl(this.activeGroup);
         if(groupEl) {
-            this.tabJoint.setHeight(Ext.fly(groupEl).getHeight() - 2); 
-			
+            this.tabJoint.setHeight(Ext.fly(groupEl).getHeight() - 2);
+
             var y = Ext.isGecko2 ? 0 : 1;
             if (this.tabPosition == 'left'){
                 this.tabJoint.alignTo(groupEl, 'tl-tr', [-2,y]);
             }
             else {
                 this.tabJoint.alignTo(groupEl, 'tr-tl', [1,y]);
-            }           
+            }
         }
         else {
             this.tabJoint.hide();
         }
     },
-    
+
     getActiveTab : function() {
         if(!this.activeGroup) return null;
-        return this.activeGroup.getTabEl(this.activeGroup.activeTab) || null;  
+        return this.activeGroup.getTabEl(this.activeGroup.activeTab) || null;
     },
-    
+
     onResize: function(){
         Ext.ux.GroupTabPanel.superclass.onResize.apply(this, arguments);
         this.syncTabJoint();
     },
-    
+
     createCorner: function(el, pos){
         return Ext.fly(el).createChild({
             cls: 'x-grouptabs-corner x-grouptabs-corner-' + pos
         });
     },
-    
+
     initGroup: function(group, index){
-        var before = this.strip.dom.childNodes[index],   
+        var before = this.strip.dom.childNodes[index],
             p = this.getTemplateArgs(group);
         if (index === 0) {
             p.cls += ' x-tab-first';
         }
         p.cls += ' x-grouptabs-main';
         p.text = group.getMainItem().title;
-        
+
         var el = before ? this.groupTpl.insertBefore(before, p) : this.groupTpl.append(this.strip, p),
             tl = this.createCorner(el, 'top-' + this.tabPosition),
             bl = this.createCorner(el, 'bottom-' + this.tabPosition);
@@ -4448,7 +4464,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             beforetabchange: this.onGroupBeforeTabChange
         });
     },
-    
+
     setActiveGroup : function(group) {
         group = this.getComponent(group);
         if(!group){
@@ -4469,7 +4485,7 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
 
             var groupEl = this.getGroupEl(group);
             Ext.fly(groupEl).addClass('x-grouptabs-strip-active');
-                        
+
             this.activeGroup = group;
             this.stack.add(group);
 
@@ -4479,33 +4495,34 @@ Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
             this.fireEvent('groupchange', this, group);
             return true;
         }
-        return false; 
+        return false;
     },
-    
+
     onGroupBeforeTabChange: function(group, newTab, oldTab){
         if(group !== this.activeGroup || newTab !== oldTab) {
             this.strip.select('.x-grouptabs-sub > li.x-grouptabs-strip-active', true).removeClass('x-grouptabs-strip-active');
-        } 
+        }
         this.expandGroup(this.getGroupEl(group));
         if(group !== this.activeGroup) {
             return this.setActiveGroup(group);
-        }        
+        }
     },
-    
+
     getFrameHeight: function(){
         var h = this.el.getFrameWidth('tb');
         h += (this.tbar ? this.tbar.getHeight() : 0) +
         (this.bbar ? this.bbar.getHeight() : 0);
-        
+
         return h;
     },
-    
+
     adjustBodyWidth: function(w){
         return w - this.tabWidth;
     }
 });
 
-Ext.reg('grouptabpanel', Ext.ux.GroupTabPanel);/*
+Ext.reg('grouptabpanel', Ext.ux.GroupTabPanel);
+/*
  * Note that this control will most likely remain as an example, and not as a core Ext form
  * control.  However, the API will be changing in a future release and so should not yet be
  * treated as a final, stable API at this time.
@@ -4834,6 +4851,12 @@ Ext.reg('itemselector', Ext.ux.form.ItemSelector);
 
 //backwards compat
 Ext.ux.ItemSelector = Ext.ux.form.ItemSelector;
+/*!
+ * Ext JS Library 3.3.0
+ * Copyright(c) 2006-2010 Ext JS, Inc.
+ * licensing@extjs.com
+ * http://www.extjs.com/license
+ */
 Ext.ns('Ext.ux.grid');
 
 Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
@@ -4841,19 +4864,19 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
     unlockText : 'Unlock',
     rowBorderWidth : 1,
     lockedBorderWidth : 1,
-    
+
     /*
      * This option ensures that height between the rows is synchronized
      * between the locked and unlocked sides. This option only needs to be used
      * when the row heights aren't predictable.
      */
     syncHeights: false,
-    
+
     initTemplates : function(){
         var ts = this.templates || {};
-        
-        if (!ts.master) {
-            ts.master = new Ext.Template(
+
+        if (!ts.masterTpl) {
+            ts.masterTpl = new Ext.Template(
                 '<div class="x-grid3" hidefocus="true">',
                     '<div class="x-grid3-locked">',
                         '<div class="x-grid3-header"><div class="x-grid3-header-inner"><div class="x-grid3-header-offset" style="{lstyle}">{lockedHeader}</div></div><div class="x-clear"></div></div>',
@@ -4868,122 +4891,127 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
                 '</div>'
             );
         }
-        
+
         this.templates = ts;
-        
+
         Ext.ux.grid.LockingGridView.superclass.initTemplates.call(this);
     },
-    
+
     getEditorParent : function(ed){
         return this.el.dom;
     },
-    
+
     initElements : function(){
-        var E  = Ext.Element,
-            el = this.grid.getGridEl().dom.firstChild,
-            cs = el.childNodes;
+        var el             = Ext.get(this.grid.getGridEl().dom.firstChild),
+            lockedWrap     = el.child('div.x-grid3-locked'),
+            lockedHd       = lockedWrap.child('div.x-grid3-header'),
+            lockedScroller = lockedWrap.child('div.x-grid3-scroller'),
+            mainWrap       = el.child('div.x-grid3-viewport'),
+            mainHd         = mainWrap.child('div.x-grid3-header'),
+            scroller       = mainWrap.child('div.x-grid3-scroller');
             
-        this.el             = new E(el);
-        this.lockedWrap     = new E(cs[0]);
-        this.lockedHd       = new E(this.lockedWrap.dom.firstChild);
-        this.lockedInnerHd  = this.lockedHd.dom.firstChild;
-        this.lockedScroller = new E(this.lockedWrap.dom.childNodes[1]);
-        this.lockedBody     = new E(this.lockedScroller.dom.firstChild);
-        this.mainWrap       = new E(cs[1]);
-        this.mainHd         = new E(this.mainWrap.dom.firstChild);
-        
         if (this.grid.hideHeaders) {
-            this.lockedHd.setDisplayed(false);
-            this.mainHd.setDisplayed(false);
+            lockedHd.setDisplayed(false);
+            mainHd.setDisplayed(false);
         }
-        
-        this.innerHd  = this.mainHd.dom.firstChild;
-        this.scroller = new E(this.mainWrap.dom.childNodes[1]);
         
         if(this.forceFit){
-            this.scroller.setStyle('overflow-x', 'hidden');
+            scroller.setStyle('overflow-x', 'hidden');
         }
         
-        this.mainBody     = new E(this.scroller.dom.firstChild);
-        this.focusEl      = new E(this.scroller.dom.childNodes[1]);
-        this.resizeMarker = new E(cs[2]);
-        this.resizeProxy  = new E(cs[3]);
+        Ext.apply(this, {
+            el      : el,
+            mainWrap: mainWrap,
+            mainHd  : mainHd,
+            innerHd : mainHd.dom.firstChild,
+            scroller: scroller,
+            mainBody: scroller.child('div.x-grid3-body'),
+            focusEl : scroller.child('a'),
+            resizeMarker: el.child('div.x-grid3-resize-marker'),
+            resizeProxy : el.child('div.x-grid3-resize-proxy'),
+            lockedWrap: lockedWrap,
+            lockedHd: lockedHd,
+            lockedScroller: lockedScroller,
+            lockedBody: lockedScroller.child('div.x-grid3-body'),
+            lockedInnerHd: lockedHd.child('div.x-grid3-header-inner', true)
+        });
         
         this.focusEl.swallowEvent('click', true);
     },
-    
+
     getLockedRows : function(){
         return this.hasRows() ? this.lockedBody.dom.childNodes : [];
     },
-    
+
     getLockedRow : function(row){
         return this.getLockedRows()[row];
     },
-    
+
     getCell : function(row, col){
-        var llen = this.cm.getLockedCount();
-        if(col < llen){
+        var lockedLen = this.cm.getLockedCount();
+        if(col < lockedLen){
             return this.getLockedRow(row).getElementsByTagName('td')[col];
         }
-        return Ext.ux.grid.LockingGridView.superclass.getCell.call(this, row, col - llen);
+        return Ext.ux.grid.LockingGridView.superclass.getCell.call(this, row, col - lockedLen);
     },
-    
+
     getHeaderCell : function(index){
-        var llen = this.cm.getLockedCount();
-        if(index < llen){
+        var lockedLen = this.cm.getLockedCount();
+        if(index < lockedLen){
             return this.lockedHd.dom.getElementsByTagName('td')[index];
         }
-        return Ext.ux.grid.LockingGridView.superclass.getHeaderCell.call(this, index - llen);
+        return Ext.ux.grid.LockingGridView.superclass.getHeaderCell.call(this, index - lockedLen);
     },
-    
+
     addRowClass : function(row, cls){
-        var r = this.getLockedRow(row);
-        if(r){
-            this.fly(r).addClass(cls);
+        var lockedRow = this.getLockedRow(row);
+        if(lockedRow){
+            this.fly(lockedRow).addClass(cls);
         }
         Ext.ux.grid.LockingGridView.superclass.addRowClass.call(this, row, cls);
     },
-    
+
     removeRowClass : function(row, cls){
-        var r = this.getLockedRow(row);
-        if(r){
-            this.fly(r).removeClass(cls);
+        var lockedRow = this.getLockedRow(row);
+        if(lockedRow){
+            this.fly(lockedRow).removeClass(cls);
         }
         Ext.ux.grid.LockingGridView.superclass.removeRowClass.call(this, row, cls);
     },
-    
+
     removeRow : function(row) {
         Ext.removeNode(this.getLockedRow(row));
         Ext.ux.grid.LockingGridView.superclass.removeRow.call(this, row);
     },
-    
+
     removeRows : function(firstRow, lastRow){
-        var bd = this.lockedBody.dom;
-        for(var rowIndex = firstRow; rowIndex <= lastRow; rowIndex++){
-            Ext.removeNode(bd.childNodes[firstRow]);
+        var lockedBody = this.lockedBody.dom,
+            rowIndex = firstRow;
+        for(; rowIndex <= lastRow; rowIndex++){
+            Ext.removeNode(lockedBody.childNodes[firstRow]);
         }
         Ext.ux.grid.LockingGridView.superclass.removeRows.call(this, firstRow, lastRow);
     },
-    
+
     syncScroll : function(e){
-        var mb = this.scroller.dom;
-        this.lockedScroller.dom.scrollTop = mb.scrollTop;
+        this.lockedScroller.dom.scrollTop = this.scroller.dom.scrollTop;
         Ext.ux.grid.LockingGridView.superclass.syncScroll.call(this, e);
     },
-    
+
     updateSortIcon : function(col, dir){
-        var sc = this.sortClasses,
-            lhds = this.lockedHd.select('td').removeClass(sc),
-            hds = this.mainHd.select('td').removeClass(sc),
-            llen = this.cm.getLockedCount(),
-            cls = sc[dir == 'DESC' ? 1 : 0];
-        if(col < llen){
-            lhds.item(col).addClass(cls);
+        var sortClasses = this.sortClasses,
+            lockedHeaders = this.lockedHd.select('td').removeClass(sortClasses),
+            headers = this.mainHd.select('td').removeClass(sortClasses),
+            lockedLen = this.cm.getLockedCount(),
+            cls = sortClasses[dir == 'DESC' ? 1 : 0];
+            
+        if(col < lockedLen){
+            lockedHeaders.item(col).addClass(cls);
         }else{
-            hds.item(col - llen).addClass(cls);
+            headers.item(col - lockedLen).addClass(cls);
         }
     },
-    
+
     updateAllColumnWidths : function(){
         var tw = this.getTotalWidth(),
             clen = this.cm.getColumnCount(),
@@ -5020,7 +5048,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         this.onAllColumnWidthsUpdated(ws, tw);
         this.syncHeaderHeight();
     },
-    
+
     updateColumnWidth : function(col, width){
         var w = this.getColumnWidth(col),
             llen = this.cm.getLockedCount(),
@@ -5048,7 +5076,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         this.onColumnWidthUpdated(col, w, this.getTotalWidth());
         this.syncHeaderHeight();
     },
-    
+
     updateColumnHidden : function(col, hidden){
         var llen = this.cm.getLockedCount(),
             ns, rw, c, row,
@@ -5077,7 +5105,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         delete this.lastViewWidth;
         this.layout();
     },
-    
+
     doRender : function(cs, rs, ds, startRow, colCount, stripe){
         var ts = this.templates, ct = ts.cell, rt = ts.row, last = colCount-1,
             tstyle = 'width:'+this.getTotalWidth()+';',
@@ -5149,18 +5177,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
                     lrow.className += ' x-grid3-row-alt';
                 }
             }
-            if(this.syncHeights){
-                var el1 = Ext.get(row),
-                    el2 = Ext.get(lrow),
-                    h1 = el1.getHeight(),
-                    h2 = el2.getHeight();
-                
-                if(h1 > h2){
-                    el2.setHeight(h1);    
-                }else if(h2 > h1){
-                    el1.setHeight(h2);
-                }
-            }
+            this.syncRowHeights(row, lrow);
         }
         if(startRow === 0){
             Ext.fly(rows[0]).addClass(this.firstRowCls);
@@ -5170,6 +5187,21 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         Ext.fly(lrows[lrows.length - 1]).addClass(this.lastRowCls);
     },
     
+    syncRowHeights: function(row1, row2){
+        if(this.syncHeights){
+            var el1 = Ext.get(row1),
+                el2 = Ext.get(row2),
+                h1 = el1.getHeight(),
+                h2 = el2.getHeight();
+
+            if(h1 > h2){
+                el2.setHeight(h1);
+            }else if(h2 > h1){
+                el1.setHeight(h2);
+            }
+        }
+    },
+
     afterRender : function(){
         if(!this.ds || !this.cm){
             return;
@@ -5181,22 +5213,27 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         if(this.deferEmptyText !== true){
             this.applyEmptyText();
         }
+        this.grid.fireEvent('viewready', this.grid);
     },
-    
-    renderUI : function(){
-        var header = this.renderHeaders();
-        var body = this.templates.body.apply({rows:'&#160;'});
-        var html = this.templates.master.apply({
-            body: body,
+
+    renderUI : function(){        
+        var templates = this.templates,
+            header = this.renderHeaders(),
+            body = templates.body.apply({rows:'&#160;'});
+
+        return templates.masterTpl.apply({
+            body  : body,
             header: header[0],
-            ostyle: 'width:'+this.getOffsetWidth()+';',
-            bstyle: 'width:'+this.getTotalWidth()+';',
+            ostyle: 'width:' + this.getOffsetWidth() + ';',
+            bstyle: 'width:' + this.getTotalWidth()  + ';',
             lockedBody: body,
             lockedHeader: header[1],
             lstyle: 'width:'+this.getLockedWidth()+';'
         });
+    },
+    
+    afterRenderUI: function(){
         var g = this.grid;
-        g.getGridEl().dom.innerHTML = html;
         this.initElements();
         Ext.fly(this.innerHd).on('click', this.handleHdDown, this);
         Ext.fly(this.lockedInnerHd).on('click', this.handleHdDown, this);
@@ -5265,15 +5302,15 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
                 mouseout: this.onRowOut
             });
         }
-        
+
         if(g.enableDragDrop || g.enableDrag){
             this.dragZone = new Ext.grid.GridDragZone(g, {
                 ddGroup : g.ddGroup || 'GridDD'
             });
         }
-        this.updateHeaderSortState();
+        this.updateHeaderSortState();    
     },
-    
+
     layout : function(){
         if(!this.mainBody){
             return;
@@ -5310,11 +5347,11 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         }
         this.onLayout(vw, vh);
     },
-    
+
     getOffsetWidth : function() {
         return (this.cm.getTotalWidth() - this.cm.getTotalLockedWidth() + this.getScrollOffset()) + 'px';
     },
-    
+
     renderHeaders : function(){
         var cm = this.cm,
             ts = this.templates,
@@ -5344,7 +5381,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         return [ts.header.apply({cells: cb.join(''), tstyle:'width:'+this.getTotalWidth()+';'}),
                 ts.header.apply({cells: lcb.join(''), tstyle:'width:'+this.getLockedWidth()+';'})];
     },
-    
+
     updateHeaders : function(){
         var hd = this.renderHeaders();
         this.innerHd.firstChild.innerHTML = hd[0];
@@ -5355,7 +5392,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         this.lockedInnerHd.firstChild.style.width = lw;
         this.lockedInnerHd.firstChild.firstChild.style.width = lw;
     },
-    
+
     getResolvedXY : function(resolved){
         if(!resolved){
             return null;
@@ -5363,15 +5400,15 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         var c = resolved.cell, r = resolved.row;
         return c ? Ext.fly(c).getXY() : [this.scroller.getX(), Ext.fly(r).getY()];
     },
-    
+
     syncFocusEl : function(row, col, hscroll){
         Ext.ux.grid.LockingGridView.superclass.syncFocusEl.call(this, row, col, col < this.cm.getLockedCount() ? false : hscroll);
     },
-    
+
     ensureVisible : function(row, col, hscroll){
         return Ext.ux.grid.LockingGridView.superclass.ensureVisible.call(this, row, col, col < this.cm.getLockedCount() ? false : hscroll);
     },
-    
+
     insertRows : function(dm, firstRow, lastRow, isUpdate){
         var last = dm.getCount() - 1;
         if(!isUpdate && firstRow === 0 && lastRow >= last){
@@ -5403,7 +5440,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         }
         this.syncFocusEl(firstRow);
     },
-    
+
     getColumnStyle : function(col, isHeader){
         var style = !isHeader ? this.cm.config[col].cellStyle || this.cm.config[col].css || '' : this.cm.config[col].headerStyle || '';
         style += 'width:'+this.getColumnWidth(col)+';';
@@ -5416,15 +5453,15 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         }
         return style;
     },
-    
+
     getLockedWidth : function() {
         return this.cm.getTotalLockedWidth() + 'px';
     },
-    
+
     getTotalWidth : function() {
         return (this.cm.getTotalWidth() - this.cm.getTotalLockedWidth()) + 'px';
     },
-    
+
     getColumnData : function(){
         var cs = [], cm = this.cm, colCount = cm.getColumnCount();
         for(var i = 0; i < colCount; i++){
@@ -5439,18 +5476,108 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         }
         return cs;
     },
-    
+
     renderBody : function(){
         var markup = this.renderRows() || ['&#160;', '&#160;'];
         return [this.templates.body.apply({rows: markup[0]}), this.templates.body.apply({rows: markup[1]})];
     },
     
-    refreshRow : function(record){
-        Ext.ux.grid.LockingGridView.superclass.refreshRow.call(this, record);
-        var index = Ext.isNumber(record) ? record : this.ds.indexOf(record);
-        this.getLockedRow(index).rowIndex = index;
+    refreshRow: function(record){
+        var store = this.ds, 
+            colCount = this.cm.getColumnCount(), 
+            columns = this.getColumnData(), 
+            last = colCount - 1, 
+            cls = ['x-grid3-row'], 
+            rowParams = {
+                tstyle: String.format("width: {0};", this.getTotalWidth())
+            }, 
+            lockedRowParams = {
+                tstyle: String.format("width: {0};", this.getLockedWidth())
+            }, 
+            colBuffer = [], 
+            lockedColBuffer = [], 
+            cellTpl = this.templates.cell, 
+            rowIndex, 
+            row, 
+            lockedRow, 
+            column, 
+            meta, 
+            css, 
+            i;
+        
+        if (Ext.isNumber(record)) {
+            rowIndex = record;
+            record = store.getAt(rowIndex);
+        } else {
+            rowIndex = store.indexOf(record);
+        }
+        
+        if (!record || rowIndex < 0) {
+            return;
+        }
+        
+        for (i = 0; i < colCount; i++) {
+            column = columns[i];
+            
+            if (i == 0) {
+                css = 'x-grid3-cell-first';
+            } else {
+                css = (i == last) ? 'x-grid3-cell-last ' : '';
+            }
+            
+            meta = {
+                id: column.id,
+                style: column.style,
+                css: css,
+                attr: "",
+                cellAttr: ""
+            };
+            
+            meta.value = column.renderer.call(column.scope, record.data[column.name], meta, record, rowIndex, i, store);
+            
+            if (Ext.isEmpty(meta.value)) {
+                meta.value = ' ';
+            }
+            
+            if (this.markDirty && record.dirty && typeof record.modified[column.name] != 'undefined') {
+                meta.css += ' x-grid3-dirty-cell';
+            }
+            
+            if (column.locked) {
+                lockedColBuffer[i] = cellTpl.apply(meta);
+            } else {
+                colBuffer[i] = cellTpl.apply(meta);
+            }
+        }
+        
+        row = this.getRow(rowIndex);
+        row.className = '';
+        lockedRow = this.getLockedRow(rowIndex);
+        lockedRow.className = '';
+        
+        if (this.grid.stripeRows && ((rowIndex + 1) % 2 === 0)) {
+            cls.push('x-grid3-row-alt');
+        }
+        
+        if (this.getRowClass) {
+            rowParams.cols = colCount;
+            cls.push(this.getRowClass(record, rowIndex, rowParams, store));
+        }
+        
+        // Unlocked rows
+        this.fly(row).addClass(cls).setStyle(rowParams.tstyle);
+        rowParams.cells = colBuffer.join("");
+        row.innerHTML = this.templates.rowInner.apply(rowParams);
+        
+        // Locked rows
+        this.fly(lockedRow).addClass(cls).setStyle(lockedRowParams.tstyle);
+        lockedRowParams.cells = lockedColBuffer.join("");
+        lockedRow.innerHTML = this.templates.rowInner.apply(lockedRowParams);
+        lockedRow.rowIndex = rowIndex;
+        this.syncRowHeights(row, lockedRow);  
+        this.fireEvent('rowupdated', this, rowIndex, record);
     },
-    
+
     refresh : function(headersToo){
         this.fireEvent('beforerefresh', this);
         this.grid.stopEditing(true);
@@ -5466,11 +5593,11 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         this.applyEmptyText();
         this.fireEvent('refresh', this);
     },
-    
+
     onDenyColumnLock : function(){
 
     },
-    
+
     initData : function(ds, cm){
         if(this.cm){
             this.cm.un('columnlockchange', this.onColumnLock, this);
@@ -5480,11 +5607,11 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
             this.cm.on('columnlockchange', this.onColumnLock, this);
         }
     },
-    
+
     onColumnLock : function(){
         this.refresh(true);
     },
-    
+
     handleHdMenuClick : function(item){
         var index = this.hdCtxIndex,
             cm = this.cm,
@@ -5494,14 +5621,12 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
             case 'lock':
                 if(cm.getColumnCount(true) <= llen + 1){
                     this.onDenyColumnLock();
-                    return;
+                    return undefined;
                 }
+                cm.setLocked(index, true);
                 if(llen != index){
-                    cm.setLocked(index, true, true);
                     cm.moveColumn(index, llen);
                     this.grid.fireEvent('columnmove', index, llen);
-                }else{
-                    cm.setLocked(index, true);
                 }
             break;
             case 'unlock':
@@ -5518,7 +5643,7 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
         }
         return true;
     },
-    
+
     handleHdDown : function(e, t){
         Ext.ux.grid.LockingGridView.superclass.handleHdDown.call(this, e, t);
         if(this.grid.enableColLock !== false){
@@ -5531,17 +5656,22 @@ Ext.ux.grid.LockingGridView = Ext.extend(Ext.grid.GridView, {
             }
         }
     },
-    
+
     syncHeaderHeight: function(){
-        this.innerHd.firstChild.firstChild.style.height = 'auto';
-        this.lockedInnerHd.firstChild.firstChild.style.height = 'auto';
-        var hd = this.innerHd.firstChild.firstChild.offsetHeight,
-            lhd = this.lockedInnerHd.firstChild.firstChild.offsetHeight,
-            height = (lhd > hd ? lhd : hd) + 'px';
-        this.innerHd.firstChild.firstChild.style.height = height;
-        this.lockedInnerHd.firstChild.firstChild.style.height = height;
+        var hrow = Ext.fly(this.innerHd).child('tr', true),
+            lhrow = Ext.fly(this.lockedInnerHd).child('tr', true);
+            
+        hrow.style.height = 'auto';
+        lhrow.style.height = 'auto';
+        var hd = hrow.offsetHeight,
+            lhd = lhrow.offsetHeight,
+            height = Math.max(lhd, hd) + 'px';
+            
+        hrow.style.height = height;
+        lhrow.style.height = height;
+
     },
-    
+
     updateLockedWidth: function(){
         var lw = this.cm.getTotalLockedWidth(),
             tw = this.cm.getTotalWidth() - lw,
@@ -5581,7 +5711,7 @@ Ext.ux.grid.LockingColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     isLocked : function(colIndex){
         return this.config[colIndex].locked === true;
     },
-    
+
     /**
      * Locks or unlocks a given column
      * @param {Number} colIndex The column index
@@ -5597,7 +5727,7 @@ Ext.ux.grid.LockingColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             this.fireEvent('columnlockchange', this, colIndex, value);
         }
     },
-    
+
     /**
      * Returns the total width of all locked columns
      * @return {Number} The width of all locked columns
@@ -5609,27 +5739,27 @@ Ext.ux.grid.LockingColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 totalWidth += this.getColumnWidth(i);
             }
         }
-        
+
         return totalWidth;
     },
-    
+
     /**
      * Returns the total number of locked columns
      * @return {Number} The number of locked columns
      */
     getLockedCount : function() {
         var len = this.config.length;
-        
+
         for (var i = 0; i < len; i++) {
             if (!this.isLocked(i)) {
                 return i;
             }
         }
-        
+
         //if we get to this point all of the columns are locked so we return the total
         return len;
     },
-    
+
     /**
      * Moves a column from one position to another
      * @param {Number} oldIndex The current column index
@@ -5638,17 +5768,16 @@ Ext.ux.grid.LockingColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     moveColumn : function(oldIndex, newIndex){
         var oldLocked = this.isLocked(oldIndex),
             newLocked = this.isLocked(newIndex);
-        
+
         if (oldIndex < newIndex && oldLocked && !newLocked) {
             this.setLocked(oldIndex, false, true);
         } else if (oldIndex > newIndex && !oldLocked && newLocked) {
             this.setLocked(oldIndex, true, true);
         }
-        
+
         Ext.ux.grid.LockingColumnModel.superclass.moveColumn.apply(this, arguments);
     }
-});
-Ext.ns('Ext.ux.form');
+});Ext.ns('Ext.ux.form');
 
 /**
  * @class Ext.ux.form.MultiSelect
@@ -5854,7 +5983,9 @@ Ext.ux.form.MultiSelect = Ext.extend(Ext.form.Field,  {
 
     // private
     onViewBeforeClick: function(vw, index, node, e) {
-        if (this.disabled) {return false;}
+        if (this.disabled || this.readOnly) {
+            return false;
+        }
     },
 
     // private
@@ -6417,15 +6548,15 @@ Ext.preg('panelresizer', Ext.ux.PanelResizer);Ext.ux.Portal = Ext.extend(Ext.Pan
 
 Ext.reg('portal', Ext.ux.Portal);
 
-
-Ext.ux.Portal.DropZone = function(portal, cfg){
-    this.portal = portal;
-    Ext.dd.ScrollManager.register(portal.body);
-    Ext.ux.Portal.DropZone.superclass.constructor.call(this, portal.bwrap.dom, cfg);
-    portal.body.ddScrollConfig = this.ddScrollConfig;
-};
-
-Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
+Ext.ux.Portal.DropZone = Ext.extend(Ext.dd.DropTarget, {
+    
+    constructor : function(portal, cfg){
+        this.portal = portal;
+        Ext.dd.ScrollManager.register(portal.body);
+        Ext.ux.Portal.DropZone.superclass.constructor.call(this, portal.bwrap.dom, cfg);
+        portal.body.ddScrollConfig = this.ddScrollConfig;
+    },
+    
     ddScrollConfig : {
         vthresh: 50,
         hthresh: -1,
@@ -6531,24 +6662,23 @@ Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
         if(!this.lastPos){
             return;
         }
-        var c = this.lastPos.c, col = this.lastPos.col, pos = this.lastPos.p;
-
-        var dropEvent = this.createEvent(dd, e, data, col, c,
-            pos !== false ? pos : c.items.getCount());
+        var c = this.lastPos.c, 
+            col = this.lastPos.col, 
+            pos = this.lastPos.p,
+            panel = dd.panel,
+            dropEvent = this.createEvent(dd, e, data, col, c,
+                pos !== false ? pos : c.items.getCount());
 
         if(this.portal.fireEvent('validatedrop', dropEvent) !== false &&
            this.portal.fireEvent('beforedrop', dropEvent) !== false){
 
             dd.proxy.getProxy().remove();
-            dd.panel.el.dom.parentNode.removeChild(dd.panel.el.dom);
+            panel.el.dom.parentNode.removeChild(dd.panel.el.dom);
             
             if(pos !== false){
-                if(c == dd.panel.ownerCt && (c.items.items.indexOf(dd.panel) <= pos)){
-                    pos++;
-                }
-                c.insert(pos, dd.panel);
+                c.insert(pos, panel);
             }else{
-                c.add(dd.panel);
+                c.add(panel);
             }
             
             c.doLayout();
@@ -6580,7 +6710,7 @@ Ext.extend(Ext.ux.Portal.DropZone, Ext.dd.DropTarget, {
 
     // unregister the dropzone from ScrollManager
     unreg: function() {
-        //Ext.dd.ScrollManager.unregister(this.portal.body);
+        Ext.dd.ScrollManager.unregister(this.portal.body);
         Ext.ux.Portal.DropZone.superclass.unreg.call(this);
     }
 });
@@ -6964,7 +7094,12 @@ Ext.ux.grid.RowEditor = Ext.extend(Ext.Panel, {
             } else if(i == len - 1){
                 ed.margins = pm('0 0 2 1');
             } else{
-                ed.margins = pm('0 1 2');
+                if (Ext.isIE) {
+                    ed.margins = pm('0 0 2 0');
+                }
+                else {
+                    ed.margins = pm('0 1 2 0');
+                }
             }
             ed.setWidth(cm.getColumnWidth(i));
             ed.column = c;
@@ -7167,6 +7302,17 @@ Ext.ux.grid.RowEditor = Ext.extend(Ext.Panel, {
         this.fireEvent('validation', this, valid);
     },
 
+    lastVisibleColumn : function() {
+        var i = this.items.getCount() - 1,
+            c;
+        for(; i >= 0; i--) {
+            c = this.items.items[i];
+            if (!c.hidden) {
+                return c;
+            }
+        }
+    },
+
     showTooltip: function(msg){
         var t = this.tooltip;
         if(!t){
@@ -7187,7 +7333,7 @@ Ext.ux.grid.RowEditor = Ext.extend(Ext.Panel, {
             h = this.el.getHeight();
 
         if(top + h >= scroll){
-            t.initTarget(this.items.last().getEl());
+            t.initTarget(this.lastVisibleColumn().getEl());
             if(!t.rendered){
                 t.show();
                 t.hide();
@@ -8376,6 +8522,9 @@ Ext.ux.Spinner = Ext.extend(Ext.util.Observable, {
         if (this.repeater) {
             this.repeater.purgeListeners();
         }
+        if (this.mimicing){
+            Ext.get(Ext.isIE ? document.body : document).un("mousedown", this.mimicBlur, this);
+        }
     }
 });
 
@@ -9343,8 +9492,8 @@ Ext.ux.TabScrollerMenu =  Ext.extend(Object, {
 			}
 			else {
 				this.items.each(function(item) {
-					if (item.id != curActive.id && ! item.hidden) {
-						menuItems.push(this.autoGenMenuItem(item));
+					if (item.id != curActive.id && !item.hidden) {
+                        this.tabsMenu.add(this.autoGenMenuItem(item));
 					}
 				}, this);
 			}
@@ -9405,17 +9554,15 @@ Ext.ux.tree.XmlTreeLoader = Ext.extend(Ext.tree.TreeLoader, {
 
     // private override
     processResponse : function(response, node, callback){
-        var xmlData = response.responseXML;
-        var root = xmlData.documentElement || xmlData;
+        var xmlData = response.responseXML,
+            root = xmlData.documentElement || xmlData;
 
         try{
             node.beginUpdate();
             node.appendChild(this.parseXml(root));
             node.endUpdate();
 
-            if(typeof callback == "function"){
-                callback(this, node);
-            }
+            this.runCallback(callback, scope || node, [node]);
         }catch(e){
             this.handleFailure(response);
         }
@@ -9716,8 +9863,8 @@ Ext.ux.tree.TreeGridNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
                 '<tr ext:tree-node-id="', n.id ,'" class="x-tree-node-el x-tree-node-leaf ', a.cls, '">',
                     '<td class="x-treegrid-col">',
                         '<span class="x-tree-node-indent">', this.indentMarkup, "</span>",
-                        '<img src="', this.emptyIcon, '" class="x-tree-ec-icon x-tree-elbow">',
-                        '<img src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon', (a.icon ? " x-tree-node-inline-icon" : ""), (a.iconCls ? " "+a.iconCls : ""), '" unselectable="on">',
+                        '<img src="', this.emptyIcon, '" class="x-tree-ec-icon x-tree-elbow" />',
+                        '<img src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon', (a.icon ? " x-tree-node-inline-icon" : ""), (a.iconCls ? " "+a.iconCls : ""), '" unselectable="on" />',
                         '<a hidefocus="on" class="x-tree-node-anchor" href="', a.href ? a.href : '#', '" tabIndex="1" ',
                             a.hrefTarget ? ' target="'+a.hrefTarget+'"' : '', '>',
                         '<span unselectable="on">', (c.tpl ? c.tpl.apply(a) : a[c.dataIndex] || c.text), '</span></a>',
@@ -9872,6 +10019,7 @@ Ext.tree.ColumnResizer = Ext.extend(Ext.util.Observable, {
     },
 
     onStart : function(e){
+        this.dragHeadersDisabled = this.tree.headersDisabled;
         this.tree.headersDisabled = true;
         this.proxy = this.tree.body.createChild({cls:'x-treegrid-resizer'});
         this.proxy.setHeight(this.tree.body.getHeight());
@@ -9894,7 +10042,8 @@ Ext.tree.ColumnResizer = Ext.extend(Ext.util.Observable, {
 
     onEnd : function(e){
         var nw = this.proxy.getWidth(),
-            tree = this.tree;
+            tree = this.tree,
+            disabled = this.dragHeadersDisabled;
         
         this.proxy.remove();
         delete this.dragHd;
@@ -9903,7 +10052,7 @@ Ext.tree.ColumnResizer = Ext.extend(Ext.util.Observable, {
         tree.updateColumnWidths();
         
         setTimeout(function(){
-            tree.headersDisabled = false;
+            tree.headersDisabled = disabled;
         }, 100);
     }
 });Ext.ns('Ext.ux.tree');
@@ -9956,30 +10105,34 @@ Ext.ux.tree.TreeGridSorter = Ext.extend(Ext.tree.TreeSorter, {
         tree.on('headerclick', this.onHeaderClick, this);
         tree.ddAppendOnly = true;
 
-        me = this;
+        var me = this;
         this.defaultSortFn = function(n1, n2){
 
-            var dsc = me.dir && me.dir.toLowerCase() == 'desc';
-            var p = me.property || 'text';
-            var sortType = me.sortType;
-            var fs = me.folderSort;
-            var cs = me.caseSensitive === true;
-            var leafAttr = me.leafAttr || 'leaf';
+            var desc = me.dir && me.dir.toLowerCase() == 'desc',
+                prop = me.property || 'text',
+                sortType = me.sortType,
+                caseSensitive = me.caseSensitive === true,
+                leafAttr = me.leafAttr || 'leaf',
+                attr1 = n1.attributes,
+                attr2 = n2.attributes;
 
-            if(fs){
-                if(n1.attributes[leafAttr] && !n2.attributes[leafAttr]){
+            if(me.folderSort){
+                if(attr1[leafAttr] && !attr2[leafAttr]){
                     return 1;
                 }
-                if(!n1.attributes[leafAttr] && n2.attributes[leafAttr]){
+                if(!attr1[leafAttr] && attr2[leafAttr]){
                     return -1;
                 }
             }
-            var v1 = sortType ? sortType(n1) : (cs ? n1.attributes[p] : n1.attributes[p].toUpperCase());
-            var v2 = sortType ? sortType(n2) : (cs ? n2.attributes[p] : n2.attributes[p].toUpperCase());
+            var prop1 = attr1[prop],
+                prop2 = attr2[prop],
+                v1 = sortType ? sortType(prop1) : (caseSensitive ? prop1 : prop1.toUpperCase());
+                v2 = sortType ? sortType(prop2) : (caseSensitive ? prop2 : prop2.toUpperCase());
+                
             if(v1 < v2){
-                return dsc ? +1 : -1;
+                return desc ? +1 : -1;
             }else if(v1 > v2){
-                return dsc ? -1 : +1;
+                return desc ? -1 : +1;
             }else{
                 return 0;
             }
@@ -10028,8 +10181,8 @@ Ext.ux.tree.TreeGridSorter = Ext.extend(Ext.tree.TreeSorter, {
 
     // private
     updateSortIcon : function(col, dir){
-        var sc = this.sortClasses;
-        var hds = this.tree.innerHd.select('td').removeClass(sc);
+        var sc = this.sortClasses,
+            hds = this.tree.innerHd.select('td').removeClass(sc);
         hds.item(col).addClass(sc[dir == 'desc' ? 1 : 0]);
     }
 });/**
@@ -10079,14 +10232,6 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
         }else if(Ext.isObject(l) && !l.load){
             l = new Ext.ux.tree.TreeGridLoader(l);
         }
-        else if(l) {
-            l.createNode = function(attr) {
-                if (!attr.uiProvider) {
-                    attr.uiProvider = Ext.ux.tree.TreeGridNodeUI;
-                }
-                return Ext.tree.TreeLoader.prototype.createNode.call(this, attr);
-            }
-        }
         this.loader = l;
                             
         Ext.ux.tree.TreeGrid.superclass.initComponent.call(this);                    
@@ -10108,7 +10253,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
                 '<div class="x-grid3-header">',
                     '<div class="x-treegrid-header-inner">',
                         '<div class="x-grid3-header-offset">',
-                            '<table cellspacing="0" cellpadding="0" border="0"><colgroup><tpl for="columns"><col /></tpl></colgroup>',
+                            '<table style="table-layout: fixed;" cellspacing="0" cellpadding="0" border="0"><colgroup><tpl for="columns"><col /></tpl></colgroup>',
                             '<thead><tr class="x-grid3-hd-row">',
                             '<tpl for="columns">',
                             '<td class="x-grid3-hd x-grid3-cell x-treegrid-hd" style="text-align: {align};" id="', this.id, '-xlhd-{#}">',
@@ -10118,7 +10263,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
                                  '</div>',
                             '</td></tpl>',
                             '</tr></thead>',
-                        '</div></table>',
+                        '</table>',
                     '</div></div>',
                 '</div>',
                 '<div class="x-treegrid-root-node">',
@@ -10177,7 +10322,7 @@ Ext.ux.tree.TreeGrid = Ext.extend(Ext.tree.TreePanel, {
         this.colgroupTpl.insertFirst(this.innerCt, {columns: this.columns});
         
         if(this.hideHeaders){
-            this.header.dom.style.display = 'none';
+            this.el.child('.x-grid3-header').setDisplayed('none');
         }
         else if(this.enableHdMenu !== false){
             this.hmenu = new Ext.menu.Menu({id: this.id + '-hctx'});

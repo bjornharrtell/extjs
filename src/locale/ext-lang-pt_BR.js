@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -200,7 +200,7 @@ if(Ext.form.VTypes){
 
 if(Ext.form.HtmlEditor){
    Ext.apply(Ext.form.HtmlEditor.prototype, {
-        createLinkText : 'Porfavor, entre com a URL do link:',
+        createLinkText : 'Por favor, entre com a URL do link:',
         buttonTips : {
             bold : {
                title: 'Negrito (Ctrl+B)',
@@ -208,8 +208,8 @@ if(Ext.form.HtmlEditor){
                cls: 'x-html-editor-tip'
             },
             italic : {
-               title: 'Italico (Ctrl+I)',
-               text: 'Deixa o texto selecionado em italico.',
+               title: 'It&aacute;lico (Ctrl+I)',
+               text: 'Deixa o texto selecionado em it&aacute;lico.',
                cls: 'x-html-editor-tip'
             },
             underline : {
@@ -263,8 +263,8 @@ if(Ext.form.HtmlEditor){
                cls: 'x-html-editor-tip'
            },
            createlink : {
-               title: 'Hyperliga&ccedil;&atilde;o',
-               text: 'Transforma o texto selecionado em um hyperlink.',
+               title: 'Link',
+               text: 'Transforma o texto selecionado em um link.',
                cls: 'x-html-editor-tip'
            },
            sourceedit : {

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -255,6 +255,7 @@ Ext.ux.grid.GridFilters = Ext.extend(Ext.util.Observable, {
             this.reload();
         }
         delete this.applyingState;
+        delete state.filters;
     },
 
     /**
@@ -571,7 +572,7 @@ TODO: lazy rendering
                         // filter type is specified in order of preference:
                         //     filter type specified in config
                         //     type specified in store's field's type config
-                        filter.type = filter.type || this.store.fields.get(dI).type;
+                        filter.type = filter.type || this.store.fields.get(dI).type.type;
                     }
                 } else {
                     filter = filters[i];
@@ -726,6 +727,9 @@ filters[0][data][value]="someValue3"&
             case 'int':
             case 'float':
               type = 'numeric';
+              break;
+            case 'bool':
+              type = 'boolean';
               break;
         }
         return Ext.ux.grid.filter[type.substr(0, 1).toUpperCase() + type.substr(1) + 'Filter'];

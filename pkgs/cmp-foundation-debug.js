@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -226,10 +226,11 @@ editorgrid       {@link Ext.grid.EditorGridPanel}
 flash            {@link Ext.FlashComponent}
 grid             {@link Ext.grid.GridPanel}
 listview         {@link Ext.ListView}
+multislider      {@link Ext.slider.MultiSlider}
 panel            {@link Ext.Panel}
 progress         {@link Ext.ProgressBar}
 propertygrid     {@link Ext.grid.PropertyGrid}
-slider           {@link Ext.Slider}
+slider           {@link Ext.slider.SingleSlider}
 spacer           {@link Ext.Spacer}
 splitbutton      {@link Ext.SplitButton}
 tabpanel         {@link Ext.TabPanel}
@@ -266,6 +267,7 @@ form             {@link Ext.form.FormPanel}
 checkbox         {@link Ext.form.Checkbox}
 checkboxgroup    {@link Ext.form.CheckboxGroup}
 combo            {@link Ext.form.ComboBox}
+compositefield   {@link Ext.form.CompositeField}
 datefield        {@link Ext.form.DateField}
 displayfield     {@link Ext.form.DisplayField}
 field            {@link Ext.form.Field}
@@ -1565,7 +1567,7 @@ new Ext.Panel({
         if(delay){
             this.focusTask = new Ext.util.DelayedTask(this.focus, this, [selectText, false]);
             this.focusTask.delay(Ext.isNumber(delay) ? delay : 10);
-            return;
+            return this;
         }
         if(this.rendered && !this.isDestroyed){
             this.el.focus();
@@ -1748,7 +1750,13 @@ var isText = t.isXType('textfield');        // true
 var isBoxSubclass = t.isXType('box');       // true, descended from BoxComponent
 var isBoxInstance = t.isXType('box', true); // false, not a direct BoxComponent instance
 </code></pre>
-     * @param {String} xtype The xtype to check for this Component
+     * @param {String/Ext.Component/Class} xtype The xtype to check for this Component. Note that the the component can either be an instance
+     * or a component class:
+     * <pre><code>
+var c = new Ext.Component();
+console.log(c.isXType(c));
+console.log(c.isXType(Ext.Component)); 
+</code></pre>
      * @param {Boolean} shallow (optional) False to check whether this Component is descended from the xtype (this is
      * the default), or true to check whether this Component is directly of the specified xtype.
      * @return {Boolean} True if this component descends from the specified xtype, false otherwise.
@@ -1803,17 +1811,37 @@ alert(t.getXTypes());  // alerts 'component/box/field/textfield'
 
     /**
      * Find a container above this component at any level by xtype or class
-     * @param {String/Class} xtype The xtype string for a component, or the class of the component directly
+     * @param {String/Ext.Component/Class} xtype The xtype to check for this Component. Note that the the component can either be an instance
+     * or a component class:
+     * @param {Boolean} shallow (optional) False to check whether this Component is descended from the xtype (this is
+     * the default), or true to check whether this Component is directly of the specified xtype.
      * @return {Ext.Container} The first Container which matches the given xtype or class
      */
-    findParentByType : function(xtype) {
-        return Ext.isFunction(xtype) ?
-            this.findParentBy(function(p){
-                return p.constructor === xtype;
-            }) :
-            this.findParentBy(function(p){
-                return p.constructor.xtype === xtype;
-            });
+    findParentByType : function(xtype, shallow){
+        return this.findParentBy(function(c){
+            return c.isXType(xtype, shallow);
+        });
+    },
+    
+    /**
+     * Bubbles up the component/container heirarchy, calling the specified function with each component. The scope (<i>this</i>) of
+     * function call will be the scope provided or the current component. The arguments to the function
+     * will be the args provided or the current component. If the function returns false at any point,
+     * the bubble is stopped.
+     * @param {Function} fn The function to call
+     * @param {Object} scope (optional) The scope of the function (defaults to current node)
+     * @param {Array} args (optional) The args to call the function with (default to passing the current component)
+     * @return {Ext.Component} this
+     */
+    bubble : function(fn, scope, args){
+        var p = this;
+        while(p){
+            if(fn.apply(scope || p, args || [p]) === false){
+                break;
+            }
+            p = p.ownerCt;
+        }
+        return this;
     },
 
     // protected
@@ -1959,7 +1987,8 @@ myGridPanel.mon(myGridPanel.getSelectionModel(), {
     }
 });
 
-Ext.reg('component', Ext.Component);/**
+Ext.reg('component', Ext.Component);
+/**
  * @class Ext.Action
  * <p>An Action is a piece of reusable functionality that can be abstracted out of any particular component so that it
  * can be usefully shared among multiple components.  Actions let you share handlers, configuration options and UI
@@ -2229,9 +2258,10 @@ Ext.Action = Ext.extend(Object, {
 (function(){
 Ext.Layer = function(config, existingEl){
     config = config || {};
-    var dh = Ext.DomHelper;
-    var cp = config.parentEl, pel = cp ? Ext.getDom(cp) : document.body;
-    if(existingEl){
+    var dh = Ext.DomHelper,
+        cp = config.parentEl, pel = cp ? Ext.getDom(cp) : document.body;
+        
+    if (existingEl) {
         this.dom = Ext.getDom(existingEl);
     }
     if(!this.dom){
@@ -2445,6 +2475,10 @@ Ext.extend(Ext.Layer, Ext.Element, {
             }
         }
         return this;
+    },
+    
+    getConstrainOffset : function(){
+        return this.shadowOffset;    
     },
 
     isVisible : function(){
@@ -2673,19 +2707,23 @@ Ext.extend(Ext.Layer, Ext.Element, {
  * Create a new Shadow
  * @param {Object} config The config object
  */
-Ext.Shadow = function(config){
+Ext.Shadow = function(config) {
     Ext.apply(this, config);
-    if(typeof this.mode != "string"){
+    if (typeof this.mode != "string") {
         this.mode = this.defaultMode;
     }
-    var o = this.offset, a = {h: 0};
-    var rad = Math.floor(this.offset/2);
-    switch(this.mode.toLowerCase()){ // all this hideous nonsense calculates the various offsets for shadows
+    var o = this.offset,
+        a = {
+            h: 0
+        },
+        rad = Math.floor(this.offset / 2);
+    switch (this.mode.toLowerCase()) {
+        // all this hideous nonsense calculates the various offsets for shadows
         case "drop":
             a.w = 0;
             a.l = a.t = o;
             a.t -= 1;
-            if(Ext.isIE){
+            if (Ext.isIE) {
                 a.l -= this.offset + rad;
                 a.t -= this.offset + rad;
                 a.w -= rad;
@@ -2694,24 +2732,24 @@ Ext.Shadow = function(config){
             }
         break;
         case "sides":
-            a.w = (o*2);
+            a.w = (o * 2);
             a.l = -o;
-            a.t = o-1;
-            if(Ext.isIE){
+            a.t = o - 1;
+            if (Ext.isIE) {
                 a.l -= (this.offset - rad);
                 a.t -= this.offset + rad;
                 a.l += 1;
-                a.w -= (this.offset - rad)*2;
+                a.w -= (this.offset - rad) * 2;
                 a.w -= rad + 1;
                 a.h -= 1;
             }
         break;
         case "frame":
-            a.w = a.h = (o*2);
+            a.w = a.h = (o * 2);
             a.l = a.t = -o;
             a.t += 1;
             a.h -= 2;
-            if(Ext.isIE){
+            if (Ext.isIE) {
                 a.l -= (this.offset - rad);
                 a.t -= (this.offset - rad);
                 a.l += 1;
@@ -2747,23 +2785,23 @@ Ext.Shadow.prototype = {
      * Displays the shadow under the target element
      * @param {Mixed} targetEl The id or element under which the shadow should display
      */
-    show : function(target){
+    show: function(target) {
         target = Ext.get(target);
-        if(!this.el){
+        if (!this.el) {
             this.el = Ext.Shadow.Pool.pull();
-            if(this.el.dom.nextSibling != target.dom){
+            if (this.el.dom.nextSibling != target.dom) {
                 this.el.insertBefore(target);
             }
         }
-        this.el.setStyle("z-index", this.zIndex || parseInt(target.getStyle("z-index"), 10)-1);
-        if(Ext.isIE){
-            this.el.dom.style.filter="progid:DXImageTransform.Microsoft.alpha(opacity=50) progid:DXImageTransform.Microsoft.Blur(pixelradius="+(this.offset)+")";
+        this.el.setStyle("z-index", this.zIndex || parseInt(target.getStyle("z-index"), 10) - 1);
+        if (Ext.isIE) {
+            this.el.dom.style.filter = "progid:DXImageTransform.Microsoft.alpha(opacity=50) progid:DXImageTransform.Microsoft.Blur(pixelradius=" + (this.offset) + ")";
         }
         this.realign(
-            target.getLeft(true),
-            target.getTop(true),
-            target.getWidth(),
-            target.getHeight()
+        target.getLeft(true),
+        target.getTop(true),
+        target.getWidth(),
+        target.getHeight()
         );
         this.el.dom.style.display = "block";
     },
@@ -2771,8 +2809,8 @@ Ext.Shadow.prototype = {
     /**
      * Returns true if the shadow is visible, else false
      */
-    isVisible : function(){
-        return this.el ? true : false;  
+    isVisible: function() {
+        return this.el ? true: false;
     },
 
     /**
@@ -2783,25 +2821,32 @@ Ext.Shadow.prototype = {
      * @param {Number} width The target element width
      * @param {Number} height The target element height
      */
-    realign : function(l, t, w, h){
-        if(!this.el){
+    realign: function(l, t, w, h) {
+        if (!this.el) {
             return;
         }
-        var a = this.adjusts, d = this.el.dom, s = d.style;
-        var iea = 0;
-        s.left = (l+a.l)+"px";
-        s.top = (t+a.t)+"px";
-        var sw = (w+a.w), sh = (h+a.h), sws = sw +"px", shs = sh + "px";
-        if(s.width != sws || s.height != shs){
+        var a = this.adjusts,
+            d = this.el.dom,
+            s = d.style,
+            iea = 0,
+            sw = (w + a.w),
+            sh = (h + a.h),
+            sws = sw + "px",
+            shs = sh + "px",
+            cn,
+            sww;
+        s.left = (l + a.l) + "px";
+        s.top = (t + a.t) + "px";
+        if (s.width != sws || s.height != shs) {
             s.width = sws;
             s.height = shs;
-            if(!Ext.isIE){
-                var cn = d.childNodes;
-                var sww = Math.max(0, (sw-12))+"px";
+            if (!Ext.isIE) {
+                cn = d.childNodes;
+                sww = Math.max(0, (sw - 12)) + "px";
                 cn[0].childNodes[1].style.width = sww;
                 cn[1].childNodes[1].style.width = sww;
                 cn[2].childNodes[1].style.width = sww;
-                cn[1].style.height = Math.max(0, (sh-12))+"px";
+                cn[1].style.height = Math.max(0, (sh - 12)) + "px";
             }
         }
     },
@@ -2809,8 +2854,8 @@ Ext.Shadow.prototype = {
     /**
      * Hides this shadow
      */
-    hide : function(){
-        if(this.el){
+    hide: function() {
+        if (this.el) {
             this.el.dom.style.display = "none";
             Ext.Shadow.Pool.push(this.el);
             delete this.el;
@@ -2821,31 +2866,31 @@ Ext.Shadow.prototype = {
      * Adjust the z-index of this shadow
      * @param {Number} zindex The new z-index
      */
-    setZIndex : function(z){
+    setZIndex: function(z) {
         this.zIndex = z;
-        if(this.el){
+        if (this.el) {
             this.el.setStyle("z-index", z);
         }
     }
 };
 
 // Private utility class that manages the internal Shadow cache
-Ext.Shadow.Pool = function(){
-    var p = [];
-    var markup = Ext.isIE ?
-                 '<div class="x-ie-shadow"></div>' :
-                 '<div class="x-shadow"><div class="xst"><div class="xstl"></div><div class="xstc"></div><div class="xstr"></div></div><div class="xsc"><div class="xsml"></div><div class="xsmc"></div><div class="xsmr"></div></div><div class="xsb"><div class="xsbl"></div><div class="xsbc"></div><div class="xsbr"></div></div></div>';
+Ext.Shadow.Pool = function() {
+    var p = [],
+        markup = Ext.isIE ?
+            '<div class="x-ie-shadow"></div>':
+            '<div class="x-shadow"><div class="xst"><div class="xstl"></div><div class="xstc"></div><div class="xstr"></div></div><div class="xsc"><div class="xsml"></div><div class="xsmc"></div><div class="xsmr"></div></div><div class="xsb"><div class="xsbl"></div><div class="xsbc"></div><div class="xsbr"></div></div></div>';
     return {
-        pull : function(){
+        pull: function() {
             var sh = p.shift();
-            if(!sh){
+            if (!sh) {
                 sh = Ext.get(Ext.DomHelper.insertHtml("beforeBegin", document.body.firstChild, markup));
                 sh.autoBoxAdjust = false;
             }
             return sh;
         },
 
-        push : function(sh){
+        push: function(sh) {
             p.push(sh);
         }
     };
@@ -4324,8 +4369,8 @@ items: [
         if(this.layout && this.layout != layout){
             this.layout.setContainer(null);
         }
-        this.initItems();
         this.layout = layout;
+        this.initItems();
         layout.setContainer(this);
     },
 
@@ -4346,7 +4391,7 @@ items: [
         this.setLayout(this.layout);
 
         // If a CardLayout, the active item set
-        if(this.activeItem !== undefined){
+        if(this.activeItem !== undefined && this.layout.setActiveItem){
             var item = this.activeItem;
             delete this.activeItem;
             this.layout.setActiveItem(item);
@@ -4467,20 +4512,26 @@ tb.{@link #doLayout}();             // refresh the layout
      * @return {Ext.Component} component The Component (or config object) that was
      * inserted with the Container's default config values applied.
      */
-    insert : function(index, comp){
+    insert : function(index, comp) {
+        var args   = arguments,
+            length = args.length,
+            result = [],
+            i, c;
+        
         this.initItems();
-        var a = arguments, len = a.length;
-        if(len > 2){
-            var result = [];
-            for(var i = len-1; i >= 1; --i) {
-                result.push(this.insert(index, a[i]));
+        
+        if (length > 2) {
+            for (i = length - 1; i >= 1; --i) {
+                result.push(this.insert(index, args[i]));
             }
             return result;
         }
-        var c = this.lookupComponent(this.applyDefaults(comp));
+        
+        c = this.lookupComponent(this.applyDefaults(comp));
         index = Math.min(index, this.items.length);
-        if(this.fireEvent('beforeadd', this, c, index) !== false && this.onBeforeAdd(c) !== false){
-            if(c.ownerCt == this){
+        
+        if (this.fireEvent('beforeadd', this, c, index) !== false && this.onBeforeAdd(c) !== false) {
+            if (c.ownerCt == this) {
                 this.items.remove(c);
             }
             this.items.insert(index, c);
@@ -4488,6 +4539,7 @@ tb.{@link #doLayout}();             // refresh the layout
             this.onAdd(c);
             this.fireEvent('add', this, c, index);
         }
+        
         return c;
     },
 
@@ -4629,11 +4681,10 @@ tb.{@link #doLayout}();             // refresh the layout
     },
 
     /**
-    * We can only lay out if there is a view area in which to layout.
-    * display:none on the layout target, *or any of its parent elements* will mean it has no view area.
-    */
-
-    // private
+     * @private
+     * We can only lay out if there is a view area in which to layout.
+     * display:none on the layout target, *or any of its parent elements* will mean it has no view area.
+     */
     canLayout : function() {
         var el = this.getVisibilityEl();
         return el && el.dom && !el.isStyle("display", "none");
@@ -4751,27 +4802,6 @@ tb.{@link #doLayout}();             // refresh the layout
     },
 
     /**
-     * Bubbles up the component/container heirarchy, calling the specified function with each component. The scope (<i>this</i>) of
-     * function call will be the scope provided or the current component. The arguments to the function
-     * will be the args provided or the current component. If the function returns false at any point,
-     * the bubble is stopped.
-     * @param {Function} fn The function to call
-     * @param {Object} scope (optional) The scope of the function (defaults to current node)
-     * @param {Array} args (optional) The args to call the function with (default to passing the current component)
-     * @return {Ext.Container} this
-     */
-    bubble : function(fn, scope, args){
-        var p = this;
-        while(p){
-            if(fn.apply(scope || p, args || [p]) === false){
-                break;
-            }
-            p = p.ownerCt;
-        }
-        return this;
-    },
-
-    /**
      * Cascades down the component/container heirarchy from this component (called first), calling the specified function with
      * each component. The scope (<i>this</i>) of
      * function call will be the scope provided or the current component. The arguments to the function
@@ -4801,17 +4831,20 @@ tb.{@link #doLayout}();             // refresh the layout
     /**
      * Find a component under this container at any level by id
      * @param {String} id
+     * @deprecated Fairly useless method, since you can just use Ext.getCmp. Should be removed for 4.0
+     * If you need to test if an id belongs to a container, you can use getCmp and findParent*.
      * @return Ext.Component
      */
     findById : function(id){
-        var m, ct = this;
+        var m = null, 
+            ct = this;
         this.cascade(function(c){
             if(ct != c && c.id === id){
                 m = c;
                 return false;
             }
         });
-        return m || null;
+        return m;
     },
 
     /**
@@ -4859,10 +4892,11 @@ tb.{@link #doLayout}();             // refresh the layout
     /**
      * Get a component contained by this container (alias for items.get(key))
      * @param {String/Number} key The index or id of the component
+     * @deprecated Should be removed in 4.0, since getComponent does the same thing.
      * @return {Ext.Component} Ext.Component
      */
     get : function(key){
-        return this.items.get(key);
+        return this.getComponent(key);
     }
 });
 
@@ -4991,7 +5025,7 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
         if (c) {
             if (!c.rendered) {
                 c.render(target, position);
-                this.configureItem(c, position);
+                this.configureItem(c);
             } else if (!this.isValidParent(c, target)) {
                 if (Ext.isNumber(position)) {
                     position = target.dom.childNodes[position];
@@ -4999,7 +5033,7 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
                 
                 target.dom.insertBefore(c.getPositionEl().dom, position || null);
                 c.container = target;
-                this.configureItem(c, position);
+                this.configureItem(c);
             }
         }
     },
@@ -5009,7 +5043,7 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
     getRenderedItems: function(ct){
         var t = ct.getLayoutTarget(), cti = ct.items.items, len = cti.length, i, c, items = [];
         for (i = 0; i < len; i++) {
-            if((c = cti[i]).rendered && this.isValidParent(c, t)){
+            if((c = cti[i]).rendered && this.isValidParent(c, t) && c.shouldLayout !== false){
                 items.push(c);
             }
         };
@@ -5020,7 +5054,7 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
      * @private
      * Applies extraCls and hides the item if renderHidden is true
      */
-    configureItem: function(c, position){
+    configureItem: function(c){
         if (this.extraCls) {
             var t = c.getPositionEl ? c.getPositionEl() : c;
             t.addClass(this.extraCls);
@@ -5486,109 +5520,143 @@ anchor: '-50 75%'
 
     parseAnchorRE : /^(r|right|b|bottom)$/i,
 
+
     getLayoutTargetSize : function() {
-        var target = this.container.getLayoutTarget();
-        if (!target) {
-            return {};
+        var target = this.container.getLayoutTarget(), ret = {};
+        if (target) {
+            ret = target.getViewSize();
+
+            // IE in strict mode will return a width of 0 on the 1st pass of getViewSize.
+            // Use getStyleSize to verify the 0 width, the adjustment pass will then work properly
+            // with getViewSize
+            if (Ext.isIE && Ext.isStrict && ret.width == 0){
+                ret =  target.getStyleSize();
+            }
+            ret.width -= target.getPadding('lr');
+            ret.height -= target.getPadding('tb');
         }
-        // Style Sized (scrollbars not included)
-        return target.getStyleSize();
+        return ret;
     },
 
     // private
-    onLayout : function(ct, target){
-        Ext.layout.AnchorLayout.superclass.onLayout.call(this, ct, target);
-        var size = this.getLayoutTargetSize();
+    onLayout : function(container, target) {
+        Ext.layout.AnchorLayout.superclass.onLayout.call(this, container, target);
 
-        var w = size.width, h = size.height;
+        var size = this.getLayoutTargetSize(),
+            containerWidth = size.width,
+            containerHeight = size.height,
+            overflow = target.getStyle('overflow'),
+            components = this.getRenderedItems(container),
+            len = components.length,
+            boxes = [],
+            box,
+            anchorWidth,
+            anchorHeight,
+            component,
+            anchorSpec,
+            calcWidth,
+            calcHeight,
+            anchorsArray,
+            totalHeight = 0,
+            i,
+            el;
 
-        if(w < 20 && h < 20){
+        if(containerWidth < 20 && containerHeight < 20){
             return;
         }
 
         // find the container anchoring size
-        var aw, ah;
-        if(ct.anchorSize){
-            if(typeof ct.anchorSize == 'number'){
-                aw = ct.anchorSize;
-            }else{
-                aw = ct.anchorSize.width;
-                ah = ct.anchorSize.height;
+        if(container.anchorSize) {
+            if(typeof container.anchorSize == 'number') {
+                anchorWidth = container.anchorSize;
+            } else {
+                anchorWidth = container.anchorSize.width;
+                anchorHeight = container.anchorSize.height;
             }
-        }else{
-            aw = ct.initialConfig.width;
-            ah = ct.initialConfig.height;
+        } else {
+            anchorWidth = container.initialConfig.width;
+            anchorHeight = container.initialConfig.height;
         }
 
-        var cs = this.getRenderedItems(ct), len = cs.length, i, c, a, cw, ch, el, vs, boxes = [];
-        for(i = 0; i < len; i++){
-            c = cs[i];
-            el = c.getPositionEl();
+        for(i = 0; i < len; i++) {
+            component = components[i];
+            el = component.getPositionEl();
 
             // If a child container item has no anchor and no specific width, set the child to the default anchor size
-            if (!c.anchor && c.items && !Ext.isNumber(c.width) && !(Ext.isIE6 && Ext.isStrict)){
-                c.anchor = this.defaultAnchor;
+            if (!component.anchor && component.items && !Ext.isNumber(component.width) && !(Ext.isIE6 && Ext.isStrict)){
+                component.anchor = this.defaultAnchor;
             }
 
-            if(c.anchor){
-                a = c.anchorSpec;
-                if(!a){ // cache all anchor values
-                    vs = c.anchor.split(' ');
-                    c.anchorSpec = a = {
-                        right: this.parseAnchor(vs[0], c.initialConfig.width, aw),
-                        bottom: this.parseAnchor(vs[1], c.initialConfig.height, ah)
+            if(component.anchor) {
+                anchorSpec = component.anchorSpec;
+                // cache all anchor values
+                if(!anchorSpec){
+                    anchorsArray = component.anchor.split(' ');
+                    component.anchorSpec = anchorSpec = {
+                        right: this.parseAnchor(anchorsArray[0], component.initialConfig.width, anchorWidth),
+                        bottom: this.parseAnchor(anchorsArray[1], component.initialConfig.height, anchorHeight)
                     };
                 }
-                cw = a.right ? this.adjustWidthAnchor(a.right(w) - el.getMargins('lr'), c) : undefined;
-                ch = a.bottom ? this.adjustHeightAnchor(a.bottom(h) - el.getMargins('tb'), c) : undefined;
+                calcWidth = anchorSpec.right ? this.adjustWidthAnchor(anchorSpec.right(containerWidth) - el.getMargins('lr'), component) : undefined;
+                calcHeight = anchorSpec.bottom ? this.adjustHeightAnchor(anchorSpec.bottom(containerHeight) - el.getMargins('tb'), component) : undefined;
 
-                if(cw || ch){
+                if(calcWidth || calcHeight) {
                     boxes.push({
-                        comp: c,
-                        width: cw || undefined,
-                        height: ch || undefined
+                        component: component,
+                        width: calcWidth || undefined,
+                        height: calcHeight || undefined
                     });
                 }
             }
         }
         for (i = 0, len = boxes.length; i < len; i++) {
-            c = boxes[i];
-            c.comp.setSize(c.width, c.height);
+            box = boxes[i];
+            box.component.setSize(box.width, box.height);
         }
+
+        if (overflow && overflow != 'hidden' && !this.adjustmentPass) {
+            var newTargetSize = this.getLayoutTargetSize();
+            if (newTargetSize.width != size.width || newTargetSize.height != size.height){
+                this.adjustmentPass = true;
+                this.onLayout(container, target);
+            }
+        }
+
+        delete this.adjustmentPass;
     },
 
     // private
-    parseAnchor : function(a, start, cstart){
-        if(a && a != 'none'){
+    parseAnchor : function(a, start, cstart) {
+        if (a && a != 'none') {
             var last;
             // standard anchor
-            if(this.parseAnchorRE.test(a)){
+            if (this.parseAnchorRE.test(a)) {
                 var diff = cstart - start;
                 return function(v){
                     if(v !== last){
                         last = v;
                         return v - diff;
                     }
-                }
+                };
             // percentage
-            }else if(a.indexOf('%') != -1){
+            } else if(a.indexOf('%') != -1) {
                 var ratio = parseFloat(a.replace('%', ''))*.01;
                 return function(v){
                     if(v !== last){
                         last = v;
                         return Math.floor(v*ratio);
                     }
-                }
+                };
             // simple offset adjustment
-            }else{
+            } else {
                 a = parseInt(a, 10);
-                if(!isNaN(a)){
-                    return function(v){
-                        if(v !== last){
+                if (!isNaN(a)) {
+                    return function(v) {
+                        if (v !== last) {
                             last = v;
                             return v + a;
                         }
-                    }
+                    };
                 }
             }
         }
@@ -6268,7 +6336,7 @@ Ext.layout.BorderLayout.Region.prototype = {
                 this.collapsedEl.on('click', this.onExpandClick, this, {stopEvent:true});
             }else {
                 if(this.collapsible !== false && !this.hideCollapseTool) {
-                    var t = this.toolTemplate.append(
+                    var t = this.expandToolEl = this.toolTemplate.append(
                             this.collapsedEl.dom,
                             {id:'expand-'+this.position}, true);
                     t.addClassOnOver('x-tool-expand-'+this.position+'-over');
@@ -6687,7 +6755,7 @@ Ext.layout.BorderLayout.Region.prototype = {
         if (this.autoHideSlideTask && this.autoHideSlideTask.cancel){
             this.autoHideSlideTask.cancel();
         }
-        Ext.destroy(this.miniCollapsedEl, this.collapsedEl);
+        Ext.destroyMembers(this, 'miniCollapsedEl', 'collapsedEl', 'expandToolEl');
     }
 };
 
@@ -6925,7 +6993,8 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
     }
 });
 
-Ext.Container.LAYOUTS['border'] = Ext.layout.BorderLayout;/**
+Ext.Container.LAYOUTS['border'] = Ext.layout.BorderLayout;
+/**
  * @class Ext.layout.FormLayout
  * @extends Ext.layout.AnchorLayout
  * <p>This layout manager is specifically designed for rendering and managing child Components of
@@ -7038,9 +7107,9 @@ Ext.layout.FormLayout = Ext.extend(Ext.layout.AnchorLayout, {
 
     /**
      * @cfg {Boolean} trackLabels
-     * True to show/hide the field label when the field is hidden. Defaults to <tt>false</tt>.
+     * True to show/hide the field label when the field is hidden. Defaults to <tt>true</tt>.
      */
-    trackLabels: false,
+    trackLabels: true,
 
     type: 'form',
 
@@ -7079,7 +7148,7 @@ Ext.layout.FormLayout = Ext.extend(Ext.layout.AnchorLayout, {
                 labelAdjust: 0
             });
         }else{
-            this.labelSeparator = ct.labelSeparator || this.labelSeparator;
+            this.labelSeparator = Ext.isDefined(ct.labelSeparator) ? ct.labelSeparator : this.labelSeparator;
             ct.labelWidth = ct.labelWidth || 100;
             if(Ext.isNumber(ct.labelWidth)){
                 var pad = Ext.isNumber(ct.labelPad) ? ct.labelPad : 5;
@@ -7106,6 +7175,11 @@ Ext.layout.FormLayout = Ext.extend(Ext.layout.AnchorLayout, {
 
     onFieldShow: function(c){
         c.getItemCt().removeClass('x-hide-' + c.hideMode);
+
+        // Composite fields will need to layout after the container is made visible
+        if (c.isComposite) {
+            c.doLayout();
+        }
     },
 
     onFieldHide: function(c){
@@ -7162,7 +7236,7 @@ new Ext.Template(
 
     /**
      * @private
-     * 
+     *
      */
     renderItem : function(c, position, target){
         if(c && (c.isFormField || c.fieldLabel) && c.inputType != 'hidden'){
@@ -7234,7 +7308,7 @@ new Ext.Template(
      */
     getTemplateArgs: function(field) {
         var noLabelSep = !field.fieldLabel || field.hideLabel;
-        
+
         return {
             id            : field.id,
             label         : field.fieldLabel,
@@ -7429,7 +7503,7 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
             var hh = 0, i, ct = this.getRenderedItems(this.container), len = ct.length, p;
             // Add up all the header heights
             for (i = 0; i < len; i++) {
-                if((p = ct[i]) != item){
+                if((p = ct[i]) != item && !p.hidden){
                     hh += p.header.getHeight();
                 }
             };
@@ -7647,18 +7721,23 @@ Ext.layout.TableLayout = Ext.extend(Ext.layout.ContainerLayout, {
         }
         if(c && !c.rendered){
             c.render(this.getNextCell(c));
-            this.configureItem(c, position);
+            this.configureItem(c);
         }else if(c && !this.isValidParent(c, target)){
             var container = this.getNextCell(c);
             container.insertBefore(c.getPositionEl().dom, null);
             c.container = Ext.get(container);
-            this.configureItem(c, position);
+            this.configureItem(c);
         }
     },
 
     // private
     isValidParent : function(c, target){
         return c.getPositionEl().up('table', 5).dom.parentNode === (target.dom || target);
+    },
+    
+    destroy: function(){
+        delete this.table;
+        Ext.layout.TableLayout.superclass.destroy.call(this);
     }
 
     /**
@@ -7815,6 +7894,26 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
         if (Ext.isString(this.defaultMargins)) {
             this.defaultMargins = this.parseMargins(this.defaultMargins);
         }
+        
+        var handler = this.overflowHandler;
+        
+        if (typeof handler == 'string') {
+            handler = {
+                type: handler
+            };
+        }
+        
+        var handlerType = 'none';
+        if (handler && handler.type != undefined) {
+            handlerType = handler.type;
+        }
+        
+        var constructor = Ext.layout.boxOverflow[handlerType];
+        if (constructor[this.type]) {
+            constructor = constructor[this.type];
+        }
+        
+        this.overflowHandler = new constructor(this, handler);
     },
 
     /**
@@ -7825,9 +7924,32 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
     onLayout: function(container, target) {
         Ext.layout.BoxLayout.superclass.onLayout.call(this, container, target);
 
-        var items = this.getVisibleItems(container),
-            tSize = this.getLayoutTargetSize();
-
+        var tSize = this.getLayoutTargetSize(),
+            items = this.getVisibleItems(container),
+            calcs = this.calculateChildBoxes(items, tSize),
+            boxes = calcs.boxes,
+            meta  = calcs.meta;
+        
+        //invoke the overflow handler, if one is configured
+        if (tSize.width > 0) {
+            var handler = this.overflowHandler,
+                method  = meta.tooNarrow ? 'handleOverflow' : 'clearOverflow';
+            
+            var results = handler[method](calcs, tSize);
+            
+            if (results) {
+                if (results.targetSize) {
+                    tSize = results.targetSize;
+                }
+                
+                if (results.recalculate) {
+                    items = this.getVisibleItems(container);
+                    calcs = this.calculateChildBoxes(items, tSize);
+                    boxes = calcs.boxes;
+                }
+            }
+        }
+        
         /**
          * @private
          * @property layoutTargetLastSize
@@ -7836,7 +7958,7 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
          * BoxLayout subclasses during their onLayout run.
          */
         this.layoutTargetLastSize = tSize;
-
+        
         /**
          * @private
          * @property childBoxCache
@@ -7844,10 +7966,10 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
          * Array of the last calculated height, width, top and left positions of each visible rendered component
          * within the Box layout.
          */
-        this.childBoxCache = this.calculateChildBoxes(items, tSize);
-
-        this.updateInnerCtSize(tSize, this.childBoxCache);
-        this.updateChildBoxes(this.childBoxCache.boxes);
+        this.childBoxCache = calcs;
+        
+        this.updateInnerCtSize(tSize, calcs);
+        this.updateChildBoxes(boxes);
 
         // Putting a box layout into an overflowed container is NOT correct and will make a second layout pass necessary.
         this.handleTargetOverflow(tSize, container, target);
@@ -7861,7 +7983,7 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
         for (var i = 0, length = boxes.length; i < length; i++) {
             var box  = boxes[i],
                 comp = box.component;
-
+            
             if (box.dirtySize) {
                 comp.setSize(box.width, box.height);
             }
@@ -7869,6 +7991,7 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
             if (isNaN(box.left) || isNaN(box.top)) {
                 continue;
             }
+            
             comp.setPosition(box.left, box.top);
         }
     },
@@ -7883,7 +8006,34 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
      * @param {Object} currentSize The current height and width of the innerCt
      * @param {Array} calculations The new box calculations of all items to be laid out
      */
-    updateInnerCtSize: Ext.emptyFn,
+    updateInnerCtSize: function(tSize, calcs) {
+        var align   = this.align,
+            padding = this.padding,
+            width   = tSize.width,
+            height  = tSize.height;
+        
+        if (this.type == 'hbox') {
+            var innerCtWidth  = width,
+                innerCtHeight = calcs.meta.maxHeight + padding.top + padding.bottom;
+
+            if (align == 'stretch') {
+                innerCtHeight = height;
+            } else if (align == 'middle') {
+                innerCtHeight = Math.max(height, innerCtHeight);
+            }
+        } else {
+            var innerCtHeight = height,
+                innerCtWidth  = calcs.meta.maxWidth + padding.left + padding.right;
+
+            if (align == 'stretch') {
+                innerCtWidth = width;
+            } else if (align == 'center') {
+                innerCtWidth = Math.max(width, innerCtWidth);
+            }
+        }
+
+        this.innerCt.setSize(innerCtWidth || undefined, innerCtHeight || undefined);
+    },
 
     /**
      * @private
@@ -7909,7 +8059,7 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
     },
 
     // private
-    isValidParent : function(c, target){
+    isValidParent : function(c, target) {
         return this.innerCt && c.getPositionEl().dom.parentNode == this.innerCt.dom;
     },
 
@@ -7927,7 +8077,7 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
             i, c, items = [];
 
         for (i = 0; i < len; i++) {
-            if((c = cti[i]).rendered && this.isValidParent(c, t) && c.hidden !== true  && c.collapsed !== true){
+            if((c = cti[i]).rendered && this.isValidParent(c, t) && c.hidden !== true  && c.collapsed !== true && c.shouldLayout !== false){
                 items.push(c);
             }
         }
@@ -7936,18 +8086,18 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
     },
 
     // private
-    renderAll : function(ct, target){
-        if(!this.innerCt){
-            // the innerCt prevents wrapping and shuffling while
-            // the container is resizing
+    renderAll : function(ct, target) {
+        if (!this.innerCt) {
+            // the innerCt prevents wrapping and shuffling while the container is resizing
             this.innerCt = target.createChild({cls:this.innerCls});
             this.padding = this.parseMargins(this.padding);
         }
         Ext.layout.BoxLayout.superclass.renderAll.call(this, ct, this.innerCt);
     },
 
-    getLayoutTargetSize : function(){
+    getLayoutTargetSize : function() {
         var target = this.container.getLayoutTarget(), ret;
+        
         if (target) {
             ret = target.getViewSize();
 
@@ -7958,24 +8108,1188 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
                 ret =  target.getStyleSize();
             }
 
-            ret.width -= target.getPadding('lr');
+            ret.width  -= target.getPadding('lr');
             ret.height -= target.getPadding('tb');
         }
+        
         return ret;
     },
 
     // private
-    renderItem : function(c){
+    renderItem : function(c) {
         if(Ext.isString(c.margins)){
             c.margins = this.parseMargins(c.margins);
         }else if(!c.margins){
             c.margins = this.defaultMargins;
         }
         Ext.layout.BoxLayout.superclass.renderItem.apply(this, arguments);
+    },
+    
+    /**
+     * @private
+     */
+    destroy: function() {
+        Ext.destroy(this.overflowHandler);
+        
+        Ext.layout.BoxLayout.superclass.destroy.apply(this, arguments);
     }
 });
 
+
+
+Ext.ns('Ext.layout.boxOverflow');
+
 /**
+ * @class Ext.layout.boxOverflow.None
+ * @extends Object
+ * Base class for Box Layout overflow handlers. These specialized classes are invoked when a Box Layout
+ * (either an HBox or a VBox) has child items that are either too wide (for HBox) or too tall (for VBox)
+ * for its container.
+ */
+
+Ext.layout.boxOverflow.None = Ext.extend(Object, {
+    constructor: function(layout, config) {
+        this.layout = layout;
+        
+        Ext.apply(this, config || {});
+    },
+    
+    handleOverflow: Ext.emptyFn,
+    
+    clearOverflow: Ext.emptyFn
+});
+
+
+Ext.layout.boxOverflow.none = Ext.layout.boxOverflow.None;
+/**
+ * @class Ext.layout.boxOverflow.Menu
+ * @extends Ext.layout.boxOverflow.None
+ * Description
+ */
+Ext.layout.boxOverflow.Menu = Ext.extend(Ext.layout.boxOverflow.None, {
+    /**
+     * @cfg afterCls
+     * @type String
+     * CSS class added to the afterCt element. This is the element that holds any special items such as scrollers,
+     * which must always be present at the rightmost edge of the Container
+     */
+    afterCls: 'x-strip-right',
+    
+    /**
+     * @property noItemsMenuText
+     * @type String
+     * HTML fragment to render into the toolbar overflow menu if there are no items to display
+     */
+    noItemsMenuText : '<div class="x-toolbar-no-items">(None)</div>',
+    
+    constructor: function(layout) {
+        Ext.layout.boxOverflow.Menu.superclass.constructor.apply(this, arguments);
+        
+        /**
+         * @property menuItems
+         * @type Array
+         * Array of all items that are currently hidden and should go into the dropdown menu
+         */
+        this.menuItems = [];
+    },
+    
+    /**
+     * @private
+     * Creates the beforeCt, innerCt and afterCt elements if they have not already been created
+     * @param {Ext.Container} container The Container attached to this Layout instance
+     * @param {Ext.Element} target The target Element
+     */
+    createInnerElements: function() {
+        if (!this.afterCt) {
+            this.afterCt  = this.layout.innerCt.insertSibling({cls: this.afterCls},  'before');
+        }
+    },
+    
+    /**
+     * @private
+     */
+    clearOverflow: function(calculations, targetSize) {
+        var newWidth = targetSize.width + (this.afterCt ? this.afterCt.getWidth() : 0),
+            items    = this.menuItems;
+        
+        this.hideTrigger();
+        
+        for (var index = 0, length = items.length; index < length; index++) {
+            items.pop().component.show();
+        }
+        
+        return {
+            targetSize: {
+                height: targetSize.height,
+                width : newWidth
+            }
+        };
+    },
+    
+    /**
+     * @private
+     */
+    showTrigger: function() {
+        this.createMenu();
+        this.menuTrigger.show();
+    },
+    
+    /**
+     * @private
+     */
+    hideTrigger: function() {
+        if (this.menuTrigger != undefined) {
+            this.menuTrigger.hide();
+        }
+    },
+    
+    /**
+     * @private
+     * Called before the overflow menu is shown. This constructs the menu's items, caching them for as long as it can.
+     */
+    beforeMenuShow: function(menu) {
+        var items = this.menuItems,
+            len   = items.length,
+            item,
+            prev;
+
+        var needsSep = function(group, item){
+            return group.isXType('buttongroup') && !(item instanceof Ext.Toolbar.Separator);
+        };
+        
+        this.clearMenu();
+        menu.removeAll();
+        
+        for (var i = 0; i < len; i++) {
+            item = items[i].component;
+            
+            if (prev && (needsSep(item, prev) || needsSep(prev, item))) {
+                menu.add('-');
+            }
+            
+            this.addComponentToMenu(menu, item);
+            prev = item;
+        }
+
+        // put something so the menu isn't empty if no compatible items found
+        if (menu.items.length < 1) {
+            menu.add(this.noItemsMenuText);
+        }
+    },
+    
+    /**
+     * @private
+     * Returns a menu config for a given component. This config is used to create a menu item
+     * to be added to the expander menu
+     * @param {Ext.Component} component The component to create the config for
+     * @param {Boolean} hideOnClick Passed through to the menu item
+     */
+    createMenuConfig : function(component, hideOnClick){
+        var config = Ext.apply({}, component.initialConfig),
+            group  = component.toggleGroup;
+
+        Ext.copyTo(config, component, [
+            'iconCls', 'icon', 'itemId', 'disabled', 'handler', 'scope', 'menu'
+        ]);
+
+        Ext.apply(config, {
+            text       : component.overflowText || component.text,
+            hideOnClick: hideOnClick
+        });
+
+        if (group || component.enableToggle) {
+            Ext.apply(config, {
+                group  : group,
+                checked: component.pressed,
+                listeners: {
+                    checkchange: function(item, checked){
+                        component.toggle(checked);
+                    }
+                }
+            });
+        }
+
+        delete config.ownerCt;
+        delete config.xtype;
+        delete config.id;
+
+        return config;
+    },
+
+    /**
+     * @private
+     * Adds the given Toolbar item to the given menu. Buttons inside a buttongroup are added individually.
+     * @param {Ext.menu.Menu} menu The menu to add to
+     * @param {Ext.Component} component The component to add
+     */
+    addComponentToMenu : function(menu, component) {
+        if (component instanceof Ext.Toolbar.Separator) {
+            menu.add('-');
+
+        } else if (Ext.isFunction(component.isXType)) {
+            if (component.isXType('splitbutton')) {
+                menu.add(this.createMenuConfig(component, true));
+
+            } else if (component.isXType('button')) {
+                menu.add(this.createMenuConfig(component, !component.menu));
+
+            } else if (component.isXType('buttongroup')) {
+                component.items.each(function(item){
+                     this.addComponentToMenu(menu, item);
+                }, this);
+            }
+        }
+    },
+    
+    /**
+     * @private
+     * Deletes the sub-menu of each item in the expander menu. Submenus are created for items such as
+     * splitbuttons and buttongroups, where the Toolbar item cannot be represented by a single menu item
+     */
+    clearMenu : function(){
+        var menu = this.moreMenu;
+        if (menu && menu.items) {
+            menu.items.each(function(item){
+                delete item.menu;
+            });
+        }
+    },
+    
+    /**
+     * @private
+     * Creates the overflow trigger and menu used when enableOverflow is set to true and the items
+     * in the layout are too wide to fit in the space available
+     */
+    createMenu: function() {
+        if (!this.menuTrigger) {
+            this.createInnerElements();
+            
+            /**
+             * @private
+             * @property menu
+             * @type Ext.menu.Menu
+             * The expand menu - holds items for every item that cannot be shown
+             * because the container is currently not large enough.
+             */
+            this.menu = new Ext.menu.Menu({
+                ownerCt : this.layout.container,
+                listeners: {
+                    scope: this,
+                    beforeshow: this.beforeMenuShow
+                }
+            });
+
+            /**
+             * @private
+             * @property menuTrigger
+             * @type Ext.Button
+             * The expand button which triggers the overflow menu to be shown
+             */
+            this.menuTrigger = new Ext.Button({
+                iconCls : 'x-toolbar-more-icon',
+                cls     : 'x-toolbar-more',
+                menu    : this.menu,
+                renderTo: this.afterCt
+            });
+        }
+    },
+    
+    /**
+     * @private
+     */
+    destroy: function() {
+        Ext.destroy(this.menu, this.menuTrigger);
+    }
+});
+
+Ext.layout.boxOverflow.menu = Ext.layout.boxOverflow.Menu;
+
+
+/**
+ * @class Ext.layout.boxOverflow.HorizontalMenu
+ * @extends Ext.layout.boxOverflow.Menu
+ * Description
+ */
+Ext.layout.boxOverflow.HorizontalMenu = Ext.extend(Ext.layout.boxOverflow.Menu, {
+    
+    constructor: function() {
+        Ext.layout.boxOverflow.HorizontalMenu.superclass.constructor.apply(this, arguments);
+        
+        var me = this,
+            layout = me.layout,
+            origFunction = layout.calculateChildBoxes;
+        
+        layout.calculateChildBoxes = function(visibleItems, targetSize) {
+            var calcs = origFunction.apply(layout, arguments),
+                meta  = calcs.meta,
+                items = me.menuItems;
+            
+            //calculate the width of the items currently hidden solely because there is not enough space
+            //to display them
+            var hiddenWidth = 0;
+            for (var index = 0, length = items.length; index < length; index++) {
+                hiddenWidth += items[index].width;
+            }
+            
+            meta.minimumWidth += hiddenWidth;
+            meta.tooNarrow = meta.minimumWidth > targetSize.width;
+            
+            return calcs;
+        };        
+    },
+    
+    handleOverflow: function(calculations, targetSize) {
+        this.showTrigger();
+        
+        var newWidth    = targetSize.width - this.afterCt.getWidth(),
+            boxes       = calculations.boxes,
+            usedWidth   = 0,
+            recalculate = false;
+        
+        //calculate the width of all visible items and any spare width
+        for (var index = 0, length = boxes.length; index < length; index++) {
+            usedWidth += boxes[index].width;
+        }
+        
+        var spareWidth = newWidth - usedWidth,
+            showCount  = 0;
+        
+        //see if we can re-show any of the hidden components
+        for (var index = 0, length = this.menuItems.length; index < length; index++) {
+            var hidden = this.menuItems[index],
+                comp   = hidden.component,
+                width  = hidden.width;
+            
+            if (width < spareWidth) {
+                comp.show();
+                
+                spareWidth -= width;
+                showCount ++;
+                recalculate = true;
+            } else {
+                break;
+            }
+        }
+                
+        if (recalculate) {
+            this.menuItems = this.menuItems.slice(showCount);
+        } else {
+            for (var i = boxes.length - 1; i >= 0; i--) {
+                var item  = boxes[i].component,
+                    right = boxes[i].left + boxes[i].width;
+
+                if (right >= newWidth) {
+                    this.menuItems.unshift({
+                        component: item,
+                        width    : boxes[i].width
+                    });
+
+                    item.hide();
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        if (this.menuItems.length == 0) {
+            this.hideTrigger();
+        }
+        
+        return {
+            targetSize: {
+                height: targetSize.height,
+                width : newWidth
+            },
+            recalculate: recalculate
+        };
+    }
+});
+
+Ext.layout.boxOverflow.menu.hbox = Ext.layout.boxOverflow.HorizontalMenu;/**
+ * @class Ext.layout.boxOverflow.Scroller
+ * @extends Ext.layout.boxOverflow.None
+ * Description
+ */
+Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
+    /**
+     * @cfg animateScroll
+     * @type Boolean
+     * True to animate the scrolling of items within the layout (defaults to true, ignored if enableScroll is false)
+     */
+    animateScroll: true,
+    
+    /**
+     * @cfg scrollIncrement
+     * @type Number
+     * The number of pixels to scroll by on scroller click (defaults to 100)
+     */
+    scrollIncrement: 100,
+    
+    /**
+     * @cfg wheelIncrement
+     * @type Number
+     * The number of pixels to increment on mouse wheel scrolling (defaults to <tt>3</tt>).
+     */
+    wheelIncrement: 3,
+    
+    /**
+     * @cfg scrollRepeatInterval
+     * @type Number
+     * Number of milliseconds between each scroll while a scroller button is held down (defaults to 400)
+     */
+    scrollRepeatInterval: 400,
+    
+    /**
+     * @cfg scrollDuration
+     * @type Number
+     * Number of seconds that each scroll animation lasts (defaults to 0.4)
+     */
+    scrollDuration: 0.4,
+    
+    /**
+     * @cfg beforeCls
+     * @type String
+     * CSS class added to the beforeCt element. This is the element that holds any special items such as scrollers,
+     * which must always be present at the leftmost edge of the Container
+     */
+    beforeCls: 'x-strip-left',
+    
+    /**
+     * @cfg afterCls
+     * @type String
+     * CSS class added to the afterCt element. This is the element that holds any special items such as scrollers,
+     * which must always be present at the rightmost edge of the Container
+     */
+    afterCls: 'x-strip-right',
+    
+    /**
+     * @cfg scrollerCls
+     * @type String
+     * CSS class added to both scroller elements if enableScroll is used
+     */
+    scrollerCls: 'x-strip-scroller',
+    
+    /**
+     * @cfg beforeScrollerCls
+     * @type String
+     * CSS class added to the left scroller element if enableScroll is used
+     */
+    beforeScrollerCls: 'x-strip-scroller-left',
+    
+    /**
+     * @cfg afterScrollerCls
+     * @type String
+     * CSS class added to the right scroller element if enableScroll is used
+     */
+    afterScrollerCls: 'x-strip-scroller-right',
+    
+    /**
+     * @private
+     * Sets up an listener to scroll on the layout's innerCt mousewheel event
+     */
+    createWheelListener: function() {
+        this.layout.innerCt.on({
+            scope     : this,
+            mousewheel: function(e) {
+                e.stopEvent();
+
+                this.scrollBy(e.getWheelDelta() * this.wheelIncrement * -1, false);
+            }
+        });
+    },
+    
+    /**
+     * @private
+     * Most of the heavy lifting is done in the subclasses
+     */
+    handleOverflow: function(calculations, targetSize) {
+        this.createInnerElements();
+        this.showScrollers();
+    },
+    
+    /**
+     * @private
+     */
+    clearOverflow: function() {
+        this.hideScrollers();
+    },
+    
+    /**
+     * @private
+     * Shows the scroller elements in the beforeCt and afterCt. Creates the scrollers first if they are not already
+     * present. 
+     */
+    showScrollers: function() {
+        this.createScrollers();
+        
+        this.beforeScroller.show();
+        this.afterScroller.show();
+        
+        this.updateScrollButtons();
+    },
+    
+    /**
+     * @private
+     * Hides the scroller elements in the beforeCt and afterCt
+     */
+    hideScrollers: function() {
+        if (this.beforeScroller != undefined) {
+            this.beforeScroller.hide();
+            this.afterScroller.hide();          
+        }
+    },
+    
+    /**
+     * @private
+     * Creates the clickable scroller elements and places them into the beforeCt and afterCt
+     */
+    createScrollers: function() {
+        if (!this.beforeScroller && !this.afterScroller) {
+            var before = this.beforeCt.createChild({
+                cls: String.format("{0} {1} ", this.scrollerCls, this.beforeScrollerCls)
+            });
+            
+            var after = this.afterCt.createChild({
+                cls: String.format("{0} {1}", this.scrollerCls, this.afterScrollerCls)
+            });
+            
+            before.addClassOnOver(this.beforeScrollerCls + '-hover');
+            after.addClassOnOver(this.afterScrollerCls + '-hover');
+            
+            before.setVisibilityMode(Ext.Element.DISPLAY);
+            after.setVisibilityMode(Ext.Element.DISPLAY);
+            
+            this.beforeRepeater = new Ext.util.ClickRepeater(before, {
+                interval: this.scrollRepeatInterval,
+                handler : this.scrollLeft,
+                scope   : this
+            });
+            
+            this.afterRepeater = new Ext.util.ClickRepeater(after, {
+                interval: this.scrollRepeatInterval,
+                handler : this.scrollRight,
+                scope   : this
+            });
+            
+            /**
+             * @property beforeScroller
+             * @type Ext.Element
+             * The left scroller element. Only created when needed.
+             */
+            this.beforeScroller = before;
+            
+            /**
+             * @property afterScroller
+             * @type Ext.Element
+             * The left scroller element. Only created when needed.
+             */
+            this.afterScroller = after;
+        }
+    },
+    
+    /**
+     * @private
+     */
+    destroy: function() {
+        Ext.destroy(this.beforeScroller, this.afterScroller, this.beforeRepeater, this.afterRepeater, this.beforeCt, this.afterCt);
+    },
+    
+    /**
+     * @private
+     * Scrolls left or right by the number of pixels specified
+     * @param {Number} delta Number of pixels to scroll to the right by. Use a negative number to scroll left
+     */
+    scrollBy: function(delta, animate) {
+        this.scrollTo(this.getScrollPosition() + delta, animate);
+    },
+    
+    /**
+     * @private
+     * Normalizes an item reference, string id or numerical index into a reference to the item
+     * @param {Ext.Component|String|Number} item The item reference, id or index
+     * @return {Ext.Component} The item
+     */
+    getItem: function(item) {
+        if (Ext.isString(item)) {
+            item = Ext.getCmp(item);
+        } else if (Ext.isNumber(item)) {
+            item = this.items[item];
+        }
+        
+        return item;
+    },
+    
+    /**
+     * @private
+     * @return {Object} Object passed to scrollTo when scrolling
+     */
+    getScrollAnim: function() {
+        return {
+            duration: this.scrollDuration, 
+            callback: this.updateScrollButtons, 
+            scope   : this
+        };
+    },
+    
+    /**
+     * @private
+     * Enables or disables each scroller button based on the current scroll position
+     */
+    updateScrollButtons: function() {
+        if (this.beforeScroller == undefined || this.afterScroller == undefined) {
+            return;
+        }
+        
+        var beforeMeth = this.atExtremeBefore()  ? 'addClass' : 'removeClass',
+            afterMeth  = this.atExtremeAfter() ? 'addClass' : 'removeClass',
+            beforeCls  = this.beforeScrollerCls + '-disabled',
+            afterCls   = this.afterScrollerCls  + '-disabled';
+        
+        this.beforeScroller[beforeMeth](beforeCls);
+        this.afterScroller[afterMeth](afterCls);
+        this.scrolling = false;
+    },
+    
+    /**
+     * @private
+     * Returns true if the innerCt scroll is already at its left-most point
+     * @return {Boolean} True if already at furthest left point
+     */
+    atExtremeBefore: function() {
+        return this.getScrollPosition() === 0;
+    },
+    
+    /**
+     * @private
+     * Scrolls to the left by the configured amount
+     */
+    scrollLeft: function(animate) {
+        this.scrollBy(-this.scrollIncrement, animate);
+    },
+    
+    /**
+     * @private
+     * Scrolls to the right by the configured amount
+     */
+    scrollRight: function(animate) {
+        this.scrollBy(this.scrollIncrement, animate);
+    },
+    
+    /**
+     * Scrolls to the given component.
+     * @param {String|Number|Ext.Component} item The item to scroll to. Can be a numerical index, component id 
+     * or a reference to the component itself.
+     * @param {Boolean} animate True to animate the scrolling
+     */
+    scrollToItem: function(item, animate) {
+        item = this.getItem(item);
+        
+        if (item != undefined) {
+            var visibility = this.getItemVisibility(item);
+            
+            if (!visibility.fullyVisible) {
+                var box  = item.getBox(true, true),
+                    newX = box.x;
+                    
+                if (visibility.hiddenRight) {
+                    newX -= (this.layout.innerCt.getWidth() - box.width);
+                }
+                
+                this.scrollTo(newX, animate);
+            }
+        }
+    },
+    
+    /**
+     * @private
+     * For a given item in the container, return an object with information on whether the item is visible
+     * with the current innerCt scroll value.
+     * @param {Ext.Component} item The item
+     * @return {Object} Values for fullyVisible, hiddenLeft and hiddenRight
+     */
+    getItemVisibility: function(item) {
+        var box         = this.getItem(item).getBox(true, true),
+            itemLeft    = box.x,
+            itemRight   = box.x + box.width,
+            scrollLeft  = this.getScrollPosition(),
+            scrollRight = this.layout.innerCt.getWidth() + scrollLeft;
+        
+        return {
+            hiddenLeft  : itemLeft < scrollLeft,
+            hiddenRight : itemRight > scrollRight,
+            fullyVisible: itemLeft > scrollLeft && itemRight < scrollRight
+        };
+    }
+});
+
+Ext.layout.boxOverflow.scroller = Ext.layout.boxOverflow.Scroller;
+
+
+/**
+ * @class Ext.layout.boxOverflow.VerticalScroller
+ * @extends Ext.layout.boxOverflow.Scroller
+ * Description
+ */
+Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scroller, {
+    scrollIncrement: 75,
+    wheelIncrement : 2,
+    
+    handleOverflow: function(calculations, targetSize) {
+        Ext.layout.boxOverflow.VerticalScroller.superclass.handleOverflow.apply(this, arguments);
+        
+        return {
+            targetSize: {
+                height: targetSize.height - (this.beforeCt.getHeight() + this.afterCt.getHeight()),
+                width : targetSize.width
+            }
+        };
+    },
+    
+    /**
+     * @private
+     * Creates the beforeCt and afterCt elements if they have not already been created
+     */
+    createInnerElements: function() {
+        var target = this.layout.innerCt;
+        
+        //normal items will be rendered to the innerCt. beforeCt and afterCt allow for fixed positioning of
+        //special items such as scrollers or dropdown menu triggers
+        if (!this.beforeCt) {
+            this.beforeCt = target.insertSibling({cls: this.beforeCls}, 'before');
+            this.afterCt  = target.insertSibling({cls: this.afterCls},  'after');
+
+            this.createWheelListener();
+        }
+    },
+    
+    /**
+     * @private
+     * Scrolls to the given position. Performs bounds checking.
+     * @param {Number} position The position to scroll to. This is constrained.
+     * @param {Boolean} animate True to animate. If undefined, falls back to value of this.animateScroll
+     */
+    scrollTo: function(position, animate) {
+        var oldPosition = this.getScrollPosition(),
+            newPosition = position.constrain(0, this.getMaxScrollBottom());
+        
+        if (newPosition != oldPosition && !this.scrolling) {
+            if (animate == undefined) {
+                animate = this.animateScroll;
+            }
+            
+            this.layout.innerCt.scrollTo('top', newPosition, animate ? this.getScrollAnim() : false);
+            
+            if (animate) {
+                this.scrolling = true;
+            } else {
+                this.scrolling = false;
+                this.updateScrollButtons();
+            }
+        }
+    },
+    
+    /**
+     * Returns the current scroll position of the innerCt element
+     * @return {Number} The current scroll position
+     */
+    getScrollPosition: function(){
+        return parseInt(this.layout.innerCt.dom.scrollTop, 10) || 0;
+    },
+    
+    /**
+     * @private
+     * Returns the maximum value we can scrollTo
+     * @return {Number} The max scroll value
+     */
+    getMaxScrollBottom: function() {
+        return this.layout.innerCt.dom.scrollHeight - this.layout.innerCt.getHeight();
+    },
+    
+    /**
+     * @private
+     * Returns true if the innerCt scroll is already at its right-most point
+     * @return {Boolean} True if already at furthest right point
+     */
+    atExtremeAfter: function() {
+        return this.getScrollPosition() >= this.getMaxScrollBottom();
+    }
+});
+
+Ext.layout.boxOverflow.scroller.vbox = Ext.layout.boxOverflow.VerticalScroller;
+
+
+/**
+ * @class Ext.layout.boxOverflow.HorizontalScroller
+ * @extends Ext.layout.boxOverflow.Scroller
+ * Description
+ */
+Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Scroller, {
+    handleOverflow: function(calculations, targetSize) {
+        Ext.layout.boxOverflow.HorizontalScroller.superclass.handleOverflow.apply(this, arguments);
+        
+        return {
+            targetSize: {
+                height: targetSize.height,
+                width : targetSize.width - (this.beforeCt.getWidth() + this.afterCt.getWidth())
+            }
+        };
+    },
+    
+    /**
+     * @private
+     * Creates the beforeCt and afterCt elements if they have not already been created
+     */
+    createInnerElements: function() {
+        var target = this.layout.innerCt;
+        
+        //normal items will be rendered to the innerCt. beforeCt and afterCt allow for fixed positioning of
+        //special items such as scrollers or dropdown menu triggers
+        if (!this.beforeCt) {
+            this.afterCt  = target.insertSibling({cls: this.afterCls},  'before');
+            this.beforeCt = target.insertSibling({cls: this.beforeCls}, 'before');
+            
+            this.createWheelListener();
+        }
+    },
+    
+    /**
+     * @private
+     * Scrolls to the given position. Performs bounds checking.
+     * @param {Number} position The position to scroll to. This is constrained.
+     * @param {Boolean} animate True to animate. If undefined, falls back to value of this.animateScroll
+     */
+    scrollTo: function(position, animate) {
+        var oldPosition = this.getScrollPosition(),
+            newPosition = position.constrain(0, this.getMaxScrollRight());
+        
+        if (newPosition != oldPosition && !this.scrolling) {
+            if (animate == undefined) {
+                animate = this.animateScroll;
+            }
+            
+            this.layout.innerCt.scrollTo('left', newPosition, animate ? this.getScrollAnim() : false);
+            
+            if (animate) {
+                this.scrolling = true;
+            } else {
+                this.scrolling = false;
+                this.updateScrollButtons();
+            }
+        }
+    },
+    
+    /**
+     * Returns the current scroll position of the innerCt element
+     * @return {Number} The current scroll position
+     */
+    getScrollPosition: function(){
+        return parseInt(this.layout.innerCt.dom.scrollLeft, 10) || 0;
+    },
+    
+    /**
+     * @private
+     * Returns the maximum value we can scrollTo
+     * @return {Number} The max scroll value
+     */
+    getMaxScrollRight: function() {
+        return this.layout.innerCt.dom.scrollWidth - this.layout.innerCt.getWidth();
+    },
+    
+    /**
+     * @private
+     * Returns true if the innerCt scroll is already at its right-most point
+     * @return {Boolean} True if already at furthest right point
+     */
+    atExtremeAfter: function() {
+        return this.getScrollPosition() >= this.getMaxScrollRight();
+    }
+});
+
+Ext.layout.boxOverflow.scroller.hbox = Ext.layout.boxOverflow.HorizontalScroller;/**
+ * @class Ext.layout.HBoxLayout
+ * @extends Ext.layout.BoxLayout
+ * <p>A layout that arranges items horizontally across a Container. This layout optionally divides available horizontal
+ * space between child items containing a numeric <code>flex</code> configuration.</p>
+ * This layout may also be used to set the heights of child items by configuring it with the {@link #align} option.
+ */
+Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
+    /**
+     * @cfg {String} align
+     * Controls how the child items of the container are aligned. Acceptable configuration values for this
+     * property are:
+     * <div class="mdetail-params"><ul>
+     * <li><b><tt>top</tt></b> : <b>Default</b><div class="sub-desc">child items are aligned vertically
+     * at the <b>top</b> of the container</div></li>
+     * <li><b><tt>middle</tt></b> : <div class="sub-desc">child items are aligned vertically in the
+     * <b>middle</b> of the container</div></li>
+     * <li><b><tt>stretch</tt></b> : <div class="sub-desc">child items are stretched vertically to fill
+     * the height of the container</div></li>
+     * <li><b><tt>stretchmax</tt></b> : <div class="sub-desc">child items are stretched vertically to
+     * the height of the largest item.</div></li>
+     */
+    align: 'top', // top, middle, stretch, strechmax
+
+    type : 'hbox',
+
+    /**
+     * @cfg {String} pack
+     * Controls how the child items of the container are packed together. Acceptable configuration values
+     * for this property are:
+     * <div class="mdetail-params"><ul>
+     * <li><b><tt>start</tt></b> : <b>Default</b><div class="sub-desc">child items are packed together at
+     * <b>left</b> side of container</div></li>
+     * <li><b><tt>center</tt></b> : <div class="sub-desc">child items are packed together at
+     * <b>mid-width</b> of container</div></li>
+     * <li><b><tt>end</tt></b> : <div class="sub-desc">child items are packed together at <b>right</b>
+     * side of container</div></li>
+     * </ul></div>
+     */
+    /**
+     * @cfg {Number} flex
+     * This configuation option is to be applied to <b>child <tt>items</tt></b> of the container managed
+     * by this layout. Each child item with a <tt>flex</tt> property will be flexed <b>horizontally</b>
+     * according to each item's <b>relative</b> <tt>flex</tt> value compared to the sum of all items with
+     * a <tt>flex</tt> value specified.  Any child items that have either a <tt>flex = 0</tt> or
+     * <tt>flex = undefined</tt> will not be 'flexed' (the initial size will not be changed).
+     */
+
+    /**
+     * @private
+     * Calculates the size and positioning of each item in the HBox. This iterates over all of the rendered,
+     * visible items and returns a height, width, top and left for each, as well as a reference to each. Also
+     * returns meta data such as maxHeight which are useful when resizing layout wrappers such as this.innerCt.
+     * @param {Array} visibleItems The array of all rendered, visible items to be calculated for
+     * @param {Object} targetSize Object containing target size and height
+     * @return {Object} Object containing box measurements for each child, plus meta data
+     */
+    calculateChildBoxes: function(visibleItems, targetSize) {
+        var visibleCount = visibleItems.length,
+
+            padding      = this.padding,
+            topOffset    = padding.top,
+            leftOffset   = padding.left,
+            paddingVert  = topOffset  + padding.bottom,
+            paddingHoriz = leftOffset + padding.right,
+
+            width        = targetSize.width - this.scrollOffset,
+            height       = targetSize.height,
+            availHeight  = Math.max(0, height - paddingVert),
+
+            isStart      = this.pack == 'start',
+            isCenter     = this.pack == 'center',
+            isEnd        = this.pack == 'end',
+
+            nonFlexWidth = 0,
+            maxHeight    = 0,
+            totalFlex    = 0,
+            desiredWidth = 0,
+            minimumWidth = 0,
+
+            //used to cache the calculated size and position values for each child item
+            boxes        = [],
+
+            //used in the for loops below, just declared here for brevity
+            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth, 
+            horizMargins, vertMargins, stretchHeight;
+
+        //gather the total flex of all flexed items and the width taken up by fixed width items
+        for (i = 0; i < visibleCount; i++) {
+            child       = visibleItems[i];
+            childHeight = child.height;
+            childWidth  = child.width;
+            canLayout   = !child.hasLayout && typeof child.doLayout == 'function';
+
+            // Static width (numeric) requires no calcs
+            if (typeof childWidth != 'number') {
+
+                // flex and not 'auto' width
+                if (child.flex && !childWidth) {
+                    totalFlex += child.flex;
+
+                // Not flexed or 'auto' width or undefined width
+                } else {
+                    //Render and layout sub-containers without a flex or width defined, as otherwise we
+                    //don't know how wide the sub-container should be and cannot calculate flexed widths
+                    if (!childWidth && canLayout) {
+                        child.doLayout();
+                    }
+
+                    childSize   = child.getSize();
+                    childWidth  = childSize.width;
+                    childHeight = childSize.height;
+                }
+            }
+
+            childMargins = child.margins;
+            horizMargins = childMargins.left + childMargins.right;
+
+            nonFlexWidth += horizMargins + (childWidth || 0);
+            desiredWidth += horizMargins + (child.flex ? child.minWidth || 0 : childWidth);
+            minimumWidth += horizMargins + (child.minWidth || childWidth || 0);
+
+            // Max height for align - force layout of non-laid out subcontainers without a numeric height
+            if (typeof childHeight != 'number') {
+                if (canLayout) {
+                    child.doLayout();
+                }
+                childHeight = child.getHeight();
+            }
+
+            maxHeight = Math.max(maxHeight, childHeight + childMargins.top + childMargins.bottom);
+
+            //cache the size of each child component. Don't set height or width to 0, keep undefined instead
+            boxes.push({
+                component: child,
+                height   : childHeight || undefined,
+                width    : childWidth  || undefined
+            });
+        }
+                
+        var shortfall = desiredWidth - width,
+            tooNarrow = minimumWidth > width;
+            
+        //the width available to the flexed items
+        var availableWidth = Math.max(0, width - nonFlexWidth - paddingHoriz);
+        
+        if (tooNarrow) {
+            for (i = 0; i < visibleCount; i++) {
+                boxes[i].width = visibleItems[i].minWidth || visibleItems[i].width || boxes[i].width;
+            }
+        } else {
+            //all flexed items should be sized to their minimum width, other items should be shrunk down until
+            //the shortfall has been accounted for
+            if (shortfall > 0) {
+                var minWidths = [];
+                
+                /**
+                 * When we have a shortfall but are not tooNarrow, we need to shrink the width of each non-flexed item.
+                 * Flexed items are immediately reduced to their minWidth and anything already at minWidth is ignored.
+                 * The remaining items are collected into the minWidths array, which is later used to distribute the shortfall.
+                 */
+                for (var index = 0, length = visibleCount; index < length; index++) {
+                    var item     = visibleItems[index],
+                        minWidth = item.minWidth || 0;
+
+                    //shrink each non-flex tab by an equal amount to make them all fit. Flexed items are all
+                    //shrunk to their minWidth because they're flexible and should be the first to lose width
+                    if (item.flex) {
+                        boxes[index].width = minWidth;
+                    } else {
+                        minWidths.push({
+                            minWidth : minWidth,
+                            available: boxes[index].width - minWidth,
+                            index    : index
+                        });
+                    }
+                }
+                
+                //sort by descending amount of width remaining before minWidth is reached
+                minWidths.sort(function(a, b) {
+                    return a.available > b.available ? 1 : -1;
+                });
+                
+                /*
+                 * Distribute the shortfall (difference between total desired with of all items and actual width available)
+                 * between the non-flexed items. We try to distribute the shortfall evenly, but apply it to items with the
+                 * smallest difference between their width and minWidth first, so that if reducing the width by the average
+                 * amount would make that item less than its minWidth, we carry the remainder over to the next item.
+                 */
+                for (var i = 0, length = minWidths.length; i < length; i++) {
+                    var itemIndex = minWidths[i].index;
+                    
+                    if (itemIndex == undefined) {
+                        continue;
+                    }
+                        
+                    var item      = visibleItems[itemIndex],
+                        box       = boxes[itemIndex],
+                        oldWidth  = box.width,
+                        minWidth  = item.minWidth,
+                        newWidth  = Math.max(minWidth, oldWidth - Math.ceil(shortfall / (length - i))),
+                        reduction = oldWidth - newWidth;
+                    
+                    boxes[itemIndex].width = newWidth;
+                    shortfall -= reduction;                    
+                }
+            } else {
+                //temporary variables used in the flex width calculations below
+                var remainingWidth = availableWidth,
+                    remainingFlex  = totalFlex;
+
+                //calculate the widths of each flexed item
+                for (i = 0; i < visibleCount; i++) {
+                    child = visibleItems[i];
+                    calcs = boxes[i];
+
+                    childMargins = child.margins;
+                    vertMargins  = childMargins.top + childMargins.bottom;
+
+                    if (isStart && child.flex && !child.width) {
+                        flexedWidth     = Math.ceil((child.flex / remainingFlex) * remainingWidth);
+                        remainingWidth -= flexedWidth;
+                        remainingFlex  -= child.flex;
+
+                        calcs.width = flexedWidth;
+                        calcs.dirtySize = true;
+                    }
+                }
+            }
+        }
+        
+        if (isCenter) {
+            leftOffset += availableWidth / 2;
+        } else if (isEnd) {
+            leftOffset += availableWidth;
+        }
+        
+        //finally, calculate the left and top position of each item
+        for (i = 0; i < visibleCount; i++) {
+            child = visibleItems[i];
+            calcs = boxes[i];
+            
+            childMargins = child.margins;
+            leftOffset  += childMargins.left;
+            vertMargins  = childMargins.top + childMargins.bottom;
+            
+            calcs.left = leftOffset;
+            calcs.top  = topOffset + childMargins.top;
+
+            switch (this.align) {
+                case 'stretch':
+                    stretchHeight = availHeight - vertMargins;
+                    calcs.height  = stretchHeight.constrain(child.minHeight || 0, child.maxHeight || 1000000);
+                    calcs.dirtySize = true;
+                    break;
+                case 'stretchmax':
+                    stretchHeight = maxHeight - vertMargins;
+                    calcs.height  = stretchHeight.constrain(child.minHeight || 0, child.maxHeight || 1000000);
+                    calcs.dirtySize = true;
+                    break;
+                case 'middle':
+                    var diff = availHeight - calcs.height - vertMargins;
+                    if (diff > 0) {
+                        calcs.top = topOffset + vertMargins + (diff / 2);
+                    }
+            }
+            
+            leftOffset += calcs.width + childMargins.right;
+        }
+
+        return {
+            boxes: boxes,
+            meta : {
+                maxHeight   : maxHeight,
+                nonFlexWidth: nonFlexWidth,
+                desiredWidth: desiredWidth,
+                minimumWidth: minimumWidth,
+                shortfall   : desiredWidth - width,
+                tooNarrow   : tooNarrow
+            }
+        };
+    }
+});
+
+Ext.Container.LAYOUTS.hbox = Ext.layout.HBoxLayout;/**
  * @class Ext.layout.VBoxLayout
  * @extends Ext.layout.BoxLayout
  * <p>A layout that arranges items vertically down a Container. This layout optionally divides available vertical
@@ -8026,25 +9340,6 @@ Ext.layout.VBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
 
     /**
      * @private
-     * See parent documentation
-     */
-    updateInnerCtSize: function(tSize, calcs) {
-        var innerCtHeight = tSize.height,
-            innerCtWidth  = calcs.meta.maxWidth + this.padding.left + this.padding.right;
-
-        if (this.align == 'stretch') {
-            innerCtWidth = tSize.width;
-        } else if (this.align == 'center') {
-            innerCtWidth = Math.max(tSize.width, innerCtWidth);
-        }
-
-        //we set the innerCt size first because if our child items are larger than the previous innerCt size
-        //the browser will insert scrollbars and then remove them again immediately afterwards
-        this.innerCt.setSize(innerCtWidth || undefined, innerCtHeight || undefined);
-    },
-
-    /**
-     * @private
      * Calculates the size and positioning of each item in the VBox. This iterates over all of the rendered,
      * visible items and returns a height, width, top and left for each, as well as a reference to each. Also
      * returns meta data such as maxHeight which are useful when resizing layout wrappers such as this.innerCt.
@@ -8072,348 +9367,215 @@ Ext.layout.VBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
             nonFlexHeight= 0,
             maxWidth     = 0,
             totalFlex    = 0,
+            desiredHeight= 0,
+            minimumHeight= 0,
 
             //used to cache the calculated size and position values for each child item
             boxes        = [],
-
+            
             //used in the for loops below, just declared here for brevity
-            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedHeight, horizMargins, stretchWidth;
+            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth, 
+            horizMargins, vertMargins, stretchWidth;
 
-            //gather the total flex of all flexed items and the width taken up by fixed width items
-            for (i = 0; i < visibleCount; i++) {
-                child = visibleItems[i];
-                childHeight = child.height;
-                childWidth  = child.width;
-                canLayout   = !child.hasLayout && Ext.isFunction(child.doLayout);
+        //gather the total flex of all flexed items and the width taken up by fixed width items
+        for (i = 0; i < visibleCount; i++) {
+            child = visibleItems[i];
+            childHeight = child.height;
+            childWidth  = child.width;
+            canLayout   = !child.hasLayout && typeof child.doLayout == 'function';
 
+            // Static height (numeric) requires no calcs
+            if (typeof childHeight != 'number') {
 
-                // Static height (numeric) requires no calcs
-                if (!Ext.isNumber(childHeight)) {
+                // flex and not 'auto' height
+                if (child.flex && !childHeight) {
+                    totalFlex += child.flex;
 
-                    // flex and not 'auto' height
-                    if (child.flex && !childHeight) {
-                        totalFlex += child.flex;
-
-                    // Not flexed or 'auto' height or undefined height
-                    } else {
-                        //Render and layout sub-containers without a flex or width defined, as otherwise we
-                        //don't know how wide the sub-container should be and cannot calculate flexed widths
-                        if (!childHeight && canLayout) {
-                            child.doLayout();
-                        }
-
-                        childSize = child.getSize();
-                        childWidth = childSize.width;
-                        childHeight = childSize.height;
-                    }
-                }
-
-                childMargins = child.margins;
-
-                nonFlexHeight += (childHeight || 0) + childMargins.top + childMargins.bottom;
-
-                // Max width for align - force layout of non-layed out subcontainers without a numeric width
-                if (!Ext.isNumber(childWidth)) {
-                    if (canLayout) {
+                // Not flexed or 'auto' height or undefined height
+                } else {
+                    //Render and layout sub-containers without a flex or width defined, as otherwise we
+                    //don't know how wide the sub-container should be and cannot calculate flexed widths
+                    if (!childHeight && canLayout) {
                         child.doLayout();
                     }
-                    childWidth = child.getWidth();
+
+                    childSize = child.getSize();
+                    childWidth = childSize.width;
+                    childHeight = childSize.height;
+                }
+            }
+            
+            childMargins = child.margins;
+            vertMargins  = childMargins.top + childMargins.bottom;
+
+            nonFlexHeight += vertMargins + (childHeight || 0);
+            desiredHeight += vertMargins + (child.flex ? child.minHeight || 0 : childHeight);
+            minimumHeight += vertMargins + (child.minHeight || childHeight || 0);
+
+            // Max width for align - force layout of non-layed out subcontainers without a numeric width
+            if (typeof childWidth != 'number') {
+                if (canLayout) {
+                    child.doLayout();
+                }
+                childWidth = child.getWidth();
+            }
+
+            maxWidth = Math.max(maxWidth, childWidth + childMargins.left + childMargins.right);
+
+            //cache the size of each child component
+            boxes.push({
+                component: child,
+                height   : childHeight || undefined,
+                width    : childWidth || undefined
+            });
+        }
+                
+        var shortfall = desiredHeight - height,
+            tooNarrow = minimumHeight > height;
+
+        //the height available to the flexed items
+        var availableHeight = Math.max(0, (height - nonFlexHeight - paddingVert));
+        
+        if (tooNarrow) {
+            for (i = 0, length = visibleCount; i < length; i++) {
+                boxes[i].height = visibleItems[i].minHeight || visibleItems[i].height || boxes[i].height;
+            }
+        } else {
+            //all flexed items should be sized to their minimum width, other items should be shrunk down until
+            //the shortfall has been accounted for
+            if (shortfall > 0) {
+                var minHeights = [];
+
+                /**
+                 * When we have a shortfall but are not tooNarrow, we need to shrink the height of each non-flexed item.
+                 * Flexed items are immediately reduced to their minHeight and anything already at minHeight is ignored.
+                 * The remaining items are collected into the minHeights array, which is later used to distribute the shortfall.
+                 */
+                for (var index = 0, length = visibleCount; index < length; index++) {
+                    var item      = visibleItems[index],
+                        minHeight = item.minHeight || 0;
+
+                    //shrink each non-flex tab by an equal amount to make them all fit. Flexed items are all
+                    //shrunk to their minHeight because they're flexible and should be the first to lose height
+                    if (item.flex) {
+                        boxes[index].height = minHeight;
+                    } else {
+                        minHeights.push({
+                            minHeight: minHeight, 
+                            available: boxes[index].height - minHeight,
+                            index    : index
+                        });
+                    }
                 }
 
-                maxWidth = Math.max(maxWidth, childWidth + childMargins.left + childMargins.right);
-
-                //cache the size of each child component
-                boxes.push({
-                    component: child,
-                    height   : childHeight || undefined,
-                    width    : childWidth || undefined
+                //sort by descending minHeight value
+                minHeights.sort(function(a, b) {
+                    return a.available > b.available ? 1 : -1;
                 });
+
+                /*
+                 * Distribute the shortfall (difference between total desired with of all items and actual height available)
+                 * between the non-flexed items. We try to distribute the shortfall evenly, but apply it to items with the
+                 * smallest difference between their height and minHeight first, so that if reducing the height by the average
+                 * amount would make that item less than its minHeight, we carry the remainder over to the next item.
+                 */
+                for (var i = 0, length = minHeights.length; i < length; i++) {
+                    var itemIndex = minHeights[i].index;
+
+                    if (itemIndex == undefined) {
+                        continue;
+                    }
+
+                    var item      = visibleItems[itemIndex],
+                        box       = boxes[itemIndex],
+                        oldHeight  = box.height,
+                        minHeight  = item.minHeight,
+                        newHeight  = Math.max(minHeight, oldHeight - Math.ceil(shortfall / (length - i))),
+                        reduction = oldHeight - newHeight;
+
+                    boxes[itemIndex].height = newHeight;
+                    shortfall -= reduction;
+                }
+            } else {
+                //temporary variables used in the flex height calculations below
+                var remainingHeight = availableHeight,
+                    remainingFlex   = totalFlex;
+                
+                //calculate the height of each flexed item
+                for (i = 0; i < visibleCount; i++) {
+                    child = visibleItems[i];
+                    calcs = boxes[i];
+
+                    childMargins = child.margins;
+                    horizMargins = childMargins.left + childMargins.right;
+
+                    if (isStart && child.flex && !child.height) {
+                        flexedHeight     = Math.ceil((child.flex / remainingFlex) * remainingHeight);
+                        remainingHeight -= flexedHeight;
+                        remainingFlex   -= child.flex;
+
+                        calcs.height = flexedHeight;
+                        calcs.dirtySize = true;
+                    }
+                }
             }
+        }
 
-            //the height available to the flexed items
-            var availableHeight = Math.max(0, (height - nonFlexHeight - paddingVert));
+        if (isCenter) {
+            topOffset += availableHeight / 2;
+        } else if (isEnd) {
+            topOffset += availableHeight;
+        }
 
-            if (isCenter) {
-                topOffset += availableHeight / 2;
-            } else if (isEnd) {
-                topOffset += availableHeight;
-            }
+        //finally, calculate the left and top position of each item
+        for (i = 0; i < visibleCount; i++) {
+            child = visibleItems[i];
+            calcs = boxes[i];
 
-            //temporary variables used in the flex height calculations below
-            var remainingHeight = availableHeight,
-                remainingFlex   = totalFlex;
+            childMargins = child.margins;
+            topOffset   += childMargins.top;
+            horizMargins = childMargins.left + childMargins.right;
+            
 
-            //calculate the height of each flexed item, and the left + top positions of every item
-            for (i = 0; i < visibleCount; i++) {
-                child = visibleItems[i];
-                calcs = boxes[i];
-
-                childMargins = child.margins;
-                horizMargins = childMargins.left + childMargins.right;
-
-                topOffset   += childMargins.top;
-
-                if (isStart && child.flex && !child.height) {
-                    flexedHeight     = Math.ceil((child.flex / remainingFlex) * remainingHeight);
-                    remainingHeight -= flexedHeight;
-                    remainingFlex   -= child.flex;
-
-                    calcs.height = flexedHeight;
+            calcs.left = leftOffset + childMargins.left;
+            calcs.top  = topOffset;
+            
+            switch (this.align) {
+                case 'stretch':
+                    stretchWidth = availWidth - horizMargins;
+                    calcs.width  = stretchWidth.constrain(child.minWidth || 0, child.maxWidth || 1000000);
                     calcs.dirtySize = true;
-                }
-
-                calcs.left = leftOffset + childMargins.left;
-                calcs.top  = topOffset;
-
-                switch (this.align) {
-                    case 'stretch':
-                        stretchWidth = availWidth - horizMargins;
-                        calcs.width  = stretchWidth.constrain(child.minHeight || 0, child.maxWidth || 1000000);
-                        calcs.dirtySize = true;
-                        break;
-                    case 'stretchmax':
-                        stretchWidth = maxWidth - horizMargins;
-                        calcs.width  = stretchWidth.constrain(child.minHeight || 0, child.maxWidth || 1000000);
-                        calcs.dirtySize = true;
-                        break;
-                    case 'center':
-                        var diff = availWidth - calcs.width - horizMargins;
-                        if (diff > 0) {
-                            calcs.left = leftOffset + horizMargins + (diff / 2);
-                        }
-                }
-
-                topOffset += calcs.height + childMargins.bottom;
+                    break;
+                case 'stretchmax':
+                    stretchWidth = maxWidth - horizMargins;
+                    calcs.width  = stretchWidth.constrain(child.minWidth || 0, child.maxWidth || 1000000);
+                    calcs.dirtySize = true;
+                    break;
+                case 'center':
+                    var diff = availWidth - calcs.width - horizMargins;
+                    if (diff > 0) {
+                        calcs.left = leftOffset + horizMargins + (diff / 2);
+                    }
             }
 
+            topOffset += calcs.height + childMargins.bottom;
+        }
+        
         return {
             boxes: boxes,
             meta : {
-                maxWidth: maxWidth
+                maxWidth     : maxWidth,
+                nonFlexHeight: nonFlexHeight,
+                desiredHeight: desiredHeight,
+                minimumHeight: minimumHeight,
+                shortfall    : desiredHeight - height,
+                tooNarrow    : tooNarrow
             }
         };
     }
 });
 
 Ext.Container.LAYOUTS.vbox = Ext.layout.VBoxLayout;
-
-/**
- * @class Ext.layout.HBoxLayout
- * @extends Ext.layout.BoxLayout
- * <p>A layout that arranges items horizontally across a Container. This layout optionally divides available horizontal
- * space between child items containing a numeric <code>flex</code> configuration.</p>
- * This layout may also be used to set the heights of child items by configuring it with the {@link #align} option.
- */
-Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
-    /**
-     * @cfg {String} align
-     * Controls how the child items of the container are aligned. Acceptable configuration values for this
-     * property are:
-     * <div class="mdetail-params"><ul>
-     * <li><b><tt>top</tt></b> : <b>Default</b><div class="sub-desc">child items are aligned vertically
-     * at the <b>top</b> of the container</div></li>
-     * <li><b><tt>middle</tt></b> : <div class="sub-desc">child items are aligned vertically in the
-     * <b>middle</b> of the container</div></li>
-     * <li><b><tt>stretch</tt></b> : <div class="sub-desc">child items are stretched vertically to fill
-     * the height of the container</div></li>
-     * <li><b><tt>stretchmax</tt></b> : <div class="sub-desc">child items are stretched vertically to
-     * the height of the largest item.</div></li>
-     */
-    align: 'top', // top, middle, stretch, strechmax
-
-    type : 'hbox',
-
-    /**
-     * @private
-     * See parent documentation
-     */
-    updateInnerCtSize: function(tSize, calcs) {
-        var innerCtWidth  = tSize.width,
-            innerCtHeight = calcs.meta.maxHeight + this.padding.top + this.padding.bottom;
-
-        if (this.align == 'stretch') {
-            innerCtHeight = tSize.height;
-        } else if (this.align == 'middle') {
-            innerCtHeight = Math.max(tSize.height, innerCtHeight);
-        }
-
-        this.innerCt.setSize(innerCtWidth || undefined, innerCtHeight || undefined);
-    },
-
-    /**
-     * @cfg {String} pack
-     * Controls how the child items of the container are packed together. Acceptable configuration values
-     * for this property are:
-     * <div class="mdetail-params"><ul>
-     * <li><b><tt>start</tt></b> : <b>Default</b><div class="sub-desc">child items are packed together at
-     * <b>left</b> side of container</div></li>
-     * <li><b><tt>center</tt></b> : <div class="sub-desc">child items are packed together at
-     * <b>mid-width</b> of container</div></li>
-     * <li><b><tt>end</tt></b> : <div class="sub-desc">child items are packed together at <b>right</b>
-     * side of container</div></li>
-     * </ul></div>
-     */
-    /**
-     * @cfg {Number} flex
-     * This configuation option is to be applied to <b>child <tt>items</tt></b> of the container managed
-     * by this layout. Each child item with a <tt>flex</tt> property will be flexed <b>horizontally</b>
-     * according to each item's <b>relative</b> <tt>flex</tt> value compared to the sum of all items with
-     * a <tt>flex</tt> value specified.  Any child items that have either a <tt>flex = 0</tt> or
-     * <tt>flex = undefined</tt> will not be 'flexed' (the initial size will not be changed).
-     */
-
-    /**
-     * @private
-     * Calculates the size and positioning of each item in the HBox. This iterates over all of the rendered,
-     * visible items and returns a height, width, top and left for each, as well as a reference to each. Also
-     * returns meta data such as maxHeight which are useful when resizing layout wrappers such as this.innerCt.
-     * @param {Array} visibleItems The array of all rendered, visible items to be calculated for
-     * @param {Object} targetSize Object containing target size and height
-     * @return {Object} Object containing box measurements for each child, plus meta data
-     */
-    calculateChildBoxes: function(visibleItems, targetSize) {
-        var visibleCount = visibleItems.length,
-
-            padding      = this.padding,
-            topOffset    = padding.top,
-            leftOffset   = padding.left,
-            paddingVert  = topOffset  + padding.bottom,
-            paddingHoriz = leftOffset + padding.right,
-
-            width        = targetSize.width - this.scrollOffset,
-            height       = targetSize.height,
-            availHeight  = Math.max(0, height - paddingVert),
-
-            isStart      = this.pack == 'start',
-            isCenter     = this.pack == 'center',
-            isEnd        = this.pack == 'end',
-            // isRestore    = ['stretch', 'stretchmax'].indexOf(this.align) == -1,
-
-            nonFlexWidth = 0,
-            maxHeight    = 0,
-            totalFlex    = 0,
-
-            //used to cache the calculated size and position values for each child item
-            boxes        = [],
-
-            //used in the for loops below, just declared here for brevity
-            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth, vertMargins, stretchHeight;
-
-            //gather the total flex of all flexed items and the width taken up by fixed width items
-            for (i = 0; i < visibleCount; i++) {
-                child       = visibleItems[i];
-                childHeight = child.height;
-                childWidth  = child.width;
-                canLayout   = !child.hasLayout && Ext.isFunction(child.doLayout);
-
-                // Static width (numeric) requires no calcs
-                if (!Ext.isNumber(childWidth)) {
-
-                    // flex and not 'auto' width
-                    if (child.flex && !childWidth) {
-                        totalFlex += child.flex;
-
-                    // Not flexed or 'auto' width or undefined width
-                    } else {
-                        //Render and layout sub-containers without a flex or width defined, as otherwise we
-                        //don't know how wide the sub-container should be and cannot calculate flexed widths
-                        if (!childWidth && canLayout) {
-                            child.doLayout();
-                        }
-
-                        childSize   = child.getSize();
-                        childWidth  = childSize.width;
-                        childHeight = childSize.height;
-                    }
-                }
-
-                childMargins = child.margins;
-
-                nonFlexWidth += (childWidth || 0) + childMargins.left + childMargins.right;
-
-                // Max height for align - force layout of non-layed out subcontainers without a numeric height
-                if (!Ext.isNumber(childHeight)) {
-                    if (canLayout) {
-                        child.doLayout();
-                    }
-                    childHeight = child.getHeight();
-                }
-
-                maxHeight = Math.max(maxHeight, childHeight + childMargins.top + childMargins.bottom);
-
-                //cache the size of each child component
-                boxes.push({
-                    component: child,
-                    height   : childHeight || undefined,
-                    width    : childWidth || undefined
-                });
-            }
-
-            //the width available to the flexed items
-            var availableWidth = Math.max(0, (width - nonFlexWidth - paddingHoriz));
-
-            if (isCenter) {
-                leftOffset += availableWidth / 2;
-            } else if (isEnd) {
-                leftOffset += availableWidth;
-            }
-
-            //temporary variables used in the flex width calculations below
-            var remainingWidth = availableWidth,
-                remainingFlex  = totalFlex;
-
-            //calculate the widths of each flexed item, and the left + top positions of every item
-            for (i = 0; i < visibleCount; i++) {
-                child = visibleItems[i];
-                calcs = boxes[i];
-
-                childMargins = child.margins;
-                vertMargins  = childMargins.top + childMargins.bottom;
-
-                leftOffset  += childMargins.left;
-
-                if (isStart && child.flex && !child.width) {
-                    flexedWidth     = Math.ceil((child.flex / remainingFlex) * remainingWidth);
-                    remainingWidth -= flexedWidth;
-                    remainingFlex  -= child.flex;
-
-                    calcs.width = flexedWidth;
-                    calcs.dirtySize = true;
-                }
-
-                calcs.left = leftOffset;
-                calcs.top  = topOffset + childMargins.top;
-
-                switch (this.align) {
-                    case 'stretch':
-                        stretchHeight = availHeight - vertMargins;
-                        calcs.height  = stretchHeight.constrain(child.minHeight || 0, child.maxHeight || 1000000);
-                        calcs.dirtySize = true;
-                        break;
-                    case 'stretchmax':
-                        stretchHeight = maxHeight - vertMargins;
-                        calcs.height  = stretchHeight.constrain(child.minHeight || 0, child.maxHeight || 1000000);
-                        calcs.dirtySize = true;
-                        break;
-                    case 'middle':
-                        var diff = availHeight - calcs.height - vertMargins;
-                        if (diff > 0) {
-                            calcs.top = topOffset + vertMargins + (diff / 2);
-                        }
-                }
-                leftOffset += calcs.width + childMargins.right;
-            }
-
-        return {
-            boxes: boxes,
-            meta : {
-                maxHeight: maxHeight
-            }
-        };
-    }
-});
-
-Ext.Container.LAYOUTS.hbox = Ext.layout.HBoxLayout;
 /**
  * @class Ext.layout.ToolbarLayout
  * @extends Ext.layout.ContainerLayout
@@ -8532,6 +9694,7 @@ Ext.layout.ToolbarLayout = Ext.extend(Ext.layout.ContainerLayout, {
                 position = -1;
             } else if (!c.rendered) {
                 c.render(this.insertCell(c, side, position));
+                this.configureItem(c);
             } else {
                 if (!c.xtbHidden && !this.isValidParent(c, side.childNodes[position])) {
                     var td = this.insertCell(c, side, position);
@@ -8869,7 +10032,7 @@ Ext.Container.LAYOUTS.toolbar = Ext.layout.ToolbarLayout;
             this.itemTpl = Ext.layout.MenuLayout.prototype.itemTpl = new Ext.XTemplate(
                 '<li id="{itemId}" class="{itemCls}">',
                     '<tpl if="needsIcon">',
-                        '<img src="{icon}" class="{iconCls}"/>',
+                        '<img alt="{altText}" src="{icon}" class="{iconCls}"/>',
                     '</tpl>',
                 '</li>'
             );
@@ -8894,7 +10057,7 @@ Ext.Container.LAYOUTS.toolbar = Ext.layout.ToolbarLayout;
             if (!a.isMenuItem && a.needsIcon) {
                 c.positionEl.addClass('x-menu-list-item-indent');
             }
-            this.configureItem(c, position);
+            this.configureItem(c);
         }else if(c && !this.isValidParent(c, target)){
             if(Ext.isNumber(position)){
                 position = target.dom.childNodes[position];
@@ -8904,14 +10067,17 @@ Ext.Container.LAYOUTS.toolbar = Ext.layout.ToolbarLayout;
     },
 
     getItemArgs : function(c) {
-        var isMenuItem = c instanceof Ext.menu.Item;
+        var isMenuItem = c instanceof Ext.menu.Item,
+            canHaveIcon = !(isMenuItem || c instanceof Ext.menu.Separator);
+
         return {
             isMenuItem: isMenuItem,
-            needsIcon: !isMenuItem && (c.icon || c.iconCls),
+            needsIcon: canHaveIcon && (c.icon || c.iconCls),
             icon: c.icon || Ext.BLANK_IMAGE_URL,
             iconCls: 'x-menu-item-icon ' + (c.iconCls || ''),
             itemId: 'x-menu-el-' + c.id,
-            itemCls: 'x-menu-list-item '
+            itemCls: 'x-menu-list-item ',
+            altText: c.altText || ''
         };
     },
 
@@ -9149,7 +10315,7 @@ new Ext.Panel({
     },
     footerCfg: {
         tag: 'h2',
-        cls: 'x-panel-footer'        // same as the Default class
+        cls: 'x-panel-footer',        // same as the Default class
         html: 'footer html'
     },
     footerCssClass: 'custom-footer', // additional css class, see {@link Ext.element#addClass addClass}
@@ -10125,7 +11291,7 @@ new Ext.Panel({
                     var hdspan = hd.child('span.' + this.headerTextCls);
                     if (hdspan) {
                         Ext.DomHelper.insertBefore(hdspan.dom, {
-                            tag:'img', src: Ext.BLANK_IMAGE_URL, cls:'x-panel-inline-icon '+this.iconCls
+                            tag:'img', alt: '', src: Ext.BLANK_IMAGE_URL, cls:'x-panel-inline-icon '+this.iconCls
                         });
                     }
                  }
@@ -10160,7 +11326,7 @@ new Ext.Panel({
     getBottomToolbar : function(){
         return this.bottomToolbar;
     },
-    
+
     /**
      * Returns the {@link Ext.Toolbar toolbar} from the footer (<code>{@link #fbar}</code>) section of the panel.
      * @return {Ext.Toolbar} The toolbar
@@ -10441,7 +11607,7 @@ new Ext.Panel({
         // Reset lastSize of all sub-components so they KNOW they are in a collapsed container
         this.cascade(function(c) {
             if (c.lastSize) {
-                c.lastSize = { width: 0, height: 0 };
+                c.lastSize = { width: undefined, height: undefined };
             }
         });
         this.fireEvent('collapse', this);
@@ -10644,26 +11810,17 @@ new Ext.Panel({
      * @return {Number} The frame height
      */
     getFrameHeight : function() {
-        var h = Math.max(0, this.getHeight() - this.body.getHeight());
+        var h  = this.el.getFrameWidth('tb') + this.bwrap.getFrameWidth('tb');
+        h += (this.tbar ? this.tbar.getHeight() : 0) +
+             (this.bbar ? this.bbar.getHeight() : 0);
 
-        if (isNaN(h)) {
-            h = 0;
+        if(this.frame){
+            h += this.el.dom.firstChild.offsetHeight + this.ft.dom.offsetHeight + this.mc.getFrameWidth('tb');
+        }else{
+            h += (this.header ? this.header.getHeight() : 0) +
+                (this.footer ? this.footer.getHeight() : 0);
         }
         return h;
-
-        /* Deprecate
-            var h  = this.el.getFrameWidth('tb') + this.bwrap.getFrameWidth('tb');
-            h += (this.tbar ? this.tbar.getHeight() : 0) +
-                 (this.bbar ? this.bbar.getHeight() : 0);
-
-            if(this.frame){
-                h += this.el.dom.firstChild.offsetHeight + this.ft.dom.offsetHeight + this.mc.getFrameWidth('tb');
-            }else{
-                h += (this.header ? this.header.getHeight() : 0) +
-                    (this.footer ? this.footer.getHeight() : 0);
-            }
-            return h;
-        */
     },
 
     /**
@@ -10786,12 +11943,12 @@ panel.load({
                 this.ft,
                 this.header,
                 this.footer,
-                this.toolbars,
                 this.tbar,
                 this.bbar,
                 this.body,
                 this.mc,
-                this.bwrap
+                this.bwrap,
+                this.dd
             );
             if (this.fbar) {
                 Ext.destroy(
@@ -10799,12 +11956,8 @@ panel.load({
                     this.fbar.el
                 );
             }
-        }else{
-            Ext.destroy(
-                this.topToolbar,
-                this.bottomToolbar
-            );
         }
+        Ext.destroy(this.toolbars);
     },
 
     // private
@@ -11125,7 +12278,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
         delete this.field.lastSize;
         this.field.setSize(w, h);
         if(this.el){
-            if(Ext.isGecko2 || Ext.isOpera){
+            // IE7 in strict mode doesn't size properly.
+            if(Ext.isGecko2 || Ext.isOpera || (Ext.isIE7 && Ext.isStrict)){
                 // prevent layer scrollbars
                 this.el.setSize(w, h);
             }
@@ -11386,7 +12540,7 @@ cp.colors = ['000000', '993300', '333300'];
         if(this.value){
             var s = this.value;
             this.value = null;
-            this.select(s);
+            this.select(s, true);
         }
     },
 
@@ -11402,8 +12556,9 @@ cp.colors = ['000000', '993300', '333300'];
     /**
      * Selects the specified color in the palette (fires the {@link #select} event)
      * @param {String} color A valid 6-digit color hex code (# will be stripped if included)
+     * @param {Boolean} suppressEvent (optional) True to stop the select event from firing. Defaults to <tt>false</tt>.
      */
-    select : function(color){
+    select : function(color, suppressEvent){
         color = color.replace('#', '');
         if(color != this.value || this.allowReselect){
             var el = this.el;
@@ -11412,7 +12567,9 @@ cp.colors = ['000000', '993300', '333300'];
             }
             el.child('a.color-'+color).addClass('x-color-palette-sel');
             this.value = color;
-            this.fireEvent('select', this, color);
+            if(suppressEvent !== true){
+                this.fireEvent('select', this, color);
+            }
         }
     }
 
@@ -11420,8 +12577,7 @@ cp.colors = ['000000', '993300', '333300'];
      * @cfg {String} autoEl @hide
      */
 });
-Ext.reg('colorpalette', Ext.ColorPalette);
-/**
+Ext.reg('colorpalette', Ext.ColorPalette);/**
  * @class Ext.DatePicker
  * @extends Ext.Component
  * <p>A popup date picker. This class is used by the {@link Ext.form.DateField DateField} class
@@ -12341,6 +13497,12 @@ Ext.LoadMask.prototype = {
  * be created internally by an {@link Ext.slider.MultiSlider Ext.Slider}.
  */
 Ext.slider.Thumb = Ext.extend(Object, {
+    
+    /**
+     * True while the thumb is in a drag operation
+     * @type Boolean
+     */
+    dragging: false,
 
     /**
      * @constructor
@@ -12487,6 +13649,14 @@ Ext.slider.Thumb = Ext.extend(Object, {
         if (this.dragStartValue != value) {
             slider.fireEvent('changecomplete', slider, value, this);
         }
+    },
+    
+    /**
+     * @private
+     * Destroys the thumb
+     */
+    destroy: function(){
+        Ext.destroyMembers(this, 'tracker', 'el');
     }
 });
 
@@ -12567,13 +13737,6 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      * @cfg {Boolean} animate Turn on or off animation. Defaults to true
      */
     animate: true,
-
-    /**
-     * True while the thumb is in a drag operation
-     * @type Boolean
-     */
-    dragging: false,
-
     /**
      * @cfg {Boolean} constrainThumbs True to disallow thumbs from overlapping one another. Defaults to true
      */
@@ -12608,7 +13771,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
              * @event beforechange
              * Fires before the slider value is changed. By returning false from an event handler,
              * you can cancel the event and prevent the slider from changing.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider is being changed to.
              * @param {Number} oldValue The old value which the slider was previously.
              */
@@ -12617,7 +13780,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event change
              * Fires when the slider value is changed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider has been changed to.
              * @param {Ext.slider.Thumb} thumb The thumb that was changed
              */
@@ -12626,7 +13789,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event changecomplete
              * Fires when the slider value is changed by the user and any drag operations have completed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider has been changed to.
              * @param {Ext.slider.Thumb} thumb The thumb that was changed
              */
@@ -12635,7 +13798,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event dragstart
              * Fires after a drag operation has started.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'dragstart',
@@ -12643,7 +13806,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event drag
              * Fires continuously during the drag operation while the mouse is moving.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'drag',
@@ -12651,7 +13814,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event dragend
              * Fires after the drag operation has completed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'dragend'
@@ -12838,26 +14001,29 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      * @param {Ext.EventObject} e The Event object
      */
     onKeyDown : function(e){
-        if(this.disabled){e.preventDefault();return;}
-        var k = e.getKey();
+        /*
+         * The behaviour for keyboard handling with multiple thumbs is currently undefined.
+         * There's no real sane default for it, so leave it like this until we come up
+         * with a better way of doing it.
+         */
+        if(this.disabled || this.thumbs.length !== 1){
+            e.preventDefault();
+            return;
+        }
+        var k = e.getKey(),
+            val;
         switch(k){
             case e.UP:
             case e.RIGHT:
                 e.stopEvent();
-                if(e.ctrlKey){
-                    this.setValue(this.maxValue, undefined, true);
-                }else{
-                    this.setValue(this.value+this.keyIncrement, undefined, true);
-                }
+                val = e.ctrlKey ? this.maxValue : this.getValue(0) + this.keyIncrement;
+                this.setValue(0, val, undefined, true);
             break;
             case e.DOWN:
             case e.LEFT:
                 e.stopEvent();
-                if(e.ctrlKey){
-                    this.setValue(this.minValue, undefined, true);
-                }else{
-                    this.setValue(this.value-this.keyIncrement, undefined, true);
-                }
+                val = e.ctrlKey ? this.minValue : this.getValue(0) - this.keyIncrement;
+                this.setValue(0, val, undefined, true);
             break;
             default:
                 e.preventDefault();
@@ -12941,11 +14107,16 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      */
     setMinValue : function(val){
         this.minValue = val;
-        this.syncThumb();
-
-        for (var i=0, j = this.thumbs.length; i < j; i++) {
-            if (this.thumbs[i].value < val) this.thumbs[i].value = val;
+        var i = 0,
+            thumbs = this.thumbs,
+            len = thumbs.length,
+            t;
+            
+        for(; i < len; ++i){
+            t = thumbs[i];
+            t.value = t.value < val ? val : t.value;
         }
+        this.syncThumb();
     },
 
     /**
@@ -12955,11 +14126,16 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      */
     setMaxValue : function(val){
         this.maxValue = val;
-        this.syncThumb();
-
-        for (var i=0; i < this.thumbs.length; i++) {
-            if (this.thumbs[i].value > val) this.thumbs[i].value = val;
+        var i = 0,
+            thumbs = this.thumbs,
+            len = thumbs.length,
+            t;
+            
+        for(; i < len; ++i){
+            t = thumbs[i];
+            t.value = t.value > val ? val : t.value;
         }
+        this.syncThumb();
     },
 
     /**
@@ -12975,12 +14151,14 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
 
         v = this.normalizeValue(v);
 
-        if (v !== thumb.value && this.fireEvent('beforechange', this, v, thumb.value) !== false) {
+        if (v !== thumb.value && this.fireEvent('beforechange', this, v, thumb.value, thumb) !== false) {
             thumb.value = v;
-            this.moveThumb(index, this.translateValue(v), animate !== false);
-            this.fireEvent('change', this, v, thumb);
-            if(changeComplete){
-                this.fireEvent('changecomplete', this, v, thumb);
+            if(this.rendered){
+                this.moveThumb(index, this.translateValue(v), animate !== false);
+                this.fireEvent('change', this, v, thumb);
+                if(changeComplete){
+                    this.fireEvent('changecomplete', this, v, thumb);
+                }
             }
         }
     },
@@ -13038,7 +14216,10 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
         for(; i < len; ++i){
             thumbs[i].el.stopFx();    
         }
-        this.innerEl.setWidth(w - (this.el.getPadding('l') + this.endEl.getPadding('r')));
+        // check to see if we're using an auto width
+        if(Ext.isNumber(w)){
+            this.innerEl.setWidth(w - (this.el.getPadding('l') + this.endEl.getPadding('r')));
+        }
         this.syncThumb();
         Ext.slider.MultiSlider.superclass.onResize.apply(this, arguments);
     },
@@ -13130,7 +14311,12 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
 
     // private
     beforeDestroy : function(){
-        Ext.destroyMembers(this, 'endEl', 'innerEl', 'thumb', 'halfThumb', 'focusEl', 'tracker', 'thumbHolder');
+        var thumbs = this.thumbs;
+        for(var i = 0, len = thumbs.length; i < len; ++i){
+            thumbs[i].destroy();
+            thumbs[i] = null;
+        }
+        Ext.destroyMembers(this, 'endEl', 'innerEl', 'focusEl', 'thumbHolder');
         Ext.slider.MultiSlider.superclass.beforeDestroy.call(this);
     }
 });

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -21,12 +21,12 @@ var t = new Ext.Template(
     {
         compiled: true,      // {@link #compile} immediately
         disableFormats: true // reduce <code>{@link #apply}</code> time since no formatting
-    }    
+    }
 );
      * </code></pre>
      * For a list of available format functions, see {@link Ext.util.Format}.
      */
-    disableFormats : false,				
+    disableFormats : false,
     /**
      * See <code>{@link #disableFormats}</code>.
      * @type Boolean
@@ -40,6 +40,10 @@ var t = new Ext.Template(
      * @hide repeat doc
      */
     re : /\{([\w-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g,
+    argsRe : /^\s*['"](.*)["']\s*$/,
+    compileARe : /\\/g,
+    compileBRe : /(\r\n|\n)/g,
+    compileCRe : /'/g,
 
     /**
      * Returns an HTML fragment of this template with the specified values applied.
@@ -48,11 +52,11 @@ var t = new Ext.Template(
      * @hide repeat doc
      */
     applyTemplate : function(values){
-		var me = this,
-			useF = me.disableFormats !== true,
-        	fm = Ext.util.Format, 
-        	tpl = me;	    
-	    
+        var me = this,
+            useF = me.disableFormats !== true,
+            fm = Ext.util.Format,
+            tpl = me;
+
         if(me.compiled){
             return me.compiled(values);
         }
@@ -65,7 +69,7 @@ var t = new Ext.Template(
                         // quoted values are required for strings in compiled templates,
                         // but for non compiled we need to strip them
                         // quoted reversed for jsmin
-                        var re = /^\s*['"](.*)["']\s*$/;
+                        var re = me.argsRe;
                         args = args.split(',');
                         for(var i = 0, len = args.length; i < len; i++){
                             args[i] = args[i].replace(re, "$1");
@@ -82,7 +86,7 @@ var t = new Ext.Template(
         }
         return me.html.replace(me.re, fn);
     },
-		
+
     /**
      * Compiles the template into an internal function, eliminating the RegEx overhead.
      * @return {Ext.Template} this
@@ -90,11 +94,11 @@ var t = new Ext.Template(
      */
     compile : function(){
         var me = this,
-        	fm = Ext.util.Format,
-        	useF = me.disableFormats !== true,
-        	sep = Ext.isGecko ? "+" : ",",
-        	body;
-        
+            fm = Ext.util.Format,
+            useF = me.disableFormats !== true,
+            sep = Ext.isGecko ? "+" : ",",
+            body;
+
         function fn(m, name, format, args){
             if(format && useF){
                 args = args ? ',' + args : "";
@@ -109,25 +113,25 @@ var t = new Ext.Template(
             }
             return "'"+ sep + format + "values['" + name + "']" + args + ")"+sep+"'";
         }
-        
+
         // branched to use + in gecko and [].join() in others
         if(Ext.isGecko){
             body = "this.compiled = function(values){ return '" +
-                   me.html.replace(/\\/g, '\\\\').replace(/(\r\n|\n)/g, '\\n').replace(/'/g, "\\'").replace(this.re, fn) +
+                   me.html.replace(me.compileARe, '\\\\').replace(me.compileBRe, '\\n').replace(me.compileCRe, "\\'").replace(me.re, fn) +
                     "';};";
         }else{
             body = ["this.compiled = function(values){ return ['"];
-            body.push(me.html.replace(/\\/g, '\\\\').replace(/(\r\n|\n)/g, '\\n').replace(/'/g, "\\'").replace(this.re, fn));
+            body.push(me.html.replace(me.compileARe, '\\\\').replace(me.compileBRe, '\\n').replace(me.compileCRe, "\\'").replace(me.re, fn));
             body.push("'].join('');};");
             body = body.join('');
         }
         eval(body);
         return me;
     },
-    
+
     // private function used to call members
     call : function(fnName, value, allValues){
         return this[fnName](value, allValues);
     }
 });
-Ext.Template.prototype.apply = Ext.Template.prototype.applyTemplate; 
+Ext.Template.prototype.apply = Ext.Template.prototype.applyTemplate;

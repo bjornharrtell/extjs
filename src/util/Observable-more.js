@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -23,9 +23,13 @@ Ext.apply(Ext.util.Observable.prototype, function(){
             e.after = [];
 
             var makeCall = function(fn, scope, args){
-                if (!Ext.isEmpty(v = fn.apply(scope || obj, args))) {
-                    if (Ext.isObject(v)) {
-                        returnValue = !Ext.isEmpty(v.returnValue) ? v.returnValue : v;
+                if((v = fn.apply(scope || obj, args)) !== undefined){
+                    if (typeof v == 'object') {
+                        if(v.returnValue !== undefined){
+                            returnValue = v.returnValue;
+                        }else{
+                            returnValue = v;
+                        }
                         cancel = !!v.cancel;
                     }
                     else
@@ -39,26 +43,30 @@ Ext.apply(Ext.util.Observable.prototype, function(){
             };
 
             this[method] = function(){
-                var args = Ext.toArray(arguments);
+                var args = Array.prototype.slice.call(arguments, 0),
+                    b;
                 returnValue = v = undefined;
                 cancel = false;
 
-                Ext.each(e.before, function(b){
+                for(var i = 0, len = e.before.length; i < len; i++){
+                    b = e.before[i];
                     makeCall(b.fn, b.scope, args);
                     if (cancel) {
                         return returnValue;
                     }
-                });
+                }
 
-                if (!Ext.isEmpty(v = e.originalFn.apply(obj, args))) {
+                if((v = e.originalFn.apply(obj, args)) !== undefined){
                     returnValue = v;
                 }
-                Ext.each(e.after, function(a){
-                    makeCall(a.fn, a.scope, args);
+
+                for(var i = 0, len = e.after.length; i < len; i++){
+                    b = e.after[i];
+                    makeCall(b.fn, b.scope, args);
                     if (cancel) {
                         return returnValue;
                     }
-                });
+                }
                 return returnValue;
             };
         }
@@ -85,21 +93,18 @@ Ext.apply(Ext.util.Observable.prototype, function(){
         },
 
         removeMethodListener: function(method, fn, scope){
-            var e = getMethodEvent.call(this, method), found = false;
-            Ext.each(e.before, function(b, i, arr){
-                if (b.fn == fn && b.scope == scope) {
-                    arr.splice(i, 1);
-                    found = true;
-                    return false;
+            var e = this.getMethodEvent(method);
+            for(var i = 0, len = e.before.length; i < len; i++){
+                if(e.before[i].fn == fn && e.before[i].scope == scope){
+                    e.before.splice(i, 1);
+                    return;
                 }
-            });
-            if (!found) {
-                Ext.each(e.after, function(a, i, arr){
-                    if (a.fn == fn && a.scope == scope) {
-                        arr.splice(i, 1);
-                        return false;
-                    }
-                });
+            }
+            for(var i = 0, len = e.after.length; i < len; i++){
+                if(e.after[i].fn == fn && e.after[i].scope == scope){
+                    e.after.splice(i, 1);
+                    return;
+                }
             }
         },
 
@@ -112,13 +117,14 @@ Ext.apply(Ext.util.Observable.prototype, function(){
             var me = this;
             function createHandler(ename){
                 return function(){
-                    return me.fireEvent.apply(me, [ename].concat(Ext.toArray(arguments)));
+                    return me.fireEvent.apply(me, [ename].concat(Array.prototype.slice.call(arguments, 0)));
                 };
             }
-            Ext.each(events, function(ename){
+            for(var i = 0, len = events.length; i < len; i++){
+                var ename = events[i];
                 me.events[ename] = me.events[ename] || true;
                 o.on(ename, createHandler(ename), me);
-            });
+            }
         },
 
         /**
@@ -161,16 +167,17 @@ var myForm = new Ext.formPanel({
         enableBubble : function(events){
             var me = this;
             if(!Ext.isEmpty(events)){
-                events = Ext.isArray(events) ? events : Ext.toArray(arguments);
-                Ext.each(events, function(ename){
+                events = Ext.isArray(events) ? events : Array.prototype.slice.call(arguments, 0);
+                for(var i = 0, len = events.length; i < len; i++){
+                    var ename = events[i];
                     ename = ename.toLowerCase();
                     var ce = me.events[ename] || true;
-                    if (Ext.isBoolean(ce)) {
+                    if (typeof ce == 'boolean') {
                         ce = new Ext.util.Event(me, ename);
                         me.events[ename] = ce;
                     }
                     ce.bubble = true;
-                });
+                }
             }
         }
     };
@@ -202,7 +209,7 @@ Ext.data.Connection.on('beforerequest', function(con, options) {
     console.log('Ajax request made to ' + options.url);
 });</code></pre>
  * @param {Function} c The class constructor to make observable.
- * @param {Object} listeners An object containing a series of listeners to add. See {@link #addListener}. 
+ * @param {Object} listeners An object containing a series of listeners to add. See {@link #addListener}.
  * @static
  */
 Ext.util.Observable.observeClass = function(c, listeners){
@@ -211,7 +218,7 @@ Ext.util.Observable.observeClass = function(c, listeners){
           Ext.apply(c, new Ext.util.Observable());
           Ext.util.Observable.capture(c.prototype, c.fireEvent, c);
       }
-      if(Ext.isObject(listeners)){
+      if(typeof listeners == 'object'){
           c.on(listeners);
       }
       return c;

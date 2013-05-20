@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -137,7 +137,7 @@ Ext.Element.addMethods({
         }
         
         o = o || [0,0];
-        p = (!p || p == "?" ? "tl-bl?" : (!/-/.test(p) && p !== "" ? "tl-" + p : p || "tl-bl")).toLowerCase();       
+        p = (!p || p == "?" ? "tl-bl?" : (!(/-/).test(p) && p !== "" ? "tl-" + p : p || "tl-bl")).toLowerCase();       
                 
         var me = this,
         	d = me.dom,
@@ -306,12 +306,13 @@ el.alignTo("other-el", "c-bl", [-6, 0]);
             vw -= offsets.right;
             vh -= offsets.bottom;
 
-            var vr = vx+vw;
-            var vb = vy+vh;
-
-            var xy = proposedXY || (!local ? this.getXY() : [this.getLeft(true), this.getTop(true)]);
-            var x = xy[0], y = xy[1];
-            var w = this.dom.offsetWidth, h = this.dom.offsetHeight;
+            var vr = vx + vw,
+                vb = vy + vh,
+                xy = proposedXY || (!local ? this.getXY() : [this.getLeft(true), this.getTop(true)]),
+                x = xy[0], y = xy[1],
+                offset = this.getConstrainOffset(),
+                w = this.dom.offsetWidth + offset, 
+                h = this.dom.offsetHeight + offset;
 
             // only move it if it needs it
             var moved = false;
@@ -392,6 +393,11 @@ el.alignTo("other-el", "c-bl", [-6, 0]);
 //         }
 //         return moved ? [x, y] : false;
 //    },
+
+    // private, used internally
+    getConstrainOffset : function(){
+        return 0;
+    },
     
     /**
     * Calculates the x, y to center this element on the screen

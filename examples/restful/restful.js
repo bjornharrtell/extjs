@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -91,7 +91,6 @@ Ext.onReady(function() {
         iconCls: 'icon-grid',
         frame: true,
         title: 'Users',
-        autoScroll: true,
         height: 300,
         store: store,
         plugins: [editor],

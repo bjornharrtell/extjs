@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -296,7 +296,7 @@ if(Ext.grid.PropertyColumnModel){
    Ext.apply(Ext.grid.PropertyColumnModel.prototype, {
       nameText   : "Όνομα",
       valueText  : "Περιεχόμενο",
-      dateFormat : "m/d/Y"
+      dateFormat : "d/m/Y"
    });
 }
 

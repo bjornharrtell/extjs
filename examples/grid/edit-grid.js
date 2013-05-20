@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -17,13 +17,6 @@ Ext.onReady(function(){
     // shorthand alias
     var fm = Ext.form;
 
-    // the check column is created using a custom plugin
-    var checkColumn = new Ext.grid.CheckColumn({
-       header: 'Indoor?',
-       dataIndex: 'indoor',
-       width: 55
-    });
-
     // the column model has information about grid columns
     // dataIndex maps the column to the specific data field in
     // the data store (created below)
@@ -32,60 +25,62 @@ Ext.onReady(function(){
         defaults: {
             sortable: true // columns are not sortable by default           
         },
-        columns: [
-            {
-                id: 'common',
-                header: 'Common Name',
-                dataIndex: 'common',
-                width: 220,
-                // use shorthand alias defined above
-                editor: new fm.TextField({
-                    allowBlank: false
-                })
-            }, {
-                header: 'Light',
-                dataIndex: 'light',
-                width: 130,
-                editor: new fm.ComboBox({
-                    typeAhead: true,
-                    triggerAction: 'all',
-                    // transform the data already specified in html
-                    transform: 'light',
-                    lazyRender: true,
-                    listClass: 'x-combo-list-small'
-                })
-            }, {
-                header: 'Price',
-                dataIndex: 'price',
-                width: 70,
-                align: 'right',
-                renderer: 'usMoney',
-                editor: new fm.NumberField({
-                    allowBlank: false,
-                    allowNegative: false,
-                    maxValue: 100000
-                })
-            }, {
-                header: 'Available',
-                dataIndex: 'availDate',
-                width: 95,
-                renderer: formatDate,
-                editor: new fm.DateField({
-                    format: 'm/d/y',
-                    minValue: '01/01/06',
-                    disabledDays: [0, 6],
-                    disabledDaysText: 'Plants are not available on the weekends'
-                })
-            },
-            checkColumn // the plugin instance
-        ]
+        columns: [{
+            id: 'common',
+            header: 'Common Name',
+            dataIndex: 'common',
+            width: 220,
+            // use shorthand alias defined above
+            editor: new fm.TextField({
+                allowBlank: false
+            })
+        }, {
+            header: 'Light',
+            dataIndex: 'light',
+            width: 130,
+            editor: new fm.ComboBox({
+                typeAhead: true,
+                triggerAction: 'all',
+                // transform the data already specified in html
+                transform: 'light',
+                lazyRender: true,
+                listClass: 'x-combo-list-small'
+            })
+        }, {
+            header: 'Price',
+            dataIndex: 'price',
+            width: 70,
+            align: 'right',
+            renderer: 'usMoney',
+            editor: new fm.NumberField({
+                allowBlank: false,
+                allowNegative: false,
+                maxValue: 100000
+            })
+        }, {
+            header: 'Available',
+            dataIndex: 'availDate',
+            width: 95,
+            renderer: formatDate,
+            editor: new fm.DateField({
+                format: 'm/d/y',
+                minValue: '01/01/06',
+                disabledDays: [0, 6],
+                disabledDaysText: 'Plants are not available on the weekends'
+            })
+        }, {
+            xtype: 'checkcolumn',
+            header: 'Indoor?',
+            dataIndex: 'indoor',
+            width: 55
+        }]
     });
 
     // create the Data Store
     var store = new Ext.data.Store({
         // destroy the store if the grid is destroyed
         autoDestroy: true,
-        
+
         // load remote data using HTTP
         url: 'plants.xml',
 
@@ -120,8 +115,6 @@ Ext.onReady(function(){
         autoExpandColumn: 'common', // column with this id will be expanded
         title: 'Edit Plants?',
         frame: true,
-        // specify the check column plugin on the grid so the plugin is initialized
-        plugins: checkColumn,
         clicksToEdit: 1,
         tbar: [{
             text: 'Add Plant',

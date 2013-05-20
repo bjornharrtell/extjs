@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -420,6 +420,9 @@ myCheckboxGroup.setValue('cb-col-1,cb-col-3');
     // private
     beforeDestroy: function(){
         Ext.destroy(this.panel);
+        if (!this.rendered) {
+            Ext.destroy(this.items);
+        }
         Ext.form.CheckboxGroup.superclass.beforeDestroy.call(this);
 
     },

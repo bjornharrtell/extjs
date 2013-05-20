@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -158,7 +158,7 @@ Date.formatCodeToRegex = function(character, currentGroup) {
         g:0,
         c:null,
         s:Ext.escapeRe(character) // treat unrecognised characters as literals
-    }
+    };
 };
 
 // private shorthand for Date.formatCodeToRegex since we'll be using it fairly often
@@ -452,7 +452,7 @@ Date.formatCodes.x = "String.leftPad(this.getDate(), 2, '0')";
         t: "this.getDaysInMonth()",
         L: "(this.isLeapYear() ? 1 : 0)",
         o: "(this.getFullYear() + (this.getWeekOfYear() == 1 && this.getMonth() > 0 ? +1 : (this.getWeekOfYear() >= 52 && this.getMonth() < 11 ? -1 : 0)))",
-        Y: "this.getFullYear()",
+        Y: "String.leftPad(this.getFullYear(), 4, '0')",
         y: "('' + this.getFullYear()).substring(2, 4)",
         a: "(this.getHours() < 12 ? 'am' : 'pm')",
         A: "(this.getHours() < 12 ? 'AM' : 'PM')",
@@ -512,7 +512,8 @@ Date.formatCodes.x = "String.leftPad(this.getDate(), 2, '0')";
         s = s || 0;
         ms = ms || 0;
 
-        var dt = new Date(y, m - 1, d, h, i, s, ms);
+        // Special handling for year < 100
+        var dt = new Date(y < 100 ? 100 : y, m - 1, d, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);
 
         return y == dt.getFullYear() &&
             m == dt.getMonth() + 1 &&
@@ -589,7 +590,7 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 special = false;
                 code.push("'" + String.escape(ch) + "'");
             } else {
-                code.push(Date.getFormatCode(ch))
+                code.push(Date.getFormatCode(ch));
             }
         }
         Date.formatFunctions[format] = new Function("return " + code.join('+'));
@@ -629,7 +630,8 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                         // these 2 values alone provide sufficient info to create a full date object
 
                         // create Date object representing January 1st for the given year
-                        "v = new Date(y, 0, 1, h, i, s, ms);",
+                        // handle years < 100 appropriately
+                        "v = new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);",
 
                         // then add day of year, checking for Date "rollover" if necessary
                         "v = !strict? v : (strict === true && (z <= 364 || (v.isLeapYear() && z <= 365))? v.add(Date.DAY, z) : null);",
@@ -637,7 +639,8 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                         "v = null;", // invalid date, so return null
                     "}else{",
                         // plain old Date object
-                        "v = new Date(y, m, d, h, i, s, ms);",
+                        // handle years < 100 properly
+                        "v = new Date(y < 100 ? 100 : y, m, d, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);",
                     "}",
                 "}",
             "}",
@@ -681,9 +684,9 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 }
             }
 
-            Date.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$");
+            Date.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
             Date.parseFunctions[format] = new Function("input", "strict", xf(code, regexNum, calc.join('')));
-        }
+        };
     }(),
 
     // private
@@ -710,14 +713,14 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 g:0,
                 c:null,
                 s:"(?:" + a.join("|") +")"
-            }
+            };
         },
         l: function() {
             return {
                 g:0,
                 c:null,
                 s:"(?:" + Date.dayNames.join("|") + ")"
-            }
+            };
         },
         N: {
             g:0,
@@ -749,7 +752,7 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 g:1,
                 c:"m = parseInt(Date.getMonthNumber(results[{0}]), 10);\n", // get localised month number
                 s:"(" + Date.monthNames.join("|") + ")"
-            }
+            };
         },
         M: function() {
             for (var a = [], i = 0; i < 12; a.push(Date.getShortMonthName(i)), ++i); // get localised short month names
@@ -791,19 +794,24 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 + "y = ty > Date.y2kYear ? 1900 + ty : 2000 + ty;\n", // 2-digit year
             s:"(\\d{1,2})"
         },
+        /**
+         * In the am/pm parsing routines, we allow both upper and lower case 
+         * even though it doesn't exactly match the spec. It gives much more flexibility
+         * in being able to specify case insensitive regexes.
+         */
         a: {
             g:1,
-            c:"if (results[{0}] == 'am') {\n"
+            c:"if (/(am)/i.test(results[{0}])) {\n"
                 + "if (!h || h == 12) { h = 0; }\n"
                 + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(am|pm)"
+            s:"(am|pm|AM|PM)"
         },
         A: {
             g:1,
-            c:"if (results[{0}] == 'AM') {\n"
+            c:"if (/(am)/i.test(results[{0}])) {\n"
                 + "if (!h || h == 12) { h = 0; }\n"
                 + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(AM|PM)"
+            s:"(AM|PM|am|pm)"
         },
         g: function() {
             return $f("G");
@@ -913,7 +921,7 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                         ")?",
                     ")?"
                 ].join("")
-            }
+            };
         },
         U: {
             g:1,
@@ -1005,7 +1013,7 @@ Ext.apply(Date.prototype, {
                 Wyr = new Date(AWN * ms7d).getUTCFullYear();
 
             return AWN - Math.floor(Date.UTC(Wyr, 0, 7) / ms7d) + 1;
-        }
+        };
     }(),
 
     /**
@@ -1076,7 +1084,7 @@ document.write(Date.dayNames[dt.getLastDayOfMonth()]); //output: 'Wednesday'
             var m = this.getMonth();
 
             return m == 1 && this.isLeapYear() ? 29 : daysInMonth[m];
-        }
+        };
     }(),
 
     /**
@@ -1314,4 +1322,4 @@ console.group('ISO-8601 Granularity Test (see http://www.w3.org/TR/NOTE-datetime
     console.log('Date.parseDate("1997-13-16T19:20:30.45+01:00", "c", true)= %o', Date.parseDate("1997-13-16T19:20:30.45+01:00", "c", true)); // strict date parsing with invalid month value
 console.groupEnd();
 
-//*/
+*/

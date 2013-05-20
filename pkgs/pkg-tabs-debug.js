@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -588,9 +588,6 @@ new Ext.TabPanel({
         if(this.rendered){
             var items = this.items;
             this.initTab(c, items.indexOf(c));
-            if(items.getCount() == 1 && !this.collapsed){
-                this.syncSize();
-            }
             this.delegateUpdates();
         }
     },
@@ -743,13 +740,14 @@ new Ext.TabPanel({
 
     // private
     delegateUpdates : function(){
+        var rendered = this.rendered;
         if(this.suspendUpdates){
             return;
         }
-        if(this.resizeTabs && this.rendered){
+        if(this.resizeTabs && rendered){
             this.autoSizeTabs();
         }
-        if(this.enableTabScroll && this.rendered){
+        if(this.enableTabScroll && rendered){
             this.autoScrollTabs();
         }
     },
@@ -817,13 +815,15 @@ new Ext.TabPanel({
                     Ext.fly(oldEl).removeClass('x-tab-strip-active');
                 }
             }
+            this.activeTab = item;
             if(item){
                 var el = this.getTabEl(item);
                 Ext.fly(el).addClass('x-tab-strip-active');
-                this.activeTab = item;
                 this.stack.add(item);
 
                 this.layout.setActiveItem(item);
+                // Need to do this here, since setting the active tab slightly changes the size
+                this.delegateUpdates();
                 if(this.scrolling){
                     this.scrollToTab(item, this.animScroll);
                 }
@@ -863,10 +863,11 @@ new Ext.TabPanel({
             pos = this.getScrollPos(),
             l = this.edge.getOffsetsTo(this.stripWrap)[0] + pos;
 
-        if(!this.enableTabScroll || count < 1 || cw < 20){ // 20 to prevent display:none issues
+        if(!this.enableTabScroll || cw < 20){ // 20 to prevent display:none issues
             return;
         }
-        if(l <= tw){
+        if(count == 0 || l <= tw){
+            // ensure the width is set if there's no tabs
             wd.scrollLeft = 0;
             wrap.setWidth(tw);
             if(this.scrolling){

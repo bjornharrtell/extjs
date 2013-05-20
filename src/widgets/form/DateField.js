@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -24,9 +24,9 @@ Ext.form.DateField = Ext.extend(Ext.form.TriggerField,  {
      * @cfg {String} altFormats
      * Multiple date formats separated by "<tt>|</tt>" to try when parsing a user input value and it
      * does not match the defined format (defaults to
-     * <tt>'m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d'</tt>).
+     * <tt>'m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d|n-j|n/j'</tt>).
      */
-    altFormats : "m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d",
+    altFormats : "m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d|n-j|n/j",
     /**
      * @cfg {String} disabledDaysText
      * The tooltip to display when the date falls on a disabled day (defaults to <tt>'Disabled'</tt>)
@@ -68,6 +68,13 @@ Ext.form.DateField = Ext.extend(Ext.form.TriggerField,  {
      * the keyboard handler for spacebar that selects the current date (defaults to <tt>true</tt>).
      */
     showToday : true,
+    
+    /**
+     * @cfg {Number} startDay
+     * Day index at which the week should begin, 0-based (defaults to 0, which is Sunday)
+     */
+    startDay : 0,
+    
     /**
      * @cfg {Date/String} minValue
      * The minimum allowed date. Can be either a Javascript date object or a string date in a
@@ -131,8 +138,10 @@ disabledDates: ["^03"]
         } else {
             // set time to 12 noon, then clear the time
             var parsedDate = Date.parseDate(value + ' ' + this.initTime, format + ' ' + this.initTimeFormat);
-            
-            if (parsedDate) return parsedDate.clearTime();
+
+            if (parsedDate) {
+                return parsedDate.clearTime();
+            }
         }
     },
 
@@ -234,7 +243,7 @@ disabledDates: ["^03"]
             this.menu.picker.setMaxDate(this.maxValue);
         }
     },
-    
+
     /**
      * Runs all of NumberFields validations and returns an array of any errors. Note that this first
      * runs TextField's validations, so the returned array is an amalgamation of all field errors.
@@ -246,32 +255,32 @@ disabledDates: ["^03"]
      */
     getErrors: function(value) {
         var errors = Ext.form.DateField.superclass.getErrors.apply(this, arguments);
-        
+
         value = this.formatDate(value || this.processValue(this.getRawValue()));
-        
+
         if (value.length < 1) { // if it's blank and textfield didn't flag it then it's valid
              return errors;
         }
-        
+
         var svalue = value;
         value = this.parseDate(value);
         if (!value) {
             errors.push(String.format(this.invalidText, svalue, this.format));
             return errors;
         }
-        
+
         var time = value.getTime();
-        if (this.minValue && time < this.minValue.getTime()) {
+        if (this.minValue && time < this.minValue.clearTime().getTime()) {
             errors.push(String.format(this.minText, this.formatDate(this.minValue)));
         }
-        
-        if (this.maxValue && time > this.maxValue.getTime()) {
+
+        if (this.maxValue && time > this.maxValue.clearTime().getTime()) {
             errors.push(String.format(this.maxText, this.formatDate(this.maxValue)));
         }
-        
+
         if (this.disabledDays) {
             var day = value.getDay();
-            
+
             for(var i = 0; i < this.disabledDays.length; i++) {
                 if (day === this.disabledDays[i]) {
                     errors.push(this.disabledDaysText);
@@ -279,12 +288,12 @@ disabledDates: ["^03"]
                 }
             }
         }
-        
+
         var fvalue = this.formatDate(value);
         if (this.disabledDatesRE && this.disabledDatesRE.test(fvalue)) {
             errors.push(String.format(this.disabledDatesText, fvalue));
         }
-        
+
         return errors;
     },
 
@@ -385,6 +394,7 @@ dateField.setValue('2006-05-04');
             disabledDaysText : this.disabledDaysText,
             format : this.format,
             showToday : this.showToday,
+            startDay: this.startDay,
             minText : String.format(this.minText, this.formatDate(this.minValue)),
             maxText : String.format(this.maxText, this.formatDate(this.maxValue))
         });

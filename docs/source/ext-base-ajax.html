@@ -7,7 +7,7 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -19,15 +19,16 @@
 * http://developer.yahoo.net/yui/license.txt
 */
 Ext.lib.Ajax = function() {
-    var activeX = ['MSXML2.XMLHTTP.3.0',
-                   'MSXML2.XMLHTTP',
-                   'Microsoft.XMLHTTP'],
+    var activeX = ['Msxml2.XMLHTTP.6.0',
+                   'Msxml2.XMLHTTP.3.0',
+                   'Msxml2.XMLHTTP'],
         CONTENTTYPE = 'Content-Type';
 
     // private
     function setHeader(o) {
         var conn = o.conn,
-            prop;
+            prop,
+            headers = {};
 
         function setTheHeaders(conn, headers){
             for (prop in headers) {
@@ -37,14 +38,9 @@ Ext.lib.Ajax = function() {
             }
         }
 
-        if (pub.defaultHeaders) {
-            setTheHeaders(conn, pub.defaultHeaders);
-        }
-
-        if (pub.headers) {
-            setTheHeaders(conn, pub.headers);
-            delete pub.headers;
-        }
+        Ext.apply(headers, pub.headers, pub.defaultHeaders);
+        setTheHeaders(conn, headers);
+        delete pub.headers;
     }
 
     // private
@@ -94,7 +90,7 @@ Ext.lib.Ajax = function() {
             status : isBrokenStatus ? 204 : conn.status,
             statusText : isBrokenStatus ? 'No Content' : conn.statusText,
             getResponseHeader : function(header){return headerObj[header.toLowerCase()];},
-            getAllResponseHeaders : function(){return headerStr},
+            getAllResponseHeaders : function(){return headerStr;},
             responseText : conn.responseText,
             responseXML : conn.responseXML,
             argument : callbackArg
@@ -176,10 +172,28 @@ Ext.lib.Ajax = function() {
         releaseObject(o);
         responseObject = null;
     }
+    
+    function checkResponse(o, callback, conn, tId, poll, cbTimeout){
+        if (conn && conn.readyState == 4) {
+            clearInterval(poll[tId]);
+            poll[tId] = null;
+
+            if (cbTimeout) {
+                clearTimeout(pub.timeout[tId]);
+                pub.timeout[tId] = null;
+            }
+            handleTransactionResponse(o, callback);
+        }
+    }
+    
+    function checkTimeout(o, callback){
+        pub.abort(o, callback, true);
+    }
+    
 
     // private
     function handleReadyState(o, callback){
-    callback = callback || {};
+        callback = callback || {};
         var conn = o.conn,
             tId = o.tId,
             poll = pub.poll,
@@ -187,26 +201,9 @@ Ext.lib.Ajax = function() {
 
         if (cbTimeout) {
             pub.conn[tId] = conn;
-            pub.timeout[tId] = setTimeout(function() {
-                pub.abort(o, callback, true);
-            }, cbTimeout);
+            pub.timeout[tId] = setTimeout(checkTimeout.createCallback(o, callback), cbTimeout);
         }
-
-        poll[tId] = setInterval(
-            function() {
-                if (conn && conn.readyState == 4) {
-                    clearInterval(poll[tId]);
-                    poll[tId] = null;
-
-                    if (cbTimeout) {
-                        clearTimeout(pub.timeout[tId]);
-                        pub.timeout[tId] = null;
-                    }
-
-                    handleTransactionResponse(o, callback);
-                }
-            },
-            pub.pollInterval);
+        poll[tId] = setInterval(checkResponse.createCallback(o, callback, conn, tId, poll, cbTimeout), pub.pollInterval);
     }
 
     // private
@@ -288,33 +285,31 @@ Ext.lib.Ajax = function() {
         },
 
         serializeForm : function(form) {
-            var fElements = form.elements || (document.forms[form] || Ext.getDom(form)).elements,
-                hasSubmit = false,
-                encoder = encodeURIComponent,
-                element,
-                options,
-                name,
-                val,
-                data = '',
-                type;
-
-            Ext.each(fElements, function(element) {
+            var fElements = form.elements || (document.forms[form] || Ext.getDom(form)).elements, 
+                hasSubmit = false, 
+                encoder = encodeURIComponent, 
+                name, 
+                data = '', 
+                type, 
+                hasValue;
+    
+            Ext.each(fElements, function(element){
                 name = element.name;
                 type = element.type;
-
-                if (!element.disabled && name){
-                    if(/select-(one|multiple)/i.test(type)) {
-                        Ext.each(element.options, function(opt) {
+        
+                if (!element.disabled && name) {
+                    if (/select-(one|multiple)/i.test(type)) {
+                        Ext.each(element.options, function(opt){
                             if (opt.selected) {
-                                data += String.format("{0}={1}&", encoder(name), encoder((opt.hasAttribute ? opt.hasAttribute('value') : opt.getAttribute('value') !== null) ? opt.value : opt.text));
+                                hasValue = opt.hasAttribute ? opt.hasAttribute('value') : opt.getAttributeNode('value').specified;
+                                data += String.format("{0}={1}&", encoder(name), encoder(hasValue ? opt.value : opt.text));
                             }
                         });
-                    } else if(!/file|undefined|reset|button/i.test(type)) {
-                            if(!(/radio|checkbox/i.test(type) && !element.checked) && !(type == 'submit' && hasSubmit)){
-
-                                data += encoder(name) + '=' + encoder(element.value) + '&';
-                                hasSubmit = /submit/i.test(type);
-                            }
+                    } else if (!(/file|undefined|reset|button/i.test(type))) {
+                        if (!(/radio|checkbox/i.test(type) && !element.checked) && !(type == 'submit' && hasSubmit)) {
+                            data += encoder(name) + '=' + encoder(element.value) + '&';
+                            hasSubmit = /submit/i.test(type);
+                        }
                     }
                 }
             });

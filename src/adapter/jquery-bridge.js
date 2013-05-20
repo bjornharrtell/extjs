@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -292,8 +292,12 @@ Ext.lib.Ajax = function(){
             argument: cb.argument,
             status: xhr.status,
             statusText: xhr.statusText,
-            getResponseHeader : function(header){return headerObj[header.toLowerCase()];},
-            getAllResponseHeaders : function(){return headerStr}
+            getResponseHeader : function(header){
+                return headerObj[header.toLowerCase()];
+            },
+            getAllResponseHeaders : function(){
+                return headerStr;
+            }
         };
     };
     return {
@@ -325,12 +329,12 @@ Ext.lib.Ajax = function(){
                 }
                 if(hs){
                     o.beforeSend = function(xhr){
-                        for(var h in hs){
-                            if(hs.hasOwnProperty(h)){
+                        for (var h in hs) {
+                            if (hs.hasOwnProperty(h)) {
                                 xhr.setRequestHeader(h, hs[h]);
                             }
                         }
-                    }
+                    };
                 }
             }
             jQuery.ajax(o);

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -13,6 +13,12 @@ Ext.ns('Ext.slider');
  * be created internally by an {@link Ext.slider.MultiSlider Ext.Slider}.
  */
 Ext.slider.Thumb = Ext.extend(Object, {
+    
+    /**
+     * True while the thumb is in a drag operation
+     * @type Boolean
+     */
+    dragging: false,
 
     /**
      * @constructor
@@ -159,6 +165,14 @@ Ext.slider.Thumb = Ext.extend(Object, {
         if (this.dragStartValue != value) {
             slider.fireEvent('changecomplete', slider, value, this);
         }
+    },
+    
+    /**
+     * @private
+     * Destroys the thumb
+     */
+    destroy: function(){
+        Ext.destroyMembers(this, 'tracker', 'el');
     }
 });
 
@@ -239,13 +253,6 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      * @cfg {Boolean} animate Turn on or off animation. Defaults to true
      */
     animate: true,
-
-    /**
-     * True while the thumb is in a drag operation
-     * @type Boolean
-     */
-    dragging: false,
-
     /**
      * @cfg {Boolean} constrainThumbs True to disallow thumbs from overlapping one another. Defaults to true
      */
@@ -280,7 +287,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
              * @event beforechange
              * Fires before the slider value is changed. By returning false from an event handler,
              * you can cancel the event and prevent the slider from changing.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider is being changed to.
              * @param {Number} oldValue The old value which the slider was previously.
              */
@@ -289,7 +296,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event change
              * Fires when the slider value is changed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider has been changed to.
              * @param {Ext.slider.Thumb} thumb The thumb that was changed
              */
@@ -298,7 +305,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event changecomplete
              * Fires when the slider value is changed by the user and any drag operations have completed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Number} newValue The new value which the slider has been changed to.
              * @param {Ext.slider.Thumb} thumb The thumb that was changed
              */
@@ -307,7 +314,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event dragstart
              * Fires after a drag operation has started.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'dragstart',
@@ -315,7 +322,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event drag
              * Fires continuously during the drag operation while the mouse is moving.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'drag',
@@ -323,7 +330,7 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
             /**
              * @event dragend
              * Fires after the drag operation has completed.
-             * @param {Ext.Slider} slider The slider
+             * @param {Ext.slider.MultiSlider} slider The slider
              * @param {Ext.EventObject} e The event fired from Ext.dd.DragTracker
              */
             'dragend'
@@ -510,26 +517,29 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      * @param {Ext.EventObject} e The Event object
      */
     onKeyDown : function(e){
-        if(this.disabled){e.preventDefault();return;}
-        var k = e.getKey();
+        /*
+         * The behaviour for keyboard handling with multiple thumbs is currently undefined.
+         * There's no real sane default for it, so leave it like this until we come up
+         * with a better way of doing it.
+         */
+        if(this.disabled || this.thumbs.length !== 1){
+            e.preventDefault();
+            return;
+        }
+        var k = e.getKey(),
+            val;
         switch(k){
             case e.UP:
             case e.RIGHT:
                 e.stopEvent();
-                if(e.ctrlKey){
-                    this.setValue(this.maxValue, undefined, true);
-                }else{
-                    this.setValue(this.value+this.keyIncrement, undefined, true);
-                }
+                val = e.ctrlKey ? this.maxValue : this.getValue(0) + this.keyIncrement;
+                this.setValue(0, val, undefined, true);
             break;
             case e.DOWN:
             case e.LEFT:
                 e.stopEvent();
-                if(e.ctrlKey){
-                    this.setValue(this.minValue, undefined, true);
-                }else{
-                    this.setValue(this.value-this.keyIncrement, undefined, true);
-                }
+                val = e.ctrlKey ? this.minValue : this.getValue(0) - this.keyIncrement;
+                this.setValue(0, val, undefined, true);
             break;
             default:
                 e.preventDefault();
@@ -613,11 +623,16 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      */
     setMinValue : function(val){
         this.minValue = val;
-        this.syncThumb();
-
-        for (var i=0, j = this.thumbs.length; i < j; i++) {
-            if (this.thumbs[i].value < val) this.thumbs[i].value = val;
+        var i = 0,
+            thumbs = this.thumbs,
+            len = thumbs.length,
+            t;
+            
+        for(; i < len; ++i){
+            t = thumbs[i];
+            t.value = t.value < val ? val : t.value;
         }
+        this.syncThumb();
     },
 
     /**
@@ -627,11 +642,16 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
      */
     setMaxValue : function(val){
         this.maxValue = val;
-        this.syncThumb();
-
-        for (var i=0; i < this.thumbs.length; i++) {
-            if (this.thumbs[i].value > val) this.thumbs[i].value = val;
+        var i = 0,
+            thumbs = this.thumbs,
+            len = thumbs.length,
+            t;
+            
+        for(; i < len; ++i){
+            t = thumbs[i];
+            t.value = t.value > val ? val : t.value;
         }
+        this.syncThumb();
     },
 
     /**
@@ -647,12 +667,14 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
 
         v = this.normalizeValue(v);
 
-        if (v !== thumb.value && this.fireEvent('beforechange', this, v, thumb.value) !== false) {
+        if (v !== thumb.value && this.fireEvent('beforechange', this, v, thumb.value, thumb) !== false) {
             thumb.value = v;
-            this.moveThumb(index, this.translateValue(v), animate !== false);
-            this.fireEvent('change', this, v, thumb);
-            if(changeComplete){
-                this.fireEvent('changecomplete', this, v, thumb);
+            if(this.rendered){
+                this.moveThumb(index, this.translateValue(v), animate !== false);
+                this.fireEvent('change', this, v, thumb);
+                if(changeComplete){
+                    this.fireEvent('changecomplete', this, v, thumb);
+                }
             }
         }
     },
@@ -710,7 +732,10 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
         for(; i < len; ++i){
             thumbs[i].el.stopFx();    
         }
-        this.innerEl.setWidth(w - (this.el.getPadding('l') + this.endEl.getPadding('r')));
+        // check to see if we're using an auto width
+        if(Ext.isNumber(w)){
+            this.innerEl.setWidth(w - (this.el.getPadding('l') + this.endEl.getPadding('r')));
+        }
         this.syncThumb();
         Ext.slider.MultiSlider.superclass.onResize.apply(this, arguments);
     },
@@ -802,7 +827,12 @@ Ext.slider.MultiSlider = Ext.extend(Ext.BoxComponent, {
 
     // private
     beforeDestroy : function(){
-        Ext.destroyMembers(this, 'endEl', 'innerEl', 'thumb', 'halfThumb', 'focusEl', 'tracker', 'thumbHolder');
+        var thumbs = this.thumbs;
+        for(var i = 0, len = thumbs.length; i < len; ++i){
+            thumbs[i].destroy();
+            thumbs[i] = null;
+        }
+        Ext.destroyMembers(this, 'endEl', 'innerEl', 'focusEl', 'thumbHolder');
         Ext.slider.MultiSlider.superclass.beforeDestroy.call(this);
     }
 });

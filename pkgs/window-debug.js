@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -178,6 +178,18 @@ Ext.Window = Ext.extend(Ext.Panel, {
      * {@link #collapsed}) when displayed (defaults to true).
      */
     expandOnShow : true,
+    
+    /**
+     * @cfg {Number} showAnimDuration The number of seconds that the window show animation takes if enabled.
+     * Defaults to 0.25
+     */
+    showAnimDuration: 0.25,
+    
+    /**
+     * @cfg {Number} hideAnimDuration The number of seconds that the window hide animation takes if enabled.
+     * Defaults to 0.25
+     */
+    hideAnimDuration: 0.25,
 
     // inherited docs, same default
     collapsible : false,
@@ -460,7 +472,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
             el = f.getEl();
             ct = Ext.getDom(this.container);
             if (el && ct) {
-                if (!Ext.lib.Region.getRegion(ct).contains(Ext.lib.Region.getRegion(el.dom))){
+                if (ct != document.body && !Ext.lib.Region.getRegion(ct).contains(Ext.lib.Region.getRegion(el.dom))){
                     return;
                 }
             }
@@ -580,7 +592,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
             callback: this.afterShow.createDelegate(this, [true], false),
             scope: this,
             easing: 'easeNone',
-            duration: 0.25,
+            duration: this.showAnimDuration,
             opacity: 0.5
         }));
     },
@@ -640,7 +652,7 @@ Ext.Window = Ext.extend(Ext.Panel, {
         this.proxy.shift(Ext.apply(this.animateTarget.getBox(), {
             callback: this.afterHide,
             scope: this,
-            duration: 0.25,
+            duration: this.hideAnimDuration,
             easing: 'easeNone',
             opacity: 0
         }));
@@ -986,19 +998,20 @@ Ext.Window = Ext.extend(Ext.Panel, {
 Ext.reg('window', Ext.Window);
 
 // private - custom Window DD implementation
-Ext.Window.DD = function(win){
-    this.win = win;
-    Ext.Window.DD.superclass.constructor.call(this, win.el.id, 'WindowDD-'+win.id);
-    this.setHandleElId(win.header.id);
-    this.scroll = false;
-};
-
-Ext.extend(Ext.Window.DD, Ext.dd.DD, {
+Ext.Window.DD = Ext.extend(Ext.dd.DD, {
+    
+    constructor : function(win){
+        this.win = win;
+        Ext.Window.DD.superclass.constructor.call(this, win.el.id, 'WindowDD-'+win.id);
+        this.setHandleElId(win.header.id);
+        this.scroll = false;        
+    },
+    
     moveOnly:true,
     headerOffsets:[100, 25],
     startDrag : function(){
         var w = this.win;
-        this.proxy = w.ghost();
+        this.proxy = w.ghost(w.initialConfig.cls);
         if(w.constrain !== false){
             var so = w.el.shadowOffset;
             this.constrainTo(w.container, {right: so, left: so, bottom: so});
@@ -1397,7 +1410,8 @@ Ext.MessageBox = function(){
             if(!dlg.isVisible() && !opt.width){
                 dlg.setSize(this.maxWidth, 100); // resize first so content is never clipped from previous shows
             }
-            msgEl.update(text || '&#160;');
+            // Append a space here for sizing. In IE, for some reason, it wraps text incorrectly without one in some cases
+            msgEl.update(text ? text + ' ' : '&#160;');
 
             var iw = iconCls != '' ? (iconEl.getWidth() + iconEl.getMargins('lr')) : 0,
                 mw = msgEl.getWidth() + msgEl.getMargins('lr'),
@@ -1405,11 +1419,6 @@ Ext.MessageBox = function(){
                 bw = dlg.body.getFrameWidth('lr'),
                 w;
                 
-            if (Ext.isIE && iw > 0){
-                //3 pixels get subtracted in the icon CSS for an IE margin issue,
-                //so we have to add it back here for the overall width to be consistent
-                iw += 3;
-            }
             w = Math.max(Math.min(opt.width || iw+mw+fw+bw, opt.maxWidth || this.maxWidth),
                     Math.max(opt.minWidth || this.minWidth, bwidth || 0));
 
@@ -1422,6 +1431,7 @@ Ext.MessageBox = function(){
             if(Ext.isIE && w == bwidth){
                 w += 4; //Add offset when the content width is smaller than the buttons.    
             }
+            msgEl.update(text || '&#160;');
             dlg.setSize(w, 'auto').center();
             return this;
         },
@@ -1580,7 +1590,7 @@ Ext.Msg.show({
                     d.focusEl = db;
                 }
             }
-            if(opt.iconCls){
+            if(Ext.isDefined(opt.iconCls)){
               d.setIconClass(opt.iconCls);
             }
             this.setIcon(Ext.isDefined(opt.icon) ? opt.icon : bufferIcon);
@@ -1868,13 +1878,14 @@ Ext.Msg = Ext.MessageBox;/**
  * @param panel The {@link Ext.Panel} to proxy for
  * @param config Configuration options
  */
-Ext.dd.PanelProxy = function(panel, config){
-    this.panel = panel;
-    this.id = this.panel.id +'-ddproxy';
-    Ext.apply(this, config);
-};
-
-Ext.dd.PanelProxy.prototype = {
+Ext.dd.PanelProxy  = Ext.extend(Object, {
+    
+    constructor : function(panel, config){
+        this.panel = panel;
+        this.id = this.panel.id +'-ddproxy';
+        Ext.apply(this, config);        
+    },
+    
     /**
      * @cfg {Boolean} insertProxy True to insert a placeholder proxy element while dragging the panel,
      * false to drag with no proxy (defaults to true).
@@ -1932,7 +1943,7 @@ Ext.dd.PanelProxy.prototype = {
      */
     show : function(){
         if(!this.ghost){
-            this.ghost = this.panel.createGhost(undefined, undefined, Ext.getBody());
+            this.ghost = this.panel.createGhost(this.panel.initialConfig.cls, undefined, Ext.getBody());
             this.ghost.setXY(this.panel.el.getXY());
             if(this.insertProxy){
                 this.proxy = this.panel.el.insertSibling({cls:'x-panel-dd-spacer'});
@@ -1962,31 +1973,34 @@ Ext.dd.PanelProxy.prototype = {
             parentNode.insertBefore(this.proxy.dom, before);
         }
     }
-};
+});
 
 // private - DD implementation for Panels
-Ext.Panel.DD = function(panel, cfg){
-    this.panel = panel;
-    this.dragData = {panel: panel};
-    this.proxy = new Ext.dd.PanelProxy(panel, cfg);
-    Ext.Panel.DD.superclass.constructor.call(this, panel.el, cfg);
-    var h = panel.header;
-    if(h){
-        this.setHandleElId(h.id);
-    }
-    (h ? h : this.panel.body).setStyle('cursor', 'move');
-    this.scroll = false;
-};
-
-Ext.extend(Ext.Panel.DD, Ext.dd.DragSource, {
+Ext.Panel.DD = Ext.extend(Ext.dd.DragSource, {
+    
+    constructor : function(panel, cfg){
+        this.panel = panel;
+        this.dragData = {panel: panel};
+        this.proxy = new Ext.dd.PanelProxy(panel, cfg);
+        Ext.Panel.DD.superclass.constructor.call(this, panel.el, cfg);
+        var h = panel.header,
+            el = panel.body;
+        if(h){
+            this.setHandleElId(h.id);
+            el = panel.header;
+        }
+        el.setStyle('cursor', 'move');
+        this.scroll = false;        
+    },
+    
     showFrame: Ext.emptyFn,
     startDrag: Ext.emptyFn,
     b4StartDrag: function(x, y) {
         this.proxy.show();
     },
     b4MouseDown: function(e) {
-        var x = e.getPageX();
-        var y = e.getPageY();
+        var x = e.getPageX(),
+            y = e.getPageY();
         this.autoOffset(x, y);
     },
     onInitDrag : function(x, y){

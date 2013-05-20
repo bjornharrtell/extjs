@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -140,7 +140,7 @@
     // Color Animation
     EXTLIB.Anim.color = function(el, args, duration, easing, cb, scope) {
         return EXTLIB.Anim.run(el, args, duration, easing, cb, scope, EXTLIB.ColorAnim);
-    }
+    };
 
     EXTLIB.ColorAnim = function(el, attributes, duration, method) {
         EXTLIB.ColorAnim.superclass.constructor.call(this, el, attributes, duration, method);

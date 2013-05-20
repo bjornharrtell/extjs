@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -465,8 +465,8 @@ items: [
         if(this.layout && this.layout != layout){
             this.layout.setContainer(null);
         }
-        this.initItems();
         this.layout = layout;
+        this.initItems();
         layout.setContainer(this);
     },
 
@@ -487,7 +487,7 @@ items: [
         this.setLayout(this.layout);
 
         // If a CardLayout, the active item set
-        if(this.activeItem !== undefined){
+        if(this.activeItem !== undefined && this.layout.setActiveItem){
             var item = this.activeItem;
             delete this.activeItem;
             this.layout.setActiveItem(item);
@@ -608,20 +608,26 @@ tb.{@link #doLayout}();             // refresh the layout
      * @return {Ext.Component} component The Component (or config object) that was
      * inserted with the Container's default config values applied.
      */
-    insert : function(index, comp){
+    insert : function(index, comp) {
+        var args   = arguments,
+            length = args.length,
+            result = [],
+            i, c;
+        
         this.initItems();
-        var a = arguments, len = a.length;
-        if(len > 2){
-            var result = [];
-            for(var i = len-1; i >= 1; --i) {
-                result.push(this.insert(index, a[i]));
+        
+        if (length > 2) {
+            for (i = length - 1; i >= 1; --i) {
+                result.push(this.insert(index, args[i]));
             }
             return result;
         }
-        var c = this.lookupComponent(this.applyDefaults(comp));
+        
+        c = this.lookupComponent(this.applyDefaults(comp));
         index = Math.min(index, this.items.length);
-        if(this.fireEvent('beforeadd', this, c, index) !== false && this.onBeforeAdd(c) !== false){
-            if(c.ownerCt == this){
+        
+        if (this.fireEvent('beforeadd', this, c, index) !== false && this.onBeforeAdd(c) !== false) {
+            if (c.ownerCt == this) {
                 this.items.remove(c);
             }
             this.items.insert(index, c);
@@ -629,6 +635,7 @@ tb.{@link #doLayout}();             // refresh the layout
             this.onAdd(c);
             this.fireEvent('add', this, c, index);
         }
+        
         return c;
     },
 
@@ -770,11 +777,10 @@ tb.{@link #doLayout}();             // refresh the layout
     },
 
     /**
-    * We can only lay out if there is a view area in which to layout.
-    * display:none on the layout target, *or any of its parent elements* will mean it has no view area.
-    */
-
-    // private
+     * @private
+     * We can only lay out if there is a view area in which to layout.
+     * display:none on the layout target, *or any of its parent elements* will mean it has no view area.
+     */
     canLayout : function() {
         var el = this.getVisibilityEl();
         return el && el.dom && !el.isStyle("display", "none");
@@ -892,27 +898,6 @@ tb.{@link #doLayout}();             // refresh the layout
     },
 
     /**
-     * Bubbles up the component/container heirarchy, calling the specified function with each component. The scope (<i>this</i>) of
-     * function call will be the scope provided or the current component. The arguments to the function
-     * will be the args provided or the current component. If the function returns false at any point,
-     * the bubble is stopped.
-     * @param {Function} fn The function to call
-     * @param {Object} scope (optional) The scope of the function (defaults to current node)
-     * @param {Array} args (optional) The args to call the function with (default to passing the current component)
-     * @return {Ext.Container} this
-     */
-    bubble : function(fn, scope, args){
-        var p = this;
-        while(p){
-            if(fn.apply(scope || p, args || [p]) === false){
-                break;
-            }
-            p = p.ownerCt;
-        }
-        return this;
-    },
-
-    /**
      * Cascades down the component/container heirarchy from this component (called first), calling the specified function with
      * each component. The scope (<i>this</i>) of
      * function call will be the scope provided or the current component. The arguments to the function
@@ -942,17 +927,20 @@ tb.{@link #doLayout}();             // refresh the layout
     /**
      * Find a component under this container at any level by id
      * @param {String} id
+     * @deprecated Fairly useless method, since you can just use Ext.getCmp. Should be removed for 4.0
+     * If you need to test if an id belongs to a container, you can use getCmp and findParent*.
      * @return Ext.Component
      */
     findById : function(id){
-        var m, ct = this;
+        var m = null, 
+            ct = this;
         this.cascade(function(c){
             if(ct != c && c.id === id){
                 m = c;
                 return false;
             }
         });
-        return m || null;
+        return m;
     },
 
     /**
@@ -1000,10 +988,11 @@ tb.{@link #doLayout}();             // refresh the layout
     /**
      * Get a component contained by this container (alias for items.get(key))
      * @param {String/Number} key The index or id of the component
+     * @deprecated Should be removed in 4.0, since getComponent does the same thing.
      * @return {Ext.Component} Ext.Component
      */
     get : function(key){
-        return this.items.get(key);
+        return this.getComponent(key);
     }
 });
 

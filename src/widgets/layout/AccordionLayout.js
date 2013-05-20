@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -159,7 +159,7 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
             var hh = 0, i, ct = this.getRenderedItems(this.container), len = ct.length, p;
             // Add up all the header heights
             for (i = 0; i < len; i++) {
-                if((p = ct[i]) != item){
+                if((p = ct[i]) != item && !p.hidden){
                     hh += p.header.getHeight();
                 }
             };

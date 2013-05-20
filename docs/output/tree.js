@@ -208,6 +208,8 @@
                 {"id":"pkg-Ext.grid","text":"grid","iconCls":"icon-pkg","cls":"package","singleClickExpand":true, children:[
                 {"href":"output/Ext.grid.AbstractSelectionModel.html","text":"AbstractSelectionModel","id":"Ext.grid.AbstractSelectionModel","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
+                {"href":"output/Ext.grid.ActionColumn.html","text":"ActionColumn","id":"Ext.grid.ActionColumn","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
                 {"href":"output/Ext.grid.BooleanColumn.html","text":"BooleanColumn","id":"Ext.grid.BooleanColumn","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.grid.CellSelectionModel.html","text":"CellSelectionModel","id":"Ext.grid.CellSelectionModel","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
@@ -232,6 +234,12 @@
 				,
                 {"href":"output/Ext.grid.NumberColumn.html","text":"NumberColumn","id":"Ext.grid.NumberColumn","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
+                {"href":"output/Ext.grid.PivotAxis.html","text":"PivotAxis","id":"Ext.grid.PivotAxis","isClass":true,"iconCls":"icon-cmp","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.grid.PivotGrid.html","text":"PivotGrid","id":"Ext.grid.PivotGrid","isClass":true,"iconCls":"icon-cmp","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.grid.PivotGridView.html","text":"PivotGridView","id":"Ext.grid.PivotGridView","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
                 {"href":"output/Ext.grid.PropertyColumnModel.html","text":"PropertyColumnModel","id":"Ext.grid.PropertyColumnModel","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.grid.PropertyGrid.html","text":"PropertyGrid","id":"Ext.grid.PropertyGrid","isClass":true,"iconCls":"icon-cmp","cls":"cls","leaf":true}
@@ -248,6 +256,20 @@
 				]}
 				,
                 {"id":"pkg-Ext.layout","text":"layout","iconCls":"icon-pkg","cls":"package","singleClickExpand":true, children:[
+                {"id":"pkg-Ext.layout.boxOverflow","text":"boxOverflow","iconCls":"icon-pkg","cls":"package","singleClickExpand":true, children:[
+                {"href":"output/Ext.layout.boxOverflow.HorizontalMenu.html","text":"HorizontalMenu","id":"Ext.layout.boxOverflow.HorizontalMenu","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.layout.boxOverflow.HorizontalScroller.html","text":"HorizontalScroller","id":"Ext.layout.boxOverflow.HorizontalScroller","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.layout.boxOverflow.Menu.html","text":"Menu","id":"Ext.layout.boxOverflow.Menu","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.layout.boxOverflow.None.html","text":"None","id":"Ext.layout.boxOverflow.None","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.layout.boxOverflow.Scroller.html","text":"Scroller","id":"Ext.layout.boxOverflow.Scroller","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.layout.boxOverflow.VerticalScroller.html","text":"VerticalScroller","id":"Ext.layout.boxOverflow.VerticalScroller","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				]}
+				,
                 {"href":"output/Ext.layout.AbsoluteLayout.html","text":"AbsoluteLayout","id":"Ext.layout.AbsoluteLayout","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.layout.AccordionLayout.html","text":"AccordionLayout","id":"Ext.layout.AccordionLayout","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
@@ -378,6 +400,8 @@
 				,
                 {"href":"output/Ext.util.Format.html","text":"Format","id":"Ext.util.Format","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
 				,
+                {"href":"output/Ext.util.Functions.html","text":"Functions","id":"Ext.util.Functions","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
+				,
                 {"href":"output/Ext.util.JSON.html","text":"JSON","id":"Ext.util.JSON","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.util.MixedCollection.html","text":"MixedCollection","id":"Ext.util.MixedCollection","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
@@ -388,6 +412,8 @@
 				,
                 {"href":"output/Ext.util.TextMetrics.html","text":"TextMetrics","id":"Ext.util.TextMetrics","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
 				]}
+				,
+                {"href":"output/Ext.AbstractManager.html","text":"AbstractManager","id":"Ext.AbstractManager","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.Action.html","text":"Action","id":"Ext.Action","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
@@ -450,6 +476,8 @@
                 {"href":"output/Ext.Layer.html","text":"Layer","id":"Ext.Layer","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.LoadMask.html","text":"LoadMask","id":"Ext.LoadMask","isClass":true,"iconCls":"icon-cls","cls":"cls","leaf":true}
+				,
+                {"href":"output/Ext.Loader.html","text":"Loader","id":"Ext.Loader","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
 				,
                 {"href":"output/Ext.MessageBox.html","text":"MessageBox","id":"Ext.MessageBox","isClass":true,"iconCls":"icon-static","cls":"cls","leaf":true}
 				,
@@ -728,6 +756,8 @@
 			,
 			"Ext.grid.AbstractSelectionModel":"icon-cls"
 			,
+			"Ext.grid.ActionColumn":"icon-cls"
+			,
 			"Ext.grid.BooleanColumn":"icon-cls"
 			,
 			"Ext.grid.CellSelectionModel":"icon-cls"
@@ -752,6 +782,12 @@
 			,
 			"Ext.grid.NumberColumn":"icon-cls"
 			,
+			"Ext.grid.PivotAxis":"icon-cmp"
+			,
+			"Ext.grid.PivotGrid":"icon-cmp"
+			,
+			"Ext.grid.PivotGridView":"icon-cls"
+			,
 			"Ext.grid.PropertyColumnModel":"icon-cls"
 			,
 			"Ext.grid.PropertyGrid":"icon-cmp"
@@ -765,6 +801,18 @@
 			"Ext.grid.RowSelectionModel":"icon-cls"
 			,
 			"Ext.grid.TemplateColumn":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.HorizontalMenu":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.HorizontalScroller":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.Menu":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.None":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.Scroller":"icon-cls"
+			,
+			"Ext.layout.boxOverflow.VerticalScroller":"icon-cls"
 			,
 			"Ext.layout.AbsoluteLayout":"icon-cls"
 			,
@@ -884,6 +932,8 @@
 			,
 			"Ext.util.Format":"icon-static"
 			,
+			"Ext.util.Functions":"icon-static"
+			,
 			"Ext.util.JSON":"icon-static"
 			,
 			"Ext.util.MixedCollection":"icon-cls"
@@ -893,6 +943,8 @@
 			"Ext.util.TaskRunner":"icon-cls"
 			,
 			"Ext.util.TextMetrics":"icon-static"
+			,
+			"Ext.AbstractManager":"icon-cls"
 			,
 			"Ext.Action":"icon-cls"
 			,
@@ -955,6 +1007,8 @@
 			"Ext.Layer":"icon-cls"
 			,
 			"Ext.LoadMask":"icon-cls"
+			,
+			"Ext.Loader":"icon-static"
 			,
 			"Ext.MessageBox":"icon-static"
 			,

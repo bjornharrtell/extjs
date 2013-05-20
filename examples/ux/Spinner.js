@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -430,6 +430,9 @@ Ext.ux.Spinner = Ext.extend(Ext.util.Observable, {
 
         if (this.repeater) {
             this.repeater.purgeListeners();
+        }
+        if (this.mimicing){
+            Ext.get(Ext.isIE ? document.body : document).un("mousedown", this.mimicBlur, this);
         }
     }
 });

@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -54,7 +54,9 @@ Ext.ux.ToolbarReorderer = Ext.extend(Ext.ux.Reorderer, {
      * @param {Mixed} button The item to make draggable (usually an Ext.Button instance)
      */
     createItemDD: function(button) {
-        if (button.dd != undefined) return;
+        if (button.dd != undefined) {
+            return;
+        }
         
         var el   = button.getEl(),
             id   = el.id,

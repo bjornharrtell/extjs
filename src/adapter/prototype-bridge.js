@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -8,7 +8,7 @@
 
 var libFlyweight,
     version = Prototype.Version.split('.'),
-    mouseEnterSupported = (parseInt(version[0]) >= 2) || (parseInt(version[1]) >= 7) || (parseInt(version[2]) >= 1),
+    mouseEnterSupported = (parseInt(version[0], 10) >= 2) || (parseInt(version[1], 10) >= 7) || (parseInt(version[2], 10) >= 1),
     mouseCache = {},
     elContains = function(parent, child) {
        if(parent && parent.firstChild){
@@ -341,8 +341,12 @@ Ext.lib.Ajax = function(){
             argument: cb.argument,
             status: xhr.status,
             statusText: xhr.statusText,
-            getResponseHeader : function(header){return headerObj[header.toLowerCase()];},
-            getAllResponseHeaders : function(){return headerStr}
+            getResponseHeader : function(header){
+                return headerObj[header.toLowerCase()];
+            },
+            getAllResponseHeaders : function(){
+                return headerStr;
+            }
         };
     };
     return {

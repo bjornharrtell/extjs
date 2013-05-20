@@ -1,10 +1,10 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
  */
-Ext.Desktop = function(app){
+Ext.Desktop = function(app) {
     this.taskbar = new Ext.ux.TaskBar(app);
     this.xTickSize = this.yTickSize = 1;
     var taskbar = this.taskbar;
@@ -16,13 +16,13 @@ Ext.Desktop = function(app){
     var windows = new Ext.WindowGroup();
     var activeWindow;
 
-    function minimizeWin(win){
+    function minimizeWin(win) {
         win.minimized = true;
         win.hide();
     }
 
-    function markActive(win){
-        if(activeWindow && activeWindow != win){
+    function markActive(win) {
+        if (activeWindow && activeWindow != win) {
             markInactive(activeWindow);
         }
         taskbar.setActiveButton(win.taskButton);
@@ -31,38 +31,41 @@ Ext.Desktop = function(app){
         win.minimized = false;
     }
 
-    function markInactive(win){
-        if(win == activeWindow){
+    function markInactive(win) {
+        if (win == activeWindow) {
             activeWindow = null;
             Ext.fly(win.taskButton.el).removeClass('active-win');
         }
     }
 
-    function removeWin(win){
+    function removeWin(win) {
         taskbar.removeTaskButton(win.taskButton);
         layout();
     }
 
-    function layout(){
-        desktopEl.setHeight(Ext.lib.Dom.getViewHeight()-taskbarEl.getHeight());
+    function layout() {
+        desktopEl.setHeight(Ext.lib.Dom.getViewHeight() - taskbarEl.getHeight());
     }
     Ext.EventManager.onWindowResize(layout);
 
     this.layout = layout;
 
-    this.createWindow = function(config, cls){
-        var win = new (cls||Ext.Window)(
-            Ext.applyIf(config||{}, {
-                renderTo: desktopEl,
-                manager: windows,
-                minimizable: true,
-                maximizable: true
-            })
+    this.createWindow = function(config, cls) {
+        var win = new(cls || Ext.Window)(
+        Ext.applyIf(config || {},
+        {
+            renderTo: desktopEl,
+            manager: windows,
+            minimizable: true,
+            maximizable: true
+        })
         );
         win.dd.xTickSize = this.xTickSize;
         win.dd.yTickSize = this.yTickSize;
-        win.resizer.widthIncrement = this.xTickSize;
-        win.resizer.heightIncrement = this.yTickSize;
+        if (win.resizer) {
+            win.resizer.widthIncrement = this.xTickSize;
+            win.resizer.heightIncrement = this.yTickSize;
+        }
         win.render(desktopEl);
         win.taskButton = taskbar.addTaskButton(win);
 
@@ -96,31 +99,31 @@ Ext.Desktop = function(app){
         return win;
     };
 
-    this.getManager = function(){
+    this.getManager = function() {
         return windows;
     };
 
-    this.getWindow = function(id){
+    this.getWindow = function(id) {
         return windows.get(id);
-    }
+    };
 
-    this.getWinWidth = function(){
+    this.getWinWidth = function() {
         var width = Ext.lib.Dom.getViewWidth();
-        return width < 200 ? 200 : width;
-    }
+        return width < 200 ? 200: width;
+    };
 
-    this.getWinHeight = function(){
-        var height = (Ext.lib.Dom.getViewHeight()-taskbarEl.getHeight());
-        return height < 100 ? 100 : height;
-    }
+    this.getWinHeight = function() {
+        var height = (Ext.lib.Dom.getViewHeight() - taskbarEl.getHeight());
+        return height < 100 ? 100: height;
+    };
 
-    this.getWinX = function(width){
-        return (Ext.lib.Dom.getViewWidth() - width) / 2
-    }
+    this.getWinX = function(width) {
+        return (Ext.lib.Dom.getViewWidth() - width) / 2;
+    };
 
-    this.getWinY = function(height){
-        return (Ext.lib.Dom.getViewHeight()-taskbarEl.getHeight() - height) / 2;
-    }
+    this.getWinY = function(height) {
+        return (Ext.lib.Dom.getViewHeight() - taskbarEl.getHeight() - height) / 2;
+    };
 
     this.setTickSize = function(xTickSize, yTickSize) {
         this.xTickSize = xTickSize;
@@ -134,18 +137,21 @@ Ext.Desktop = function(app){
             win.dd.yTickSize = this.yTickSize;
             win.resizer.widthIncrement = this.xTickSize;
             win.resizer.heightIncrement = this.yTickSize;
-        }, this);
+        },
+        this);
     };
 
     this.cascade = function() {
-        var x = 0, y = 0;
+        var x = 0,
+        y = 0;
         windows.each(function(win) {
             if (win.isVisible() && !win.maximized) {
                 win.setPosition(x, y);
                 x += 20;
                 y += 20;
             }
-        }, this);
+        },
+        this);
     };
 
     this.tile = function() {
@@ -157,7 +163,7 @@ Ext.Desktop = function(app){
             if (win.isVisible() && !win.maximized) {
                 var w = win.el.getWidth();
 
-//              Wrap to next row if we are not at the line start and this Window will go off the end
+                //              Wrap to next row if we are not at the line start and this Window will go off the end
                 if ((x > this.xTickSize) && (x + w > availWidth)) {
                     x = this.xTickSize;
                     y = nextY;
@@ -167,7 +173,8 @@ Ext.Desktop = function(app){
                 x += w + this.xTickSize;
                 nextY = Math.max(nextY, y + win.el.getHeight() + this.yTickSize);
             }
-        }, this);
+        },
+        this);
     };
 
     this.contextMenu = new Ext.menu.Menu({
@@ -175,25 +182,30 @@ Ext.Desktop = function(app){
             text: 'Tile',
             handler: this.tile,
             scope: this
-        }, {
+        },
+        {
             text: 'Cascade',
             handler: this.cascade,
             scope: this
         }]
     });
-    desktopEl.on('contextmenu', function(e) {
-        e.stopEvent();
-        this.contextMenu.showAt(e.getXY());
-    }, this);
+    desktopEl.on('contextmenu',
+        function(e) {
+            e.stopEvent();
+            this.contextMenu.showAt(e.getXY());
+        },
+        this);
 
     layout();
 
-    if(shortcuts){
-        shortcuts.on('click', function(e, t){
-            if(t = e.getTarget('dt', shortcuts)){
+    if (shortcuts) {
+        shortcuts.on('click',
+        function(e, t) {
+            t = e.getTarget('dt', shortcuts);
+            if (t) {
                 e.stopEvent();
                 var module = app.getModule(t.id.replace('-shortcut', ''));
-                if(module){
+                if (module) {
                     module.createWindow();
                 }
             }

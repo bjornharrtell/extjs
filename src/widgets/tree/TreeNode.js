@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -33,138 +33,140 @@
  * @constructor
  * @param {Object/String} attributes The attributes/config for the node or just a string with the text for the node
  */
-Ext.tree.TreeNode = function(attributes){
-    attributes = attributes || {};
-    if(Ext.isString(attributes)){
-        attributes = {text: attributes};
-    }
-    this.childrenRendered = false;
-    this.rendered = false;
-    Ext.tree.TreeNode.superclass.constructor.call(this, attributes);
-    this.expanded = attributes.expanded === true;
-    this.isTarget = attributes.isTarget !== false;
-    this.draggable = attributes.draggable !== false && attributes.allowDrag !== false;
-    this.allowChildren = attributes.allowChildren !== false && attributes.allowDrop !== false;
+Ext.tree.TreeNode = Ext.extend(Ext.data.Node, {
+    
+    constructor : function(attributes){
+        attributes = attributes || {};
+        if(Ext.isString(attributes)){
+            attributes = {text: attributes};
+        }
+        this.childrenRendered = false;
+        this.rendered = false;
+        Ext.tree.TreeNode.superclass.constructor.call(this, attributes);
+        this.expanded = attributes.expanded === true;
+        this.isTarget = attributes.isTarget !== false;
+        this.draggable = attributes.draggable !== false && attributes.allowDrag !== false;
+        this.allowChildren = attributes.allowChildren !== false && attributes.allowDrop !== false;
 
-    /**
-     * Read-only. The text for this node. To change it use <code>{@link #setText}</code>.
-     * @type String
-     */
-    this.text = attributes.text;
-    /**
-     * True if this node is disabled.
-     * @type Boolean
-     */
-    this.disabled = attributes.disabled === true;
-    /**
-     * True if this node is hidden.
-     * @type Boolean
-     */
-    this.hidden = attributes.hidden === true;
-
-    this.addEvents(
         /**
-        * @event textchange
-        * Fires when the text for this node is changed
-        * @param {Node} this This node
-        * @param {String} text The new text
-        * @param {String} oldText The old text
-        */
-        'textchange',
+         * Read-only. The text for this node. To change it use <code>{@link #setText}</code>.
+         * @type String
+         */
+        this.text = attributes.text;
         /**
-        * @event beforeexpand
-        * Fires before this node is expanded, return false to cancel.
-        * @param {Node} this This node
-        * @param {Boolean} deep
-        * @param {Boolean} anim
-        */
-        'beforeexpand',
+         * True if this node is disabled.
+         * @type Boolean
+         */
+        this.disabled = attributes.disabled === true;
         /**
-        * @event beforecollapse
-        * Fires before this node is collapsed, return false to cancel.
-        * @param {Node} this This node
-        * @param {Boolean} deep
-        * @param {Boolean} anim
-        */
-        'beforecollapse',
+         * True if this node is hidden.
+         * @type Boolean
+         */
+        this.hidden = attributes.hidden === true;
+    
+        this.addEvents(
+            /**
+            * @event textchange
+            * Fires when the text for this node is changed
+            * @param {Node} this This node
+            * @param {String} text The new text
+            * @param {String} oldText The old text
+            */
+            'textchange',
+            /**
+            * @event beforeexpand
+            * Fires before this node is expanded, return false to cancel.
+            * @param {Node} this This node
+            * @param {Boolean} deep
+            * @param {Boolean} anim
+            */
+            'beforeexpand',
+            /**
+            * @event beforecollapse
+            * Fires before this node is collapsed, return false to cancel.
+            * @param {Node} this This node
+            * @param {Boolean} deep
+            * @param {Boolean} anim
+            */
+            'beforecollapse',
+            /**
+            * @event expand
+            * Fires when this node is expanded
+            * @param {Node} this This node
+            */
+            'expand',
+            /**
+            * @event disabledchange
+            * Fires when the disabled status of this node changes
+            * @param {Node} this This node
+            * @param {Boolean} disabled
+            */
+            'disabledchange',
+            /**
+            * @event collapse
+            * Fires when this node is collapsed
+            * @param {Node} this This node
+            */
+            'collapse',
+            /**
+            * @event beforeclick
+            * Fires before click processing. Return false to cancel the default action.
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'beforeclick',
+            /**
+            * @event click
+            * Fires when this node is clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'click',
+            /**
+            * @event checkchange
+            * Fires when a node with a checkbox's checked property changes
+            * @param {Node} this This node
+            * @param {Boolean} checked
+            */
+            'checkchange',
+            /**
+            * @event beforedblclick
+            * Fires before double click processing. Return false to cancel the default action.
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'beforedblclick',
+            /**
+            * @event dblclick
+            * Fires when this node is double clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'dblclick',
+            /**
+            * @event contextmenu
+            * Fires when this node is right clicked
+            * @param {Node} this This node
+            * @param {Ext.EventObject} e The event object
+            */
+            'contextmenu',
+            /**
+            * @event beforechildrenrendered
+            * Fires right before the child nodes for this node are rendered
+            * @param {Node} this This node
+            */
+            'beforechildrenrendered'
+        );
+    
+        var uiClass = this.attributes.uiProvider || this.defaultUI || Ext.tree.TreeNodeUI;
+    
         /**
-        * @event expand
-        * Fires when this node is expanded
-        * @param {Node} this This node
-        */
-        'expand',
-        /**
-        * @event disabledchange
-        * Fires when the disabled status of this node changes
-        * @param {Node} this This node
-        * @param {Boolean} disabled
-        */
-        'disabledchange',
-        /**
-        * @event collapse
-        * Fires when this node is collapsed
-        * @param {Node} this This node
-        */
-        'collapse',
-        /**
-        * @event beforeclick
-        * Fires before click processing. Return false to cancel the default action.
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        'beforeclick',
-        /**
-        * @event click
-        * Fires when this node is clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        'click',
-        /**
-        * @event checkchange
-        * Fires when a node with a checkbox's checked property changes
-        * @param {Node} this This node
-        * @param {Boolean} checked
-        */
-        'checkchange',
-        /**
-        * @event beforedblclick
-        * Fires before double click processing. Return false to cancel the default action.
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        'beforedblclick',
-        /**
-        * @event dblclick
-        * Fires when this node is double clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        'dblclick',
-        /**
-        * @event contextmenu
-        * Fires when this node is right clicked
-        * @param {Node} this This node
-        * @param {Ext.EventObject} e The event object
-        */
-        'contextmenu',
-        /**
-        * @event beforechildrenrendered
-        * Fires right before the child nodes for this node are rendered
-        * @param {Node} this This node
-        */
-        'beforechildrenrendered'
-    );
-
-    var uiClass = this.attributes.uiProvider || this.defaultUI || Ext.tree.TreeNodeUI;
-
-    /**
-     * Read-only. The UI for this node
-     * @type TreeNodeUI
-     */
-    this.ui = new uiClass(this);
-};
-Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
+         * Read-only. The UI for this node
+         * @type TreeNodeUI
+         */
+        this.ui = new uiClass(this);    
+    },
+    
     preventHScroll : true,
     /**
      * Returns true if this node is expanded
@@ -233,11 +235,12 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
         Ext.tree.TreeNode.superclass.removeChild.apply(this, arguments);
         // only update the ui if we're not destroying
         if(!destroy){
+            var rendered = node.ui.rendered;
             // if it's been rendered remove dom node
-            if(node.ui.rendered){
+            if(rendered){
                 node.ui.remove();
             }
-            if(this.childNodes.length < 1){
+            if(rendered && this.childNodes.length < 1){
                 this.collapse(false, false);
             }else{
                 this.ui.updateExpandIcon();
@@ -273,6 +276,67 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
             this.ui.onTextChange(this, text, oldText);
         }
         this.fireEvent('textchange', this, text, oldText);
+    },
+    
+    /**
+     * Sets the icon class for this node.
+     * @param {String} cls
+     */
+    setIconCls : function(cls){
+        var old = this.attributes.iconCls;
+        this.attributes.iconCls = cls;
+        if(this.rendered){
+            this.ui.onIconClsChange(this, cls, old);
+        }
+    },
+    
+    /**
+     * Sets the tooltip for this node.
+     * @param {String} tip The text for the tip
+     * @param {String} title (Optional) The title for the tip
+     */
+    setTooltip : function(tip, title){
+        this.attributes.qtip = tip;
+        this.attributes.qtipTitle = title;
+        if(this.rendered){
+            this.ui.onTipChange(this, tip, title);
+        }
+    },
+    
+    /**
+     * Sets the icon for this node.
+     * @param {String} icon
+     */
+    setIcon : function(icon){
+        this.attributes.icon = icon;
+        if(this.rendered){
+            this.ui.onIconChange(this, icon);
+        }
+    },
+    
+    /**
+     * Sets the href for the node.
+     * @param {String} href The href to set
+     * @param {String} (Optional) target The target of the href
+     */
+    setHref : function(href, target){
+        this.attributes.href = href;
+        this.attributes.hrefTarget = target;
+        if(this.rendered){
+            this.ui.onHrefChange(this, href, target);
+        }
+    },
+    
+    /**
+     * Sets the class on this node.
+     * @param {String} cls
+     */
+    setCls : function(cls){
+        var old = this.attributes.cls;
+        this.attributes.cls = cls;
+        if(this.rendered){
+            this.ui.onClsChange(this, cls, old);
+        }
     },
 
     /**
@@ -328,7 +392,7 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
                     this.fireEvent('expand', this);
                     this.runCallback(callback, scope || this, [this]);
                     if(deep === true){
-                        this.expandChildNodes(true);
+                        this.expandChildNodes(true, true);
                     }
                 }.createDelegate(this));
                 return;
@@ -440,10 +504,12 @@ Ext.extend(Ext.tree.TreeNode, Ext.data.Node, {
      * Expand all child nodes
      * @param {Boolean} deep (optional) true if the child nodes should also expand their child nodes
      */
-    expandChildNodes : function(deep){
-        var cs = this.childNodes;
-        for(var i = 0, len = cs.length; i < len; i++) {
-        	cs[i].expand(deep);
+    expandChildNodes : function(deep, anim) {
+        var cs = this.childNodes,
+            i,
+            len = cs.length;
+        for (i = 0; i < len; i++) {
+        	cs[i].expand(deep, anim);
         }
     },
 

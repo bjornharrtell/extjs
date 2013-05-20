@@ -1,5 +1,5 @@
 /*!
- * Ext JS Library 3.2.0
+ * Ext JS Library 3.3.0
  * Copyright(c) 2006-2010 Ext JS, Inc.
  * licensing@extjs.com
  * http://www.extjs.com/license
@@ -7,29 +7,29 @@
 /**
  * @class Ext.CompositeElementLite
  */
-Ext.apply(Ext.CompositeElementLite.prototype, {	
-	addElements : function(els, root){
+Ext.apply(Ext.CompositeElementLite.prototype, {
+    addElements : function(els, root){
         if(!els){
             return this;
         }
         if(typeof els == "string"){
             els = Ext.Element.selectorFunction(els, root);
         }
-        var yels = this.elements;        
-	    Ext.each(els, function(e) {
-        	yels.push(Ext.get(e));
+        var yels = this.elements;
+        Ext.each(els, function(e) {
+            yels.push(Ext.get(e));
         });
         return this;
     },
-    
+
     /**
      * Returns the first Element
      * @return {Ext.Element}
      */
     first : function(){
         return this.item(0);
-    },   
-    
+    },
+
     /**
      * Returns the last Element
      * @return {Ext.Element}
@@ -37,7 +37,7 @@ Ext.apply(Ext.CompositeElementLite.prototype, {
     last : function(){
         return this.item(this.getCount()-1);
     },
-    
+
     /**
      * Returns true if this composite contains the passed element
      * @param el {Mixed} The id of an element, or an Ext.Element, or an HtmlElement to find within the composite collection.
@@ -46,7 +46,7 @@ Ext.apply(Ext.CompositeElementLite.prototype, {
     contains : function(el){
         return this.indexOf(el) != -1;
     },
-    
+
     /**
     * Removes the specified element(s).
     * @param {Mixed} el The id of an element, the Element itself, the index of the element in this composite
@@ -56,20 +56,20 @@ Ext.apply(Ext.CompositeElementLite.prototype, {
     */
     removeElement : function(keys, removeDom){
         var me = this,
-	        els = this.elements,	    
-	    	el;	    	
-	    Ext.each(keys, function(val){
-		    if ((el = (els[val] || els[val = me.indexOf(val)]))) {
-		    	if(removeDom){
+            els = this.elements,
+            el;
+        Ext.each(keys, function(val){
+            if ((el = (els[val] || els[val = me.indexOf(val)]))) {
+                if(removeDom){
                     if(el.dom){
                         el.remove();
                     }else{
                         Ext.removeNode(el);
                     }
                 }
-		    	els.splice(val, 1);		    	
-			}
-	    });
+                els.splice(val, 1);
+            }
+        });
         return this;
-    }    
+    }
 });
