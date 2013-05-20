@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.ComponentMgr
@@ -2348,8 +2348,10 @@ Ext.extend(Ext.Layer, Ext.Element, {
     enableShadow : function(show){
         if(this.shadow){
             this.shadowDisabled = false;
-            this.shadowOffset = this.lastShadowOffset;
-            delete this.lastShadowOffset;
+            if(Ext.isDefined(this.lastShadowOffset)) {
+                this.shadowOffset = this.lastShadowOffset;
+                delete this.lastShadowOffset;
+            }
             if(show){
                 this.sync(true);
             }
@@ -4554,7 +4556,7 @@ tb.{@link #doLayout}();             // refresh the layout
                 c = Ext.ComponentMgr.get(c);
                 Ext.apply(c, d);
             }else if(!c.events){
-                Ext.applyIf(c, d);
+                Ext.applyIf(c.isAction ? c.initialConfig : c, d);
             }else{
                 Ext.apply(c, d);
             }
@@ -5193,6 +5195,9 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
         // Stop any buffered layout tasks
         if(this.resizeTask && this.resizeTask.cancel){
             this.resizeTask.cancel();
+        }
+        if(this.container) {
+            this.container.un(this.container.resizeEvent, this.onResize, this);
         }
         if(!Ext.isEmpty(this.targetCls)){
             var target = this.container.getLayoutTarget();
@@ -7307,12 +7312,18 @@ new Ext.Template(
      * @return {Object} An object hash containing the properties required to render the Field.
      */
     getTemplateArgs: function(field) {
-        var noLabelSep = !field.fieldLabel || field.hideLabel;
+        var noLabelSep = !field.fieldLabel || field.hideLabel,
+            itemCls = (field.itemCls || this.container.itemCls || '') + (field.hideLabel ? ' x-hide-label' : '');
+
+        // IE9 quirks needs an extra, identifying class on wrappers of TextFields
+        if (Ext.isIE9 && Ext.isIEQuirks && field instanceof Ext.form.TextField) {
+            itemCls += ' x-input-wrapper';
+        }
 
         return {
             id            : field.id,
             label         : field.fieldLabel,
-            itemCls       : (field.itemCls || this.container.itemCls || '') + (field.hideLabel ? ' x-hide-label' : ''),
+            itemCls       : itemCls,
             clearCls      : field.clearCls || 'x-form-clear-left',
             labelStyle    : this.getLabelStyle(field.labelStyle),
             elementStyle  : this.elementStyle || '',
@@ -8134,10 +8145,6 @@ Ext.layout.BoxLayout = Ext.extend(Ext.layout.ContainerLayout, {
         Ext.layout.BoxLayout.superclass.destroy.apply(this, arguments);
     }
 });
-
-
-
-Ext.ns('Ext.layout.boxOverflow');
 
 /**
  * @class Ext.layout.boxOverflow.None
@@ -9374,8 +9381,8 @@ Ext.layout.VBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
             boxes        = [],
             
             //used in the for loops below, just declared here for brevity
-            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth, 
-            horizMargins, vertMargins, stretchWidth;
+            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedHeight, 
+            horizMargins, vertMargins, stretchWidth, length;
 
         //gather the total flex of all flexed items and the width taken up by fixed width items
         for (i = 0; i < visibleCount; i++) {
@@ -10097,7 +10104,7 @@ Ext.Container.LAYOUTS.toolbar = Ext.layout.ToolbarLayout;
             if(w){
                 ct.setWidth(w);
             }else if(Ext.isIE){
-                ct.setWidth(Ext.isStrict && (Ext.isIE7 || Ext.isIE8) ? 'auto' : ct.minWidth);
+                ct.setWidth(Ext.isStrict && (Ext.isIE7 || Ext.isIE8 || Ext.isIE9) ? 'auto' : ct.minWidth);
                 var el = ct.getEl(), t = el.dom.offsetWidth; // force recalc
                 ct.setWidth(ct.getLayoutTarget().getWidth() + el.getFrameWidth('lr'));
             }
@@ -13488,9 +13495,7 @@ Ext.LoadMask.prototype = {
             um.un('failure', this.onLoad, this);
         }
     }
-};Ext.ns('Ext.slider');
-
-/**
+};/**
  * @class Ext.slider.Thumb
  * @extends Object
  * Represents a single thumb element on a Slider. This would not usually be created manually and would instead

@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.form.Action
@@ -211,6 +211,14 @@ buttons: [{
         this.result = this.handleResponse(response);
         return this.result;
     },
+    
+    decodeResponse: function(response) {
+        try {
+            return Ext.decode(response.responseText);
+        } catch(e) {
+            return false;
+        } 
+    },
 
     // utility functions used internally
     getUrl : function(appendParams){
@@ -409,7 +417,7 @@ Ext.extend(Ext.form.Action.Submit, Ext.form.Action, {
                 errors : errors
             };
         }
-        return Ext.decode(response.responseText);
+        return this.decodeResponse(response);
     }
 });
 
@@ -515,7 +523,7 @@ Ext.extend(Ext.form.Action.Load, Ext.form.Action, {
                 data : data
             };
         }
-        return Ext.decode(response.responseText);
+        return this.decodeResponse(response);
     }
 });
 

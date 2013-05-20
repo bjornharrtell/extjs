@@ -7,10 +7,10 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /*
 * Portions of this file are based on pieces of Yahoo User Interface Library
@@ -252,7 +252,7 @@ Ext.lib.Ajax = function() {
         try {
             http = new XMLHttpRequest();
         } catch(e) {
-            for (var i = 0; i < activeX.length; ++i) {
+            for (var i = Ext.isIE6 ? 1 : 0; i < activeX.length; ++i) {
                 try {
                     http = new ActiveXObject(activeX[i]);
                     break;

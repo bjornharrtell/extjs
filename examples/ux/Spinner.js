@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.ux.Spinner
@@ -89,12 +89,14 @@ Ext.ux.Spinner = Ext.extend(Ext.util.Observable, {
 
     doEnable: function(){
         if (this.wrap) {
+            this.disabled = false;
             this.wrap.removeClass(this.field.disabledClass);
         }
     },
 
     doDisable: function(){
         if (this.wrap) {
+	        this.disabled = true;
             this.wrap.addClass(this.field.disabledClass);
             this.el.removeClass(this.field.disabledClass);
         }

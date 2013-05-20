@@ -7,10 +7,10 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 <div id="cls-Ext.form.Radio"></div>/**
  * @class Ext.form.Radio
@@ -42,7 +42,7 @@ Ext.form.Radio = Ext.extend(Ext.form.Checkbox, {
      */
     getGroupValue : function(){
     	var p = this.el.up('form') || Ext.getBody();
-        var c = p.child('input[name='+this.el.dom.name+']:checked', true);
+        var c = p.child('input[name="'+this.el.dom.name+'"]:checked', true);
         return c ? c.value : null;
     },
 
@@ -60,14 +60,14 @@ Ext.form.Radio = Ext.extend(Ext.form.Checkbox, {
             Ext.form.Radio.superclass.setValue.call(this, v);
         } else if (this.rendered) {
             checkEl = this.getCheckEl();
-            radio = checkEl.child('input[name=' + this.el.dom.name + '][value=' + v + ']', true);
+            radio = checkEl.child('input[name="' + this.el.dom.name + '"][value="' + v + '"]', true);
             if(radio){
                 Ext.getCmp(radio.id).setValue(true);
             }
         }
         if(this.rendered && this.checked){
             checkEl = checkEl || this.getCheckEl();
-            els = this.getCheckEl().select('input[name=' + this.el.dom.name + ']');
+            els = this.getCheckEl().select('input[name="' + this.el.dom.name + '"]');
 			els.each(function(el){
 				if(el.dom.id != this.id){
 					Ext.getCmp(el.dom.id).setValue(false);

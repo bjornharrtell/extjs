@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.Column
@@ -546,7 +546,7 @@ Ext.grid.ActionColumn = Ext.extend(Ext.grid.Column, {
      */
     /**
      * @cfg {Function} getClass A function which returns the CSS class to apply to the icon image.
-     * The function is passed the following parameters:<ul>
+     * The function is passed the following parameters:<div class="mdetail-params"><ul>
      *     <li><b>v</b> : Object<p class="sub-desc">The value of the column's configured field (if any).</p></li>
      *     <li><b>metadata</b> : Object<p class="sub-desc">An object in which you may set the following attributes:<ul>
      *         <li><b>css</b> : String<p class="sub-desc">A CSS class name to add to the cell's TD element.</p></li>
@@ -557,7 +557,7 @@ Ext.grid.ActionColumn = Ext.extend(Ext.grid.Column, {
      *     <li><b>rowIndex</b> : Number<p class="sub-desc">The row index..</p></li>
      *     <li><b>colIndex</b> : Number<p class="sub-desc">The column index.</p></li>
      *     <li><b>store</b> : Ext.data.Store<p class="sub-desc">The Store which is providing the data Model.</p></li>
-     * </ul>
+     * </ul></div>
      */
     /**
      * @cfg {Array} items An Array which may contain multiple icon definitions, each element of which may contain:
@@ -614,7 +614,7 @@ Ext.grid.ActionColumn = Ext.extend(Ext.grid.Column, {
             meta.css += ' x-action-col-cell';
             for (i = 0; i < l; i++) {
                 item = items[i];
-                v += '<img alt="' + me.altText + '" src="' + (item.icon || Ext.BLANK_IMAGE_URL) +
+                v += '<img alt="' + (item.altText || me.altText) + '" src="' + (item.icon || Ext.BLANK_IMAGE_URL) +
                     '" class="x-action-col-icon x-action-col-' + String(i) + ' ' + (item.iconCls || '') +
                     ' ' + (Ext.isFunction(item.getClass) ? item.getClass.apply(item.scope||this.scope||this, arguments) : '') + '"' +
                     ((item.tooltip) ? ' ext:qtip="' + item.tooltip + '"' : '') + ' />';

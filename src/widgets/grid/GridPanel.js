@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.GridPanel
@@ -42,7 +42,7 @@ var grid = new Ext.grid.GridPanel({
                 header: 'Last Updated', width: 135, dataIndex: 'lastChange',
                 xtype: 'datecolumn', format: 'M d, Y'
             }
-        ],
+        ]
     }),
     {@link #viewConfig}: {
         {@link Ext.grid.GridView#forceFit forceFit}: true,
@@ -665,20 +665,21 @@ function(grid, rowIndex, columnIndex, e) {
             store = this.store,
             s,
             c,
-            oldIndex;
+            colIndex;
 
         if(cs){
             for(var i = 0, len = cs.length; i < len; i++){
                 s = cs[i];
                 c = cm.getColumnById(s.id);
                 if(c){
-                    cm.setState(s.id, {
+                    colIndex = cm.getIndexById(s.id);
+                    cm.setState(colIndex, {
                         hidden: s.hidden,
-                        width: s.width    
+                        width: s.width,
+                        sortable: s.sortable
                     });
-                    oldIndex = cm.getIndexById(s.id);
-                    if(oldIndex != i){
-                        cm.moveColumn(oldIndex, i);
+                    if(colIndex != i){
+                        cm.moveColumn(colIndex, i);
                     }
                 }
             }
@@ -717,6 +718,9 @@ function(grid, rowIndex, columnIndex, e) {
             };
             if(c.hidden){
                 o.columns[i].hidden = true;
+            }
+            if(c.sortable){
+                o.columns[i].sortable = true;
             }
         }
         if(store){

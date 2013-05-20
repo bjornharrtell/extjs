@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.data.XmlWriter
@@ -366,6 +366,9 @@ Ext.extend(Ext.data.XmlReader, Ext.data.DataReader, {
     createAccessor : function(){
         var q = Ext.DomQuery;
         return function(key) {
+            if (Ext.isFunction(key)) {
+                return key;
+            }
             switch(key) {
                 case this.meta.totalProperty:
                     return function(root, def){

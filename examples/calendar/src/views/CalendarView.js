@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.calendar.CalendarView
@@ -721,7 +721,7 @@ Ext.calendar.CalendarView = Ext.extend(Ext.BoxComponent, {
     // private
     setViewBounds: function(startDate) {
         var start = startDate || this.startDate,
-        offset = start.getDay() - this.startDay;
+            offset = start.getDay() - this.startDay;
 
         switch (this.weekCount) {
         case 0:
@@ -734,13 +734,20 @@ Ext.calendar.CalendarView = Ext.extend(Ext.BoxComponent, {
             // auto by month
             start = start.getFirstDateOfMonth();
             offset = start.getDay() - this.startDay;
-
+            if (offset < 0) {
+                offset += 7;
+            }
             this.viewStart = start.add(Date.DAY, -offset).clearTime(true);
 
             // start from current month start, not view start:
             var end = start.add(Date.MONTH, 1).add(Date.SECOND, -1);
             // fill out to the end of the week:
-            this.viewEnd = end.add(Date.DAY, 6 - end.getDay());
+            offset = this.startDay;
+            if (offset > end.getDay()){
+                // if the offset is larger than the end day index then the last row will be empty so skip it
+                offset -= 7;
+            }
+            this.viewEnd = end.add(Date.DAY, 6 - end.getDay() + offset);
             return;
 
         default:

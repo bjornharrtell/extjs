@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 
 /**
@@ -1463,7 +1463,7 @@ sortInfo: {
      * to add to the cache. See {@link #recordType}.
      */
     add : function(records) {
-        var i, record, index;
+        var i, len, record, index;
         
         records = [].concat(records);
         if (records.length < 1) {
@@ -1504,11 +1504,16 @@ sortInfo: {
      * @private
      * Update a record within the store with a new reference
      */
-    doUpdate : function(rec){
-        this.data.replace(rec.id, rec);
-        if(this.snapshot){
-            this.snapshot.replace(rec.id, rec);
+    doUpdate: function(rec){
+        var id = rec.id;
+        // unjoin the old record
+        this.getById(id).join(null);
+        
+        this.data.replace(id, rec);
+        if (this.snapshot) {
+            this.snapshot.replace(id, rec);
         }
+        rec.join(this);
         this.fireEvent('update', this, rec, Ext.data.Record.COMMIT);
     },
 
@@ -1582,7 +1587,7 @@ sortInfo: {
      * @param {Ext.data.Record[]} records An Array of Ext.data.Record objects to add to the cache.
      */
     insert : function(index, records) {
-        var i, record;
+        var i, len, record;
         
         records = [].concat(records);
         for (i = 0, len = records.length; i < len; i++) {
@@ -2016,7 +2021,6 @@ sortInfo: {
         if (success === true) {
             try {
                 this.reader.realize(rs, data);
-                this.reMap(rs);
             }
             catch (e) {
                 this.handleException(e);
@@ -2090,7 +2094,7 @@ myStore.reload(lastOptions);
     // private
     // Called as a callback by the Reader during a load operation.
     loadRecords : function(o, options, success){
-        var i;
+        var i, len;
         
         if (this.isDestroyed === true) {
             return;
@@ -3117,6 +3121,7 @@ Ext.data.DataReader.prototype = {
             rs.data = data;
 
             rs.commit();
+            rs.store.reMap(rs);
         }
     },
 

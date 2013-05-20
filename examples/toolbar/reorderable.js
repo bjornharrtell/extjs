@@ -1,12 +1,11 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 Ext.onReady(function() {
     var toolbar = new Ext.Toolbar({
-        renderTo: 'docbody',
         plugins : [
             new Ext.ux.ToolbarReorderer({
                 defaultReorderable: true
@@ -43,11 +42,12 @@ Ext.onReady(function() {
             }
         ]
     });
-    
+
     new Ext.Panel({
-        renderTo: 'docbody',
+        renderTo: document.body,
         tbar    : toolbar,
         border  : true,
-        width   : 600
+        width   : 600,
+        height  : 300
     });
 });

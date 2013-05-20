@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.form.TextField
@@ -62,7 +62,7 @@ Ext.form.TextField = Ext.extend(Ext.form.Field,  {
     vtype : null,
     /**
      * @cfg {RegExp} maskRe An input mask regular expression that will be used to filter keystrokes that do
-     * not match (defaults to <tt>null</tt>)
+     * not match (defaults to <tt>null</tt>). The maskRe will not operate on any paste events.
      */
     maskRe : null,
     /**

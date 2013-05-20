@@ -194,6 +194,15 @@
 }
 .body-wrap .optional{
 	color:#444 !important;
+	float: left;
+}
+
+.body-wrap .comma, .body-wrap .colon, .body-wrap .openparen, .body-wrap .closeparen, .body-wrap .required, .body-wrap .method, .body-wrap .constructor, .body-wrap .return, .body-wrap .event{
+  float: left;
+}
+
+.body-wrap .mdesc {
+  clear: both;
 }
 
 .body-wrap pre {
@@ -276,7 +285,7 @@ pre code i,pre code i b,pre code i em{
 }
 
 .body-wrap .inheritance {
-    margin-top:20px;
+    margin-top:10px;
     float:right;
     width:210px;
 }

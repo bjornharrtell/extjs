@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 Ext.ns('pivot');
 
@@ -48,7 +48,7 @@ Ext.onReady(function() {
             dataIndex: 'quarter'
         }],
         region: 'center',
-        margins: '5 5 5 0',
+        margins: '5 5 5 0'
     });
 
     var configPanel = new pivot.ConfigPanel({

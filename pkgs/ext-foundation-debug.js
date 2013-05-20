@@ -1,15 +1,15 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext
  */
 
 Ext.ns("Ext.grid", "Ext.list", "Ext.dd", "Ext.tree", "Ext.form", "Ext.menu",
-       "Ext.state", "Ext.layout", "Ext.app", "Ext.ux", "Ext.chart", "Ext.direct");
+       "Ext.state", "Ext.layout.boxOverflow", "Ext.app", "Ext.ux", "Ext.chart", "Ext.direct", "Ext.slider");
     /**
      * Namespace alloted for extensions to the framework.
      * @property ux
@@ -956,7 +956,7 @@ var t = new Ext.Template(
      * @property
      * @hide repeat doc
      */
-    re : /\{([\w-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g,
+    re : /\{([\w\-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g,
     argsRe : /^\s*['"](.*)["']\s*$/,
     compileARe : /\\/g,
     compileBRe : /(\r\n|\n)/g,
@@ -1516,6 +1516,7 @@ Ext.apply(Ext.EventManager, function(){
        textSize,
        D = Ext.lib.Dom,
        propRe = /^(?:scope|delay|buffer|single|stopEvent|preventDefault|stopPropagation|normalized|args|delegate)$/,
+       unload = Ext.EventManager._unload,
        curWidth = 0,
        curHeight = 0,
        // note 1: IE fires ONLY the keydown event on specialkey autorepeat
@@ -1526,6 +1527,11 @@ Ext.apply(Ext.EventManager, function(){
                    !((Ext.isGecko && !Ext.isWindows) || Ext.isOpera);
 
    return {
+       _unload: function(){
+           Ext.EventManager.un(window, "resize", this.fireWindowResize, this);
+           unload.call(Ext.EventManager);    
+       },
+       
        // private
        doResizeEvent: function(){
            var h = D.getViewHeight(),
@@ -3210,7 +3216,7 @@ Ext.Element.addMethods(
                     el,
                     mask;
 
-                if (!(/^body/i.test(dom.tagName) && me.getStyle('position') == 'static')) {
+                if (!/^body/i.test(dom.tagName) && me.getStyle('position') == 'static') {
                     me.addClass(XMASKEDRELATIVE);
                 }
                 if (el = data(dom, 'maskMsg')) {
@@ -4454,6 +4460,20 @@ Date.monthNumbers = {
         // handle camel casing for english month names (since the keys for the Date.monthNumbers hash are case sensitive)
         return Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
     },
+    
+    /**
+     * Checks if the specified format contains hour information
+     * @param {Object} format The format to check
+     * @return {Boolean} True if the format contains hour information
+     * @static
+     */
+    formatContainsHourInfo : (function(){
+        var stripEscapeRe = /(\\.)/g,
+            hourInfoRe = /([gGhHisucUOPZ]|M\$)/;
+        return function(format){
+            return hourInfoRe.test(format.replace(stripEscapeRe, ''));
+        };
+    })(),
 
     /**
      * The base format-code to formatting-function hashmap used by the {@link #format} method.
@@ -4700,9 +4720,12 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 calc = [],
                 regex = [],
                 special = false,
-                ch = "";
+                ch = "",
+                i = 0,
+                obj,
+                last;
 
-            for (var i = 0; i < format.length; ++i) {
+            for (; i < format.length; ++i) {
                 ch = format.charAt(i);
                 if (!special && ch == "\\") {
                     special = true;
@@ -4710,13 +4733,21 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     special = false;
                     regex.push(String.escape(ch));
                 } else {
-                    var obj = $f(ch, currentGroup);
+                    obj = $f(ch, currentGroup);
                     currentGroup += obj.g;
                     regex.push(obj.s);
                     if (obj.g && obj.c) {
-                        calc.push(obj.c);
+                        if (obj.calcLast) {
+                            last = obj.c;
+                        } else {
+                            calc.push(obj.c);
+                        }
                     }
                 }
+            }
+            
+            if (last) {
+                calc.push(last);
             }
 
             Date.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
@@ -4834,14 +4865,12 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
          * even though it doesn't exactly match the spec. It gives much more flexibility
          * in being able to specify case insensitive regexes.
          */
-        a: {
-            g:1,
-            c:"if (/(am)/i.test(results[{0}])) {\n"
-                + "if (!h || h == 12) { h = 0; }\n"
-                + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(am|pm|AM|PM)"
+        a: function(){
+            return $f("A");
         },
         A: {
+            // We need to calculate the hour before we apply AM/PM when parsing
+            calcLast: true,
             g:1,
             c:"if (/(am)/i.test(results[{0}])) {\n"
                 + "if (!h || h == 12) { h = 0; }\n"
@@ -6826,7 +6855,7 @@ Ext.XTemplate = function(){
 };
 Ext.extend(Ext.XTemplate, Ext.Template, {
     // private
-    re : /\{([\w-\.\#]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?(\s?[\+\-\*\\]\s?[\d\.\+\-\*\\\(\)]+)?\}/g,
+    re : /\{([\w\-\.\#]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?(\s?[\+\-\*\\]\s?[\d\.\+\-\*\\\(\)]+)?\}/g,
     // private
     codeRe : /\{\[((?:\\\]|.|\n)*?)\]\}/g,
 
@@ -7405,6 +7434,7 @@ Ext.KeyNav.prototype = {
     del : false,
     home : false,
     end : false,
+    space : false,
 
     // quick lookup hash
     keyToHandler : {
@@ -7419,7 +7449,8 @@ Ext.KeyNav.prototype = {
         35 : "end",
         13 : "enter",
         27 : "esc",
-        9  : "tab"
+        9  : "tab",
+        32 : "space"
     },
     
     stopKeyUp: function(e) {

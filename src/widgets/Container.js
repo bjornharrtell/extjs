@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.Container
@@ -650,7 +650,7 @@ tb.{@link #doLayout}();             // refresh the layout
                 c = Ext.ComponentMgr.get(c);
                 Ext.apply(c, d);
             }else if(!c.events){
-                Ext.applyIf(c, d);
+                Ext.applyIf(c.isAction ? c.initialConfig : c, d);
             }else{
                 Ext.apply(c, d);
             }

@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.util.JSON
@@ -28,7 +28,7 @@ Ext.util.JSON = new (function(){
             return n < 10 ? "0" + n : n;
         },
         doDecode = function(json){
-            return eval("(" + json + ")");    
+            return json ? eval("(" + json + ")") : "";    
         },
         doEncode = function(o){
             if(!Ext.isDefined(o) || o === null){

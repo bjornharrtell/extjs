@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 Ext.ns('Ext.ux.form');
 
@@ -119,6 +119,8 @@ Ext.ux.form.SelectBox = Ext.extend(Ext.form.ComboBox, {
 			}
 			this.onViewClick();
 		}, this);
+                this.mun(this.view, 'containerclick', this.onViewClick, this);
+                this.mun(this.view, 'click', this.onViewClick, this);
 
 		this.innerList.on('mouseover', function(e, target, options) {
 			if( target.id && target.id == this.innerList.id ) {

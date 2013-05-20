@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 (function(){
     var BEFOREREQUEST = "beforerequest",
@@ -276,7 +276,7 @@ Ext.Ajax.request({
                     url = Ext.urlAppend(url, dcp + '=' + (new Date().getTime()));
                 }
 
-                o.headers = Ext.apply(o.headers || {}, me.defaultHeaders || {});
+                o.headers = Ext.applyIf(o.headers || {}, me.defaultHeaders || {});
 
                 if(o.autoAbort === true || me.autoAbort) {
                     me.abort();

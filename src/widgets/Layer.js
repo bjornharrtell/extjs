@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.Layer
@@ -117,8 +117,10 @@ Ext.extend(Ext.Layer, Ext.Element, {
     enableShadow : function(show){
         if(this.shadow){
             this.shadowDisabled = false;
-            this.shadowOffset = this.lastShadowOffset;
-            delete this.lastShadowOffset;
+            if(Ext.isDefined(this.lastShadowOffset)) {
+                this.shadowOffset = this.lastShadowOffset;
+                delete this.lastShadowOffset;
+            }
             if(show){
                 this.sync(true);
             }

@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.GridView
@@ -117,11 +117,14 @@ viewConfig: {
 
     /**
      * @cfg {Boolean} forceFit
-     * Defaults to <tt>false</tt>.  Specify <tt>true</tt> to have the column widths re-proportioned
-     * at <b>all times</b>.  The {@link Ext.grid.Column#width initially configured width}</tt> of each
+     * <p>Defaults to <tt>false</tt>.  Specify <tt>true</tt> to have the column widths re-proportioned
+     * at <b>all times</b>.</p>
+     * <p>The {@link Ext.grid.Column#width initially configured width}</tt> of each
      * column will be adjusted to fit the grid width and prevent horizontal scrolling. If columns are
      * later resized (manually or programmatically), the other columns in the grid <b>will</b> be resized
-     * to fit the grid width. See <tt>{@link #autoFill}</tt> also.
+     * to fit the grid width.</p>
+     * <p>Columns which are configured with <code>fixed: true</code> are omitted from being resized.</p>
+     * <p>See <tt>{@link #autoFill}</tt>.</p>
      */
     forceFit : false,
 
@@ -1418,8 +1421,8 @@ viewConfig: {
                 Ext.DomHelper.insertHtml('beforeEnd', this.mainBody.dom, html);
             }
             if (!isUpdate) {
-                this.fireEvent('rowsinserted', this, firstRow, lastRow);
                 this.processRows(firstRow);
+                this.fireEvent('rowsinserted', this, firstRow, lastRow);
             } else if (firstRow === 0 || firstRow >= last) {
                 //ensure first/last row is kept after an update.
                 Ext.fly(this.getRow(firstRow)).addClass(firstRow === 0 ? this.firstRowCls : this.lastRowCls);

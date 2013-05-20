@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /*! SWFObject v2.2 <http://code.google.com/p/swfobject/> 
     is released under the MIT License <http://www.opensource.org/licenses/mit-license.php> 
@@ -626,6 +626,7 @@ var swfobject = function() {
                     swfobject[l] = null;
                 }
                 swfobject = null;
+                window.detachEvent('onunload', arguments.callee);
             });
         }
     }();
@@ -1331,7 +1332,7 @@ Ext.chart.Chart.proxyFunction = {};
  * @static
  * @type String
  */
-Ext.chart.Chart.CHART_URL = 'http:/' + '/yui.yahooapis.com/2.8.0/build/charts/assets/charts.swf';
+Ext.chart.Chart.CHART_URL = 'http:/' + '/yui.yahooapis.com/2.8.2/build/charts/assets/charts.swf';
 
 /**
  * @class Ext.chart.PieChart

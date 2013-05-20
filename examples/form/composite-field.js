@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 Ext.onReady(function() {
     Ext.QuickTips.init();
@@ -34,14 +34,12 @@ Ext.onReady(function() {
                 },
                 items: [
                     {
-                        xtype     : 'datefield',
-                        name      : 'startDate',
-                        fieldLabel: 'Start'
+                        xtype: 'datefield',
+                        name : 'startDate'
                     },
                     {
-                        xtype     : 'datefield',
-                        name      : 'endDate',
-                        fieldLabel: 'End'
+                        xtype: 'datefield',
+                        name : 'endDate'
                     }
                 ]
             },

@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.grid.RowSelectionModel
@@ -119,7 +119,7 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
             s = this.getSelections(),
             i = 0,
             len = s.length, 
-            index;
+            index, r;
             
         this.silent = true;
         this.clearSelections(true);
@@ -514,9 +514,7 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
             r = newCell[0];
             c = newCell[1];
 
-            if(last.row != r){
-                this.selectRow(r); // *** highlight newly-selected cell and update selection
-            }
+            this.onEditorSelect(r, last.row);
 
             if(g.isEditor && g.editing){ // *** handle tabbing while editorgrid is in edit mode
                 ae = g.activeEditor;
@@ -526,6 +524,12 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
                 }
             }
             g.startEditing(r, c);
+        }
+    },
+    
+    onEditorSelect: function(row, lastRow){
+        if(lastRow != row){
+            this.selectRow(row); // *** highlight newly-selected cell and update selection
         }
     },
     

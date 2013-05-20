@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.EventManager
@@ -600,9 +600,9 @@ Ext.onReady = Ext.EventManager.onDocumentReady;
         if (!bd) {
             return false;
         }
-        
+
         var cls = [' ',
-                Ext.isIE ? "ext-ie " + (Ext.isIE6 ? 'ext-ie6' : (Ext.isIE7 ? 'ext-ie7' : 'ext-ie8'))
+                Ext.isIE ? "ext-ie " + (Ext.isIE6 ? 'ext-ie6' : (Ext.isIE7 ? 'ext-ie7' : (Ext.isIE8 ? 'ext-ie8' : 'ext-ie9')))
                 : Ext.isGecko ? "ext-gecko " + (Ext.isGecko2 ? 'ext-gecko2' : 'ext-gecko3')
                 : Ext.isOpera ? "ext-opera"
                 : Ext.isWebKit ? "ext-webkit" : ""];
@@ -624,6 +624,12 @@ Ext.onReady = Ext.EventManager.onDocumentReady;
         if (Ext.isStrict || Ext.isBorderBox) {
             var p = bd.parentNode;
             if (p) {
+                if (!Ext.isStrict) {
+                    Ext.fly(p, '_internal').addClass('x-quirks');
+                    if (Ext.isIE && !Ext.isStrict) {
+                        Ext.isIEQuirks = true;
+                    }
+                }
                 Ext.fly(p, '_internal').addClass(((Ext.isStrict && Ext.isIE ) || (!Ext.enableForcedBoxModel && !Ext.isIE)) ? ' ext-strict' : ' ext-border-box');
             }
         }
@@ -637,14 +643,8 @@ Ext.onReady = Ext.EventManager.onDocumentReady;
         Ext.fly(bd, '_internal').addClass(cls);
         return true;
     };
-
-    /*
-     * Assert Ext.isReady here. If Ext is loaded after the document is ready, none of the native 
-     * DOM onReady events will fire, because they have already passed.
-     */
-    Ext.isReady = initExtCss();
     
-    if (!Ext.isReady) {
+    if (!initExtCss()) {
         Ext.onReady(initExtCss);
     }
 })();

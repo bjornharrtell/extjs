@@ -7,10 +7,10 @@
 </head>
 <body  onload="prettyPrint();">
     <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 <div id="cls-Ext.layout.ContainerLayout"></div>/**
  * @class Ext.layout.ContainerLayout
@@ -303,6 +303,9 @@ Ext.layout.ContainerLayout = Ext.extend(Object, {
         // Stop any buffered layout tasks
         if(this.resizeTask && this.resizeTask.cancel){
             this.resizeTask.cancel();
+        }
+        if(this.container) {
+            this.container.un(this.container.resizeEvent, this.onResize, this);
         }
         if(!Ext.isEmpty(this.targetCls)){
             var target = this.container.getLayoutTarget();

@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.form.CompositeField
@@ -91,6 +91,10 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
 
         for (var i=0, j = items.length; i < j; i++) {
             item = items[i];
+            
+            if (!Ext.isEmpty(item.ref)){
+                item.ref = '../' + item.ref;
+            }
 
             labels.push(item.fieldLabel);
 
@@ -129,8 +133,10 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
             layout  : 'hbox',
             items   : this.items,
             cls     : 'x-form-composite',
-            defaultMargins: '0 3 0 0'
+            defaultMargins: '0 3 0 0',
+            ownerCt: this
         });
+        this.innerCt.ownerCt = undefined;
         
         var fields = this.innerCt.findBy(function(c) {
             return c.isFormField;
@@ -199,7 +205,9 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
 
         this.fieldErrors.replace(name, error);
 
-        field.el.addClass(field.invalidClass);
+        if (!field.preventMark) {
+            field.el.addClass(field.invalidClass);
+        }
     },
 
     /**
@@ -246,11 +254,13 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
      * Performs validation checks on each subfield and returns false if any of them fail validation.
      * @return {Boolean} False if any subfield failed validation
      */
-    validateValue: function() {
+    validateValue: function(value, preventMark) {
         var valid = true;
 
         this.eachItem(function(field) {
-            if (!field.isValid()) valid = false;
+            if (!field.isValid(preventMark)) {
+                valid = false;
+            }
         });
 
         return valid;

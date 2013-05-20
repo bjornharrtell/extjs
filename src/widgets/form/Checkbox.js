@@ -1,8 +1,8 @@
 /*!
- * Ext JS Library 3.3.0
- * Copyright(c) 2006-2010 Ext JS, Inc.
- * licensing@extjs.com
- * http://www.extjs.com/license
+ * Ext JS Library 3.4.0
+ * Copyright(c) 2006-2011 Sencha Inc.
+ * licensing@sencha.com
+ * http://www.sencha.com/license
  */
 /**
  * @class Ext.form.Checkbox
@@ -35,9 +35,6 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
      * {tag: 'input', type: 'checkbox', autocomplete: 'off'})
      */
     defaultAutoCreate : { tag: 'input', type: 'checkbox', autocomplete: 'off'},
-    /**
-     * @cfg {String} boxLabel The text that appears beside the checkbox
-     */
     /**
      * @cfg {String} inputValue The value that should go into the generated input element's value attribute
      */
@@ -164,7 +161,12 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
         var checked = this.checked,
             inputVal = this.inputValue;
             
-        this.checked = (v === true || v === 'true' || v == '1' || (inputVal ? v == inputVal : String(v).toLowerCase() == 'on'));
+        if (v === false) {
+            this.checked = false;
+        } else {
+            this.checked = (v === true || v === 'true' || v == '1' || (inputVal ? v == inputVal : String(v).toLowerCase() == 'on'));
+        }
+        
         if(this.rendered){
             this.el.dom.checked = this.checked;
             this.el.dom.defaultChecked = this.checked;
