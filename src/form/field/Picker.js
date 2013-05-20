@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * An abstract class for fields that have a single trigger which opens a "picker" popup below the field, e.g. a combobox
  * menu list or a date picker. It provides a base implementation for toggling the picker's visibility when the trigger
@@ -48,9 +34,8 @@ Ext.define('Ext.form.field.Picker', {
      */
 
     /**
-     * @cfg {String} openCls
+     * @cfg {String} [openCls='x-pickerfield-open']
      * A class to be added to the field's {@link #bodyEl} element when the picker is opened.
-     * Defaults to 'x-pickerfield-open'.
      */
     openCls: Ext.baseCSSPrefix + 'pickerfield-open',
 
@@ -102,15 +87,13 @@ Ext.define('Ext.form.field.Picker', {
         me.callParent();
 
         // Add handlers for keys to expand/collapse the picker
-        me.keyNav = Ext.create('Ext.util.KeyNav', me.inputEl, {
-            down: function() {
-                if (!me.isExpanded) {
-                    // Don't call expand() directly as there may be additional processing involved before
-                    // expanding, e.g. in the case of a ComboBox query.
-                    me.onTriggerClick();
-                }
+        me.keyNav = new Ext.util.KeyNav(me.inputEl, {
+            down: me.onDownArrow,
+            esc: {
+                handler: me.onEsc,
+                scope: me,
+                defaultEventAction: false
             },
-            esc: me.collapse,
             scope: me,
             forceKeyDown: true
         });
@@ -126,6 +109,32 @@ Ext.define('Ext.form.field.Picker', {
         }
     },
 
+    // private
+    onEsc: function(e) {
+        var me = this;
+        if (me.isExpanded) {
+            me.collapse();
+            e.stopEvent();
+        } else {
+            // If there's an ancestor Window which will see the ESC event and hide, ensure this Field blurs
+            // so that a down arrow will not pop up a disembodied dropdown list.
+            if (me.up('window')) {
+                me.blur();
+            }
+            // Otherwise, only stop the ESC key event if it's not going to bubble up to the FocusManager
+            else if ((!Ext.FocusManager || !Ext.FocusManager.enabled)) {
+                e.stopEvent();
+            }
+        }
+    },
+
+    onDownArrow: function(e) {
+        if (!this.isExpanded) {
+            // Don't call expand() directly as there may be additional processing involved before
+            // expanding, e.g. in the case of a ComboBox query.
+            this.onTriggerClick();
+        }
+    },
 
     /**
      * Expands this field's picker dropdown.
@@ -165,13 +174,12 @@ Ext.define('Ext.form.field.Picker', {
      */
     alignPicker: function() {
         var me = this,
-            picker;
+            picker = me.getPicker();
 
         if (me.isExpanded) {
-            picker = me.getPicker();
             if (me.matchFieldWidth) {
                 // Auto the height (it will be constrained by min and max width) unless there are no records to display.
-                picker.setSize(me.bodyEl.getWidth(), picker.store && picker.store.getCount() ? null : 0);
+                picker.setWidth(me.bodyEl.getWidth());
             }
             if (picker.isFloating()) {
                 me.doAlign();
@@ -235,7 +243,8 @@ Ext.define('Ext.form.field.Picker', {
      */
     collapseIf: function(e) {
         var me = this;
-        if (!me.isDestroyed && !e.within(me.bodyEl, false, true) && !e.within(me.picker.el, false, true)) {
+
+        if (!me.isDestroyed && !e.within(me.bodyEl, false, true) && !e.within(me.picker.el, false, true) && !me.isEventWithinPickerLoadMask(e)) {
             me.collapse();
         }
     },
@@ -278,7 +287,7 @@ Ext.define('Ext.form.field.Picker', {
         var me = this,
             picker = me.picker;
         // ignore mousedown events within the picker element
-        if (!picker || !e.within(picker.el, false, true)) {
+        if (!picker || !e.within(picker.el, false, true) && !me.isEventWithinPickerLoadMask(e)) {
             me.callParent(arguments);
         }
     },
@@ -294,8 +303,19 @@ Ext.define('Ext.form.field.Picker', {
             picker.destroy();
         }
         me.callParent();
+    },
+
+    /**
+     * returns true if the picker has a load mask and the passed event is within the load mask
+     * @private
+     * @param {Ext.EventObject} e
+     * @return {Boolean}
+     */
+    isEventWithinPickerLoadMask: function(e) {
+        var loadMask = this.picker.loadMask;
+
+        return loadMask ? e.within(loadMask.maskEl, false, true) || e.within(loadMask.el, false, true) : false;
     }
 
 });
-
 

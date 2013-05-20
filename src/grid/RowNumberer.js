@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * This is a utility class that can be passed into a {@link Ext.grid.column.Column} as a column config that provides
  * an automatic row numbering column.
@@ -46,14 +32,24 @@ Ext.define('Ext.grid.RowNumberer', {
 
     /**
      * @cfg {Boolean} sortable
-     * True if the row number column is sortable.
      * @hide
      */
     sortable: false,
+    
+    /**
+     * @cfg {Boolean} [draggable=false]
+     * False to disable drag-drop reordering of this column.
+     */
+    draggable: false,
 
     align: 'right',
 
     constructor : function(config){
+
+        // Copy the prototype's default width setting into an instance property to provide
+        // a default width which will not be overridden by AbstractContainer.applyDefaults use of Ext.applyIf
+        this.width = this.width;
+
         this.callParent(arguments);
         if (this.rowspan) {
             this.renderer = Ext.Function.bind(this.renderer, this);
@@ -78,4 +74,3 @@ Ext.define('Ext.grid.RowNumberer', {
         return store.indexOfTotal(record) + 1;
     }
 });
-

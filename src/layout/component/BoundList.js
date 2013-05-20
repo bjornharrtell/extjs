@@ -1,119 +1,95 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * Component layout for {@link Ext.view.BoundList}. Handles constraining the height to the configured maxHeight.
- * @class Ext.layout.component.BoundList
- * @extends Ext.layout.component.Component
+ * Component layout for {@link Ext.view.BoundList}.
  * @private
  */
 Ext.define('Ext.layout.component.BoundList', {
-    extend: 'Ext.layout.component.Component',
+    extend: 'Ext.layout.component.Auto',
     alias: 'layout.boundlist',
 
     type: 'component',
-
-    beforeLayout: function() {
-        return this.callParent(arguments) || this.owner.refreshed > 0;
-    },
-
-    onLayout : function(width, height) {
+    
+    beginLayout: function(ownerContext) {
         var me = this,
             owner = me.owner,
-            floating = owner.floating,
-            el = owner.el,
-            xy = el.getXY(),
-            isNumber = Ext.isNumber,
-            minWidth, maxWidth, minHeight, maxHeight,
-            naturalWidth, naturalHeight, constrainedWidth, constrainedHeight, undef;
-
-        if (floating) {
-            // Position offscreen so the natural width is not affected by the viewport's right edge
-            el.setXY([-9999,-9999]);
-        }
-
-        // Calculate initial layout
-        me.setTargetSize(width, height);
-
-        // Handle min/maxWidth for auto-width
-        if (!isNumber(width)) {
-            minWidth = owner.minWidth;
-            maxWidth = owner.maxWidth;
-            if (isNumber(minWidth) || isNumber(maxWidth)) {
-                naturalWidth = el.getWidth();
-                if (naturalWidth < minWidth) {
-                    constrainedWidth = minWidth;
-                }
-                else if (naturalWidth > maxWidth) {
-                    constrainedWidth = maxWidth;
-                }
-                if (constrainedWidth) {
-                    me.setTargetSize(constrainedWidth);
-                }
-            }
-        }
-        // Handle min/maxHeight for auto-height
-        if (!isNumber(height)) {
-            minHeight = owner.minHeight;
-            maxHeight = owner.maxHeight;
-            if (isNumber(minHeight) || isNumber(maxHeight)) {
-                naturalHeight = el.getHeight();
-                if (naturalHeight < minHeight) {
-                    constrainedHeight = minHeight;
-                }
-                else if (naturalHeight > maxHeight) {
-                    constrainedHeight = maxHeight;
-                }
-                if (constrainedHeight) {
-                    me.setTargetSize(undef, constrainedHeight);
-                }
-            }
-        }
-
-        if (floating) {
-            // Restore position
-            el.setXY(xy);
-        }
-    },
-
-    afterLayout: function() {
-        var me = this,
-            toolbar = me.owner.pagingToolbar;
-        me.callParent();
-        if (toolbar) {
-            toolbar.doComponentLayout();
-        }
-    },
-
-    setTargetSize : function(width, height) {
-        var me = this,
-            owner = me.owner,
-            listHeight = null,
-            toolbar;
-
-        // Size the listEl
-        if (Ext.isNumber(height)) {
-            listHeight = height - owner.el.getFrameWidth('tb');
             toolbar = owner.pagingToolbar;
-            if (toolbar) {
-                listHeight -= toolbar.getHeight();
-            }
-        }
-        me.setElementSize(owner.listEl, null, listHeight);
 
         me.callParent(arguments);
+        
+        if (owner.floating) {
+            ownerContext.savedXY = owner.el.getXY();
+            // move way offscreen to prevent any constraining
+            owner.el.setXY([-9999, -9999]);
+        }
+        
+        if (toolbar) {
+            ownerContext.toolbarContext = ownerContext.context.getCmp(toolbar);
+        }
+        ownerContext.listContext = ownerContext.getEl('listEl');
+    },
+    
+    beginLayoutCycle: function(ownerContext){
+        var owner = this.owner;
+        
+        this.callParent(arguments);
+        if (ownerContext.heightModel.auto) {
+            // Set the el/listEl to be autoHeight since they may have been previously sized
+            // by another layout process. If the el was at maxHeight first, the listEl will
+            // always size to the maxHeight regardless of the content.
+            owner.el.setHeight('auto');
+            owner.listEl.setHeight('auto');
+        }
+    },
+
+    getLayoutItems: function() {
+        var toolbar = this.owner.pagingToolbar;
+        return toolbar ? [toolbar] : [];
+    },
+    
+    isValidParent: function() {
+        // this only ever gets called with the toolbar, since it's rendered inside we
+        // know the parent is always valid
+        return true;
+    },
+
+    finishedLayout: function(ownerContext) {
+        var xy = ownerContext.savedXY;
+        
+        this.callParent(arguments);
+        if (xy) {
+            this.owner.el.setXY(xy);
+        }
+    },
+    
+    measureContentWidth: function(ownerContext) {
+        return this.owner.listEl.getWidth();
+    },
+    
+    measureContentHeight: function(ownerContext) {
+        return this.owner.listEl.getHeight();
+    },
+    
+    publishInnerHeight: function(ownerContext, height) {
+        var toolbar = ownerContext.toolbarContext,
+            toolbarHeight = 0;
+            
+        if (toolbar) {
+            toolbarHeight = toolbar.getProp('height');
+        }
+        
+        if (toolbarHeight === undefined) {
+            this.done = false;
+        } else {
+            ownerContext.listContext.setHeight(height - ownerContext.getFrameInfo().height - toolbarHeight);
+        }
+    },
+    
+    calculateOwnerHeightFromContentHeight: function(ownerContext){
+        var height = this.callParent(arguments),
+            toolbar = ownerContext.toolbarContext;
+            
+        if (toolbar) {
+            height += toolbar.getProp('height');
+        }
+        return height;
     }
-
 });
-

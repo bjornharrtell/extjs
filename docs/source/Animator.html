@@ -84,6 +84,10 @@ Ext.define('Ext.fx.Animator', {
 
     /* End Definitions */
 
+<span id='Ext-fx-Animator-property-isAnimator'>    /**
+</span>     * @property {Boolean} isAnimator
+     * `true` in this class to identify an object as an instantiated Animator, or subclass thereof.
+     */
     isAnimator: true,
 
 <span id='Ext-fx-Animator-cfg-duration'>    /**
@@ -318,7 +322,7 @@ keyframes : {
                 damper = attrs.damper || me.damper;
                 delete attrs.easing;
                 delete attrs.damper;
-                anim = Ext.create('Ext.fx.Anim', {
+                anim = new Ext.fx.Anim({
                     target: target,
                     easing: easing,
                     damper: damper,
@@ -410,6 +414,15 @@ keyframes : {
     end: function() {
         var me = this;
         me.fireEvent('afteranimate', me, me.startTime, new Date() - me.startTime);
+    },
+    
+    isReady: function() {
+        return this.paused === false &amp;&amp; this.running === false &amp;&amp; this.iterations &gt; 0;
+    },
+    
+    isRunning: function() {
+        // Explicitly return false, we don't want to be run continuously by the manager
+        return false;
     }
 });</pre>
 </body>

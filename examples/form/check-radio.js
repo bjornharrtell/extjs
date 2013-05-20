@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
     'Ext.form.*',
     'Ext.layout.container.Column',
@@ -230,9 +216,10 @@ Ext.onReady(function(){
     var radioGroup = {
         xtype: 'fieldset',
         title: 'Radio Groups',
-        layout: 'anchor',
+        // in this section we use the form layout that will aggregate all of the fields
+        // into a single table, rather than one table per field.
+        layout: 'form',
         defaults: {
-            anchor: '100%',
             labelStyle: 'padding-left:4px;'
         },
         collapsible: true,
@@ -362,4 +349,3 @@ Ext.onReady(function(){
         }]
     });
 });
-

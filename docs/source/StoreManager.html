@@ -52,7 +52,8 @@ Ext.define('Ext.data.StoreManager', {
     uses: ['Ext.data.ArrayStore'],
     
 <span id='Ext-data-StoreManager-cfg-listeners'>    /**
-</span>     * @cfg {Object} listeners @hide
+</span>     * @cfg {Object} listeners
+     * @private
      */
 
 <span id='Ext-data-StoreManager-method-register'>    /**
@@ -100,7 +101,7 @@ Ext.define('Ext.data.StoreManager', {
                     fields.push('field' + i);
                 }
             }
-            return Ext.create('Ext.data.ArrayStore', {
+            return new Ext.data.ArrayStore({
                 data  : data,
                 fields: fields,
                 autoDestroy: true,
@@ -124,7 +125,7 @@ Ext.define('Ext.data.StoreManager', {
     }
 }, function() {    
 <span id='Ext-method-regStore'>    /**
-</span>     * Creates a new store for the given id and config, then registers it with the {@link Ext.data.StoreManager Store Mananger}. 
+</span>     * Creates a new store for the given id and config, then registers it with the {@link Ext.data.StoreManager Store Manager}. 
      * Sample usage:
      *
      *     Ext.regStore('AllUsers', {
@@ -154,7 +155,7 @@ Ext.define('Ext.data.StoreManager', {
         if (config instanceof Ext.data.Store) {
             store = config;
         } else {
-            store = Ext.create('Ext.data.Store', config);
+            store = new Ext.data.Store(config);
         }
 
         return Ext.data.StoreManager.register(store);
@@ -164,7 +165,7 @@ Ext.define('Ext.data.StoreManager', {
 </span>     * Shortcut to {@link Ext.data.StoreManager#lookup}.
      * @member Ext
      * @method getStore
-     * @alias Ext.data.StoreManager#lookup
+     * @inheritdoc Ext.data.StoreManager#lookup
      */
     Ext.getStore = function(name) {
         return Ext.data.StoreManager.lookup(name);

@@ -1,21 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.grid.feature.GroupingSummary
- * @extends Ext.grid.feature.Grouping
- *
  * This feature adds an aggregate summary row at the bottom of each group that is provided
  * by the {@link Ext.grid.feature.Grouping} feature. There are two aspects to the summary:
  *
@@ -113,6 +96,9 @@ Ext.define('Ext.grid.feature.GroupingSummary', {
 
     /* End Definitions */
 
+    init: function() {
+        this.mixins.summary.init.call(this);
+    },
 
    /**
     * Modifies the row template to include the summary row.
@@ -192,24 +178,42 @@ Ext.define('Ext.grid.feature.GroupingSummary', {
             fieldData,
             root,
             key,
-            comp;
+            comp,
+            summaryRows,
+            s,
+            sLen,
+            convertedSummaryRow;
 
         for (i = 0, length = groups.length; i < length; ++i) {
             data[groups[i].name] = {};
         }
 
         /**
-         * @cfg {String} [remoteRoot=undefined]  The name of the property which contains the Array of
-         * summary objects. It allows to use server-side calculated summaries.
+         * @cfg {String} [remoteRoot=undefined]
+         * The name of the property which contains the Array of summary objects.
+         * It allows to use server-side calculated summaries.
          */
         if (me.remoteRoot && reader.rawData) {
             // reset reader root and rebuild extractors to extract summaries data
             root = reader.root;
             reader.root = me.remoteRoot;
             reader.buildExtractors(true);
-            Ext.Array.each(reader.getRoot(reader.rawData), function(value) {
-                 remoteData[value[groupField]] = value;
-            });
+            summaryRows = reader.getRoot(reader.rawData);
+            sLen      = summaryRows.length;
+
+            // Ensure the Reader has a data conversion function to convert a raw data row into a Record data hash
+            if (!reader.convertRecordData) {
+                reader.buildExtractors();
+            }
+
+            for (s = 0; s < sLen; s++) {
+                convertedSummaryRow = {};
+
+                // Convert a raw data row into a Record's hash object using the Reader
+                reader.convertRecordData(convertedSummaryRow, summaryRows[s]);
+                remoteData[convertedSummaryRow[groupField]] = convertedSummaryRow;
+            }
+
             // restore initial reader configuration
             reader.root = root;
             reader.buildExtractors(true);
@@ -237,4 +241,3 @@ Ext.define('Ext.grid.feature.GroupingSummary', {
         return data;
     }
 });
-

@@ -23,21 +23,21 @@ Ext.define('Ext.form.RadioManager', {
     extend: 'Ext.util.MixedCollection',
     singleton: true,
 
-    getByName: function(name) {
+    getByName: function(name, formId) {
         return this.filterBy(function(item) {
-            return item.name == name;
+            return item.name == name &amp;&amp; item.getFormId() == formId;
         });
     },
 
-    getWithValue: function(name, value) {
+    getWithValue: function(name, value, formId) {
         return this.filterBy(function(item) {
-            return item.name == name &amp;&amp; item.inputValue == value;
+            return item.name == name &amp;&amp; item.inputValue == value &amp;&amp; item.getFormId() == formId;
         });
     },
 
-    getChecked: function(name) {
+    getChecked: function(name, formId) {
         return this.findBy(function(item) {
-            return item.name == name &amp;&amp; item.checked;
+            return item.name == name &amp;&amp; item.checked &amp;&amp; item.getFormId() == formId;
         });
     }
 });

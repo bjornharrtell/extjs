@@ -141,14 +141,10 @@ Ext JS 4 eliminates all those drawbacks with just one single method you need to 
             if (name) {
                 this.name = name;
             }
-
-            return this;
         },
 
         eat: function(foodType) {
             alert(this.name + " is eating: " + foodType);
-
-            return this;
         }
     });
 
@@ -183,8 +179,6 @@ Here's an example:
 
         constructor: function(config) {
             this.initConfig(config);
-
-            return this;
         },
 
         applyTitle: function(title) {
@@ -250,8 +244,6 @@ Static members can be defined using the `statics` config
 
             // the 'self' property of an instance refers to its class
             this.self.instanceCount ++;
-
-            return this;
         }
     });
 

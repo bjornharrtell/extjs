@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.axis.Numeric
- * @extends Ext.chart.axis.Axis
  *
  * An axis to handle numeric values. This axis is used for quantitative data as
  * opposed to the category axis. You can set mininum and maximum values to the
@@ -100,6 +85,8 @@ Ext.define('Ext.chart.axis.Numeric', {
 
     alias: 'axis.numeric',
 
+    uses: ['Ext.data.Store'],
+
     constructor: function(config) {
         var me = this,
             hasLabel = !!(config.label && config.label.renderer),
@@ -107,9 +94,11 @@ Ext.define('Ext.chart.axis.Numeric', {
 
         me.callParent([config]);
         label = me.label;
-        if (me.roundToDecimal === false) {
-            return;
+
+        if (config.constrain == null) {
+            me.constrain = (config.minimum != null && config.maximum != null);
         }
+
         if (!hasLabel) {
             label.renderer = function(v) {
                 return me.roundToDecimal(v, me.decimals);
@@ -119,7 +108,7 @@ Ext.define('Ext.chart.axis.Numeric', {
 
     roundToDecimal: function(v, dec) {
         var val = Math.pow(10, dec || 0);
-        return Math.floor(v * val) / val;
+        return Math.round(v * val) / val;
     },
 
     /**
@@ -139,6 +128,14 @@ Ext.define('Ext.chart.axis.Numeric', {
     maximum: NaN,
 
     /**
+     * @cfg {Boolean} constrain
+     * If true, the values of the chart will be rendered only if they belong between minimum and maximum
+     * If false, all values of the chart will be rendered, regardless of whether they belong between minimum and maximum or not
+     * Default's true if maximum and minimum is specified.
+     */
+    constrain: true,
+
+    /**
      * The number of decimals to round the value to.
      *
      * @property {Number} decimals
@@ -154,6 +151,49 @@ Ext.define('Ext.chart.axis.Numeric', {
      */
     scale: "linear",
 
+    // @private constrains to datapoints between minimum and maximum only
+    doConstrain: function() {
+        var me = this,
+            store = me.chart.store,
+            items = store.data.items,
+            d, dLen, record,
+            series = me.chart.series.items,
+            fields = me.fields,
+            ln = fields.length,
+            range = me.calcEnds(),
+            min = range.from, max = range.to, i, l,
+            useAcum = false,
+            value, data = [],
+            addRecord;
+
+        for (i = 0, l = series.length; i < l; i++) {
+            if (series[i].type === 'bar' && series[i].stacked) {
+                // Do not constrain stacked bar chart.
+                return;
+            }
+        }
+
+        for (d = 0, dLen = items.length; d < dLen; d++) {
+            addRecord = true;
+            record = items[d];
+            for (i = 0; i < ln; i++) {
+                value = record.get(fields[i]);
+                if (+value < +min) {
+                    addRecord = false;
+                    break;
+                }
+                if (+value > +max) {
+                    addRecord = false;
+                    break;
+                }
+            }
+            if (addRecord) {
+                data.push(record);
+            }
+        }
+        me.chart.substore = Ext.create('Ext.data.Store', { model: store.model });
+        me.chart.substore.loadData(data); // data records must be loaded (not passed as config above because it's not json)
+    },
     /**
      * Indicates the position of the axis relative to the chart
      *
@@ -177,10 +217,18 @@ Ext.define('Ext.chart.axis.Numeric', {
      */
     adjustMinimumByMajorUnit: false,
 
+    // applying constraint
+    processView: function() {
+        var me = this,
+            constrain = me.constrain;
+        if (constrain) {
+            me.doConstrain();
+        }
+    },
+
     // @private apply data.
     applyData: function() {
         this.callParent();
         return this.calcEnds();
     }
 });
-

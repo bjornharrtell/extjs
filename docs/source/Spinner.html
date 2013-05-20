@@ -33,10 +33,7 @@
  *         onSpinUp: function() {
  *             var me = this;
  *             if (!me.readOnly) {
- *                 var val = me.step; // set the default value to the step value
- *                 if(me.getValue() !== '') {
- *                     val = parseInt(me.getValue().slice(0, -5)); // gets rid of &quot; Pack&quot;
- *                 }
+ *                 var val = parseInt(me.getValue().split(' '), 10)||0; // gets rid of &quot; Pack&quot;, defaults to zero on parse failure
  *                 me.setValue((val + me.step) + ' Pack');
  *             }
  *         },
@@ -45,10 +42,12 @@
  *         onSpinDown: function() {
  *             var val, me = this;
  *             if (!me.readOnly) {
- *                 if(me.getValue() !== '') {
- *                     val = parseInt(me.getValue().slice(0, -5)); // gets rid of &quot; Pack&quot;
- *                 }
- *                 me.setValue((val - me.step) + ' Pack');
+ *                var val = parseInt(me.getValue().split(' '), 10)||0; // gets rid of &quot; Pack&quot;, defaults to zero on parse failure
+ *                if (val &lt;= me.step) {
+ *                    me.setValue('Dry!');
+ *                } else {
+ *                    me.setValue((val - me.step) + ' Pack');
+ *                }
  *             }
  *         }
  *     });
@@ -127,6 +126,12 @@ Ext.define('Ext.form.field.Spinner', {
      */
     onSpinDown: Ext.emptyFn,
 
+    triggerTpl: '&lt;td style=&quot;{triggerStyle}&quot;&gt;' +
+                    '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'trigger-index-0 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-up&quot; role=&quot;button&quot;&gt;&lt;/div&gt;' +
+                    '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'trigger-index-1 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-down&quot; role=&quot;button&quot;&gt;&lt;/div&gt;' +
+                '&lt;/td&gt;' +
+            '&lt;/tr&gt;',
+
     initComponent: function() {
         this.callParent();
 
@@ -165,7 +170,7 @@ Ext.define('Ext.form.field.Spinner', {
 
         me.callParent(arguments);
         triggers = me.triggerEl;
-
+        
 <span id='Ext-form-field-Spinner-property-spinUpEl'>        /**
 </span>         * @property {Ext.Element} spinUpEl
          * The spinner up button element
@@ -176,6 +181,8 @@ Ext.define('Ext.form.field.Spinner', {
          * The spinner down button element
          */
         me.spinDownEl = triggers.item(1);
+        
+        me.triggerCell = me.spinUpEl.parent(); 
 
         // Set initial enabled/disabled states
         me.setSpinUpEnabled(me.spinUpEnabled);
@@ -183,7 +190,7 @@ Ext.define('Ext.form.field.Spinner', {
 
         // Init up/down arrow keys
         if (me.keyNavEnabled) {
-            me.spinnerKeyNav = Ext.create('Ext.util.KeyNav', me.inputEl, {
+            me.spinnerKeyNav = new Ext.util.KeyNav(me.inputEl, {
                 scope: me,
                 up: me.spinUp,
                 down: me.spinDown
@@ -196,12 +203,38 @@ Ext.define('Ext.form.field.Spinner', {
         }
     },
 
+    getSubTplMarkup: function() {
+        var me = this,
+            field = Ext.form.field.Base.prototype.getSubTplMarkup.apply(me, arguments);
+
+        return '&lt;table id=&quot;' + me.id + '-triggerWrap&quot; class=&quot;' + Ext.baseCSSPrefix + 'form-trigger-wrap&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;' +
+            '&lt;tbody&gt;' +
+                '&lt;tr&gt;&lt;td id=&quot;' + me.id + '-inputCell&quot; class=&quot;' + Ext.baseCSSPrefix + 'form-trigger-input-cell&quot;&gt;' + field + '&lt;/td&gt;' +
+                me.getTriggerMarkup() +
+            '&lt;/tbody&gt;&lt;/table&gt;';
+    },
+
+    getTriggerMarkup: function() {
+        var me = this,
+            hideTrigger = (me.readOnly || me.hideTrigger);
+
+        return me.getTpl('triggerTpl').apply({
+            triggerStyle: 'width:' + me.triggerWidth + (hideTrigger ? 'px;display:none' : 'px')
+        });
+    },
+
 <span id='Ext-form-field-Spinner-method-getTriggerWidth'>    /**
-</span>     * @private
-     * Override. Since the triggers are stacked, only measure the width of one of them.
+</span>     * Get the total width of the spinner button area.
+     * @return {Number} The total spinner button width
      */
     getTriggerWidth: function() {
-        return this.hideTrigger || this.readOnly ? 0 : this.spinUpEl.getWidth() + this.triggerWrap.getFrameWidth('lr');
+        var me = this,
+            totalTriggerWidth = 0;
+
+        if (me.triggerWrap &amp;&amp; !me.hideTrigger &amp;&amp; !me.readOnly) {
+            totalTriggerWidth = me.triggerWidth;
+        }
+        return totalTriggerWidth;
     },
 
 <span id='Ext-form-field-Spinner-method-onTrigger1Click'>    /**
@@ -218,6 +251,12 @@ Ext.define('Ext.form.field.Spinner', {
      */
     onTrigger2Click: function() {
         this.spinDown();
+    },
+
+    // private
+    // Handle trigger mouse up gesture; refocuses the input element upon end of spin.
+    onTriggerWrapMouseup: function() {
+        this.inputEl.focus();
     },
 
 <span id='Ext-form-field-Spinner-method-spinUp'>    /**

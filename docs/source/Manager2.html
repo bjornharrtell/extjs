@@ -72,13 +72,14 @@ Ext.define('Ext.direct.Manager', {
 
     requires: ['Ext.util.MixedCollection'],
 
-    statics: {
-        exceptions: {
-            TRANSPORT: 'xhr',
-            PARSE: 'parse',
-            LOGIN: 'login',
-            SERVER: 'exception'
-        }
+<span id='Ext-direct-Manager-property-exceptions'>    /**
+</span>     * Exception types.
+     */
+    exceptions: {
+        TRANSPORT: 'xhr',
+        PARSE: 'parse',
+        LOGIN: 'login',
+        SERVER: 'exception'
     },
 
     /* End Definitions */
@@ -101,8 +102,8 @@ Ext.define('Ext.direct.Manager', {
              */
             'exception'
         );
-        me.transactions = Ext.create('Ext.util.MixedCollection');
-        me.providers = Ext.create('Ext.util.MixedCollection');
+        me.transactions = new Ext.util.MixedCollection();
+        me.providers = new Ext.util.MixedCollection();
 
         me.mixins.observable.constructor.call(me);
     },
@@ -229,7 +230,7 @@ Ext.define('Ext.direct.Manager', {
      * @return {Ext.direct.Transaction}
      */
     getTransaction: function(transaction){
-        return transaction.isTransaction ? transaction : this.transactions.get(transaction);
+        return Ext.isObject(transaction) ? transaction : this.transactions.get(transaction);
     },
 
     onProviderData : function(provider, event){
@@ -249,7 +250,31 @@ Ext.define('Ext.direct.Manager', {
             me.fireEvent('exception', event);
         }
         me.fireEvent('event', event, provider);
+    },
+    
+<span id='Ext-direct-Manager-method-parseMethod'>    /**
+</span>     * Parses a direct function. It may be passed in a string format, for example:
+     * &quot;MyApp.Person.read&quot;.
+     * @protected
+     * @param {String/Function} fn The direct function
+     * @return {Function} The function to use in the direct call. Null if not found
+     */
+    parseMethod: function(fn){
+        if (Ext.isString(fn)) {
+            var parts = fn.split('.'),
+                i = 0,
+                len = parts.length,
+                current = window;
+                
+            while (current &amp;&amp; i &lt; len) {
+                current = current[parts[i]];
+                ++i;
+            }
+            fn = Ext.isFunction(current) ? current : null;
+        }
+        return fn || null;
     }
+    
 }, function(){
     // Backwards compatibility
     Ext.Direct = Ext.direct.Manager;

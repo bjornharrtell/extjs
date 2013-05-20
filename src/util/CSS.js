@@ -1,28 +1,12 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.util.CSS
  * Utility class for manipulating CSS rules
  * @singleton
  */
-Ext.define('Ext.util.CSS', function() {
-    var rules = null;
-    var doc = document;
-
-    var camelRe = /(-[a-z])/gi;
-    var camelFn = function(m, a){ return a.charAt(1).toUpperCase(); };
+Ext.define('Ext.util.CSS', (function() {
+    var rules = null,
+        doc = document,
+        camelRe = /(-[a-z])/gi,
+        camelFn = function(m, a){ return a.charAt(1).toUpperCase(); };
 
     return {
 
@@ -84,9 +68,10 @@ Ext.define('Ext.util.CSS', function() {
          * @param {String} url The href of the new stylesheet to include
          */
         swapStyleSheet : function(id, url) {
-            var doc = document;
+            var doc = document,
+                ss;
             this.removeStyleSheet(id);
-            var ss = doc.createElement("link");
+            ss = doc.createElement("link");
             ss.setAttribute("rel", "stylesheet");
             ss.setAttribute("type", "text/css");
             ss.setAttribute("id", id);
@@ -130,10 +115,10 @@ Ext.define('Ext.util.CSS', function() {
         },
 
         /**
-        * Gets all css rules for the document
-        * @param {Boolean} refreshCache true to refresh the internal cache
-        * @return {Object} An object (hash) of rules indexed by selector
-        */
+         * Gets all css rules for the document
+         * @param {Boolean} refreshCache true to refresh the internal cache
+         * @return {Object} An object (hash) of rules indexed by selector
+         */
         getRules : function(refreshCache) {
             if (rules === null || refreshCache) {
                 rules = {};
@@ -159,11 +144,12 @@ Ext.define('Ext.util.CSS', function() {
          * @return {CSSStyleRule} The CSS rule or null if one is not found
          */
         getRule: function(selector, refreshCache) {
-            var rs = this.getRules(refreshCache);
+            var rs = this.getRules(refreshCache),
+                i;
             if (!Ext.isArray(selector)) {
                 return rs[selector.toLowerCase()];
             }
-            for (var i = 0; i < selector.length; i++) {
+            for (i = 0; i < selector.length; i++) {
                 if (rs[selector[i]]) {
                     return rs[selector[i].toLowerCase()];
                 }
@@ -179,14 +165,15 @@ Ext.define('Ext.util.CSS', function() {
          * @return {Boolean} true If a rule was found and updated
          */
         updateRule : function(selector, property, value){
+            var rule, i;
             if (!Ext.isArray(selector)) {
-                var rule = this.getRule(selector);
+                rule = this.getRule(selector);
                 if (rule) {
                     rule.style[property.replace(camelRe, camelFn)] = value;
                     return true;
                 }
             } else {
-                for (var i = 0; i < selector.length; i++) {
+                for (i = 0; i < selector.length; i++) {
                     if (this.updateRule(selector[i], property, value)) {
                         return true;
                     }
@@ -195,4 +182,4 @@ Ext.define('Ext.util.CSS', function() {
             return false;
         }
     };
-}());
+}()));

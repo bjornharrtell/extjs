@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Tracks what records are currently selected in a databound component.
  *
@@ -26,6 +12,9 @@ Ext.define('Ext.selection.Model', {
     extend: 'Ext.util.Observable',
     alternateClassName: 'Ext.AbstractSelectionModel',
     requires: ['Ext.data.StoreManager'],
+    mixins: {
+        bindable: 'Ext.util.Bindable'    
+    },
     // lastSelected
 
     /**
@@ -47,16 +36,17 @@ Ext.define('Ext.selection.Model', {
     allowDeselect: false,
 
     /**
-     * @property {Ext.util.MixedCollection} selected
-     * A MixedCollection that maintains all of the currently selected records. Read-only.
+     * @property {Ext.util.MixedCollection} [selected=undefined]
+     * A MixedCollection that maintains all of the currently selected records.
+     * @readonly
      */
     selected: null,
 
     /**
+     * @cfg {Boolean} pruneRemoved
      * Prune records when they are removed from the store from the selection.
      * This is a private flag. For an example of its usage, take a look at
      * Ext.selection.TreeModel.
-     * @private
      */
     pruneRemoved: true,
 
@@ -73,7 +63,15 @@ Ext.define('Ext.selection.Model', {
              * @param {Ext.selection.Model} this
              * @param {Ext.data.Model[]} selected The selected records
              */
-            'selectionchange'
+            'selectionchange',
+            /**
+             * @event
+             * Fired when a row is focused
+             * @param {Ext.selection.Model} this
+             * @param {Ext.data.Model} oldFocused The previously focused record
+             * @param {Ext.data.Model} newFocused The newly focused record
+             */
+            'focuschange'
         );
 
         me.modes = {
@@ -86,39 +84,28 @@ Ext.define('Ext.selection.Model', {
         me.setSelectionMode(cfg.mode || me.mode);
 
         // maintains the currently selected records.
-        me.selected = Ext.create('Ext.util.MixedCollection');
+        me.selected = new Ext.util.MixedCollection();
 
         me.callParent(arguments);
     },
 
     // binds the store to the selModel.
-    bind : function(store, initial){
+    bindStore: function(store, initial){
         var me = this;
-
-        if(!initial && me.store){
-            if(store !== me.store && me.store.autoDestroy){
-                me.store.destroyStore();
-            }else{
-                me.store.un("add", me.onStoreAdd, me);
-                me.store.un("clear", me.onStoreClear, me);
-                me.store.un("remove", me.onStoreRemove, me);
-                me.store.un("update", me.onStoreUpdate, me);
-            }
-        }
-        if(store){
-            store = Ext.data.StoreManager.lookup(store);
-            store.on({
-                add: me.onStoreAdd,
-                clear: me.onStoreClear,
-                remove: me.onStoreRemove,
-                update: me.onStoreUpdate,
-                scope: me
-            });
-        }
-        me.store = store;
-        if(store && !initial) {
+        me.mixins.bindable.bindStore.apply(me, arguments);
+        if(me.store && !initial) {
             me.refresh();
         }
+    },
+    
+    getStoreListeners: function() {
+        var me = this;
+        return {
+            add: me.onStoreAdd,
+            clear: me.onStoreClear,
+            remove: me.onStoreRemove,
+            update: me.onStoreUpdate    
+        }; 
     },
 
     /**
@@ -205,7 +192,7 @@ Ext.define('Ext.selection.Model', {
      * All rows in between startRow and endRow are also selected.
      * @param {Ext.data.Model/Number} startRow The record or index of the first row in the range
      * @param {Ext.data.Model/Number} endRow The record or index of the last row in the range
-     * @param {Boolean} [keepExisting] True to retain existing selections
+     * @param {Boolean} keepExisting (optional) True to retain existing selections
      */
     selectRange : function(startRow, endRow, keepExisting, dir){
         var me = this,
@@ -265,8 +252,8 @@ Ext.define('Ext.selection.Model', {
     /**
      * Selects a record instance by record instance or index.
      * @param {Ext.data.Model[]/Number} records An array of records or an index
-     * @param {Boolean} [keepExisting] True to retain existing selections
-     * @param {Boolean} [suppressEvent] Set to true to not fire a select event
+     * @param {Boolean} [keepExisting=false] True to retain existing selections
+     * @param {Boolean} [suppressEvent=false] True to not fire a select event
      */
     select: function(records, keepExisting, suppressEvent) {
         // Automatically selecting eg store.first() or store.last() will pass undefined, so that must just return;
@@ -278,7 +265,7 @@ Ext.define('Ext.selection.Model', {
     /**
      * Deselects a record instance by record instance or index.
      * @param {Ext.data.Model[]/Number} records An array of records or an index
-     * @param {Boolean} [suppressEvent] Set to true to not fire a deselect event
+     * @param {Boolean} [suppressEvent=false] True to not fire a deselect event
      */
     deselect: function(records, suppressEvent) {
         this.doDeselect(records, suppressEvent);
@@ -288,7 +275,7 @@ Ext.define('Ext.selection.Model', {
         var me = this,
             record;
 
-        if (me.locked) {
+        if (me.locked || !me.store) {
             return;
         }
         if (typeof records === "number") {
@@ -337,7 +324,9 @@ Ext.define('Ext.selection.Model', {
 
             me.onSelectChange(record, true, suppressEvent, commit);
         }
-        me.setLastFocused(record, suppressEvent);
+        if (!me.preventFocus) {
+            me.setLastFocused(record, suppressEvent);
+        }
         // fire selchange if there was a change and there is no suppressEvent flag
         me.maybeFireSelectionChange(change && !suppressEvent);
     },
@@ -351,7 +340,7 @@ Ext.define('Ext.selection.Model', {
             attempted = 0,
             accepted = 0;
 
-        if (me.locked) {
+        if (me.locked || !me.store) {
             return false;
         }
 
@@ -429,8 +418,13 @@ Ext.define('Ext.selection.Model', {
     setLastFocused: function(record, supressFocus) {
         var me = this,
             recordBeforeLast = me.lastFocused;
+
         me.lastFocused = record;
-        me.onLastFocusChanged(recordBeforeLast, record, supressFocus);
+         
+        // Only call the changed method if in fact the selected record *has* changed.
+        if (record !== recordBeforeLast) {
+            me.onLastFocusChanged(recordBeforeLast, record, supressFocus);
+        }
     },
 
     /**
@@ -480,7 +474,7 @@ Ext.define('Ext.selection.Model', {
 
     /**
      * Sets the current selectionMode.
-     * @param {String} selModel 'SINGLE', 'MULTI' or 'SIMPLE'.
+     * @param {String} selMode 'SINGLE', 'MULTI' or 'SIMPLE'.
      */
     setSelectionMode: function(selMode) {
         selMode = selMode ? selMode.toUpperCase() : 'SINGLE';
@@ -525,20 +519,26 @@ Ext.define('Ext.selection.Model', {
 
     refresh: function() {
         var me = this,
+            store = me.store,
             toBeSelected = [],
             oldSelections = me.getSelection(),
             len = oldSelections.length,
             selection,
             change,
             i = 0,
-            lastFocused = this.getLastFocused();
+            lastFocused = me.getLastFocused();
+
+        // Not been bound yet.
+        if (!store) {
+            return;
+        }
 
         // check to make sure that there are no records
         // missing after the refresh was triggered, prune
         // them from what is to be selected if so
         for (; i < len; i++) {
             selection = oldSelections[i];
-            if (!this.pruneRemoved || me.store.indexOf(selection) !== -1) {
+            if (!me.pruneRemoved || store.indexOf(selection) !== -1) {
                 toBeSelected.push(selection);
             }
         }
@@ -551,9 +551,9 @@ Ext.define('Ext.selection.Model', {
 
         me.clearSelections();
 
-        if (me.store.indexOf(lastFocused) !== -1) {
+        if (store.indexOf(lastFocused) !== -1) {
             // restore the last focus but supress restoring focus
-            this.setLastFocused(lastFocused, true);
+            me.setLastFocused(lastFocused, true);
         }
 
         if (toBeSelected.length) {
@@ -577,9 +577,7 @@ Ext.define('Ext.selection.Model', {
     },
 
     // when a record is added to a store
-    onStoreAdd: function() {
-
-    },
+    onStoreAdd: Ext.emptyFn,
 
     // when a store is cleared remove all selections
     // (if there were any)
@@ -593,7 +591,7 @@ Ext.define('Ext.selection.Model', {
     // prune records from the SelectionModel if
     // they were selected at the time they were
     // removed.
-    onStoreRemove: function(store, record) {
+    onStoreRemove: function(store, record, index) {
         var me = this,
             selected = me.selected;
 
@@ -621,32 +619,32 @@ Ext.define('Ext.selection.Model', {
     },
 
     // cleanup.
-    destroy: function() {
-
-    },
+    destroy: Ext.emptyFn,
 
     // if records are updated
-    onStoreUpdate: function() {
+    onStoreUpdate: Ext.emptyFn,
 
-    },
+    /**
+     * @abstract
+     * @private
+     */
+    onStoreLoad: Ext.emptyFn,
 
     // @abstract
-    onSelectChange: function(record, isSelected, suppressEvent) {
-
-    },
+    onSelectChange: Ext.emptyFn,
 
     // @abstract
     onLastFocusChanged: function(oldFocused, newFocused) {
-
+        this.fireEvent('focuschange', this, oldFocused, newFocused);
     },
 
     // @abstract
-    onEditorKey: function(field, e) {
-
-    },
+    onEditorKey: Ext.emptyFn,
 
     // @abstract
-    bindComponent: function(cmp) {
+    bindComponent: Ext.emptyFn,
 
-    }
+    // @abstract
+    beforeViewRender: Ext.emptyFn
+
 });

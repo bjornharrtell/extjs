@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @singleton
  * @alternateClassName Ext.form.VTypes
@@ -107,12 +93,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'email' : function(v){
             return email.test(v);
         },
+        //<locale>
         /**
          * @property {String} emailText
          * The error text to display when the email validation function returns false.
          * Defaults to: 'This field should be an e-mail address in the format "user@example.com"'
          */
         'emailText' : 'This field should be an e-mail address in the format "user@example.com"',
+        //</locale>
         /**
          * @property {RegExp} emailMask
          * The keystroke filter mask to be applied on email input. See the {@link #email} method for information about
@@ -128,12 +116,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'url' : function(v){
             return url.test(v);
         },
+        //<locale>
         /**
          * @property {String} urlText
          * The error text to display when the url validation function returns false.
          * Defaults to: 'This field should be a URL in the format "http:/'+'/www.example.com"'
          */
         'urlText' : 'This field should be a URL in the format "http:/'+'/www.example.com"',
+        //</locale>
 
         /**
          * The function used to validate alpha values
@@ -143,12 +133,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'alpha' : function(v){
             return alpha.test(v);
         },
+        //<locale>
         /**
          * @property {String} alphaText
          * The error text to display when the alpha validation function returns false.
          * Defaults to: 'This field should only contain letters and _'
          */
         'alphaText' : 'This field should only contain letters and _',
+        //</locale>
         /**
          * @property {RegExp} alphaMask
          * The keystroke filter mask to be applied on alpha input. Defaults to: /[a-z_]/i
@@ -163,17 +155,18 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'alphanum' : function(v){
             return alphanum.test(v);
         },
+        //<locale>
         /**
          * @property {String} alphanumText
          * The error text to display when the alphanumeric validation function returns false.
          * Defaults to: 'This field should only contain letters, numbers and _'
          */
         'alphanumText' : 'This field should only contain letters, numbers and _',
+        //</locale>
         /**
          * @property {RegExp} alphanumMask
          * The keystroke filter mask to be applied on alphanumeric input. Defaults to: /[a-z0-9_]/i
          */
         'alphanumMask' : /[a-z0-9_]/i
     };
-})());
-
+}()));

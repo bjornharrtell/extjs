@@ -1,17 +1,6 @@
-/*
+//@tag foundation,core
+//@require Function.js
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
  * @docauthor Jacky Nguyen <jacky@sencha.com>
@@ -24,7 +13,20 @@ If you are unsure which license is appropriate for your use, please contact the 
 
 (function() {
 
-var ExtObject = Ext.Object = {
+// The "constructor" for chain:
+var TemplateClass = function(){},
+    ExtObject = Ext.Object = {
+
+    /**
+     * Returns a new object with the given object as the prototype chain.
+     * @param {Object} object The prototype chain for the new object.
+     */
+    chain: function (object) {
+        TemplateClass.prototype = object;
+        var result = new TemplateClass();
+        TemplateClass.prototype = null;
+        return result;
+    },
 
     /**
      * Converts a `name` - `value` pair to an array of objects with support for nested structures. Useful to construct
@@ -170,14 +172,19 @@ var ExtObject = Ext.Object = {
      *
      * Non-recursive:
      *
-     *     Ext.Object.fromQueryString(foo=1&bar=2); // returns {foo: 1, bar: 2}
-     *     Ext.Object.fromQueryString(foo=&bar=2); // returns {foo: null, bar: 2}
-     *     Ext.Object.fromQueryString(some%20price=%24300); // returns {'some price': '$300'}
-     *     Ext.Object.fromQueryString(colors=red&colors=green&colors=blue); // returns {colors: ['red', 'green', 'blue']}
+     *     Ext.Object.fromQueryString("foo=1&bar=2"); // returns {foo: 1, bar: 2}
+     *     Ext.Object.fromQueryString("foo=&bar=2"); // returns {foo: null, bar: 2}
+     *     Ext.Object.fromQueryString("some%20price=%24300"); // returns {'some price': '$300'}
+     *     Ext.Object.fromQueryString("colors=red&colors=green&colors=blue"); // returns {colors: ['red', 'green', 'blue']}
      *
      * Recursive:
      *
-     *       Ext.Object.fromQueryString("username=Jacky&dateOfBirth[day]=1&dateOfBirth[month]=2&dateOfBirth[year]=1911&hobbies[0]=coding&hobbies[1]=eating&hobbies[2]=sleeping&hobbies[3][0]=nested&hobbies[3][1]=stuff", true);
+     *     Ext.Object.fromQueryString(
+     *         "username=Jacky&"+
+     *         "dateOfBirth[day]=1&dateOfBirth[month]=2&dateOfBirth[year]=1911&"+
+     *         "hobbies[0]=coding&hobbies[1]=eating&hobbies[2]=sleeping&"+
+     *         "hobbies[3][0]=nested&hobbies[3][1]=stuff", true);
+     *
      *     // returns
      *     {
      *         username: 'Jacky',
@@ -227,13 +234,7 @@ var ExtObject = Ext.Object = {
 
                     //<debug error>
                     if (!matchedName) {
-                        Ext.Error.raise({
-                            sourceClass: "Ext.Object",
-                            sourceMethod: "fromQueryString",
-                            queryString: queryString,
-                            recursive: recursive,
-                            msg: 'Malformed query string given, failed parsing name from "' + part + '"'
-                        });
+                        throw new Error('[Ext.Object.fromQueryString] Malformed query string given, failed parsing name from "' + part + '"');
                     }
                     //</debug>
 
@@ -324,7 +325,7 @@ var ExtObject = Ext.Object = {
      *     var extjs = {
      *         companyName: 'Ext JS',
      *         products: ['Ext JS', 'Ext GWT', 'Ext Designer'],
-     *         isSuperCool: true
+     *         isSuperCool: true,
      *         office: {
      *             size: 2000,
      *             location: 'Palo Alto',
@@ -347,49 +348,76 @@ var ExtObject = Ext.Object = {
      *     {
      *         companyName: 'Sencha Inc.',
      *         products: ['Ext JS', 'Ext GWT', 'Ext Designer', 'Sencha Touch', 'Sencha Animator'],
-     *         isSuperCool: true
+     *         isSuperCool: true,
      *         office: {
-     *             size: 30000,
-     *             location: 'Redwood City'
+     *             size: 40000,
+     *             location: 'Redwood City',
      *             isFun: true
      *         }
      *     }
      *
-     * @param {Object...} object Any number of objects to merge.
-     * @return {Object} merged The object that is created as a result of merging all the objects passed in.
+     * @param {Object} destination The object into which all subsequent objects are merged.
+     * @param {Object...} object Any number of objects to merge into the destination.
+     * @return {Object} merged The destination object with all passed objects merged in.
      */
-    merge: function(source, key, value) {
-        if (typeof key === 'string') {
-            if (value && value.constructor === Object) {
-                if (source[key] && source[key].constructor === Object) {
-                    ExtObject.merge(source[key], value);
-                }
-                else {
-                    source[key] = Ext.clone(value);
-                }
-            }
-            else {
-                source[key] = value;
-            }
-
-            return source;
-        }
-
+    merge: function(destination) {
         var i = 1,
             ln = arguments.length,
-            object, property;
+            mergeFn = ExtObject.merge,
+            cloneFn = Ext.clone,
+            object, key, value, sourceKey;
 
         for (; i < ln; i++) {
             object = arguments[i];
 
-            for (property in object) {
-                if (object.hasOwnProperty(property)) {
-                    ExtObject.merge(source, property, object[property]);
+            for (key in object) {
+                value = object[key];
+                if (value && value.constructor === Object) {
+                    sourceKey = destination[key];
+                    if (sourceKey && sourceKey.constructor === Object) {
+                        mergeFn(sourceKey, value);
+                    }
+                    else {
+                        destination[key] = cloneFn(value);
+                    }
+                }
+                else {
+                    destination[key] = value;
                 }
             }
         }
 
-        return source;
+        return destination;
+    },
+
+    /**
+     * @private
+     * @param destination
+     */
+    mergeIf: function(destination) {
+        var i = 1,
+            ln = arguments.length,
+            cloneFn = Ext.clone,
+            object, key, value;
+
+        for (; i < ln; i++) {
+            object = arguments[i];
+
+            for (key in object) {
+                if (!(key in destination)) {
+                    value = object[key];
+
+                    if (value && value.constructor === Object) {
+                        destination[key] = cloneFn(value);
+                    }
+                    else {
+                        destination[key] = value;
+                    }
+                }
+            }
+        }
+
+        return destination;
     },
 
     /**
@@ -452,18 +480,25 @@ var ExtObject = Ext.Object = {
      * @return {String[]} An array of keys from the object
      * @method
      */
-    getKeys: ('keys' in Object.prototype) ? Object.keys : function(object) {
-        var keys = [],
-            property;
-
-        for (property in object) {
-            if (object.hasOwnProperty(property)) {
-                keys.push(property);
+    getKeys: (typeof Object.keys == 'function')
+        ? function(object){
+            if (!object) {
+                return [];
             }
+            return Object.keys(object);
         }
+        : function(object) {
+            var keys = [],
+                property;
 
-        return keys;
-    },
+            for (property in object) {
+                if (object.hasOwnProperty(property)) {
+                    keys.push(property);
+                }
+            }
+
+            return keys;
+        },
 
     /**
      * Gets the total number of this object's own properties
@@ -487,25 +522,64 @@ var ExtObject = Ext.Object = {
         }
 
         return size;
+    },
+
+    /**
+     * @private
+     */
+    classify: function(object) {
+        var prototype = object,
+            objectProperties = [],
+            propertyClassesMap = {},
+            objectClass = function() {
+                var i = 0,
+                    ln = objectProperties.length,
+                    property;
+
+                for (; i < ln; i++) {
+                    property = objectProperties[i];
+                    this[property] = new propertyClassesMap[property]();
+                }
+            },
+            key, value;
+
+        for (key in object) {
+            if (object.hasOwnProperty(key)) {
+                value = object[key];
+
+                if (value && value.constructor === Object) {
+                    objectProperties.push(key);
+                    propertyClassesMap[key] = ExtObject.classify(value);
+                }
+            }
+        }
+
+        objectClass.prototype = prototype;
+
+        return objectClass;
     }
 };
-
 
 /**
  * A convenient alias method for {@link Ext.Object#merge}.
  *
  * @member Ext
  * @method merge
- * @alias Ext.Object#merge
+ * @inheritdoc Ext.Object#merge
  */
 Ext.merge = Ext.Object.merge;
 
 /**
- * Alias for {@link Ext.Object#toQueryString}.
+ * @private
+ * @member Ext
+ */
+Ext.mergeIf = Ext.Object.mergeIf;
+
+/**
  *
  * @member Ext
  * @method urlEncode
- * @alias Ext.Object#toQueryString
+ * @inheritdoc Ext.Object#toQueryString
  * @deprecated 4.0.0 Use {@link Ext.Object#toQueryString} instead
  */
 Ext.urlEncode = function() {
@@ -518,7 +592,7 @@ Ext.urlEncode = function() {
         args[1] = false;
     }
 
-    return prefix + Ext.Object.toQueryString.apply(Ext.Object, args);
+    return prefix + ExtObject.toQueryString.apply(ExtObject, args);
 };
 
 /**
@@ -526,12 +600,11 @@ Ext.urlEncode = function() {
  *
  * @member Ext
  * @method urlDecode
- * @alias Ext.Object#fromQueryString
+ * @inheritdoc Ext.Object#fromQueryString
  * @deprecated 4.0.0 Use {@link Ext.Object#fromQueryString} instead
  */
 Ext.urlDecode = function() {
-    return Ext.Object.fromQueryString.apply(Ext.Object, arguments);
+    return ExtObject.fromQueryString.apply(ExtObject, arguments);
 };
 
-})();
-
+}());

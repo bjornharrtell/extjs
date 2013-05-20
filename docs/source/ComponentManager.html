@@ -17,7 +17,6 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ComponentManager'>/**
 </span> * @class Ext.ComponentManager
- * @extends Ext.AbstractManager
  * &lt;p&gt;Provides a registry of all Components (instances of {@link Ext.Component} or any subclass
  * thereof) on a page so that they can be easily accessed by {@link Ext.Component component}
  * {@link Ext.Component#id id} (see {@link #get}, or the convenience method {@link Ext#getCmp Ext.getCmp}).&lt;/p&gt;
@@ -43,23 +42,18 @@ Ext.define('Ext.ComponentManager', {
 </span>     * Creates a new Component from the specified config object using the
      * config object's xtype to determine the class to instantiate.
      * @param {Object} config A configuration object for the Component you wish to create.
-     * @param {Function} defaultType (optional) The constructor to provide the default Component type if
-     * the config object does not contain a &lt;code&gt;xtype&lt;/code&gt;. (Optional if the config contains a &lt;code&gt;xtype&lt;/code&gt;).
+     * @param {String} defaultType (optional) The xtype to use if the config object does not
+     * contain a &lt;code&gt;xtype&lt;/code&gt;. (Optional if the config contains a &lt;code&gt;xtype&lt;/code&gt;).
      * @return {Ext.Component} The newly instantiated Component.
      */
     create: function(component, defaultType){
-        if (component instanceof Ext.AbstractComponent) {
+        if (typeof component == 'string') {
+            return Ext.widget(component);
+        }
+        if (component.isComponent) {
             return component;
         }
-        else if (Ext.isString(component)) {
-            return Ext.createByAlias('widget.' + component);
-        }
-        else {
-            var type = component.xtype || defaultType,
-                config = component;
-            
-            return Ext.createByAlias('widget.' + type, config);
-        }
+        return Ext.widget(component.xtype || defaultType, component);
     },
 
     registerType: function(type, cls) {

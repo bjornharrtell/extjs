@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.fx.target.Component
- * @extends Ext.fx.target.Target
  * 
  * This class represents a animation target for a {@link Ext.Component}. In general this class will not be
  * created directly, the {@link Ext.Component} will be passed to the animation and
@@ -96,19 +81,19 @@ Ext.define('Ext.fx.target.Component', {
                 }
                 if (meth.setPosition.target) {
                     o = meth.setPosition;
-                    left = (o.left === undefined) ? undefined : parseInt(o.left, 10);
-                    top = (o.top === undefined) ? undefined : parseInt(o.top, 10);
+                    left = (o.left === undefined) ? undefined : parseFloat(o.left);
+                    top = (o.top === undefined) ? undefined : parseFloat(o.top);
                     o.target.setPosition(left, top);
                 }
                 if (meth.setPagePosition.target) {
                     o = meth.setPagePosition;
                     o.target.setPagePosition(o.x, o.y);
                 }
-                if (meth.setSize.target && meth.setSize.target.el) {
+                if (meth.setSize.target) {
                     o = meth.setSize;
                     // Dimensions not being animated MUST NOT be autosized. They must remain at current value.
-                    w = (o.width === undefined) ? o.target.getWidth() : parseInt(o.width, 10);
-                    h = (o.height === undefined) ? o.target.getHeight() : parseInt(o.height, 10);
+                    w = (o.width === undefined) ? o.target.getWidth() : parseFloat(o.width);
+                    h = (o.height === undefined) ? o.target.getHeight() : parseFloat(o.height);
 
                     // Only set the size of the Component on the last frame, or if the animation was
                     // configured with dynamic: true.
@@ -118,16 +103,8 @@ Ext.define('Ext.fx.target.Component', {
                     // Component's animate function initially resizes to the larger size before resizing the
                     // outer element to clip the contents.
                     if (isLastFrame || me.dynamic) {
-                        o.target.componentLayout.childrenChanged = true;
-
-                        // Flag if we are being called by an animating layout: use setCalculatedSize
-                        if (me.layoutAnimation) {
-                            o.target.setCalculatedSize(w, h);
-                        } else {
-                            o.target.setSize(w, h);
-                        }
-                    }
-                    else {
+                        o.target.setSize(w, h);
+                    } else {
                         o.target.el.setSize(w, h);
                     }
                 }
@@ -139,4 +116,3 @@ Ext.define('Ext.fx.target.Component', {
         }
     }
 });
-

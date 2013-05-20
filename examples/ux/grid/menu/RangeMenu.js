@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.ux.grid.menu.RangeMenu
  * @extends Ext.menu.Menu
@@ -62,17 +48,17 @@ fields : {
      */
 
     /**
-     * @cfg {Object} iconCls
-     * The iconCls to be applied to each comparator field item.
+     * @cfg {Object} itemIconCls
+     * The itemIconCls to be applied to each comparator field item.
      * Defaults to:<pre>
-iconCls : {
+itemIconCls : {
     gt : 'ux-rangemenu-gt',
     lt : 'ux-rangemenu-lt',
     eq : 'ux-rangemenu-eq'
 }
      * </pre>
      */
-    iconCls : {
+    itemIconCls : {
         gt : 'ux-rangemenu-gt',
         lt : 'ux-rangemenu-lt',
         eq : 'ux-rangemenu-eq'
@@ -150,12 +136,13 @@ menuItemCfgs : {
                     enableKeyEvents: true,
                     hideLabel: false,
                     fieldLabel: me.iconTpl.apply({
-                        cls: me.iconCls[item] || 'no-icon',
+                        cls: me.itemIconCls[item] || 'no-icon',
                         text: me.fieldLabels[item] || '',
                         src: Ext.BLANK_IMAGE_URL
                     }),
                     labelSeparator: '',
                     labelWidth: 29,
+                    labelStyle: 'position: relative;',
                     listeners: {
                         scope: me,
                         change: me.onInputChange,
@@ -211,11 +198,21 @@ menuItemCfgs : {
      * @param {Object} data The data to assign to this menu
      */	
     setValue : function (data) {
-        var key;
-        for (key in this.fields) {
-            this.fields[key].setValue(key in data ? data[key] : '');
+        var me = this,
+            key,
+            field;
+
+        for (key in me.fields) {
+            
+            // Prevent field's change event from tiggering a Store filter. The final upate event will do that
+            field = me.fields[key];
+            field.suspendEvents();
+            field.setValue(key in data ? data[key] : '');
+            field.resumeEvents();
         }
-        this.fireEvent('update', this);
+
+        // Trigger the filering of the Store
+        me.fireEvent('update', me);
     },
 
     /**  
@@ -268,4 +265,3 @@ menuItemCfgs : {
     );
 
 });
-

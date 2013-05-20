@@ -22,9 +22,11 @@ function readCreateSql() {
 // collect request parameters
 $start  = isset($_REQUEST['start'])  ? $_REQUEST['start']  :  0;
 $count  = isset($_REQUEST['limit'])  ? $_REQUEST['limit']  : 50;
-$sort   = isset($_REQUEST['sort'])   ? $_REQUEST['sort']   : '';
-$dir    = isset($_REQUEST['dir'])    ? $_REQUEST['dir']    : 'ASC';
+$sort   = isset($_REQUEST['sort'])   ? json_decode($_REQUEST['sort'])   : null;
 $filters = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : null;
+
+$sortProperty = $sort[0]->property; 
+$sortDirection = $sort[0]->direction;
 
 // GridFilters sends filters as an Array if not json encoded
 if (is_array($filters)) {
@@ -90,9 +92,7 @@ if (is_array($filters)) {
 }
 
 $query = "SELECT * FROM demo WHERE ".$where;
-if ($sort != "") {
-    $query .= " ORDER BY ".$sort." ".$dir;
-}
+$query .= " ORDER BY ".$sortProperty." ".$sortDirection;
 $query .= " LIMIT ".$start.",".$count;
 
 $db = getDB();

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -107,10 +93,12 @@ Ext.define('Ext.form.field.Number', {
     alternateClassName: ['Ext.form.NumberField', 'Ext.form.Number'],
 
     /**
-     * @cfg {RegExp} stripCharsRe @hide
+     * @cfg {RegExp} stripCharsRe
+     * @private
      */
     /**
-     * @cfg {RegExp} maskRe @hide
+     * @cfg {RegExp} maskRe
+     * @private
      */
 
     /**
@@ -119,29 +107,47 @@ Ext.define('Ext.form.field.Number', {
      */
     allowDecimals : true,
 
+    //<locale>
     /**
      * @cfg {String} decimalSeparator
      * Character(s) to allow as the decimal separator
      */
     decimalSeparator : '.',
+    //</locale>
+    
+    //<locale>
+    /**
+     * @cfg {Boolean} [submitLocaleSeparator=true]
+     * False to ensure that the {@link #getSubmitValue} method strips
+     * always uses `.` as the separator, regardless of the {@link #decimalSeparator}
+     * configuration.
+     */
+    submitLocaleSeparator: true,
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {Number} decimalPrecision
      * The maximum precision to display after the decimal separator
      */
     decimalPrecision : 2,
+    //</locale>
 
     /**
      * @cfg {Number} minValue
-     * The minimum allowed value (defaults to Number.NEGATIVE_INFINITY). Will be used by the field's validation logic,
+     * The minimum allowed value. Will be used by the field's validation logic,
      * and for {@link Ext.form.field.Spinner#setSpinUpEnabled enabling/disabling the down spinner button}.
+     *
+     * Defaults to Number.NEGATIVE_INFINITY.
      */
     minValue: Number.NEGATIVE_INFINITY,
 
     /**
      * @cfg {Number} maxValue
-     * The maximum allowed value (defaults to Number.MAX_VALUE). Will be used by the field's validation logic, and for
+     * The maximum allowed value. Will be used by the field's validation logic, and for
      * {@link Ext.form.field.Spinner#setSpinUpEnabled enabling/disabling the up spinner button}.
+     *
+     * Defaults to Number.MAX_VALUE.
      */
     maxValue: Number.MAX_VALUE,
 
@@ -152,31 +158,39 @@ Ext.define('Ext.form.field.Number', {
      */
     step: 1,
 
+    //<locale>
     /**
      * @cfg {String} minText
      * Error text to display if the minimum value validation fails.
      */
     minText : 'The minimum value for this field is {0}',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} maxText
      * Error text to display if the maximum value validation fails.
      */
     maxText : 'The maximum value for this field is {0}',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} nanText
      * Error text to display if the value is not a valid number. For example, this can happen if a valid character like
      * '.' or '-' is left in the field with no number.
      */
     nanText : '{0} is not a valid number',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} negativeText
      * Error text to display if the value is negative and {@link #minValue} is set to 0. This is used instead of the
      * {@link #minText} in that circumstance only.
      */
     negativeText : 'The value cannot be negative',
+    //</locale>
 
     /**
      * @cfg {String} baseChars
@@ -275,15 +289,27 @@ Ext.define('Ext.form.field.Number', {
         value = isNaN(value) ? '' : String(value).replace('.', decimalSeparator);
         return value;
     },
+    
+    getSubmitValue: function() {
+        var me = this,
+            value = me.callParent();
+            
+        if (!me.submitLocaleSeparator) {
+            value = value.replace(me.decimalSeparator, '.');
+        }  
+        return value;
+    },
 
     onChange: function() {
+        this.toggleSpinners();
+        this.callParent(arguments);
+    },
+    
+    toggleSpinners: function(){
         var me = this,
             value = me.getValue(),
             valueIsNull = value === null;
-
-        me.callParent(arguments);
-
-        // Update the spinner buttons
+            
         me.setSpinUpEnabled(valueIsNull || value < me.maxValue);
         me.setSpinDownEnabled(valueIsNull || value > me.minValue);
     },
@@ -294,6 +320,7 @@ Ext.define('Ext.form.field.Number', {
      */
     setMinValue : function(value) {
         this.minValue = Ext.Number.from(value, Number.NEGATIVE_INFINITY);
+        this.toggleSpinners();
     },
 
     /**
@@ -302,6 +329,7 @@ Ext.define('Ext.form.field.Number', {
      */
     setMaxValue: function(value) {
         this.maxValue = Ext.Number.from(value, Number.MAX_VALUE);
+        this.toggleSpinners();
     },
 
     // private
@@ -350,4 +378,3 @@ Ext.define('Ext.form.field.Number', {
         }
     }
 });
-

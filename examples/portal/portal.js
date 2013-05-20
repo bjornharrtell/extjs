@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.app.Portal
  * @extends Object
@@ -27,7 +13,7 @@ If you are unsure which license is appropriate for your use, please contact the 
 Ext.define('Ext.app.Portal', {
 
     extend: 'Ext.container.Viewport',
-
+    //requires: [ 'Ext.diag.layout.ContextItem', 'Ext.diag.layout.Context' ],
     uses: ['Ext.app.PortalPanel', 'Ext.app.PortalColumn', 'Ext.app.GridPortlet', 'Ext.app.ChartPortlet'],
 
     getTools: function(){
@@ -36,7 +22,7 @@ Ext.define('Ext.app.Portal', {
             type: 'gear',
             handler: function(e, target, panelHeader, tool){
                 var portlet = panelHeader.ownerCt;
-                portlet.setLoading('Working...');
+                portlet.setLoading('Loading...');
                 Ext.defer(function() {
                     portlet.setLoading(false);
                 }, 2000);
@@ -73,8 +59,8 @@ Ext.define('Ext.app.Portal', {
                     maxWidth: 400,
                     split: true,
                     collapsible: true,
-                    layout: 'accordion',
-                    layoutConfig:{
+                    layout:{
+                        type: 'accordion',
                         animate: true
                     },
                     items: [{
@@ -162,4 +148,3 @@ Ext.define('Ext.app.Portal', {
         }
     }
 });
-

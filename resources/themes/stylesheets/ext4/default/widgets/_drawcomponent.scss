@@ -1,6 +1,11 @@
+/**
+ * Creates base structure for a Draw Component.
+ * @member Ext.draw.Component
+ */
 @mixin extjs-drawcomponent {
     .#{$prefix}surface {
         @include inline-block;
+        overflow: hidden;
     }
 
     .rvml {
@@ -37,7 +42,7 @@
     }
 
     .#{$prefix}vml-base {
-        position: relative; 
+        position: relative;
         top: 0;
         left: 0;
         overflow: hidden;
@@ -45,11 +50,15 @@
     }
 
     .#{$prefix}vml-base {
-        position: relative; 
+        position: relative;
         top: 0;
         left: 0;
         overflow: hidden;
         display: inline-block;
+    }
+
+    svg, vml {
+        overflow: hidden;
     }
 }
 

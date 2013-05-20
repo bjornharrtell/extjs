@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">// private - DD implementation for Panels
+  <pre class="prettyprint lang-js"><span id='Ext-draw-SpriteDD'>/**
+</span> * DD implementation for Panels.
+ * @private
+ */
 Ext.define('Ext.draw.SpriteDD', {
     extend: 'Ext.dd.DragSource',
 
@@ -57,7 +60,7 @@ Ext.define('Ext.draw.SpriteDD', {
         y1 = pos[1];
         y2 = y1 + bbox.height;
         
-        return Ext.create('Ext.util.Region', y1, x2, y2, x1);
+        return new Ext.util.Region(y1, x2, y2, x1);
     },
 
     /*

@@ -16,16 +16,14 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-util-CSS'>/**
-</span> * @class Ext.util.CSS
- * Utility class for manipulating CSS rules
+</span> * Utility class for manipulating CSS rules
  * @singleton
  */
-Ext.define('Ext.util.CSS', function() {
-    var rules = null;
-    var doc = document;
-
-    var camelRe = /(-[a-z])/gi;
-    var camelFn = function(m, a){ return a.charAt(1).toUpperCase(); };
+Ext.define('Ext.util.CSS', (function() {
+    var rules = null,
+        doc = document,
+        camelRe = /(-[a-z])/gi,
+        camelFn = function(m, a){ return a.charAt(1).toUpperCase(); };
 
     return {
 
@@ -87,9 +85,10 @@ Ext.define('Ext.util.CSS', function() {
          * @param {String} url The href of the new stylesheet to include
          */
         swapStyleSheet : function(id, url) {
-            var doc = document;
+            var doc = document,
+                ss;
             this.removeStyleSheet(id);
-            var ss = doc.createElement(&quot;link&quot;);
+            ss = doc.createElement(&quot;link&quot;);
             ss.setAttribute(&quot;rel&quot;, &quot;stylesheet&quot;);
             ss.setAttribute(&quot;type&quot;, &quot;text/css&quot;);
             ss.setAttribute(&quot;id&quot;, id);
@@ -133,10 +132,10 @@ Ext.define('Ext.util.CSS', function() {
         },
 
 <span id='Ext-util-CSS-method-getRules'>        /**
-</span>        * Gets all css rules for the document
-        * @param {Boolean} refreshCache true to refresh the internal cache
-        * @return {Object} An object (hash) of rules indexed by selector
-        */
+</span>         * Gets all css rules for the document
+         * @param {Boolean} refreshCache true to refresh the internal cache
+         * @return {Object} An object (hash) of rules indexed by selector
+         */
         getRules : function(refreshCache) {
             if (rules === null || refreshCache) {
                 rules = {};
@@ -162,11 +161,12 @@ Ext.define('Ext.util.CSS', function() {
          * @return {CSSStyleRule} The CSS rule or null if one is not found
          */
         getRule: function(selector, refreshCache) {
-            var rs = this.getRules(refreshCache);
+            var rs = this.getRules(refreshCache),
+                i;
             if (!Ext.isArray(selector)) {
                 return rs[selector.toLowerCase()];
             }
-            for (var i = 0; i &lt; selector.length; i++) {
+            for (i = 0; i &lt; selector.length; i++) {
                 if (rs[selector[i]]) {
                     return rs[selector[i].toLowerCase()];
                 }
@@ -182,14 +182,15 @@ Ext.define('Ext.util.CSS', function() {
          * @return {Boolean} true If a rule was found and updated
          */
         updateRule : function(selector, property, value){
+            var rule, i;
             if (!Ext.isArray(selector)) {
-                var rule = this.getRule(selector);
+                rule = this.getRule(selector);
                 if (rule) {
                     rule.style[property.replace(camelRe, camelFn)] = value;
                     return true;
                 }
             } else {
-                for (var i = 0; i &lt; selector.length; i++) {
+                for (i = 0; i &lt; selector.length; i++) {
                     if (this.updateRule(selector[i], property, value)) {
                         return true;
                     }
@@ -198,6 +199,6 @@ Ext.define('Ext.util.CSS', function() {
             return false;
         }
     };
-}());</pre>
+}()));</pre>
 </body>
 </html>

@@ -17,7 +17,6 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-direct-JsonProvider'>/**
 </span> * @class Ext.direct.JsonProvider
- * @extends Ext.direct.Provider
 
 A base provider for communicating using JSON. This is an abstract class
 and should not be instanced directly.
@@ -70,10 +69,10 @@ Ext.define('Ext.direct.JsonProvider', {
         try{
             data = this.parseResponse(response);
         } catch(e) {
-            event = Ext.create('Ext.direct.ExceptionEvent', {
+            event = new Ext.direct.ExceptionEvent({
                 data: e,
                 xhr: response,
-                code: Ext.direct.Manager.self.exceptions.PARSE,
+                code: Ext.direct.Manager.exceptions.PARSE,
                 message: 'Error parsing json response: \n\n ' + data
             });
             return [event];

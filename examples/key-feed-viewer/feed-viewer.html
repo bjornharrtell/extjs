@@ -5,6 +5,9 @@
     <title>Key Feed Viewer</title>
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css">
     <link rel="stylesheet" type="text/css" href="Feed-Viewer.css">
+
+    <!-- GC -->
+
 <style type="text/css">
 .x-menu-item img.preview-right, button.preview-right {
     background-image: url(images/preview-right.gif);
@@ -23,7 +26,7 @@
     margin: 0;
 }
 </style>
-    <script type="text/javascript" src="../../bootstrap.js"></script>
+    <script type="text/javascript" src="../../ext-all.js"></script>
     <script type="text/javascript" src="viewer/FeedPost.js"></script>
     <script type="text/javascript" src="viewer/FeedDetail.js"></script>
     <script type="text/javascript" src="viewer/FeedGrid.js"></script>
@@ -48,9 +51,9 @@
             'Ext.FocusManager',
             'Ext.toolbar.Spacer'
         ]);
-        Ext.onReady(function(){
+        Ext.onReady(function() {
+            new FeedViewer.App();
             Ext.FocusManager.enable(true);
-            var app = new FeedViewer.App();
         });
     </script>
 </head>

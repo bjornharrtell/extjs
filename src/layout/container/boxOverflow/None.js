@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @private
  * Base class for Box Layout overflow handlers. These specialized classes are invoked when a Box Layout
@@ -19,18 +5,50 @@ If you are unsure which license is appropriate for your use, please contact the 
  * for its container.
  */
 Ext.define('Ext.layout.container.boxOverflow.None', {
-    
     alternateClassName: 'Ext.layout.boxOverflow.None',
     
     constructor: function(layout, config) {
         this.layout = layout;
-        Ext.apply(this, config || {});
+        Ext.apply(this, config);
     },
 
     handleOverflow: Ext.emptyFn,
 
     clearOverflow: Ext.emptyFn,
-    
+
+    beginLayout: Ext.emptyFn,
+    beginLayoutCycle: Ext.emptyFn,
+    finishedLayout: Ext.emptyFn,
+
+    completeLayout: function (ownerContext) {
+        var me = this,
+            plan = ownerContext.state.boxPlan,
+            overflow;
+
+        if (plan && plan.tooNarrow) {
+            overflow = me.handleOverflow(ownerContext);
+
+            if (overflow) {
+                if (overflow.reservedSpace) {
+                    me.layout.publishInnerCtSize(ownerContext, overflow.reservedSpace);
+                }
+
+                // TODO: If we need to use the code below then we will need to pass along
+                // the new targetSize as state and use it calculate somehow...
+                //
+                //if (overflow.recalculate) {
+                //    ownerContext.invalidate({
+                //        state: {
+                //            overflow: overflow
+                //        }
+                //    });
+                //}
+            }
+        } else {
+            me.clearOverflow();
+        }
+    },
+
     onRemove: Ext.emptyFn,
 
     /**
@@ -43,5 +61,24 @@ Ext.define('Ext.layout.container.boxOverflow.None', {
         return this.layout.owner.getComponent(item);
     },
     
-    onRemove: Ext.emptyFn
+    getOwnerType: function(owner){
+        var type;
+        if (owner.isToolbar) {
+            type = 'toolbar';
+        } else if (owner.isTabBar) {
+            type = 'tabbar';
+        } else if (owner.isMenu) {
+            type = 'menu';
+        } else {
+            type = owner.getXType();
+        }
+        
+        return type;
+    },
+
+    getPrefixConfig: Ext.emptyFn,
+    getSuffixConfig: Ext.emptyFn,
+    getOverflowCls: function() {
+        return '';
+    }
 });

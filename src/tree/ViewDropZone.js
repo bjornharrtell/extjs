@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.tree.ViewDropZone
- * @extends Ext.view.DropZone
  * @private
  */
 Ext.define('Ext.tree.ViewDropZone', {
@@ -46,7 +30,7 @@ Ext.define('Ext.tree.ViewDropZone', {
      */
     expandDelay : 500,
 
-    indicatorCls: 'x-tree-ddindicator',
+    indicatorCls: Ext.baseCSSPrefix + 'tree-ddindicator',
 
     // private
     expandNode : function(node) {
@@ -262,7 +246,8 @@ Ext.define('Ext.tree.ViewDropZone', {
 
         // A function to transfer the data into the destination tree
         transferData = function() {
-            var node;
+            var node,
+                r, rLen, color, n;
             for (i = 0, len = data.records.length; i < len; i++) {
                 argList[0] = data.records[i];
                 node = insertionMethod.apply(targetNode, argList);
@@ -277,11 +262,16 @@ Ext.define('Ext.tree.ViewDropZone', {
             if (Ext.enableFx && me.dropHighlight) {
                 //FIXME: the check for n.firstChild is not a great solution here. Ideally the line should simply read 
                 //Ext.fly(n.firstChild) but this yields errors in IE6 and 7. See ticket EXTJSIV-1705 for more details
-                Ext.Array.forEach(recordDomNodes, function(n) {
+                rLen  = recordDomNodes.length;
+                color = me.dropHighlightColor;
+
+                for (r = 0; r < rLen; r++) {
+                    n = recordDomNodes[r];
+
                     if (n) {
-                        Ext.fly(n.firstChild ? n.firstChild : n).highlight(me.dropHighlightColor);
+                        Ext.fly(n.firstChild ? n.firstChild : n).highlight(color);
                     }
-                });
+                }
             }
         };
 

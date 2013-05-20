@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -55,7 +41,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *             xtype: 'label',
  *             forId: 'myFieldId',
  *             text: 'My Awesome Field',
- *             margins: '0 0 0 10'
+ *             margin: '0 0 0 10'
  *         }]
  *     });
  */
@@ -63,6 +49,8 @@ Ext.define('Ext.form.Label', {
     extend:'Ext.Component',
     alias: 'widget.label',
     requires: ['Ext.util.Format'],
+
+    autoEl: 'label',
 
     /**
      * @cfg {String} [text='']
@@ -83,14 +71,14 @@ Ext.define('Ext.form.Label', {
      */
     
     maskOnDisable: false,
+
     getElConfig: function(){
         var me = this;
-        return {
-            tag: 'label', 
-            id: me.id, 
-            htmlFor: me.forId || '',
-            html: me.text ? Ext.util.Format.htmlEncode(me.text) : (me.html || '') 
-        };
+
+        me.html = me.text ? Ext.util.Format.htmlEncode(me.text) : (me.html || '');
+        return Ext.apply(me.callParent(), {
+            htmlFor: me.forId || ''
+        });
     },
 
     /**
@@ -115,9 +103,9 @@ Ext.define('Ext.form.Label', {
         
         if(me.rendered){
             me.el.dom.innerHTML = encode !== false ? Ext.util.Format.htmlEncode(text) : text;
+            me.updateLayout();
         }
-        return this;
+        return me;
     }
 });
-
 

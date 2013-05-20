@@ -15,404 +15,462 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-form-CheckboxGroup'>/**
-</span> * A {@link Ext.form.FieldContainer field container} which has a specialized layout for arranging
- * {@link Ext.form.field.Checkbox} controls into columns, and provides convenience
- * {@link Ext.form.field.Field} methods for {@link #getValue getting}, {@link #setValue setting},
- * and {@link #validate validating} the group of checkboxes as a whole.
- *
- * # Validation
- *
- * Individual checkbox fields themselves have no default validation behavior, but
- * sometimes you want to require a user to select at least one of a group of checkboxes. CheckboxGroup
- * allows this by setting the config `{@link #allowBlank}:false`; when the user does not check at
- * least one of the checkboxes, the entire group will be highlighted as invalid and the
- * {@link #blankText error message} will be displayed according to the {@link #msgTarget} config.
- *
- * # Layout
- *
- * The default layout for CheckboxGroup makes it easy to arrange the checkboxes into
- * columns; see the {@link #columns} and {@link #vertical} config documentation for details. You may also
- * use a completely different layout by setting the {@link #layout} to one of the other supported layout
- * types; for instance you may wish to use a custom arrangement of hbox and vbox containers. In that case
- * the checkbox components at any depth will still be managed by the CheckboxGroup's validation.
- *
- *     @example
- *     Ext.create('Ext.form.Panel', {
- *         title: 'Checkbox Group',
- *         width: 300,
- *         height: 125,
- *         bodyPadding: 10,
- *         renderTo: Ext.getBody(),
- *         items:[{
- *             xtype: 'checkboxgroup',
- *             fieldLabel: 'Two Columns',
- *             // Arrange radio buttons into two columns, distributed vertically
- *             columns: 2,
- *             vertical: true,
- *             items: [
- *                 { boxLabel: 'Item 1', name: 'rb', inputValue: '1' },
- *                 { boxLabel: 'Item 2', name: 'rb', inputValue: '2', checked: true },
- *                 { boxLabel: 'Item 3', name: 'rb', inputValue: '3' },
- *                 { boxLabel: 'Item 4', name: 'rb', inputValue: '4' },
- *                 { boxLabel: 'Item 5', name: 'rb', inputValue: '5' },
- *                 { boxLabel: 'Item 6', name: 'rb', inputValue: '6' }
- *             ]
- *         }]
- *     });
+  <pre class="prettyprint lang-js"><span id='Ext-layout-container-CheckboxGroup'>/**
+</span> * This layout implements the column arrangement for {@link Ext.form.CheckboxGroup} and {@link Ext.form.RadioGroup}.
+ * It groups the component's sub-items into columns based on the component's
+ * {@link Ext.form.CheckboxGroup#columns columns} and {@link Ext.form.CheckboxGroup#vertical} config properties.
  */
-Ext.define('Ext.form.CheckboxGroup', {
-    extend:'Ext.form.FieldContainer',
-    mixins: {
-        field: 'Ext.form.field.Field'
-    },
-    alias: 'widget.checkboxgroup',
-    requires: ['Ext.layout.container.CheckboxGroup', 'Ext.form.field.Base'],
+Ext.define('Ext.layout.container.CheckboxGroup', {
+    extend: 'Ext.layout.container.Container',
+    alias: ['layout.checkboxgroup'],
 
-<span id='Ext-form-CheckboxGroup-cfg-name'>    /**
-</span>     * @cfg {String} name
-     * @hide
-     */
-
-<span id='Ext-form-CheckboxGroup-cfg-items'>    /**
-</span>     * @cfg {Ext.form.field.Checkbox[]/Object[]} items
-     * An Array of {@link Ext.form.field.Checkbox Checkbox}es or Checkbox config objects to arrange in the group.
-     */
-
-<span id='Ext-form-CheckboxGroup-cfg-columns'>    /**
-</span>     * @cfg {String/Number/Number[]} columns
-     * Specifies the number of columns to use when displaying grouped checkbox/radio controls using automatic layout.
-     * This config can take several types of values:
+<span id='Ext-layout-container-CheckboxGroup-cfg-autoFlex'>    /**
+</span>     * @cfg {Boolean} [autoFlex=true]
+     * By default,  CheckboxGroup allocates all available space to the configured columns meaning that
+     * column are evenly spaced across the container.
      *
-     * - 'auto' - The controls will be rendered one per column on one row and the width of each column will be evenly
-     *   distributed based on the width of the overall field container. This is the default.
-     * - Number - If you specific a number (e.g., 3) that number of columns will be created and the contained controls
-     *   will be automatically distributed based on the value of {@link #vertical}.
-     * - Array - You can also specify an array of column widths, mixing integer (fixed width) and float (percentage
-     *   width) values as needed (e.g., [100, .25, .75]). Any integer values will be rendered first, then any float
-     *   values will be calculated as a percentage of the remaining space. Float values do not have to add up to 1
-     *   (100%) although if you want the controls to take up the entire field container you should do so.
+     * To have each column only be wide enough to fit the container Checkboxes (or Radios), set `autoFlex` to `false`
      */
-    columns : 'auto',
+    autoFlex: true,
 
-<span id='Ext-form-CheckboxGroup-cfg-vertical'>    /**
-</span>     * @cfg {Boolean} vertical
-     * True to distribute contained controls across columns, completely filling each column top to bottom before
-     * starting on the next column. The number of controls in each column will be automatically calculated to keep
-     * columns as even as possible. The default value is false, so that controls will be added to columns one at a time,
-     * completely filling each row left to right before starting on the next row.
-     */
-    vertical : false,
+    type: 'checkboxgroup',
 
-<span id='Ext-form-CheckboxGroup-cfg-allowBlank'>    /**
-</span>     * @cfg {Boolean} allowBlank
-     * False to validate that at least one item in the group is checked. If no items are selected at
-     * validation time, {@link #blankText} will be used as the error text.
-     */
-    allowBlank : true,
+    childEls: [
+        'innerCt'
+    ],
 
-<span id='Ext-form-CheckboxGroup-cfg-blankText'>    /**
-</span>     * @cfg {String} blankText
-     * Error text to display if the {@link #allowBlank} validation fails
-     */
-    blankText : &quot;You must select at least one item in this group&quot;,
+    renderTpl: [
+        '&lt;table id=&quot;{ownerId}-innerCt&quot; role=&quot;presentation&quot; style=&quot;{tableStyle}&quot;&gt;&lt;tbody&gt;&lt;tr&gt;',
+            '&lt;tpl for=&quot;columns&quot;&gt;',
+                '&lt;td class=&quot;{parent.colCls}&quot; valign=&quot;top&quot; style=&quot;{style}&quot;&gt;',
+                    '{% this.renderColumn(out,parent,xindex-1) %}',
+                '&lt;/td&gt;',
+            '&lt;/tpl&gt;',
+        '&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;'
+    ],
 
-    // private
-    defaultType : 'checkboxfield',
+    lastOwnerItemsGeneration : null,
 
-    // private
-    groupCls : Ext.baseCSSPrefix + 'form-check-group',
-
-<span id='Ext-form-CheckboxGroup-cfg-fieldBodyCls'>    /**
-</span>     * @cfg {String} fieldBodyCls
-     * An extra CSS class to be applied to the body content element in addition to {@link #baseBodyCls}.
-     * Defaults to 'x-form-checkboxgroup-body'.
-     */
-    fieldBodyCls: Ext.baseCSSPrefix + 'form-checkboxgroup-body',
-
-    // private
-    layout: 'checkboxgroup',
-
-    initComponent: function() {
-        var me = this;
-        me.callParent();
-        me.initField();
-    },
-
-<span id='Ext-form-CheckboxGroup-method-initValue'>    /**
-</span>     * Initializes the field's value based on the initial config. If the {@link #value} config is specified then we use
-     * that to set the value; otherwise we initialize the originalValue by querying the values of all sub-checkboxes
-     * after they have been initialized.
-     * @protected
-     */
-    initValue: function() {
+    beginLayout: function(ownerContext) {
         var me = this,
-            valueCfg = me.value;
-        me.originalValue = me.lastValue = valueCfg || me.getValue();
-        if (valueCfg) {
-            me.setValue(valueCfg);
-        }
-    },
+            columns,
+            numCols,
+            i, width, cwidth,
+            totalFlex = 0, flexedCols = 0,
+            autoFlex = me.autoFlex,
+            innerCtStyle = me.innerCt.dom.style;
 
-<span id='Ext-form-CheckboxGroup-method-onFieldAdded'>    /**
-</span>     * When a checkbox is added to the group, monitor it for changes
-     * @param {Object} field
-     * @protected
-     */
-    onFieldAdded: function(field) {
-        var me = this;
-        if (field.isCheckbox) {
-            me.mon(field, 'change', me.checkChange, me);
-        }
         me.callParent(arguments);
-    },
 
-    onFieldRemoved: function(field) {
-        var me = this;
-        if (field.isCheckbox) {
-            me.mun(field, 'change', me.checkChange, me);
-        }
-        me.callParent(arguments);
-    },
+        columns = me.columnNodes;
+        ownerContext.innerCtContext = ownerContext.getEl('innerCt', me);
 
-    // private override - the group value is a complex object, compare using object serialization
-    isEqual: function(value1, value2) {
-        var toQueryString = Ext.Object.toQueryString;
-        return toQueryString(value1) === toQueryString(value2);
-    },
+        // The columns config may be an array of widths. Any value &lt; 1 is taken to be a fraction:
+        if (!ownerContext.widthModel.shrinkWrap) {
+            numCols = columns.length;
 
-<span id='Ext-form-CheckboxGroup-method-getErrors'>    /**
-</span>     * Runs CheckboxGroup's validations and returns an array of any errors. The only error by default is if allowBlank
-     * is set to true and no items are checked.
-     * @return {String[]} Array of all validation errors
-     */
-    getErrors: function() {
-        var errors = [];
-        if (!this.allowBlank &amp;&amp; Ext.isEmpty(this.getChecked())) {
-            errors.push(this.blankText);
-        }
-        return errors;
-    },
+            // If columns is an array of numeric widths
+            if (me.columnsArray) {
 
-<span id='Ext-form-CheckboxGroup-method-getBoxes'>    /**
-</span>     * @private Returns all checkbox components within the container
-     */
-    getBoxes: function() {
-        return this.query('[isCheckbox]');
-    },
-
-<span id='Ext-form-CheckboxGroup-method-eachBox'>    /**
-</span>     * @private Convenience function which calls the given function for every checkbox in the group
-     * @param {Function} fn The function to call
-     * @param {Object} scope (Optional) scope object
-     */
-    eachBox: function(fn, scope) {
-        Ext.Array.forEach(this.getBoxes(), fn, scope || this);
-    },
-
-<span id='Ext-form-CheckboxGroup-method-getChecked'>    /**
-</span>     * Returns an Array of all checkboxes in the container which are currently checked
-     * @return {Ext.form.field.Checkbox[]} Array of Ext.form.field.Checkbox components
-     */
-    getChecked: function() {
-        return Ext.Array.filter(this.getBoxes(), function(cb) {
-            return cb.getValue();
-        });
-    },
-
-    // private override
-    isDirty: function(){
-        return Ext.Array.some(this.getBoxes(), function(cb) {
-            return cb.isDirty();
-        });
-    },
-
-    // private override
-    setReadOnly: function(readOnly) {
-        this.eachBox(function(cb) {
-            cb.setReadOnly(readOnly);
-        });
-        this.readOnly = readOnly;
-    },
-
-<span id='Ext-form-CheckboxGroup-method-reset'>    /**
-</span>     * Resets the checked state of all {@link Ext.form.field.Checkbox checkboxes} in the group to their originally
-     * loaded values and clears any validation messages.
-     * See {@link Ext.form.Basic}.{@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad}
-     */
-    reset: function() {
-        var me = this,
-            hadError = me.hasActiveError(),
-            preventMark = me.preventMark;
-        me.preventMark = true;
-        me.batchChanges(function() {
-            me.eachBox(function(cb) {
-                cb.reset();
-            });
-        });
-        me.preventMark = preventMark;
-        me.unsetActiveError();
-        if (hadError) {
-            me.doComponentLayout();
-        }
-    },
-
-    // private override
-    resetOriginalValue: function() {
-        // Defer resetting of originalValue until after all sub-checkboxes have been reset so we get
-        // the correct data from getValue()
-        Ext.defer(function() {
-            this.callParent();
-        }, 1, this);
-    },
-
-
-<span id='Ext-form-CheckboxGroup-method-setValue'>    /**
-</span>     * Sets the value(s) of all checkboxes in the group. The expected format is an Object of name-value pairs
-     * corresponding to the names of the checkboxes in the group. Each pair can have either a single or multiple values:
-     *
-     *   - A single Boolean or String value will be passed to the `setValue` method of the checkbox with that name.
-     *     See the rules in {@link Ext.form.field.Checkbox#setValue} for accepted values.
-     *   - An Array of String values will be matched against the {@link Ext.form.field.Checkbox#inputValue inputValue}
-     *     of checkboxes in the group with that name; those checkboxes whose inputValue exists in the array will be
-     *     checked and others will be unchecked.
-     *
-     * If a checkbox's name is not in the mapping at all, it will be unchecked.
-     *
-     * An example:
-     *
-     *     var myCheckboxGroup = new Ext.form.CheckboxGroup({
-     *         columns: 3,
-     *         items: [{
-     *             name: 'cb1',
-     *             boxLabel: 'Single 1'
-     *         }, {
-     *             name: 'cb2',
-     *             boxLabel: 'Single 2'
-     *         }, {
-     *             name: 'cb3',
-     *             boxLabel: 'Single 3'
-     *         }, {
-     *             name: 'cbGroup',
-     *             boxLabel: 'Grouped 1'
-     *             inputValue: 'value1'
-     *         }, {
-     *             name: 'cbGroup',
-     *             boxLabel: 'Grouped 2'
-     *             inputValue: 'value2'
-     *         }, {
-     *             name: 'cbGroup',
-     *             boxLabel: 'Grouped 3'
-     *             inputValue: 'value3'
-     *         }]
-     *     });
-     *
-     *     myCheckboxGroup.setValue({
-     *         cb1: true,
-     *         cb3: false,
-     *         cbGroup: ['value1', 'value3']
-     *     });
-     *
-     * The above code will cause the checkbox named 'cb1' to be checked, as well as the first and third checkboxes named
-     * 'cbGroup'. The other three checkboxes will be unchecked.
-     *
-     * @param {Object} value The mapping of checkbox names to values.
-     * @return {Ext.form.CheckboxGroup} this
-     */
-    setValue: function(value) {
-        var me = this;
-        me.batchChanges(function() {
-            me.eachBox(function(cb) {
-                var name = cb.getName(),
-                    cbValue = false;
-                if (value &amp;&amp; name in value) {
-                    if (Ext.isArray(value[name])) {
-                        cbValue = Ext.Array.contains(value[name], cb.inputValue);
-                    } else {
-                        // single value, let the checkbox's own setValue handle conversion
-                        cbValue = value[name];
+                // first calculate total flex
+                for (i = 0; i &lt; numCols; i++) {
+                    width = me.owner.columns[i];
+                    if (width &lt; 1) {
+                        totalFlex += width;
+                        flexedCols++;
                     }
                 }
-                cb.setValue(cbValue);
-            });
-        });
-        return me;
-    },
 
-
-<span id='Ext-form-CheckboxGroup-method-getValue'>    /**
-</span>     * Returns an object containing the values of all checked checkboxes within the group. Each key-value pair in the
-     * object corresponds to a checkbox {@link Ext.form.field.Checkbox#name name}. If there is only one checked checkbox
-     * with a particular name, the value of that pair will be the String {@link Ext.form.field.Checkbox#inputValue
-     * inputValue} of that checkbox. If there are multiple checked checkboxes with that name, the value of that pair
-     * will be an Array of the selected inputValues.
-     *
-     * The object format returned from this method can also be passed directly to the {@link #setValue} method.
-     *
-     * NOTE: In Ext 3, this method returned an array of Checkbox components; this was changed to make it more consistent
-     * with other field components and with the {@link #setValue} argument signature. If you need the old behavior in
-     * Ext 4+, use the {@link #getChecked} method instead.
-     */
-    getValue: function() {
-        var values = {};
-        this.eachBox(function(cb) {
-            var name = cb.getName(),
-                inputValue = cb.inputValue,
-                bucket;
-            if (cb.getValue()) {
-                if (name in values) {
-                    bucket = values[name];
-                    if (!Ext.isArray(bucket)) {
-                        bucket = values[name] = [bucket];
+                // now apply widths
+                for (i = 0; i &lt; numCols; i++) {
+                    width = me.owner.columns[i];
+                    if (width &lt; 1) {
+                        cwidth = ((width / totalFlex) * 100) + '%';
+                    } else {
+                        cwidth = width + 'px';
                     }
-                    bucket.push(inputValue);
-                } else {
-                    values[name] = inputValue;
+                    columns[i].style.width = cwidth;
                 }
             }
-        });
-        return values;
-    },
 
-    /*
-     * Don't return any data for submit; the form will get the info from the individual checkboxes themselves.
-     */
-    getSubmitData: function() {
-        return null;
-    },
+            // Otherwise it's the *number* of columns, so distributed the widths evenly
+            else {
+                for (i = 0; i &lt; numCols; i++) {
+                    // autoFlex: true will automatically calculate % widths
+                    // autoFlex: false allows the table to decide (shrinkWrap, in effect)
+                    // on a per-column basis
+                    cwidth = autoFlex
+                        ? (1 / numCols * 100) + '%'
+                        : '';
+                    columns[i].style.width = cwidth;
+                    flexedCols++;
+                }
+            }
 
-    /*
-     * Don't return any data for the model; the form will get the info from the individual checkboxes themselves.
-     */
-    getModelData: function() {
-        return null;
-    },
+            // no flexed cols -- all widths are fixed
+            if (!flexedCols) {
+                innerCtStyle.tableLayout = 'fixed';
+                innerCtStyle.width = '';
+            // some flexed cols -- need to fix some
+            } else if (flexedCols &lt; numCols) {
+                innerCtStyle.tableLayout = 'fixed';
+                innerCtStyle.width = '100%';
+            // let the table decide
+            } else {
+                innerCtStyle.tableLayout = 'auto';
+                // if autoFlex, fill available space, else compact down
+                if (autoFlex) {
+                    innerCtStyle.width = '100%';
+                } else {
+                    innerCtStyle.width = '';
+                }
+            }
 
-    validate: function() {
-        var me = this,
-            errors = me.getErrors(),
-            isValid = Ext.isEmpty(errors),
-            wasValid = !me.hasActiveError();
-
-        if (isValid) {
-            me.unsetActiveError();
         } else {
-            me.setActiveError(errors);
+            innerCtStyle.tableLayout = 'auto';
+            innerCtStyle.width = '';
         }
-        if (isValid !== wasValid) {
-            me.fireEvent('validitychange', me, isValid);
-            me.doComponentLayout();
+    },
+
+    cacheElements: function () {
+        var me = this;
+
+        // Grab defined childEls
+        me.callParent();
+
+        me.rowEl = me.innerCt.down('tr');
+
+        // Grab columns TDs
+        me.columnNodes = me.rowEl.dom.childNodes;
+    },
+
+    /*
+     * Just wait for the child items to all lay themselves out in the width we are configured
+     * to make available to them. Then we can measure our height.
+     */
+    calculate: function(ownerContext) {
+        var me = this,
+            targetContext, widthShrinkWrap, heightShrinkWrap, shrinkWrap, table, targetPadding;
+
+        // The columnNodes are widthed using their own width attributes, we just need to wait
+        // for all children to have arranged themselves in that width, and then collect our height.
+        if (!ownerContext.getDomProp('containerChildrenDone')) {
+            me.done = false;
+        } else {
+            targetContext = ownerContext.innerCtContext;
+            widthShrinkWrap = ownerContext.widthModel.shrinkWrap;
+            heightShrinkWrap = ownerContext.heightModel.shrinkWrap;
+            shrinkWrap = heightShrinkWrap || widthShrinkWrap;
+            table = targetContext.el.dom;
+            targetPadding = shrinkWrap &amp;&amp; targetContext.getPaddingInfo();
+
+            if (widthShrinkWrap) {
+                ownerContext.setContentWidth(table.offsetWidth + targetPadding.width, true);
+            }
+
+            if (heightShrinkWrap) {
+                ownerContext.setContentHeight(table.offsetHeight + targetPadding.height, true);
+            }
+        }
+    },
+
+    doRenderColumn: function (out, renderData, columnIndex) {
+        // Careful! This method is bolted on to the renderTpl so all we get for context is
+        // the renderData! The &quot;this&quot; pointer is the renderTpl instance!
+
+        var me = renderData.$layout,
+            owner = me.owner,
+            columnCount = renderData.columnCount,
+            items = owner.items.items,
+            itemCount = items.length,
+            item, itemIndex, rowCount, increment, tree;
+
+        // Example:
+        //      columnCount = 3
+        //      items.length = 10
+
+        if (owner.vertical) {
+            //        0   1   2
+            //      +---+---+---+
+            //    0 | 0 | 4 | 8 |
+            //      +---+---+---+
+            //    1 | 1 | 5 | 9 |
+            //      +---+---+---+
+            //    2 | 2 | 6 |   |
+            //      +---+---+---+
+            //    3 | 3 | 7 |   |
+            //      +---+---+---+
+
+            rowCount = Math.ceil(itemCount / columnCount); // = 4
+            itemIndex = columnIndex * rowCount;
+            itemCount = Math.min(itemCount, itemIndex + rowCount);
+            increment = 1;
+        } else {
+            //        0   1   2
+            //      +---+---+---+
+            //    0 | 0 | 1 | 2 |
+            //      +---+---+---+
+            //    1 | 3 | 4 | 5 |
+            //      +---+---+---+
+            //    2 | 6 | 7 | 8 |
+            //      +---+---+---+
+            //    3 | 9 |   |   |
+            //      +---+---+---+
+
+            itemIndex = columnIndex;
+            increment = columnCount;
         }
 
-        return isValid;
+        for ( ; itemIndex &lt; itemCount; itemIndex += increment) {
+            item = items[itemIndex];
+            me.configureItem(item);
+            tree = item.getRenderTree();
+            Ext.DomHelper.generateMarkup(tree, out);
+        }
+    },
+
+<span id='Ext-layout-container-CheckboxGroup-method-getColumnCount'>    /**
+</span>     * Returns the number of columns in the checkbox group.
+     * @private
+     */
+    getColumnCount: function() {
+        var me = this,
+            owner = me.owner,
+            ownerColumns = owner.columns;
+
+        // Our columns config is an array of numeric widths.
+        // Calculate our total width
+        if (me.columnsArray) {
+            return ownerColumns.length;
+        }
+
+        if (Ext.isNumber(ownerColumns)) {
+            return ownerColumns;
+        }
+        return owner.items.length;
+    },
+
+    getItemSizePolicy: function (item) {
+        return this.autoSizePolicy;
+    },
+
+    getRenderData: function () {
+        var me = this,
+            data = me.callParent(),
+            owner = me.owner,
+            i, columns = me.getColumnCount(),
+            width, column, cwidth,
+            autoFlex = me.autoFlex,
+            totalFlex = 0, flexedCols = 0;
+
+        // calculate total flex
+        if (me.columnsArray) {
+            for (i=0; i &lt; columns; i++) {
+                width = me.owner.columns[i];
+                if (width &lt; 1) {
+                    totalFlex += width;
+                    flexedCols++;
+                }
+            }
+        }
+
+        data.colCls = owner.groupCls;
+        data.columnCount = columns;
+
+        data.columns = [];
+        for (i = 0; i &lt; columns; i++) {
+            column = (data.columns[i] = {});
+
+            if (me.columnsArray) {
+                width = me.owner.columns[i];
+                if (width &lt; 1) {
+                    cwidth = ((width / totalFlex) * 100) + '%';
+                } else {
+                    cwidth = width + 'px';
+                }
+                column.style = 'width:' + cwidth;
+            } else {
+                column.style = 'width:' + (1 / columns * 100) + '%';
+                flexedCols++;
+            }
+        }
+
+        // If the columns config was an array of column widths, allow table to auto width
+        data.tableStyle =
+            !flexedCols ? 'table-layout:fixed;' :
+            (flexedCols &lt; columns) ? 'table-layout:fixed;width:100%' :
+            (autoFlex) ? 'table-layout:auto;width:100%' : 'table-layout:auto;';
+
+        return data;
+    },
+
+    initLayout: function () {
+        var me = this,
+            owner = me.owner;
+
+        me.columnsArray = Ext.isArray(owner.columns);
+        me.autoColumns = !owner.columns || owner.columns === 'auto';
+        me.vertical = owner.vertical;
+
+        me.callParent();
+    },
+
+    // Always valid. beginLayout ensures the encapsulating elements of all children are in the correct place
+    isValidParent: function() {
+        return true;
+    },
+
+    setupRenderTpl: function (renderTpl) {
+        this.callParent(arguments);
+
+        renderTpl.renderColumn = this.doRenderColumn;
+    },
+
+    renderChildren: function () {
+        var me = this,
+            generation = me.owner.items.generation;
+
+        if (me.lastOwnerItemsGeneration !== generation) {
+            me.lastOwnerItemsGeneration = generation;
+            me.renderItems(me.getLayoutItems());
+        }
+    },
+
+<span id='Ext-layout-container-CheckboxGroup-method-renderItems'>    /**
+</span>     * Iterates over all passed items, ensuring they are rendered.  If the items are already rendered,
+     * also determines if the items are in the proper place in the dom.
+     * @protected
+     */
+    renderItems : function(items) {
+        var me = this,
+            itemCount = items.length,
+            i,
+            item,
+            rowCount,
+            columnCount,
+            rowIndex,
+            columnIndex;
+
+        if (itemCount) {
+            Ext.suspendLayouts();
+
+            if (me.autoColumns) {
+                me.addMissingColumns(itemCount);
+            }
+
+            columnCount = me.columnNodes.length;
+            rowCount = Math.ceil(itemCount / columnCount);
+
+            for (i = 0; i &lt; itemCount; i++) {
+                item = items[i];
+                rowIndex = me.getRenderRowIndex(i, rowCount, columnCount);
+                columnIndex = me.getRenderColumnIndex(i, rowCount, columnCount);
+
+                if (!item.rendered) {
+                    me.renderItem(item, rowIndex, columnIndex);
+                } else if (!me.isItemAtPosition(item, rowIndex, columnIndex)) {
+                    me.moveItem(item, rowIndex, columnIndex);
+                }
+            }
+
+            if (me.autoColumns) {
+                me.removeExceedingColumns(itemCount);
+            }
+
+            Ext.resumeLayouts(true);
+        }
+    },
+
+    isItemAtPosition : function(item, rowIndex, columnIndex) {
+        return item.el.dom === this.getNodeAt(rowIndex, columnIndex);
+    },
+
+    getRenderColumnIndex : function(itemIndex, rowCount, columnCount) {
+        if (this.vertical) {
+            return Math.floor(itemIndex / rowCount);
+        } else {
+            return itemIndex % columnCount;
+        }
+    },
+
+    getRenderRowIndex : function(itemIndex, rowCount, columnCount) {
+        var me = this;
+        if (me.vertical) {
+            return itemIndex % rowCount;
+        } else {
+            return Math.floor(itemIndex / columnCount);
+        }
+    },
+
+    getNodeAt : function(rowIndex, columnIndex) {
+        return this.columnNodes[columnIndex].childNodes[rowIndex];
+    },
+
+    addMissingColumns : function(itemsCount) {
+        var me = this,
+            existingColumnsCount = me.columnNodes.length,
+            missingColumnsCount,
+            row,
+            cls,
+            i;
+        if (existingColumnsCount &lt; itemsCount) {
+            missingColumnsCount = itemsCount - existingColumnsCount;
+            row = me.rowEl;
+            cls = me.owner.groupCls;
+            for (i = 0; i &lt; missingColumnsCount; i++) {
+                row.createChild({
+                    cls: cls,
+                    tag: 'td',
+                    vAlign: 'top'
+                });
+            }
+        }
+    },
+
+    removeExceedingColumns : function(itemsCount) {
+        var me = this,
+            existingColumnsCount = me.columnNodes.length,
+            exceedingColumnsCount,
+            row,
+            i;
+        if (existingColumnsCount &gt; itemsCount) {
+            exceedingColumnsCount = existingColumnsCount - itemsCount;
+            row = me.rowEl;
+            for (i = 0; i &lt; exceedingColumnsCount; i++) {
+                row.last().remove();
+            }
+        }
+    },
+
+<span id='Ext-layout-container-CheckboxGroup-method-renderItem'>    /**
+</span>     * Renders the given Component into the specified row and column
+     * @param {Ext.Component} item The Component to render
+     * @param {number} rowIndex row index
+     * @param {number} columnIndex column index
+     * @private
+     */
+    renderItem : function(item, rowIndex, columnIndex) {
+        var me = this;
+
+        me.configureItem(item);
+        item.render(Ext.get(me.columnNodes[columnIndex]), rowIndex);
+        me.afterRenderItem(item);
+    },
+
+<span id='Ext-layout-container-CheckboxGroup-method-moveItem'>    /**
+</span>     * Moves the given already rendered Component to the specified row and column
+     * @param {Ext.Component} item The Component to move
+     * @param {number} rowIndex row index
+     * @param {number} columnIndex column index
+     * @private
+     */
+    moveItem : function(item, rowIndex, columnIndex) {
+        var me = this,
+            column = me.columnNodes[columnIndex],
+            targetNode = column.childNodes[rowIndex];
+        column.insertBefore(item.el.dom, targetNode || null);
     }
 
-}, function() {
-
-    this.borrow(Ext.form.field.Base, ['markInvalid', 'clearInvalid']);
-
-});
-
-</pre>
+});</pre>
 </body>
 </html>

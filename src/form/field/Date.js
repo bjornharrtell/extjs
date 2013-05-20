@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -87,43 +73,57 @@ Ext.define('Ext.form.field.Date', {
     requires: ['Ext.picker.Date'],
     alternateClassName: ['Ext.form.DateField', 'Ext.form.Date'],
 
+    //<locale>
     /**
      * @cfg {String} format
      * The default date format string which can be overriden for localization support. The format must be valid
      * according to {@link Ext.Date#parse}.
      */
     format : "m/d/Y",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} altFormats
      * Multiple date formats separated by "|" to try when parsing a user input value and it does not match the defined
      * format.
      */
     altFormats : "m/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d|n-j|n/j",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} disabledDaysText
      * The tooltip to display when the date falls on a disabled day.
      */
     disabledDaysText : "Disabled",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} disabledDatesText
      * The tooltip text to display when the date falls on a disabled date.
      */
     disabledDatesText : "Disabled",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} minText
      * The error text to display when the date in the cell is before {@link #minValue}.
      */
     minText : "The date in this field must be equal to or after {0}",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} maxText
      * The error text to display when the date in the cell is after {@link #maxValue}.
      */
     maxText : "The date in this field must be equal to or before {0}",
+    //</locale>
+    //<locale>
     /**
      * @cfg {String} invalidText
      * The error text to display when the date in the field is invalid.
      */
     invalidText : "{0} is not a valid date - it must be in the format {1}",
+    //</locale>
     /**
      * @cfg {String} [triggerCls='x-form-date-trigger']
      * An additional CSS class used to style the trigger button. The trigger will always get the class 'x-form-trigger'
@@ -176,9 +176,19 @@ Ext.define('Ext.form.field.Date', {
 
     /**
      * @cfg {String} submitFormat
-     * The date format string which will be submitted to the server. The format must be valid according to {@link
-     * Ext.Date#parse} (defaults to {@link #format}).
+     * The date format string which will be submitted to the server. The format must be valid according to
+     * {@link Ext.Date#parse}.
+     *
+     * Defaults to {@link #format}.
      */
+    
+    /**
+     * @cfg {Boolean} useStrict
+     * True to enforce strict date parsing to prevent the default Javascript "date rollover".
+     * Defaults to the useStrict parameter set on Ext.Date
+     * See {@link Ext.Date#parse}.
+     */
+    useStrict: undefined,
 
     // in the absence of a time value, a default value of 12 noon will be used
     // (note: 12 noon was chosen because it steers well clear of all DST timezone changes)
@@ -187,11 +197,15 @@ Ext.define('Ext.form.field.Date', {
     initTimeFormat: 'H',
 
     matchFieldWidth: false,
+    //<locale>
     /**
-     * @cfg {Number} startDay
-     * Day index at which the week should begin, 0-based (defaults to Sunday)
+     * @cfg {Number} [startDay=undefined]
+     * Day index at which the week should begin, 0-based.
+     *
+     * Defaults to `0` (Sunday).
      */
     startDay: 0,
+    //</locale>
 
     initComponent : function(){
         var me = this,
@@ -227,16 +241,22 @@ Ext.define('Ext.form.field.Date', {
     // private
     initDisabledDays : function(){
         if(this.disabledDates){
-            var dd = this.disabledDates,
-                len = dd.length - 1,
-                re = "(?:";
+            var dd   = this.disabledDates,
+                len  = dd.length - 1,
+                re   = "(?:",
+                d,
+                dLen = dd.length,
+                date;
 
-            Ext.each(dd, function(d, i){
-                re += Ext.isDate(d) ? '^' + Ext.String.escapeRegex(d.dateFormat(this.format)) + '$' : dd[i];
-                if (i !== len) {
+            for (d = 0; d < dLen; d++) {
+                date = dd[d];
+
+                re += Ext.isDate(date) ? '^' + Ext.String.escapeRegex(date.dateFormat(this.format)) + '$' : date;
+                if (d !== len) {
                     re += '|';
                 }
-            }, this);
+            }
+
             this.disabledDatesRE = new RegExp(re + ')');
         }
     },
@@ -336,7 +356,7 @@ Ext.define('Ext.form.field.Date', {
         svalue = value;
         value = me.parseDate(value);
         if (!value) {
-            errors.push(format(me.invalidText, svalue, me.format));
+            errors.push(format(me.invalidText, svalue, Ext.Date.unescapeFormat(me.format)));
             return errors;
         }
 
@@ -410,15 +430,16 @@ Ext.define('Ext.form.field.Date', {
     safeParse : function(value, format) {
         var me = this,
             utilDate = Ext.Date,
-            parsedDate,
-            result = null;
+            result = null,
+            strict = me.useStrict,
+            parsedDate;
 
         if (utilDate.formatContainsHourInfo(format)) {
             // if parse format contains hour information, no DST adjustment is necessary
-            result = utilDate.parse(value, format);
+            result = utilDate.parse(value, format, strict);
         } else {
             // set time to 12 noon, then clear the time
-            parsedDate = utilDate.parse(value + ' ' + me.initTime, format + ' ' + me.initTimeFormat);
+            parsedDate = utilDate.parse(value + ' ' + me.initTime, format + ' ' + me.initTimeFormat, strict);
             if (parsedDate) {
                 result = utilDate.clearTime(parsedDate);
             }
@@ -468,7 +489,7 @@ Ext.define('Ext.form.field.Date', {
         var me = this,
             format = Ext.String.format;
 
-        return Ext.create('Ext.picker.Date', {
+        return new Ext.picker.Date({
             pickerField: me,
             ownerCt: me.ownerCt,
             renderTo: document.body,
@@ -539,20 +560,19 @@ Ext.define('Ext.form.field.Date', {
     }
 
     /**
-     * @hide
      * @cfg {Boolean} grow
+     * @private
      */
     /**
-     * @hide
      * @cfg {Number} growMin
+     * @private
      */
     /**
-     * @hide
      * @cfg {Number} growMax
+     * @private
      */
     /**
-     * @hide
      * @method autoSize
+     * @private
      */
 });
-

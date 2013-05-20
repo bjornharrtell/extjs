@@ -1,23 +1,9 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Color picker provides a simple color palette for choosing colors. The picker can be rendered to any container. The
  * available default to a standard 40-color palette; this can be customized with the {@link #colors} config.
  *
  * Typically you will need to implement a handler function to be notified when the user chooses a color from the picker;
- * you can register the handler using the {@link #select} event, or by implementing the {@link #handler} method.
+ * you can register the handler using the {@link #event-select} event, or by implementing the {@link #handler} method.
  *
  *     @example
  *     Ext.create('Ext.picker.Color', {
@@ -63,7 +49,7 @@ Ext.define('Ext.picker.Color', {
 
     /**
      * @cfg {Boolean} allowReselect
-     * If set to true then reselecting a color that is already selected fires the {@link #select} event
+     * If set to true then reselecting a color that is already selected fires the {@link #event-select} event
      */
     allowReselect : false,
 
@@ -107,8 +93,9 @@ Ext.define('Ext.picker.Color', {
 
     /**
      * @cfg {Object} scope
-     * The scope (`this` reference) in which the `{@link #handler}` function will be called. Defaults to this
-     * Color picker instance.
+     * The scope (`this` reference) in which the `{@link #handler}` function will be called.
+     *
+     * Defaults to this Color picker instance.
      */
 
     colorRe: /(?:^|\s)color-(.{6})(?:\s|$)/,
@@ -143,14 +130,18 @@ Ext.define('Ext.picker.Color', {
 
 
     // private
-    onRender : function(container, position){
-        var me = this,
-            clickEvent = me.clickEvent;
-
-        Ext.apply(me.renderData, {
+    initRenderData : function(){
+        var me = this;
+        return Ext.apply(me.callParent(), {
             itemCls: me.itemCls,
             colors: me.colors
         });
+    },
+
+    onRender : function(){
+        var me = this,
+            clickEvent = me.clickEvent;
+
         me.callParent(arguments);
 
         me.mon(me.el, clickEvent, me.handleClick, me, {delegate: 'a'});
@@ -186,9 +177,9 @@ Ext.define('Ext.picker.Color', {
     },
 
     /**
-     * Selects the specified color in the picker (fires the {@link #select} event)
+     * Selects the specified color in the picker (fires the {@link #event-select} event)
      * @param {String} color A valid 6-digit color hex code (# will be stripped if included)
-     * @param {Boolean} suppressEvent (optional) True to stop the select event from firing. Defaults to false.
+     * @param {Boolean} [suppressEvent=false] True to stop the select event from firing.
      */
     select : function(color, suppressEvent){
 
@@ -226,4 +217,3 @@ Ext.define('Ext.picker.Color', {
         return this.value || null;
     }
 });
-

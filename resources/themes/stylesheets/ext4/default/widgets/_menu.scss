@@ -1,13 +1,14 @@
 /**
-  * @class Ext.menu.*
-  */
+ * Creates the base structure of a Menu
+ * @member Ext.menu.Menu
+ */
 @mixin extjs-menu {
     .#{$prefix}menu-body {
         @include no-select;
         background: $menu-background-color !important;
         padding: $menu-padding;
     }
-    
+
     .#{$prefix}menu-item .#{$prefix}form-text {
         user-select: text;
         -webkit-user-select: text;
@@ -25,7 +26,6 @@
         border-left: solid 1px $menu-separator-border-color;
         background-color: $menu-separator-background-color;
         width: 2px;
-        height: 100%!important;
         overflow: hidden;
     }
 
@@ -62,7 +62,7 @@
         line-height: 16px;
         cursor: default;
     }
-    
+
     @if $include-opera {
         .#{$prefix}opera {
             // Opera 10.5 absolute positioning of submenu arrow has issues
@@ -79,6 +79,17 @@
         position: absolute;
         top: 5px;
         left: 4px;
+        background: no-repeat center center;
+    }
+
+    // For when an icon needs to be used in the right position where a submenu arrow usually goes.
+    // eg: When a CheckItem needs an icon. The left icon position is a checkbox, so the icon is moved to the right.
+    .#{$prefix}menu-item-icon-right {
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        top: 6px;
+        right: 4px;
         background: no-repeat center center;
     }
 
@@ -155,18 +166,18 @@
                     background-color: transparent;
                 }
             }
-            
-            .#{$prefix}strict & {
+
+            .#{$prefix}strict .#{$prefix}ie7m & {
                 .#{$prefix}menu-icon-separator {
                     width: 1px;
                 }
-                
+
                 .#{$prefix}menu-item-separator {
                     height: 1px;
                 }
             }
         }
-        
+
         .#{$prefix}ie6,
         .#{$prefix}ie7,
         .#{$prefix}quirks .#{$prefix}ie8 {
@@ -184,7 +195,7 @@
             }
         }
     }
-    
+
     .#{$prefix}menu-date-item {
         border-color: #99BBE8;
     }

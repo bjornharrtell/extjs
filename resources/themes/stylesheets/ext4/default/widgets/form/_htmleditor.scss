@@ -1,13 +1,17 @@
+/**
+ * Creates the base structure of HtmlEditor field.
+ * @member Ext.form.field.HtmlEditor
+ */
 @mixin extjs-form-htmleditor {
     .#{$prefix}html-editor-wrap {
         border: 1px solid $html-editor-border-color;
-        
+
         .#{$prefix}toolbar {
             border-top-width: 0;
             border-left-width: 0;
             border-right-width: 0;
         }
-        
+
         textarea {
             background-color: $html-editor-background-color;
         }
@@ -21,7 +25,7 @@
     .#{$prefix}html-editor-tb .#{$prefix}edit-bold,
     .#{$prefix}menu-item img.#{$prefix}edit-bold {
         background-position:0 0;
-        background-image: theme-background-image($theme-name, 'editor/tb-sprite.gif');    
+        background-image: theme-background-image($theme-name, 'editor/tb-sprite.gif');
     }
 
     .#{$prefix}html-editor-tb .#{$prefix}edit-italic,
@@ -116,7 +120,7 @@
         }
     }
 
-    .x-html-editor-wrap textarea {
+    .#{$prefix}html-editor-wrap textarea {
         border: 0;
         padding: 3px 2px;
         overflow: auto;

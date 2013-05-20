@@ -1,24 +1,8 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.ux.Spotlight
  * UX used to provide a spotlight around a specified component/element.
  */
 Ext.define('Ext.ux.Spotlight', {
-    extend: 'Object',
-
     /**
      * @private
      * The baseCls for the spotlight elements
@@ -48,50 +32,58 @@ Ext.define('Ext.ux.Spotlight', {
      * True if the spotlight is active on the element
      */
     active: false,
+    
+    constructor: function(config){
+        Ext.apply(this, config);
+    },
 
     /**
      * Create all the elements for the spotlight
      */
     createElements: function() {
-        var body = Ext.getBody();
+        var me = this,
+            baseCls = me.baseCls,
+            body = Ext.getBody();
 
-        this.right = body.createChild({
-            cls: this.baseCls
+        me.right = body.createChild({
+            cls: baseCls
         });
-        this.left = body.createChild({
-            cls: this.baseCls
+        me.left = body.createChild({
+            cls: baseCls
         });
-        this.top = body.createChild({
-            cls: this.baseCls
+        me.top = body.createChild({
+            cls: baseCls
         });
-        this.bottom = body.createChild({
-            cls: this.baseCls
+        me.bottom = body.createChild({
+            cls: baseCls
         });
 
-        this.all = Ext.create('Ext.CompositeElement', [this.right, this.left, this.top, this.bottom]);
+        me.all = Ext.create('Ext.CompositeElement', [me.right, me.left, me.top, me.bottom]);
     },
 
     /**
      * Show the spotlight
      */
     show: function(el, callback, scope) {
+        var me = this;
+        
         //get the target element
-        this.el = Ext.get(el);
+        me.el = Ext.get(el);
 
         //create the elements if they don't already exist
-        if (!this.right) {
-            this.createElements();
+        if (!me.right) {
+            me.createElements();
         }
 
-        if (!this.active) {
+        if (!me.active) {
             //if the spotlight is not active, show it
-            this.all.setDisplayed('');
-            this.active = true;
-            Ext.EventManager.onWindowResize(this.syncSize, this);
-            this.applyBounds(this.animate, false);
+            me.all.setDisplayed('');
+            me.active = true;
+            Ext.EventManager.onWindowResize(me.syncSize, me);
+            me.applyBounds(me.animate, false);
         } else {
             //if the spotlight is currently active, just move it
-            this.applyBounds(false, false);
+            me.applyBounds(false, false);
         }
     },
 
@@ -99,9 +91,11 @@ Ext.define('Ext.ux.Spotlight', {
      * Hide the spotlight
      */
     hide: function(callback, scope) {
-        Ext.EventManager.removeResizeListener(this.syncSize, this);
+        var me = this;
+        
+        Ext.EventManager.removeResizeListener(me.syncSize, me);
 
-        this.applyBounds(this.animate, true);
+        me.applyBounds(me.animate, true);
     },
 
     /**
@@ -114,20 +108,18 @@ Ext.define('Ext.ux.Spotlight', {
     /**
      * Resizes the spotlight depending on the arguments
      * @param {Boolean} animate True to animate the changing of the bounds
-     * @param {Boolean} animate True to reverse the animation
+     * @param {Boolean} reverse True to reverse the animation
      */
     applyBounds: function(animate, reverse) {
         var me = this,
-            box = me.el.getBox();
-
-        //get the current view width and height
-        var viewWidth = Ext.Element.getViewWidth(true);
-        var viewHeight = Ext.Element.getViewHeight(true);
-
-        var i = 0,
+            box = me.el.getBox(),
+            //get the current view width and height
+            viewWidth = Ext.Element.getViewWidth(true),
+            viewHeight = Ext.Element.getViewHeight(true),
+            i = 0,
             config = false,
-            from, to;
-
+            from, to, clone;
+            
         //where the element should start (if animation)
         from = {
             right: {
@@ -186,15 +178,13 @@ Ext.define('Ext.ux.Spotlight', {
 
         //reverse the objects
         if (reverse) {
-            var clone = Ext.clone(from);
+            clone = Ext.clone(from);
             from = to;
             to = clone;
-
-            delete clone;
         }
 
         if (animate) {
-            Ext.each(['right', 'left', 'top', 'bottom'], function(side) {
+            Ext.Array.forEach(['right', 'left', 'top', 'bottom'], function(side) {
                 me[side].setBox(from[side]);
                 me[side].animate({
                     duration: me.duration,
@@ -204,8 +194,9 @@ Ext.define('Ext.ux.Spotlight', {
             },
             this);
         } else {
-            Ext.each(['right', 'left', 'top', 'bottom'], function(side) {
+            Ext.Array.forEach(['right', 'left', 'top', 'bottom'], function(side) {
                 me[side].setBox(Ext.apply(from[side], to[side]));
+                me[side].repaint();
             },
             this);
         }
@@ -215,9 +206,10 @@ Ext.define('Ext.ux.Spotlight', {
      * Removes all the elements for the spotlight
      */
     destroy: function() {
-        Ext.destroy(this.right, this.left, this.top, this.bottom);
-        delete this.el;
-        delete this.all;
+        var me = this;
+        
+        Ext.destroy(me.right, me.left, me.top, me.bottom);
+        delete me.el;
+        delete me.all;
     }
 });
-

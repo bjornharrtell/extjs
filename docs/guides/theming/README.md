@@ -255,22 +255,22 @@ The slicer too itself can be run from the command line and is installed as part 
 It accepts several arguments:
 
 - **--css[=]value, -c[=]value**
-  > The path to your theme's complete CSS file, e.g., ext-all-access.css. Uses
-  > the default Ext JS 4 theme CSS if not provided.
+  The path to your theme's complete CSS file, e.g., ext-all-access.css. Uses
+  the default Ext JS 4 theme CSS if not provided.
 
 - **--ext-dir[=]value, -d[=]value (required)**
-  > The path to the root of your Ext JS 4 SDK directory.
+  The path to the root of your Ext JS 4 SDK directory.
 
 - **--manifest[=]value, -m[=]value**
-  > The path to your Theme Generator JSON manifest file, e.g., manifest.json.
-  > Uses the default packaged manifest if not provided.
+  The path to your Theme Generator JSON manifest file, e.g., manifest.json.
+  Uses the default packaged manifest if not provided.
 
 - **--output-dir[=]value, -o[=]value**
-  > The destination path to save all generated theme images. This should be inside the `resources/themes/images/<themename>/` directory.
-  > Defaults to the current working directory.
+  The destination path to save all generated theme images. This should be inside the `resources/themes/images/<themename>/` directory.
+  Defaults to the current working directory.
 
 - **--verbose, -v**
-  > Display a message for every image that is generated.
+  Display a message for every image that is generated.
 
 ### Usage
 
@@ -313,4 +313,4 @@ It accepts several arguments:
 
  * **I am getting a '`error resources/sass/my-ext-theme.scss (Line 8: File to import not found or unreadable: ext4/default/all)`' error when I compile?**
 
-    > This is because Compass cannot file the Ext JS 4 theme files. Ensure the `$ext_path` in the `sass/config.rb` file is correct.
+    This is because Compass cannot file the Ext JS 4 theme files. Ensure the `$ext_path` in the `sass/config.rb` file is correct.

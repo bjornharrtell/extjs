@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * FieldContainer is a derivation of {@link Ext.container.Container Container} that implements the
  * {@link Ext.form.Labelable Labelable} mixin. This allows it to be configured so that it is rendered with
@@ -20,7 +6,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * that it lines up nicely with other fields. A common use is for grouping a set of related fields under
  * a single label in a form.
  * 
- * The container's configured {@link #items} will be layed out within the field body area according to the
+ * The container's configured {@link #cfg-items} will be layed out within the field body area according to the
  * configured {@link #layout} type. The default layout is `'autocontainer'`.
  * 
  * Like regular fields, FieldContainer can inherit its decoration configuration from the
@@ -113,9 +99,13 @@ Ext.define('Ext.form.FieldContainer', {
         labelable: 'Ext.form.Labelable',
         fieldAncestor: 'Ext.form.FieldAncestor'
     },
+    requires: 'Ext.layout.component.field.FieldContainer',
+
     alias: 'widget.fieldcontainer',
 
-    componentLayout: 'field',
+    componentLayout: 'fieldcontainer',
+    
+    componentCls: Ext.baseCSSPrefix + 'form-fieldcontainer',
 
     /**
      * @cfg {Boolean} combineLabels
@@ -124,12 +114,14 @@ Ext.define('Ext.form.FieldContainer', {
      */
     combineLabels: false,
 
+    //<locale>
     /**
      * @cfg {String} labelConnector
      * The string to use when joining the labels of individual sub-fields, when {@link #combineLabels} is
      * set to true. Defaults to ', '.
      */
     labelConnector: ', ',
+    //</locale>
 
     /**
      * @cfg {Boolean} combineErrors
@@ -141,15 +133,21 @@ Ext.define('Ext.form.FieldContainer', {
 
     maskOnDisable: false,
 
+    fieldSubTpl: '{%this.renderContainer(out,values)%}',
+
     initComponent: function() {
-        var me = this,
-            onSubCmpAddOrRemove = me.onSubCmpAddOrRemove;
+        var me = this;
 
         // Init mixins
         me.initLabelable();
         me.initFieldAncestor();
 
         me.callParent();
+    },
+
+    beforeRender: function(){
+        this.callParent(arguments);
+        this.beforeLabelableRender(arguments);
     },
 
     /**
@@ -172,14 +170,6 @@ Ext.define('Ext.form.FieldContainer', {
         me.updateLabel();
     },
 
-    onRender: function() {
-        var me = this;
-
-        me.onLabelableRender();
-
-        me.callParent(arguments);
-    },
-
     initRenderTpl: function() {
         var me = this;
         if (!me.hasOwnProperty('renderTpl')) {
@@ -196,6 +186,8 @@ Ext.define('Ext.form.FieldContainer', {
      * Returns the combined field label if {@link #combineLabels} is set to true and if there is no
      * set {@link #fieldLabel}. Otherwise returns the fieldLabel like normal. You can also override
      * this method to provide a custom generated label.
+     * @template
+     * @return {String} The label, or empty string if none.
      */
     getFieldLabel: function() {
         var label = this.fieldLabel || '';
@@ -207,6 +199,26 @@ Ext.define('Ext.form.FieldContainer', {
         return label;
     },
 
+    getSubTplData: function() {
+        var ret = this.initRenderData();
+
+        Ext.apply(ret, this.subTplData);
+        return ret;
+    },
+
+    getSubTplMarkup: function() {
+        var me = this,
+            tpl = me.getTpl('fieldSubTpl'),
+            html;
+
+        if (!tpl.renderContent) {
+            me.setupRenderTpl(tpl);
+        }
+
+        html = tpl.apply(me.getSubTplData());
+        return html;
+    },
+
     /**
      * @private Updates the content of the labelEl if it is rendered
      */
@@ -214,7 +226,7 @@ Ext.define('Ext.form.FieldContainer', {
         var me = this,
             label = me.labelEl;
         if (label) {
-            label.update(me.getFieldLabel());
+            me.setFieldLabel(me.getFieldLabel());
         }
     },
 
@@ -253,14 +265,26 @@ Ext.define('Ext.form.FieldContainer', {
      * @return {String[]} The combined list of error messages
      */
     getCombinedErrors: function(invalidFields) {
-        var forEach = Ext.Array.forEach,
-            errors = [];
-        forEach(invalidFields, function(field) {
-            forEach(field.getActiveErrors(), function(error) {
-                var label = field.getFieldLabel();
+        var errors = [],
+            f,
+            fLen   = invalidFields.length,
+            field,
+            activeErrors, a, aLen,
+            error, label;
+
+        for (f = 0; f < fLen; f++) {
+            field = invalidFields[f];
+            activeErrors = field.getActiveErrors();
+            aLen         = activeErrors.length;
+
+            for (a = 0; a < aLen; a++) {
+                error = activeErrors[a];
+                label = field.getFieldLabel();
+
                 errors.push((label ? label + ': ' : '') + error);
-            });
-        });
+            }
+        }
+
         return errors;
     },
 
@@ -268,4 +292,3 @@ Ext.define('Ext.form.FieldContainer', {
         return this.bodyEl || this.callParent();
     }
 });
-

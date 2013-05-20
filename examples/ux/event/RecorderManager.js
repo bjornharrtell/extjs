@@ -1,101 +1,273 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
+/**
+ * Recorder manager.
+ * Used as a bookmarklet:
+ *
+ *    javascript:void(window.open("../ux/event/RecorderManager.html","recmgr"))
+ */
 Ext.define('Ext.ux.event.RecorderManager', {
+    extend: 'Ext.panel.Panel',
+
+    alias: 'widget.eventrecordermanager',
 
     uses: [
         'Ext.ux.event.Recorder',
         'Ext.ux.event.Player'
     ],
 
-    statics: {
-        recorder: null,
+    layout: 'fit',
+    buttonAlign: 'left',
 
-        show: function () {
-            var me = Ext.ux.event.RecorderManager;
+    eventsToIgnore: {
+        mousemove: 1,
+        mouseover: 1,
+        mouseout: 1
+    },
 
-            if (me.window) {
-                me.window.show();
-            } else {
-                me.recorder = new Ext.ux.event.Recorder();
-                me.window = Ext.create('widget.window', {
-                    width: 500,
-                    height: 400,
-                    autoShow: true,
-                    title: 'Recorded Events',
-                    maximizable: true,
-                    layout: 'fit',
-                    items: [
-                        {
-                            xtype: 'textarea',
-                            value: me.recorder && Ext.encode(me.recorder.events)
-                        }
-                    ],
-                    buttons: [
-                        {
-                            xtype: 'tbtext',
-                            text: 'Bookmarklets: '
-                        },
-                        {
-                            xtype: 'component',
-                            html: '<a href="javascript:Ext.ux.event.RecorderManager.stop();">Stop</a>'
-                        },
-                        { xtype: 'tbfill' },
-                        {
-                            text: 'Record',
-                            handler: function () {
-                                me.window.hide();
-                                setTimeout(function () {
-                                    me.recorder.start();
-                                }, 500);
-                            }
-                        },
-                        {
-                            text: 'Play',
-                            handler: function () {
-                                me.window.hide();
-                                var events = Ext.decode(me.window.items.items[0].getValue());
-                                me.player = Ext.create('Ext.ux.event.Player', {
-                                    events: events,
-                                    onEnd: function () {
-                                        me.player = null;
-                                        me.window.show();
-                                    }
-                                });
-                                me.player.start();
-                            }
-                        },
-                        {
-                            text: 'Clear',
-                            handler: function () {
-                                me.window.items.items[0].setValue('');
-                                me.recorder.clear();
-                            }
-                        }
-                    ]
+    bodyBorder: false,
+    playSpeed: 1,
+
+    initComponent: function () {
+        var me = this;
+
+        me.recorder = new Ext.ux.event.Recorder({
+            attachTo: me.attachTo,
+            listeners: {
+                add: me.updateEvents,
+                coalesce: me.updateEvents,
+                buffer: 200,
+                scope: me
+            }
+        });
+        me.recorder.eventsToRecord = Ext.apply({}, me.recorder.eventsToRecord);
+
+        function speed (text, value) {
+            return {
+                text: text,
+                speed: value,
+                group: 'speed',
+                checked: value == me.playSpeed,
+                handler: me.onPlaySpeed,
+                scope: me
+            };
+        }
+
+        me.tbar = [
+            {
+                text: 'Record',
+                xtype: 'splitbutton',
+                whenIdle: true,
+                handler: me.onRecord,
+                scope: me,
+                menu: me.makeRecordButtonMenu()
+            },
+            {
+                text: 'Play',
+                xtype: 'splitbutton',
+                whenIdle: true,
+                handler: me.onPlay,
+                scope: me,
+                menu: [
+                    speed('Recorded Speed (1x)', 1),
+                    speed('Double Speed (2x)', 2),
+                    speed('Quad Speed (4x)', 4),
+                    '-',
+                    speed('Full Speed', 1000)
+                ]
+            },
+            {
+                text: 'Clear',
+                whenIdle: true,
+                handler: me.onClear,
+                scope: me
+            },
+            '->',
+            {
+                text: 'Stop',
+                whenActive: true,
+                disabled: true,
+                handler: me.onStop,
+                scope: me
+            }
+        ];
+
+        var events = me.attachTo.testEvents;
+        me.items = [
+            {
+                xtype: 'textarea',
+                itemId: 'eventView',
+                fieldStyle: 'font-family: monospace',
+                selectOnFocus: true,
+                emptyText: 'Events go here!',
+                value: events ? me.stringifyEvents(events) : '',
+                scrollToBottom: function () {
+                    var inputEl = this.inputEl.dom;
+                    inputEl.scrollTop = inputEl.scrollHeight;
+                }
+            }
+        ];
+        me.fbar = [
+            {
+                xtype: 'tbtext',
+                text: 'Attached To: ' + me.attachTo.location.href
+            }
+        ];
+
+        me.callParent();
+    },
+
+    makeRecordButtonMenu: function () {
+        var ret = [],
+            subs = {},
+            eventsToRec = this.recorder.eventsToRecord,
+            ignoredEvents = this.eventsToIgnore;
+
+        Ext.Object.each(eventsToRec, function (name, value) {
+            var sub = subs[value.kind];
+            if (!sub) {
+                subs[value.kind] = sub = [];
+                ret.push({
+                    text: value.kind,
+                    menu: sub
                 });
             }
-        },
 
-        stop: function () {
-            var me = Ext.ux.event.RecorderManager;
-            if (me.recorder) {
-                me.recorder.stop();
-                me.window.items.items[0].setValue(Ext.encode(me.recorder.events));
-                me.window.show();
+            sub.push({
+                text: name,
+                checked: true,
+                handler: function (menuItem) {
+                    if (menuItem.checked) {
+                        eventsToRec[name] = value;
+                    } else {
+                        delete eventsToRec[name];
+                    }
+                }
+            });
+
+            if (ignoredEvents[name]) {
+                sub[sub.length - 1].checked = false;
+                Ext.Function.defer(function () {
+                    delete eventsToRec[name];
+                }, 1);
+            }
+        });
+
+        function less (lhs, rhs) {
+            return (lhs.text < rhs.text) ? -1
+                        : ((rhs.text < lhs.text) ? 1 : 0);
+        }
+
+        ret.sort(less);
+        Ext.Array.each(ret, function (sub) {
+            sub.menu.sort(less);
+        });
+
+        return ret;
+    },
+
+    getEventView: function () {
+        return this.down('#eventView');
+    },
+
+    onClear: function () {
+        var view = this.getEventView();
+        view.setValue('');
+    },
+
+    onPlay: function () {
+        var me = this,
+            view = me.getEventView(),
+            events = view.getValue();
+
+        if (events) {
+            events = Ext.decode(events);
+            if (events.length) {
+                me.player = Ext.create('Ext.ux.event.Player', {
+                    attachTo: window.opener,
+                    eventQueue: events,
+                    listeners: {
+                        stop: me.onPlayStop,
+                        scope: me
+                    }
+                });
+
+                me.player.start();
+                me.syncBtnUI();
             }
         }
+    },
+
+    onPlayStop: function () {
+        this.player = null;
+        this.syncBtnUI();
+    },
+
+    onPlaySpeed: function (menuitem) {
+        this.playSpeed = menuitem.speed;
+    },
+
+    onRecord: function () {
+        this.recorder.start();
+        this.syncBtnUI();
+    },
+
+    onStop: function () {
+        var me = this;
+
+        if (me.player) {
+            me.player.stop();
+            me.player = null;
+        } else {
+            me.recorder.stop();
+        }
+        me.syncBtnUI();
+        me.updateEvents();
+    },
+
+    syncBtnUI: function () {
+        var me = this,
+            idle = !me.player && !me.recorder.active;
+
+        Ext.each(me.query('[whenIdle]'), function (btn) {
+            btn.setDisabled(!idle);
+        });
+        Ext.each(me.query('[whenActive]'), function (btn) {
+            btn.setDisabled(idle);
+        });
+
+        var view = me.getEventView();
+        view.setReadOnly(!idle);
+    },
+
+    stringifyEvents: function (events) {
+        var line,
+            lines = [];
+
+        Ext.each(events, function (ev) {
+            line = [];
+
+            Ext.Object.each(ev, function (name, value) {
+                if (line.length) {
+                    line.push(', ');
+                } else {
+                    line.push('  { ');
+                }
+                line.push(name, ': ');
+                line.push(Ext.encode(value));
+            });
+
+            line.push(' }');
+            lines.push(line.join(''));
+        });
+
+        return '[\n' + lines.join(',\n') + '\n]';
+    },
+
+    updateEvents: function () {
+        var me = this,
+            text = me.stringifyEvents(me.recorder.getRecordedEvents()),
+            view = me.getEventView();
+
+        view.setValue(text);
+        view.scrollToBottom();
     }
 });
-

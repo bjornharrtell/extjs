@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A custom drag proxy implementation specific to {@link Ext.panel.Panel}s. This class
  * is primarily used internally for the Panel's drag drop implementation, and
@@ -21,6 +7,12 @@ If you are unsure which license is appropriate for your use, please contact the 
 Ext.define('Ext.panel.Proxy', {
 
     alternateClassName: 'Ext.dd.PanelProxy',
+    
+    /**
+     * @cfg {Boolean} [moveOnDrag=true]
+     * True to move the panel to the dragged position when dropped
+     */
+    moveOnDrag: true,
 
     /**
      * Creates new panel proxy.
@@ -28,13 +20,15 @@ Ext.define('Ext.panel.Proxy', {
      * @param {Object} [config] Config object
      */
     constructor: function(panel, config){
+        var me = this;
+        
         /**
          * @property panel
          * @type Ext.panel.Panel
          */
-        this.panel = panel;
-        this.id = this.panel.id +'-ddproxy';
-        Ext.apply(this, config);
+        me.panel = panel;
+        me.id = me.panel.id +'-ddproxy';
+        Ext.apply(me, config);
     },
 
     /**
@@ -80,15 +74,17 @@ Ext.define('Ext.panel.Proxy', {
      * Hides the proxy
      */
     hide : function(){
-        if (this.ghost) {
-            if (this.proxy) {
-                this.proxy.remove();
-                delete this.proxy;
+        var me = this;
+        
+        if (me.ghost) {
+            if (me.proxy) {
+                me.proxy.remove();
+                delete me.proxy;
             }
 
             // Unghost the Panel, do not move the Panel to where the ghost was
-            this.panel.unghost(null, false);
-            delete this.ghost;
+            me.panel.unghost(null, me.moveOnDrag);
+            delete me.ghost;
         }
     },
 
@@ -96,15 +92,18 @@ Ext.define('Ext.panel.Proxy', {
      * Shows the proxy
      */
     show: function(){
-        if (!this.ghost) {
-            var panelSize = this.panel.getSize();
-            this.panel.el.setVisibilityMode(Ext.Element.DISPLAY);
-            this.ghost = this.panel.ghost();
-            if (this.insertProxy) {
+        var me = this,
+            panelSize;
+            
+        if (!me.ghost) {
+            panelSize = me.panel.getSize();
+            me.panel.el.setVisibilityMode(Ext.Element.DISPLAY);
+            me.ghost = me.panel.ghost();
+            if (me.insertProxy) {
                 // bc Panels aren't absolute positioned we need to take up the space
                 // of where the panel previously was
-                this.proxy = this.panel.el.insertSibling({cls: Ext.baseCSSPrefix + 'panel-dd-spacer'});
-                this.proxy.setSize(panelSize);
+                me.proxy = me.panel.el.insertSibling({cls: Ext.baseCSSPrefix + 'panel-dd-spacer'});
+                me.proxy.setSize(panelSize);
             }
         }
     },
@@ -112,9 +111,7 @@ Ext.define('Ext.panel.Proxy', {
     // private
     repair: function(xy, callback, scope) {
         this.hide();
-        if (typeof callback == "function") {
-            callback.call(scope || this);
-        }
+        Ext.callback(callback, scope || this);
     },
 
     /**
@@ -123,8 +120,8 @@ Ext.define('Ext.panel.Proxy', {
      * location.
      * @param {HTMLElement} parentNode The proxy's parent DOM node
      * @param {HTMLElement} [before] The sibling node before which the
-     * proxy should be inserted (defaults to the parent's last child if not
-     * specified)
+     * proxy should be inserted. Defaults to the parent's last child if not
+     * specified.
      */
     moveProxy : function(parentNode, before){
         if (this.proxy) {

@@ -1,21 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.chart.axis.Time
- * @extends Ext.chart.axis.Numeric
- *
  * A type of axis whose units are measured in time values. Use this axis
  * for listing dates that you will want to group or dynamically change.
  * If you just want to display dates as categories then use the
@@ -54,7 +37,7 @@ Ext.define('Ext.chart.axis.Time', {
 
     alias: 'axis.time',
 
-    requires: ['Ext.data.Store', 'Ext.data.JsonStore'],
+    uses: ['Ext.data.Store'],
 
     /* End Definitions */
 
@@ -78,12 +61,12 @@ Ext.define('Ext.chart.axis.Time', {
 
     /**
      * @cfg {Array/Boolean} step
-     * An array with two components: The first is the unit of the step (day, month, year, etc).
-     * The second one is the number of units for the step (1, 2, etc.).
-     * Defaults to `[Ext.Date.DAY, 1]`.
+     * An array with two components: The first is the unit of the step (day, month, year, etc). The second one is the number of units for the step (1, 2, etc.).
+     *
+     * Defaults to: [Ext.Date.DAY, 1].
      */
     step: [Ext.Date.DAY, 1],
-    
+
     /**
      * @cfg {Boolean} constrain
      * If true, the values of the chart will be rendered only if they belong between the fromDate and toDate.
@@ -91,9 +74,6 @@ Ext.define('Ext.chart.axis.Time', {
      */
     constrain: false,
 
-    // Avoid roundtoDecimal call in Numeric Axis's constructor
-    roundToDecimal: false,
-    
     constructor: function (config) {
         var me = this, label, f, df;
         me.callParent([config]);
@@ -114,36 +94,6 @@ Ext.define('Ext.chart.axis.Time', {
         }
     },
 
-    doConstrain: function () {
-        var me = this,
-            store = me.chart.store,
-            data = [],
-            series = me.chart.series.items,
-            math = Math,
-            mmax = math.max,
-            mmin = math.min,
-            fields = me.fields,
-            ln = fields.length,
-            range = me.getRange(),
-            min = range.min, max = range.max, i, l, excludes = [],
-            value, values, rec, data = [];
-        for (i = 0, l = series.length; i < l; i++) {
-            excludes[i] = series[i].__excludes;
-        }
-        store.each(function(record) {
-            for (i = 0; i < ln; i++) {
-                if (excludes[i]) {
-                    continue;
-                }
-                value = record.get(fields[i]);
-                if (+value < +min) return;
-                if (+value > +max) return;
-            }
-            data.push(record);
-        })
-        me.chart.substore = Ext.create('Ext.data.JsonStore', { model: store.model, data: data });
-    },
-
     // Before rendering, set current default step count to be number of records.
     processView: function () {
         var me = this;
@@ -153,7 +103,7 @@ Ext.define('Ext.chart.axis.Time', {
         if (me.toDate) {
             me.maximum = +me.toDate;
         }
-        if (me.constrain) {
+        if(me.constrain){
             me.doConstrain();
         }
      },
@@ -177,5 +127,4 @@ Ext.define('Ext.chart.axis.Time', {
         }
     }
  });
-
 

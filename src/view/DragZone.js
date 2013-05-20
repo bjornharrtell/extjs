@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.view.DragZone
- * @extends Ext.dd.DragZone
  * @private
  */
 Ext.define('Ext.view.DragZone', {
@@ -22,7 +6,10 @@ Ext.define('Ext.view.DragZone', {
     containerScroll: false,
 
     constructor: function(config) {
-        var me = this;
+        var me = this,
+            view,
+            ownerCt,
+            el;
 
         Ext.apply(me, config);
 
@@ -42,7 +29,16 @@ Ext.define('Ext.view.DragZone', {
         // We use the View's parent element to drag from. Ideally, we would use the internal structure, but that
         // is transient; DataView's recreate the internal structure dynamically as data changes.
         // TODO: Ext 5.0 DragDrop must allow multiple DD objects to share the same element.
-        me.callParent([me.view.el.dom.parentNode]);
+        view = me.view;
+        ownerCt = view.ownerCt;
+        // We don't just grab the parent el, since the parent el may be
+        // some el injected by the layout
+        if (ownerCt) {
+            el = ownerCt.getTargetEl().dom;
+        } else {
+            el = view.el.dom.parentNode;
+        }
+        me.callParent([el]);
 
         me.ddel = Ext.get(document.createElement('div'));
         me.ddel.addCls(Ext.baseCSSPrefix + 'grid-dd-wrap');
@@ -56,8 +52,18 @@ Ext.define('Ext.view.DragZone', {
         });
     },
 
+    onValidDrop: function(target, e, id) {
+        this.callParent();
+        // focus the view that the node was dropped onto so that keynav will be enabled.
+        target.el.focus();
+    },
+    
     onItemMouseDown: function(view, record, item, index, e) {
         if (!this.isPreventDrag(e, record, item, index)) {
+            // Since handleMouseDown prevents the default behavior of the event, which
+            // is to focus the view, we focus the view now.  This ensures that the view
+            // remains focused if the drag is cancelled, or if no drag occurs.
+            this.view.focus();
             this.handleMouseDown(e);
 
             // If we want to allow dragging of multi-selections, then veto the following handlers (which, in the absence of ctrlKey, would deselect)
@@ -75,20 +81,16 @@ Ext.define('Ext.view.DragZone', {
 
     getDragData: function(e) {
         var view = this.view,
-            item = e.getTarget(view.getItemSelector()),
-            record, selectionModel, records;
+            item = e.getTarget(view.getItemSelector());
 
         if (item) {
-            record = view.getRecord(item);
-            selectionModel = view.getSelectionModel();
-            records = selectionModel.getSelection();
             return {
-                copy: this.view.copy || (this.view.allowCopy && e.ctrlKey),
+                copy: view.copy || (view.allowCopy && e.ctrlKey),
                 event: new Ext.EventObjectImpl(e),
                 view: view,
                 ddel: this.ddel,
                 item: item,
-                records: records,
+                records: view.getSelectionModel().getSelection(),
                 fromPosition: Ext.fly(item).getXY()
             };
         }
@@ -104,8 +106,8 @@ Ext.define('Ext.view.DragZone', {
 
         // Update the selection to match what would have been selected if the user had
         // done a full click on the target node rather than starting a drag from it
-        if (!selectionModel.isSelected(record) || e.hasModifier()) {
-            selectionModel.selectWithEvent(record, e, true);
+        if (!selectionModel.isSelected(record)) {
+            selectionModel.select(record, true);
         }
         data.records = selectionModel.getSelection();
 

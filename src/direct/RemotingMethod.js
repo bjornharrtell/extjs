@@ -1,28 +1,13 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Small utility class used internally to represent a Direct method.
- * @class Ext.direct.RemotingMethod
- * @ignore
+ * @private
  */
 Ext.define('Ext.direct.RemotingMethod', {
 
     constructor: function(config){
         var me = this,
             params = Ext.isDefined(config.params) ? config.params : config.len,
-            name;
+            name, pLen, p, param;
 
         me.name = config.name;
         me.formHandler = config.formHandler;
@@ -37,11 +22,37 @@ Ext.define('Ext.direct.RemotingMethod', {
              * b) Objects with a name property. We may want to encode extra info in here later
              */
             me.params = [];
-            Ext.each(params, function(param){
-                name = Ext.isObject(param) ? param.name : param;
+			pLen = params.length;
+            for (p = 0; p < pLen; p++) {
+                param = params[p];
+                name  = Ext.isObject(param) ? param.name : param;
                 me.params.push(name);
-            });
+            }
         }
+    },
+    
+    getArgs: function(params, paramOrder, paramsAsHash){
+        var args = [],
+            i,
+            len;
+        
+        if (this.ordered) {
+            if (this.len > 0) {
+                // If a paramOrder was specified, add the params into the argument list in that order.
+                if (paramOrder) {
+                    for (i = 0, len = paramOrder.length; i < len; i++) {
+                        args.push(params[paramOrder[i]]);
+                    }
+                } else if (paramsAsHash) {
+                    // If paramsAsHash was specified, add all the params as a single object argument.
+                    args.push(params);
+                }
+            }
+        } else {
+            args.push(params);
+        } 
+        
+        return args;
     },
 
     /**
@@ -87,4 +98,3 @@ Ext.define('Ext.direct.RemotingMethod', {
         };
     }
 });
-

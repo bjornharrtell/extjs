@@ -1,17 +1,6 @@
-/*
+//@tag foundation,core
+//@require Number.js
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.Array
  * @singleton
@@ -24,7 +13,7 @@ If you are unsure which license is appropriate for your use, please contact the 
 
     var arrayPrototype = Array.prototype,
         slice = arrayPrototype.slice,
-        supportsSplice = function () {
+        supportsSplice = (function () {
             var array = [],
                 lengthBefore,
                 j = 20;
@@ -51,19 +40,22 @@ If you are unsure which license is appropriate for your use, please contact the 
             // end IE8 bug
 
             return true;
-        }(),
+        }()),
         supportsForEach = 'forEach' in arrayPrototype,
         supportsMap = 'map' in arrayPrototype,
         supportsIndexOf = 'indexOf' in arrayPrototype,
         supportsEvery = 'every' in arrayPrototype,
         supportsSome = 'some' in arrayPrototype,
         supportsFilter = 'filter' in arrayPrototype,
-        supportsSort = function() {
+        supportsSort = (function() {
             var a = [1,2,3,4,5].sort(function(){ return 0; });
             return a[0] === 1 && a[1] === 2 && a[2] === 3 && a[3] === 4 && a[4] === 5;
-        }(),
+        }()),
         supportsSliceOnNodeList = true,
-        ExtArray;
+        ExtArray,
+        erase,
+        replace,
+        splice;
 
     try {
         // IE 6 - 8 will throw an error when using Array.prototype.slice on NodeList
@@ -112,7 +104,13 @@ If you are unsure which license is appropriate for your use, please contact the 
     function replaceSim (array, index, removeCount, insert) {
         var add = insert ? insert.length : 0,
             length = array.length,
-            pos = fixArrayIndex(array, index);
+            pos = fixArrayIndex(array, index),
+            remove,
+            tailOldPos,
+            tailNewPos,
+            tailCount,
+            lengthAfterRemove,
+            i;
 
         // we try to use Array.push when we can for efficiency...
         if (pos === length) {
@@ -120,12 +118,11 @@ If you are unsure which license is appropriate for your use, please contact the 
                 array.push.apply(array, insert);
             }
         } else {
-            var remove = Math.min(removeCount, length - pos),
-                tailOldPos = pos + remove,
-                tailNewPos = tailOldPos + add - remove,
-                tailCount = length - tailOldPos,
-                lengthAfterRemove = length - remove,
-                i;
+            remove = Math.min(removeCount, length - pos);
+            tailOldPos = pos + remove;
+            tailNewPos = tailOldPos + add - remove;
+            tailCount = length - tailOldPos;
+            lengthAfterRemove = length - remove;
 
             if (tailNewPos < tailOldPos) { // case A
                 for (i = 0; i < tailCount; ++i) {
@@ -190,9 +187,9 @@ If you are unsure which license is appropriate for your use, please contact the 
         return array.splice.apply(array, slice.call(arguments, 1));
     }
 
-    var erase = supportsSplice ? eraseNative : eraseSim,
-        replace = supportsSplice ? replaceNative : replaceSim,
-        splice = supportsSplice ? spliceNative : spliceSim;
+    erase = supportsSplice ? eraseNative : eraseSim;
+    replace = supportsSplice ? replaceNative : replaceSim;
+    splice = supportsSplice ? spliceNative : spliceSim;
 
     // NOTE: from here on, use erase, replace or splice (not native methods)...
 
@@ -278,11 +275,9 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Array}  fn.allItems The `array` itself which was passed as the first argument
          * @param {Object} scope (Optional) The execution scope (`this`) in which the specified function is executed.
          */
-        forEach: function(array, fn, scope) {
-            if (supportsForEach) {
-                return array.forEach(fn, scope);
-            }
-
+        forEach: supportsForEach ? function(array, fn, scope) {
+            return array.forEach(fn, scope);
+        } : function(array, fn, scope) {
             var i = 0,
                 ln = array.length;
 
@@ -300,11 +295,9 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Number} from (Optional) The index at which to begin the search
          * @return {Number} The index of item in the array (or -1 if it is not found)
          */
-        indexOf: function(array, item, from) {
-            if (supportsIndexOf) {
-                return array.indexOf(item, from);
-            }
-
+        indexOf: supportsIndexOf ? function(array, item, from) {
+            return array.indexOf(item, from);
+         } : function(array, item, from) {
             var i, length = array.length;
 
             for (i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
@@ -323,11 +316,9 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Object} item The item to look for
          * @return {Boolean} True if the array contains the item, false otherwise
          */
-        contains: function(array, item) {
-            if (supportsIndexOf) {
-                return array.indexOf(item) !== -1;
-            }
-
+        contains: supportsIndexOf ? function(array, item) {
+            return array.indexOf(item) !== -1;
+        } : function(array, item) {
             var i, ln;
 
             for (i = 0, ln = array.length; i < ln; i++) {
@@ -355,13 +346,13 @@ If you are unsure which license is appropriate for your use, please contact the 
          *
          *     Ext.Array.toArray(document.getElementsByTagName('div')); // will convert the NodeList into an array
          *     Ext.Array.toArray('splitted'); // returns ['s', 'p', 'l', 'i', 't', 't', 'e', 'd']
-         *     Ext.Array.toArray('splitted', 0, 3); // returns ['s', 'p', 'l', 'i']
+         *     Ext.Array.toArray('splitted', 0, 3); // returns ['s', 'p', 'l']
          *
          * {@link Ext#toArray Ext.toArray} is alias for {@link Ext.Array#toArray Ext.Array.toArray}
          *
          * @param {Object} iterable the iterable object to be turned into a true Array.
          * @param {Number} start (Optional) a zero-based index that specifies the start of extraction. Defaults to 0
-         * @param {Number} end (Optional) a zero-based index that specifies the end of extraction. Defaults to the last
+         * @param {Number} end (Optional) a 1-based index that specifies the end of extraction. Defaults to the last
          * index of the iterable value
          * @return {Array} array
          */
@@ -421,11 +412,19 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Object} scope Callback function scope
          * @return {Array} results
          */
-        map: function(array, fn, scope) {
-            if (supportsMap) {
-                return array.map(fn, scope);
+        map: supportsMap ? function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.map must have a callback function passed as second argument.');
             }
-
+            //</debug>
+            return array.map(fn, scope);
+        } : function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.map must have a callback function passed as second argument.');
+            }
+            //</debug>
             var results = [],
                 i = 0,
                 len = array.length;
@@ -447,16 +446,19 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Object} scope Callback function scope
          * @return {Boolean} True if no false value is returned by the callback function.
          */
-        every: function(array, fn, scope) {
+        every: supportsEvery ? function(array, fn, scope) {
             //<debug>
             if (!fn) {
                 Ext.Error.raise('Ext.Array.every must have a callback function passed as second argument.');
             }
             //</debug>
-            if (supportsEvery) {
-                return array.every(fn, scope);
+            return array.every(fn, scope);
+        } : function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.every must have a callback function passed as second argument.');
             }
-
+            //</debug>
             var i = 0,
                 ln = array.length;
 
@@ -478,16 +480,19 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Object} scope Callback function scope
          * @return {Boolean} True if the callback function returns a truthy value.
          */
-        some: function(array, fn, scope) {
+        some: supportsSome ? function(array, fn, scope) {
             //<debug>
             if (!fn) {
                 Ext.Error.raise('Ext.Array.some must have a callback function passed as second argument.');
             }
             //</debug>
-            if (supportsSome) {
-                return array.some(fn, scope);
+            return array.some(fn, scope);
+        } : function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.some must have a callback function passed as second argument.');
             }
-
+            //</debug>
             var i = 0,
                 ln = array.length;
 
@@ -557,11 +562,19 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Object} scope Callback function scope
          * @return {Array} results
          */
-        filter: function(array, fn, scope) {
-            if (supportsFilter) {
-                return array.filter(fn, scope);
+        filter: supportsFilter ? function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.filter must have a callback function passed as second argument.');
             }
-
+            //</debug>
+            return array.filter(fn, scope);
+        } : function(array, fn, scope) {
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('Ext.Array.filter must have a callback function passed as second argument.');
+            }
+            //</debug>
             var results = [],
                 i = 0,
                 ln = array.length;
@@ -597,8 +610,11 @@ If you are unsure which license is appropriate for your use, please contact the 
                 return (newReference) ? slice.call(value) : value;
             }
 
-            if (value && value.length !== undefined && typeof value !== 'string') {
-                return Ext.toArray(value);
+            var type = typeof value;
+            // Both strings and functions will have a length property. In phantomJS, NodeList
+            // instances report typeof=='function' but don't have an apply method...
+            if (value && value.length !== undefined && type !== 'string' && (type !== 'function' || !value.apply)) {
+                return ExtArray.toArray(value);
             }
 
             return [value];
@@ -676,46 +692,64 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @return {Array} intersect
          */
         intersect: function() {
-            var intersect = [],
+            var intersection = [],
                 arrays = slice.call(arguments),
-                i, j, k, minArray, array, x, y, ln, arraysLn, arrayLn;
+                arraysLength,
+                array,
+                arrayLength,
+                minArray,
+                minArrayIndex,
+                minArrayCandidate,
+                minArrayLength,
+                element,
+                elementCandidate,
+                elementCount,
+                i, j, k;
 
             if (!arrays.length) {
-                return intersect;
+                return intersection;
             }
 
             // Find the smallest array
-            for (i = x = 0,ln = arrays.length; i < ln,array = arrays[i]; i++) {
-                if (!minArray || array.length < minArray.length) {
-                    minArray = array;
-                    x = i;
+            arraysLength = arrays.length;
+            for (i = minArrayIndex = 0; i < arraysLength; i++) {
+                minArrayCandidate = arrays[i];
+                if (!minArray || minArrayCandidate.length < minArray.length) {
+                    minArray = minArrayCandidate;
+                    minArrayIndex = i;
                 }
             }
 
             minArray = ExtArray.unique(minArray);
-            erase(arrays, x, 1);
+            erase(arrays, minArrayIndex, 1);
 
             // Use the smallest unique'd array as the anchor loop. If the other array(s) do contain
             // an item in the small array, we're likely to find it before reaching the end
             // of the inner loop and can terminate the search early.
-            for (i = 0,ln = minArray.length; i < ln,x = minArray[i]; i++) {
-                var count = 0;
+            minArrayLength = minArray.length;
+            arraysLength = arrays.length;
+            for (i = 0; i < minArrayLength; i++) {
+                element = minArray[i];
+                elementCount = 0;
 
-                for (j = 0,arraysLn = arrays.length; j < arraysLn,array = arrays[j]; j++) {
-                    for (k = 0,arrayLn = array.length; k < arrayLn,y = array[k]; k++) {
-                        if (x === y) {
-                            count++;
+                for (j = 0; j < arraysLength; j++) {
+                    array = arrays[j];
+                    arrayLength = array.length;
+                    for (k = 0; k < arrayLength; k++) {
+                        elementCandidate = array[k];
+                        if (element === elementCandidate) {
+                            elementCount++;
                             break;
                         }
                     }
                 }
 
-                if (count === arraysLn) {
-                    intersect.push(x);
+                if (elementCount === arraysLength) {
+                    intersection.push(element);
                 }
             }
 
-            return intersect;
+            return intersection;
         },
 
         /**
@@ -756,6 +790,7 @@ If you are unsure which license is appropriate for your use, please contact the 
          * end. Negative values are offsets from the end of the array. If end is omitted,
          * all items up to the end of the array are copied.
          * @return {Array} The copied piece of the array.
+         * @method slice
          */
         // Note: IE6 will return [] on slice.call(x, undefined).
         slice: ([1,2].slice(1, undefined).length ?
@@ -784,15 +819,13 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Function} sortFn (optional) The comparison function.
          * @return {Array} The sorted array.
          */
-        sort: function(array, sortFn) {
-            if (supportsSort) {
-                if (sortFn) {
-                    return array.sort(sortFn);
-                } else {
-                    return array.sort();
-                }
+        sort: supportsSort ? function(array, sortFn) {
+            if (sortFn) {
+                return array.sort(sortFn);
+            } else {
+                return array.sort();
             }
-
+         } : function(array, sortFn) {
             var length = array.length,
                 i = 0,
                 comparison,
@@ -937,6 +970,55 @@ If you are unsure which license is appropriate for your use, please contact the 
             return sum;
         },
 
+        /**
+         * Creates a map (object) keyed by the elements of the given array. The values in
+         * the map are the index+1 of the array element. For example:
+         * 
+         *      var map = Ext.Array.toMap(['a','b','c']);
+         *
+         *      // map = { a: 1, b: 2, c: 3 };
+         * 
+         * Or a key property can be specified:
+         * 
+         *      var map = Ext.Array.toMap([
+         *              { name: 'a' },
+         *              { name: 'b' },
+         *              { name: 'c' }
+         *          ], 'name');
+         *
+         *      // map = { a: 1, b: 2, c: 3 };
+         * 
+         * Lastly, a key extractor can be provided:
+         * 
+         *      var map = Ext.Array.toMap([
+         *              { name: 'a' },
+         *              { name: 'b' },
+         *              { name: 'c' }
+         *          ], function (obj) { return obj.name.toUpperCase(); });
+         *
+         *      // map = { A: 1, B: 2, C: 3 };
+         */
+        toMap: function(array, getKey, scope) {
+            var map = {},
+                i = array.length;
+
+            if (!getKey) {
+                while (i--) {
+                    map[array[i]] = i+1;
+                }
+            } else if (typeof getKey == 'string') {
+                while (i--) {
+                    map[array[i][getKey]] = i+1;
+                }
+            } else {
+                while (i--) {
+                    map[getKey.call(scope, array[i])] = i+1;
+                }
+            }
+
+            return map;
+        },
+
         //<debug>
         _replaceSim: replaceSim, // for unit testing
         _spliceSim: spliceSim,
@@ -958,7 +1040,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         /**
          * Inserts items in to an array.
          *
-         * @param {Array} array The Array on which to replace.
+         * @param {Array} array The Array in which to insert.
          * @param {Number} index The index in the array at which to operate.
          * @param {Array} items The array of items to insert at index.
          * @return {Array} The array passed.
@@ -991,23 +1073,55 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @param {Array} array The Array on which to replace.
          * @param {Number} index The index in the array at which to operate.
          * @param {Number} removeCount The number of items to remove at index (can be 0).
+         * @param {Object...} elements The elements to add to the array. If you don't specify
+         * any elements, splice simply removes elements from the array.
          * @return {Array} An array containing the removed items.
          * @method
          */
-        splice: splice
+        splice: splice,
+
+        /**
+         * Pushes new items onto the end of an Array.
+         *
+         * Passed parameters may be single items, or arrays of items. If an Array is found in the argument list, all its
+         * elements are pushed into the end of the target Array.
+         *
+         * @param {Array} target The Array onto which to push new items
+         * @param {Object...} elements The elements to add to the array. Each parameter may
+         * be an Array, in which case all the elements of that Array will be pushed into the end of the
+         * destination Array.
+         * @return {Array} An array containing all the new items push onto the end.
+         *
+         */
+        push: function(array) {
+            var len = arguments.length,
+                i = 1,
+                newItem;
+
+            if (array === undefined) {
+                array = [];
+            } else if (!Ext.isArray(array)) {
+                array = [array];
+            }
+            for (; i < len; i++) {
+                newItem = arguments[i];
+                Array.prototype.push[Ext.isArray(newItem) ? 'apply' : 'call'](array, newItem);
+            }
+            return array;
+        }
     };
 
     /**
      * @method
      * @member Ext
-     * @alias Ext.Array#each
+     * @inheritdoc Ext.Array#each
      */
     Ext.each = ExtArray.each;
 
     /**
      * @method
      * @member Ext.Array
-     * @alias Ext.Array#merge
+     * @inheritdoc Ext.Array#merge
      */
     ExtArray.union = ExtArray.merge;
 
@@ -1016,7 +1130,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#min} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#min
+     * @inheritdoc Ext.Array#min
      */
     Ext.min = ExtArray.min;
 
@@ -1025,7 +1139,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#max} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#max
+     * @inheritdoc Ext.Array#max
      */
     Ext.max = ExtArray.max;
 
@@ -1034,7 +1148,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#sum} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#sum
+     * @inheritdoc Ext.Array#sum
      */
     Ext.sum = ExtArray.sum;
 
@@ -1043,7 +1157,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#mean} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#mean
+     * @inheritdoc Ext.Array#mean
      */
     Ext.mean = ExtArray.mean;
 
@@ -1052,7 +1166,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#flatten} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#flatten
+     * @inheritdoc Ext.Array#flatten
      */
     Ext.flatten = ExtArray.flatten;
 
@@ -1061,7 +1175,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#clean} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#clean
+     * @inheritdoc Ext.Array#clean
      */
     Ext.clean = ExtArray.clean;
 
@@ -1070,7 +1184,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#unique} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#unique
+     * @inheritdoc Ext.Array#unique
      */
     Ext.unique = ExtArray.unique;
 
@@ -1079,17 +1193,16 @@ If you are unsure which license is appropriate for your use, please contact the 
      * @deprecated 4.0.0 Use {@link Ext.Array#pluck Ext.Array.pluck} instead
      * @method
      * @member Ext
-     * @alias Ext.Array#pluck
+     * @inheritdoc Ext.Array#pluck
      */
     Ext.pluck = ExtArray.pluck;
 
     /**
      * @method
      * @member Ext
-     * @alias Ext.Array#toArray
+     * @inheritdoc Ext.Array#toArray
      */
     Ext.toArray = function() {
         return ExtArray.toArray.apply(ExtArray, arguments);
     };
-})();
-
+}());

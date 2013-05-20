@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Represents an RGB color and provides helper functions get
  * color components in HSL color space.
@@ -174,17 +160,21 @@ Ext.define('Ext.draw.Color', {
         if (color.substr(0, 1) === '#') {
             return color;
         }
-        var digits = this.colorToHexRe.exec(color);
+        var digits = this.colorToHexRe.exec(color),
+            red,
+            green,
+            blue,
+            rgb;
 
         if (Ext.isArray(digits)) {
-            var red = parseInt(digits[2], 10),
-                green = parseInt(digits[3], 10),
-                blue = parseInt(digits[4], 10),
-                rgb = blue | (green << 8) | (red << 16);
+            red = parseInt(digits[2], 10);
+            green = parseInt(digits[3], 10);
+            blue = parseInt(digits[4], 10);
+            rgb = blue | (green << 8) | (red << 16);
             return digits[1] + '#' + ("000000" + rgb.toString(16)).slice(-6);
         }
         else {
-            return '';
+            return color;
         }
     },
 
@@ -227,7 +217,7 @@ Ext.define('Ext.draw.Color', {
             }
         }
 
-        return (typeof r == 'undefined') ? undefined : Ext.create('Ext.draw.Color', r, g, b);
+        return (typeof r == 'undefined') ? undefined : new Ext.draw.Color(r, g, b);
     },
 
     /**
@@ -293,7 +283,7 @@ Ext.define('Ext.draw.Color', {
             }
             rgb = [rgb[0] + m, rgb[1] + m, rgb[2] + m];
         }
-        return Ext.create('Ext.draw.Color', rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
+        return new Ext.draw.Color(rgb[0] * 255, rgb[1] * 255, rgb[2] * 255);
     }
 }, function() {
     var prototype = this.prototype;
@@ -311,4 +301,3 @@ Ext.define('Ext.draw.Color', {
         }
     });
 });
-

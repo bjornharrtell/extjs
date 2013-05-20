@@ -1,22 +1,11 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
+/**
+ * @private
+ */
 Ext.define('Ext.grid.ViewDropZone', {
     extend: 'Ext.view.DropZone',
 
-    indicatorHtml: '<div class="x-grid-drop-indicator-left"></div><div class="x-grid-drop-indicator-right"></div>',
-    indicatorCls: 'x-grid-drop-indicator',
+    indicatorHtml: '<div class="' + Ext.baseCSSPrefix + 'grid-drop-indicator-left"></div><div class="' + Ext.baseCSSPrefix + 'grid-drop-indicator-right"></div>',
+    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
 
     handleNodeDrop : function(data, record, position) {
         var view = this.view,

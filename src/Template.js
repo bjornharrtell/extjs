@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Represents an HTML fragment template. Templates may be {@link #compile precompiled} for greater performance.
  *
@@ -62,7 +48,7 @@ Ext.define('Ext.Template', {
 
     /* Begin Definitions */
 
-    requires: ['Ext.DomHelper', 'Ext.util.Format'],
+    requires: ['Ext.dom.Helper', 'Ext.util.Format'],
 
     inheritableStatics: {
         /**
@@ -97,6 +83,14 @@ Ext.define('Ext.Template', {
             value;
 
         me.initialConfig = {};
+        
+        // Allow an array to be passed here so we can
+        // pass an array of strings and an object
+        // at the end
+        if (length === 1 && Ext.isArray(html)) {
+            args = html;
+            length = args.length;
+        }
 
         if (length > 1) {
             for (; i < length; i++) {
@@ -108,13 +102,8 @@ Ext.define('Ext.Template', {
                     buffer.push(value);
                 }
             }
-            html = buffer.join('');
         } else {
-            if (Ext.isArray(html)) {
-                buffer.push(html.join(''));
-            } else {
-                buffer.push(html);
-            }
+            buffer.push(html);
         }
 
         // @private
@@ -125,6 +114,10 @@ Ext.define('Ext.Template', {
         }
     },
 
+    /**
+     * @property {Boolean} isTemplate
+     * `true` in this class to identify an object as an instantiated Template, or subclass thereof.
+     */
     isTemplate: true,
 
     /**
@@ -147,24 +140,26 @@ Ext.define('Ext.Template', {
      * @param {Object/Array} values The template values. Can be an array if your params are numeric:
      *
      *     var tpl = new Ext.Template('Name: {0}, Age: {1}');
-     *     tpl.applyTemplate(['John', 25]);
+     *     tpl.apply(['John', 25]);
      *
      * or an object:
      *
      *     var tpl = new Ext.Template('Name: {name}, Age: {age}');
-     *     tpl.applyTemplate({name: 'John', age: 25});
+     *     tpl.apply({name: 'John', age: 25});
      *
      * @return {String} The HTML fragment
      */
-    applyTemplate: function(values) {
+    apply: function(values) {
         var me = this,
             useFormat = me.disableFormats !== true,
             fm = Ext.util.Format,
-            tpl = me;
+            tpl = me,
+            ret;
 
         if (me.compiled) {
-            return me.compiled(values);
+            return me.compiled(values).join('');
         }
+
         function fn(m, name, format, args) {
             if (format && useFormat) {
                 if (args) {
@@ -183,7 +178,37 @@ Ext.define('Ext.Template', {
                 return values[name] !== undefined ? values[name] : "";
             }
         }
-        return me.html.replace(me.re, fn);
+
+        ret = me.html.replace(me.re, fn);
+        return ret;
+    },
+
+    /**
+     * Appends the result of this template to the provided output array.
+     * @param {Object/Array} values The template values. See {@link #apply}.
+     * @param {Array} out The array to which output is pushed.
+     * @return {Array} The given out array.
+     */
+    applyOut: function(values, out) {
+        var me = this;
+
+        if (me.compiled) {
+            out.push.apply(out, me.compiled(values));
+        } else {
+            out.push(me.apply(values));
+        }
+
+        return out;
+    },
+
+    /**
+     * @method applyTemplate
+     * @member Ext.Template
+     * Alias for {@link #apply}.
+     * @inheritdoc Ext.Template#apply
+     */
+    applyTemplate: function () {
+        return this.apply.apply(this, arguments);
     },
 
     /**
@@ -231,7 +256,7 @@ Ext.define('Ext.Template', {
         }
 
         bodyReturn = me.html.replace(me.compileARe, '\\\\').replace(me.compileBRe, '\\n').replace(me.compileCRe, "\\'").replace(me.re, fn);
-        body = "this.compiled = function(values){ return ['" + bodyReturn + "'].join('');};";
+        body = "this.compiled = function(values){ return ['" + bodyReturn + "'];};";
         eval(body);
         return me;
     },
@@ -286,10 +311,9 @@ Ext.define('Ext.Template', {
         return this.doInsert('beforeEnd', el, values, returnElement);
     },
 
-    doInsert: function(where, el, values, returnEl) {
-        el = Ext.getDom(el);
-        var newNode = Ext.DomHelper.insertHtml(where, el, this.applyTemplate(values));
-        return returnEl ? Ext.get(newNode, true) : newNode;
+    doInsert: function(where, el, values, returnElement) {
+        var newNode = Ext.DomHelper.insertHtml(where, Ext.getDom(el), this.apply(values));
+        return returnElement ? Ext.get(newNode) : newNode;
     },
 
     /**
@@ -301,18 +325,7 @@ Ext.define('Ext.Template', {
      * @return {HTMLElement/Ext.Element} The new node or Element
      */
     overwrite: function(el, values, returnElement) {
-        el = Ext.getDom(el);
-        el.innerHTML = this.applyTemplate(values);
-        return returnElement ? Ext.get(el.firstChild, true) : el.firstChild;
+        var newNode = Ext.DomHelper.overwrite(Ext.getDom(el), this.apply(values));
+        return returnElement ? Ext.get(newNode) : newNode;
     }
-}, function() {
-
-    /**
-     * @method apply
-     * @member Ext.Template
-     * Alias for {@link #applyTemplate}.
-     * @alias Ext.Template#applyTemplate
-     */
-    this.createAlias('apply', 'applyTemplate');
 });
-

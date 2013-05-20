@@ -4,21 +4,27 @@
     <title id="page-title">MVC Feed Viewer</title>
 
     <link rel="stylesheet" type="text/css" href="../../../resources/css/ext-all.css">
-    <script type="text/javascript" src="../../../builds/ext-core.js"></script>
-    <script type="text/javascript" src="classes.js"></script>
+
+    <!-- GC -->
+    <!-- <x-compile> -->
+    <!-- <x-bootstrap> -->
+    <script type="text/javascript" src="../../../ext.js"></script>
+    <!-- </x-bootstrap> -->
     <script type="text/javascript" src="app.js"></script>
 
+    <!-- </x-compile> -->
+
     <style type="text/css" media="screen">
-        /**
-         * Icons
-         */
+            /**
+            * Icons
+            */
 
         .summary {
-             background-image: url(images/details.gif) !important;
+            background-image: url(images/details.gif) !important;
         }
 
         .reading {
-             background-image: url(images/article.gif) !important;
+            background-image: url(images/article.gif) !important;
         }
 
         .post-go {
@@ -55,15 +61,15 @@
             background-image: url(images/rss.gif) !important;
         }
 
-        /**
-         * Other styles
-         */
+            /**
+            * Other styles
+            */
         .feed-picker-url {
             float: left;
             width: 425px;
         }
         .feed-picker-title {
-        /*    float: left;*/
+            /*    float: left;*/
             color: #777;
             font-size: 10px;
         }
@@ -104,7 +110,7 @@
             color: #333;
         }
 
-        .author: {
+        .author {
             color: #333
         }
 
@@ -119,7 +125,10 @@
             font-size: 11px;
         }
 
-        /* Preview classes */
+            /* Preview classes */
+        .articlepreview .x-toolbar {
+            border-top-width: 1px !important;
+        }
 
         .preview .x-panel-body {
             background:#fff;

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A {@link Ext.form.FieldContainer field container} which has a specialized layout for arranging
  * {@link Ext.form.field.Radio} controls into columns, and provides convenience {@link Ext.form.field.Field}
@@ -24,7 +10,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * sometimes you want to require a user to select one of a group of radios. RadioGroup
  * allows this by setting the config `{@link #allowBlank}:false`; when the user does not check at
  * one of the radio buttons, the entire group will be highlighted as invalid and the
- * {@link #blankText error message} will be displayed according to the {@link #msgTarget} config.</p>
+ * {@link #blankText error message} will be displayed according to the {@link #msgTarget} config.
  *
  * # Layout
  *
@@ -70,15 +56,19 @@ Ext.define('Ext.form.RadioGroup', {
      * An Array of {@link Ext.form.field.Radio Radio}s or Radio config objects to arrange in the group.
      */
     /**
-     * @cfg {Boolean} allowBlank True to allow every item in the group to be blank.
+     * @cfg {Boolean} allowBlank
+     * True to allow every item in the group to be blank.
      * If allowBlank = false and no items are selected at validation time, {@link #blankText} will
      * be used as the error text.
      */
     allowBlank : true,
+    //<locale>
     /**
-     * @cfg {String} blankText Error text to display if the {@link #allowBlank} validation fails
+     * @cfg {String} blankText
+     * Error text to display if the {@link #allowBlank} validation fails
      */
     blankText : 'You must select one item in this group',
+    //</locale>
 
     // private
     defaultType : 'radiofield',
@@ -86,8 +76,20 @@ Ext.define('Ext.form.RadioGroup', {
     // private
     groupCls : Ext.baseCSSPrefix + 'form-radio-group',
 
-    getBoxes: function() {
-        return this.query('[isRadio]');
+    getBoxes: function(query) {
+        return this.query('[isRadio]' + (query||''));
+    },
+    
+    checkChange: function() {
+        var value = this.getValue(),
+            key = Ext.Object.getKeys(value)[0];
+            
+        // If the value is an array we skip out here because it's during a change
+        // between multiple items, so we never want to fire a change
+        if (Ext.isArray(value[key])) {
+            return;
+        }
+        this.callParent(arguments);    
     },
 
     /**
@@ -99,16 +101,24 @@ Ext.define('Ext.form.RadioGroup', {
      * @return {Ext.form.CheckboxGroup} this
      */
     setValue: function(value) {
-        var me = this;
+        var cbValue, first, formId, radios,
+            i, len, name;
+
         if (Ext.isObject(value)) {
-            Ext.Object.each(value, function(name, cbValue) {
-                var radios = Ext.form.RadioManager.getWithValue(name, cbValue);
-                radios.each(function(cb) {
-                    cb.setValue(true);
-                });
-            });
+            for (name in value) {
+                if (value.hasOwnProperty(name)) {
+                    cbValue = value[name];
+                    first = this.items.first();
+                    formId = first ? first.getFormId() : null;
+                    radios = Ext.form.RadioManager.getWithValue(name, cbValue, formId).items;
+                    len = radios.length;
+
+                    for (i = 0; i < len; ++i) {
+                        radios[i].setValue(true);
+                    }
+                }
+            }
         }
-        return me;
+        return this;
     }
 });
-

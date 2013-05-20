@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Base class for any Ext.Component that may contain other Components. Containers handle the basic behavior of
  * containing items, namely adding, inserting and removing items.
@@ -58,7 +44,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * Container classes delegate the rendering of child Components to a layout manager class which must be configured into
  * the Container using the `{@link #layout}` configuration property.
  *
- * When either specifying child `{@link #items}` of a Container, or dynamically {@link #add adding} Components to a
+ * When either specifying child `{@link #cfg-items}` of a Container, or dynamically {@link #method-add adding} Components to a
  * Container, remember to consider how you wish the Container to arrange those child elements, and whether those child
  * elements need to be sized using one of Ext's built-in `{@link #layout}` schemes. By default, Containers use the
  * {@link Ext.layout.container.Auto Auto} scheme which only renders child components, appending them one after the other
@@ -74,7 +60,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * Ext.layout.container.HBox, and Ext.layout.container.Table. For example:
  *
  *     //  Create the GridPanel.
- *     var myNewGrid = new Ext.grid.Panel({
+ *     var myNewGrid = Ext.create('Ext.grid.Panel', {
  *         store: myStore,
  *         headers: myHeaders,
  *         title: 'Results', // the title becomes the title of the tab
@@ -163,27 +149,72 @@ Ext.define('Ext.container.Container', {
     alias: 'widget.container',
     alternateClassName: 'Ext.Container',
 
+    /*
+     * For more information on the following methods, see the note for the
+     * hierarchyEventSource observer defined in the class' callback
+     */
+    fireHierarchyEvent: function (ename) {
+        this.hierarchyEventSource.fireEvent(ename, this);
+    },
+
+    // note that the collapse and expand events are fired explicitly from Panel.js
+    afterHide: function() {
+        this.callParent(arguments);
+        this.fireHierarchyEvent('hide');
+    },
+    
+    afterShow: function(){
+        this.callParent(arguments);
+        this.fireHierarchyEvent('show');
+    },
+
+    onAdded: function() {
+        this.callParent(arguments);
+        if (this.hierarchyEventSource.hasListeners.added) {
+            this.fireHierarchyEvent('added');
+        }
+    },
+
     /**
      * Return the immediate child Component in which the passed element is located.
      * @param {Ext.Element/HTMLElement/String} el The element to test (or ID of element).
+     * @param {Boolean} deep If `true`, returns the deepest descendant Component which contains the passed element.
      * @return {Ext.Component} The child item which contains the passed element.
      */
-    getChildByElement: function(el) {
+    getChildByElement: function(el, deep) {
         var item,
             itemEl,
             i = 0,
-            it = this.items.items,
+            it = this.getRefItems(),
             ln = it.length;
 
         el = Ext.getDom(el);
         for (; i < ln; i++) {
             item = it[i];
             itemEl = item.getEl();
-            if ((itemEl.dom === el) || itemEl.contains(el)) {
-                return item;
+            if (itemEl && ((itemEl.dom === el) || itemEl.contains(el))) {
+                return (deep && item.getChildByElement) ? item.getChildByElement(el, deep) : item;
             }
         }
         return null;
     }
+}, function () {
+    /*
+     * The observer below is used to be able to detect showing/hiding at various levels
+     * in the hierarchy. While it's not particularly expensive to bubble an event up,
+     * cascading an event down can be quite costly.
+     * 
+     * The main usage for this is to do with floating components. For example, the load mask
+     * is a floating component. The component it is masking may be inside several containers.
+     * As such, we need to know when component is hidden, either directly, or via a parent
+     * container being hidden. We can subscribe to these events and filter out the appropriate
+     * container.
+     */
+    this.hierarchyEventSource = this.prototype.hierarchyEventSource = new Ext.util.Observable({ events: {
+        hide: true,
+        show: true,
+        collapse: true,
+        expand: true,
+        added: true
+    }});
 });
-

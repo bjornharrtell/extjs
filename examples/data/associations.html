@@ -4,16 +4,19 @@
     <title>Lazy Loading Data Associations</title>
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
     <link rel="stylesheet" type="text/css" href="../shared/example.css"/>
+
+    <!-- GC -->
+
     <style type="text/css">
         .beforeload {
             color: blue;
         }
-        
+
         .afterload {
             color: green;
         }
     </style>
-    <script type="text/javascript" src="../../bootstrap.js"></script>
+    <script type="text/javascript" src="../../ext-all.js"></script>
     <script type="text/javascript" src="associations.js"></script>
 </head>
 <body>
@@ -22,7 +25,7 @@
     <p>We look at a fictional company that sells furniture to their retail customers.</p>
     <p>Note that each time you navigate down to a new level a separate request is sent to retrieve the appropriate data.</p>
     <p>Once you reach the last level, we also demonstrate the ability to load back up the hierarchy. Note that this creates a new Model instance so no previous association data is present when we begin.</p>
-    
+
     <p>The source is not minified and can be viewed here: <a href="associations.js">associations.js</a>.</p>
 </body>
 </html>

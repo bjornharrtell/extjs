@@ -16,15 +16,14 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-form-action-StandardSubmit'>/**
-</span> * @class Ext.form.action.StandardSubmit
- * @extends Ext.form.action.Submit
- * &lt;p&gt;A class which handles submission of data from {@link Ext.form.Basic Form}s using a standard
- * &lt;tt&gt;&amp;lt;form&amp;gt;&lt;/tt&gt; element submit. It does not handle the response from the submit.&lt;/p&gt;
- * &lt;p&gt;If validation of the form fields fails, the Form's afterAction method
- * will be called. Otherwise, afterAction will not be called.&lt;/p&gt;
- * &lt;p&gt;Instances of this class are only created by a {@link Ext.form.Basic Form} when
- * {@link Ext.form.Basic#submit submit}ting, when the form's {@link Ext.form.Basic#standardSubmit}
- * config option is &lt;tt&gt;true&lt;/tt&gt;.&lt;/p&gt;
+</span> * A class which handles submission of data from {@link Ext.form.Basic Form}s using a standard `&lt;form&gt;` element submit.
+ * It does not handle the response from the submit.
+ *
+ * If validation of the form fields fails, the Form's afterAction method will be called. Otherwise, afterAction will not
+ * be called.
+ *
+ * Instances of this class are only created by a {@link Ext.form.Basic Form} when
+ * {@link Ext.form.Basic#submit submit}ting, when the form's {@link Ext.form.Basic#standardSubmit} config option is true.
  */
 Ext.define('Ext.form.action.StandardSubmit', {
     extend:'Ext.form.action.Submit',
@@ -32,8 +31,9 @@ Ext.define('Ext.form.action.StandardSubmit', {
 
 <span id='Ext-form-action-StandardSubmit-cfg-target'>    /**
 </span>     * @cfg {String} target
-     * Optional &lt;tt&gt;target&lt;/tt&gt; attribute to be used for the form when submitting. If not specified,
-     * the target will be the current window/frame.
+     * Optional target attribute to be used for the form when submitting.
+     * 
+     * Defaults to the current window/frame.
      */
 
 <span id='Ext-form-action-StandardSubmit-method-doSubmit'>    /**

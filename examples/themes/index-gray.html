@@ -4,7 +4,10 @@
         <title>Ext JS 4 Themes</title>
         <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all-gray.css" />
 
-        <script type="text/javascript" src="../../bootstrap.js"></script>
+    <!-- GC -->
+
+
+        <script type="text/javascript" src="../../ext-all.js"></script>
 
         <script type="text/javascript" src="themes.js"></script>
 
@@ -19,9 +22,12 @@
 
             div#header {
                 height: 65px;
-                width: 1090px;
                 padding: 25px 0 10px 0;
-                margin: 0 50px;
+                width: 1090px;
+                margin: 0 50px -5px 50px;
+            }
+            #main-container {
+				margin-left: 30px;
             }
             div#header h1 {
                 font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -64,12 +70,11 @@
             <form id="styleswitcher">
                 <label for="styleswitcher_select">Choose Theme: </label>
                 <select name="styleswitcher_select" id="styleswitcher_select">
-                    <option value="index.html">3.x Theme</option>
+                    <option value="index.html" selected="true">Classic Theme</option>
                     <option value="index-gray.html" selected="true">Gray Theme</option>
                     <option value="index-access.html">Accessibility Theme</option>
                 </select>
             </form>
-
             <h1>Ext JS Themes <span>View and test every Ext component against bundled <a href="http://www.sencha.com/products/extjs/themes/">Ext Themes</a>, or, your own custom themes.</span></h1>
         </div>
 

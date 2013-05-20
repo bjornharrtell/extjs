@@ -17,35 +17,27 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-layout-component-Tab'>/**
 </span> * Component layout for tabs
- * @class Ext.layout.component.Tab
- * @extends Ext.layout.component.Button
  * @private
  */
 Ext.define('Ext.layout.component.Tab', {
 
-    alias: ['layout.tab'],
-
     extend: 'Ext.layout.component.Button',
+    alias: 'layout.tab',
 
-    //type: 'button',
+    beginLayout: function(ownerContext) {
+        var me = this,
+            closable = me.owner.closable;
 
-    beforeLayout: function() {
-        var me = this, dirty = me.lastClosable !== me.owner.closable;
-
-        if (dirty) {
-            delete me.adjWidth;
+        // Changing the close button visibility causes our cached measurements to be wrong,
+        // so we must convince our base class to re-cache those adjustments...
+        if (me.lastClosable !== closable) {
+            me.lastClosable = closable;
+            me.clearTargetCache();
         }
 
-        return this.callParent(arguments) || dirty;
-    },
-
-    onLayout: function () {
-        var me = this;
-
         me.callParent(arguments);
-
-        me.lastClosable = me.owner.closable;
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

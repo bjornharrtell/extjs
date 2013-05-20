@@ -1,28 +1,28 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.samples = {
     samplesCatalog: [
         {
             "title": "Combination Examples",
             "items": [
                 {
+                    "text": "Kitchen Sink",
+                    "url": "kitchensink/index.html",
+                    "icon": "kitchensink.gif",
+                    "desc": "Showcase of Ext JS components using a preview release of the new Neptune theme",
+                    "status": "Webkit Only"
+                },
+                {
                     "text": "Feed Viewer",
                     "url": "feed-viewer/feed-viewer.html",
                     "icon": "feeds.gif",
                     "desc": "RSS feed reader example application that features a swappable reader panel layout.",
                     "status": "updated"
+                },
+                {
+                    "text": "Ext JS Calendar",
+                    "url": "calendar/index.html",
+                    "icon": "calendar.gif",
+                    "desc": "Example Calendar application. Demonstrates the new Day, Week and Month views and how to combine them.",
+                    "status": "new"
                 },
                 {
                     "text": "Web Desktop",
@@ -56,6 +56,13 @@ Ext.samples = {
                     "url": "themes/index.html",
                     "icon": "themes.gif",
                     "desc": "View and test every Ext component against bundled Ext themes."
+                },
+                {
+                    "text": "Simple Tasks",
+                    "url": "simple-tasks/index.html",
+                    "icon": "tasks.gif",
+                    "desc": "Complete personal task management application example",
+                    "status": "new"
                 }
             ]
         },
@@ -229,16 +236,39 @@ Ext.samples = {
                     "url": "grid/progress-bar-pager.html",
                     "icon": "progress-bar-pager.gif",
                     "desc": "Progress Bar Pager Extension."
-                },{
+                },
+                {
                     "text": "Property Grid",
                     "url": "grid/property.html",
                     "icon": "grid-property.gif",
                     "desc": "Create a property grid from an object."
-                },{
+                },
+                {
                     "text": "Grid From Markup",
                     "url": "grid/transform-dom.html",
                     "icon": "grid-transform.gif",
                     "desc": "Create a grid with from an existing, unformatted HTML table."
+                },
+                {
+                    "text": "Locking Grouping Grid with Summary",
+                    "url": "grid/locking-group-summary-grid.html",
+                    "icon": "grid-summary.gif",
+                    "desc": "Advanced grouping grid that allows cell editing and includes custom dynamic summary calculations. With column locking capability",
+                    "status": "new"
+                },
+                {
+                    "text": "Infinite Grid with remote filter",
+                    "url": "grid/infinite-scroll-with-filter.html",
+                    "icon": "grid-infinite-scroll.gif",
+                    "desc": "Sample grid which scrolls through thousands of rows dynamically loaded from a server with a filtering UI",
+                    "status": "new"
+                },
+                {
+                    "text": "Locking Grouping Grid with Summary and grouped headers",
+                    "url": "grid/locking-grp-summary-grp-hdrs-grid.html",
+                    "icon": "grid-summary.gif",
+                    "desc": "Grouped grid with locked columns and grouped column headers",
+                    "status": "new"
                 }
             ]
         },
@@ -422,6 +452,13 @@ Ext.samples = {
                    "icon": "tabs-adv.gif",
                    "desc": "Demonstrates the TabPanel overflow menu extension, which makes management of large numbers of tabs easier",
                    "status": "updated"
+                },
+                {
+                   "text": "Group Tabs",
+                   "url": "grouptabs/grouptabs.html",
+                   "icon": "group-tabs.gif",
+                   "desc": "A custom example on how to setup tab grouping using vertical tabs.",
+                   "status": "new"
                 }
             ]
         },
@@ -824,14 +861,14 @@ Ext.samples = {
                     "url": "form/vbox-form.html",
                     "icon": "form-vbox.gif",
                     "desc": "Example usage of the vBox layout with forms. An added bonus is the FieldReplicator plugin.",
-            	    "status": "new"
+                    "status": "new"
                 },
                 {
                     "text": "Forms with hBox layout",
                     "url": "form/hbox-form.html",
                     "icon": "form-hbox.gif",
                     "desc": "Example usage of the hBox layout with a form. Includes automatically adjusting validation messages.",
-            	    "status": "new"
+                    "status": "new"
                 },
                 {
                      "text": "Field Containers",
@@ -1021,4 +1058,3 @@ Ext.samples = {
         }
     ]
 };
-

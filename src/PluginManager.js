@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @singleton
- *
  * Provides a registry of available Plugin classes indexed by a mnemonic code known as the Plugin's ptype.
  *
  * A plugin may be specified simply as a *config object* as long as the correct `ptype` is specified:
@@ -30,8 +14,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * Alternatively you can instantiate the plugin with Ext.create:
  *
- *     Ext.create('Ext.view.plugin.AutoComplete', {
- *         ptype: 'gridviewdragdrop',
+ *     Ext.create('Ext.grid.plugin.DragDrop', {
  *         dragText: 'Drag and drop to reorganize'
  *     })
  */
@@ -49,6 +32,22 @@ Ext.define('Ext.PluginManager', {
      * contain a `ptype`. (Optional if the config contains a `ptype`).
      * @return {Ext.Component} The newly instantiated Plugin.
      */
+    create : function(config, defaultType){
+        if (config.init) {
+            return config;
+        } else {
+            return Ext.createByAlias('plugin.' + (config.ptype || defaultType), config);
+        }
+
+        // Prior system supported Singleton plugins.
+        //var PluginCls = this.types[config.ptype || defaultType];
+        //if (PluginCls.init) {
+        //    return PluginCls;
+        //} else {
+        //    return new PluginCls(config);
+        //}
+    },
+
     //create: function(plugin, defaultType) {
     //    if (plugin instanceof this) {
     //        return plugin;
@@ -67,22 +66,6 @@ Ext.define('Ext.PluginManager', {
     //    }
     //},
 
-    create : function(config, defaultType){
-        if (config.init) {
-            return config;
-        } else {
-            return Ext.createByAlias('plugin.' + (config.ptype || defaultType), config);
-        }
-
-        // Prior system supported Singleton plugins.
-        //var PluginCls = this.types[config.ptype || defaultType];
-        //if (PluginCls.init) {
-        //    return PluginCls;
-        //} else {
-        //    return new PluginCls(config);
-        //}
-    },
-
     /**
      * Returns all plugins registered with the given type. Here, 'type' refers to the type of plugin, not its ptype.
      * @param {String} type The type to search for
@@ -92,13 +75,15 @@ Ext.define('Ext.PluginManager', {
      */
     findByType: function(type, defaultsOnly) {
         var matches = [],
-            types   = this.types;
+            types   = this.types,
+            name,
+            item;
 
-        for (var name in types) {
+        for (name in types) {
             if (!types.hasOwnProperty(name)) {
                 continue;
             }
-            var item = types[name];
+            item = types[name];
 
             if (item.type == type && (!defaultsOnly || (defaultsOnly === true && item.isDefault))) {
                 matches.push(item);
@@ -120,4 +105,3 @@ Ext.define('Ext.PluginManager', {
         return Ext.PluginManager.registerType.apply(Ext.PluginManager, arguments);
     };
 });
-

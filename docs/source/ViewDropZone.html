@@ -15,11 +15,14 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('Ext.grid.ViewDropZone', {
+  <pre class="prettyprint lang-js"><span id='Ext-grid-ViewDropZone'>/**
+</span> * @private
+ */
+Ext.define('Ext.grid.ViewDropZone', {
     extend: 'Ext.view.DropZone',
 
-    indicatorHtml: '&lt;div class=&quot;x-grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;x-grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
-    indicatorCls: 'x-grid-drop-indicator',
+    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
+    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
 
     handleNodeDrop : function(data, record, position) {
         var view = this.view,

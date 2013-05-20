@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.button.*');
 Ext.onReady(function() {
     var genericConfig = [{
@@ -60,19 +46,19 @@ Ext.onReady(function() {
             var generateButtons = function(config) {
                 //Ext.each(['gray', 'darkgray', 'blue', 'darkblue', 'red', 'green'], function(color) {
                 Ext.each(['default'], function(color) {
-                    Ext.createWidget(defaultConfig.defaultType || 'button', Ext.apply({
+                    Ext.widget(defaultConfig.defaultType || 'button', Ext.apply({
                         text : 'Small',
                         scale: 'small',
                         color: color
                     }, config, defaultConfig));
 
-                    Ext.createWidget(defaultConfig.defaultType || 'button', Ext.apply({
+                    Ext.widget(defaultConfig.defaultType || 'button', Ext.apply({
                         text : 'Medium',
                         scale: 'medium',
                         color: color
                     }, config, defaultConfig));
 
-                    Ext.createWidget(defaultConfig.defaultType || 'button', Ext.apply({
+                    Ext.widget(defaultConfig.defaultType || 'button', Ext.apply({
                         text : 'Large',
                         scale: 'large',
                         color: color
@@ -131,12 +117,28 @@ Ext.onReady(function() {
         menu : menu,
         arrowAlign: 'bottom'
     });
-    
+
     renderButtons('Split Buttons (Arrow on bottom)', genericConfig, {
         cls: 'floater',
         defaultType: 'splitbutton',
         menu : menu,
         arrowAlign: 'bottom'
     });
-});
 
+    renderButtons('Text align: left', genericConfig, {
+        cls: 'floater',
+        textAlign: 'left',
+        width: 200
+    });
+
+    renderButtons('Text align: right', genericConfig, {
+        cls: 'floater',
+        textAlign: 'right',
+        width: 200
+    });
+
+    renderButtons('Link Buttons', genericConfig, {
+        cls: 'floater',
+        href: 'http://www.sencha.com/'
+    });
+});

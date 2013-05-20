@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
     'Ext.form.*',
     'Ext.data.*',
@@ -173,6 +159,7 @@ Ext.onReady(function(){
         flex: 1.2,
         animate: true,
         store: chs,
+        theme: 'Blue',
         axes: [{
             steps: 5,
             type: 'Radial',
@@ -187,7 +174,8 @@ Ext.onReady(function(){
             showMarkers: true,
             markerConfig: {
                 radius: 4,
-                size: 4
+                size: 4,
+                fill: 'rgb(69,109,159)'
             },
             style: {
                 fill: 'rgb(194,214,240)',

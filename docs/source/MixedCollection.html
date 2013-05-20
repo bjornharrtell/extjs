@@ -162,8 +162,43 @@ Ext.define('Ext.util.MixedCollection', {
             items[i] = temp[i].value;
             keys[i]  = temp[i].key;
         }
-        
+
         me.fireEvent('sort', me, items, keys);
+    },
+
+<span id='Ext-util-MixedCollection-method-findInsertionIndex'>    /**
+</span>     * Calculates the insertion index of the new item based upon the comparison function passed, or the current sort order.
+     * @param {Object} newItem The new object to find the insertion position of.
+     * @param {Function} [sorterFn] The function to sort by. This is the same as the sorting function
+     * passed to {@link #sortBy}. It accepts 2 items from this MixedCollection, and returns -1 0, or 1
+     * depending on the relative sort positions of the 2 compared items.
+     *
+     * If omitted, a function {@link #generateComparator generated} from the currently defined set of
+     * {@link #sorters} will be used.
+     *
+     * @return {Number} The insertion point to add the new item into this MixedCollection at using {@link #insert}
+     */
+    findInsertionIndex: function(newItem, sorterFn) {
+        var me    = this,
+            items = me.items,
+            start = 0,
+            end   = items.length - 1,
+            middle,
+            comparison;
+
+        if (!sorterFn) {
+            sorterFn = me.generateComparator();
+        }
+        while (start &lt;= end) {
+            middle = (start + end) &gt;&gt; 1;
+            comparison = sorterFn(newItem, items[middle]);
+            if (comparison &gt;= 0) {
+                start = middle + 1;
+            } else if (comparison &lt; 0) {
+                end = middle - 1;
+            }
+        }
+        return start;
     },
 
 <span id='Ext-util-MixedCollection-method-reorder'>    /**

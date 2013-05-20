@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.data.Tree
  *
@@ -44,8 +30,6 @@ Ext.define('Ext.data.Tree', {
     constructor: function(root) {
         var me = this;
 
-        
-
         me.mixins.observable.constructor.call(me);
 
         if (root) {
@@ -70,92 +54,12 @@ Ext.define('Ext.data.Tree', {
         var me = this;
 
         me.root = node;
-        Ext.data.NodeInterface.decorate(node);
 
         if (me.fireEvent('beforeappend', null, node) !== false) {
             node.set('root', true);
             node.updateInfo();
-
-            me.relayEvents(node, [
-                /**
-                 * @event append
-                 * @alias Ext.data.NodeInterface#append
-                 */
-                "append",
-
-                /**
-                 * @event remove
-                 * @alias Ext.data.NodeInterface#remove
-                 */
-                "remove",
-
-                /**
-                 * @event move
-                 * @alias Ext.data.NodeInterface#move
-                 */
-                "move",
-
-                /**
-                 * @event insert
-                 * @alias Ext.data.NodeInterface#insert
-                 */
-                "insert",
-
-                /**
-                 * @event beforeappend
-                 * @alias Ext.data.NodeInterface#beforeappend
-                 */
-                "beforeappend",
-
-                /**
-                 * @event beforeremove
-                 * @alias Ext.data.NodeInterface#beforeremove
-                 */
-                "beforeremove",
-
-                /**
-                 * @event beforemove
-                 * @alias Ext.data.NodeInterface#beforemove
-                 */
-                "beforemove",
-
-                /**
-                 * @event beforeinsert
-                 * @alias Ext.data.NodeInterface#beforeinsert
-                 */
-                "beforeinsert",
-
-                 /**
-                  * @event expand
-                  * @alias Ext.data.NodeInterface#expand
-                  */
-                 "expand",
-
-                 /**
-                  * @event collapse
-                  * @alias Ext.data.NodeInterface#collapse
-                  */
-                 "collapse",
-
-                 /**
-                  * @event beforeexpand
-                  * @alias Ext.data.NodeInterface#beforeexpand
-                  */
-                 "beforeexpand",
-
-                 /**
-                  * @event beforecollapse
-                  * @alias Ext.data.NodeInterface#beforecollapse
-                  */
-                 "beforecollapse" ,
-
-                 /**
-                  * @event rootchange
-                  * Fires whenever the root node is changed in the tree.
-                  * @param {Ext.data.Model} root The new root
-                  */
-                 "rootchange"
-            ]);
+            // root node should never be phantom or dirty, so commit it
+            node.commit();
 
             node.on({
                 scope: me,
@@ -163,6 +67,93 @@ Ext.define('Ext.data.Tree', {
                 append: me.onNodeAppend,
                 remove: me.onNodeRemove
             });
+
+            me.relayEvents(node, [
+                /**
+                 * @event append
+                 * @inheritdoc Ext.data.NodeInterface#append
+                 */
+                "append",
+
+                /**
+                 * @event remove
+                 * @inheritdoc Ext.data.NodeInterface#remove
+                 */
+                "remove",
+
+                /**
+                 * @event move
+                 * @inheritdoc Ext.data.NodeInterface#move
+                 */
+                "move",
+
+                /**
+                 * @event insert
+                 * @inheritdoc Ext.data.NodeInterface#insert
+                 */
+                "insert",
+
+                /**
+                 * @event beforeappend
+                 * @inheritdoc Ext.data.NodeInterface#beforeappend
+                 */
+                "beforeappend",
+
+                /**
+                 * @event beforeremove
+                 * @inheritdoc Ext.data.NodeInterface#beforeremove
+                 */
+                "beforeremove",
+
+                /**
+                 * @event beforemove
+                 * @inheritdoc Ext.data.NodeInterface#beforemove
+                 */
+                "beforemove",
+
+                /**
+                 * @event beforeinsert
+                 * @inheritdoc Ext.data.NodeInterface#beforeinsert
+                 */
+                "beforeinsert",
+
+                /**
+                 * @event expand
+                 * @inheritdoc Ext.data.NodeInterface#expand
+                 */
+                "expand",
+
+                /**
+                 * @event collapse
+                 * @inheritdoc Ext.data.NodeInterface#collapse
+                 */
+                "collapse",
+
+                /**
+                 * @event beforeexpand
+                 * @inheritdoc Ext.data.NodeInterface#beforeexpand
+                 */
+                "beforeexpand",
+
+                /**
+                 * @event beforecollapse
+                 * @inheritdoc Ext.data.NodeInterface#beforecollapse
+                 */
+                "beforecollapse" ,
+
+                /**
+                 * @event sort
+                 * @inheritdoc Ext.data.NodeInterface#event-sort
+                 */
+                "sort",
+
+                /**
+                 * @event rootchange
+                 * Fires whenever the root node is changed in the tree.
+                 * @param {Ext.data.Model} root The new root
+                 */
+                "rootchange"
+            ]);
 
             me.nodeHash = {};
             me.registerNode(node);
@@ -179,16 +170,7 @@ Ext.define('Ext.data.Tree', {
      * @return {Ext.data.NodeInterface[]} The flattened nodes.
      */
     flatten: function(){
-        var nodes = [],
-            hash = this.nodeHash,
-            key;
-
-        for (key in hash) {
-            if (hash.hasOwnProperty(key)) {
-                nodes.push(hash[key]);
-            }
-        }
-        return nodes;
+        return Ext.Object.getValues(this.nodeHash);
     },
 
     /**
@@ -222,6 +204,20 @@ Ext.define('Ext.data.Tree', {
     },
 
     /**
+     * Fired when a node's id changes.  Updates the node's id in the node hash.
+     * @private
+     * @param {Ext.data.NodeInterface} node 
+     * @param {Number} oldId The old id
+     * @param {Number} newId The new id
+     */
+    onNodeIdChanged: function(node, oldId, newId) {
+        var nodeHash = this.nodeHash;
+    
+        nodeHash[newId] = node;
+        delete nodeHash[oldId || node.internalId];
+    },
+
+    /**
      * Gets a node in this tree by its id.
      * @param {String} id
      * @return {Ext.data.NodeInterface} The match node.
@@ -237,11 +233,14 @@ Ext.define('Ext.data.Tree', {
      * @param {Boolean} [includeChildren] True to unregister any child nodes
      */
     registerNode : function(node, includeChildren) {
-        this.nodeHash[node.getId() || node.internalId] = node;
+        var me = this;
+
+        me.nodeHash[node.getId() || node.internalId] = node;
+        node.on('idchanged', me.onNodeIdChanged, me);
         if (includeChildren === true) {
             node.eachChild(function(child){
-                this.registerNode(child, true);
-            }, this);
+                me.registerNode(child, true);
+            });
         }
     },
 

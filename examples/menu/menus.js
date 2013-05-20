@@ -1,22 +1,30 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-Ext.require(['*']);
-
-// TODO: The "Users" menu containing buttons is completely screwed: ButtonGroup needs work.
+Ext.require([
+    'Ext.tip.QuickTipManager',
+    'Ext.menu.*',
+    'Ext.form.field.ComboBox',
+    'Ext.layout.container.Table',
+    'Ext.container.ButtonGroup'
+]);
 
 Ext.onReady(function(){
+    
+    // functions to display feedback
+    function onButtonClick(btn){
+        Ext.example.msg('Button Click','You clicked the "{0}" button.', btn.text);
+    }
+
+    function onItemClick(item){
+        Ext.example.msg('Menu Click', 'You clicked the "{0}" menu item.', item.text);
+    }
+
+    function onItemCheck(item, checked){
+        Ext.example.msg('Item Check', 'You {1} the "{0}" menu item.', item.text, checked ? 'checked' : 'unchecked');
+    }
+
+    function onItemToggle(item, pressed){
+        Ext.example.msg('Button Toggled', 'Button "{0}" was toggled to {1}.', item.text, pressed);
+    }
+    
     Ext.QuickTips.init();
 
     var dateMenu = Ext.create('Ext.menu.DatePicker', {
@@ -102,8 +110,8 @@ Ext.onReady(function(){
     });
 
     var tb = Ext.create('Ext.toolbar.Toolbar');
-    tb.suspendLayout = true;
     tb.render('toolbar');
+    tb.suspendLayouts();
 
     tb.add({
             text:'Button w/ Menu',
@@ -130,7 +138,6 @@ Ext.onReady(function(){
                         width: 90
                     },{
                         iconCls: 'add',
-                        width: 'auto',
                         tooltip: 'Add user',
                         width: 40
                     },{
@@ -214,7 +221,8 @@ Ext.onReady(function(){
     tb.add('-', {
         icon: 'list-items.gif', // icons can also be specified inline
         cls: 'x-btn-icon',
-        tooltip: '<b>Quick Tips</b><br/>Icon only button with tooltip',
+        tooltip: '<b>Quick Tips</b><br/>Icon only button with tooltip<br><b>Activated on mousedown</b>',
+        clickEvent: 'mousedown',
         handler: function(){
             Ext.example.msg('Button Click','You clicked the "icon only" button.');
         }
@@ -245,37 +253,17 @@ Ext.onReady(function(){
     });
 
     // add a combobox to the toolbar
-    var combo = Ext.create('Ext.form.field.ComboBox', {
+    combo = Ext.create('Ext.form.field.ComboBox', {
         hideLabel: true,
         store: store,
         displayField: 'state',
         typeAhead: true,
-        mode: 'local',
+        queryMode: 'local',
         triggerAction: 'all',
         emptyText:'Select a state...',
         selectOnFocus:true,
         width:135
     });
     tb.add(combo);
-    tb.suspendLayout = false;
-    tb.doLayout();
-
-    // functions to display feedback
-    function onButtonClick(btn){
-        Ext.example.msg('Button Click','You clicked the "{0}" button.', btn.text);
-    }
-
-    function onItemClick(item){
-        Ext.example.msg('Menu Click', 'You clicked the "{0}" menu item.', item.text);
-    }
-
-    function onItemCheck(item, checked){
-        Ext.example.msg('Item Check', 'You {1} the "{0}" menu item.', item.text, checked ? 'checked' : 'unchecked');
-    }
-
-    function onItemToggle(item, pressed){
-        Ext.example.msg('Button Toggled', 'Button "{0}" was toggled to {1}.', item.text, pressed);
-    }
-
+    tb.resumeLayouts(true);
 });
-

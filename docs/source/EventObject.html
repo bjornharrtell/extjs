@@ -268,7 +268,7 @@ Ext.define('Ext.EventObjectImpl', {
         }
 
         return scale;
-    })(),
+    }()),
 
 <span id='Ext-EventObject-property-clickRe'>    /**
 </span>     * Simple click regex
@@ -298,6 +298,20 @@ Ext.define('Ext.EventObjectImpl', {
         1: 1,
         2: 2
     },
+    
+<span id='Ext-EventObject-property-ctrlKey'>    /**
+</span>     * @property {Boolean} ctrlKey
+     * True if the control key was down during the event.
+     * In Mac this will also be true when meta key was down.
+     */
+<span id='Ext-EventObject-property-altKey'>    /**
+</span>     * @property {Boolean} altKey
+     * True if the alt key was down during the event.
+     */
+<span id='Ext-EventObject-property-shiftKey'>    /**
+</span>     * @property {Boolean} shiftKey
+     * True if the shift key was down during the event.
+     */
 
     constructor: function(event, freezeEvent){
         if (event) {
@@ -618,7 +632,7 @@ Ext.getBody().on('click', function(e,t){
      */
     getPoint : function(){
         var xy = this.getXY();
-        return Ext.create('Ext.util.Point', xy[0], xy[1]);
+        return new Ext.util.Point(xy[0], xy[1]);
     },
 
 <span id='Ext-EventObject-method-hasModifier'>   /**
@@ -666,9 +680,10 @@ Ext.getBody().on('click', function(e,t){
      * is likely to be used when relaying a DOM event. If not specified, {@link #getTarget}
      * is used to determine the target.
      */
-    injectEvent: function () {
+    injectEvent: (function () {
         var API,
-            dispatchers = {}; // keyed by event type (e.g., 'mousedown')
+            dispatchers = {}, // keyed by event type (e.g., 'mousedown')
+            crazyIEButtons;
 
         // Good reference: http://developer.yahoo.com/yui/docs/UserAction.js.html
 
@@ -736,7 +751,7 @@ Ext.getBody().on('click', function(e,t){
                 }
             };
         } else if (document.createEventObject) { // else if (IE)
-            var crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
+            crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
 
             API = {
                 createHtmlEvent: function (doc, type, bubbles, cancelable) {
@@ -875,7 +890,7 @@ Ext.getBody().on('click', function(e,t){
             t = API.fixTarget(t);
             dispatcher(t, me);
         };
-    }() // call to produce method
+    }()) // call to produce method
 
 }, function() {
 

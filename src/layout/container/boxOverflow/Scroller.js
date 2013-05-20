@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.layout.container.boxOverflow.Scroller
- * @extends Ext.layout.container.boxOverflow.None
  * @private
  */
 Ext.define('Ext.layout.container.boxOverflow.Scroller', {
@@ -87,12 +71,17 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * @cfg {String} afterScrollerCls
      * CSS class added to the right scroller element if enableScroll is used
      */
-    
+
     constructor: function(layout, config) {
-        this.layout = layout;
-        Ext.apply(this, config || {});
-        
-        this.addEvents(
+        var me = this;
+
+        me.layout = layout;
+        Ext.apply(me, config || {});
+
+        // Dont pass the config so that it is not applied to 'this' again
+        me.mixins.observable.constructor.call(me);
+
+        me.addEvents(
             /**
              * @event scroll
              * @param {Ext.layout.container.boxOverflow.Scroller} scroller The layout scroller
@@ -101,51 +90,130 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
              */
             'scroll'
         );
+        me.scrollPosition = 0;
+        me.scrollSize = 0;
     },
-    
+
+    getPrefixConfig: function() {
+        var me = this;
+        me.initCSSClasses();
+        return {
+            cls: Ext.layout.container.Box.prototype.innerCls + ' ' + me.beforeCtCls,
+            cn : {
+                id : me.layout.owner.id + '-before-scroller',
+                cls: me.scrollerCls + ' ' + me.beforeScrollerCls,
+                style: 'display:none'
+            }
+        };
+    },
+
+    getSuffixConfig: function() {
+        var me = this;
+        return {
+            cls: Ext.layout.container.Box.prototype.innerCls + ' ' + me.afterCtCls,
+            cn : {
+                id : me.layout.owner.id + '-after-scroller',
+                cls: me.scrollerCls + ' ' + me.afterScrollerCls,
+                style: 'display:none'
+            }
+        };
+    },
+
+    getOverflowCls: function() {
+        return Ext.baseCSSPrefix + this.layout.direction + '-box-overflow-body';
+    },
+
     initCSSClasses: function() {
         var me = this,
-        layout = me.layout;
+            prefix = Ext.baseCSSPrefix,
+            layout = me.layout,
+            names = layout.getNames(),
+            leftName = names.left,
+            rightName = names.right,
+            type = me.getOwnerType(layout.owner);
 
-        if (!me.CSSinitialized) {
-            me.beforeCtCls = me.beforeCtCls || Ext.baseCSSPrefix + 'box-scroller-' + layout.parallelBefore;
-            me.afterCtCls  = me.afterCtCls  || Ext.baseCSSPrefix + 'box-scroller-' + layout.parallelAfter;
-            me.beforeScrollerCls = me.beforeScrollerCls || Ext.baseCSSPrefix + layout.owner.getXType() + '-scroll-' + layout.parallelBefore;
-            me.afterScrollerCls  = me.afterScrollerCls  || Ext.baseCSSPrefix + layout.owner.getXType() + '-scroll-' + layout.parallelAfter;
-            me.CSSinitializes = true;
-        }
+        me.beforeCtCls = me.beforeCtCls || prefix + 'box-scroller-' + leftName;
+        me.afterCtCls  = me.afterCtCls  || prefix + 'box-scroller-' + rightName;
+        
+        me.beforeScrollerCls = me.beforeScrollerCls || prefix + type + '-scroll-' + leftName;
+        me.afterScrollerCls  = me.afterScrollerCls  || prefix + type + '-scroll-' + rightName;
     },
 
-    handleOverflow: function(calculations, targetSize) {
+    beginLayout: function (ownerContext) {
+        var layout = this.layout,
+            names = layout.getNames();
+
+        ownerContext.innerCtScrollPos = layout.innerCt.dom['scroll' + names.leftCap];
+
+        this.callParent(arguments);
+    },
+
+    completeLayout: function (ownerContext) {
+        // capture this before callParent since it calls handle/clearOverflow:
+        this.scrollSize = ownerContext.props['content'+this.layout.getNames().widthCap];
+
+        this.callParent(arguments);
+    },
+    
+    finishedLayout: function(ownerContext) {
         var me = this,
             layout = me.layout,
-            methodName = 'get' + layout.parallelPrefixCap,
-            newSize = {};
+            names = layout.getNames(),
+            scrollPos = Math.min(me.getMaxScrollPosition(), ownerContext.innerCtScrollPos);
 
-        me.initCSSClasses();
-        me.callParent(arguments);
-        this.createInnerElements();
-        this.showScrollers();
-        newSize[layout.perpendicularPrefix] = targetSize[layout.perpendicularPrefix];
-        newSize[layout.parallelPrefix] = targetSize[layout.parallelPrefix] - (me.beforeCt[methodName]() + me.afterCt[methodName]());
-        return { targetSize: newSize };
+        layout.innerCt.dom['scroll' + names.leftCap] = scrollPos;
+    },
+
+    handleOverflow: function(ownerContext) {
+        var me = this,
+            layout = me.layout,
+            names = layout.getNames(),
+            methodName = 'get' + names.widthCap;
+
+        me.captureChildElements();
+        me.showScrollers();
+
+        return {
+            reservedSpace: me.beforeCt[methodName]() + me.afterCt[methodName]()
+        };
     },
 
     /**
      * @private
-     * Creates the beforeCt and afterCt elements if they have not already been created
+     * Gets references to the beforeCt and afterCt elements if they have not already been captured
+     * and creates click handlers for them.
      */
-    createInnerElements: function() {
+    captureChildElements: function() {
         var me = this,
-            target = me.layout.getRenderTarget();
+            el = me.layout.owner.el,
+            before,
+            after;
 
-        //normal items will be rendered to the innerCt. beforeCt and afterCt allow for fixed positioning of
-        //special items such as scrollers or dropdown menu triggers
+        // Grab the scroll click receiving elements
         if (!me.beforeCt) {
-            target.addCls(Ext.baseCSSPrefix + me.layout.direction + '-box-overflow-body');
-            me.beforeCt = target.insertSibling({cls: Ext.layout.container.Box.prototype.innerCls + ' ' + me.beforeCtCls}, 'before');
-            me.afterCt  = target.insertSibling({cls: Ext.layout.container.Box.prototype.innerCls + ' ' + me.afterCtCls},  'after');
+            before = me.beforeScroller = el.getById(me.layout.owner.id + '-before-scroller');
+            after = me.afterScroller = el.getById(me.layout.owner.id + '-after-scroller');
+            me.beforeCt = before.up('');
+            me.afterCt = after.up('');
             me.createWheelListener();
+
+            before.addClsOnOver(me.beforeScrollerCls + '-hover');
+            after.addClsOnOver(me.afterScrollerCls + '-hover');
+
+            before.setVisibilityMode(Ext.Element.DISPLAY);
+            after.setVisibilityMode(Ext.Element.DISPLAY);
+
+            me.beforeRepeater = new Ext.util.ClickRepeater(before, {
+                interval: me.scrollRepeatInterval,
+                handler : me.scrollLeft,
+                scope   : me
+            });
+
+            me.afterRepeater = new Ext.util.ClickRepeater(after, {
+                interval: me.scrollRepeatInterval,
+                handler : me.scrollRight,
+                scope   : me
+            });
         }
     },
 
@@ -155,19 +223,20 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      */
     createWheelListener: function() {
         this.layout.innerCt.on({
-            scope     : this,
             mousewheel: function(e) {
-                e.stopEvent();
-
                 this.scrollBy(e.getWheelDelta() * this.wheelIncrement * -1, false);
-            }
+            },
+            stopEvent: true,
+            scope: this
         });
     },
 
     /**
      * @private
      */
-    clearOverflow: function() {
+    clearOverflow: function () {
+        var layout = this.layout;
+
         this.hideScrollers();
     },
 
@@ -177,12 +246,14 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * present. 
      */
     showScrollers: function() {
-        this.createScrollers();
-        this.beforeScroller.show();
-        this.afterScroller.show();
-        this.updateScrollButtons();
-        
-        this.layout.owner.addClsWithUI('scroller');
+        var me = this;
+
+        me.captureChildElements();
+        me.beforeScroller.show();
+        me.afterScroller.show();
+        me.updateScrollButtons();
+        me.layout.owner.addClsWithUI('scroller');
+        // TODO - this may invalidates data in the ContextItem's styleCache
     },
 
     /**
@@ -190,59 +261,13 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * Hides the scroller elements in the beforeCt and afterCt
      */
     hideScrollers: function() {
-        if (this.beforeScroller != undefined) {
-            this.beforeScroller.hide();
-            this.afterScroller.hide();
-            
-            this.layout.owner.removeClsWithUI('scroller');
-        }
-    },
+        var me = this;
 
-    /**
-     * @private
-     * Creates the clickable scroller elements and places them into the beforeCt and afterCt
-     */
-    createScrollers: function() {
-        if (!this.beforeScroller && !this.afterScroller) {
-            var before = this.beforeCt.createChild({
-                cls: Ext.String.format("{0} {1} ", this.scrollerCls, this.beforeScrollerCls)
-            });
-
-            var after = this.afterCt.createChild({
-                cls: Ext.String.format("{0} {1}", this.scrollerCls, this.afterScrollerCls)
-            });
-
-            before.addClsOnOver(this.beforeScrollerCls + '-hover');
-            after.addClsOnOver(this.afterScrollerCls + '-hover');
-
-            before.setVisibilityMode(Ext.Element.DISPLAY);
-            after.setVisibilityMode(Ext.Element.DISPLAY);
-
-            this.beforeRepeater = Ext.create('Ext.util.ClickRepeater', before, {
-                interval: this.scrollRepeatInterval,
-                handler : this.scrollLeft,
-                scope   : this
-            });
-
-            this.afterRepeater = Ext.create('Ext.util.ClickRepeater', after, {
-                interval: this.scrollRepeatInterval,
-                handler : this.scrollRight,
-                scope   : this
-            });
-
-            /**
-             * @property beforeScroller
-             * @type Ext.Element
-             * The left scroller element. Only created when needed.
-             */
-            this.beforeScroller = before;
-
-            /**
-             * @property afterScroller
-             * @type Ext.Element
-             * The left scroller element. Only created when needed.
-             */
-            this.afterScroller = after;
+        if (me.beforeScroller !== undefined) {
+            me.beforeScroller.hide();
+            me.afterScroller.hide();
+            me.layout.owner.removeClsWithUI('scroller');
+            // TODO - this may invalidates data in the ContextItem's styleCache
         }
     },
 
@@ -250,7 +275,9 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * @private
      */
     destroy: function() {
-        Ext.destroy(this.beforeRepeater, this.afterRepeater, this.beforeScroller, this.afterScroller, this.beforeCt, this.afterCt);
+        var me = this;
+
+        Ext.destroy(me.beforeRepeater, me.afterRepeater, me.beforeScroller, me.afterScroller, me.beforeCt, me.afterCt);
     },
 
     /**
@@ -279,18 +306,24 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * Enables or disables each scroller button based on the current scroll position
      */
     updateScrollButtons: function() {
-        if (this.beforeScroller == undefined || this.afterScroller == undefined) {
+        var me = this,
+            beforeMeth,
+            afterMeth,
+            beforeCls,
+            afterCls;
+            
+        if (me.beforeScroller === undefined || me.afterScroller === undefined) {
             return;
         }
 
-        var beforeMeth = this.atExtremeBefore()  ? 'addCls' : 'removeCls',
-            afterMeth  = this.atExtremeAfter() ? 'addCls' : 'removeCls',
-            beforeCls  = this.beforeScrollerCls + '-disabled',
-            afterCls   = this.afterScrollerCls  + '-disabled';
-        
-        this.beforeScroller[beforeMeth](beforeCls);
-        this.afterScroller[afterMeth](afterCls);
-        this.scrolling = false;
+        beforeMeth = me.atExtremeBefore()  ? 'addCls' : 'removeCls';
+        afterMeth  = me.atExtremeAfter() ? 'addCls' : 'removeCls';
+        beforeCls  = me.beforeScrollerCls + '-disabled';
+        afterCls   = me.afterScrollerCls  + '-disabled';
+
+        me.beforeScroller[beforeMeth](beforeCls);
+        me.afterScroller[afterMeth](afterCls);
+        me.scrolling = false;
     },
 
     /**
@@ -299,7 +332,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * @return {Boolean} True if already at furthest left point
      */
     atExtremeBefore: function() {
-        return this.getScrollPosition() === 0;
+        return !this.getScrollPosition();
     },
 
     /**
@@ -323,8 +356,17 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * @return {Number} The current scroll position
      */
     getScrollPosition: function(){
-        var layout = this.layout;
-        return parseInt(layout.innerCt.dom['scroll' + layout.parallelBeforeCap], 10) || 0;
+        var me = this,
+            layout = me.layout,
+            result;
+
+        // Until we actually scroll, the scroll[Top|Left] is stored as zero to avoid DOM hits.
+        if (me.hasOwnProperty('scrollPosition')) {
+            result = me.scrollPosition;
+        } else {
+            result = parseInt(layout.innerCt.dom['scroll' + layout.getNames().leftCap], 10) || 0;
+        }
+        return result;
     },
 
     /**
@@ -333,8 +375,12 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
      * @return {Number} The max scroll value
      */
     getMaxScrollPosition: function() {
-        var layout = this.layout;
-        return layout.innerCt.dom['scroll' + layout.parallelPrefixCap] - this.layout.innerCt['get' + layout.parallelPrefixCap]();
+        var me = this,
+            layout = me.layout,
+            names = layout.getNames(),
+            maxScrollPos = me.scrollSize - layout.innerCt['get'+names.widthCap]();
+
+        return (maxScrollPos < 0) ? 0 : maxScrollPos;
     },
 
     /**
@@ -355,22 +401,22 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     scrollTo: function(position, animate) {
         var me = this,
             layout = me.layout,
+            names = layout.getNames(),
             oldPosition = me.getScrollPosition(),
             newPosition = Ext.Number.constrain(position, 0, me.getMaxScrollPosition());
 
         if (newPosition != oldPosition && !me.scrolling) {
-            if (animate == undefined) {
+            delete me.scrollPosition;
+            if (animate === undefined) {
                 animate = me.animateScroll;
             }
 
-            layout.innerCt.scrollTo(layout.parallelBefore, newPosition, animate ? me.getScrollAnim() : false);
+            layout.innerCt.scrollTo(names.left, newPosition, animate ? me.getScrollAnim() : false);
             if (animate) {
                 me.scrolling = true;
             } else {
-                me.scrolling = false;
                 me.updateScrollButtons();
             }
-            
             me.fireEvent('scroll', me, newPosition, animate ? me.getScrollAnim() : false);
         }
     },
@@ -384,20 +430,21 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     scrollToItem: function(item, animate) {
         var me = this,
             layout = me.layout,
+            names = layout.getNames(),
             visibility,
             box,
             newPos;
 
         item = me.getItem(item);
-        if (item != undefined) {
-            visibility = this.getItemVisibility(item);
+        if (item !== undefined) {
+            visibility = me.getItemVisibility(item);
             if (!visibility.fullyVisible) {
                 box  = item.getBox(true, true);
-                newPos = box[layout.parallelPosition];
+                newPos = box[names.x];
                 if (visibility.hiddenEnd) {
-                    newPos -= (this.layout.innerCt['get' + layout.parallelPrefixCap]() - box[layout.parallelPrefix]);
+                    newPos -= (me.layout.innerCt['get' + names.widthCap]() - box[names.width]);
                 }
-                this.scrollTo(newPos, animate);
+                me.scrollTo(newPos, animate);
             }
         }
     },
@@ -413,10 +460,11 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
         var me          = this,
             box         = me.getItem(item).getBox(true, true),
             layout      = me.layout,
-            itemStart   = box[layout.parallelPosition],
-            itemEnd     = itemStart + box[layout.parallelPrefix],
+            names       = layout.getNames(),
+            itemStart   = box[names.x],
+            itemEnd     = itemStart + box[names.width],
             scrollStart = me.getScrollPosition(),
-            scrollEnd   = scrollStart + layout.innerCt['get' + layout.parallelPrefixCap]();
+            scrollEnd   = scrollStart + layout.innerCt['get' + names.widthCap]();
 
         return {
             hiddenStart : itemStart < scrollStart,

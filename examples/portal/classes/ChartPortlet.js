@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.define('Ext.app.ChartPortlet', {
 
     extend: 'Ext.panel.Panel',
@@ -27,14 +13,14 @@ Ext.define('Ext.app.ChartPortlet', {
 
     generateData: function(){
         var data = [{
-                name: 'x',
+                name: 0,
                 djia: 10000,
                 sp500: 1100
             }],
             i;
         for (i = 1; i < 50; i++) {
             data.push({
-                name: 'x' + i,
+                name: i,
                 sp500: data[i - 1].sp500 + ((Math.floor(Math.random() * 2) % 2) ? -1 : 1) * Math.floor(Math.random() * 7),
                 djia: data[i - 1].djia + ((Math.floor(Math.random() * 2) % 2) ? -1 : 1) * Math.floor(Math.random() * 7)
             });
@@ -46,7 +32,6 @@ Ext.define('Ext.app.ChartPortlet', {
 
         Ext.apply(this, {
             layout: 'fit',
-            width: 600,
             height: 300,
             items: {
                 xtype: 'chart',
@@ -82,21 +67,25 @@ Ext.define('Ext.app.ChartPortlet', {
                     lineWidth: 1,
                     showMarkers: false,
                     fill: true,
-                    axis: ['left', 'bottom'],
+                    axis: 'left',
                     xField: 'name',
                     yField: 'djia',
                     style: {
-                        'stroke-width': 1
+                        'stroke-width': 1,
+                        stroke: 'rgb(148, 174, 10)'
+
                     }
                 }, {
                     type: 'line',
                     lineWidth: 1,
                     showMarkers: false,
-                    axis: ['right', 'bottom'],
+                    axis: 'right',
                     xField: 'name',
                     yField: 'sp500',
                     style: {
-                        'stroke-width': 1
+                        'stroke-width': 1,
+                         stroke: 'rgb(17, 95, 166)'
+
                     }
                 }]
             }
@@ -105,4 +94,3 @@ Ext.define('Ext.app.ChartPortlet', {
         this.callParent(arguments);
     }
 });
-

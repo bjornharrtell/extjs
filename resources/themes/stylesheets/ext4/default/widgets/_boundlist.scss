@@ -1,3 +1,7 @@
+/**
+ * Creates the base structure of a BoundList.
+ * @member Ext.view.BoundList
+ */
 @mixin extjs-boundlist {
     .#{$prefix}boundlist {
         border-width: $boundlist-border-width;
@@ -7,6 +11,18 @@
 
         .#{$prefix}toolbar {
             border-width: 1px 0 0 0;
+        }
+    }
+
+    // IE6/7 have issues with lists in strict mode
+    @if $include-ie {
+        .#{$prefix}strict {
+            .#{$prefix}ie6,
+            .#{$prefix}ie7 {
+                .#{$prefix}boundlist-list-ct {
+                    position: relative;
+                }
+            }
         }
     }
 

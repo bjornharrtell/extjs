@@ -16,62 +16,71 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-form-action-Load'>/**
-</span> * @class Ext.form.action.Load
- * @extends Ext.form.action.Action
- * &lt;p&gt;A class which handles loading of data from a server into the Fields of an {@link Ext.form.Basic}.&lt;/p&gt;
- * &lt;p&gt;Instances of this class are only created by a {@link Ext.form.Basic Form} when
- * {@link Ext.form.Basic#load load}ing.&lt;/p&gt;
- * &lt;p&gt;&lt;u&gt;&lt;b&gt;Response Packet Criteria&lt;/b&gt;&lt;/u&gt;&lt;/p&gt;
- * &lt;p&gt;A response packet &lt;b&gt;must&lt;/b&gt; contain:
- * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
- * &lt;li&gt;&lt;b&gt;&lt;code&gt;success&lt;/code&gt;&lt;/b&gt; property : Boolean&lt;/li&gt;
- * &lt;li&gt;&lt;b&gt;&lt;code&gt;data&lt;/code&gt;&lt;/b&gt; property : Object&lt;/li&gt;
- * &lt;div class=&quot;sub-desc&quot;&gt;The &lt;code&gt;data&lt;/code&gt; property contains the values of Fields to load.
- * The individual value object for each Field is passed to the Field's
- * {@link Ext.form.field.Field#setValue setValue} method.&lt;/div&gt;&lt;/li&gt;
- * &lt;/ul&gt;&lt;/div&gt;
- * &lt;p&gt;&lt;u&gt;&lt;b&gt;JSON Packets&lt;/b&gt;&lt;/u&gt;&lt;/p&gt;
- * &lt;p&gt;By default, response packets are assumed to be JSON, so for the following form load call:&lt;pre&gt;&lt;code&gt;
-var myFormPanel = new Ext.form.Panel({
-    title: 'Client and routing info',
-    items: [{
-        fieldLabel: 'Client',
-        name: 'clientName'
-    }, {
-        fieldLabel: 'Port of loading',
-        name: 'portOfLoading'
-    }, {
-        fieldLabel: 'Port of discharge',
-        name: 'portOfDischarge'
-    }]
-});
-myFormPanel.{@link Ext.form.Panel#getForm getForm}().{@link Ext.form.Basic#load load}({
-    url: '/getRoutingInfo.php',
-    params: {
-        consignmentRef: myConsignmentRef
-    },
-    failure: function(form, action) {
-        Ext.Msg.alert(&quot;Load failed&quot;, action.result.errorMessage);
-    }
-});
-&lt;/code&gt;&lt;/pre&gt;
- * a &lt;b&gt;success response&lt;/b&gt; packet may look like this:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
-{
-    success: true,
-    data: {
-        clientName: &quot;Fred. Olsen Lines&quot;,
-        portOfLoading: &quot;FXT&quot;,
-        portOfDischarge: &quot;OSL&quot;
-    }
-}&lt;/code&gt;&lt;/pre&gt;
- * while a &lt;b&gt;failure response&lt;/b&gt; packet may look like this:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
-{
-    success: false,
-    errorMessage: &quot;Consignment reference not found&quot;
-}&lt;/code&gt;&lt;/pre&gt;
- * &lt;p&gt;Other data may be placed into the response for processing the {@link Ext.form.Basic Form}'s
- * callback or event handler methods. The object decoded from this JSON is available in the
- * {@link Ext.form.action.Action#result result} property.&lt;/p&gt;
+</span> * A class which handles loading of data from a server into the Fields of an {@link Ext.form.Basic}.
+ *
+ * Instances of this class are only created by a {@link Ext.form.Basic Form} when {@link Ext.form.Basic#load load}ing.
+ *
+ * ## Response Packet Criteria
+ *
+ * A response packet **must** contain:
+ *
+ *   - **`success`** property : Boolean
+ *   - **`data`** property : Object
+ *
+ * The `data` property contains the values of Fields to load. The individual value object for each Field is passed to
+ * the Field's {@link Ext.form.field.Field#setValue setValue} method.
+ *
+ * ## JSON Packets
+ *
+ * By default, response packets are assumed to be JSON, so for the following form load call:
+ *
+ *     var myFormPanel = new Ext.form.Panel({
+ *         title: 'Client and routing info',
+ *         renderTo: Ext.getBody(),
+ *         defaults: {
+ *             xtype: 'textfield'
+ *         },
+ *         items: [{
+ *             fieldLabel: 'Client',
+ *             name: 'clientName'
+ *         }, {
+ *             fieldLabel: 'Port of loading',
+ *             name: 'portOfLoading'
+ *         }, {
+ *             fieldLabel: 'Port of discharge',
+ *             name: 'portOfDischarge'
+ *         }]
+ *     });
+ *     myFormPanel.{@link Ext.form.Panel#getForm getForm}().{@link Ext.form.Basic#load load}({
+ *         url: '/getRoutingInfo.php',
+ *         params: {
+ *             consignmentRef: myConsignmentRef
+ *         },
+ *         failure: function(form, action) {
+ *             Ext.Msg.alert(&quot;Load failed&quot;, action.result.errorMessage);
+ *         }
+ *     });
+ *
+ * a **success response** packet may look like this:
+ *
+ *     {
+ *         success: true,
+ *         data: {
+ *             clientName: &quot;Fred. Olsen Lines&quot;,
+ *             portOfLoading: &quot;FXT&quot;,
+ *             portOfDischarge: &quot;OSL&quot;
+ *         }
+ *     }
+ *
+ * while a **failure response** packet may look like this:
+ *
+ *     {
+ *         success: false,
+ *         errorMessage: &quot;Consignment reference not found&quot;
+ *     }
+ *
+ * Other data may be placed into the response for processing the {@link Ext.form.Basic Form}'s callback or event handler
+ * methods. The object decoded from this JSON is available in the {@link Ext.form.action.Action#result result} property.
  */
 Ext.define('Ext.form.action.Load', {
     extend:'Ext.form.action.Action',

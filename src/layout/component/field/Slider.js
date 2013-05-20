@@ -1,23 +1,6 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.layout.component.field.Slider
- * @extends Ext.layout.component.field.Field
  * @private
  */
-
 Ext.define('Ext.layout.component.field.Slider', {
 
     /* Begin Definitions */
@@ -30,32 +13,46 @@ Ext.define('Ext.layout.component.field.Slider', {
 
     type: 'sliderfield',
 
-    sizeBodyContents: function(width, height) {
-        var owner = this.owner,
-            thumbs = owner.thumbs,
-            length = thumbs.length,
-            inputEl = owner.inputEl,
-            innerEl = owner.innerEl,
-            endEl = owner.endEl,
-            i = 0;
+    beginLayout: function(ownerContext) {
+        this.callParent(arguments);
 
-        /*
-         * If we happen to be animating during a resize, the position of the thumb will likely be off
-         * when the animation stops. As such, just stop any animations before syncing the thumbs.
-         */
-        for(; i < length; ++i) {
-            thumbs[i].el.stopAnimation();
+        ownerContext.endElContext   = ownerContext.getEl('endEl');
+        ownerContext.innerElContext = ownerContext.getEl('innerEl');
+        ownerContext.bodyElContext  = ownerContext.getEl('bodyEl');
+    },
+
+    publishInnerHeight: function (ownerContext, height) {
+        var innerHeight = height - this.measureLabelErrorHeight(ownerContext),
+            endElPad,
+            inputPad;
+        if (this.owner.vertical) {
+            endElPad = ownerContext.endElContext.getPaddingInfo();
+            inputPad = ownerContext.inputContext.getPaddingInfo();
+            ownerContext.innerElContext.setHeight(innerHeight - inputPad.height - endElPad.height);
+        } else {
+            ownerContext.bodyElContext.setHeight(innerHeight);
         }
-        
-        if (owner.vertical) {
-            inputEl.setHeight(height);
-            innerEl.setHeight(Ext.isNumber(height) ? height - inputEl.getPadding('t') - endEl.getPadding('b') : height);
+    },
+
+    publishInnerWidth: function (ownerContext, width) {
+        if (!this.owner.vertical) {
+            var endElPad = ownerContext.endElContext.getPaddingInfo(),
+                inputPad = ownerContext.inputContext.getPaddingInfo();
+
+            ownerContext.innerElContext.setWidth(width - inputPad.left - endElPad.right - ownerContext.labelContext.getProp('width'));
         }
-        else {
-            inputEl.setWidth(width);
-            innerEl.setWidth(Ext.isNumber(width) ? width - inputEl.getPadding('l') - endEl.getPadding('r') : width);
+    },
+
+    beginLayoutFixed: function(ownerContext, width, suffix) {
+        var me = this,
+            ieInputWidthAdjustment = me.ieInputWidthAdjustment;
+
+        if (ieInputWidthAdjustment) {
+            // adjust for IE 6/7 strict content-box model
+            // RTL: This might have to be padding-left unless the senses of the padding styles switch when in RTL mode.
+            me.owner.bodyEl.setStyle('padding-right', ieInputWidthAdjustment + 'px');
         }
-        owner.syncThumbs();
+
+        me.callParent(arguments);
     }
 });
-

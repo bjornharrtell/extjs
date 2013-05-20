@@ -6,10 +6,13 @@
 
     <!-- ExtJS -->
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-    <script type="text/javascript" src="../../bootstrap.js"></script>
+    <script type="text/javascript" src="../../ext-all.js"></script>
 
     <!-- Shared -->
     <link rel="stylesheet" type="text/css" href="../shared/example.css" />
+
+    <!-- GC -->
+
 
     <!-- Example -->
     <script type="text/javascript" src="file-upload.js"></script>
@@ -24,6 +27,11 @@
             margin: 5px;
             float: left;
         }
+        .x-debug .x-form-file-wrap .x-form-file-input {
+            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0.6);
+            opacity: 0.6;
+            background-color: gray;
+        }
     </style>
 
 </head>
@@ -37,7 +45,7 @@
     <p>
         A typical file upload field with Ext style. Direct editing of the text field cannot be done in a
         consistent, cross-browser way, so it is always read-only. The file path reported by the <code>getValue</code>
-        method will 
+        method will
     </p>
     <div id="fi-basic"></div>
     <div id="fi-basic-btn"></div>

@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.ComponentManager
- * @extends Ext.AbstractManager
  * <p>Provides a registry of all Components (instances of {@link Ext.Component} or any subclass
  * thereof) on a page so that they can be easily accessed by {@link Ext.Component component}
  * {@link Ext.Component#id id} (see {@link #get}, or the convenience method {@link Ext#getCmp Ext.getCmp}).</p>
@@ -40,23 +25,18 @@ Ext.define('Ext.ComponentManager', {
      * Creates a new Component from the specified config object using the
      * config object's xtype to determine the class to instantiate.
      * @param {Object} config A configuration object for the Component you wish to create.
-     * @param {Function} defaultType (optional) The constructor to provide the default Component type if
-     * the config object does not contain a <code>xtype</code>. (Optional if the config contains a <code>xtype</code>).
+     * @param {String} defaultType (optional) The xtype to use if the config object does not
+     * contain a <code>xtype</code>. (Optional if the config contains a <code>xtype</code>).
      * @return {Ext.Component} The newly instantiated Component.
      */
     create: function(component, defaultType){
-        if (component instanceof Ext.AbstractComponent) {
+        if (typeof component == 'string') {
+            return Ext.widget(component);
+        }
+        if (component.isComponent) {
             return component;
         }
-        else if (Ext.isString(component)) {
-            return Ext.createByAlias('widget.' + component);
-        }
-        else {
-            var type = component.xtype || defaultType,
-                config = component;
-            
-            return Ext.createByAlias('widget.' + type, config);
-        }
+        return Ext.widget(component.xtype || defaultType, component);
     },
 
     registerType: function(type, cls) {

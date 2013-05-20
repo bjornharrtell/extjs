@@ -1,21 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.draw.CompositeSprite
- * @extends Ext.util.MixedCollection
- *
  * A composite Sprite handles a group of sprites with common methods to a sprite
  * such as `hide`, `show`, `setAttributes`. These methods are applied to the set of sprites
  * added to the group.
@@ -50,7 +33,8 @@ Ext.define('Ext.draw.CompositeSprite', {
     mixins: {
         animate: 'Ext.util.Animate'
     },
-
+    autoDestroy: false,
+    
     /* End Definitions */
     isCompositeSprite: true,
     constructor: function(config) {
@@ -60,10 +44,30 @@ Ext.define('Ext.draw.CompositeSprite', {
         Ext.apply(me, config);
 
         me.addEvents(
+            /**
+             * @event
+             * @inheritdoc Ext.draw.Sprite#mousedown
+             */
             'mousedown',
+            /**
+             * @event
+             * @inheritdoc Ext.draw.Sprite#mouseup
+             */
             'mouseup',
+            /**
+             * @event
+             * @inheritdoc Ext.draw.Sprite#mouseover
+             */
             'mouseover',
+            /**
+             * @event
+             * @inheritdoc Ext.draw.Sprite#mouseout
+             */
             'mouseout',
+            /**
+             * @event
+             * @inheritdoc Ext.draw.Sprite#click
+             */
             'click'
         );
         me.id = Ext.id(null, 'ext-sprite-group-');
@@ -154,7 +158,7 @@ Ext.define('Ext.draw.CompositeSprite', {
         
         for (; i < len; i++) {
             sprite = items[i];
-            if (sprite.el) {
+            if (sprite.el && ! sprite.bboxExcluded) {
                 bb = sprite.getBBox();
                 minX = Math.min(minX, bb.x);
                 minY = Math.min(minY, bb.y);
@@ -175,7 +179,7 @@ Ext.define('Ext.draw.CompositeSprite', {
      * Iterates through all sprites calling `setAttributes` on each one. For more information {@link Ext.draw.Sprite}
      * provides a description of the attributes that can be set with this method.
      * @param {Object} attrs Attributes to be changed on the sprite.
-     * @param {Boolean} redraw Flag to immediatly draw the change.
+     * @param {Boolean} redraw Flag to immediately draw the change.
      * @return {Ext.draw.CompositeSprite} this
      */
     setAttributes: function(attrs, redraw) {
@@ -190,9 +194,8 @@ Ext.define('Ext.draw.CompositeSprite', {
     },
 
     /**
-     * Hides all sprites. If the first parameter of the method is true
-     * then a redraw will be forced for each sprite.
-     * @param {Boolean} redraw Flag to immediatly draw the change.
+     * Hides all sprites. If `true` is passed then a redraw will be forced for each sprite.
+     * @param {Boolean} redraw Flag to immediately draw the change.
      * @return {Ext.draw.CompositeSprite} this
      */
     hide: function(redraw) {
@@ -207,9 +210,8 @@ Ext.define('Ext.draw.CompositeSprite', {
     },
 
     /**
-     * Shows all sprites. If the first parameter of the method is true
-     * then a redraw will be forced for each sprite.
-     * @param {Boolean} redraw Flag to immediatly draw the change.
+     * Shows all sprites. If `true` is passed then a redraw will be forced for each sprite.
+     * @param {Boolean} redraw Flag to immediately draw the change.
      * @return {Ext.draw.CompositeSprite} this
      */
     show: function(redraw) {
@@ -223,6 +225,9 @@ Ext.define('Ext.draw.CompositeSprite', {
         return this;
     },
 
+    /**
+     * Force redraw of all sprites.
+     */
     redraw: function() {
         var me = this,
             i = 0,
@@ -238,6 +243,10 @@ Ext.define('Ext.draw.CompositeSprite', {
         return me;
     },
 
+    /**
+     * Sets style for all sprites.
+     * @param {String} style CSS Style definition.
+     */
     setStyle: function(obj) {
         var i = 0,
             items = this.items,
@@ -253,6 +262,10 @@ Ext.define('Ext.draw.CompositeSprite', {
         }
     },
 
+    /**
+     * Adds class to all sprites.
+     * @param {String} cls CSS class name
+     */
     addCls: function(obj) {
         var i = 0,
             items = this.items,
@@ -266,6 +279,10 @@ Ext.define('Ext.draw.CompositeSprite', {
         }
     },
 
+    /**
+     * Removes class from all sprites.
+     * @param {String} cls CSS class name
+     */
     removeCls: function(obj) {
         var i = 0,
             items = this.items,
@@ -293,21 +310,21 @@ Ext.define('Ext.draw.CompositeSprite', {
     },
     
     /**
-     * Destroys the SpriteGroup
+     * Destroys this CompositeSprite.
      */
     destroy: function(){
         var me = this,
             surface = me.getSurface(),
+            destroySprites = me.autoDestroy,
             item;
             
         if (surface) {
             while (me.getCount() > 0) {
                 item = me.first();
                 me.remove(item);
-                surface.remove(item);
+                surface.remove(item, destroySprites);
             }
         }
         me.clearListeners();
     }
 });
-

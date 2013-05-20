@@ -16,10 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-grid-feature-Feature'>/**
-</span> * @class Ext.grid.feature.Feature
- * @extends Ext.util.Observable
- * 
- * A feature is a type of plugin that is specific to the {@link Ext.grid.Panel}. It provides several
+</span> * A feature is a type of plugin that is specific to the {@link Ext.grid.Panel}. It provides several
  * hooks that allows the developer to inject additional functionality at certain points throughout the 
  * grid creation cycle. This class provides the base template methods that are available to the developer,
  * it should be extended.
@@ -44,55 +41,75 @@
 Ext.define('Ext.grid.feature.Feature', {
     extend: 'Ext.util.Observable',
     alias: 'feature.feature',
-    
+
+    /*
+     * @property {Boolean} isFeature
+     * `true` in this class to identify an object as an instantiated Feature, or subclass thereof.
+     */
     isFeature: true,
+
+<span id='Ext-grid-feature-Feature-property-disabled'>    /**
+</span>     * True when feature is disabled.
+     */
     disabled: false,
-    
+
 <span id='Ext-grid-feature-Feature-property-hasFeatureEvent'>    /**
 </span>     * @property {Boolean}
      * Most features will expose additional events, some may not and will
      * need to change this to false.
      */
     hasFeatureEvent: true,
-    
+
 <span id='Ext-grid-feature-Feature-property-eventPrefix'>    /**
 </span>     * @property {String}
      * Prefix to use when firing events on the view.
      * For example a prefix of group would expose &quot;groupclick&quot;, &quot;groupcontextmenu&quot;, &quot;groupdblclick&quot;.
      */
     eventPrefix: null,
-    
+
 <span id='Ext-grid-feature-Feature-property-eventSelector'>    /**
 </span>     * @property {String}
      * Selector used to determine when to fire the event with the eventPrefix.
      */
     eventSelector: null,
-    
+
 <span id='Ext-grid-feature-Feature-property-view'>    /**
 </span>     * @property {Ext.view.Table}
      * Reference to the TableView.
      */
     view: null,
-    
+
 <span id='Ext-grid-feature-Feature-property-grid'>    /**
 </span>     * @property {Ext.grid.Panel}
      * Reference to the grid panel
      */
     grid: null,
-    
+
 <span id='Ext-grid-feature-Feature-property-collectData'>    /**
 </span>     * Most features will not modify the data returned to the view.
      * This is limited to one feature that manipulates the data per grid view.
      */
     collectData: false,
-        
+    
+    constructor: function(config) {
+        this.initialConfig = config;
+        this.callParent(arguments);
+    },
+
+    clone: function() {
+        return new this.self(this.initialConfig);
+    },
+
+    init: Ext.emptyFn,
+
     getFeatureTpl: function() {
         return '';
     },
-    
+
 <span id='Ext-grid-feature-Feature-method-getFireEventArgs'>    /**
 </span>     * Abstract method to be overriden when a feature should add additional
      * arguments to its event signature. By default the event will fire:
+     *
      * - view - The underlying Ext.view.Table
      * - featureTarget - The matched element by the defined {@link #eventSelector}
      *
@@ -103,29 +120,27 @@ Ext.define('Ext.grid.feature.Feature', {
     getFireEventArgs: function(eventName, view, featureTarget, e) {
         return [eventName, view, featureTarget, e];
     },
-    
+
 <span id='Ext-grid-feature-Feature-method-attachEvents'>    /**
 </span>     * Approriate place to attach events to the view, selectionmodel, headerCt, etc
      * @template
      */
     attachEvents: function() {
-        
+
     },
-    
-    getFragmentTpl: function() {
-        return;
-    },
-    
+
+    getFragmentTpl: Ext.emptyFn,
+
 <span id='Ext-grid-feature-Feature-method-mutateMetaRowTpl'>    /**
 </span>     * Allows a feature to mutate the metaRowTpl.
      * The array received as a single argument can be manipulated to add things
      * on the end/begining of a particular row.
+     * @param {Array} metaRowTplArray A String array to be used constructing an {@link Ext.XTemplate XTemplate}
+     * to render the rows. This Array may be changed to provide extra DOM structure.
      * @template
      */
-    mutateMetaRowTpl: function(metaRowTplArray) {
-        
-    },
-    
+    mutateMetaRowTpl: Ext.emptyFn,
+
 <span id='Ext-grid-feature-Feature-method-getMetaRowTplFragments'>    /**
 </span>     * Allows a feature to inject member methods into the metaRowTpl. This is
      * important for embedding functionality which will become part of the proper
@@ -139,7 +154,7 @@ Ext.define('Ext.grid.feature.Feature', {
     getTableFragments: function() {
         return {};
     },
-    
+
 <span id='Ext-grid-feature-Feature-method-getAdditionalData'>    /**
 </span>     * Provide additional data to the prepareData call within the grid view.
      * @param {Object} data The data for this particular record.
@@ -151,21 +166,21 @@ Ext.define('Ext.grid.feature.Feature', {
     getAdditionalData: function(data, idx, record, orig) {
         return {};
     },
-    
+
 <span id='Ext-grid-feature-Feature-method-enable'>    /**
-</span>     * Enable a feature
+</span>     * Enables the feature.
      */
     enable: function() {
         this.disabled = false;
     },
-    
+
 <span id='Ext-grid-feature-Feature-method-disable'>    /**
-</span>     * Disable a feature
+</span>     * Disables the feature.
      */
     disable: function() {
         this.disabled = true;
     }
-    
+
 });</pre>
 </body>
 </html>

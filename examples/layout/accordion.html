@@ -3,6 +3,9 @@
     <title>Accordion Layout</title>
     <!-- Ext -->
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+
+    <!-- GC -->
+
     <style type="text/css">
         html, body {
             font: normal 12px verdana;
@@ -20,7 +23,7 @@
             font-size:11px;
         }
     </style>
-<script type="text/javascript" src="../../bootstrap.js"></script>
+<script type="text/javascript" src="../../ext-all.js"></script>
 <script type="text/javascript">
     Ext.require(['*']);
 
@@ -197,6 +200,8 @@
             });
 
             var accordion = Ext.create('Ext.Panel', {
+                title: 'Accordion',
+                collapsible: true,
                 region:'west',
                 margins:'5 0 5 5',
                 split:true,

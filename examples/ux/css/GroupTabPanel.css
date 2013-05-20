@@ -1,7 +1,7 @@
 /* Main GroupTabPanel style */
 .x-grouptabpanel {
-    background-color: #99BBE8;
-    border: solid 15px #99BBE8;
+    background-color: #4E78B1;
+    border: solid 15px #4E78B1;
 }
 /* End of GroupTabPanel style */
 
@@ -14,10 +14,49 @@
 }
 /* End of Card Layout container */
 
-/* TreePanel overrides */
+.x-grouptabpanel .x-grouptab .x-grid-cell-inner  {
+    font-family: tahoma, arial, sans-serif;
+    text-decoration: none!important;
+}
+
+.x-grouptabpanel .x-grouptab-first .x-grid-cell-inner  {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: bold;
+}
+
+.x-grouptabbar .x-grid-row .x-grid-cell {
+    background-color: transparent;
+    padding-left: 6px;
+}
+
+.x-grouptabbar .x-grid-cell-inner  {
+    color: #DFE8F6;
+}
+
+.x-grouptabpanel .x-active-group .x-grid-cell-inner  {
+    color: #395B8E;
+}
+
 .x-grouptabbar .x-grouptab {
-    height: 24px;
     line-height: 24px;
+    background-color: transparent;
+    font-size: 12px;
+    position: relative;
+    padding-left: 6px;
+    padding-bottom: 2px;
+}
+
+.x-grouptabbar .x-grouptab-first {
+    padding-top: 6px;
+}
+
+.x-grouptabbar .x-grouptab-last {
+    margin-bottom: 3px;
+}
+
+.x-grouptabbar .x-active-tab .x-grid-cell-inner  {
+    background-color: #EDEEF0;
 }
 
 .x-grouptabbar .x-tree-elbow-line, 
@@ -25,63 +64,84 @@
     width: 0;
 }
 
-.x-grouptabbar .x-tree-icon {
-    margin-top: 2px;
+.x-grouptabbar .x-active-group .x-grouptab {
+    background-color: white;
 }
 
-.x-grouptabbar .x-grouptab-first {
-    background-image: url('images/tab-collapsed.gif') !important;
-    background-repeat: no-repeat;
-    background-position: 0 0;
+.x-grouptabbar .x-active-group .x-grouptab-first {
+    border-top: 1px solid #d9d9d9;
 }
 
-.x-grouptabbar .x-active-tab .x-grid-cell-inner {
-    text-decoration: underline !important;
+.x-grouptabbar .x-active-group .x-grouptab-center {
+    border-left: 1px solid #d9d9d9;
 }
 
-.x-grouptabbar .x-grid-tree-node-expanded  .x-grouptab-first {
-    background-image: url('images/tab-first.gif') !important;
-
+.x-grouptabbar .x-active-group .x-grouptab-last {
+    border-bottom: 1px solid #d9d9d9;
+    padding-bottom: 3px;
 }
 
-.x-grouptabbar .x-grouptab-last {
-    background-image: url('images/tab-last.gif') !important;
-    background-repeat: no-repeat;
+.x-grouptabbar .x-active-group .x-grouptab-first,
+.x-grouptabbar .x-active-group .x-grouptab-last {
+    border-left: 1px solid #d9d9d9;
+}
+/* Tab corners */
+.x-grouptabbar .x-grouptabs-corner {
+    background-image: url('images/x-grouptabs-corners.gif');
+    display: none;
+    width: 11px;
+    height: 11px;
+    position: absolute;
+    font-size: 1px;
+    line-height: 6px;
+    overflow: hidden;
+    zoom:1;
 }
 
-.x-grouptabbar .x-grouptab-center {
-    border-left: 1px solid #d9d9d9 !important;
-    background-image: none;
-    border-right: 1px solid white;
-    background-color: #fff !important;
+.x-grouptabbar .x-grouptabs-corner {
+    display: none;
 }
 
-.x-grouptabbar .x-grid-row-selected .x-grid-cell {
-    background-color: transparent !important;
+.x-grouptabbar .x-active-group .x-grouptab-first .x-grouptabs-corner-top-left,
+.x-grouptabbar .x-active-group .x-grouptab-last .x-grouptabs-corner-bottom-left {
+    display: block;
 }
 
-.x-grouptabbar .x-grid-row-selected .x-grouptab-center  {
-    background-color: #fff !important;
+.x-grouptabbar .x-grouptabs-corner-top-left {
+    background-position: top left;
+    left: 0; top: 0;
+}
+.x-grouptabbar .x-grouptabs-corner-bottom-left {
+    background-position: bottom left;
+    left: 0; bottom: 0;
+}
+.x-grouptabbar .x-grouptabs-corner-top-right {
+    background-position: top right;
+    right: 0; top: 0;
+}
+.x-grouptabbar .x-grouptabs-corner-bottom-right {
+    background-position: bottom right;
+    right: 0; bottom: 0;
+}
+.x-grouptabbar .x-active-group .x-grouptabs-corner-bottom-left{
+    bottom: -4px; left: -4px;
+}
+.x-grouptabbar .x-active-group .x-grouptabs-corner-bottom-right{
+    bottom: -4px; right: -4px;
+}
+.x-grouptabbar .x-active-group .x-grouptabs-corner-top-left{
+    top: -4px; left: -4px;
+}
+.x-grouptabbar .x-active-group .x-grouptabs-corner-top-right{
+    top: -4px; right: -4px;
 }
 
 .x-grouptabbar .x-tree-panel .x-grid-cell {
     overflow: visible;
 }
 
-.x-grouptabbar .x-tree-panel .x-grid-row .x-grid-cell-inner {
-    margin-left: 7px;
-    overflow: visible !important;
-    line-height: 24px;
-    height: 24px; 
-}
-
-.x-grouptabbar .x-scroller {
-    display: none;
-}
-
 .x-grouptabbar .x-panel-body  {
-    overflow: visible !important;
-    background: url('images/border.gif') repeat-y top right;
+    background-color: #4E78B1;
 }
 
 .x-grouptabbar {
@@ -93,11 +153,19 @@
     margin-top: -2px !important;
 }
 
-.x-grouptabbar .x-grid-view {
-    overflow: visible !important;
+.x-grouptabbar .x-grouptab .x-tree-icon-parent {
+    display: none;
 }
 
-.x-grouptabbar table {
-     width:150px !important;
+.x-grouptabbar .x-grouptab .x-tree-elbow,
+.x-grouptabbar .x-grouptab .x-tree-elbow-end {
+    display: none;
 }
-/* End of TreePanel overrides */
+
+.x-grouptabbar .x-grouptab .x-tree-expander {
+    background: transparent url('images/elbow-plus-nl.gif') no-repeat;
+}
+
+.x-grouptabbar .x-grid-tree-node-expanded .x-grouptab .x-tree-expander {
+    background: transparent url('images/elbow-minus-nl.gif') no-repeat;
+}

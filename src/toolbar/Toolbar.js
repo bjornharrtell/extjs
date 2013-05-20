@@ -1,21 +1,8 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * Basic Toolbar class. Although the {@link Ext.container.Container#defaultType defaultType} for Toolbar is {@link Ext.button.Button button}, Toolbar
- * elements (child items for the Toolbar container) may be virtually any type of Component. Toolbar elements can be created explicitly via their
- * constructors, or implicitly via their xtypes, and can be {@link #add}ed dynamically.
+ * Basic Toolbar class. Although the {@link Ext.container.Container#defaultType defaultType} for
+ * Toolbar is {@link Ext.button.Button button}, Toolbar elements (child items for the Toolbar container)
+ * may be virtually any type of Component. Toolbar elements can be created explicitly via their
+ * constructors, or implicitly via their xtypes, and can be {@link #method-add}ed dynamically.
  *
  * ## Some items have shortcut strings for creation:
  *
@@ -55,7 +42,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         ]
  *     });
  *
- * Toolbars have {@link #enable} and {@link #disable} methods which when called, will enable/disable all items within your toolbar.
+ * Toolbars have {@link #method-enable} and {@link #method-disable} methods which when called, will
+ * enable/disable all items within your toolbar.
  *
  *     @example
  *     Ext.create('Ext.toolbar.Toolbar', {
@@ -115,7 +103,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         items   : [enableBtn, disableBtn]
  *     });
  *
- * Adding items to and removing items from a toolbar is as simple as calling the {@link #add} and {@link #remove} methods. There is also a {@link #removeAll} method
+ * Adding items to and removing items from a toolbar is as simple as calling the {@link #method-add}
+ * and {@link #method-remove} methods. There is also a {@link #removeAll} method
  * which remove all items within the toolbar.
  *
  *     @example
@@ -155,7 +144,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *                 }
  *             },
  *             {
- *                 text   : 'Add a toolbar seperator',
+ *                 text   : 'Add a toolbar separator',
  *                 scope  : this,
  *                 handler: function() {
  *                     addedItems.push(toolbar.add('-'));
@@ -194,7 +183,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * @constructor
  * Creates a new Toolbar
- * @param {Object/Object[]} config A config object or an array of buttons to <code>{@link #add}</code>
+ * @param {Object/Object[]} config A config object or an array of buttons to {@link #method-add}
  * @docauthor Robert Dougan <rob@sencha.com>
  */
 Ext.define('Ext.toolbar.Toolbar', {
@@ -202,8 +191,7 @@ Ext.define('Ext.toolbar.Toolbar', {
     requires: [
         'Ext.toolbar.Fill',
         'Ext.layout.container.HBox',
-        'Ext.layout.container.VBox',
-        'Ext.FocusManager'
+        'Ext.layout.container.VBox'
     ],
     uses: [
         'Ext.toolbar.Separator'
@@ -211,6 +199,10 @@ Ext.define('Ext.toolbar.Toolbar', {
     alias: 'widget.toolbar',
     alternateClassName: 'Ext.Toolbar',
 
+    /**
+     * @property {Boolean} isToolbar
+     * `true` in this class to identify an object as an instantiated Toolbar, or subclass thereof.
+     */
     isToolbar: true,
     baseCls  : Ext.baseCSSPrefix + 'toolbar',
     ariaRole : 'toolbar',
@@ -250,6 +242,24 @@ Ext.define('Ext.toolbar.Toolbar', {
 
     itemCls: Ext.baseCSSPrefix + 'toolbar-item',
 
+    statics: {
+        shortcuts: {
+            '-' : 'tbseparator',
+            ' ' : 'tbspacer'
+        },
+
+        shortcutsHV: {
+            // horizontal
+            0: {
+                '->': { xtype: 'tbfill', height: 0 }
+            },
+            // vertical
+            1: {
+                '->': { xtype: 'tbfill', width: 0 }
+            }
+        }
+    },
+
     initComponent: function() {
         var me = this,
             keys;
@@ -267,8 +277,7 @@ Ext.define('Ext.toolbar.Toolbar', {
             type: me.layout
         } : me.layout || {}, {
             type: me.vertical ? 'vbox' : 'hbox',
-            align: me.vertical ? 'stretchmax' : 'middle',
-            clearInnerCtOnLayout: true
+            align: me.vertical ? 'stretchmax' : 'middle'
         });
 
         if (me.vertical) {
@@ -289,12 +298,6 @@ Ext.define('Ext.toolbar.Toolbar', {
          * @param {Boolean} lastOverflow overflow state
          */
         me.addEvents('overflowchange');
-
-        // Subscribe to Ext.FocusManager for key navigation
-        keys = me.vertical ? ['up', 'down'] : ['left', 'right'];
-        Ext.FocusManager.subscribe(me, {
-            keys: keys
-        });
     },
 
     getRefItems: function(deep) {
@@ -316,38 +319,47 @@ Ext.define('Ext.toolbar.Toolbar', {
      * Adds element(s) to the toolbar -- this function takes a variable number of
      * arguments of mixed type and adds them to the toolbar.
      *
-     * **Note**: See the notes within {@link Ext.container.Container#add}.
+     * **Note**: See the notes within {@link Ext.container.Container#method-add}.
      *
      * @param {Object...} args The following types of arguments are all valid:
+     *
      *  - `{@link Ext.button.Button config}`: A valid button config object
      *  - `HtmlElement`: Any standard HTML element
      *  - `Field`: Any form field
      *  - `Item`: Any subclass of {@link Ext.toolbar.Item}
      *  - `String`: Any generic string (gets wrapped in a {@link Ext.toolbar.TextItem}).
-     *  Note that there are a few special strings that are treated differently as explained next.
-     *  - `'-'`: Creates a separator element
-     *  - `' '`: Creates a spacer element
-     *  - `'->'`: Creates a fill element
+     *
+     *    Note that there are a few special strings that are treated differently as explained next:
+     *
+     *      - `'-'`: Creates a separator element
+     *      - `' '`: Creates a spacer element
+     *      - `'->'`: Creates a fill element
      *
      * @method add
      */
 
     // private
     lookupComponent: function(c) {
-        if (Ext.isString(c)) {
-            var shortcut = Ext.toolbar.Toolbar.shortcuts[c];
-            if (shortcut) {
+        if (typeof c == 'string') {
+            var T = Ext.toolbar.Toolbar,
+                shortcut = T.shortcutsHV[this.vertical ? 1 : 0][c] || T.shortcuts[c];
+
+            if (typeof shortcut == 'string') {
                 c = {
                     xtype: shortcut
                 };
+            } else if (shortcut) {
+                c = Ext.apply({}, shortcut);
             } else {
                 c = {
                     xtype: 'tbtext',
                     text: c
                 };
             }
+
             this.applyDefaults(c);
         }
+
         return this.callParent(arguments);
     },
 
@@ -355,13 +367,6 @@ Ext.define('Ext.toolbar.Toolbar', {
     applyDefaults: function(c) {
         if (!Ext.isString(c)) {
             c = this.callParent(arguments);
-            var d = this.internalDefaults;
-            if (c.events) {
-                Ext.applyIf(c.initialConfig, d);
-                Ext.apply(c, d);
-            } else {
-                Ext.applyIf(c, d);
-            }
         }
         return c;
     },
@@ -380,7 +385,8 @@ Ext.define('Ext.toolbar.Toolbar', {
 
     // private
     constructButton: function(item) {
-        return item.events ? item : this.createComponent(item, item.split ? 'splitbutton' : this.defaultType);
+        return item.events ? item
+                : Ext.widget(item.split ? 'splitbutton' : this.defaultType, item);
     },
 
     // private
@@ -400,17 +406,17 @@ Ext.define('Ext.toolbar.Toolbar', {
     // private
     onAdd: function(component) {
         this.callParent(arguments);
-
         this.trackMenu(component);
-        if (this.disabled) {
-            component.disable();
-        }
     },
-
+    
     // private
     onRemove: function(c) {
         this.callParent(arguments);
         this.trackMenu(c, true);
+    },
+    
+    getChildItemsToDisable: function() {
+        return this.items.getRange();   
     },
 
     // private
@@ -431,10 +437,4 @@ Ext.define('Ext.toolbar.Toolbar', {
     onButtonMenuHide: function(btn) {
         delete this.activeMenuBtn;
     }
-}, function() {
-    this.shortcuts = {
-        '-' : 'tbseparator',
-        ' ' : 'tbspacer',
-        '->': 'tbfill'
-    };
 });

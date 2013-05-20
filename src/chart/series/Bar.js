@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Creates a Bar Chart. A Bar Chart is a useful visualization technique to display quantitative information for
  * different categories that can show some progression (or regression) in the dataset. As with all other series, the Bar
@@ -20,13 +6,13 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     @example
  *     var store = Ext.create('Ext.data.JsonStore', {
- *         fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
+ *         fields: ['name', 'data'],
  *         data: [
- *             { 'name': 'metric one',   'data1':10, 'data2':12, 'data3':14, 'data4':8,  'data5':13 },
- *             { 'name': 'metric two',   'data1':7,  'data2':8,  'data3':16, 'data4':10, 'data5':3  },
- *             { 'name': 'metric three', 'data1':5,  'data2':2,  'data3':14, 'data4':12, 'data5':7  },
- *             { 'name': 'metric four',  'data1':2,  'data2':14, 'data3':6,  'data4':1,  'data5':23 },
- *             { 'name': 'metric five',  'data1':27, 'data2':38, 'data3':36, 'data4':13, 'data5':33 }
+ *             { 'name': 'metric one',   'data':10 },
+ *             { 'name': 'metric two',   'data': 7 },
+ *             { 'name': 'metric three', 'data': 5 },
+ *             { 'name': 'metric four',  'data': 2 },
+ *             { 'name': 'metric five',  'data':27 }
  *         ]
  *     });
  *
@@ -39,7 +25,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         axes: [{
  *             type: 'Numeric',
  *             position: 'bottom',
- *             fields: ['data1'],
+ *             fields: ['data'],
  *             label: {
  *                 renderer: Ext.util.Format.numberRenderer('0,0')
  *             },
@@ -61,19 +47,19 @@ If you are unsure which license is appropriate for your use, please contact the 
  *               width: 140,
  *               height: 28,
  *               renderer: function(storeItem, item) {
- *                 this.setTitle(storeItem.get('name') + ': ' + storeItem.get('data1') + ' views');
+ *                 this.setTitle(storeItem.get('name') + ': ' + storeItem.get('data') + ' views');
  *               }
  *             },
  *             label: {
  *               display: 'insideEnd',
- *                 field: 'data1',
+ *                 field: 'data',
  *                 renderer: Ext.util.Format.numberRenderer('0'),
  *                 orientation: 'horizontal',
  *                 color: '#333',
  *                 'text-anchor': 'middle'
  *             },
  *             xField: 'name',
- *             yField: ['data1']
+ *             yField: 'data'
  *         }]
  *     });
  *
@@ -135,14 +121,13 @@ Ext.define('Ext.chart.series.Bar', {
             surface = me.chart.surface,
             shadow = me.chart.shadow,
             i, l;
+        config.highlightCfg = Ext.Object.merge({
+            lineWidth: 3,
+            stroke: '#55c',
+            opacity: 0.8,
+            color: '#f00'
+        }, config.highlightCfg);
         Ext.apply(me, config, {
-            highlightCfg: {
-                lineWidth: 3,
-                stroke: '#55c',
-                opacity: 0.8,
-                color: '#f00'
-            },
-
             shadowAttributes: [{
                 "stroke-width": 6,
                 "stroke-opacity": 0.05,
@@ -169,6 +154,7 @@ Ext.define('Ext.chart.series.Bar', {
                 }
             }]
         });
+
         me.group = surface.getGroup(me.seriesId + '-bars');
         if (shadow) {
             for (i = 0, l = me.shadowAttributes.length; i < l; i++) {
@@ -201,6 +187,8 @@ Ext.define('Ext.chart.series.Bar', {
         var me = this,
             chart = me.chart,
             store = chart.getChartStore(),
+            data = store.data.items,
+            i, ln, record,
             bars = [].concat(me.yField),
             barsLen = bars.length,
             groupBarsLen = barsLen,
@@ -210,10 +198,14 @@ Ext.define('Ext.chart.series.Bar', {
             yPadding = me.yPadding,
             stacked = me.stacked,
             barWidth = me.getBarGirth(),
+            barWidthProperty = column ? 'width' : 'height',
             math = Math,
+            mmin = math.min,
             mmax = math.max,
             mabs = math.abs,
-            groupBarWidth, bbox, minY, maxY, axis, out,
+            boundAxes = me.getAxesForXAndYFields(),
+            boundYAxis = boundAxes.yAxis,
+            ends, shrunkBarWidth, groupBarWidth, bbox, minY, maxY, axis, out,
             scale, zero, total, rec, j, plus, minus;
 
         me.setBBox(true);
@@ -227,24 +219,17 @@ Ext.define('Ext.chart.series.Bar', {
                 }
             }
         }
-
-        if (me.axis) {
-            axis = chart.axes.get(me.axis);
-            if (axis) {
-                out = axis.calcEnds();
-                minY = out.from;
-                maxY = out.to;
-            }
+        axis = chart.axes.get(boundYAxis);
+        if (axis) {
+            ends = axis.applyData();
+            minY = ends.from;
+            maxY = ends.to;
         }
 
         if (me.yField && !Ext.isNumber(minY)) {
-            axis = Ext.create('Ext.chart.axis.Axis', {
-                chart: chart,
-                fields: [].concat(me.yField)
-            });
-            out = axis.calcEnds();
-            minY = out.from;
-            maxY = out.to;
+            out = me.getMinMaxYValues();
+            minY = out[0];
+            maxY = out[1];
         }
 
         if (!Ext.isNumber(minY)) {
@@ -254,12 +239,19 @@ Ext.define('Ext.chart.series.Bar', {
             maxY = 0;
         }
         scale = (column ? bbox.height - yPadding * 2 : bbox.width - xPadding * 2) / (maxY - minY);
-        groupBarWidth = barWidth / ((stacked ? 1 : groupBarsLen) * (groupGutter + 1) - groupGutter);
+        shrunkBarWidth = barWidth;
+        groupBarWidth = (barWidth / ((stacked ? 1 : groupBarsLen) * (groupGutter + 1) - groupGutter));
+        
+        if (barWidthProperty in me.style) {
+            groupBarWidth = mmin(groupBarWidth, me.style[barWidthProperty]);
+            shrunkBarWidth = groupBarWidth * ((stacked ? 1 : groupBarsLen) * (groupGutter + 1) - groupGutter);
+        }
         zero = (column) ? bbox.y + bbox.height - yPadding : bbox.x + xPadding;
 
         if (stacked) {
             total = [[], []];
-            store.each(function(record, i) {
+            for (i = 0, ln = data.length; i < ln; i++) {
+                record = data[i];
                 total[0][i] = total[0][i] || 0;
                 total[1][i] = total[1][i] || 0;
                 for (j = 0; j < barsLen; j++) {
@@ -269,7 +261,7 @@ Ext.define('Ext.chart.series.Bar', {
                     rec = record.get(bars[j]);
                     total[+(rec > 0)][i] += mabs(rec);
                 }
-            });
+            }
             total[+(maxY > 0)].push(mabs(maxY));
             total[+(minY > 0)].push(mabs(minY));
             minus = mmax.apply(math, total[0]);
@@ -283,6 +275,7 @@ Ext.define('Ext.chart.series.Bar', {
         return {
             bars: bars,
             bbox: bbox,
+            shrunkBarWidth: shrunkBarWidth,
             barsLen: barsLen,
             groupBarsLen: groupBarsLen,
             barWidth: barWidth,
@@ -302,8 +295,11 @@ Ext.define('Ext.chart.series.Bar', {
         var me = this,
             chart = me.chart,
             store = chart.getChartStore(),
+            data = store.data.items,
+            i, total, record,
             bounds = me.bounds = me.getBounds(),
             items = me.items = [],
+            yFields = me.yField,
             gutter = me.gutter / 100,
             groupGutter = me.groupGutter / 100,
             animate = chart.animate,
@@ -314,6 +310,8 @@ Ext.define('Ext.chart.series.Bar', {
             shadowAttributes = me.shadowAttributes,
             shadowGroupsLn = shadowGroups.length,
             bbox = bounds.bbox,
+            barWidth = bounds.barWidth,
+            shrunkBarWidth = bounds.shrunkBarWidth,
             xPadding = me.xPadding,
             yPadding = me.yPadding,
             stacked = me.stacked,
@@ -327,7 +325,8 @@ Ext.define('Ext.chart.series.Bar', {
             j, yValue, height, totalDim, totalNegDim, bottom, top, hasShadow, barAttr, attrs, counter,
             shadowIndex, shadow, sprite, offset, floorY;
 
-        store.each(function(record, i, total) {
+        for (i = 0, total = data.length; i < total; i++) {
+            record = data[i];
             bottom = bounds.zero;
             top = bounds.zero;
             totalDim = 0;
@@ -347,7 +346,7 @@ Ext.define('Ext.chart.series.Bar', {
                     Ext.apply(barAttr, {
                         height: height,
                         width: mmax(bounds.groupBarWidth, 0),
-                        x: (bbox.x + xPadding + i * bounds.barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked),
+                        x: (bbox.x + xPadding + (barWidth - shrunkBarWidth) * 0.5 + i * barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked),
                         y: bottom - height
                     });
                 }
@@ -358,7 +357,7 @@ Ext.define('Ext.chart.series.Bar', {
                         height: mmax(bounds.groupBarWidth, 0),
                         width: height + (bottom == bounds.zero),
                         x: bottom + (bottom != bounds.zero),
-                        y: (bbox.y + yPadding + offset * bounds.barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked + 1)
+                        y: (bbox.y + yPadding + (barWidth - shrunkBarWidth) * 0.5 + offset * barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked + 1)
                     });
                 }
                 if (height < 0) {
@@ -391,6 +390,7 @@ Ext.define('Ext.chart.series.Bar', {
                 barAttr.height = Math.floor(barAttr.height);
                 items.push({
                     series: me,
+                    yField: yFields[j],
                     storeItem: record,
                     value: [record.get(me.xField), yValue],
                     attr: barAttr,
@@ -432,7 +432,18 @@ Ext.define('Ext.chart.series.Bar', {
                 items[i * counter].totalDim = totalDim;
                 items[i * counter].totalNegDim = totalNegDim;
             }
-        }, me);
+        }
+        if (stacked && counter == 0) {
+            // Remove ghost shadow ref: EXTJSIV-5982
+            for (i = 0, total = data.length; i < total; i++) {
+                for (shadowIndex = 0; shadowIndex < shadowGroupsLn; shadowIndex++) {
+                    shadow = shadowGroups[shadowIndex].getAt(i);
+                    if (shadow) {
+                        shadow.hide(true);
+                    }
+                }
+            }
+        }
     },
 
     // @private render/setAttributes on the shadows
@@ -469,7 +480,7 @@ Ext.define('Ext.chart.series.Bar', {
                     totalDim = items[i].totalDim;
                     totalNegDim = items[i].totalNegDim;
                     if (column) {
-                        shadowBarAttr.y = zero - totalNegDim;
+                        shadowBarAttr.y = zero + totalNegDim - totalDim - 1;
                         shadowBarAttr.height = totalDim;
                     }
                     else {
@@ -477,18 +488,13 @@ Ext.define('Ext.chart.series.Bar', {
                         shadowBarAttr.width = totalDim;
                     }
                 }
+                
+                rendererAttributes = me.renderer(shadow, store.getAt(j), shadowBarAttr, i, store);
+                rendererAttributes.hidden = !!barAttr.hidden;
                 if (animate) {
-                    if (!stacked) {
-                        rendererAttributes = me.renderer(shadow, store.getAt(j), shadowBarAttr, i, store);
-                        me.onAnimate(shadow, { to: rendererAttributes });
-                    }
-                    else {
-                        rendererAttributes = me.renderer(shadow, store.getAt(j), Ext.apply(shadowBarAttr, { hidden: true }), i, store);
-                        shadow.setAttributes(rendererAttributes, true);
-                    }
+                    me.onAnimate(shadow, { to: rendererAttributes });
                 }
                 else {
-                    rendererAttributes = me.renderer(shadow, store.getAt(j), Ext.apply(shadowBarAttr, { hidden: false }), i, store);
                     shadow.setAttributes(rendererAttributes, true);
                 }
                 shadows.push(shadow);
@@ -516,16 +522,23 @@ Ext.define('Ext.chart.series.Bar', {
             items, ln, i, j, baseAttrs, sprite, rendererAttributes, shadowIndex, shadowGroup,
             bounds, endSeriesStyle, barAttr, attrs, anim;
 
-        if (!store || !store.getCount()) {
+        if (!store || !store.getCount() || me.seriesIsHidden) {
+            me.hide();
+            me.items = [];
             return;
         }
 
         //fill colors are taken from the colors array.
-        delete seriesStyle.fill;
-        endSeriesStyle = Ext.apply(seriesStyle, this.style);
+        endSeriesStyle = Ext.apply({}, this.style, seriesStyle);
+        delete endSeriesStyle.fill;
+        delete endSeriesStyle.x;
+        delete endSeriesStyle.y;
+        delete endSeriesStyle.width;
+        delete endSeriesStyle.height;
+        
         me.unHighlightItem();
         me.cleanHighlights();
-
+        
         me.getPaths();
         bounds = me.bounds;
         items = me.items;
@@ -581,6 +594,12 @@ Ext.define('Ext.chart.series.Bar', {
         for (j = i; j < ln; j++) {
             group.getAt(j).hide(true);
         }
+        
+        if (me.stacked) {
+            // If stacked, we have only store.getCount() shadows.
+            i = store.getCount();    
+        }
+        
         // Hide unused shadows
         if (enableShadows) {
             for (shadowIndex = 0; shadowIndex < shadowGroupsLn; shadowIndex++) {
@@ -772,33 +791,45 @@ Ext.define('Ext.chart.series.Bar', {
     },
 
     // @private hide all markers
-    hideAll: function() {
-        var axes = this.chart.axes;
-        if (!isNaN(this._index)) {
-            if (!this.__excludes) {
-                this.__excludes = [];
-            }
-            this.__excludes[this._index] = true;
-            this.drawSeries();
-            axes.each(function(axis) {
-                axis.drawAxis();
-            });
+    hideAll: function(index) {
+        var axes      = this.chart.axes,
+            axesItems = axes.items,
+            ln        = axesItems.length,
+            i         = 0;
+
+        index = (isNaN(this._index) ? index : this._index) || 0;
+
+        if (!this.__excludes) {
+            this.__excludes = [];
         }
+
+        this.__excludes[index] = true;
+        this.drawSeries();
+
+        for (i; i < ln; i++) {
+            axesItems[i].drawAxis();
+        }    
     },
 
     // @private show all markers
-    showAll: function() {
-        var axes = this.chart.axes;
-        if (!isNaN(this._index)) {
-            if (!this.__excludes) {
-                this.__excludes = [];
-            }
-            this.__excludes[this._index] = false;
-            this.drawSeries();
-            axes.each(function(axis) {
-                axis.drawAxis();
-            });
+    showAll: function(index) {
+        var axes = this.chart.axes,
+            axesItems = axes.items,
+            ln        = axesItems.length,
+            i         = 0;
+
+        index = (isNaN(this._index) ? index : this._index) || 0;
+
+        if (!this.__excludes) {
+            this.__excludes = [];
         }
+
+        this.__excludes[index] = false;
+        this.drawSeries();
+
+        for (i; i < ln; i++) {
+            axesItems[i].drawAxis();
+        }    
     },
 
     /**

@@ -17,12 +17,10 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-tab-Tab'>/**
 </span> * @author Ed Spencer
- * @class Ext.tab.Tab
- * @extends Ext.button.Button
- *
- * &lt;p&gt;Represents a single Tab in a {@link Ext.tab.Panel TabPanel}. A Tab is simply a slightly customized {@link Ext.button.Button Button},
- * styled to look like a tab. Tabs are optionally closable, and can also be disabled. Typically you will not
- * need to create Tabs manually as the framework does so automatically when you use a {@link Ext.tab.Panel TabPanel}&lt;/p&gt;
+ * 
+ * Represents a single Tab in a {@link Ext.tab.Panel TabPanel}. A Tab is simply a slightly customized {@link Ext.button.Button Button}, 
+ * styled to look like a tab. Tabs are optionally closable, and can also be disabled. 99% of the time you will not
+ * need to create Tabs manually as the framework does so automatically when you use a {@link Ext.tab.Panel TabPanel}
  */
 Ext.define('Ext.tab.Tab', {
     extend: 'Ext.button.Button',
@@ -35,6 +33,10 @@ Ext.define('Ext.tab.Tab', {
 
     componentLayout: 'tab',
 
+<span id='Ext-tab-Tab-property-isTab'>    /**
+</span>     * @property {Boolean} isTab
+     * `true` in this class to identify an object as an instantiated Tab, or subclass thereof.
+     */
     isTab: true,
 
     baseCls: Ext.baseCSSPrefix + 'tab',
@@ -47,7 +49,7 @@ Ext.define('Ext.tab.Tab', {
     activeCls: 'active',
 
 <span id='Ext-tab-Tab-cfg-disabledCls'>    /**
-</span>     * @cfg {String} disabledCls
+</span>     * @cfg {String} [disabledCls='x-tab-disabled']
      * The CSS class to be applied to a Tab when it is disabled.
      */
 
@@ -58,27 +60,34 @@ Ext.define('Ext.tab.Tab', {
     closableCls: 'closable',
 
 <span id='Ext-tab-Tab-cfg-closable'>    /**
-</span>     * @cfg {Boolean} closable True to make the Tab start closable (the close icon will be visible).
+</span>     * @cfg {Boolean} closable
+     * True to make the Tab start closable (the close icon will be visible).
      */
     closable: true,
 
+    //&lt;locale&gt;
 <span id='Ext-tab-Tab-cfg-closeText'>    /**
 </span>     * @cfg {String} closeText
-     * The accessible text label for the close button link; only used when {@link #closable} = true.
+     * The accessible text label for the close button link; only used when {@link #cfg-closable} = true.
      */
     closeText: 'Close Tab',
+    //&lt;/locale&gt;
 
 <span id='Ext-tab-Tab-property-active'>    /**
 </span>     * @property {Boolean} active
-     * Read-only property indicating that this tab is currently active. This is NOT a public configuration.
+     * Indicates that this tab is currently active. This is NOT a public configuration.
+     * @readonly
      */
     active: false,
 
 <span id='Ext-tab-Tab-property-closable'>    /**
-</span>     * @property closable
-     * @type Boolean
+</span>     * @property {Boolean} closable
      * True if the tab is currently closable
      */
+
+    childEls: [
+        'closeEl'
+    ],
 
     scale: false,
 
@@ -125,14 +134,23 @@ Ext.define('Ext.tab.Tab', {
         }
     },
 
-<span id='Ext-tab-Tab-method-onRender'>    /**
-</span>     * @ignore
-     */
-    onRender: function() {
+    getTemplateArgs: function() {
+        var me = this,
+            result = me.callParent();
+
+        result.closable = me.closable;
+        result.closeText = me.closeText;
+
+        return result;
+    },
+
+    beforeRender: function() {
         var me = this,
             tabBar = me.up('tabbar'),
             tabPanel = me.up('tabpanel');
-
+        
+        me.callParent();
+        
         me.addClsWithUI(me.position);
 
         // Set all the state classNames, as they need to include the UI
@@ -156,16 +174,14 @@ Ext.define('Ext.tab.Tab', {
                 me.maxWidth = tabPanel.maxTabWidth;
             }
         }
+    },
+
+    onRender: function() {
+        var me = this;
 
         me.callParent(arguments);
 
-        if (me.active) {
-            me.activate(true);
-        }
-
-        me.syncClosableElements();
-
-        me.keyNav = Ext.create('Ext.util.KeyNav', me.el, {
+        me.keyNav = new Ext.util.KeyNav(me.el, {
             enter: me.onEnterKey,
             del: me.onDeleteKey,
             scope: me
@@ -194,16 +210,8 @@ Ext.define('Ext.tab.Tab', {
         return me;
     },
 
-<span id='Ext-tab-Tab-method-onDestroy'>    /**
-</span>     * @ignore
-     */
     onDestroy: function() {
         var me = this;
-
-        if (me.closeEl) {
-            me.closeEl.un('click', Ext.EventManager.preventDefault);
-            me.closeEl = null;
-        }
 
         Ext.destroy(me.keyNav);
         delete me.keyNav;
@@ -212,7 +220,7 @@ Ext.define('Ext.tab.Tab', {
     },
 
 <span id='Ext-tab-Tab-method-setClosable'>    /**
-</span>     * Sets the tab as either closable or not
+</span>     * Sets the tab as either closable or not.
      * @param {Boolean} closable Pass false to make the tab not closable. Otherwise the tab will be made closable (eg a
      * close button will appear on the tab)
      */
@@ -236,10 +244,7 @@ Ext.define('Ext.tab.Tab', {
                 me.syncClosableElements();
 
                 // Tab will change width to accommodate close icon
-                me.doComponentLayout();
-                if (me.ownerCt) {
-                    me.ownerCt.doLayout();
-                }
+                me.updateLayout();
             }
         }
     },
@@ -249,25 +254,21 @@ Ext.define('Ext.tab.Tab', {
      * @private
      */
     syncClosableElements: function () {
-        var me = this;
+        var me = this,
+            closeEl = me.closeEl;
 
         if (me.closable) {
-            if (!me.closeEl) {
-                me.closeEl = me.el.createChild({
+            if (!closeEl) {
+                me.closeEl = me.btnWrap.insertSibling({
                     tag: 'a',
                     cls: me.baseCls + '-close-btn',
                     href: '#',
-                    // html: me.closeText, // removed for EXTJSIV-1719, by rob@sencha.com
                     title: me.closeText
-                }).on('click', Ext.EventManager.preventDefault);  // mon ???
+                }, 'after');
             }
-        } else {
-            var closeEl = me.closeEl;
-            if (closeEl) {
-                closeEl.un('click', Ext.EventManager.preventDefault);
-                closeEl.remove();
-                me.closeEl = null;
-            }
+        } else if (closeEl) {
+            closeEl.remove();
+            delete me.closeEl;
         }
     },
 
@@ -276,7 +277,8 @@ Ext.define('Ext.tab.Tab', {
      * @private
      */
     syncClosableUI: function () {
-        var me = this, classes = [me.closableCls, me.closableCls + '-' + me.position];
+        var me = this,
+            classes = [me.closableCls, me.closableCls + '-' + me.position];
 
         if (me.closable) {
             me.addClsWithUI(classes);
@@ -296,6 +298,7 @@ Ext.define('Ext.tab.Tab', {
         me.card = card;
         me.setText(me.title || card.title);
         me.setIconCls(me.iconCls || card.iconCls);
+        me.setIcon(me.icon || card.icon);
     },
 
 <span id='Ext-tab-Tab-method-onCloseClick'>    /**
@@ -313,7 +316,7 @@ Ext.define('Ext.tab.Tab', {
                 }
             } else {
                 // if there's no tabbar, fire the close event
-                me.fireEvent('close', me);
+                me.fireClose();
             }
         }
     },
@@ -341,10 +344,8 @@ Ext.define('Ext.tab.Tab', {
 </span>     * @private
      */
     onDeleteKey: function(e) {
-        var me = this;
-
-        if (me.closable) {
-            me.onCloseClick();
+        if (this.closable) {
+            this.onCloseClick();
         }
     },
 

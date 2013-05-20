@@ -49,14 +49,24 @@ Ext.define('Ext.grid.RowNumberer', {
 
 <span id='Ext-grid-RowNumberer-cfg-sortable'>    /**
 </span>     * @cfg {Boolean} sortable
-     * True if the row number column is sortable.
      * @hide
      */
     sortable: false,
+    
+<span id='Ext-grid-RowNumberer-cfg-draggable'>    /**
+</span>     * @cfg {Boolean} [draggable=false]
+     * False to disable drag-drop reordering of this column.
+     */
+    draggable: false,
 
     align: 'right',
 
     constructor : function(config){
+
+        // Copy the prototype's default width setting into an instance property to provide
+        // a default width which will not be overridden by AbstractContainer.applyDefaults use of Ext.applyIf
+        this.width = this.width;
+
         this.callParent(arguments);
         if (this.rowspan) {
             this.renderer = Ext.Function.bind(this.renderer, this);

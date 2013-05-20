@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.LegendItem
- * @extends Ext.draw.CompositeSprite
  * A single item of a legend (marker plus label)
  */
 Ext.define('Ext.chart.LegendItem', {
@@ -31,6 +16,9 @@ Ext.define('Ext.chart.LegendItem', {
     x: 0,
     y: 0,
     zIndex: 500,
+
+    // checks to make sure that a unit size follows the bold keyword in the font style value
+    boldRe: /bold\s\d{1,}.*/i,
 
     constructor: function(config) {
         this.callParent(arguments);
@@ -64,9 +52,13 @@ Ext.define('Ext.chart.LegendItem', {
             type: 'text',
             x: 20,
             y: 0,
-            zIndex: z || 0,
+            zIndex: (z || 0) + 2,
+            fill: legend.labelColor,
             font: legend.labelFont,
-            text: getSeriesProp('title') || getSeriesProp('yField')
+            text: getSeriesProp('title') || getSeriesProp('yField'),
+            style: {
+                'cursor': 'pointer'
+            }
         }));
 
         // Line series - display as short line with optional marker in the middle
@@ -75,23 +67,25 @@ Ext.define('Ext.chart.LegendItem', {
                 me.add('line', surface.add({
                     type: 'path',
                     path: 'M0.5,0.5L16.5,0.5',
-                    zIndex: z,
+                    zIndex: (z || 0) + 2,
                     "stroke-width": series.lineWidth,
                     "stroke-linejoin": "round",
                     "stroke-dasharray": series.dash,
-                    stroke: seriesStyle.stroke || '#000',
+                    stroke: seriesStyle.stroke || series.getLegendColor(index) || '#000',
                     style: {
                         cursor: 'pointer'
                     }
                 }));
             }
             if (series.showMarkers || seriesType === 'scatter') {
-                markerConfig = Ext.apply(series.markerStyle, series.markerConfig || {});
+                markerConfig = Ext.apply(series.markerStyle, series.markerConfig || {}, {
+                    fill: series.getLegendColor(index)
+                });
                 me.add('marker', Ext.chart.Shape[markerConfig.type](surface, {
                     fill: markerConfig.fill,
                     x: 8.5,
                     y: 0.5,
-                    zIndex: z,
+                    zIndex: (z || 0) + 2,
                     radius: markerConfig.radius || markerConfig.size,
                     style: {
                         cursor: 'pointer'
@@ -103,7 +97,7 @@ Ext.define('Ext.chart.LegendItem', {
         else {
             me.add('box', surface.add({
                 type: 'rect',
-                zIndex: z,
+                zIndex: (z || 0) + 2,
                 x: 0,
                 y: 0,
                 width: 12,
@@ -127,9 +121,8 @@ Ext.define('Ext.chart.LegendItem', {
             y: bbox.y,
             width: bbox.width || 20,
             height: bbox.height || 20,
-            zIndex: (z || 0) + 1000,
-            fill: '#f00',
-            opacity: 0,
+            zIndex: (z || 0) + 1,
+            fill: me.legend.boxFill,
             style: {
                 'cursor': 'pointer'
             }
@@ -149,7 +142,7 @@ Ext.define('Ext.chart.LegendItem', {
 
         me.on('mouseout', function() {
             label.setStyle({
-                'font-weight': 'normal'
+                'font-weight': legend.labelFont && me.boldRe.test(legend.labelFont) ? 'bold' : 'normal'
             });
             series._index = index;
             series.unHighlightItem();
@@ -164,17 +157,18 @@ Ext.define('Ext.chart.LegendItem', {
 
         me.on('mousedown', function() {
             if (!toggle) {
-                series.hideAll();
+                series.hideAll(index);
                 label.setAttributes({
                     opacity: 0.5
                 }, true);
             } else {
-                series.showAll();
+                series.showAll(index);
                 label.setAttributes({
                     opacity: 1
                 }, true);
             }
             toggle = !toggle;
+            me.legend.chart.redraw();
         }, me);
         me.updatePosition({x:0, y:0}); //Relative to 0,0 at first so that the bbox is calculated correctly
     },
@@ -222,4 +216,3 @@ Ext.define('Ext.chart.LegendItem', {
         }
     }
 });
-

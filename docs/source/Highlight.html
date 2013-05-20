@@ -27,27 +27,23 @@ Ext.define('Ext.chart.Highlight', {
 
     /* End Definitions */
 
-<span id='Ext-chart-Highlight-property-highlight'>    /**
+<span id='Ext-chart-Highlight-method-highlight'>    /**
 </span>     * Highlight the given series item.
      * @param {Boolean/Object} Default's false. Can also be an object width style properties (i.e fill, stroke, radius) 
      * or just use default styles per series by setting highlight = true.
      */
     highlight: false,
 
-    highlightCfg : null,
+    highlightCfg : {
+        fill: '#fdd',
+        &quot;stroke-width&quot;: 5,
+        stroke: '#f55'
+    },
 
     constructor: function(config) {
         if (config.highlight) {
             if (config.highlight !== true) { //is an object
-                this.highlightCfg = Ext.apply({}, config.highlight);
-            }
-            else {
-                this.highlightCfg = {
-                    fill: '#fdd',
-                    radius: 20,
-                    lineWidth: 5,
-                    stroke: '#f55'
-                };
+                this.highlightCfg = Ext.merge(this.highlightCfg, config.highlight);
             }
         }
     },
@@ -63,7 +59,7 @@ Ext.define('Ext.chart.Highlight', {
         
         var me = this,
             sprite = item.sprite,
-            opts = me.highlightCfg,
+            opts = Ext.merge({}, me.highlightCfg, me.highlight),
             surface = me.chart.surface,
             animate = me.chart.animate,
             p, from, to, pi;
@@ -109,7 +105,7 @@ Ext.define('Ext.chart.Highlight', {
             sprite._endStyle = to;
         }
         if (animate) {
-            sprite._anim = Ext.create('Ext.fx.Anim', {
+            sprite._anim = new Ext.fx.Anim({
                 target: sprite,
                 from: sprite._from,
                 to: sprite._to,
@@ -131,11 +127,10 @@ Ext.define('Ext.chart.Highlight', {
         var me = this,
             items = me.items,
             len = items.length,
-            opts = me.highlightCfg,
+            opts = Ext.merge({}, me.highlightCfg, me.highlight),
             animate = me.chart.animate,
             i = 0,
             obj, p, sprite;
-
         for (; i &lt; len; i++) {
             if (!items[i]) {
                 continue;
@@ -158,7 +153,7 @@ Ext.define('Ext.chart.Highlight', {
                 if (animate) {
                     //sprite._to = obj;
                     sprite._endStyle = obj;
-                    sprite._anim = Ext.create('Ext.fx.Anim', {
+                    sprite._anim = new Ext.fx.Anim({
                         target: sprite,
                         to: obj,
                         duration: 150

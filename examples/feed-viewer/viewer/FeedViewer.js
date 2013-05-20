@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class FeedViewer.FeedViewer
  * @extends Ext.container.Viewport
@@ -42,8 +28,10 @@ Ext.define('FeedViewer.App', {
         });
         
         Ext.apply(this, {
-            layout: 'border',
-            padding: 5,
+            layout: {
+                type: 'border',
+                padding: 5
+            },
             items: [this.createFeedPanel(), this.createFeedInfo()]
         });
         this.callParent(arguments);
@@ -59,7 +47,7 @@ Ext.define('FeedViewer.App', {
             region: 'west',
             collapsible: true,
             width: 225,
-            floatable: false,
+            //floatable: false,
             split: true,
             minWidth: 175,
             feeds: [{
@@ -101,4 +89,3 @@ Ext.define('FeedViewer.App', {
         this.feedInfo.addFeed(title, url);
     }
 });
-

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  *
@@ -69,6 +55,12 @@ Ext.define('Ext.data.writer.Writer', {
      */
     nameProperty: 'name',
 
+    /*
+     * @property {Boolean} isWriter
+     * `true` in this class to identify an object as an instantiated Writer, or subclass thereof.
+     */
+    isWriter: true,
+
     /**
      * Creates new Writer.
      * @param {Object} [config] Config object.
@@ -90,52 +82,82 @@ Ext.define('Ext.data.writer.Writer', {
             data      = [];
 
         for (; i < len; i++) {
-            data.push(this.getRecordData(records[i]));
+            data.push(this.getRecordData(records[i], operation));
         }
         return this.writeRecords(request, data);
     },
 
     /**
-     * Formats the data for each record before sending it to the server. This method should be overridden to format the
-     * data in a way that differs from the default.
-     * @param {Object} record The record that we are writing to the server.
-     * @return {Object} An object literal of name/value keys to be written to the server. By default this method returns
-     * the data property on the record.
+     * Formats the data for each record before sending it to the server. This
+     * method should be overridden to format the data in a way that differs from the default.
+     * @param {Ext.data.Model} record The record that we are writing to the server.
+     * @param {Ext.data.Operation} [operation] An operation object.
+     * @return {Object} An object literal of name/value keys to be written to the server.
+     * By default this method returns the data property on the record.
      */
-    getRecordData: function(record) {
+    getRecordData: function(record, operation) {
         var isPhantom = record.phantom === true,
             writeAll = this.writeAllFields || isPhantom,
             nameProperty = this.nameProperty,
             fields = record.fields,
+            fieldItems = fields.items,
             data = {},
+            clientIdProperty = record.clientIdProperty,
             changes,
             name,
             field,
-            key;
-        
+            key,
+            value,
+            f, fLen;
+
         if (writeAll) {
-            fields.each(function(field){
+            fLen = fieldItems.length;
+
+            for (f = 0; f < fLen; f++) {
+                field = fieldItems[f];
                 if (field.persist) {
                     name = field[nameProperty] || field.name;
-                    data[name] = record.get(field.name);
+                    value = record.get(field.name);
+                    if (field.serialize) {
+                        data[name] = field.serialize(value, record);
+                    } else if (field.type === Ext.data.Types.DATE && field.dateFormat) {
+                        data[name] = Ext.Date.format(value, field.dateFormat);
+                    } else {
+                        data[name] = value;
+                    }
                 }
-            });
+            }
         } else {
             // Only write the changes
             changes = record.getChanges();
             for (key in changes) {
                 if (changes.hasOwnProperty(key)) {
                     field = fields.get(key);
-                    name = field[nameProperty] || field.name;
-                    data[name] = changes[key];
+                    if (field.persist) {
+                        name = field[nameProperty] || field.name;
+                        value = record.get(field.name);
+                        if (field.serialize) {
+                            data[name] = field.serialize(value, record);
+                        } else if (field.type === Ext.data.Types.DATE && field.dateFormat) {
+                            data[name] = Ext.Date.format(value, field.dateFormat);
+                        } else {
+                            data[name] = value;
+                        }
+                    }
                 }
             }
-            if (!isPhantom) {
-                // always include the id for non phantoms
-                data[record.idProperty] = record.getId();
-            }
         }
+        if (isPhantom) {
+            if (clientIdProperty && operation && operation.records.length > 1) {
+                // include clientId for phantom records, if multiple records are being written to the server in one operation.
+                // The server can then return the clientId with each record so the operation can match the server records with the client records
+                data[clientIdProperty] = record.internalId;
+            }
+        } else {
+            // always include the id for non phantoms
+            data[record.idProperty] = record.getId();
+        }
+
         return data;
     }
 });
-

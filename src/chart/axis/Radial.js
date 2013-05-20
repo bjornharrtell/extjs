@@ -1,21 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.chart.axis.Radial
- * @extends Ext.chart.axis.Abstract
- * @ignore
+ * @private
  */
 Ext.define('Ext.chart.axis.Radial', {
 
@@ -64,7 +48,7 @@ Ext.define('Ext.chart.axis.Radial', {
                 sprites.push(sprite);
             }
             //draw lines
-            store.each(function(rec, i) {
+            for (i = 0; i < l; i++) {
                 sprite = surface.add({
                     type: 'path',
                     path: ['M', centerX, centerY, 'L', centerX + rho * cos(i / l * pi2), centerY + rho * sin(i / l * pi2), 'Z'],
@@ -74,7 +58,7 @@ Ext.define('Ext.chart.axis.Radial', {
                     hidden: false
                 }, true);
                 sprites.push(sprite);
-            });
+            }
         } else {
             sprites = this.sprites;
             //draw circles
@@ -87,12 +71,12 @@ Ext.define('Ext.chart.axis.Radial', {
                 }, true);
             }
             //draw lines
-            store.each(function(rec, j) {
+            for (j = 0; j < l; j++) {
                 sprites[i + j].setAttributes({
                     path: ['M', centerX, centerY, 'L', centerX + rho * cos(j / l * pi2), centerY + rho * sin(j / l * pi2), 'Z'],
                     stroke: '#ccc'
                 }, true);
-            });
+            }
         }
         this.sprites = sprites;
 
@@ -101,9 +85,13 @@ Ext.define('Ext.chart.axis.Radial', {
 
     drawLabel: function() {
         var chart = this.chart,
+            seriesItems = chart.series.items,
+            series,
             surface = chart.surface,
             bbox = chart.chartBBox,
             store = chart.store,
+            data = store.data.items,
+            ln, record,
             centerX = bbox.x + (bbox.width / 2),
             centerY = bbox.y + (bbox.height / 2),
             rho = Math.min(bbox.width, bbox.height) /2,
@@ -125,20 +113,22 @@ Ext.define('Ext.chart.axis.Radial', {
         }
 
         //get all rendered fields
-        chart.series.each(function(series) {
+        for (i = 0, ln = seriesItems.length; i < ln; i++) {
+            series = seriesItems[i];
             fields.push(series.yField);
             xField = series.xField;
-        });
+        }
         
         //get maxValue to interpolate
-        store.each(function(record, i) {
+        for (j = 0, ln = data.length; j < ln; j++) {
+            record = data[j];
             if (aggregate) {
                 for (i = 0, nfields = fields.length; i < nfields; i++) {
                     maxValue = max(+record.get(fields[i]), maxValue);
                 }
             }
             categories.push(record.get(xField));
-        });
+        }
         if (!this.labelArray) {
             if (display != 'categories') {
                 //draw scale

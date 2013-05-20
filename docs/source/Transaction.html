@@ -39,7 +39,7 @@ Ext.define('Ext.direct.Transaction', {
         var me = this;
         
         Ext.apply(me, config);
-        me.id = ++me.self.TRANSACTION_ID;
+        me.id = me.tid = ++me.self.TRANSACTION_ID;
         me.retryCount = 0;
     },
    

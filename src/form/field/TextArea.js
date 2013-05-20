@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Robert Dougan <rob@sencha.com>
  *
@@ -40,24 +26,46 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * Some other useful configuration options when using {@link #grow} are {@link #growMin} and {@link #growMax}.
  * These allow you to set the minimum and maximum grow heights for the textarea.
+ * 
+ * **NOTE:** In some browsers, carriage returns ('\r', not to be confused with new lines)
+ * will be automatically stripped out the value is set to the textarea. Since we cannot
+ * use any reasonable method to attempt to re-insert these, they will automatically be
+ * stripped out to ensure the behaviour is consistent across browser.
  */
 Ext.define('Ext.form.field.TextArea', {
     extend:'Ext.form.field.Text',
     alias: ['widget.textareafield', 'widget.textarea'],
     alternateClassName: 'Ext.form.TextArea',
-    requires: ['Ext.XTemplate', 'Ext.layout.component.field.TextArea'],
+    requires: [
+        'Ext.XTemplate', 
+        'Ext.layout.component.field.TextArea',
+        'Ext.util.DelayedTask'
+    ],
 
+    // This template includes a \n after <textarea> opening tag so that an initial value starting 
+    // with \n does not lose its first character when the markup is parsed.
+    // Both textareas below have the same value:
+    // <textarea>initial value</textarea>
+    // <textarea>
+    // initial value
+    // </textarea>
     fieldSubTpl: [
-        '<textarea id="{id}" ',
-            '<tpl if="name">name="{name}" </tpl>',
-            '<tpl if="rows">rows="{rows}" </tpl>',
-            '<tpl if="cols">cols="{cols}" </tpl>',
-            '<tpl if="tabIdx">tabIndex="{tabIdx}" </tpl>',
-            'class="{fieldCls} {typeCls}" ',
-            'autocomplete="off">',
+        '<textarea id="{id}" {inputAttrTpl}',
+            '<tpl if="name"> name="{name}"</tpl>',
+            '<tpl if="rows"> rows="{rows}" </tpl>',
+            '<tpl if="cols"> cols="{cols}" </tpl>',
+            '<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
+            '<tpl if="size"> size="{size}"</tpl>',
+            '<tpl if="maxLength !== undefined"> maxlength="{maxLength}"</tpl>',
+            '<tpl if="readOnly"> readonly="readonly"</tpl>',
+            '<tpl if="disabled"> disabled="disabled"</tpl>',
+            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            ' class="{fieldCls} {typeCls}" ',
+            '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+            ' autocomplete="off">\n',
+            '<tpl if="value">{[Ext.util.Format.htmlEncode(values.value)]}</tpl>',
         '</textarea>',
         {
-            compiled: true,
             disableFormats: true
         }
     ],
@@ -90,17 +98,16 @@ Ext.define('Ext.form.field.TextArea', {
     cols: 20,
 
     /**
-     * @cfg {Number} cols
-     * An initial value for the 'cols' attribute on the textarea element. This is only used if the component has no
-     * configured {@link #width} and is not given a width by its container's layout.
+     * @cfg {Number} rows
+     * An initial value for the 'rows' attribute on the textarea element. This is only used if the component has no
+     * configured {@link #height} and is not given a height by its container's layout. Defaults to 4.
      */
     rows: 4,
 
     /**
      * @cfg {Boolean} enterIsSpecial
-     * True if you want the enter key to be classed as a special key. Special keys are generally navigation keys
-     * (arrows, space, enter). Setting the config property to true would mean that you could not insert returns into the
-     * textarea.
+     * True if you want the ENTER key to be classed as a special key and the {@link #specialkey} event to be fired
+     * when ENTER is pressed.
      */
     enterIsSpecial: false,
 
@@ -113,37 +120,111 @@ Ext.define('Ext.form.field.TextArea', {
 
     // private
     componentLayout: 'textareafield',
+    
+    setGrowSizePolicy: Ext.emptyFn,
+    
+    returnRe: /\r/g,
 
     // private
-    onRender: function(ct, position) {
-        var me = this;
-        Ext.applyIf(me.subTplData, {
+    getSubTplData: function() {
+        var me = this,
+            fieldStyle = me.getFieldStyle(),
+            ret = me.callParent();
+
+        if (me.grow) {
+            if (me.preventScrollbars) {
+                ret.fieldStyle = (fieldStyle||'') + ';overflow:hidden;height:' + me.growMin + 'px';
+            }
+        }
+
+        Ext.applyIf(ret, {
             cols: me.cols,
             rows: me.rows
         });
 
-        me.callParent(arguments);
+        return ret;
     },
 
-    // private
-    afterRender: function(){
+    afterRender: function () {
         var me = this;
 
         me.callParent(arguments);
 
-        if (me.grow) {
-            if (me.preventScrollbars) {
-                me.inputEl.setStyle('overflow', 'hidden');
-            }
-            me.inputEl.setHeight(me.growMin);
+        me.needsMaxCheck = me.enforceMaxLength && me.maxLength !== Number.MAX_VALUE && !Ext.supports.TextAreaMaxLength;
+        if (me.needsMaxCheck) {
+            me.inputEl.on('paste', me.onPaste, me);
+        }
+    },
+    
+    // The following overrides deal with an issue whereby some browsers
+    // will strip carriage returns from the textarea input, while others
+    // will not. Since there's no way to be sure where to insert returns,
+    // the best solution is to strip them out in all cases to ensure that
+    // the behaviour is consistent in a cross browser fashion. As such,
+    // we override in all cases when setting the value to control this.
+    transformRawValue: function(value){
+        return this.stripReturns(value);
+    },
+    
+    transformOriginalValue: function(value){
+        return this.stripReturns(value); 
+    },
+    
+    valueToRaw: function(value){
+        value = this.stripReturns(value);
+        return this.callParent([value]);
+    },
+    
+    stripReturns: function(value){
+        if (value) {
+            value = value.replace(this.returnRe, '');
+        }
+        return value;
+    },
+
+    onPaste: function(e){
+        var me = this;
+        if (!me.pasteTask) {
+            me.pasteTask = new Ext.util.DelayedTask(me.pasteCheck, me);
+        }
+        // since we can't get the paste data, we'll give the area a chance to populate
+        me.pasteTask.delay(1);
+    },
+    
+    pasteCheck: function(){
+        var me = this,
+            value = me.getValue(),
+            max = me.maxLength;
+            
+        if (value.length > max) {
+            value = value.substr(0, max);
+            me.setValue(value);
         }
     },
 
     // private
     fireKey: function(e) {
-        if (e.isSpecialKey() && (this.enterIsSpecial || (e.getKey() !== e.ENTER || e.hasModifier()))) {
-            this.fireEvent('specialkey', this, e);
+        var me = this,
+            key = e.getKey(),
+            value;
+            
+        if (e.isSpecialKey() && (me.enterIsSpecial || (key !== e.ENTER || e.hasModifier()))) {
+            me.fireEvent('specialkey', me, e);
         }
+        
+        if (me.needsMaxCheck && key !== e.BACKSPACE && key !== e.DELETE && !e.isNavKeyPress() && !me.isCutCopyPasteSelectAll(e, key)) {
+            value = me.getValue();
+            if (value.length >= me.maxLength) {
+                e.stopEvent();
+            }
+        }
+    },
+    
+    isCutCopyPasteSelectAll: function(e, key) {
+        if (e.CTRL) {
+            return key === e.A || key === e.C || key === e.V || key === e.X;
+        }
+        return false;
     },
 
     /**
@@ -155,10 +236,18 @@ Ext.define('Ext.form.field.TextArea', {
             height;
 
         if (me.grow && me.rendered) {
-            me.doComponentLayout();
+            me.updateLayout();
             height = me.inputEl.getHeight();
             if (height !== me.lastInputHeight) {
-                me.fireEvent('autosize', height);
+                /**
+                 * @event autosize
+                 * Fires when the {@link #autoSize} function is triggered and the field is resized according to
+                 * the grow/growMin/growMax configs as a result. This event provides a hook for the developer
+                 * to apply additional logic at runtime to resize the field if needed.
+                 * @param {Ext.form.field.Text} this
+                 * @param {Number} height
+                 */
+                me.fireEvent('autosize', me, height);
                 me.lastInputHeight = height;
             }
         }
@@ -169,17 +258,12 @@ Ext.define('Ext.form.field.TextArea', {
         this.callParent(arguments);
         this.getActionEl().dom.setAttribute('aria-multiline', true);
     },
-
-    /**
-     * To get the natural width of the textarea element, we do a simple calculation based on the 'cols' config.
-     * We use hard-coded numbers to approximate what browsers do natively, to avoid having to read any styles which
-     * would hurt performance. Overrides Labelable method.
-     * @protected
-     */
-    getBodyNaturalWidth: function() {
-        return Math.round(this.cols * 6.5) + 20;
+    
+    beforeDestroy: function(){
+        var task = this.pasteTask;
+        if (task) {
+            task.delay();
+        }    
+        this.callParent();
     }
-
 });
-
-

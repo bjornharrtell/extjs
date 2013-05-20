@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A menu object. This is the container to which you may add {@link Ext.menu.Item menu items}.
  *
@@ -28,7 +14,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  *     @example
  *     Ext.create('Ext.menu.Menu', {
  *         width: 100,
- *         height: 100,
  *         margin: '0 0 10 0',
  *         floating: false,  // usually you want this set to True (default)
  *         renderTo: Ext.getBody(),  // usually rendered by it's containing component
@@ -43,7 +28,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     Ext.create('Ext.menu.Menu', {
  *         width: 100,
- *         height: 100,
  *         plain: true,
  *         floating: false,  // usually you want this set to True (default)
  *         renderTo: Ext.getBody(),  // usually rendered by it's containing component
@@ -73,32 +57,42 @@ Ext.define('Ext.menu.Menu', {
      * @property {Ext.menu.Menu} parentMenu
      * The parent Menu of this Menu.
      */
+    
+    /**
+     * @cfg {Boolean} [enableKeyNav=true]
+     * True to enable keyboard navigation for controlling the menu.
+     * This option should generally be disabled when form fields are
+     * being used inside the menu.
+     */
+    enableKeyNav: true,
 
     /**
-     * @cfg {Boolean} allowOtherMenus
+     * @cfg {Boolean} [allowOtherMenus=false]
      * True to allow multiple menus to be displayed at the same time.
      */
     allowOtherMenus: false,
 
     /**
-     * @cfg {String} ariaRole @hide
+     * @cfg {String} ariaRole
+     * @private
      */
     ariaRole: 'menu',
 
     /**
-     * @cfg {Boolean} autoRender @hide
-     * floating is true, so autoRender always happens
+     * @cfg {Boolean} autoRender
+     * Floating is true, so autoRender always happens.
+     * @private
      */
 
     /**
-     * @cfg {String} defaultAlign
+     * @cfg {String} [defaultAlign="tl-bl?"]
      * The default {@link Ext.Element#getAlignToXY Ext.Element#getAlignToXY} anchor position value for this menu
      * relative to its element of origin.
      */
     defaultAlign: 'tl-bl?',
 
     /**
-     * @cfg {Boolean} floating
+     * @cfg {Boolean} [floating=true]
      * A Menu configured as `floating: true` (the default) will be rendered as an absolutely positioned,
      * {@link Ext.Component#floating floating} {@link Ext.Component Component}. If configured as `floating: false`, the Menu may be
      * used as a child item of another {@link Ext.container.Container Container}.
@@ -106,8 +100,9 @@ Ext.define('Ext.menu.Menu', {
     floating: true,
 
     /**
-     * @cfg {Boolean} @hide
-     * Menus are constrained to the document body by default
+     * @cfg {Boolean} constrain
+     * Menus are constrained to the document body by default.
+     * @private
      */
     constrain: true,
 
@@ -122,29 +117,36 @@ Ext.define('Ext.menu.Menu', {
     hideMode: 'visibility',
 
     /**
-     * @cfg {Boolean} ignoreParentClicks
+     * @cfg {Boolean} [ignoreParentClicks=false]
      * True to ignore clicks on any item in this menu that is a parent item (displays a submenu)
      * so that the submenu is not dismissed when clicking the parent item.
      */
     ignoreParentClicks: false,
 
+    /**
+     * @property {Boolean} isMenu
+     * `true` in this class to identify an object as an instantiated Menu, or subclass thereof.
+     */
     isMenu: true,
 
     /**
-     * @cfg {String/Object} layout @hide
+     * @cfg {String/Object} layout
+     * @private
      */
 
     /**
-     * @cfg {Boolean} showSeparator
+     * @cfg {Boolean} [showSeparator=true]
      * True to show the icon separator.
      */
     showSeparator : true,
 
     /**
-     * @cfg {Number} minWidth
-     * The minimum width of the Menu.
+     * @cfg {Number} [minWidth=120]
+     * The minimum width of the Menu. The default minWidth only applies when the {@link #floating} config is true.
      */
-    minWidth: 120,
+    minWidth: undefined,
+    
+    defaultMinWidth: 120,
 
     /**
      * @cfg {Boolean} [plain=false]
@@ -155,7 +157,8 @@ Ext.define('Ext.menu.Menu', {
         var me = this,
             prefix = Ext.baseCSSPrefix,
             cls = [prefix + 'menu'],
-            bodyCls = me.bodyCls ? [me.bodyCls] : [];
+            bodyCls = me.bodyCls ? [me.bodyCls] : [],
+            isFloating = me.floating !== false;
 
         me.addEvents(
             /**
@@ -209,16 +212,21 @@ Ext.define('Ext.menu.Menu', {
         // Placed in initComponent (rather than prototype) in order to support dynamic layout/scroller
         // options if we wish to allow for such configurations on the Menu.
         // e.g., scrolling speed, vbox align stretch, etc.
-        me.layout = {
-            type: 'vbox',
-            align: 'stretchmax',
-            autoSize: true,
-            clearInnerCtOnLayout: true,
-            overflowHandler: 'Scroller'
-        };
+        if (!me.layout) {
+            me.layout = {
+                type: 'vbox',
+                align: 'stretchmax',
+                overflowHandler: 'Scroller'
+            };
+        }
+        
+        // only apply the minWidth when we're floating & one hasn't already been set
+        if (isFloating && me.minWidth === undefined) {
+            me.minWidth = me.defaultMinWidth;
+        }
 
         // hidden defaults to false if floating is configured as false
-        if (me.floating === false && me.initialConfig.hidden !== true) {
+        if (!isFloating && me.initialConfig.hidden !== true) {
             me.hidden = false;
         }
 
@@ -236,26 +244,33 @@ Ext.define('Ext.menu.Menu', {
         });
     },
 
-    afterRender: function(ct) {
+    beforeRender: function() {
+        this.callParent(arguments);
+
+        // Menus are usually floating: true, which means they shrink wrap their items.
+        // However, when they are contained, and not auto sized, we must stretch the items.
+        if (!this.getSizeModel().width.shrinkWrap) {
+            this.layout.align = 'stretch';
+        }
+    },
+
+    onBoxReady: function() {
         var me = this,
-            prefix = Ext.baseCSSPrefix,
-            space = '&#160;';
+            separatorSpec;
 
         me.callParent(arguments);
 
         // TODO: Move this to a subTemplate When we support them in the future
         if (me.showSeparator) {
-            me.iconSepEl = me.layout.getRenderTarget().insertFirst({
-                cls: prefix + 'menu-icon-separator',
-                html: space
-            });
+            separatorSpec = {
+                cls: Ext.baseCSSPrefix + 'menu-icon-separator',
+                html: '&#160;'
+            };
+            if ((!Ext.isStrict && Ext.isIE) || Ext.isIE6) {
+                separatorSpec.style = 'height:' + me.el.getHeight() + 'px';
+            }
+            me.iconSepEl = me.layout.getElementTarget().insertFirst(separatorSpec);
         }
-
-        me.focusEl = me.el.createChild({
-            cls: prefix + 'menu-focus',
-            tabIndex: '-1',
-            html: space
-        });
 
         me.mon(me.el, {
             click: me.onClick,
@@ -264,48 +279,16 @@ Ext.define('Ext.menu.Menu', {
         });
         me.mouseMonitor = me.el.monitorMouseLeave(100, me.onMouseLeave, me);
 
-        if (me.showSeparator && ((!Ext.isStrict && Ext.isIE) || Ext.isIE6)) {
-            me.iconSepEl.setHeight(me.el.getHeight());
-        }
-
-        me.keyNav = Ext.create('Ext.menu.KeyNav', me);
-    },
-
-    afterLayout: function() {
-        var me = this;
-        me.callParent(arguments);
-
-        // For IE6 & IE quirks, we have to resize the el and body since position: absolute
-        // floating elements inherit their parent's width, making them the width of
-        // document.body instead of the width of their contents.
-        // This includes left/right dock items.
-        if ((!Ext.isStrict && Ext.isIE) || Ext.isIE6) {
-            var innerCt = me.layout.getRenderTarget(),
-                innerCtWidth = 0,
-                dis = me.dockedItems,
-                l = dis.length,
-                i = 0,
-                di, clone, newWidth;
-
-            innerCtWidth = innerCt.getWidth();
-
-            newWidth = innerCtWidth + me.body.getBorderWidth('lr') + me.body.getPadding('lr');
-
-            // First set the body to the new width
-            me.body.setWidth(newWidth);
-
-            // Now we calculate additional width (docked items) and set the el's width
-            for (; i < l, di = dis.getAt(i); i++) {
-                if (di.dock == 'left' || di.dock == 'right') {
-                    newWidth += di.getWidth();
-                }
-            }
-            me.el.setWidth(newWidth);
+        if (me.enableKeyNav) {
+            me.keyNav = new Ext.menu.KeyNav(me);
         }
     },
-    
-    getBubbleTarget: function(){
-        return this.parentMenu || this.callParent();
+
+    getBubbleTarget: function() {
+        // If a submenu, this will have a parentMenu property
+        // If a menu of a Button, it will have an ownerButton property
+        // Else use the default method.
+        return this.parentMenu || this.ownerButton || this.callParent(arguments);
     },
 
     /**
@@ -319,74 +302,34 @@ Ext.define('Ext.menu.Menu', {
     /**
      * Deactivates the current active item on the menu, if one exists.
      */
-    deactivateActiveItem: function() {
-        var me = this;
+    deactivateActiveItem: function(andBlurFocusedItem) {
+        var me = this,
+            activeItem = me.activeItem,
+            focusedItem = me.focusedItem;
 
-        if (me.activeItem) {
-            me.activeItem.deactivate();
-            if (!me.activeItem.activated) {
+        if (activeItem) {
+            activeItem.deactivate();
+            if (!activeItem.activated) {
                 delete me.activeItem;
             }
         }
 
-        // only blur if focusedItem is not a filter
-        if (me.focusedItem && !me.filtered) {
-            me.focusedItem.blur();
-            if (!me.focusedItem.$focused) {
-                delete me.focusedItem;
-            }
-        }
-    },
-
-    clearStretch: function () {
-        // the vbox/stretchmax will set the el sizes and subsequent layouts will not
-        // reconsider them unless we clear the dimensions on the el's here:
-        if (this.rendered) {
-            this.items.each(function (item) {
-                // each menuItem component needs to layout again, so clear its cache
-                if (item.componentLayout) {
-                    delete item.componentLayout.lastComponentSize;
-                }
-                if (item.el) {
-                    item.el.setWidth(null);
-                }
-            });
-        }
-    },
-
-    onAdd: function () {
-        var me = this;
-
-        me.clearStretch();
-        me.callParent(arguments);
-
-        if (Ext.isIE6 || Ext.isIE7) {
-            // TODO - why does this need to be done (and not ok to do now)?
-            Ext.Function.defer(me.doComponentLayout, 10, me);
-        }
-    },
-
-    onRemove: function () {
-        this.clearStretch();
-        this.callParent(arguments);
-
-    },
-
-    redoComponentLayout: function () {
-        if (this.rendered) {
-            this.clearStretch();
-            this.doComponentLayout();
+        // Blur the focused item if we are being asked to do that too
+        // Only needed if we are being hidden - mouseout does not blur.
+        if (focusedItem && andBlurFocusedItem) {
+            focusedItem.blur();
+            delete me.focusedItem;
         }
     },
 
     // inherit docs
     getFocusEl: function() {
-        return this.focusEl;
+        return this.focusedItem || this.el;
     },
 
     // inherit docs
     hide: function() {
-        this.deactivateActiveItem();
+        this.deactivateActiveItem(true);
         this.callParent(arguments);
     },
 
@@ -398,7 +341,7 @@ Ext.define('Ext.menu.Menu', {
     lookupComponent: function(cmp) {
         var me = this;
 
-        if (Ext.isString(cmp)) {
+        if (typeof cmp == 'string') {
             cmp = me.lookupItemFromString(cmp);
         } else if (Ext.isObject(cmp)) {
             cmp = me.lookupItemFromObject(cmp);
@@ -415,8 +358,7 @@ Ext.define('Ext.menu.Menu', {
     lookupItemFromObject: function(cmp) {
         var me = this,
             prefix = Ext.baseCSSPrefix,
-            cls,
-            intercept;
+            cls;
 
         if (!cmp.isComponent) {
             if (!cmp.xtype) {
@@ -432,15 +374,6 @@ Ext.define('Ext.menu.Menu', {
 
         if (!cmp.isMenuItem && !cmp.dock) {
             cls = [prefix + 'menu-item', prefix + 'menu-item-cmp'];
-            intercept = Ext.Function.createInterceptor;
-
-            // Wrap focus/blur to control component focus
-            cmp.focus = intercept(cmp.focus, function() {
-                this.$focused = true;
-            }, cmp);
-            cmp.blur = intercept(cmp.blur, function() {
-                this.$focused = false;
-            }, cmp);
 
             if (!me.plain && (cmp.indent === true || cmp.iconCls === 'no-icon')) {
                 cls.push(prefix + 'menu-item-indent');
@@ -451,7 +384,6 @@ Ext.define('Ext.menu.Menu', {
             } else {
                 cmp.cls = (cmp.cls ? cmp.cls : '') + ' ' + cls.join(' ');
             }
-            cmp.isMenuItem = true;
         }
         return cmp;
     },
@@ -459,8 +391,8 @@ Ext.define('Ext.menu.Menu', {
     // private
     lookupItemFromString: function(cmp) {
         return (cmp == 'separator' || cmp == '-') ?
-            Ext.createWidget('menuseparator')
-            : Ext.createWidget('menuitem', {
+            new Ext.menu.Separator()
+            : new Ext.menu.Item({
                 canActivate: false,
                 hideOnClick: false,
                 plain: true,
@@ -477,29 +409,30 @@ Ext.define('Ext.menu.Menu', {
             return;
         }
 
-        if ((e.getTarget() == me.focusEl.dom) || e.within(me.layout.getRenderTarget())) {
-            item = me.getItemFromEvent(e) || me.activeItem;
-
-            if (item) {
-                if (item.getXTypes().indexOf('menuitem') >= 0) {
-                    if (!item.menu || !me.ignoreParentClicks) {
-                        item.onClick(e);
-                    } else {
-                        e.stopEvent();
-                    }
-                }
+        item = (e.type === 'click') ? me.getItemFromEvent(e) : me.activeItem;
+        if (item && item.isMenuItem) {
+            if (!item.menu || !me.ignoreParentClicks) {
+                item.onClick(e);
+            } else {
+                e.stopEvent();
             }
-            me.fireEvent('click', me, item, e);
         }
+        // Click event may be fired without an item, so we need a second check
+        if (!item || item.disabled) {
+            item = undefined;
+        }
+        me.fireEvent('click', me, item, e);
     },
 
     onDestroy: function() {
         var me = this;
 
         Ext.menu.Manager.unregister(me);
+        delete me.parentMenu;
+        delete me.ownerButton;
         if (me.rendered) {
             me.el.un(me.mouseMonitor);
-            me.keyNav.destroy();
+            Ext.destroy(me.keyNav);
             delete me.keyNav;
         }
         me.callParent(arguments);
@@ -521,18 +454,22 @@ Ext.define('Ext.menu.Menu', {
         var me = this,
             fromEl = e.getRelatedTarget(),
             mouseEnter = !me.el.contains(fromEl),
-            item = me.getItemFromEvent(e);
+            item = me.getItemFromEvent(e),
+            parentMenu = me.parentMenu,
+            parentItem = me.parentItem;
 
-        if (mouseEnter && me.parentMenu) {
-            me.parentMenu.setActiveItem(me.parentItem);
-            me.parentMenu.mouseMonitor.mouseenter();
+        if (mouseEnter && parentMenu) {
+            parentMenu.setActiveItem(parentItem);
+            parentItem.cancelDeferHide();
+            parentMenu.mouseMonitor.mouseenter();
         }
 
         if (me.disabled) {
             return;
         }
 
-        if (item) {
+        // Do not activate the item if the mouseover was within the item, and it's already active
+        if (item && !item.activated) {
             me.setActiveItem(item);
             if (item.activated && item.expandMenu) {
                 item.expandMenu();
@@ -547,7 +484,7 @@ Ext.define('Ext.menu.Menu', {
     setActiveItem: function(item) {
         var me = this;
 
-        if (item && (item != me.activeItem && item != me.focusedItem)) {
+        if (item && (item != me.activeItem)) {
             me.deactivateActiveItem();
             if (me.canActivateItem(item)) {
                 if (item.activate) {
@@ -569,84 +506,84 @@ Ext.define('Ext.menu.Menu', {
     /**
      * Shows the floating menu by the specified {@link Ext.Component Component} or {@link Ext.Element Element}.
      * @param {Ext.Component/Ext.Element} component The {@link Ext.Component} or {@link Ext.Element} to show the menu by.
-     * @param {String} position (optional) Alignment position as used by {@link Ext.Element#getAlignToXY}.
+     * @param {String} [position] Alignment position as used by {@link Ext.Element#getAlignToXY}.
      * Defaults to `{@link #defaultAlign}`.
-     * @param {Number[]} offsets (optional) Alignment offsets as used by {@link Ext.Element#getAlignToXY}. Defaults to `undefined`.
+     * @param {Number[]} [offsets] Alignment offsets as used by {@link Ext.Element#getAlignToXY}.
      * @return {Ext.menu.Menu} This Menu.
      */
     showBy: function(cmp, pos, off) {
-        var me = this,
-            xy,
-            region;
+        var me = this;
 
         if (me.floating && cmp) {
-            me.layout.autoSize = true;
+            me.show();
 
-            // show off-screen first so that we can calc position without causing a visual jump
-            me.doAutoRender();
-            delete me.needsLayout;
-
-            // Component or Element
-            cmp = cmp.el || cmp;
-
-            // Convert absolute to floatParent-relative coordinates if necessary.
-            xy = me.el.getAlignToXY(cmp, pos || me.defaultAlign, off);
-            if (me.floatParent) {
-                region = me.floatParent.getTargetEl().getViewRegion();
-                xy[0] -= region.x;
-                xy[1] -= region.y;
-            }
-            me.showAt(xy);
+            // Align to Component or Element using setPagePosition because normal show
+            // methods are container-relative, and we must align to the requested element
+            // or Component:
+            me.setPagePosition(me.el.getAlignToXY(cmp.el || cmp, pos || me.defaultAlign, off));
+            me.setVerticalPosition();
         }
         return me;
     },
 
-    doConstrain : function() {
+    show: function() {
         var me = this,
-            y = me.el.getY(),
-            max, full,
-            vector,
-            returnY = y, normalY, parentEl, scrollTop, viewHeight;
+            parentEl, viewHeight, result,
+            maxWas = me.maxHeight;
 
-        delete me.height;
-        me.setSize();
-        full = me.getHeight();
+        // we need to get scope parent for height constraint
+        if (!me.rendered){
+            me.doAutoRender();
+        }
+
+        // constrain the height to the curren viewable area
         if (me.floating) {
             //if our reset css is scoped, there will be a x-reset wrapper on this menu which we need to skip
             parentEl = Ext.fly(me.el.getScopeParent());
-            scrollTop = parentEl.getScroll().top;
             viewHeight = parentEl.getViewSize().height;
-            //Normalize y by the scroll position for the parent element.  Need to move it into the coordinate space
-            //of the view.
-            normalY = y - scrollTop;
+            me.maxHeight  =  Math.min(maxWas || viewHeight, viewHeight);
+        }
+
+        result = me.callParent(arguments);
+        me.maxHeight = maxWas;
+        return result;
+    },
+
+    afterComponentLayout: function(width, height, oldWidth, oldHeight){
+        var me = this;
+        me.callParent(arguments);
+        // fixup the separator
+        if (me.showSeparator){
+            me.iconSepEl.setHeight(me.componentLayout.lastComponentSize.contentHeight);
+        }
+    },
+
+    // private
+    // adjust the vertical position of the menu if the height of the
+    // menu is equal (or greater than) the viewport size
+    setVerticalPosition: function(){
+        var me = this,
+            max,
+            y = me.el.getY(),
+            returnY = y,
+            height = me.getHeight(),
+            viewportHeight = Ext.Element.getViewportHeight().height,
+            parentEl = Ext.fly(me.el.getScopeParent()),
+            viewHeight = parentEl.getViewSize().height,
+            normalY = y - parentEl.getScroll().top; // factor in scrollTop of parent
+
+        parentEl = null;
+
+        if (me.floating) {
             max = me.maxHeight ? me.maxHeight : viewHeight - normalY;
-            if (full > viewHeight) {
-                max = viewHeight;
-                //Set returnY equal to (0,0) in view space by reducing y by the value of normalY
+            if (height > viewHeight) {
                 returnY = y - normalY;
-            } else if (max < full) {
-                returnY = y - (full - max);
-                max = full;
+            } else if (max < height) {
+                returnY = y - (height - max);
+            } else if((y + height) > viewportHeight){ // keep the document from scrolling
+                returnY = viewportHeight - height;
             }
-        }else{
-            max = me.getHeight();
-        }
-        // Always respect maxHeight
-        if (me.maxHeight){
-            max = Math.min(me.maxHeight, max);
-        }
-        if (full > max && max > 0){
-            me.layout.autoSize = false;
-            me.setHeight(max);
-            if (me.showSeparator){
-                me.iconSepEl.setHeight(me.layout.getRenderTarget().dom.scrollHeight);
-            }
-        }
-        vector = me.getConstrainVector(me.el.getScopeParent());
-        if (vector) {
-            me.setPosition(me.getPosition()[0] + vector[0]);
         }
         me.el.setY(returnY);
     }
 });
-

@@ -1,3 +1,7 @@
+/**
+ * Creates the base structure of slider.
+ * @member Ext.slider.Multi
+ */
 @mixin extjs-slider {
     .#{$prefix}slider {
         zoom:1;
@@ -23,13 +27,14 @@
         outline:0 none;
         @include no-select;
         display:block;
-        overflow:hidden;  
+        overflow:hidden;
     }
 
     /* Horizontal styles */
     .#{$prefix}slider-horz {
         padding-left:7px;
         background:transparent no-repeat 0 -24px;
+        width: 100%;
     }
 
     .#{$prefix}slider-horz .#{$prefix}slider-end {
@@ -44,12 +49,13 @@
     }
 
     .#{$prefix}slider-horz .#{$prefix}slider-thumb {
-        width:14px;
-        height:15px;
-        position:absolute;
-        left:0;
-        top:1px;
-        background:transparent no-repeat 0 0;
+        width: $horizontal-slider-thumb-width;
+        height: $horizontal-slider-thumb-height;
+        margin-left: -($horizontal-slider-thumb-width / 2);
+        position: absolute;
+        left: 0;
+        top: 1px;
+        background: transparent no-repeat 0 0;
     }
 
     .#{$prefix}slider-horz .#{$prefix}slider-thumb-over {
@@ -79,11 +85,12 @@
     }
 
     .#{$prefix}slider-vert .#{$prefix}slider-thumb {
-        width:15px;
-        height:14px;
-        position:absolute;
-        left:3px;
-        bottom:0;
+        width: $vertical-slider-thumb-width;
+        height: $vertical-slider-thumb-height;
+        margin-bottom: -($vertical-slider-thumb-height / 2);
+        position: absolute;
+        left: 3px;
+        bottom: 0;
         background:transparent no-repeat 0 0;
     }
 
@@ -94,7 +101,7 @@
     .#{$prefix}slider-vert .#{$prefix}slider-thumb-drag {
         background-position: -30px -28px;
     }
-    
+
     .#{$prefix}slider-horz,
     .#{$prefix}slider-horz .#{$prefix}slider-end,
     .#{$prefix}slider-horz .#{$prefix}slider-inner {
@@ -114,7 +121,7 @@
     .#{$prefix}slider-vert .#{$prefix}slider-thumb {
         background-image: theme-background-image($theme-name, 'slider/slider-v-thumb.png');
     }
-    
+
     @if $include-ie {
         .#{$prefix}ie6 {
             .#{$prefix}slider-horz,

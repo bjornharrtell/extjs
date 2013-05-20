@@ -1,20 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-Ext.Loader.setConfig({enabled: true});
-
-Ext.Loader.setPath('Ext.ux', '../ux/');
 Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
@@ -22,13 +5,20 @@ Ext.require([
     'Ext.grid.PagingScroller'
 ]);
 
+
 Ext.onReady(function(){
     Ext.define('ForumThread', {
         extend: 'Ext.data.Model',
         fields: [
-            'title', 'forumtitle', 'forumid', 'author',
-            {name: 'replycount', type: 'int'},
-            {name: 'lastpost', mapping: 'lastpost', type: 'date', dateFormat: 'timestamp'},
+            'title', 'forumtitle', 'forumid', 'username', {
+                name: 'replycount',
+                type: 'int'
+            }, {
+                name: 'lastpost',
+                mapping: 'lastpost',
+                type: 'date',
+                dateFormat: 'timestamp'
+            },
             'lastposter', 'excerpt', 'threadid'
         ],
         idProperty: 'threadid'
@@ -37,30 +27,55 @@ Ext.onReady(function(){
     // create the Data Store
     var store = Ext.create('Ext.data.Store', {
         id: 'store',
-        pageSize: 200,
         model: 'ForumThread',
-        remoteSort: true,
+        remoteGroup: true,
         // allow the grid to interact with the paging scroller by buffering
         buffered: true,
+        leadingBufferZone: 300,
+        pageSize: 100,
         proxy: {
             // load using script tags for cross domain, if the data in on the same domain as
-            // this page, an HttpProxy would be better
+            // this page, an Ajax proxy would be better
             type: 'jsonp',
             url: 'http://www.sencha.com/forum/remote_topics/index.php',
-            extraParams: {
-                total: 50000
-            },
             reader: {
                 root: 'topics',
                 totalProperty: 'totalCount'
             },
             // sends single sort as multi parameter
-            simpleSortMode: true
+            simpleSortMode: true,
+            // sends single group as multi parameter
+            simpleGroupMode: true,
+
+            // This particular service cannot sort on more than one field, so grouping === sorting.
+            groupParam: 'sort',
+            groupDirectionParam: 'dir'
         },
         sorters: [{
-            property: 'lastpost',
-            direction: 'DESC'
-        }]
+            property: 'threadid',
+            direction: 'ASC'
+        }],
+        autoLoad: true,
+        listeners: {
+
+            // This particular service cannot sort on more than one field, so if grouped, disable sorting
+            groupchange: function(store, groupers) {
+                var sortable = !store.isGrouped(),
+                    headers = grid.headerCt.getVisibleGridColumns(),
+                    i, len = headers.length;
+                
+                for (i = 0; i < len; i++) {
+                    headers[i].sortable = (headers[i].sortable !== undefined) ? headers[i].sortable : sortable;
+                }
+            },
+
+            // This particular service cannot sort on more than one field, so if grouped, disable sorting
+            beforeprefetch: function(store, operation) {
+                if (operation.groupers && operation.groupers.length) {
+                    delete operation.sorters;
+                }
+            }
+        }
     });
 
     function renderTopic(value, p, record) {
@@ -73,18 +88,27 @@ Ext.onReady(function(){
         );
     }
 
-
     var grid = Ext.create('Ext.grid.Panel', {
         width: 700,
         height: 500,
+        collapsible: true,
         title: 'ExtJS.com - Browse Forums',
         store: store,
-        verticalScrollerType: 'paginggridscroller',
         loadMask: true,
-        disableSelection: true,
-        invalidateScrollerOnRefresh: false,
+        selModel: {
+            pruneRemoved: false
+        },
+        multiSelect: true,
         viewConfig: {
             trackOver: false
+        },
+        features:[{
+            ftype: 'grouping',
+            hideGroupedHeader: false
+        }],
+        verticalScroller:{
+            variableRowHeight: true
+
         },
         // grid columns
         columns:[{
@@ -92,19 +116,15 @@ Ext.onReady(function(){
             width: 50,
             sortable: false
         },{
-            // id assigned so we can apply custom css (e.g. .x-grid-cell-topic b { color:#333 })
-            // TODO: This poses an issue in subclasses of Grid now because Headers are now Components
-            // therefore the id will be registered in the ComponentManager and conflict. Need a way to
-            // add additional CSS classes to the rendered cells.
-            id: 'topic',
+            tdCls: 'x-grid-cell-topic',
             text: "Topic",
             dataIndex: 'title',
             flex: 1,
             renderer: renderTopic,
-            sortable: false
+            sortable: true
         },{
             text: "Author",
-            dataIndex: 'author',
+            dataIndex: 'username',
             width: 100,
             hidden: true,
             sortable: true
@@ -120,14 +140,9 @@ Ext.onReady(function(){
             dataIndex: 'lastpost',
             width: 130,
             renderer: Ext.util.Format.dateRenderer('n/j/Y g:i A'),
-            sortable: true
+            sortable: true,
+            groupable: false
         }],
         renderTo: Ext.getBody()
     });
-
-    // trigger the data store load
-    store.guaranteeRange(0, 199);
 });
-
-
-

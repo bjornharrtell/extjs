@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -19,7 +5,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * config will be rendered as the fieldset's `legend`.
  *
  * While FieldSets commonly contain simple groups of fields, they are general {@link Ext.container.Container Containers}
- * and may therefore contain any type of components in their {@link #items}, including other nested containers.
+ * and may therefore contain any type of components in their {@link #cfg-items}, including other nested containers.
  * The default {@link #layout} for the FieldSet's items is `'anchor'`, but it can be configured to use any other
  * layout type.
  *
@@ -120,6 +106,13 @@ Ext.define('Ext.form.FieldSet', {
     collapsed: false,
 
     /**
+     * @cfg {Boolean} [toggleOnTitleClick=true]
+     * Set to true will add a listener to the titleCmp property for the click event which will execute the
+     * {@link #toggle} method. This option is only used when the {@link #collapsible} property is set to true.
+     */
+    toggleOnTitleClick : true,
+
+    /**
      * @property {Ext.Component} legend
      * The component for the fieldset's legend. Will only be defined if the configuration requires a legend to be
      * created, by setting the {@link #title} or {@link #checkboxToggle} options.
@@ -137,17 +130,38 @@ Ext.define('Ext.form.FieldSet', {
      */
     layout: 'anchor',
 
+    border: 1,
+
     componentLayout: 'fieldset',
 
-    // No aria role necessary as fieldset has its own recognized semantics
-    ariaRole: '',
+    autoEl: 'fieldset',
 
-    renderTpl: ['<div id="{id}-body" class="{baseCls}-body"></div>'],
+    childEls: [
+        'body'
+    ],
+
+    renderTpl: [
+        '{%this.renderLegend(out,values);%}',
+        '<div id="{id}-body" class="{baseCls}-body">',
+            '{%this.renderContainer(out,values);%}',
+        '</div>'
+    ],
+
+    stateEvents : [ 'collapse', 'expand' ],
 
     maskOnDisable: false,
 
-    getElConfig: function(){
-        return {tag: 'fieldset', id: this.id};
+    beforeDestroy: function(){
+        var me = this,
+            legend = me.legend;
+
+        if (legend) {
+            // get rid of the ownerCt since it's not a proper item
+            delete legend.ownerCt;
+            legend.destroy();
+            me.legend = null;
+        }
+        me.callParent();
     },
 
     initComponent: function() {
@@ -156,101 +170,136 @@ Ext.define('Ext.form.FieldSet', {
 
         me.callParent();
 
-        // Create the Legend component if needed
-        me.initLegend();
+        me.addEvents(
 
-        // Add body el
-        me.addChildEls('body');
+            /**
+             * @event beforeexpand
+             * Fires before this FieldSet is expanded. Return false to prevent the expand.
+             * @param {Ext.form.FieldSet} f The FieldSet being expanded.
+             */
+            "beforeexpand",
+
+            /**
+             * @event beforecollapse
+             * Fires before this FieldSet is collapsed. Return false to prevent the collapse.
+             * @param {Ext.form.FieldSet} f The FieldSet being collapsed.
+             */
+            "beforecollapse",
+
+            /**
+             * @event expand
+             * Fires after this FieldSet has expanded.
+             * @param {Ext.form.FieldSet} f The FieldSet that has been expanded.
+             */
+            "expand",
+
+            /**
+             * @event collapse
+             * Fires after this FieldSet has collapsed.
+             * @param {Ext.form.FieldSet} f The FieldSet that has been collapsed.
+             */
+            "collapse"
+        );
 
         if (me.collapsed) {
             me.addCls(baseCls + '-collapsed');
             me.collapse();
         }
-    },
-
-    // private
-    onRender: function(container, position) {
-        this.callParent(arguments);
-        // Make sure the legend is created and rendered
-        this.initLegend();
+        if (me.title) {
+            me.addCls(baseCls + '-with-title');
+        }
+        if (me.title || me.checkboxToggle || me.collapsible) {
+            me.addCls(baseCls + '-with-legend');
+            me.legend = Ext.widget(me.createLegendCt());
+        }
     },
 
     /**
+     * Initialized the renderData to be used when rendering the renderTpl.
+     * @return {Object} Object with keys and values that are going to be applied to the renderTpl
      * @private
-     * Initialize and render the legend component if necessary
      */
-    initLegend: function() {
+    initRenderData: function() {
+        var data = this.callParent();
+
+        data.baseCls = this.baseCls;
+
+        return data;
+    },
+
+    getState: function () {
+        var state = this.callParent();
+
+        state = this.addPropertyToState(state, 'collapsed');
+
+        return state;
+    },
+
+    afterCollapse: Ext.emptyFn,
+    afterExpand: Ext.emptyFn,
+
+    collapsedHorizontal: function () {
+        return true;
+    },
+
+    collapsedVertical: function () {
+        return true;
+    },
+
+    createLegendCt: function () {
         var me = this,
-            legendItems,
-            legend = me.legend;
-
-        // Create the legend component if needed and it hasn't been already
-        if (!legend && (me.title || me.checkboxToggle || me.collapsible)) {
-            legendItems = [];
-
-            // Checkbox
-            if (me.checkboxToggle) {
-                legendItems.push(me.createCheckboxCmp());
-            }
-            // Toggle button
-            else if (me.collapsible) {
-                legendItems.push(me.createToggleCmp());
-            }
-
-            // Title
-            legendItems.push(me.createTitleCmp());
-
-            legend = me.legend = Ext.create('Ext.container.Container', {
+            items = [],
+            legend = {
+                xtype: 'container',
                 baseCls: me.baseCls + '-header',
-                ariaRole: '',
-                ownerCt: this,
-                getElConfig: function(){
-                    var result = {
-                        tag: 'legend',
-                        cls: this.baseCls
-                    };
+                id: me.id + '-legend',
+                autoEl: 'legend',
+                items: items,
+                ownerCt: me,
+                ownerLayout: me.componentLayout
+            };
 
-                    // Gecko3 will kick every <div> out of <legend> and mess up every thing.
-                    // So here we change every <div> into <span>s. Therefore the following
-                    // clearer is not needed and since div introduces a lot of subsequent
-                    // problems, it is actually harmful.
-                    if (!Ext.isGecko3) {
-                        result.children = [{
-                            cls: Ext.baseCSSPrefix + 'clear'
-                        }];
-                    }
-                    return result;
-                },
-                items: legendItems
-            });
+        // Checkbox
+        if (me.checkboxToggle) {
+            items.push(me.createCheckboxCmp());
+        } else if (me.collapsible) {
+            // Toggle button
+            items.push(me.createToggleCmp());
         }
 
-        // Make sure legend is rendered if the fieldset is rendered
-        if (legend && !legend.rendered && me.rendered) {
-            me.legend.render(me.el, me.body); //insert before body element
-        }
+        // Title
+        items.push(me.createTitleCmp());
+
+        return legend;
     },
 
     /**
      * Creates the legend title component. This is only called internally, but could be overridden in subclasses to
-     * customize the title component.
+     * customize the title component. If {@link #toggleOnTitleClick} is set to true, a listener for the click event
+     * will toggle the collapsed state of the FieldSet.
      * @return Ext.Component
      * @protected
      */
     createTitleCmp: function() {
-        var me = this;
-        me.titleCmp = Ext.create('Ext.Component', {
-            html: me.title,
-            getElConfig: function() {
-                return {
-                    tag: Ext.isGecko3 ? 'span' : 'div',
-                    cls: me.titleCmp.cls,
-                    id: me.titleCmp.id
-                };
-            },
-            cls: me.baseCls + '-header-text'
-        });
-        return me.titleCmp;
+        var me  = this,
+            cfg = {
+                xtype : 'component',
+                html  : me.title,
+                cls   : me.baseCls + '-header-text',
+                id    : me.id + '-legendTitle'
+            };
+
+        if (me.collapsible && me.toggleOnTitleClick) {
+            cfg.listeners = {
+                el : {
+                    scope : me,
+                    click : me.toggle
+                }
+            };
+            cfg.cls += ' ' + me.baseCls + '-header-text-collapsible';
+        }
+
+        return (me.titleCmp = Ext.widget(cfg));
     },
 
     /**
@@ -269,16 +318,12 @@ Ext.define('Ext.form.FieldSet', {
         var me = this,
             suffix = '-checkbox';
 
-        me.checkboxCmp = Ext.create('Ext.form.field.Checkbox', {
-            getElConfig: function() {
-                return {
-                    tag: Ext.isGecko3 ? 'span' : 'div',
-                    id: me.checkboxCmp.id,
-                    cls: me.checkboxCmp.cls
-                };
-            },
+        me.checkboxCmp = Ext.widget({
+            xtype: 'checkbox',
+            hideEmptyLabel: true,
             name: me.checkboxName || me.id + suffix,
             cls: me.baseCls + '-header' + suffix,
+            id: me.id + '-legendChk',
             checked: !me.collapsed,
             listeners: {
                 change: me.onCheckChange,
@@ -302,19 +347,50 @@ Ext.define('Ext.form.FieldSet', {
      */
     createToggleCmp: function() {
         var me = this;
-        me.toggleCmp = Ext.create('Ext.panel.Tool', {
-            getElConfig: function() {
-                return {
-                    tag: Ext.isGecko3 ? 'span' : 'div',
-                    id: me.toggleCmp.id,
-                    cls: me.toggleCmp.cls
-                };
-            },
+        me.toggleCmp = Ext.widget({
+            xtype: 'tool',
             type: 'toggle',
             handler: me.toggle,
+            id: me.id + '-legendToggle',
             scope: me
         });
         return me.toggleCmp;
+    },
+
+    doRenderLegend: function (out, renderData) {
+        // Careful! This method is bolted on to the renderTpl so all we get for context is
+        // the renderData! The "this" pointer is the renderTpl instance!
+
+        var me = renderData.$comp,
+            legend = me.legend,
+            tree;
+            
+        // Create the Legend component if needed
+        if (legend) {
+            legend.ownerLayout.configureItem(legend);
+            tree = legend.getRenderTree();
+            Ext.DomHelper.generateMarkup(tree, out);
+        }
+    },
+
+    finishRender: function () {
+        var legend = this.legend;
+
+        this.callParent();
+
+        if (legend) {
+            legend.finishRender();
+        }
+    },
+
+    getCollapsed: function () {
+        return this.collapsed ? 'top' : false;
+    },
+
+    getCollapsedDockedItems: function () {
+        var legend = this.legend;
+
+        return legend ? [ legend ] : [];
     },
 
     /**
@@ -323,10 +399,18 @@ Ext.define('Ext.form.FieldSet', {
      * @return {Ext.form.FieldSet} this
      */
     setTitle: function(title) {
-        var me = this;
+        var me = this,
+            legend = me.legend;
+            
         me.title = title;
-        me.initLegend();
-        me.titleCmp.update(title);
+        if (me.rendered) {
+            if (!me.legend) {
+                me.legend = legend = Ext.widget(me.createLegendCt());
+                legend.ownerLayout.configureItem(legend);
+                legend.render(me.el, 0);
+            }
+            me.titleCmp.update(title);
+        }
         return me;
     },
 
@@ -336,24 +420,6 @@ Ext.define('Ext.form.FieldSet', {
 
     getContentTarget: function() {
         return this.body;
-    },
-
-    /**
-     * @private
-     * Include the legend component in the items for ComponentQuery
-     */
-    getRefItems: function(deep) {
-        var refItems = this.callParent(arguments),
-            legend = this.legend;
-
-        // Prepend legend items to ensure correct order
-        if (legend) {
-            refItems.unshift(legend);
-            if (deep) {
-                refItems.unshift.apply(refItems, legend.getRefItems(true));
-            }
-        }
-        return refItems;
     },
 
     /**
@@ -377,26 +443,45 @@ Ext.define('Ext.form.FieldSet', {
      */
     setExpanded: function(expanded) {
         var me = this,
-            checkboxCmp = me.checkboxCmp;
+            checkboxCmp = me.checkboxCmp,
+            operation = expanded ? 'expand' : 'collapse';
 
-        expanded = !!expanded;
+        if (!me.rendered || me.fireEvent('before' + operation, me) !== false) {
+            expanded = !!expanded;
 
-        if (checkboxCmp) {
-            checkboxCmp.setValue(expanded);
-        }
+            if (checkboxCmp) {
+                checkboxCmp.setValue(expanded);
+            }
 
-        if (expanded) {
-            me.removeCls(me.baseCls + '-collapsed');
-        } else {
-            me.addCls(me.baseCls + '-collapsed');
+            if (expanded) {
+                me.removeCls(me.baseCls + '-collapsed');
+            } else {
+                me.addCls(me.baseCls + '-collapsed');
+            }
+            me.collapsed = !expanded;
+            if (me.rendered) {
+                // say explicitly we are not root because when we have a fixed/configured height
+                // our ownerLayout would say we are root and so would not have it's height
+                // updated since it's not included in the layout cycle
+                me.updateLayout({ isRoot: false });
+                me.fireEvent(operation, me);
+            }
         }
-        me.collapsed = !expanded;
-        if (expanded) {
-            // ensure subitems will get rendered and layed out when expanding
-            me.getComponentLayout().childrenChanged = true;
-        }
-        me.doComponentLayout();
         return me;
+    },
+    
+    getRefItems: function(deep) {
+        var refItems = this.callParent(arguments),
+            legend = this.legend;
+
+        // Prepend legend items to ensure correct order
+        if (legend) {
+            refItems.unshift(legend);
+            if (deep) {
+                refItems.unshift.apply(refItems, legend.getRefItems(true));
+            }
+        }
+        return refItems;
     },
 
     /**
@@ -414,12 +499,9 @@ Ext.define('Ext.form.FieldSet', {
         this.setExpanded(checked);
     },
 
-    beforeDestroy : function() {
-        var legend = this.legend;
-        if (legend) {
-            legend.destroy();
-        }
-        this.callParent();
+    setupRenderTpl: function (renderTpl) {
+        this.callParent(arguments);
+
+        renderTpl.renderLegend = this.doRenderLegend;
     }
 });
-

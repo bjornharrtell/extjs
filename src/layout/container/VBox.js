@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A layout that arranges items vertically down a Container. This layout optionally divides available vertical space
  * between child items containing a numeric `flex` configuration.
@@ -69,45 +55,91 @@ Ext.define('Ext.layout.container.VBox', {
      */
     align : 'left', // left, center, stretch, strechmax
 
-    //@private
-    alignCenteringString: 'center',
-
     type: 'vbox',
 
     direction: 'vertical',
 
-    // When creating an argument list to setSize, use this order
-    parallelSizeIndex: 1,
-    perpendicularSizeIndex: 0,
+    horizontal: false,
 
-    parallelPrefix: 'height',
-    parallelPrefixCap: 'Height',
-    parallelLT: 't',
-    parallelRB: 'b',
-    parallelBefore: 'top',
-    parallelBeforeCap: 'Top',
-    parallelAfter: 'bottom',
-    parallelPosition: 'y',
+    names: {
+        // parallel
+        lr: 'tb',
+        left: 'top',
+        leftCap: 'Top',
+        right: 'bottom',
+        position: 'top',
+        width: 'height',
+        contentWidth: 'contentHeight',
+        minWidth: 'minHeight',
+        maxWidth: 'maxHeight',
+        widthCap: 'Height',
+        widthModel: 'heightModel',
+        widthIndex: 1,
+        x: 'y',
+        scrollLeft: 'scrollTop',
+        overflowX: 'overflowY',
+        hasOverflowX: 'hasOverflowY',
+        invalidateScrollX: 'invalidateScrollY',
 
-    perpendicularPrefix: 'width',
-    perpendicularPrefixCap: 'Width',
-    perpendicularLT: 'l',
-    perpendicularRB: 'r',
-    perpendicularLeftTop: 'left',
-    perpendicularRightBottom: 'right',
-    perpendicularPosition: 'x',
-    configureItem: function(item) {
-        if (item.flex) {
-            item.layoutManagedHeight = 1;
-        } else {
-            item.layoutManagedHeight = 2;
+        // perpendicular
+        center: 'center',
+        top: 'left',// 'before',
+        topPosition: 'left',
+        bottom: 'right',// 'after',
+        height: 'width',
+        contentHeight: 'contentWidth',
+        minHeight: 'minWidth',
+        maxHeight: 'maxWidth',
+        heightCap: 'Width',
+        heightModel: 'widthModel',
+        heightIndex: 0,
+        y: 'x',
+        scrollTop: 'scrollLeft',
+        overflowY: 'overflowX',
+        hasOverflowY: 'hasOverflowX',
+        invalidateScrollY: 'invalidateScrollX',
+
+        // Methods
+        getWidth: 'getHeight',
+        getHeight: 'getWidth',
+        setWidth: 'setHeight',
+        setHeight: 'setWidth',
+        gotWidth: 'gotHeight',
+        gotHeight: 'gotWidth',
+        setContentWidth: 'setContentHeight',
+        setContentHeight: 'setContentWidth',
+        setWidthInDom: 'setHeightInDom',
+        setHeightInDom: 'setWidthInDom'
+    },
+
+    sizePolicy: {
+        flex: {
+            '': {
+                setsWidth: 0,
+                setsHeight: 1
+            },
+            stretch: {
+                setsWidth: 1,
+                setsHeight: 1
+            },
+            stretchmax: {
+                readsWidth: 1,
+                setsWidth: 1,
+                setsHeight: 1
+            }
+        },
+        '': {
+            setsWidth: 0,
+            setsHeight: 0
+        },
+        stretch: {
+            setsWidth: 1,
+            setsHeight: 0
+        },
+        stretchmax: {
+            readsWidth: 1,
+            setsWidth: 1,
+            setsHeight: 0
         }
-
-        if (this.align === 'stretch' || this.align === 'stretchmax') {
-            item.layoutManagedWidth = 1;
-        } else {
-            item.layoutManagedWidth = 2;
-        }
-        this.callParent(arguments);
     }
 });

@@ -5,6 +5,9 @@
     <title>Feed Viewer</title>
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css">
     <link rel="stylesheet" type="text/css" href="Feed-Viewer.css">
+
+    <!-- GC -->
+
 <style type="text/css">
 .x-menu-item img.preview-right, .preview-right {
     background-image: url(images/preview-right.gif);
@@ -23,17 +26,14 @@
     margin: 0;
 }
 </style>
-    <script type="text/javascript" src="../../bootstrap.js"></script>
-    <script type="text/javascript" src="viewer/FeedPost.js"></script>
-    <script type="text/javascript" src="viewer/FeedDetail.js"></script>
-    <script type="text/javascript" src="viewer/FeedGrid.js"></script>
-    <script type="text/javascript" src="viewer/FeedInfo.js"></script>
-    <script type="text/javascript" src="viewer/FeedPanel.js"></script>
-    <script type="text/javascript" src="viewer/FeedViewer.js"></script>
-    <script type="text/javascript" src="viewer/FeedWindow.js"></script>
+    <script type="text/javascript" src="../../ext-all.js"></script>
     <script type="text/javascript">
+        function hasOption (name) {
+            return window.location.search.indexOf(name) >= 0;
+        }
+
         Ext.Loader.setConfig({enabled: true});
-        Ext.Loader.setPath('Ext.ux', '../ux/');
+        Ext.Loader.setPath('Ext.ux', '../ux');
         Ext.require([
             'Ext.grid.*',
             'Ext.data.*',
@@ -44,12 +44,26 @@
             'Ext.form.*',
             'Ext.layout.container.Card',
             'Ext.layout.container.Border',
+            'Ext.ux.ajax.SimManager',
             'Ext.ux.PreviewPlugin'
         ]);
         Ext.onReady(function(){
+            if (hasOption('simjax')) {
+                initAjaxSim();
+            }
+
             var app = new FeedViewer.App();
         });
     </script>
+
+    <script type="text/javascript" src="viewer/FeedPost.js"></script>
+    <script type="text/javascript" src="viewer/FeedDetail.js"></script>
+    <script type="text/javascript" src="viewer/FeedGrid.js"></script>
+    <script type="text/javascript" src="viewer/FeedInfo.js"></script>
+    <script type="text/javascript" src="viewer/FeedPanel.js"></script>
+    <script type="text/javascript" src="viewer/FeedViewer.js"></script>
+    <script type="text/javascript" src="viewer/FeedWindow.js"></script>
+    <script type="text/javascript" src="viewer/Sim.js"></script>
 </head>
 <body>
 </body>

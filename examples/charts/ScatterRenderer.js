@@ -1,19 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.chart.*');
-Ext.require(['Ext.Window', 'Ext.fx.target.Sprite', 'Ext.layout.container.Fit']);
+Ext.require(['Ext.Window', 'Ext.fx.target.Sprite', 'Ext.layout.container.Fit', 'Ext.window.MessageBox']);
 
 var Renderers = {};
 
@@ -396,17 +382,51 @@ Ext.onReady(function () {
                ]
     });
 
+    var chart = Ext.create('Ext.chart.Chart', {
+            id: 'chartCmp',
+            xtype: 'chart',
+            style: 'background:#fff',
+            animate: true,
+            store: store1,
+            axes: false,
+            insetPadding: 50,
+            series: [{
+                type: 'scatter',
+                axis: false,
+                xField: 'data1',
+                yField: 'data2',
+                color: '#ccc',
+                markerConfig: {
+                    type: 'circle',
+                    radius: 20,
+                    size: 20
+                }
+            }]
+        });
+
+    
      var win = Ext.create('Ext.Window', {
         width: 800,
         height: 600,
         minHeight: 400,
-        minWidth: 550,
+        minWidth: 650,
         hidden: false,
         maximizable: true,
         title: 'Scatter Chart Renderer',
         renderTo: Ext.getBody(),
         layout: 'fit',
-        tbar: [
+        tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        },
         {
             text: 'Reload Data',
             handler: function() {
@@ -435,27 +455,6 @@ Ext.onReady(function () {
             menu: radiusMenu
         }
         ],
-        items: {
-            id: 'chartCmp',
-            xtype: 'chart',
-            style: 'background:#fff',
-            animate: true,
-            store: store1,
-            axes: false,
-            insetPadding: 50,
-            series: [{
-                type: 'scatter',
-                axis: false,
-                xField: 'data1',
-                yField: 'data2',
-                color: '#ccc',
-                markerConfig: {
-                    type: 'circle',
-                    radius: 20,
-                    size: 20
-                }
-            }]
-        }
+        items: chart
     });
 });
-

@@ -1,37 +1,21 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.grid.plugin.HeaderResizer
- * @extends Ext.util.Observable
- *
  * Plugin to add header resizing functionality to a HeaderContainer.
  * Always resizing header to the left of the splitter you are resizing.
  */
 Ext.define('Ext.grid.plugin.HeaderResizer', {
-    extend: 'Ext.util.Observable',
+    extend: 'Ext.AbstractPlugin',
     requires: ['Ext.dd.DragTracker', 'Ext.util.Region'],
     alias: 'plugin.gridheaderresizer',
 
     disabled: false,
 
-    /**
-     * @cfg {Boolean} dynamic
-     * Set to true to resize on the fly rather than using a proxy marker. Defaults to false.
-     */
-    configs: {
-        dynamic: true
+    config: {
+        /**
+         * @cfg {Boolean} dynamic
+         * True to resize on the fly rather than using a proxy marker.
+         * @accessor
+         */
+        dynamic: false
     },
 
     colHeaderCls: Ext.baseCSSPrefix + 'column-header',
@@ -66,7 +50,7 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
 
         headerCt.mon(el, 'mousemove', this.onHeaderCtMouseMove, this);
 
-        this.tracker = Ext.create('Ext.dd.DragTracker', {
+        this.tracker = new Ext.dd.DragTracker({
             disabled: this.disabled,
             onBeforeStart: Ext.Function.bind(this.onBeforeStart, this),
             onStart: Ext.Function.bind(this.onStart, this),
@@ -82,22 +66,37 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
     // that resizing is available, and cache the resize target header for use
     // if/when they mousedown.
     onHeaderCtMouseMove: function(e, t) {
-        if (this.headerCt.dragging) {
-            if (this.activeHd) {
-                this.activeHd.el.dom.style.cursor = '';
-                delete this.activeHd;
+        var me = this,
+            prevSiblings,
+            headerEl, overHeader, resizeHeader, resizeHeaderOwnerGrid, ownerGrid;
+
+        if (me.headerCt.dragging) {
+            if (me.activeHd) {
+                me.activeHd.el.dom.style.cursor = '';
+                delete me.activeHd;
             }
         } else {
-            var headerEl = e.getTarget('.' + this.colHeaderCls, 3, true),
-                overHeader, resizeHeader;
+            headerEl = e.getTarget('.' + me.colHeaderCls, 3, true);
 
             if (headerEl){
                 overHeader = Ext.getCmp(headerEl.id);
 
                 // On left edge, go back to the previous non-hidden header.
                 if (overHeader.isOnLeftEdge(e)) {
-                    resizeHeader = overHeader.previousNode('gridcolumn:not([hidden])');
+                    resizeHeader = overHeader.previousNode('gridcolumn:not([hidden]):not([isGroupHeader])')
+                    // There may not *be* a previous non-hidden header.
+                    if (resizeHeader) {
 
+                        ownerGrid = me.headerCt.up('tablepanel');
+                        resizeHeaderOwnerGrid = resizeHeader.up('tablepanel');
+
+                        // Need to check that previousNode didn't go outside the current grid/tree
+                        // But in the case of a Grid which contains a locked and normal grid, allow previousNode to jump
+                        // from the first column of the normalGrid to the last column of the lockedGrid
+                        if (!((resizeHeaderOwnerGrid === ownerGrid) || ((ownerGrid.ownerCt.isXType('tablepanel')) && ownerGrid.ownerCt.view.lockedGrid === resizeHeaderOwnerGrid))) {
+                            resizeHeader = null;
+                        }
+                    }
                 }
                 // Else, if on the right edge, we're resizing the column we are over
                 else if (overHeader.isOnRightEdge(e)) {
@@ -114,19 +113,20 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
                     // so find its last visible leaf header; Group headers are sized
                     // by the size of their child headers.
                     if (resizeHeader.isGroupHeader) {
-                        resizeHeader = resizeHeader.down(':not([isGroupHeader]):not([hidden]):last');
+                        prevSiblings = resizeHeader.getGridColumns();
+                        resizeHeader = prevSiblings[prevSiblings.length - 1];
                     }
 
                     // Check if the header is resizable. Continue checking the old "fixed" property, bug also
                     // check whether the resizablwe property is set to false.
-                    if (resizeHeader && !(resizeHeader.fixed || (resizeHeader.resizable === false) || this.disabled)) {
-                        this.activeHd = resizeHeader;
-                        overHeader.el.dom.style.cursor = this.eResizeCursor;
+                    if (resizeHeader && !(resizeHeader.fixed || (resizeHeader.resizable === false) || me.disabled)) {
+                        me.activeHd = resizeHeader;
+                        overHeader.el.dom.style.cursor = me.eResizeCursor;
                     }
                 // reset
                 } else {
                     overHeader.el.dom.style.cursor = '';
-                    delete this.activeHd;
+                    delete me.activeHd;
                 }
             }
         }
@@ -138,7 +138,7 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
         // cache the activeHd because it will be cleared.
         this.dragHd = this.activeHd;
 
-        if (!!this.dragHd && !Ext.fly(t).hasCls('x-column-header-trigger') && !this.headerCt.dragging) {
+        if (!!this.dragHd && !Ext.fly(t).hasCls(Ext.baseCSSPrefix + 'column-header-trigger') && !this.headerCt.dragging) {
             //this.headerCt.dragging = true;
             this.tracker.constrainTo = this.getConstrainRegion();
             return true;
@@ -150,14 +150,22 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
 
     // get the region to constrain to, takes into account max and min col widths
     getConstrainRegion: function() {
-        var dragHdEl = this.dragHd.el,
-            region   = Ext.util.Region.getRegion(dragHdEl);
+        var me       = this,
+            dragHdEl = me.dragHd.el,
+            region   = Ext.util.Region.getRegion(dragHdEl),
+            nextHd;
 
-        return region.adjust(
+        // If forceFit, then right constraint is based upon not being able to force the next header
+        // beyond the minColWidth. If there is no next header, then the header may not be expanded.
+        if (me.headerCt.forceFit) {
+            nextHd = me.dragHd.nextNode('gridcolumn:not([hidden]):not([isGroupHeader])');
+        }
+
+         return region.adjust(
             0,
-            this.maxColWidth - dragHdEl.getWidth(),
+            me.headerCt.forceFit ? (nextHd ? nextHd.getWidth() - me.minColWidth : 0) : me.maxColWidth - dragHdEl.getWidth(),
             0,
-            this.minColWidth
+            me.minColWidth
         );
     },
 
@@ -169,9 +177,10 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
             dragHdEl = dragHd.el,
             width    = dragHdEl.getWidth(),
             headerCt = me.headerCt,
-            t        = e.getTarget();
+            t        = e.getTarget(),
+            xy, gridSection, dragHct, firstSection, lhsMarker, rhsMarker, el, offsetLeft, offsetTop, topLeft, markerHeight, top;
 
-        if (me.dragHd && !Ext.fly(t).hasCls('x-column-header-trigger')) {
+        if (me.dragHd && !Ext.fly(t).hasCls(Ext.baseCSSPrefix + 'column-header-trigger')) {
             headerCt.dragging = true;
         }
 
@@ -179,18 +188,18 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
 
         // setup marker proxies
         if (!me.dynamic) {
-            var xy           = dragHdEl.getXY(),
-                gridSection  = headerCt.up('[scrollerOwner]'),
-                dragHct      = me.dragHd.up(':not([isGroupHeader])'),
-                firstSection = dragHct.up(),
-                lhsMarker    = gridSection.getLhsMarker(),
-                rhsMarker    = gridSection.getRhsMarker(),
-                el           = rhsMarker.parent(),
-                offsetLeft   = el.getLeft(true),
-                offsetTop    = el.getTop(true),
-                topLeft      = el.translatePoints(xy),
-                markerHeight = firstSection.body.getHeight() + headerCt.getHeight(),
-                top = topLeft.top - offsetTop;
+            xy           = dragHdEl.getXY();
+            gridSection  = headerCt.up('[scrollerOwner]');
+            dragHct      = me.dragHd.up(':not([isGroupHeader])');
+            firstSection = dragHct.up();
+            lhsMarker    = gridSection.getLhsMarker();
+            rhsMarker    = gridSection.getRhsMarker();
+            el           = rhsMarker.parent();
+            offsetLeft   = el.getLocalX();
+            offsetTop    = el.getLocalY();
+            topLeft      = el.translatePoints(xy);
+            markerHeight = firstSection.body.getHeight() + headerCt.getHeight();
+            top = topLeft.top - offsetTop;
 
             lhsMarker.setTop(top);
             rhsMarker.setTop(top);
@@ -209,7 +218,7 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
                 rhsMarker   = gridSection.getRhsMarker(),
                 el          = rhsMarker.parent(),
                 topLeft     = el.translatePoints(xy),
-                offsetLeft  = el.getLeft(true);
+                offsetLeft  = el.getLocalX();
 
             rhsMarker.setLeft(topLeft.left - offsetLeft);
         // Resize as user interacts
@@ -226,8 +235,6 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
                     gridSection = this.headerCt.up('[scrollerOwner]'),
                     lhsMarker   = gridSection.getLhsMarker(),
                     rhsMarker   = gridSection.getRhsMarker(),
-                    currWidth   = dragHd.getWidth(),
-                    offset      = this.tracker.getOffset('point'),
                     offscreen   = -9999;
 
                 // hide markers
@@ -249,22 +256,23 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
                 delete dragHd.flex;
             }
 
-            this.headerCt.suspendLayout = true;
-            dragHd.setWidth(this.origWidth + offset[0], false);
+            Ext.suspendLayouts();
 
+            // Set the new column width.
+            dragHd.setWidth(this.origWidth + offset[0]);
+ 
             // In the case of forceFit, change the following Header width.
-            // Then apply the two width changes by laying out the owning HeaderContainer
-            // If HeaderContainer is configured forceFit, inhibit upstream layout notification, so that
-            // we can also shrink the following Header by an equal amount, and *then* inform the upstream layout.
+            // Constraining so that neither neighbour can be sized to below minWidth is handled in getConstrainRegion
             if (this.headerCt.forceFit) {
                 nextHd = dragHd.nextNode('gridcolumn:not([hidden]):not([isGroupHeader])');
                 if (nextHd) {
                     delete nextHd.flex;
-                    nextHd.setWidth(nextHd.getWidth() - offset[0], false);
+                    nextHd.setWidth(nextHd.getWidth() - offset[0]);
                 }
             }
-            this.headerCt.suspendLayout = false;
-            this.headerCt.doComponentLayout(this.headerCt.getFullWidth());
+
+            // Apply the two width changes by laying out the owning HeaderContainer
+            Ext.resumeLayouts(true);
         }
     },
 

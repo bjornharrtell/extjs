@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.fx.PropertyHandler
- * @ignore
+ * @private
  */
 Ext.define('Ext.fx.PropertyHandler', {
 
@@ -91,12 +76,41 @@ Ext.define('Ext.fx.PropertyHandler', {
                         j = 0;
                         len = val.length;
                         for (; j < len; j++) {
-                            res.push(val[j].from + (val[j].delta * easing) + (val[j].units || 0));
+                            res.push(val[j].from + val[j].delta * easing + (val[j].units || 0));
                         }
                         out.push([values[i][0], res]);
                     } else {
-                        out.push([values[i][0], val.from + (val.delta * easing) + (val.units || 0)]);
+                        out.push([values[i][0], val.from + val.delta * easing + (val.units || 0)]);
                     }
+                }
+                return out;
+            }
+        },
+        stringHandler: {
+            computeDelta: function(from, end, damper, initial, attr) {
+                return {
+                    from: from,
+                    delta: end
+                };
+            },
+
+            get: function(from, end, damper, initialFrom, attr) {
+                var ln = from.length,
+                    out = [],
+                    i, initial, res, j, len;
+                for (i = 0; i < ln; i++) {
+                    out.push([from[i][0], this.computeDelta(from[i][1], end, damper, initial, attr)]);
+                }
+                return out;
+            },
+
+            set: function(values, easing) {
+                var ln = values.length,
+                    out = [],
+                    i, val, res, len, j;
+                for (i = 0; i < ln; i++) {
+                    val  = values[i][1];
+                    out.push([values[i][0], val.delta]);
                 }
                 return out;
             }
@@ -108,15 +122,18 @@ Ext.define('Ext.fx.PropertyHandler', {
 
             parseColor : function(color, damper) {
                 damper = (typeof damper == 'number') ? damper : 1;
-                var base,
-                    out = false,
-                    match;
+                var out    = false,
+                    reList = [this.hexRE, this.rgbRE, this.hex3RE],
+                    length = reList.length,
+                    match, base, re, i;
 
-                Ext.each([this.hexRE, this.rgbRE, this.hex3RE], function(re, idx) {
-                    base = (idx % 2 == 0) ? 16 : 10;
+                for (i = 0; i < length; i++) {
+                    re = reList[i];
+
+                    base = (i % 2 === 0) ? 16 : 10;
                     match = re.exec(color);
-                    if (match && match.length == 4) {
-                        if (idx == 2) {
+                    if (match && match.length === 4) {
+                        if (i === 2) {
                             match[1] += match[1];
                             match[2] += match[2];
                             match[3] += match[3];
@@ -126,9 +143,10 @@ Ext.define('Ext.fx.PropertyHandler', {
                             green: parseInt(match[2], base),
                             blue: parseInt(match[3], base)
                         };
-                        return false;
+                        break;
                     }
-                });
+                }
+
                 return out || color;
             },
 
@@ -139,7 +157,7 @@ Ext.define('Ext.fx.PropertyHandler', {
                     tfrom = typeof start,
                     tend = typeof end;
                 //Extra check for when the color string is not recognized.
-                if (tfrom == 'string' ||  tfrom == 'undefined' 
+                if (tfrom == 'string' ||  tfrom == 'undefined'
                   || tend == 'string' || tend == 'undefined') {
                     return end || start;
                 }
@@ -203,7 +221,7 @@ Ext.define('Ext.fx.PropertyHandler', {
                 var out = {},
                     p;
                 for(p in prop) {
-                    out[p] = parseInt(prop[p], 10) * damper;
+                    out[p] = parseFloat(prop[p]) * damper;
                 }
                 return out;
             },
@@ -247,7 +265,7 @@ Ext.define('Ext.fx.PropertyHandler', {
                     from = val.from;
                     delta = val.delta;
                     for (p in from) {
-                        outObject[p] = Math.round(from[p] + delta[p] * easing);
+                        outObject[p] = from[p] + delta[p] * easing;
                     }
                     out.push([
                         values[i][0],
@@ -330,17 +348,34 @@ Ext.define('Ext.fx.PropertyHandler', {
         /* End Definitions */
     }
 }, function() {
-    Ext.each([
-        'outlineColor',
-        'backgroundColor',
-        'borderColor',
-        'borderTopColor',
-        'borderRightColor', 
-        'borderBottomColor', 
-        'borderLeftColor',
-        'fill',
-        'stroke'
-    ], function(prop) {
+    //set color properties to color interpolator
+    var props  = [
+            'outlineColor',
+            'backgroundColor',
+            'borderColor',
+            'borderTopColor',
+            'borderRightColor',
+            'borderBottomColor',
+            'borderLeftColor',
+            'fill',
+            'stroke'
+        ],
+        length = props.length,
+        i      = 0,
+        prop;
+
+    for (; i<length; i++) {
+        prop = props[i];
         this[prop] = this.color;
-    }, this);
+    }
+    
+    //set string properties to string
+    props  = ['cursor'];
+    length = props.length;
+    i      = 0;
+
+    for (; i<length; i++) {
+        prop = props[i];
+        this[prop] = this.stringHandler;
+    }
 });

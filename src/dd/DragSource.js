@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.dd.DragSource
- * @extends Ext.dd.DDProxy
  * A simple class that provides the basic implementation needed to make any element draggable.
  */
 Ext.define('Ext.dd.DragSource', {
@@ -31,12 +15,12 @@ Ext.define('Ext.dd.DragSource', {
      */
 
     /**
-     * @cfg {String} [dropAllowed="x-dd-drop-ok"]
+     * @cfg {String} dropAllowed
      * The CSS class returned to the drag source when drop is allowed.
      */
     dropAllowed : Ext.baseCSSPrefix + 'dd-drop-ok',
     /**
-     * @cfg {String} [dropNotAllowed="x-dd-drop-nodrop"]
+     * @cfg {String} dropNotAllowed
      * The CSS class returned to the drag source when drop is not allowed.
      */
     dropNotAllowed : Ext.baseCSSPrefix + 'dd-drop-nodrop',
@@ -57,7 +41,6 @@ Ext.define('Ext.dd.DragSource', {
 
     /**
      * Creates new drag-source.
-     * @constructor
      * @param {String/HTMLElement/Ext.Element} el The container element or ID of it.
      * @param {Object} config (optional) Config object.
      */
@@ -70,7 +53,8 @@ Ext.define('Ext.dd.DragSource', {
         Ext.apply(this, config);
 
         if(!this.proxy){
-            this.proxy = Ext.create('Ext.dd.StatusProxy', {
+            this.proxy = new Ext.dd.StatusProxy({
+                id: this.el.id + '-drag-status-proxy',
                 animRepair: this.animRepair
             });
         }
@@ -90,11 +74,12 @@ Ext.define('Ext.dd.DragSource', {
 
     // private
     onDragEnter : function(e, id){
-        var target = Ext.dd.DragDropManager.getDDById(id);
+        var target = Ext.dd.DragDropManager.getDDById(id),
+            status;
         this.cachedTarget = target;
         if (this.beforeDragEnter(target, e, id) !== false) {
             if (target.isNotifyTarget) {
-                var status = target.notifyEnter(this, e, this.dragData);
+                status = target.notifyEnter(this, e, this.dragData);
                 this.proxy.setStatus(status);
             } else {
                 this.proxy.setStatus(this.dropAllowed);
@@ -121,23 +106,19 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Event} e The event object
      * @param {String} id The id of the dragged element
      * @return {Boolean} isValid True if the drag event is valid, else false to cancel
+     * @template
      */
     beforeDragEnter: function(target, e, id) {
         return true;
     },
 
     // private
-    alignElWithMouse: function() {
-        this.callParent(arguments);
-        this.proxy.sync();
-    },
-
-    // private
     onDragOver: function(e, id) {
-        var target = this.cachedTarget || Ext.dd.DragDropManager.getDDById(id);
+        var target = this.cachedTarget || Ext.dd.DragDropManager.getDDById(id),
+            status;
         if (this.beforeDragOver(target, e, id) !== false) {
             if(target.isNotifyTarget){
-                var status = target.notifyOver(this, e, this.dragData);
+                status = target.notifyOver(this, e, this.dragData);
                 this.proxy.setStatus(status);
             }
 
@@ -162,6 +143,7 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Event} e The event object
      * @param {String} id The id of the dragged element
      * @return {Boolean} isValid True if the drag event is valid, else false to cancel
+     * @template
      */
     beforeDragOver: function(target, e, id) {
         return true;
@@ -197,6 +179,7 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Event} e The event object
      * @param {String} id The id of the dragged element
      * @return {Boolean} isValid True if the drag event is valid, else false to cancel
+     * @template
      */
     beforeDragOut: function(target, e, id){
         return true;
@@ -238,6 +221,7 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Event} e The event object
      * @param {String} id The id of the dragged element
      * @return {Boolean} isValid True if the drag drop event is valid, else false to cancel
+     * @template
      */
     beforeDragDrop: function(target, e, id){
         return true;
@@ -266,6 +250,14 @@ Ext.define('Ext.dd.DragSource', {
 
     // private
     onInvalidDrop: function(target, e, id) {
+        // This method may be called by the DragDropManager.
+        // To preserve backwards compat, it only passes the event object
+        // Here we correct the arguments.
+        if (!e) {
+            e = target;
+            target = null;
+            id = e.getTarget().id;
+        }
         this.beforeInvalidDrop(target, e, id);
         if (this.cachedTarget) {
             if(this.cachedTarget.isNotifyTarget){
@@ -303,6 +295,7 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Event} e The event object
      * @param {String} id The id of the dragged element
      * @return {Boolean} isValid True if the invalid drop should proceed, else false to cancel
+     * @template
      */
     beforeInvalidDrop: function(target, e, id) {
         return true;
@@ -327,6 +320,7 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Object} data An object containing arbitrary data to be shared with drop targets
      * @param {Event} e The event object
      * @return {Boolean} isValid True if the drag event is valid, else false to cancel
+     * @template
      */
     onBeforeDrag: function(data, e){
         return true;
@@ -338,12 +332,19 @@ Ext.define('Ext.dd.DragSource', {
      * @param {Number} x The x position of the click on the dragged object
      * @param {Number} y The y position of the click on the dragged object
      * @method
+     * @template
      */
     onStartDrag: Ext.emptyFn,
+
+    alignElWithMouse: function() {
+        this.proxy.ensureAttachedToBody(true);
+        return this.callParent(arguments);
+    },
 
     // private override
     startDrag: function(x, y) {
         this.proxy.reset();
+        this.proxy.hidden = false;
         this.dragging = true;
         this.proxy.update("");
         this.onInitDrag(x, y);
@@ -404,4 +405,3 @@ Ext.define('Ext.dd.DragSource', {
         Ext.destroy(this.proxy);
     }
 });
-

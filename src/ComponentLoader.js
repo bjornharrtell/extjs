@@ -1,26 +1,10 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ComponentLoader
- * @extends Ext.ElementLoader
- *
- * This class is used to load content via Ajax into a {@link Ext.Component}. In general
+ * This class is used to load content via Ajax into a {@link Ext.Component}. In general 
  * this class will not be instanced directly, rather a loader configuration will be passed to the
  * constructor of the {@link Ext.Component}.
  *
  * ## HTML Renderer
+ *
  * By default, the content loaded will be processed as raw html. The response text
  * from the request is taken and added to the component. This can be used in
  * conjunction with the {@link #scripts} option to execute any inline scripts in
@@ -28,6 +12,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * {@link Ext.Component#html} configuration option.
  *
  * ## Data Renderer
+ *
  * This renderer allows content to be added by using JSON data and a {@link Ext.XTemplate}.
  * The content received from the response is passed to the {@link Ext.Component#update} method.
  * This content is run through the attached {@link Ext.Component#tpl} and the data is added to
@@ -35,17 +20,21 @@ If you are unsure which license is appropriate for your use, please contact the 
  * configuration in conjunction with a {@link Ext.Component#tpl}.
  *
  * ## Component Renderer
+ *
  * This renderer can only be used with a {@link Ext.container.Container} and subclasses. It allows for
  * Components to be loaded remotely into a Container. The response is expected to be a single/series of
  * {@link Ext.Component} configuration objects. When the response is received, the data is decoded
- * and then passed to {@link Ext.container.Container#add}. Using this renderer has the same effect as specifying
- * the {@link Ext.container.Container#items} configuration on a Container.
+ * and then passed to {@link Ext.container.Container#method-add}. Using this renderer has the same effect as specifying
+ * the {@link Ext.container.Container#cfg-items} configuration on a Container.
  *
  * ## Custom Renderer
+ *
  * A custom function can be passed to handle any other special case, see the {@link #renderer} option.
  *
  * ## Example Usage
- *     new Ext.Component({
+ *
+ *     var cmp = Ext.create('Ext.Component', {
+ *         renderTo: Ext.getBody(),
  *         tpl: '{firstName} - {lastName}',
  *         loader: {
  *             url: 'myPage.php',
@@ -55,6 +44,9 @@ If you are unsure which license is appropriate for your use, please contact the 
  *             }
  *         }
  *     });
+ *
+ *     // call the loader manually (or use autoLoad:true instead)
+ *     cmp.getLoader().load();
  */
 Ext.define('Ext.ComponentLoader', {
 
@@ -95,10 +87,12 @@ Ext.define('Ext.ComponentLoader', {
                 }
 
                 if (success) {
+                    target.suspendLayouts();
                     if (active.removeAll) {
                         target.removeAll();
                     }
                     target.add(items);
+                    target.resumeLayouts(true);
                 }
                 return success;
             }
@@ -186,10 +180,6 @@ The function must return false is loading is not successful. Below is a sample o
         this.target.setLoading(mask);
     },
 
-    /**
-     * Get the target of this loader.
-     * @return {Ext.Component} target The target, null if none exists.
-     */
 
     setOptions: function(active, options){
         active.removeAll = Ext.isDefined(options.removeAll) ? options.removeAll : this.removeAll;
@@ -217,4 +207,3 @@ The function must return false is loading is not successful. Below is a sample o
         }
     }
 });
-

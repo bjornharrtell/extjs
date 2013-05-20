@@ -4,12 +4,26 @@
     <title>History Example</title>
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
     <link rel="stylesheet" type="text/css" href="../shared/example.css"/>
-    
-    <script type="text/javascript" src="../../bootstrap.js"></script>
-    <script type="text/javascript" src="history.js"></script>
+
+    <!-- GC -->
+
+
+    <script type="text/javascript" src="../../ext-all.js"></script>
 </head>
 <body>
+
     <h1>History Example</h1>
+
+    <script type="text/javascript">
+      // Ensure we're not inside an iframe
+      if (window != window.top) {
+          document.write('<p>History example doesn\'t work inside an iframe.</p>');
+          document.write('<p><a href="#" onclick="window.open(document.location.href); return false;">Open in new tab.</a></p>');
+      }
+      else {
+          document.write('<script type="text/javascript" src="history.js"></'+'script>');
+      }
+    </script>
 
     <p>This is a simple implementation of the <tt>Ext.History</tt> component for managing browser back/forward navigation within a single page.</p>
 

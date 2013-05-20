@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Tommy Maintz <tommy@sencha.com>
  *
@@ -24,7 +10,7 @@ If you are unsure which license is appropriate for your use, please contact the 
 Ext.define("Ext.util.Sortable", {
     /**
      * @property {Boolean} isSortable
-     * Flag denoting that this object is sortable. Always true.
+     * `true` in this class to identify an object as an instantiated Sortable, or subclass thereof.
      */
     isSortable: true,
 
@@ -55,7 +41,7 @@ Ext.define("Ext.util.Sortable", {
          * @property {Ext.util.MixedCollection} sorters
          * The collection of {@link Ext.util.Sorter Sorters} currently applied to this Store
          */
-        me.sorters = Ext.create('Ext.util.AbstractMixedCollection', false, function(item) {
+        me.sorters = new Ext.util.AbstractMixedCollection(false, function(item) {
             return item.id || item.property;
         });
 
@@ -95,9 +81,9 @@ Ext.define("Ext.util.Sortable", {
      *     store.sort('myField', 'ASC');
      *     store.sort('myField', 'DESC');
      *
-     * @param {String/Ext.util.Sorter[]} sorters Either a string name of one of the fields in this Store's configured
+     * @param {String/Ext.util.Sorter[]} [sorters] Either a string name of one of the fields in this Store's configured
      * {@link Ext.data.Model Model}, or an array of sorter configurations.
-     * @param {String} direction The overall direction to sort the data by. Defaults to "ASC".
+     * @param {String} [direction="ASC"] The overall direction to sort the data by.
      * @return {Ext.util.Sorter[]}
      */
     sort: function(sorters, direction, where, doSort) {
@@ -158,25 +144,40 @@ Ext.define("Ext.util.Sortable", {
             
             sorters = me.sorters.items;
             if (sorters.length) {
-                //construct an amalgamated sorter function which combines all of the Sorters passed
-                sorterFn = function(r1, r2) {
-                    var result = sorters[0].sort(r1, r2),
-                        length = sorters.length,
-                        i;
-
-                        //if we have more than one sorter, OR any additional sorter functions together
-                        for (i = 1; i < length; i++) {
-                            result = result || sorters[i].sort.call(this, r1, r2);
-                        }
-
-                    return result;
-                };
-
-                me.doSort(sorterFn);
+                // Sort using a generated sorter function which combines all of the Sorters passed
+                me.doSort(me.generateComparator());
             }
         }
 
         return sorters;
+    },
+
+    /**
+     * <p>Returns a comparator function which compares two items and returns -1, 0, or 1 depending
+     * on the currently defined set of {@link #sorters}.</p>
+     * <p>If there are no {@link #sorters} defined, it returns a function which returns <code>0</code> meaning that no sorting will occur.</p>
+     */
+    generateComparator: function() {
+        var sorters = this.sorters.getRange();
+        return sorters.length ? this.createComparator(sorters) : this.emptyComparator;
+    },
+    
+    createComparator: function(sorters) {
+        return function(r1, r2) {
+            var result = sorters[0].sort(r1, r2),
+                length = sorters.length,
+                i = 1;
+
+            // if we have more than one sorter, OR any additional sorter functions together
+            for (; i < length; i++) {
+                result = result || sorters[i].sort.call(this, r1, r2);
+            }
+            return result;
+        };
+    },
+    
+    emptyComparator: function(){
+        return 0;
     },
 
     onBeforeSort: Ext.emptyFn,
@@ -234,7 +235,7 @@ Ext.define("Ext.util.Sortable", {
                     field = fields.get(config.property);
                     config.transform = field ? field.sortType : undefined;
                 }
-                sorters[i] = Ext.create('Ext.util.Sorter', config);
+                sorters[i] = new Ext.util.Sorter(config);
             }
         }
 
@@ -243,5 +244,26 @@ Ext.define("Ext.util.Sortable", {
 
     getSorters: function() {
         return this.sorters.items;
+    },
+    
+    /**
+     * Gets the first sorter from the sorters collection, excluding
+     * any groupers that may be in place
+     * @protected
+     * @return {Ext.util.Sorter} The sorter, null if none exist
+     */
+    getFirstSorter: function(){
+        var sorters = this.sorters.items,
+            len = sorters.length,
+            i = 0,
+            sorter;
+            
+        for (; i < len; ++i) {
+            sorter = sorters[i];
+            if (!sorter.isGrouper) {
+                return sorter;    
+            }
+        }
+        return null;
     }
 });

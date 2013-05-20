@@ -37,7 +37,7 @@ select{
     display: block;
     overflow: hidden;
     text-align: center;
-    width: 76px; // for ie to ensure that the text is centered
+    width: 76px; /* for ie to ensure that the text is centered */
 }
 .x-image-view .x-item-selected .thumb {
     background:#8db2e3;

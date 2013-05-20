@@ -15,619 +15,540 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-tab-Panel'>/**
-</span> * @author Ed Spencer, Tommy Maintz, Brian Moeskau
+  <pre class="prettyprint lang-js"><span id='Ext-tree-Panel'>/**
+</span> * The TreePanel provides tree-structured UI representation of tree-structured data.
+ * A TreePanel must be bound to a {@link Ext.data.TreeStore}. TreePanel's support
+ * multiple columns through the {@link #columns} configuration.
  *
- * A basic tab container. TabPanels can be used exactly like a standard {@link Ext.panel.Panel} for
- * layout purposes, but also have special support for containing child Components
- * (`{@link Ext.container.Container#items items}`) that are managed using a
- * {@link Ext.layout.container.Card CardLayout layout manager}, and displayed as separate tabs.
- *
- * **Note:** By default, a tab's close tool _destroys_ the child tab Component and all its descendants.
- * This makes the child tab Component, and all its descendants **unusable**.  To enable re-use of a tab,
- * configure the TabPanel with `{@link #autoDestroy autoDestroy: false}`.
- *
- * ## TabPanel's layout
- *
- * TabPanels use a Dock layout to position the {@link Ext.tab.Bar TabBar} at the top of the widget.
- * Panels added to the TabPanel will have their header hidden by default because the Tab will
- * automatically take the Panel's configured title and icon.
- *
- * TabPanels use their {@link Ext.panel.Header header} or {@link Ext.panel.Panel#fbar footer}
- * element (depending on the {@link #tabPosition} configuration) to accommodate the tab selector buttons.
- * This means that a TabPanel will not display any configured title, and will not display any configured
- * header {@link Ext.panel.Panel#tools tools}.
- *
- * To display a header, embed the TabPanel in a {@link Ext.panel.Panel Panel} which uses
- * `{@link Ext.container.Container#layout layout: 'fit'}`.
- *
- * ## Controlling tabs
- *
- * Configuration options for the {@link Ext.tab.Tab} that represents the component can be passed in
- * by specifying the tabConfig option:
+ * Simple TreePanel using inline data:
  *
  *     @example
- *     Ext.create('Ext.tab.Panel', {
- *         width: 400,
- *         height: 400,
- *         renderTo: document.body,
- *         items: [{
- *             title: 'Foo'
- *         }, {
- *             title: 'Bar',
- *             tabConfig: {
- *                 title: 'Custom Title',
- *                 tooltip: 'A button tooltip'
- *             }
- *         }]
- *     });
- *
- * # Examples
- *
- * Here is a basic TabPanel rendered to the body. This also shows the useful configuration {@link #activeTab},
- * which allows you to set the active tab on render. If you do not set an {@link #activeTab}, no tabs will be
- * active by default.
- *
- *     @example
- *     Ext.create('Ext.tab.Panel', {
- *         width: 300,
- *         height: 200,
- *         activeTab: 0,
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 bodyPadding: 10,
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- * It is easy to control the visibility of items in the tab bar. Specify hidden: true to have the
- * tab button hidden initially. Items can be subsequently hidden and show by accessing the
- * tab property on the child item.
- *
- *     @example
- *     var tabs = Ext.create('Ext.tab.Panel', {
- *         width: 400,
- *         height: 400,
- *         renderTo: document.body,
- *         items: [{
- *             title: 'Home',
- *             html: 'Home',
- *             itemId: 'home'
- *         }, {
- *             title: 'Users',
- *             html: 'Users',
- *             itemId: 'users',
- *             hidden: true
- *         }, {
- *             title: 'Tickets',
- *             html: 'Tickets',
- *             itemId: 'tickets'
- *         }]
- *     });
- *
- *     setTimeout(function(){
- *         tabs.child('#home').tab.hide();
- *         var users = tabs.child('#users');
- *         users.tab.show();
- *         tabs.setActiveTab(users);
- *     }, 1000);
- *
- * You can remove the background of the TabBar by setting the {@link #plain} property to `true`.
- *
- *     @example
- *     Ext.create('Ext.tab.Panel', {
- *         width: 300,
- *         height: 200,
- *         activeTab: 0,
- *         plain: true,
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 bodyPadding: 10,
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- * Another useful configuration of TabPanel is {@link #tabPosition}. This allows you to change the
- * position where the tabs are displayed. The available options for this are `'top'` (default) and
- * `'bottom'`.
- *
- *     @example
- *     Ext.create('Ext.tab.Panel', {
- *         width: 300,
- *         height: 200,
- *         activeTab: 0,
- *         bodyPadding: 10,
- *         tabPosition: 'bottom',
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- * The {@link #setActiveTab} is a very useful method in TabPanel which will allow you to change the
- * current active tab. You can either give it an index or an instance of a tab. For example:
- *
- *     @example
- *     var tabs = Ext.create('Ext.tab.Panel', {
- *         items: [
- *             {
- *                 id   : 'my-tab',
- *                 title: 'Tab 1',
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- *     var tab = Ext.getCmp('my-tab');
- *
- *     Ext.create('Ext.button.Button', {
- *         renderTo: Ext.getBody(),
- *         text    : 'Select the first tab',
- *         scope   : this,
- *         handler : function() {
- *             tabs.setActiveTab(tab);
+ *     var store = Ext.create('Ext.data.TreeStore', {
+ *         root: {
+ *             expanded: true,
+ *             children: [
+ *                 { text: &quot;detention&quot;, leaf: true },
+ *                 { text: &quot;homework&quot;, expanded: true, children: [
+ *                     { text: &quot;book report&quot;, leaf: true },
+ *                     { text: &quot;alegrbra&quot;, leaf: true}
+ *                 ] },
+ *                 { text: &quot;buy lottery tickets&quot;, leaf: true }
+ *             ]
  *         }
  *     });
  *
- *     Ext.create('Ext.button.Button', {
- *         text    : 'Select the second tab',
- *         scope   : this,
- *         handler : function() {
- *             tabs.setActiveTab(1);
- *         },
- *         renderTo : Ext.getBody()
+ *     Ext.create('Ext.tree.Panel', {
+ *         title: 'Simple Tree',
+ *         width: 200,
+ *         height: 150,
+ *         store: store,
+ *         rootVisible: false,
+ *         renderTo: Ext.getBody()
  *     });
  *
- * The {@link #getActiveTab} is a another useful method in TabPanel which will return the current active tab.
- *
- *     @example
- *     var tabs = Ext.create('Ext.tab.Panel', {
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- *     Ext.create('Ext.button.Button', {
- *         text    : 'Get active tab',
- *         scope   : this,
- *         handler : function() {
- *             var tab = tabs.getActiveTab();
- *             alert('Current tab: ' + tab.title);
- *         },
- *         renderTo : Ext.getBody()
- *     });
- *
- * Adding a new tab is very simple with a TabPanel. You simple call the {@link #add} method with an config
- * object for a panel.
- *
- *     @example
- *     var tabs = Ext.create('Ext.tab.Panel', {
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- *     Ext.create('Ext.button.Button', {
- *         text    : 'New tab',
- *         scope   : this,
- *         handler : function() {
- *             var tab = tabs.add({
- *                 // we use the tabs.items property to get the length of current items/tabs
- *                 title: 'Tab ' + (tabs.items.length + 1),
- *                 html : 'Another one'
- *             });
- *
- *             tabs.setActiveTab(tab);
- *         },
- *         renderTo : Ext.getBody()
- *     });
- *
- * Additionally, removing a tab is very also simple with a TabPanel. You simple call the {@link #remove} method
- * with an config object for a panel.
- *
- *     @example
- *     var tabs = Ext.create('Ext.tab.Panel', {
- *         items: [
- *             {
- *                 title: 'Tab 1',
- *                 html : 'A simple tab'
- *             },
- *             {
- *                 id   : 'remove-this-tab',
- *                 title: 'Tab 2',
- *                 html : 'Another one'
- *             }
- *         ],
- *         renderTo : Ext.getBody()
- *     });
- *
- *     Ext.create('Ext.button.Button', {
- *         text    : 'Remove tab',
- *         scope   : this,
- *         handler : function() {
- *             var tab = Ext.getCmp('remove-this-tab');
- *             tabs.remove(tab);
- *         },
- *         renderTo : Ext.getBody()
- *     });
+ * For the tree node config options (like `text`, `leaf`, `expanded`), see the documentation of
+ * {@link Ext.data.NodeInterface NodeInterface} config options.
  */
-Ext.define('Ext.tab.Panel', {
-    extend: 'Ext.panel.Panel',
-    alias: 'widget.tabpanel',
-    alternateClassName: ['Ext.TabPanel'],
+Ext.define('Ext.tree.Panel', {
+    extend: 'Ext.panel.Table',
+    alias: 'widget.treepanel',
+    alternateClassName: ['Ext.tree.TreePanel', 'Ext.TreePanel'],
+    requires: ['Ext.tree.View', 'Ext.selection.TreeModel', 'Ext.tree.Column', 'Ext.data.TreeStore'],
+    viewType: 'treeview',
+    selType: 'treemodel',
 
-    requires: ['Ext.layout.container.Card', 'Ext.tab.Bar'],
+    treeCls: Ext.baseCSSPrefix + 'tree-panel',
 
-<span id='Ext-tab-Panel-cfg-tabPosition'>    /**
-</span>     * @cfg {String} tabPosition
-     * The position where the tab strip should be rendered. Can be `top` or `bottom`.
+    deferRowRender: false,
+
+<span id='Ext-tree-Panel-cfg-rowLines'>    /**
+</span>     * @cfg {Boolean} rowLines
+     * False so that rows are not separated by lines.
      */
-    tabPosition : 'top',
+    rowLines: false,
 
-<span id='Ext-tab-Panel-cfg-activeItem'>    /**
-</span>     * @cfg {String/Number} activeItem
-     * Doesn't apply for {@link Ext.tab.Panel TabPanel}, use {@link #activeTab} instead.
+<span id='Ext-tree-Panel-cfg-lines'>    /**
+</span>     * @cfg {Boolean} lines
+     * False to disable tree lines.
+     */
+    lines: true,
+
+<span id='Ext-tree-Panel-cfg-useArrows'>    /**
+</span>     * @cfg {Boolean} useArrows
+     * True to use Vista-style arrows in the tree.
+     */
+    useArrows: false,
+
+<span id='Ext-tree-Panel-cfg-singleExpand'>    /**
+</span>     * @cfg {Boolean} singleExpand
+     * True if only 1 node per branch may be expanded.
+     */
+    singleExpand: false,
+
+    ddConfig: {
+        enableDrag: true,
+        enableDrop: true
+    },
+
+<span id='Ext-tree-Panel-cfg-animate'>    /**
+</span>     * @cfg {Boolean} animate
+     * True to enable animated expand/collapse. Defaults to the value of {@link Ext#enableFx}.
      */
 
-<span id='Ext-tab-Panel-cfg-activeTab'>    /**
-</span>     * @cfg {String/Number/Ext.Component} activeTab
-     * The tab to activate initially. Either an ID, index or the tab component itself.
+<span id='Ext-tree-Panel-cfg-rootVisible'>    /**
+</span>     * @cfg {Boolean} rootVisible
+     * False to hide the root node.
      */
+    rootVisible: true,
 
-<span id='Ext-tab-Panel-cfg-tabBar'>    /**
-</span>     * @cfg {Object} tabBar
-     * Optional configuration object for the internal {@link Ext.tab.Bar}.
-     * If present, this is passed straight through to the TabBar's constructor
+<span id='Ext-tree-Panel-cfg-displayField'>    /**
+</span>     * @cfg {String} displayField
+     * The field inside the model that will be used as the node's text.
      */
+    displayField: 'text',
 
-<span id='Ext-tab-Panel-cfg-layout'>    /**
-</span>     * @cfg {Object} layout
-     * Optional configuration object for the internal {@link Ext.layout.container.Card card layout}.
-     * If present, this is passed straight through to the layout's constructor
-     */
-
-<span id='Ext-tab-Panel-cfg-removePanelHeader'>    /**
-</span>     * @cfg {Boolean} removePanelHeader
-     * True to instruct each Panel added to the TabContainer to not render its header element.
-     * This is to ensure that the title of the panel does not appear twice.
-     */
-    removePanelHeader: true,
-
-<span id='Ext-tab-Panel-cfg-plain'>    /**
-</span>     * @cfg {Boolean} plain
-     * True to not show the full background on the TabBar.
-     */
-    plain: false,
-
-<span id='Ext-tab-Panel-cfg-itemCls'>    /**
-</span>     * @cfg {String} itemCls
-     * The class added to each child item of this TabPanel.
-     */
-    itemCls: 'x-tabpanel-child',
-
-<span id='Ext-tab-Panel-cfg-minTabWidth'>    /**
-</span>     * @cfg {Number} minTabWidth
-     * The minimum width for a tab in the {@link #tabBar}.
-     */
-    minTabWidth: undefined,
-
-<span id='Ext-tab-Panel-cfg-maxTabWidth'>    /**
-</span>     * @cfg {Number} maxTabWidth The maximum width for each tab.
-     */
-    maxTabWidth: undefined,
-
-<span id='Ext-tab-Panel-cfg-deferredRender'>    /**
-</span>     * @cfg {Boolean} deferredRender
+<span id='Ext-tree-Panel-cfg-root'>    /**
+</span>     * @cfg {Ext.data.Model/Ext.data.NodeInterface/Object} root
+     * Allows you to not specify a store on this TreePanel. This is useful for creating a simple tree with preloaded
+     * data without having to specify a TreeStore and Model. A store and model will be created and root will be passed
+     * to that store. For example:
      *
-     * True by default to defer the rendering of child {@link Ext.container.Container#items items} to the browsers DOM
-     * until a tab is activated. False will render all contained {@link Ext.container.Container#items items} as soon as
-     * the {@link Ext.layout.container.Card layout} is rendered. If there is a significant amount of content or a lot of
-     * heavy controls being rendered into panels that are not displayed by default, setting this to true might improve
-     * performance.
-     *
-     * The deferredRender property is internally passed to the layout manager for TabPanels ({@link
-     * Ext.layout.container.Card}) as its {@link Ext.layout.container.Card#deferredRender} configuration value.
-     *
-     * **Note**: leaving deferredRender as true means that the content within an unactivated tab will not be available
+     *     Ext.create('Ext.tree.Panel', {
+     *         title: 'Simple Tree',
+     *         root: {
+     *             text: &quot;Root node&quot;,
+     *             expanded: true,
+     *             children: [
+     *                 { text: &quot;Child 1&quot;, leaf: true },
+     *                 { text: &quot;Child 2&quot;, leaf: true }
+     *             ]
+     *         },
+     *         renderTo: Ext.getBody()
+     *     });
      */
-    deferredRender : true,
+    root: null,
 
-    //inherit docs
+    // Required for the Lockable Mixin. These are the configurations which will be copied to the
+    // normal and locked sub tablepanels
+    normalCfgCopy: ['displayField', 'root', 'singleExpand', 'useArrows', 'lines', 'rootVisible', 'scroll'],
+    lockedCfgCopy: ['displayField', 'root', 'singleExpand', 'useArrows', 'lines', 'rootVisible'],
+    
+    isTree: true,
+
+<span id='Ext-tree-Panel-cfg-hideHeaders'>    /**
+</span>     * @cfg {Boolean} hideHeaders
+     * True to hide the headers.
+     */
+
+<span id='Ext-tree-Panel-cfg-folderSort'>    /**
+</span>     * @cfg {Boolean} folderSort
+     * True to automatically prepend a leaf sorter to the store.
+     */
+     
+<span id='Ext-tree-Panel-cfg-store'>    /**
+</span>     * @cfg {Ext.data.TreeStore} store (required)
+     * The {@link Ext.data.TreeStore Store} the tree should use as its data source.
+     */
+
+    constructor: function(config) {
+        config = config || {};
+        if (config.animate === undefined) {
+            config.animate = Ext.isDefined(this.animate) ? this.animate : Ext.enableFx;
+        }
+        this.enableAnimations = config.animate;
+        delete config.animate;
+
+        this.callParent([config]);
+    },
+
     initComponent: function() {
         var me = this,
-            dockedItems = me.dockedItems || [],
-            activeTab = me.activeTab || 0;
+            cls = [me.treeCls],
+            view;
 
-        me.layout = Ext.create('Ext.layout.container.Card', Ext.apply({
-            owner: me,
-            deferredRender: me.deferredRender,
-            itemCls: me.itemCls
-        }, me.layout));
-
-<span id='Ext-tab-Panel-property-tabBar'>        /**
-</span>         * @property {Ext.tab.Bar} tabBar Internal reference to the docked TabBar
-         */
-        me.tabBar = Ext.create('Ext.tab.Bar', Ext.apply({}, me.tabBar, {
-            dock: me.tabPosition,
-            plain: me.plain,
-            border: me.border,
-            cardLayout: me.layout,
-            tabPanel: me
-        }));
-
-        if (dockedItems &amp;&amp; !Ext.isArray(dockedItems)) {
-            dockedItems = [dockedItems];
+        if (me.useArrows) {
+            cls.push(Ext.baseCSSPrefix + 'tree-arrows');
+            me.lines = false;
         }
 
-        dockedItems.push(me.tabBar);
-        me.dockedItems = dockedItems;
-
-        me.addEvents(
-<span id='Ext-tab-Panel-event-beforetabchange'>            /**
-</span>             * @event
-             * Fires before a tab change (activated by {@link #setActiveTab}). Return false in any listener to cancel
-             * the tabchange
-             * @param {Ext.tab.Panel} tabPanel The TabPanel
-             * @param {Ext.Component} newCard The card that is about to be activated
-             * @param {Ext.Component} oldCard The card that is currently active
-             */
-            'beforetabchange',
-
-<span id='Ext-tab-Panel-event-tabchange'>            /**
-</span>             * @event
-             * Fires when a new tab has been activated (activated by {@link #setActiveTab}).
-             * @param {Ext.tab.Panel} tabPanel The TabPanel
-             * @param {Ext.Component} newCard The newly activated item
-             * @param {Ext.Component} oldCard The previously active item
-             */
-            'tabchange'
-        );
-        me.callParent(arguments);
-
-        //set the active tab
-        me.setActiveTab(activeTab);
-        //set the active tab after initial layout
-        me.on('afterlayout', me.afterInitialLayout, me, {single: true});
-    },
-
-<span id='Ext-tab-Panel-method-afterInitialLayout'>    /**
-</span>     * @private
-     * We have to wait until after the initial layout to visually activate the activeTab (if set).
-     * The active tab has different margins than normal tabs, so if the initial layout happens with
-     * a tab active, its layout will be offset improperly due to the active margin style. Waiting
-     * until after the initial layout avoids this issue.
-     */
-    afterInitialLayout: function() {
-        var me = this,
-            card = me.getComponent(me.activeTab);
-
-        if (card) {
-            me.layout.setActiveItem(card);
+        if (me.lines) {
+            cls.push(Ext.baseCSSPrefix + 'tree-lines');
+        } else if (!me.useArrows) {
+            cls.push(Ext.baseCSSPrefix + 'tree-no-lines');
         }
-    },
 
-<span id='Ext-tab-Panel-method-setActiveTab'>    /**
-</span>     * Makes the given card active. Makes it the visible card in the TabPanel's CardLayout and highlights the Tab.
-     * @param {String/Number/Ext.Component} card The card to make active. Either an ID, index or the component itself.
-     */
-    setActiveTab: function(card) {
-        var me = this,
-            previous;
-
-        card = me.getComponent(card);
-        if (card) {
-            previous = me.getActiveTab();
-
-            if (previous &amp;&amp; previous !== card &amp;&amp; me.fireEvent('beforetabchange', me, card, previous) === false) {
-                return false;
-            }
-
-            me.tabBar.setActiveTab(card.tab);
-            me.activeTab = card;
-            if (me.rendered) {
-                me.layout.setActiveItem(card);
-            }
-
-            if (previous &amp;&amp; previous !== card) {
-                me.fireEvent('tabchange', me, card, previous);
+        if (Ext.isString(me.store)) {
+            me.store = Ext.StoreMgr.lookup(me.store);
+        } else if (!me.store || Ext.isObject(me.store) &amp;&amp; !me.store.isStore) {
+            me.store = new Ext.data.TreeStore(Ext.apply({}, me.store || {}, {
+                root: me.root,
+                fields: me.fields,
+                model: me.model,
+                folderSort: me.folderSort
+            }));
+        } else if (me.root) {
+            me.store = Ext.data.StoreManager.lookup(me.store);
+            me.store.setRootNode(me.root);
+            if (me.folderSort !== undefined) {
+                me.store.folderSort = me.folderSort;
+                me.store.sort();
             }
         }
-    },
 
-<span id='Ext-tab-Panel-method-getActiveTab'>    /**
-</span>     * Returns the item that is currently active inside this TabPanel. Note that before the TabPanel first activates a
-     * child component this will return whatever was configured in the {@link #activeTab} config option
-     * @return {String/Number/Ext.Component} The currently active item
-     */
-    getActiveTab: function() {
-        return this.activeTab;
-    },
+        // I'm not sure if we want to this. It might be confusing
+        // if (me.initialConfig.rootVisible === undefined &amp;&amp; !me.getRootNode()) {
+        //     me.rootVisible = false;
+        // }
 
-<span id='Ext-tab-Panel-method-getTabBar'>    /**
-</span>     * Returns the {@link Ext.tab.Bar} currently used in this TabPanel
-     * @return {Ext.tab.Bar} The TabBar
-     */
-    getTabBar: function() {
-        return this.tabBar;
-    },
-
-<span id='Ext-tab-Panel-method-onAdd'>    /**
-</span>     * @ignore
-     * Makes sure we have a Tab for each item added to the TabPanel
-     */
-    onAdd: function(item, index) {
-        var me = this,
-            cfg = item.tabConfig || {},
-            defaultConfig = {
-                xtype: 'tab',
-                card: item,
-                disabled: item.disabled,
-                closable: item.closable,
-                hidden: item.hidden,
-                tabBar: me.tabBar
-            };
-
-        if (item.closeText) {
-            defaultConfig.closeText = item.closeText;
-        }
-        cfg = Ext.applyIf(cfg, defaultConfig);
-        item.tab = me.tabBar.insert(index, cfg);
-
-        item.on({
-            scope : me,
-            enable: me.onItemEnable,
-            disable: me.onItemDisable,
-            beforeshow: me.onItemBeforeShow,
-            iconchange: me.onItemIconChange,
-            titlechange: me.onItemTitleChange
+        me.viewConfig = Ext.apply({}, me.viewConfig);
+        me.viewConfig = Ext.applyIf(me.viewConfig, {
+            rootVisible: me.rootVisible,
+            animate: me.enableAnimations,
+            singleExpand: me.singleExpand,
+            node: me.store.getRootNode(),
+            hideHeaders: me.hideHeaders
         });
 
-        if (item.isPanel) {
-            if (me.removePanelHeader) {
-                item.preventHeader = true;
-                if (item.rendered) {
-                    item.updateHeader();
+        me.mon(me.store, {
+            scope: me,
+            rootchange: me.onRootChange,
+            clear: me.onClear
+        });
+
+        me.relayEvents(me.store, [
+<span id='Ext-tree-Panel-event-beforeload'>            /**
+</span>             * @event beforeload
+             * @inheritdoc Ext.data.TreeStore#beforeload
+             */
+            'beforeload',
+
+<span id='Ext-tree-Panel-event-load'>            /**
+</span>             * @event load
+             * @inheritdoc Ext.data.TreeStore#load
+             */
+            'load'
+        ]);
+
+        me.mon(me.store, {
+<span id='Ext-tree-Panel-event-itemappend'>            /**
+</span>             * @event itemappend
+             * @inheritdoc Ext.data.TreeStore#append
+             */
+            append: me.createRelayer('itemappend'),
+
+<span id='Ext-tree-Panel-event-itemremove'>            /**
+</span>             * @event itemremove
+             * @inheritdoc Ext.data.TreeStore#remove
+             */
+            remove: me.createRelayer('itemremove'),
+
+<span id='Ext-tree-Panel-event-itemmove'>            /**
+</span>             * @event itemmove
+             * @inheritdoc Ext.data.TreeStore#move
+             */
+            move: me.createRelayer('itemmove', [0, 4]),
+
+<span id='Ext-tree-Panel-event-iteminsert'>            /**
+</span>             * @event iteminsert
+             * @inheritdoc Ext.data.TreeStore#insert
+             */
+            insert: me.createRelayer('iteminsert'),
+
+<span id='Ext-tree-Panel-event-beforeitemappend'>            /**
+</span>             * @event beforeitemappend
+             * @inheritdoc Ext.data.TreeStore#beforeappend
+             */
+            beforeappend: me.createRelayer('beforeitemappend'),
+
+<span id='Ext-tree-Panel-event-beforeitemremove'>            /**
+</span>             * @event beforeitemremove
+             * @inheritdoc Ext.data.TreeStore#beforeremove
+             */
+            beforeremove: me.createRelayer('beforeitemremove'),
+
+<span id='Ext-tree-Panel-event-beforeitemmove'>            /**
+</span>             * @event beforeitemmove
+             * @inheritdoc Ext.data.TreeStore#beforemove
+             */
+            beforemove: me.createRelayer('beforeitemmove'),
+
+<span id='Ext-tree-Panel-event-beforeiteminsert'>            /**
+</span>             * @event beforeiteminsert
+             * @inheritdoc Ext.data.TreeStore#beforeinsert
+             */
+            beforeinsert: me.createRelayer('beforeiteminsert'),
+
+<span id='Ext-tree-Panel-event-itemexpand'>            /**
+</span>             * @event itemexpand
+             * @inheritdoc Ext.data.TreeStore#expand
+             */
+            expand: me.createRelayer('itemexpand', [0, 1]),
+
+<span id='Ext-tree-Panel-event-itemcollapse'>            /**
+</span>             * @event itemcollapse
+             * @inheritdoc Ext.data.TreeStore#collapse
+             */
+            collapse: me.createRelayer('itemcollapse', [0, 1]),
+
+<span id='Ext-tree-Panel-event-beforeitemexpand'>            /**
+</span>             * @event beforeitemexpand
+             * @inheritdoc Ext.data.TreeStore#beforeexpand
+             */
+            beforeexpand: me.createRelayer('beforeitemexpand', [0, 1]),
+
+<span id='Ext-tree-Panel-event-beforeitemcollapse'>            /**
+</span>             * @event beforeitemcollapse
+             * @inheritdoc Ext.data.TreeStore#beforecollapse
+             */
+            beforecollapse: me.createRelayer('beforeitemcollapse', [0, 1])
+        });
+
+        // If the user specifies the headers collection manually then dont inject our own
+        if (!me.columns) {
+            if (me.initialConfig.hideHeaders === undefined) {
+                me.hideHeaders = true;
+            }
+            me.addCls(Ext.baseCSSPrefix + 'autowidth-table');
+            me.columns = [{
+                xtype    : 'treecolumn',
+                text     : 'Name',
+                width    : Ext.isIE6 ? null : 10000,
+                dataIndex: me.displayField         
+            }];
+        }
+
+        if (me.cls) {
+            cls.push(me.cls);
+        }
+        me.cls = cls.join(' ');
+        me.callParent();
+        
+        view = me.getView();
+
+        me.relayEvents(view, [
+<span id='Ext-tree-Panel-event-checkchange'>            /**
+</span>             * @event checkchange
+             * Fires when a node with a checkbox's checked property changes
+             * @param {Ext.data.NodeInterface} node The node who's checked property was changed
+             * @param {Boolean} checked The node's new checked state
+             */
+            'checkchange',
+<span id='Ext-tree-Panel-event-afteritemexpand'>            /**
+</span>             * @event afteritemexpand
+             * @inheritdoc Ext.tree.View#afteritemexpand
+             */
+            'afteritemexpand',
+<span id='Ext-tree-Panel-event-afteritemcollapse'>            /**
+</span>             * @event afteritemcollapse
+             * @inheritdoc Ext.tree.View#afteritemcollapse
+             */
+            'afteritemcollapse'
+        ]);
+
+        // If the root is not visible and there is no rootnode defined, then just lets load the store
+        if (!view.rootVisible &amp;&amp; !me.getRootNode()) {
+            me.setRootNode({
+                expanded: true
+            });
+        }
+    },
+    
+    onClear: function(){
+        this.view.onClear();
+    },
+
+<span id='Ext-tree-Panel-method-setRootNode'>    /**
+</span>     * Sets root node of this tree.
+     * @param {Ext.data.Model/Ext.data.NodeInterface/Object} root
+     * @return {Ext.data.NodeInterface} The new root
+     */
+    setRootNode: function() {
+        return this.store.setRootNode.apply(this.store, arguments);
+    },
+
+<span id='Ext-tree-Panel-method-getRootNode'>    /**
+</span>     * Returns the root node for this tree.
+     * @return {Ext.data.NodeInterface}
+     */
+    getRootNode: function() {
+        return this.store.getRootNode();
+    },
+
+    onRootChange: function(root) {
+        this.view.setRootNode(root);
+    },
+
+<span id='Ext-tree-Panel-method-getChecked'>    /**
+</span>     * Retrieve an array of checked records.
+     * @return {Ext.data.NodeInterface[]} An array containing the checked records
+     */
+    getChecked: function() {
+        return this.getView().getChecked();
+    },
+
+    isItemChecked: function(rec) {
+        return rec.get('checked');
+    },
+    
+<span id='Ext-tree-Panel-method-expandNode'>    /**
+</span>     * Expands a record that is loaded in the tree.
+     * @param {Ext.data.Model} record The record to expand
+     * @param {Boolean} [deep] True to expand nodes all the way down the tree hierarchy.
+     * @param {Function} [callback] The function to run after the expand is completed
+     * @param {Object} [scope] The scope of the callback function.
+     */
+    expandNode: function(record, deep, callback, scope) {
+        return this.getView().expand(record, deep, callback, scope || this);
+    },
+
+<span id='Ext-tree-Panel-method-collapseNode'>    /**
+</span>     * Collapses a record that is loaded in the tree.
+     * @param {Ext.data.Model} record The record to collapse
+     * @param {Boolean} [deep] True to collapse nodes all the way up the tree hierarchy.
+     * @param {Function} [callback] The function to run after the collapse is completed
+     * @param {Object} [scope] The scope of the callback function.
+     */
+    collapseNode: function(record, deep, callback, scope) {
+        return this.getView().collapse(record, deep, callback, scope || this);
+    },
+
+<span id='Ext-tree-Panel-method-expandAll'>    /**
+</span>     * Expand all nodes
+     * @param {Function} [callback] A function to execute when the expand finishes.
+     * @param {Object} [scope] The scope of the callback function
+     */
+    expandAll : function(callback, scope) {
+        var me = this,
+            root = me.getRootNode(),
+            animate = me.enableAnimations,
+            view = me.getView();
+        if (root) {
+            if (!animate) {
+                view.beginBulkUpdate();
+            }
+            root.expand(true, callback, scope || me);
+            if (!animate) {
+                view.endBulkUpdate();
+            }
+        }
+    },
+
+<span id='Ext-tree-Panel-method-collapseAll'>    /**
+</span>     * Collapse all nodes
+     * @param {Function} [callback] A function to execute when the collapse finishes.
+     * @param {Object} [scope] The scope of the callback function
+     */
+    collapseAll : function(callback, scope) {
+        var me = this,
+            root = me.getRootNode(),
+            animate = me.enableAnimations,
+            view = me.getView();
+
+        if (root) {
+            if (!animate) {
+                view.beginBulkUpdate();
+            }
+            scope = scope || me;
+            if (view.rootVisible) {
+                root.collapse(true, callback, scope);
+            } else {
+                root.collapseChildren(true, callback, scope);
+            }
+            if (!animate) {
+                view.endBulkUpdate();
+            }
+        }
+    },
+
+<span id='Ext-tree-Panel-method-expandPath'>    /**
+</span>     * Expand the tree to the path of a particular node.
+     * @param {String} path The path to expand. The path should include a leading separator.
+     * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
+     * @param {String} [separator='/'] A separator to use.
+     * @param {Function} [callback] A function to execute when the expand finishes. The callback will be called with
+     * (success, lastNode) where success is if the expand was successful and lastNode is the last node that was expanded.
+     * @param {Object} [scope] The scope of the callback function
+     */
+    expandPath: function(path, field, separator, callback, scope) {
+        var me = this,
+            current = me.getRootNode(),
+            index = 1,
+            view = me.getView(),
+            keys,
+            expander;
+
+        field = field || me.getRootNode().idProperty;
+        separator = separator || '/';
+
+        if (Ext.isEmpty(path)) {
+            Ext.callback(callback, scope || me, [false, null]);
+            return;
+        }
+
+        keys = path.split(separator);
+        if (current.get(field) != keys[1]) {
+            // invalid root
+            Ext.callback(callback, scope || me, [false, current]);
+            return;
+        }
+
+        expander = function(){
+            if (++index === keys.length) {
+                Ext.callback(callback, scope || me, [true, current]);
+                return;
+            }
+            var node = current.findChild(field, keys[index]);
+            if (!node) {
+                Ext.callback(callback, scope || me, [false, current]);
+                return;
+            }
+            current = node;
+            current.expand(false, expander);
+        };
+        current.expand(false, expander);
+    },
+
+<span id='Ext-tree-Panel-method-selectPath'>    /**
+</span>     * Expand the tree to the path of a particular node, then select it.
+     * @param {String} path The path to select. The path should include a leading separator.
+     * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
+     * @param {String} [separator='/'] A separator to use.
+     * @param {Function} [callback] A function to execute when the select finishes. The callback will be called with
+     * (bSuccess, oLastNode) where bSuccess is if the select was successful and oLastNode is the last node that was expanded.
+     * @param {Object} [scope] The scope of the callback function
+     */
+    selectPath: function(path, field, separator, callback, scope) {
+        var me = this,
+            root,
+            keys,
+            last;
+
+        field = field || me.getRootNode().idProperty;
+        separator = separator || '/';
+
+        keys = path.split(separator);
+        last = keys.pop();
+        if (keys.length &gt; 1) {
+            me.expandPath(keys.join(separator), field, separator, function(success, node){
+                var lastNode = node;
+                if (success &amp;&amp; node) {
+                    node = node.findChild(field, last);
+                    if (node) {
+                        me.getSelectionModel().select(node);
+                        Ext.callback(callback, scope || me, [true, node]);
+                        return;
+                    }
                 }
+                Ext.callback(callback, scope || me, [false, lastNode]);
+            }, me);
+        } else {
+            root = me.getRootNode();
+            if (root.getId() === last) {
+                me.getSelectionModel().select(root);
+                Ext.callback(callback, scope || me, [true, root]);
+            } else {
+                Ext.callback(callback, scope || me, [false, null]);
             }
-            if (item.isPanel &amp;&amp; me.border) {
-                item.setBorder(false);
-            }
-        }
-
-        // ensure that there is at least one active tab
-        if (this.rendered &amp;&amp; me.items.getCount() === 1) {
-            me.setActiveTab(0);
-        }
-    },
-
-<span id='Ext-tab-Panel-method-onItemEnable'>    /**
-</span>     * @private
-     * Enable corresponding tab when item is enabled.
-     */
-    onItemEnable: function(item){
-        item.tab.enable();
-    },
-
-<span id='Ext-tab-Panel-method-onItemDisable'>    /**
-</span>     * @private
-     * Disable corresponding tab when item is enabled.
-     */
-    onItemDisable: function(item){
-        item.tab.disable();
-    },
-
-<span id='Ext-tab-Panel-method-onItemBeforeShow'>    /**
-</span>     * @private
-     * Sets activeTab before item is shown.
-     */
-    onItemBeforeShow: function(item) {
-        if (item !== this.activeTab) {
-            this.setActiveTab(item);
-            return false;
-        }
-    },
-
-<span id='Ext-tab-Panel-method-onItemIconChange'>    /**
-</span>     * @private
-     * Update the tab iconCls when panel iconCls has been set or changed.
-     */
-    onItemIconChange: function(item, newIconCls) {
-        item.tab.setIconCls(newIconCls);
-        this.getTabBar().doLayout();
-    },
-
-<span id='Ext-tab-Panel-method-onItemTitleChange'>    /**
-</span>     * @private
-     * Update the tab title when panel title has been set or changed.
-     */
-    onItemTitleChange: function(item, newTitle) {
-        item.tab.setText(newTitle);
-        this.getTabBar().doLayout();
-    },
-
-
-<span id='Ext-tab-Panel-method-doRemove'>    /**
-</span>     * @ignore
-     * If we're removing the currently active tab, activate the nearest one. The item is removed when we call super,
-     * so we can do preprocessing before then to find the card's index
-     */
-    doRemove: function(item, autoDestroy) {
-        var me = this,
-            items = me.items,
-            // At this point the item hasn't been removed from the items collection.
-            // As such, if we want to check if there are no more tabs left, we have to
-            // check for one, as opposed to 0.
-            hasItemsLeft = items.getCount() &gt; 1;
-
-        if (me.destroying || !hasItemsLeft) {
-            me.activeTab = null;
-        } else if (item === me.activeTab) {
-             me.setActiveTab(item.next() || items.getAt(0));
-        }
-        me.callParent(arguments);
-
-        // Remove the two references
-        delete item.tab.card;
-        delete item.tab;
-    },
-
-<span id='Ext-tab-Panel-method-onRemove'>    /**
-</span>     * @ignore
-     * Makes sure we remove the corresponding Tab when an item is removed
-     */
-    onRemove: function(item, autoDestroy) {
-        var me = this;
-
-        item.un({
-            scope : me,
-            enable: me.onItemEnable,
-            disable: me.onItemDisable,
-            beforeshow: me.onItemBeforeShow
-        });
-        if (!me.destroying &amp;&amp; item.tab.ownerCt == me.tabBar) {
-            me.tabBar.remove(item.tab);
         }
     }
 });

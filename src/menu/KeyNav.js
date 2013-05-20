@@ -1,19 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.menu.KeyNav
  * @private
  */
 Ext.define('Ext.menu.KeyNav', {
@@ -68,7 +53,8 @@ Ext.define('Ext.menu.KeyNav', {
             items = menu.items,
             focusedItem = menu.focusedItem,
             startIdx = focusedItem ? items.indexOf(focusedItem) : -1,
-            idx = startIdx + step;
+            idx = startIdx + step,
+            item;
 
         while (idx != startIdx) {
             if (idx < 0) {
@@ -77,7 +63,7 @@ Ext.define('Ext.menu.KeyNav', {
                 idx = 0;
             }
 
-            var item = items.getAt(idx);
+            item = items.getAt(idx);
             if (menu.canActivateItem(item)) {
                 menu.setActiveItem(item);
                 break;

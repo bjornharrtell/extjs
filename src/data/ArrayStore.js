@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  *
@@ -22,10 +8,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     var store = Ext.create('Ext.data.ArrayStore', {
  *         // store configs
- *         autoDestroy: true,
  *         storeId: 'myStore',
  *         // reader configs
- *         idIndex: 0,
  *         fields: [
  *            'company',
  *            {name: 'price', type: 'float'},
@@ -45,25 +29,24 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         ['Wal-Mart Stores, Inc.',45.45,0.73,1.63,'9/1 12:00am']
  *     ];
  *
- * An object literal of this form could also be used as the {@link #data} config option.
+ * An object literal of this form could also be used as the {@link #cfg-data} config option.
  *
- * **Note:** This class accepts all of the configuration options of {@link Ext.data.reader.Array ArrayReader}.
  */
 Ext.define('Ext.data.ArrayStore', {
     extend: 'Ext.data.Store',
     alias: 'store.array',
-    uses: ['Ext.data.reader.Array'],
+    requires: [
+        'Ext.data.proxy.Memory',
+        'Ext.data.reader.Array'
+    ],
 
     constructor: function(config) {
-        config = config || {};
-
-        Ext.applyIf(config, {
+        config = Ext.apply({
             proxy: {
                 type: 'memory',
                 reader: 'array'
             }
-        });
-
+        }, config);
         this.callParent([config]);
     },
 
@@ -87,4 +70,3 @@ Ext.define('Ext.data.ArrayStore', {
     Ext.data.SimpleStore = Ext.data.ArrayStore;
     // Ext.reg('simplestore', Ext.data.SimpleStore);
 });
-

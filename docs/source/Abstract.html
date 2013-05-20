@@ -27,6 +27,20 @@ Ext.define('Ext.chart.axis.Abstract', {
     requires: ['Ext.chart.Chart'],
 
     /* End Definitions */
+    
+<span id='Ext-chart-axis-Abstract-cfg-label'>    /**
+</span>     * @cfg {Ext.chart.Label} label
+     * The config for chart label.
+     */
+
+<span id='Ext-chart-axis-Abstract-cfg-fields'>    /**
+</span>     * @cfg {String[]} fields
+     * The fields of model to bind to this axis.
+     * 
+     * For example if you have a data set of lap times per car, each having the fields:
+     * `'carName'`, `'avgSpeed'`, `'maxSpeed'`. Then you might want to show the data on chart
+     * with `['carName']` on Name axis and `['avgSpeed', 'maxSpeed']` on Speed axis.
+     */
 
 <span id='Ext-chart-axis-Abstract-method-constructor'>    /**
 </span>     * Creates new Axis.
@@ -43,7 +57,7 @@ Ext.define('Ext.chart.axis.Abstract', {
         config.label = Ext.apply(config['axisLabel' + pos + 'Style'] || {}, config.label || {});
         config.axisTitleStyle = Ext.apply(config['axisTitle' + pos + 'Style'] || {}, config.labelTitle || {});
         Ext.apply(me, config);
-        me.fields = [].concat(me.fields);
+        me.fields = Ext.Array.from(me.fields);
         this.callParent();
         me.labels = [];
         me.getId();

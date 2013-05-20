@@ -16,9 +16,8 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-chart-theme-Base'>/**
-</span> * @class Ext.chart.theme.Base
- * Provides default colors for non-specified things. Should be sub-classed when creating new themes.
- * @ignore
+</span> * Provides default colors for non-specified things. Should be sub-classed when creating new themes.
+ * @private
  */
 Ext.define('Ext.chart.theme.Base', {
 
@@ -96,12 +95,27 @@ Ext.define('Ext.chart.theme.Base', {
             },
             marker: {
                 stroke: '#555',
-                fill: '#000',
                 radius: 3,
                 size: 3
             },
             colors: [ &quot;#94ae0a&quot;, &quot;#115fa6&quot;,&quot;#a61120&quot;, &quot;#ff8809&quot;, &quot;#ffd13e&quot;, &quot;#a61187&quot;, &quot;#24ad9a&quot;, &quot;#7c7474&quot;, &quot;#a66111&quot;],
             seriesThemes: [{
+                fill: &quot;#115fa6&quot;
+            }, {
+                fill: &quot;#94ae0a&quot;
+            }, {
+                fill: &quot;#a61120&quot;
+            }, {
+                fill: &quot;#ff8809&quot;
+            }, {
+                fill: &quot;#ffd13e&quot;
+            }, {
+                fill: &quot;#a61187&quot;
+            }, {
+                fill: &quot;#24ad9a&quot;
+            }, {
+                fill: &quot;#7c7474&quot;
+            }, {
                 fill: &quot;#115fa6&quot;
             }, {
                 fill: &quot;#94ae0a&quot;
@@ -127,8 +141,14 @@ Ext.define('Ext.chart.theme.Base', {
                 fill: &quot;#94ae0a&quot;,
                 type: 'cross'
             }, {
+                fill: &quot;#115fa6&quot;,
+                type: 'plus' 
+            }, {
+                fill: &quot;#94ae0a&quot;,
+                type: 'circle'
+            }, {
                 fill: &quot;#a61120&quot;,
-                type: 'plus'
+                type: 'cross'
             }]
         });
     }
@@ -154,7 +174,7 @@ Ext.define('Ext.chart.theme.Base', {
                     }, config));
                 }
             });
-        })(palette[i]);
+        }(palette[i]));
     }
     
     //Create theme from color array
@@ -167,7 +187,7 @@ Ext.define('Ext.chart.theme.Base', {
                     }, config));
                 }
             });
-        })(categories[i]);
+        }(categories[i]));
     }
 });
 </pre>

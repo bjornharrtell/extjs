@@ -16,8 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-selection-DataViewModel'>/**
-</span> * @class Ext.selection.DataViewModel
- * @ignore
+</span> * @private
  */
 Ext.define('Ext.selection.DataViewModel', {
     extend: 'Ext.selection.Model',
@@ -80,10 +79,10 @@ Ext.define('Ext.selection.DataViewModel', {
             };
 
         me.view = view;
-        me.bind(view.getStore());
+        me.bindStore(view.getStore());
 
-        view.on(view.triggerEvent, me.onItemClick, me);
-        view.on(view.triggerCtEvent, me.onContainerClick, me);
+        eventListeners[view.triggerEvent] = me.onItemClick;
+        eventListeners[view.triggerCtEvent] = me.onContainerClick;
 
         view.on(eventListeners);
 
@@ -106,14 +105,19 @@ Ext.define('Ext.selection.DataViewModel', {
         var me = this;
 
         if (!view.rendered) {
-            view.on('render', Ext.Function.bind(me.initKeyNav, me, [view], 0), me, {single: true});
+            view.on({
+                render: Ext.Function.bind(me.initKeyNav, me, [view]),
+                single: true
+            });
             return;
         }
 
         view.el.set({
             tabIndex: -1
         });
-        me.keyNav = Ext.create('Ext.util.KeyNav', view.el, {
+        me.keyNav = new Ext.util.KeyNav({
+            target: view.el,
+            ignoreInputFields: true,
             down: Ext.pass(me.onNavKey, [1], me),
             right: Ext.pass(me.onNavKey, [1], me),
             left: Ext.pass(me.onNavKey, [-1], me),
@@ -154,10 +158,12 @@ Ext.define('Ext.selection.DataViewModel', {
         if ((suppressEvent || me.fireEvent('before' + eventName, me, record)) !== false &amp;&amp;
                 commitFn() !== false) {
 
-            if (isSelected) {
-                view.onItemSelect(record);
-            } else {
-                view.onItemDeselect(record);
+            if (view) {
+                if (isSelected) {
+                    view.onItemSelect(record);
+                } else {
+                    view.onItemDeselect(record);
+                }
             }
 
             if (!suppressEvent) {

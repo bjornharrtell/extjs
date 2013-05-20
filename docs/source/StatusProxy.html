@@ -16,46 +16,52 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-dd-StatusProxy'>/**
-</span> * @class Ext.dd.StatusProxy
- * A specialized drag proxy that supports a drop status icon, {@link Ext.Layer} styles and auto-repair.  This is the
- * default drag proxy used by all Ext.dd components.
+</span> * A specialized floating Component that supports a drop status icon, {@link Ext.Layer} styles
+ * and auto-repair.  This is the default drag proxy used by all Ext.dd components.
  */
 Ext.define('Ext.dd.StatusProxy', {
+    extend: 'Ext.Component',
     animRepair: false,
+
+    childEls: [
+        'ghost'
+    ],
+
+    renderTpl: [
+        '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'dd-drop-icon&quot;&gt;&lt;/div&gt;' +
+        '&lt;div id=&quot;{id}-ghost&quot; class=&quot;' + Ext.baseCSSPrefix + 'dd-drag-ghost&quot;&gt;&lt;/div&gt;'
+    ],
 
 <span id='Ext-dd-StatusProxy-method-constructor'>    /**
 </span>     * Creates new StatusProxy.
-     * @param {Object} config (optional) Config object.
+     * @param {Object} [config] Config object.
      */
-    constructor: function(config){
-        Ext.apply(this, config);
-        this.id = this.id || Ext.id();
-        this.proxy = Ext.createWidget('component', {
+    constructor: function(config) {
+        var me = this;
+
+        config = config || {};
+
+        Ext.apply(me, {
+            hideMode: 'visibility',
+            hidden: true,
             floating: true,
-            stateful: false,
-            id: this.id,
-            html: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'dd-drop-icon&quot;&gt;&lt;/div&gt;' +
-                  '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'dd-drag-ghost&quot;&gt;&lt;/div&gt;',
+            id: me.id || Ext.id(),
             cls: Ext.baseCSSPrefix + 'dd-drag-proxy ' + this.dropNotAllowed,
-            shadow: !config || config.shadow !== false,
-            renderTo: document.body
+            shadow: config.shadow || false,
+            renderTo: Ext.getDetachedBody()
         });
-
-        this.el = this.proxy.el;
-        this.el.show();
-        this.el.setVisibilityMode(Ext.Element.VISIBILITY);
-        this.el.hide();
-
-        this.ghost = Ext.get(this.el.dom.childNodes[1]);
+        me.callParent(arguments);
         this.dropStatus = this.dropNotAllowed;
     },
+
 <span id='Ext-dd-StatusProxy-cfg-dropAllowed'>    /**
-</span>     * @cfg {String} [dropAllowed=&quot;x-dd-drop-ok&quot;]
+</span>     * @cfg {String} dropAllowed
      * The CSS class to apply to the status element when drop is allowed.
      */
     dropAllowed : Ext.baseCSSPrefix + 'dd-drop-ok',
+
 <span id='Ext-dd-StatusProxy-cfg-dropNotAllowed'>    /**
-</span>     * @cfg {String} [dropNotAllowed=&quot;x-dd-drop-nodrop&quot;]
+</span>     * @cfg {String} dropNotAllowed
      * The CSS class to apply to the status element when drop is not allowed.
      */
     dropNotAllowed : Ext.baseCSSPrefix + 'dd-drop-nodrop',
@@ -67,7 +73,7 @@ Ext.define('Ext.dd.StatusProxy', {
      */
     setStatus : function(cssClass){
         cssClass = cssClass || this.dropNotAllowed;
-        if(this.dropStatus != cssClass){
+        if (this.dropStatus != cssClass) {
             this.el.replaceCls(this.dropStatus, cssClass);
             this.dropStatus = cssClass;
         }
@@ -78,10 +84,13 @@ Ext.define('Ext.dd.StatusProxy', {
      * @param {Boolean} clearGhost True to also remove all content from the ghost, false to preserve it
      */
     reset : function(clearGhost){
-        this.el.dom.className = Ext.baseCSSPrefix + 'dd-drag-proxy ' + this.dropNotAllowed;
-        this.dropStatus = this.dropNotAllowed;
-        if(clearGhost){
-            this.ghost.update(&quot;&quot;);
+        var me = this,
+            clsPrefix = Ext.baseCSSPrefix + 'dd-drag-proxy ';
+
+        me.el.replaceCls(clsPrefix + me.dropAllowed, clsPrefix + me.dropNotAllowed);
+        me.dropStatus = me.dropNotAllowed;
+        if (clearGhost) {
+            me.ghost.update('');
         }
     },
 
@@ -91,25 +100,17 @@ Ext.define('Ext.dd.StatusProxy', {
      * DOM node to append as the child of the ghost element (in which case the innerHTML will be cleared first).
      */
     update : function(html){
-        if(typeof html == &quot;string&quot;){
+        if (typeof html == &quot;string&quot;) {
             this.ghost.update(html);
-        }else{
+        } else {
             this.ghost.update(&quot;&quot;);
             html.style.margin = &quot;0&quot;;
             this.ghost.dom.appendChild(html);
         }
         var el = this.ghost.dom.firstChild;
-        if(el){
+        if (el) {
             Ext.fly(el).setStyle('float', 'none');
         }
-    },
-
-<span id='Ext-dd-StatusProxy-method-getEl'>    /**
-</span>     * Returns the underlying proxy {@link Ext.Layer}
-     * @return {Ext.Layer} el
-    */
-    getEl : function(){
-        return this.el;
     },
 
 <span id='Ext-dd-StatusProxy-method-getGhost'>    /**
@@ -122,10 +123,11 @@ Ext.define('Ext.dd.StatusProxy', {
 
 <span id='Ext-dd-StatusProxy-method-hide'>    /**
 </span>     * Hides the proxy
-     * @param {Boolean} clear True to reset the status and clear the ghost contents, false to preserve them
+     * @param {Boolean} clear True to reset the status and clear the ghost contents,
+     * false to preserve them
      */
     hide : function(clear) {
-        this.proxy.hide();
+        this.callParent();
         if (clear) {
             this.reset(true);
         }
@@ -135,68 +137,63 @@ Ext.define('Ext.dd.StatusProxy', {
 </span>     * Stops the repair animation if it's currently running
      */
     stop : function(){
-        if(this.anim &amp;&amp; this.anim.isAnimated &amp;&amp; this.anim.isAnimated()){
+        if (this.anim &amp;&amp; this.anim.isAnimated &amp;&amp; this.anim.isAnimated()) {
             this.anim.stop();
         }
-    },
-
-<span id='Ext-dd-StatusProxy-method-show'>    /**
-</span>     * Displays this proxy
-     */
-    show : function() {
-        this.proxy.show();
-        this.proxy.toFront();
     },
 
 <span id='Ext-dd-StatusProxy-method-sync'>    /**
 </span>     * Force the Layer to sync its shadow and shim positions to the element
      */
     sync : function(){
-        this.proxy.el.sync();
+        this.el.sync();
     },
 
 <span id='Ext-dd-StatusProxy-method-repair'>    /**
-</span>     * Causes the proxy to return to its position of origin via an animation.  Should be called after an
-     * invalid drop operation by the item being dragged.
+</span>     * Causes the proxy to return to its position of origin via an animation.
+     * Should be called after an invalid drop operation by the item being dragged.
      * @param {Number[]} xy The XY position of the element ([x, y])
      * @param {Function} callback The function to call after the repair is complete.
-     * @param {Object} scope The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback function is executed. Defaults to the browser window.
+     * @param {Object} scope The scope (`this` reference) in which the callback function is executed.
+     * Defaults to the browser window.
      */
-    repair : function(xy, callback, scope){
-        this.callback = callback;
-        this.scope = scope;
-        if (xy &amp;&amp; this.animRepair !== false) {
-            this.el.addCls(Ext.baseCSSPrefix + 'dd-drag-repair');
-            this.el.hideUnders(true);
-            this.anim = this.el.animate({
-                duration: this.repairDuration || 500,
+    repair : function(xy, callback, scope) {
+        var me = this;
+
+        me.callback = callback;
+        me.scope = scope;
+        if (xy &amp;&amp; me.animRepair !== false) {
+            me.el.addCls(Ext.baseCSSPrefix + 'dd-drag-repair');
+            me.el.hideUnders(true);
+            me.anim = me.el.animate({
+                duration: me.repairDuration || 500,
                 easing: 'ease-out',
                 to: {
                     x: xy[0],
                     y: xy[1]
                 },
                 stopAnimation: true,
-                callback: this.afterRepair,
-                scope: this
+                callback: me.afterRepair,
+                scope: me
             });
         } else {
-            this.afterRepair();
+            me.afterRepair();
         }
     },
 
     // private
-    afterRepair : function(){
-        this.hide(true);
-        if(typeof this.callback == &quot;function&quot;){
-            this.callback.call(this.scope || this);
+    afterRepair : function() {
+        var me = this;
+    
+        me.hide(true);
+        me.el.removeCls(Ext.baseCSSPrefix + 'dd-drag-repair');
+        if (typeof me.callback == &quot;function&quot;) {
+            me.callback.call(me.scope || me);
         }
-        this.callback = null;
-        this.scope = null;
-    },
-
-    destroy: function(){
-        Ext.destroy(this.ghost, this.proxy, this.el);
+        delete me.callback;
+        delete me.scope;
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

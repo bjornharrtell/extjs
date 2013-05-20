@@ -16,15 +16,13 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-view-DropZone'>/**
-</span> * @class Ext.view.DropZone
- * @extends Ext.dd.DropZone
- * @private
+</span> * @private
  */
 Ext.define('Ext.view.DropZone', {
     extend: 'Ext.dd.DropZone',
 
-    indicatorHtml: '&lt;div class=&quot;x-grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;x-grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
-    indicatorCls: 'x-grid-drop-indicator',
+    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
+    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
 
     constructor: function(config) {
         var me = this;
@@ -80,7 +78,7 @@ Ext.define('Ext.view.DropZone', {
         var me = this;
 
         if (!me.indicator) {
-            me.indicator = Ext.createWidget('component', {
+            me.indicator = new Ext.Component({
                 html: me.indicatorHtml,
                 cls: me.indicatorCls,
                 ownerCt: me.view,
@@ -130,7 +128,7 @@ Ext.define('Ext.view.DropZone', {
             pos = me.getPosition(e, node),
             overRecord = view.getRecord(node),
             draggingRecords = data.records,
-            indicator, indicatorY;
+            indicatorY;
 
         if (!Ext.Array.contains(draggingRecords, overRecord) &amp;&amp; (
             pos == 'before' &amp;&amp; !me.containsRecordAtOffset(draggingRecords, overRecord, -1) ||
@@ -212,26 +210,39 @@ Ext.define('Ext.view.DropZone', {
 
     onNodeDrop: function(node, dragZone, e, data) {
         var me = this,
-            dropped = false,
-
+            dropHandled = false,
+ 
             // Create a closure to perform the operation which the event handler may use.
-            // Users may now return &lt;code&gt;false&lt;/code&gt; from the beforedrop handler, and perform any kind
+            // Users may now set the wait parameter in the beforedrop handler, and perform any kind
             // of asynchronous processing such as an Ext.Msg.confirm, or an Ajax request,
-            // and complete the drop gesture at some point in the future by calling this function.
-            processDrop = function () {
-                me.invalidateDrop();
-                me.handleNodeDrop(data, me.overRecord, me.currentPosition);
-                dropped = true;
-                me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+            // and complete the drop gesture at some point in the future by calling either the
+            // processDrop or cancelDrop methods.
+            dropHandlers = {
+                wait: false,
+                processDrop: function () {
+                    me.invalidateDrop();
+                    me.handleNodeDrop(data, me.overRecord, me.currentPosition);
+                    dropHandled = true;
+                    me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+                },
+ 
+                cancelDrop: function() {
+                    me.invalidateDrop();
+                    dropHandled = true;
+                }
             },
             performOperation = false;
-
+ 
         if (me.valid) {
-            performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, processDrop);
+            performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, dropHandlers);
+            if (dropHandlers.wait) {
+                return;
+            }
+ 
             if (performOperation !== false) {
-                // If the processDrop function was called in the event handler, do not do it again.
-                if (!dropped) {
-                    processDrop();
+                // If either of the drop handlers were called in the event handler, do not do it again.
+                if (!dropHandled) {
+                    dropHandlers.processDrop();
                 }
             }
         }

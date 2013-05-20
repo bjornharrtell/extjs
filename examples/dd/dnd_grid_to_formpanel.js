@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require(['*']);
 
 Ext.onReady(function(){
@@ -95,7 +81,6 @@ Ext.onReady(function(){
         title      : 'Generic Form Panel',
         bodyStyle  : 'padding: 10px; background-color: #DFE8F6',
         labelWidth : 100,
-        width      : 325,
         margins    : '0 0 0 3',
         items      : [
             textField1,
@@ -110,7 +95,7 @@ Ext.onReady(function(){
         height   : 300,
         layout   : 'border',
         renderTo : 'panel',
-        bodyPadding: '5',
+        bodyPadding: 5,
         items    : [
             grid,
             formPanel
@@ -158,4 +143,3 @@ Ext.onReady(function(){
         }
     });
 });
-

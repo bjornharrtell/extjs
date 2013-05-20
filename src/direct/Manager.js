@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Ext.Direct aims to streamline communication between the client and server by providing a single interface that
  * reduces the amount of common code typically required to validate data and handle returned data packets (reading data,
@@ -69,13 +55,14 @@ Ext.define('Ext.direct.Manager', {
 
     requires: ['Ext.util.MixedCollection'],
 
-    statics: {
-        exceptions: {
-            TRANSPORT: 'xhr',
-            PARSE: 'parse',
-            LOGIN: 'login',
-            SERVER: 'exception'
-        }
+    /**
+     * Exception types.
+     */
+    exceptions: {
+        TRANSPORT: 'xhr',
+        PARSE: 'parse',
+        LOGIN: 'login',
+        SERVER: 'exception'
     },
 
     /* End Definitions */
@@ -98,8 +85,8 @@ Ext.define('Ext.direct.Manager', {
              */
             'exception'
         );
-        me.transactions = Ext.create('Ext.util.MixedCollection');
-        me.providers = Ext.create('Ext.util.MixedCollection');
+        me.transactions = new Ext.util.MixedCollection();
+        me.providers = new Ext.util.MixedCollection();
 
         me.mixins.observable.constructor.call(me);
     },
@@ -226,7 +213,7 @@ Ext.define('Ext.direct.Manager', {
      * @return {Ext.direct.Transaction}
      */
     getTransaction: function(transaction){
-        return transaction.isTransaction ? transaction : this.transactions.get(transaction);
+        return Ext.isObject(transaction) ? transaction : this.transactions.get(transaction);
     },
 
     onProviderData : function(provider, event){
@@ -246,9 +233,32 @@ Ext.define('Ext.direct.Manager', {
             me.fireEvent('exception', event);
         }
         me.fireEvent('event', event, provider);
+    },
+    
+    /**
+     * Parses a direct function. It may be passed in a string format, for example:
+     * "MyApp.Person.read".
+     * @protected
+     * @param {String/Function} fn The direct function
+     * @return {Function} The function to use in the direct call. Null if not found
+     */
+    parseMethod: function(fn){
+        if (Ext.isString(fn)) {
+            var parts = fn.split('.'),
+                i = 0,
+                len = parts.length,
+                current = window;
+                
+            while (current && i < len) {
+                current = current[parts[i]];
+                ++i;
+            }
+            fn = Ext.isFunction(current) ? current : null;
+        }
+        return fn || null;
     }
+    
 }, function(){
     // Backwards compatibility
     Ext.Direct = Ext.direct.Manager;
 });
-

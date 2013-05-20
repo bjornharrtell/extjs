@@ -1,116 +1,95 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.grid.FiltersFeature
- * @extends Ext.grid.Feature
-
-FiltersFeature is a grid {@link Ext.grid.Feature feature} that allows for a slightly more
-robust representation of filtering than what is provided by the default store.
-
-Filtering is adjusted by the user using the grid's column header menu (this menu can be
-disabled through configuration). Through this menu users can configure, enable, and
-disable filters for each column.
-
-#Features#
-
-##Filtering implementations:##
-
-Default filtering for Strings, Numeric Ranges, Date Ranges, Lists (which can be backed by a
-{@link Ext.data.Store}), and Boolean. Additional custom filter types and menus are easily
-created by extending {@link Ext.ux.grid.filter.Filter}.
-
-##Graphical Indicators:##
-
-Columns that are filtered have {@link #filterCls a configurable css class} applied to the column headers.
-
-##Automatic Reconfiguration:##
-
-Filters automatically reconfigure when the grid 'reconfigure' event fires.
-
-##Stateful:##
-
-Filter information will be persisted across page loads by specifying a `stateId`
-in the Grid configuration.
-
-The filter collection binds to the {@link Ext.grid.Panel#beforestaterestore beforestaterestore}
-and {@link Ext.grid.Panel#beforestatesave beforestatesave} events in order to be stateful.
-
-##GridPanel Changes:##
-
-- A `filters` property is added to the GridPanel using this feature.
-- A `filterupdate` event is added to the GridPanel and is fired upon onStateChange completion.
-
-##Server side code examples:##
-
-- [PHP](http://www.vinylfox.com/extjs/grid-filter-php-backend-code.php) - (Thanks VinylFox)</li>
-- [Ruby on Rails](http://extjs.com/forum/showthread.php?p=77326#post77326) - (Thanks Zyclops)</li>
-- [Ruby on Rails](http://extjs.com/forum/showthread.php?p=176596#post176596) - (Thanks Rotomaul)</li>
-- [Python](http://www.debatablybeta.com/posts/using-extjss-grid-filtering-with-django/) - (Thanks Matt)</li>
-- [Grails](http://mcantrell.wordpress.com/2008/08/22/extjs-grids-and-grails/) - (Thanks Mike)</li>
-
-#Example usage:#
-
-    var store = Ext.create('Ext.data.Store', {
-        pageSize: 15
-        ...
-    });
-
-    var filtersCfg = {
-        ftype: 'filters',
-        autoReload: false, //don't reload automatically
-        local: true, //only filter locally
-        // filters may be configured through the plugin,
-        // or in the column definition within the headers configuration
-        filters: [{
-            type: 'numeric',
-            dataIndex: 'id'
-        }, {
-            type: 'string',
-            dataIndex: 'name'
-        }, {
-            type: 'numeric',
-            dataIndex: 'price'
-        }, {
-            type: 'date',
-            dataIndex: 'dateAdded'
-        }, {
-            type: 'list',
-            dataIndex: 'size',
-            options: ['extra small', 'small', 'medium', 'large', 'extra large'],
-            phpMode: true
-        }, {
-            type: 'boolean',
-            dataIndex: 'visible'
-        }]
-    };
-
-    var grid = Ext.create('Ext.grid.Panel', {
-         store: store,
-         columns: ...,
-         filters: [filtersCfg],
-         height: 400,
-         width: 700,
-         bbar: Ext.create('Ext.PagingToolbar', {
-             store: store
-         })
-    });
-
-    // a filters property is added to the GridPanel
-    grid.filters
-
- * @markdown
+ * FiltersFeature is a grid {@link Ext.grid.feature.Feature feature} that allows for a slightly more
+ * robust representation of filtering than what is provided by the default store.
+ *
+ * Filtering is adjusted by the user using the grid's column header menu (this menu can be
+ * disabled through configuration). Through this menu users can configure, enable, and
+ * disable filters for each column.
+ *
+ * #Features#
+ *
+ * ##Filtering implementations:##
+ *
+ * Default filtering for Strings, Numeric Ranges, Date Ranges, Lists (which can be backed by a
+ * {@link Ext.data.Store}), and Boolean. Additional custom filter types and menus are easily
+ * created by extending {@link Ext.ux.grid.filter.Filter}.
+ *
+ * ##Graphical Indicators:##
+ *
+ * Columns that are filtered have {@link #filterCls a configurable css class} applied to the column headers.
+ *
+ * ##Automatic Reconfiguration:##
+ *
+ * Filters automatically reconfigure when the grid 'reconfigure' event fires.
+ *
+ * ##Stateful:##
+ *
+ * Filter information will be persisted across page loads by specifying a `stateId`
+ * in the Grid configuration.
+ *
+ * The filter collection binds to the {@link Ext.grid.Panel#beforestaterestore beforestaterestore}
+ * and {@link Ext.grid.Panel#beforestatesave beforestatesave} events in order to be stateful.
+ *
+ * ##GridPanel Changes:##
+ *
+ * - A `filters` property is added to the GridPanel using this feature.
+ * - A `filterupdate` event is added to the GridPanel and is fired upon onStateChange completion.
+ *
+ * ##Server side code examples:##
+ *
+ * - [PHP](http://www.vinylfox.com/extjs/grid-filter-php-backend-code.php) - (Thanks VinylFox)
+ * - [Ruby on Rails](http://extjs.com/forum/showthread.php?p=77326#post77326) - (Thanks Zyclops)
+ * - [Ruby on Rails](http://extjs.com/forum/showthread.php?p=176596#post176596) - (Thanks Rotomaul)
+ *
+ * #Example usage:#
+ *
+ *     var store = Ext.create('Ext.data.Store', {
+ *         pageSize: 15
+ *         ...
+ *     });
+ *
+ *     var filtersCfg = {
+ *         ftype: 'filters',
+ *         autoReload: false, //don't reload automatically
+ *         local: true, //only filter locally
+ *         // filters may be configured through the plugin,
+ *         // or in the column definition within the headers configuration
+ *         filters: [{
+ *             type: 'numeric',
+ *             dataIndex: 'id'
+ *         }, {
+ *             type: 'string',
+ *             dataIndex: 'name'
+ *         }, {
+ *             type: 'numeric',
+ *             dataIndex: 'price'
+ *         }, {
+ *             type: 'date',
+ *             dataIndex: 'dateAdded'
+ *         }, {
+ *             type: 'list',
+ *             dataIndex: 'size',
+ *             options: ['extra small', 'small', 'medium', 'large', 'extra large'],
+ *             phpMode: true
+ *         }, {
+ *             type: 'boolean',
+ *             dataIndex: 'visible'
+ *         }]
+ *     };
+ *
+ *     var grid = Ext.create('Ext.grid.Panel', {
+ *          store: store,
+ *          columns: ...,
+ *          features: [filtersCfg],
+ *          height: 400,
+ *          width: 700,
+ *          bbar: Ext.create('Ext.PagingToolbar', {
+ *              store: store
+ *          })
+ *     });
+ *
+ *     // a filters property is added to the GridPanel
+ *     grid.filters
  */
 Ext.define('Ext.ux.grid.FiltersFeature', {
     extend: 'Ext.grid.feature.Feature',
@@ -129,7 +108,7 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      * @cfg {Boolean} autoReload
      * Defaults to true, reloading the datasource when a filter change happens.
      * Set this to false to prevent the datastore from being reloaded if there
-     * are changes to the filters.  See <code>{@link updateBuffer}</code>.
+     * are changes to the filters.  See <code>{@link #updateBuffer}</code>.
      */
     autoReload : true,
     /**
@@ -179,7 +158,7 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      */
     stateId : undefined,
     /**
-     * @cfg {Integer} updateBuffer
+     * @cfg {Number} updateBuffer
      * Number of milliseconds to defer store updates since the last filter change.
      */
     updateBuffer : 500,
@@ -267,12 +246,12 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
             }
         }
 
-        // We start with filters from our config and then merge on filters from the columns
-        // in the grid. The Grid columns take precedence.
-        Ext.Array.each(me.filterConfigs, function (fc) {
-            add(fc.dataIndex, fc);
+        // We start with filters from our config
+        Ext.Array.each(me.filterConfigs, function (filterConfig) {
+            add(filterConfig.dataIndex, filterConfig);
         });
 
+        // Then we merge on filters from the columns in the grid. The columns' filters take precedence.
         Ext.Array.each(grid.columns, function (column) {
             if (column.filterable === false) {
                 filters.removeAtKey(column.dataIndex);
@@ -280,12 +259,34 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
                 add(column.dataIndex, column.filter, column.filterable);
             }
         });
+        
 
         me.removeAll();
-        me.addFilters(filters.items);
+        if (filters.items) {
+            me.initializeFilters(filters.items);
+        }
 
         if (hadFilters) {
             me.applyState(null, state);
+        }
+    },
+
+    /**
+     * @private
+     */
+    initializeFilters: function(filters) {
+        var me = this,
+            filtersLength = filters.length,
+            i, filter, FilterClass;
+
+        for (i = 0; i < filtersLength; i++) {
+            filter = filters[i];
+            if (filter) {
+                FilterClass = me.getFilterClass(filter.type);
+                filter = filter.menu ? filter : new FilterClass(filter);
+                me.filters.add(filter);
+                Ext.util.Observable.capture(filter, this.onStateChange, this);
+            }
         }
     },
 
@@ -317,7 +318,7 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
             filter = me.getMenuFilter();
 
             if (filter) {
-                menuItem.menu = filter.menu;
+                menuItem.setMenu(filter.menu, false);
                 menuItem.setChecked(filter.active);
                 // disable the menu if filter.disabled explicitly set to true
                 menuItem.setDisabled(filter.disabled === true);
@@ -355,23 +356,26 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      * @param {Object} state The hash of state values returned from the StateProvider.
      */
     applyState : function (grid, state) {
-        var key, filter;
-        this.applyingState = true;
-        this.clearFilters();
+        var me = this,
+            key, filter;
+        me.applyingState = true;
+        me.clearFilters();
         if (state.filters) {
             for (key in state.filters) {
-                filter = this.filters.get(key);
-                if (filter) {
-                    filter.setValue(state.filters[key]);
-                    filter.setActive(true);
+                if (state.filters.hasOwnProperty(key)) {
+                    filter = me.filters.get(key);
+                    if (filter) {
+                        filter.setValue(state.filters[key]);
+                        filter.setActive(true);
+                    }
                 }
             }
         }
-        this.deferredUpdate.cancel();
-        if (this.local) {
-            this.reload();
+        me.deferredUpdate.cancel();
+        if (me.local) {
+            me.reload();
         }
-        delete this.applyingState;
+        delete me.applyingState;
         delete state.filters;
     },
 
@@ -416,26 +420,32 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
 
     /**
      * Changes the data store bound to this view and refreshes it.
-     * @param {Store} store The store to bind to this view
+     * @param {Ext.data.Store} store The store to bind to this view
      */
-    bindStore : function(store, initial){
-        if(!initial && this.store){
-            if (this.local) {
-                store.un('load', this.onLoad, this);
-            } else {
-                store.un('beforeload', this.onBeforeLoad, this);
-            }
-        }
-        if(store){
-            if (this.local) {
-                store.on('load', this.onLoad, this);
-            } else {
-                store.on('beforeload', this.onBeforeLoad, this);
-            }
-        }
-        this.store = store;
-    },
+    bindStore : function(store) {
+        var me = this;
 
+        // Unbind from the old Store
+        if (me.store && me.storeListeners) {
+            me.store.un(me.storeListeners);
+        }
+
+        // Set up correct listeners
+        if (store) {
+            me.storeListeners = {
+                scope: me
+            };
+            if (me.local) {
+                me.storeListeners.load = me.onLoad;
+            } else {
+                me.storeListeners['before' + (store.buffered ? 'prefetch' : 'load')] = me.onBeforeLoad;
+            }
+            store.on(me.storeListeners);
+        } else {
+            delete me.storeListeners;
+        }
+        me.store = store;
+    },
 
     /**
      * @private
@@ -500,9 +510,8 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      * @private
      * Handler for store's load event when configured for local filtering
      * @param {Object} store
-     * @param {Object} options
      */
-    onLoad : function (store, options) {
+    onLoad : function (store) {
         store.filterBy(this.getRecordFilter());
     },
 
@@ -531,14 +540,17 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
     /** @private */
     reload : function () {
         var me = this,
-            store = me.view.getStore(),
-            start;
+            store = me.view.getStore();
 
         if (me.local) {
             store.clearFilter(true);
             store.filterBy(me.getRecordFilter());
+            store.sort();
         } else {
             me.deferredUpdate.cancel();
+            if (store.buffered) {
+                store.pageMap.clear();
+            }
             store.loadPage(1);
         }
     },
@@ -573,12 +585,34 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      * @return {Ext.ux.grid.filter.Filter} The existing or newly created filter object.
      */
     addFilter : function (config) {
-        var Cls = this.getFilterClass(config.type),
-            filter = config.menu ? config : (new Cls(config));
-        this.filters.add(filter);
+        var me = this,
+            columns = me.getGridPanel().columns,
+            i, columnsLength, column, filtersLength, filter;
 
-        Ext.util.Observable.capture(filter, this.onStateChange, this);
-        return filter;
+        
+        for (i = 0, columnsLength = columns.length; i < columnsLength; i++) {
+            column = columns[i];
+            if (column.dataIndex === config.dataIndex) {
+                column.filter = config;
+            }
+        }
+        
+        if (me.view.headerCt.menu) {
+            me.createFilters();
+        } else {
+            // Call getMenu() to ensure the menu is created, and so, also are the filters. We cannot call
+            // createFilters() withouth having a menu because it will cause in a recursion to applyState()
+            // that ends up to clear all the filter values. This is likely to happen when we reorder a column
+            // and then add a new filter before the menu is recreated.
+            me.view.headerCt.getMenu();
+        }
+        
+        for (i = 0, filtersLength = me.filters.items.length; i < filtersLength; i++) {
+            filter = me.filters.items[i];
+            if (filter.dataIndex === config.dataIndex) {
+                return filter;
+            }
+        }
     },
 
     /**
@@ -587,13 +621,10 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      */
     addFilters : function (filters) {
         if (filters) {
-            var i, len, filter;
-            for (i = 0, len = filters.length; i < len; i++) {
-                filter = filters[i];
-                // if filter config found add filter for the column
-                if (filter) {
-                    this.addFilter(filter);
-                }
+            var me = this,
+                i, filtersLength;
+            for (i = 0, filtersLength = filters.length; i < filtersLength; i++) {
+                me.addFilter(filters[i]);
             }
         }
     },
@@ -640,35 +671,28 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
 
     /**
      * Function to take the active filters data and build it into a query.
-     * The format of the query depends on the <code>{@link #encode}</code>
-     * configuration:
-     * <div class="mdetail-params"><ul>
+     * The format of the query depends on the {@link #encode} configuration:
      *
-     * <li><b><tt>false</tt></b> : <i>Default</i>
-     * <div class="sub-desc">
-     * Flatten into query string of the form (assuming <code>{@link #paramPrefix}='filters'</code>:
-     * <pre><code>
-filters[0][field]="someDataIndex"&
-filters[0][data][comparison]="someValue1"&
-filters[0][data][type]="someValue2"&
-filters[0][data][value]="someValue3"&
-     * </code></pre>
-     * </div></li>
-     * <li><b><tt>true</tt></b> :
-     * <div class="sub-desc">
-     * JSON encode the filter data
-     * <pre><code>
-filters[0][field]="someDataIndex"&
-filters[0][data][comparison]="someValue1"&
-filters[0][data][type]="someValue2"&
-filters[0][data][value]="someValue3"&
-     * </code></pre>
-     * </div></li>
-     * </ul></div>
+     *   - `false` (Default) :
+     *     Flatten into query string of the form (assuming <code>{@link #paramPrefix}='filters'</code>:
+     *
+     *         filters[0][field]="someDataIndex"&
+     *         filters[0][data][comparison]="someValue1"&
+     *         filters[0][data][type]="someValue2"&
+     *         filters[0][data][value]="someValue3"&
+     *
+     *
+     *   - `true` :
+     *     JSON encode the filter data
+     *
+     *         {filters:[{"field":"someDataIndex","comparison":"someValue1","type":"someValue2","value":"someValue3"}]}
+     *
      * Override this method to customize the format of the filter query for remote requests.
+     *
      * @param {Array} filters A collection of objects representing active filters and their configuration.
-     *    Each element will take the form of {field: dataIndex, data: filterConf}. dataIndex is not assured
-     *    to be unique as any one filter may be a composite of more basic filters for the same dataIndex.
+     * Each element will take the form of {field: dataIndex, data: filterConf}. dataIndex is not assured
+     * to be unique as any one filter may be a composite of more basic filters for the same dataIndex.
+     *
      * @return {Object} Query keys and values
      */
     buildQuery : function (filters) {
@@ -729,7 +753,7 @@ filters[0][data][value]="someValue3"&
      * loader to provide dynamic filter loading.
      * @param {String} type The type of filter to load ('Filter' is automatically
      * appended to the passed type; eg, 'string' becomes 'StringFilter').
-     * @return {Class} The Ext.ux.grid.filter.Class
+     * @return {Function} The Ext.ux.grid.filter.Class
      */
     getFilterClass : function (type) {
         // map the supported Ext.data.Field type values into a supported filter
@@ -748,4 +772,3 @@ filters[0][data][value]="someValue3"&
         return Ext.ClassManager.getByAlias('gridfilter.' + type);
     }
 });
-

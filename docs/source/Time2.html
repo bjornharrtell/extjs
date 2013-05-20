@@ -57,16 +57,19 @@ Ext.define('Ext.picker.Time', {
      */
     increment: 15,
 
+    //&lt;locale&gt;
 <span id='Ext-picker-Time-cfg-format'>    /**
-</span>     * @cfg {String} format
+</span>     * @cfg {String} [format=undefined]
      * The default time format string which can be overriden for localization support. The format must be valid
-     * according to {@link Ext.Date#parse} (defaults to 'g:i A', e.g., '3:15 PM'). For 24-hour time format try 'H:i'
-     * instead.
+     * according to {@link Ext.Date#parse}.
+     *
+     * Defaults to `'g:i A'`, e.g., `'3:15 PM'`. For 24-hour time format try `'H:i'` instead.
      */
     format : &quot;g:i A&quot;,
+    //&lt;/locale&gt;
 
 <span id='Ext-picker-Time-property-displayField'>    /**
-</span>     * @hide
+</span>     * @private
      * The field in the implicitly-generated Model objects that gets displayed in the list. This is
      * an internal field name only and is not useful to change via config.
      */
@@ -80,8 +83,9 @@ Ext.define('Ext.picker.Time', {
 
     componentCls: Ext.baseCSSPrefix + 'timepicker',
 
-<span id='Ext-picker-Time-property-loadMask'>    /**
-</span>     * @hide
+<span id='Ext-picker-Time-cfg-loadMask'>    /**
+</span>     * @cfg
+     * @private
      */
     loadMask: false,
 
@@ -169,7 +173,7 @@ Ext.define('Ext.picker.Time', {
             min = utilDate.add(min, 'mi', me.increment);
         }
 
-        return Ext.create('Ext.data.Store', {
+        return new Ext.data.Store({
             fields: ['disp', 'date'],
             data: times
         });

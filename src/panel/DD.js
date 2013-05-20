@@ -1,62 +1,68 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-// private - DD implementation for Panels
+/**
+ * DD implementation for Panels.
+ * @private
+ */
 Ext.define('Ext.panel.DD', {
     extend: 'Ext.dd.DragSource',
     requires: ['Ext.panel.Proxy'],
 
     constructor : function(panel, cfg){
-        this.panel = panel;
-        this.dragData = {panel: panel};
-        this.proxy = Ext.create('Ext.panel.Proxy', panel, cfg);
+        var me = this;
+        
+        me.panel = panel;
+        me.dragData = {panel: panel};
+        me.panelProxy = new Ext.panel.Proxy(panel, cfg);
+        me.proxy = me.panelProxy.proxy;
 
-        this.callParent([panel.el, cfg]);
-
-        Ext.defer(function() {
-            var header = panel.header,
-                el = panel.body;
-
-            if(header){
-                this.setHandleElId(header.id);
-                el = header.el;
-            }
+        me.callParent([panel.el, cfg]);
+        me.setupEl(panel);
+    },
+    
+    setupEl: function(panel){
+        var me = this,
+            header = panel.header,
+            el = panel.body;
+            
+        if (header) {
+            me.setHandleElId(header.id);
+            el = header.el;
+        }
+        if (el) {
             el.setStyle('cursor', 'move');
-            this.scroll = false;
-        }, 200, this);
+            me.scroll = false;
+        } else {
+            // boxready fires after first layout, so we'll definitely be rendered
+            panel.on('boxready', me.setupEl, me, {single: true});
+        }
     },
 
     showFrame: Ext.emptyFn,
     startDrag: Ext.emptyFn,
+    
     b4StartDrag: function(x, y) {
-        this.proxy.show();
+        this.panelProxy.show();
     },
+    
     b4MouseDown: function(e) {
         var x = e.getPageX(),
             y = e.getPageY();
+            
         this.autoOffset(x, y);
     },
+    
     onInitDrag : function(x, y){
         this.onStartDrag(x, y);
         return true;
     },
+    
     createFrame : Ext.emptyFn,
+    
     getDragEl : function(e){
-        return this.proxy.ghost.el.dom;
+        return this.panelProxy.ghost.el.dom;
     },
+    
     endDrag : function(e){
-        this.proxy.hide();
+        this.panelProxy.hide();
         this.panel.saveState();
     },
 
@@ -64,6 +70,30 @@ Ext.define('Ext.panel.DD', {
         x -= this.startPageX;
         y -= this.startPageY;
         this.setDelta(x, y);
+    },
+    
+    // Override this, we don't want to repair on an "invalid" drop, the panel
+    // should main it's position
+    onInvalidDrop: function(target, e, id) {
+        var me = this;
+        
+        me.beforeInvalidDrop(target, e, id);
+        if (me.cachedTarget) {
+            if(me.cachedTarget.isNotifyTarget){
+                me.cachedTarget.notifyOut(me, e, me.dragData);
+            }
+            me.cacheTarget = null;
+        }
+
+        if (me.afterInvalidDrop) {
+            /**
+             * An empty function by default, but provided so that you can perform a custom action
+             * after an invalid drop has occurred by providing an implementation.
+             * @param {Event} e The event object
+             * @param {String} id The id of the dropped element
+             * @method afterInvalidDrop
+             */
+            me.afterInvalidDrop(e, id);
+        }
     }
 });
-

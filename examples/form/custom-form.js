@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.Loader.setConfig({enabled: true});
 Ext.Loader.setPath('Ext.ux', '../ux');
 Ext.require([
@@ -70,7 +56,7 @@ Ext.onReady(function(){
     var resultTpl = Ext.create('Ext.XTemplate',
         '<tpl for=".">',
         '<div class="search-item">',
-            '<h3><span>{lastPost:this.formatDate}<br />by {author}</span>',
+            '<h3><span>{lastPost:this.formatDate}<br>by {author}</span>',
             '<a href="http://sencha.com/forum/showthread.php?t={topicId}&p={postId}" target="_blank">{title}</a></h3>',
             '<p>{excerpt}</p>',
         '</div></tpl>',
@@ -88,11 +74,12 @@ Ext.onReady(function(){
         id: 'search-results',
         layout: 'fit',
         items: {
-            autoScroll: true,
+            overflowY: 'auto',
             xtype: 'dataview',
             tpl: resultTpl,
             store: store,
-            itemSelector: 'div.search-item'
+            itemSelector: 'div.search-item',
+            emptyText: '<div class="x-grid-empty">No Matching Threads</div>'
         },
         dockedItems: [{
             dock: 'top',
@@ -115,4 +102,3 @@ Ext.onReady(function(){
         }]
     });
 });
-

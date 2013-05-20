@@ -1,25 +1,7 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.draw.Component
- * @extends Ext.Component
- *
  * The Draw Component is a surface in which sprites can be rendered. The Draw Component
- * manages and holds a `Surface` instance: an interface that has
- * an SVG or VML implementation depending on the browser capabilities and where
- * Sprites can be appended.
+ * manages and holds an {@link Ext.draw.Surface} instance where
+ * {@link Ext.draw.Sprite Sprites} can be appended.
  *
  * One way to create a draw component is:
  *
@@ -42,8 +24,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         items: [drawComponent]
  *     }).show();
  *
- * In this case we created a draw component and added a sprite to it.
- * The *type* of the sprite is *circle* so if you run this code you'll see a yellow-ish
+ * In this case we created a draw component and added a {@link Ext.draw.Sprite sprite} to it.
+ * The {@link Ext.draw.Sprite#type type} of the sprite is `circle` so if you run this code you'll see a yellow-ish
  * circle in a Window. When setting `viewBox` to `false` we are responsible for setting the object's position and
  * dimensions accordingly.
  *
@@ -57,8 +39,88 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         y: 100
  *     });
  *
+ * ## Larger example
+ *
+ *     @example
+ *     var drawComponent = Ext.create('Ext.draw.Component', {
+ *         width: 800,
+ *         height: 600,
+ *         renderTo: document.body
+ *     }), surface = drawComponent.surface;
+ *
+ *     surface.add([{
+ *         type: 'circle',
+ *         radius: 10,
+ *         fill: '#f00',
+ *         x: 10,
+ *         y: 10,
+ *         group: 'circles'
+ *     }, {
+ *         type: 'circle',
+ *         radius: 10,
+ *         fill: '#0f0',
+ *         x: 50,
+ *         y: 50,
+ *         group: 'circles'
+ *     }, {
+ *         type: 'circle',
+ *         radius: 10,
+ *         fill: '#00f',
+ *         x: 100,
+ *         y: 100,
+ *         group: 'circles'
+ *     }, {
+ *         type: 'rect',
+ *         width: 20,
+ *         height: 20,
+ *         fill: '#f00',
+ *         x: 10,
+ *         y: 10,
+ *         group: 'rectangles'
+ *     }, {
+ *         type: 'rect',
+ *         width: 20,
+ *         height: 20,
+ *         fill: '#0f0',
+ *         x: 50,
+ *         y: 50,
+ *         group: 'rectangles'
+ *     }, {
+ *         type: 'rect',
+ *         width: 20,
+ *         height: 20,
+ *         fill: '#00f',
+ *         x: 100,
+ *         y: 100,
+ *         group: 'rectangles'
+ *     }]);
+ *
+ *     // Get references to my groups
+ *     circles = surface.getGroup('circles');
+ *     rectangles = surface.getGroup('rectangles');
+ *
+ *     // Animate the circles down
+ *     circles.animate({
+ *         duration: 1000,
+ *         to: {
+ *             translate: {
+ *                 y: 200
+ *             }
+ *         }
+ *     });
+ *
+ *     // Animate the rectangles across
+ *     rectangles.animate({
+ *         duration: 1000,
+ *         to: {
+ *             translate: {
+ *                 x: 200
+ *             }
+ *         }
+ *     });
+ *
  * For more information on Sprites, the core elements added to a draw component's surface,
- * refer to the Ext.draw.Sprite documentation.
+ * refer to the {@link Ext.draw.Sprite} documentation.
  */
 Ext.define('Ext.draw.Component', {
 
@@ -89,13 +151,15 @@ Ext.define('Ext.draw.Component', {
     /**
      * @cfg {Boolean} viewBox
      * Turn on view box support which will scale and position items in the draw component to fit to the component while
-     * maintaining aspect ratio. Note that this scaling can override other sizing settings on yor items. Defaults to true.
+     * maintaining aspect ratio. Note that this scaling can override other sizing settings on your items.
      */
     viewBox: true,
 
+    shrinkWrap: 3,
+    
     /**
      * @cfg {Boolean} autoSize
-     * Turn on autoSize support which will set the bounding div's size to the natural size of the contents. Defaults to false.
+     * Turn on autoSize support which will set the bounding div's size to the natural size of the contents.
      */
     autoSize: false,
 
@@ -142,16 +206,63 @@ Ext.define('Ext.draw.Component', {
      *         fill: 'url(#gradientId)'
      *     }, true);
      */
+
+    /**
+     * @cfg {Ext.draw.Sprite[]} items
+     * Array of sprites or sprite config objects to add initially to the surface.
+     */
+
+    /**
+     * @property {Ext.draw.Surface} surface
+     * The Surface instance managed by this component.
+     */
+
     initComponent: function() {
         this.callParent(arguments);
 
         this.addEvents(
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#mousedown
+             */
             'mousedown',
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#mouseup
+             */
             'mouseup',
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#mousemove
+             */
             'mousemove',
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#mouseenter
+             */
             'mouseenter',
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#mouseleave
+             */
             'mouseleave',
-            'click'
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#click
+             */
+            'click',
+            /**
+             * @event
+             * Event forwarded from {@link Ext.draw.Surface surface}.
+             * @inheritdoc Ext.draw.Surface#dblclick
+             */
+            'dblclick'
         );
     },
 
@@ -178,73 +289,70 @@ Ext.define('Ext.draw.Component', {
                 y = bbox.y;
                 if (me.viewBox) {
                     me.surface.setViewBox(x, y, width, height);
-                }
-                else {
-                    // AutoSized
+                } else {
                     me.autoSizeSurface();
                 }
             }
         }
     },
 
-    //@private
+    // @private
     autoSizeSurface: function() {
-        var me = this,
-            items = me.surface.items,
-            bbox = items.getBBox(),
-            width = bbox.width,
-            height = bbox.height;
-        items.setAttributes({
-            translate: {
-                x: -bbox.x,
-                //Opera has a slight offset in the y axis.
-                y: -bbox.y + (+Ext.isOpera)
-            }
-        }, true);
-        if (me.rendered) {
-            me.setSize(width, height);
-            me.surface.setSize(width, height);
-        }
-        else {
-            me.surface.setSize(width, height);
-        }
-        me.el.setSize(width, height);
+        var bbox = this.surface.items.getBBox();
+        this.setSurfaceSize(bbox.width, bbox.height);
     },
 
+    setSurfaceSize: function (width, height) {
+        this.surface.setSize(width, height);
+        if (this.autoSize) {
+            var bbox = this.surface.items.getBBox();
+            this.surface.setViewBox(bbox.x, bbox.y - (+Ext.isOpera), width, height);
+        }
+    },
+    
     /**
      * Create the Surface instance. Resolves the correct Surface implementation to
      * instantiate based on the 'enginePriority' config. Once the Surface instance is
      * created you can use the handle to that instance to add sprites. For example:
      *
      *     drawComponent.surface.add(sprite);
+     *
+     * @private
      */
     createSurface: function() {
-        var surface = Ext.draw.Surface.create(Ext.apply({}, {
-                width: this.width,
-                height: this.height,
-                renderTo: this.el
-            }, this.initialConfig));
+        var me = this,
+            cfg = Ext.applyIf({
+                renderTo: me.el,
+                height: me.height,
+                width: me.width,
+                items: me.items
+            }, me.initialConfig), surface;
+
+        // ensure we remove any listeners to prevent duplicate events since we refire them below
+        delete cfg.listeners;
+        surface = Ext.draw.Surface.create(cfg);
         if (!surface) {
             // In case we cannot create a surface, return false so we can stop
             return false;
         }
-        this.surface = surface;
+        me.surface = surface;
 
 
         function refire(eventName) {
             return function(e) {
-                this.fireEvent(eventName, e);
+                me.fireEvent(eventName, e);
             };
         }
 
         surface.on({
-            scope: this,
+            scope: me,
             mouseup: refire('mouseup'),
             mousedown: refire('mousedown'),
             mousemove: refire('mousemove'),
             mouseenter: refire('mouseenter'),
             mouseleave: refire('mouseleave'),
-            click: refire('click')
+            click: refire('click'),
+            dblclick: refire('dblclick')
         });
     },
 
@@ -255,12 +363,8 @@ Ext.define('Ext.draw.Component', {
      * Clean up the Surface instance on component destruction
      */
     onDestroy: function() {
-        var surface = this.surface;
-        if (surface) {
-            surface.destroy();
-        }
+        Ext.destroy(this.surface);
         this.callParent(arguments);
     }
 
 });
-

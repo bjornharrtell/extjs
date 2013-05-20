@@ -31,9 +31,9 @@
  *         },{
  *             xtype: 'menuseparator'
  *         },{
- *            text: 'seperator above',
+ *            text: 'separator above'
  *         },{
- *            text: 'regular item',
+ *            text: 'regular item'
  *         }]
  *     });
  */
@@ -42,89 +42,103 @@ Ext.define('Ext.menu.Separator', {
     alias: 'widget.menuseparator',
 
 <span id='Ext-menu-Separator-cfg-activeCls'>    /**
-</span>     * @cfg {String} activeCls @hide
+</span>     * @cfg {String} activeCls
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-canActivate'>    /**
-</span>     * @cfg {Boolean} canActivate @hide
+</span>     * @cfg {Boolean} canActivate
+     * @private
      */
     canActivate: false,
 
 <span id='Ext-menu-Separator-cfg-clickHideDelay'>    /**
-</span>     * @cfg {Boolean} clickHideDelay @hide
+</span>     * @cfg {Boolean} clickHideDelay
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-destroyMenu'>    /**
-</span>     * @cfg {Boolean} destroyMenu @hide
+</span>     * @cfg {Boolean} destroyMenu
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-disabledCls'>    /**
-</span>     * @cfg {Boolean} disabledCls @hide
+</span>     * @cfg {Boolean} disabledCls
+     * @private
      */
 
     focusable: false,
 
 <span id='Ext-menu-Separator-cfg-href'>    /**
-</span>     * @cfg {String} href @hide
+</span>     * @cfg {String} href
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-hrefTarget'>    /**
-</span>     * @cfg {String} hrefTarget @hide
+</span>     * @cfg {String} hrefTarget
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-hideOnClick'>    /**
-</span>     * @cfg {Boolean} hideOnClick @hide
+</span>     * @cfg {Boolean} hideOnClick
+     * @private
      */
     hideOnClick: false,
 
 <span id='Ext-menu-Separator-cfg-icon'>    /**
-</span>     * @cfg {String} icon @hide
+</span>     * @cfg {String} icon
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-iconCls'>    /**
-</span>     * @cfg {String} iconCls @hide
+</span>     * @cfg {String} iconCls
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-menu'>    /**
-</span>     * @cfg {Object} menu @hide
+</span>     * @cfg {Object} menu
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-menuAlign'>    /**
-</span>     * @cfg {String} menuAlign @hide
+</span>     * @cfg {String} menuAlign
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-menuExpandDelay'>    /**
-</span>     * @cfg {Number} menuExpandDelay @hide
+</span>     * @cfg {Number} menuExpandDelay
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-menuHideDelay'>    /**
-</span>     * @cfg {Number} menuHideDelay @hide
+</span>     * @cfg {Number} menuHideDelay
+     * @private
      */
 
 <span id='Ext-menu-Separator-cfg-plain'>    /**
-</span>     * @cfg {Boolean} plain @hide
+</span>     * @cfg {Boolean} plain
+     * @private
      */
     plain: true,
 
 <span id='Ext-menu-Separator-cfg-separatorCls'>    /**
 </span>     * @cfg {String} separatorCls
      * The CSS class used by the separator item to show the incised line.
-     * Defaults to `Ext.baseCSSPrefix + 'menu-item-separator'`.
      */
     separatorCls: Ext.baseCSSPrefix + 'menu-item-separator',
 
 <span id='Ext-menu-Separator-cfg-text'>    /**
-</span>     * @cfg {String} text @hide
+</span>     * @cfg {String} text
+     * @private
      */
     text: '&amp;#160;',
 
-    onRender: function(ct, pos) {
-        var me = this,
-            sepCls = me.separatorCls;
+    beforeRender: function(ct, pos) {
+        var me = this;
 
-        me.cls += ' ' + sepCls;
+        me.callParent();
 
-        me.callParent(arguments);
+        me.addCls(me.separatorCls);
     }
 });</pre>
 </body>

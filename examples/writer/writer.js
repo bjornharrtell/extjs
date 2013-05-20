@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.define('Writer.Form', {
     extend: 'Ext.form.Panel',
     alias: 'widget.writerform',
@@ -288,6 +274,46 @@ Ext.require([
 
 Ext.onReady(function(){
     Ext.tip.QuickTipManager.init();
+    
+    Ext.create('Ext.button.Button', {
+        margin: '0 0 20 20',
+        text: 'Reset sample database back to initial state',
+        renderTo: document.body,
+        tooltip: 'The sample database is stored in the session, including any changes you make. Click this button to reset the sample database to the initial state',
+        handler: function(){
+            Ext.getBody().mask('Resetting...');
+            Ext.Ajax.request({
+                url: 'app.php/example/reset',
+                callback: function(options, success, response) {
+                    Ext.getBody().unmask();
+                    
+                    var didReset = true,
+                        o;
+                    
+                    if (success) {
+                        try {
+                            o = Ext.decode(response.responseText);
+                            didReset = o.success === true;
+                        } catch (e) {
+                            didReset = false;
+                        }
+                    } else {
+                        didReset = false;
+                    }
+                    
+                    if (didReset) {
+                        store.load();
+                        main.down('#form').setActiveRecord(null);
+                        Ext.example.msg('Reset', 'Reset successful');
+                    } else {
+                        Ext.MessageBox.alert('Error', 'Unable to reset example database');
+                    }
+                    
+                }
+            });
+        }
+    })
+    
     var store = Ext.create('Ext.data.Store', {
         model: 'Writer.Person',
         autoLoad: true,
@@ -365,4 +391,3 @@ Ext.onReady(function(){
         }]
     });
 });
-

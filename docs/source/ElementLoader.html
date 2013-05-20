@@ -26,7 +26,7 @@
  *         }
  *     });
  *
- * In general this class will not be instanced directly, rather the {@link Ext.Element#load} method
+ * In general this class will not be instanced directly, rather the {@link Ext.Element#method-load} method
  * will be used.
  */
 Ext.define('Ext.ElementLoader', {
@@ -54,7 +54,7 @@ Ext.define('Ext.ElementLoader', {
     /* End Definitions */
 
 <span id='Ext-ElementLoader-cfg-url'>    /**
-</span>     * @cfg {String} url
+</span>     * @cfg {String} url (required)
      * The url to retrieve the content from.
      */
     url: null,
@@ -75,7 +75,7 @@ Ext.define('Ext.ElementLoader', {
 <span id='Ext-ElementLoader-cfg-autoLoad'>    /**
 </span>     * @cfg {Boolean/Object} autoLoad
      * True to have the loader make a request as soon as it is created.
-     * This argument can also be a set of options that will be passed to {@link #load} is called.
+     * This argument can also be a set of options that will be passed to {@link #method-load} is called.
      */
     autoLoad: false,
 
@@ -139,13 +139,18 @@ Ext.define('Ext.ElementLoader', {
 
 <span id='Ext-ElementLoader-cfg-renderer'>    /**
 </span>     * @cfg {Function} renderer
-     * A custom function to render the content to the element. The passed parameters are:
+     * A custom function to render the content to the element. The function should
+     * return false if the renderer could not be applied. The passed parameters are:
      *
      * - The loader
      * - The response
      * - The active request
      */
 
+<span id='Ext-ElementLoader-property-isLoader'>    /**
+</span>     * @property {Boolean} isLoader
+     * `true` in this class to identify an object as an instantiated ElementLoader, or subclass thereof.
+     */
     isLoader: true,
 
     constructor: function(config) {
@@ -319,7 +324,7 @@ Ext.define('Ext.ElementLoader', {
         me.setOptions(me.active, options);
     },
 
-<span id='Ext-ElementLoader-property-setOptions'>    /**
+<span id='Ext-ElementLoader-method-setOptions'>    /**
 </span>     * Sets any additional options on the active request
      * @private
      * @param {Object} active The active request
@@ -342,7 +347,7 @@ Ext.define('Ext.ElementLoader', {
 
 
         if (success) {
-            success = renderer.call(me, me, response, active);
+            success = renderer.call(me, me, response, active) !== false;
         }
 
         if (success) {
@@ -377,7 +382,7 @@ Ext.define('Ext.ElementLoader', {
 <span id='Ext-ElementLoader-method-startAutoRefresh'>    /**
 </span>     * Automatically refreshes the content over a specified period.
      * @param {Number} interval The interval to refresh in ms.
-     * @param {Object} options (optional) The options to pass to the load method. See {@link #load}
+     * @param {Object} options (optional) The options to pass to the load method. See {@link #method-load}
      */
     startAutoRefresh: function(interval, options){
         var me = this;

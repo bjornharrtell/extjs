@@ -1,21 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.layout.container.Absolute
- * @extends Ext.layout.container.Anchor
- *
  * This is a layout that inherits the anchoring of {@link Ext.layout.container.Anchor} and adds the
  * ability for x/y positioning using the standard x and y component config options.
  *
@@ -27,8 +10,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         title: 'Absolute Layout',
  *         width: 300,
  *         height: 275,
- *         layout:'absolute',
- *         layoutConfig: {
+ *         layout: {
+ *             type: 'absolute'
  *             // layout-specific configs go here
  *             //itemCls: 'x-abs-layout-item',
  *         },
@@ -74,33 +57,65 @@ Ext.define('Ext.layout.container.Absolute', {
 
     /* End Definitions */
 
+    targetCls: Ext.baseCSSPrefix + 'abs-layout-ct',
     itemCls: Ext.baseCSSPrefix + 'abs-layout-item',
+
+    /**
+     * @cfg {Boolean} ignoreOnContentChange
+     * True indicates that changes to one item in this layout do not effect the layout in
+     * general. This may need to be set to false if {@link Ext.Component#autoScroll}
+     * is enabled for the container.
+     */
+    ignoreOnContentChange: true,
 
     type: 'absolute',
 
-    onLayout: function() {
+    // private
+    adjustWidthAnchor: function(value, childContext) {
+        var padding = this.targetPadding,
+            x = childContext.getStyle('left');
+
+        return value - x + padding.left;
+    },
+
+    // private
+    adjustHeightAnchor: function(value, childContext) {
+        var padding = this.targetPadding,
+            y = childContext.getStyle('top');
+
+        return value - y + padding.top;
+    },
+
+    isItemLayoutRoot: function (item) {
+        return this.ignoreOnContentChange || this.callParent(arguments);
+    },
+
+    isItemShrinkWrap: function (item) {
+        return true;
+    },
+
+    beginLayout: function (ownerContext) {
         var me = this,
-            target = me.getTarget(),
-            targetIsBody = target.dom === document.body;
+            target = me.getTarget();
+
+        me.callParent(arguments);
 
         // Do not set position: relative; when the absolute layout target is the body
-        if (!targetIsBody) {
+        if (target.dom !== document.body) {
             target.position();
         }
-        me.paddingLeft = target.getPadding('l');
-        me.paddingTop = target.getPadding('t');
-        me.callParent(arguments);
+
+        me.targetPadding = ownerContext.targetContext.getPaddingInfo();
     },
 
-    // private
-    adjustWidthAnchor: function(value, comp) {
-        //return value ? value - comp.getPosition(true)[0] + this.paddingLeft: value;
-        return value ? value - comp.getPosition(true)[0] : value;
+    isItemBoxParent: function (itemContext) {
+        return true;
     },
 
-    // private
-    adjustHeightAnchor: function(value, comp) {
-        //return value ? value - comp.getPosition(true)[1] + this.paddingTop: value;
-        return value ? value - comp.getPosition(true)[1] : value;
+    onContentChange: function () {
+        if (this.ignoreOnContentChange) {
+            return false;
+        }
+        return this.callParent(arguments);
     }
 });

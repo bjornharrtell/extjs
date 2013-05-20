@@ -33,7 +33,7 @@ The most commonly used Container is {@link Ext.panel.Panel Panel}.  Let's take a
         ]
     });
 
-We just created a Panel that renders itself to the document body, and we used the {@link Ext.container.Container#items items} config to add two child Panels to our Container Panel.
+We just created a Panel that renders itself to the document body, and we used the {@link Ext.container.Container#cfg-items items} config to add two child Panels to our Container Panel.
 
 ## Layouts
 
@@ -55,24 +55,24 @@ In the above example we did not specify a layout for the Container {@link Ext.pa
                 xtype: 'panel',
                 title: 'Child Panel 1',
                 height: 100,
-                width: '50%'
+                columnWidth: 0.5
             },
             {
                 xtype: 'panel',
                 title: 'Child Panel 2',
                 height: 100,
-                width: '50%'
+                columnWidth: 0.5
             }
         ]
     });
 
-Ext JS comes with a full set of layouts out of the box and can accomodate almost any type of layout you can imagine.  See the [Layout Examples](extjs/examples/#sample-7) to get an idea of what's possible.
+Ext JS comes with a full set of layouts out of the box and can accomodate almost any type of layout you can imagine.  See the [Layout Browser](#!/example/layout-browser/layout-browser.html) to get an idea of what's possible.
 
 ### How the layout system works
 
-A {@link Ext.container.Container Container}'s {@link Ext.layout.container.Container Layout} is responsible for the initial positioning and sizing of all of the Container's children.  Internally the framework calls the Container's {@link Ext.container.Container#doLayout doLayout} method which triggers the Layout to calculate the correct sizes and positions for all of the Container's children and update the DOM. The `doLayout` method is fully recursive, so any of the Container's children that are also  will have their `doLayout` method called as well. This continues until the bottom of the {@link Ext.Component Component} hierarchy is reached. You typically will not have to ever call `doLayout()` in your application code since the framework should handle it for you.
+A {@link Ext.container.Container Container}'s {@link Ext.layout.container.Container Layout} is responsible for the initial positioning and sizing of all of the Container's children.  Internally the framework calls the Container's {@link Ext.container.Container#doLayout doLayout} method which triggers the Layout to calculate the correct sizes and positions for all of the Container's children and update the DOM. The `doLayout` method is fully recursive, so any of the Container's children will have their `doLayout` method called as well. This continues until the bottom of the {@link Ext.Component Component} hierarchy is reached. You typically will not have to ever call `doLayout()` in your application code since the framework should handle it for you.
 
-A re-layout is triggered when the Container is {@link Ext.container.Container#setSize resized}, or when child Component {@link Ext.container.Container#items items} are {@link Ext.container.Container#add added} or {@link Ext.container.Container#remove removed}. Normally we can just rely on the framework to handle updating the layout for us, but sometimes we want to prevent the framework from automatically laying out so we can batch multiple operations together and then manually trigger a layout when we're done.  To do this we use the {@link Ext.container.Container#suspendLayout suspendLayout} flag on the Container to prevent it from laying out while we perform our operations that would normally trigger a layout (adding or removing items for example).  When we're done all we have to do is turn the `suspendLayout` flag off and manually trigger a layout by calling the Container's `doLayout` method:
+A re-layout is triggered when the Container is {@link Ext.container.Container#setSize resized}, or when child Component {@link Ext.container.Container#cfg-items items} are {@link Ext.container.Container#method-add added} or {@link Ext.container.Container#method-remove removed}. Normally we can just rely on the framework to handle updating the layout for us, but sometimes we want to prevent the framework from automatically laying out so we can batch multiple operations together and then manually trigger a layout when we're done.  To do this we use the {@link Ext.container.Container#suspendLayout suspendLayout} flag on the Container to prevent it from laying out while we perform our operations that would normally trigger a layout (adding or removing items for example).  When we're done all we have to do is turn the `suspendLayout` flag off and manually trigger a layout by calling the Container's `doLayout` method:
 
     @example
     var containerPanel = Ext.create('Ext.panel.Panel', {
@@ -89,13 +89,13 @@ A re-layout is triggered when the Container is {@link Ext.container.Container#se
         xtype: 'panel',
         title: 'Child Panel 1',
         height: 100,
-        width: '50%'
+        columnWidth: 0.5
     });
     containerPanel.add({
         xtype: 'panel',
         title: 'Child Panel 2',
         height: 100,
-        width: '50%'
+        columnWidth: 0.5
     });
     // Turn the suspendLayout flag off.
     containerPanel.suspendLayout = false;
@@ -104,4 +104,4 @@ A re-layout is triggered when the Container is {@link Ext.container.Container#se
 
 ## Component Layout
 
-Just like a {@link Ext.container.Container Container}'s {@link Ext.layout.container.Container Layout} defines how a Container sizes and positions its {@link Ext.Component Component} {@link Ext.container.Container#items items}, a Component also has a {@link Ext.layout.Layout Layout} which defines how it sizes and positions its internal child items.  Component layouts are configured using the {@link Ext.Component#componentLayout componentLayout} config option.  Generally, you will not need to use this configuration unless you are writing a custom Component since all of the provided Components which need their internal elements sized and positioned come with their own layout managers.  Most Components use {@link Ext.layout.container.Auto Auto Layout}, but more complex Components will require a custom component layout (for example a {@link Ext.panel.Panel Panel} that has a header, footer, and toolbars).
+Just like a {@link Ext.container.Container Container}'s {@link Ext.layout.container.Container Layout} defines how a Container sizes and positions its {@link Ext.Component Component} {@link Ext.container.Container#cfg-items items}, a Component also has a {@link Ext.layout.Layout Layout} which defines how it sizes and positions its internal child items.  Component layouts are configured using the {@link Ext.Component#componentLayout componentLayout} config option.  Generally, you will not need to use this configuration unless you are writing a custom Component since all of the provided Components which need their internal elements sized and positioned come with their own layout managers.  Most Components use {@link Ext.layout.container.Auto Auto Layout}, but more complex Components will require a custom component layout (for example a {@link Ext.panel.Panel Panel} that has a header, footer, and toolbars).

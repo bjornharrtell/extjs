@@ -1,21 +1,6 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  * @class Ext.ModelManager
- * @extends Ext.AbstractManager
 
 The ModelManager keeps track of all {@link Ext.data.Model} types defined in your application.
 
@@ -70,15 +55,15 @@ are normal classes, you can access the type directly. The following snippets are
 Ext.define('Ext.ModelManager', {
     extend: 'Ext.AbstractManager',
     alternateClassName: 'Ext.ModelMgr',
-    requires: ['Ext.data.Association'],
-
+    requires: ['Ext.data.association.Association'],
+    
     singleton: true,
 
     typeName: 'mtype',
 
     /**
      * Private stack of associations that must be created once their associated model has been defined
-     * @property {Ext.data.Association[]} associationStack
+     * @property {Ext.data.association.Association[]} associationStack
      */
     associationStack: [],
 
@@ -126,7 +111,7 @@ Ext.define('Ext.ModelManager', {
 
         for (i = 0, length = create.length; i < length; i++) {
             created = create[i];
-            this.types[created.ownerModel].prototype.associations.add(Ext.data.Association.create(created));
+            this.types[created.ownerModel].prototype.associations.add(Ext.data.association.Association.create(created));
             Ext.Array.remove(stack, created);
         }
     },
@@ -136,7 +121,7 @@ Ext.define('Ext.ModelManager', {
      * The ModelManager will check when new models are registered if it can link them
      * together
      * @private
-     * @param {Ext.data.Association} association The association
+     * @param {Ext.data.association.Association} association The association
      */
     registerDeferredAssociation: function(association){
         this.associationStack.push(association);
@@ -156,23 +141,23 @@ Ext.define('Ext.ModelManager', {
     },
 
     /**
-     * Creates a new instance of a Model using the given data.
-     *
-     * This method is deprecated.  Use {@link Ext#create Ext.create} instead.  For example:
+     * Creates a new instance of a Model using the given data. Deprecated, instead use Ext.create:
      *
      *     Ext.create('User', {
      *         first: 'Ed',
      *         last: 'Spencer'
      *     });
      *
+     * @deprecated 4.1 Use {@link Ext#create Ext.create} instead.
+     *
      * @param {Object} data Data to initialize the Model's fields with
      * @param {String} name The name of the model to create
      * @param {Number} id (Optional) unique id of the Model instance (see {@link Ext.data.Model})
      */
     create: function(config, name, id) {
-        var con = typeof name == 'function' ? name : this.types[name || config.name];
+        var Con = typeof name == 'function' ? name : this.types[name || config.name];
 
-        return new con(config, id);
+        return new Con(config, id);
     }
 }, function() {
 
@@ -199,4 +184,3 @@ Ext.define('Ext.ModelManager', {
         return this.ModelManager.registerType.apply(this.ModelManager, arguments);
     };
 });
-

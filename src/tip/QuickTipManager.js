@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.tip.QuickTipManager
- *
  * Provides attractive and customizable tooltips for any element. The QuickTips
  * singleton is used to configure and manage tooltips globally for multiple elements
  * in a generic manner.  To create individual tooltips with maximum customizability,
@@ -29,7 +13,8 @@ If you are unsure which license is appropriate for your use, please contact the 
  * tooltips shown by the singleton.
  *
  * Below is the summary of the configuration properties which can be used.
- * For detailed descriptions see the config options for the {@link Ext.tip.QuickTip QuickTip} class
+ * For detailed descriptions see the config options for the
+ * {@link Ext.tip.QuickTip QuickTip} class
  *
  * ## QuickTips singleton configs (all are optional)
  *
@@ -84,12 +69,15 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         dismissDelay: 10000 // Hide after 10 seconds hover
  *     });
  *
- * To register a quick tip in markup, you simply add one or more of the valid QuickTip attributes prefixed with
- * the **data-** namespace.  The HTML element itself is automatically set as the quick tip target. Here is the summary
- * of supported attributes (optional unless otherwise noted):
+ * To register a quick tip in markup, you simply add one or more of the valid QuickTip
+ * attributes prefixed with the **data-** namespace.  The HTML element itself is
+ * automatically set as the quick tip target. Here is the summary of supported attributes
+ * (optional unless otherwise noted):
  *
- *  - `hide`: Specifying "user" is equivalent to setting autoHide = false.  Any other value will be the same as autoHide = true.
- *  - `qclass`: A CSS class to be applied to the quick tip (equivalent to the 'cls' target element config).
+ *  - `hide`: Specifying "user" is equivalent to setting autoHide = false.
+ *     Any other value will be the same as autoHide = true.
+ *  - `qclass`: A CSS class to be applied to the quick tip
+ *     (equivalent to the 'cls' target element config).
  *  - `qtip (required)`: The quick tip text (equivalent to the 'text' target element config).
  *  - `qtitle`: The quick tip title (equivalent to the 'title' target element config).
  *  - `qwidth`: The quick tip width (equivalent to the 'width' target element config).
@@ -102,7 +90,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * @singleton
  */
-Ext.define('Ext.tip.QuickTipManager', function() {
+Ext.define('Ext.tip.QuickTipManager', (function() {
     var tip,
         disabled = false;
 
@@ -112,10 +100,10 @@ Ext.define('Ext.tip.QuickTipManager', function() {
         alternateClassName: 'Ext.QuickTips',
 
         /**
-         * Initialize the global QuickTips instance and prepare any quick tips.
-         * @param {Boolean} autoRender (optional) True to render the QuickTips container immediately to
-         * preload images. (Defaults to true)
-         * @param {Object} config (optional) config object for the created QuickTip. By
+         * Initializes the global QuickTips instance and prepare any quick tips.
+         * @param {Boolean} [autoRender=true] True to render the QuickTips container
+         * immediately to preload images.
+         * @param {Object} [config] config object for the created QuickTip. By
          * default, the {@link Ext.tip.QuickTip QuickTip} class is instantiated, but this can
          * be changed by supplying an xtype property or a className property in this object.
          * All other properties on this object are configuration for the created component.
@@ -124,12 +112,12 @@ Ext.define('Ext.tip.QuickTipManager', function() {
             if (!tip) {
                 if (!Ext.isReady) {
                     Ext.onReady(function(){
-                        Ext.tip.QuickTipManager.init(autoRender);
+                        Ext.tip.QuickTipManager.init(autoRender, config);
                     });
                     return;
                 }
 
-                var tipConfig = Ext.apply({ disabled: disabled }, config),
+                var tipConfig = Ext.apply({ disabled: disabled, id: 'ext-quicktips-tip' }, config),
                     className = tipConfig.className,
                     xtype = tipConfig.xtype;
 
@@ -144,7 +132,7 @@ Ext.define('Ext.tip.QuickTipManager', function() {
                     tipConfig.renderTo = document.body;
 
                     //<debug>
-                    if (tipConfig.renderTo.tagName != 'BODY') { // e.g., == 'FRAMESET'
+                    if (tipConfig.renderTo.tagName.toUpperCase() != 'BODY') { // e.g., == 'FRAMESET'
                         Ext.Error.raise({
                             sourceClass: 'Ext.tip.QuickTipManager',
                             sourceMethod: 'init',
@@ -159,7 +147,7 @@ Ext.define('Ext.tip.QuickTipManager', function() {
         },
 
         /**
-         * Destroy the QuickTips instance.
+         * Destroys the QuickTips instance.
          */
         destroy: function() {
             if (tip) {
@@ -186,7 +174,7 @@ Ext.define('Ext.tip.QuickTipManager', function() {
         },
 
         /**
-         * Enable quick tips globally.
+         * Enables quick tips globally.
          */
         enable : function(){
             if(tip){
@@ -196,7 +184,7 @@ Ext.define('Ext.tip.QuickTipManager', function() {
         },
 
         /**
-         * Disable quick tips globally.
+         * Disables quick tips globally.
          */
         disable : function(){
             if(tip){
@@ -214,7 +202,8 @@ Ext.define('Ext.tip.QuickTipManager', function() {
         },
 
         /**
-         * Gets the single {@link Ext.tip.QuickTip QuickTip} instance used to show tips from all registered elements.
+         * Gets the single {@link Ext.tip.QuickTip QuickTip} instance used to show tips
+         * from all registered elements.
          * @return {Ext.tip.QuickTip}
          */
         getQuickTip : function(){
@@ -232,7 +221,8 @@ Ext.define('Ext.tip.QuickTipManager', function() {
 
         /**
          * Removes any registered quick tip from the target element and destroys it.
-         * @param {String/HTMLElement/Ext.Element} el The element from which the quick tip is to be removed or ID of the element.
+         * @param {String/HTMLElement/Ext.Element} el The element from which the quick tip
+         * is to be removed or ID of the element.
          */
         unregister : function(){
             tip.unregister.apply(tip, arguments);
@@ -240,10 +230,10 @@ Ext.define('Ext.tip.QuickTipManager', function() {
 
         /**
          * Alias of {@link #register}.
-         * @param {Object} config The config object
+         * @inheritdoc Ext.tip.QuickTipManager#register
          */
         tips : function(){
             tip.register.apply(tip, arguments);
         }
     };
-}());
+}()));

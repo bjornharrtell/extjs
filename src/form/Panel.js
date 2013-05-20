@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  * 
@@ -31,10 +17,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  * Although **not listed** as configuration options of FormPanel, the FormPanel class accepts all
  * of the config options supported by the {@link Ext.form.Basic} class, and will pass them along to
  * the internal BasicForm when it is created.
- * 
- * **Note**: If subclassing FormPanel, any configuration options for the BasicForm must be applied to
- * the `initialConfig` property of the FormPanel. Applying {@link Ext.form.Basic BasicForm}
- * configuration settings to `this` will *not* affect the BasicForm's configuration.
  * 
  * The following events fired by the BasicForm will be re-fired by the FormPanel and can therefore be
  * listened for on the FormPanel itself:
@@ -165,6 +147,22 @@ Ext.define('Ext.form.Panel', {
     layout: 'anchor',
 
     ariaRole: 'form',
+    
+    basicFormConfigs: [
+        'api', 
+        'baseParams', 
+        'errorReader', 
+        'method', 
+        'paramOrder',
+        'paramsAsHash',
+        'reader',
+        'standardSubmit',
+        'timeout',
+        'trackResetOnLoad',
+        'url',
+        'waitMsgTarget',
+        'waitTitle'
+    ],
 
     initComponent: function() {
         var me = this;
@@ -177,10 +175,30 @@ Ext.define('Ext.form.Panel', {
         me.callParent();
 
         me.relayEvents(me.form, [
+            /**
+             * @event beforeaction
+             * @inheritdoc Ext.form.Basic#beforeaction
+             */
             'beforeaction',
+            /**
+             * @event actionfailed
+             * @inheritdoc Ext.form.Basic#actionfailed
+             */
             'actionfailed',
+            /**
+             * @event actioncomplete
+             * @inheritdoc Ext.form.Basic#actioncomplete
+             */
             'actioncomplete',
+            /**
+             * @event validitychange
+             * @inheritdoc Ext.form.Basic#validitychange
+             */
             'validitychange',
+            /**
+             * @event dirtychange
+             * @inheritdoc Ext.form.Basic#dirtychange
+             */
             'dirtychange'
         ]);
 
@@ -196,14 +214,29 @@ Ext.define('Ext.form.Panel', {
 
         me.form = me.createForm();
         me.callParent();
-        me.form.initialize();
+    },
+
+    // Initialize the BasicForm after all layouts have been completed.
+    afterFirstLayout: function() {
+        this.callParent();
+        this.form.initialize();
     },
 
     /**
      * @private
      */
     createForm: function() {
-        return Ext.create('Ext.form.Basic', this, Ext.applyIf({listeners: {}}, this.initialConfig));
+        var cfg = {},
+            props = this.basicFormConfigs,
+            len = props.length,
+            i = 0,
+            prop;
+            
+        for (; i < len; ++i) {
+            prop = props[i];
+            cfg[prop] = this[prop];
+        }
+        return new Ext.form.Basic(this, cfg);
     },
 
     /**
@@ -234,11 +267,12 @@ Ext.define('Ext.form.Panel', {
 
     /**
      * Convenience function for fetching the current value of each field in the form. This is the same as calling
-     * {@link Ext.form.Basic#getValues this.getForm().getValues()}
-     * @return {Object} The current form field values, keyed by field name
+     * {@link Ext.form.Basic#getValues this.getForm().getValues()}.
+     *
+     * @inheritdoc Ext.form.Basic#getValues
      */
-    getValues: function() {
-        return this.getForm().getValues();
+    getValues: function(asString, dirtyOnly, includeEmptyText, useDataValues) {
+        return this.getForm().getValues(asString, dirtyOnly, includeEmptyText, useDataValues);
     },
 
     beforeDestroy: function() {
@@ -265,28 +299,6 @@ Ext.define('Ext.form.Panel', {
         this.form.submit(options);
     },
 
-    /*
-     * Inherit docs, not using onDisable because it only gets fired
-     * when the component is rendered.
-     */
-    disable: function(silent) {
-        this.callParent(arguments);
-        this.form.getFields().each(function(field) {
-            field.disable();
-        });
-    },
-
-    /*
-     * Inherit docs, not using onEnable because it only gets fired
-     * when the component is rendered.
-     */
-    enable: function(silent) {
-        this.callParent(arguments);
-        this.form.getFields().each(function(field) {
-            field.enable();
-        });
-    },
-
     /**
      * Start an interval task to continuously poll all the fields in the form for changes in their
      * values. This is normally started automatically by setting the {@link #pollForChanges} config.
@@ -294,7 +306,7 @@ Ext.define('Ext.form.Panel', {
      */
     startPolling: function(interval) {
         this.stopPolling();
-        var task = Ext.create('Ext.util.TaskRunner', interval);
+        var task = new Ext.util.TaskRunner(interval);
         task.start({
             interval: 0,
             run: this.checkChange,
@@ -319,9 +331,13 @@ Ext.define('Ext.form.Panel', {
      * {@link Ext.form.field.Field#checkChange check if its value has changed}.
      */
     checkChange: function() {
-        this.form.getFields().each(function(field) {
-            field.checkChange();
-        });
+        var fields = this.form.getFields().items,
+            f,
+            fLen   = fields.length,
+            field;
+
+        for (f = 0; f < fLen; f++) {
+            fields[f].checkChange();
+        }
     }
 });
-

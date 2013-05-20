@@ -1,23 +1,8 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Don Griffin
- * @class Ext.ux.ajax.SimXhr
  *
  * Simulates an XMLHttpRequest object's methods and properties but is backed by a
- * {@link Simlet} instance that provides the data.
+ * {@link Ext.ux.ajax.Simlet} instance that provides the data.
  */
 Ext.define('Ext.ux.ajax.SimXhr', {
     readyState: 0,
@@ -106,10 +91,17 @@ Ext.define('Ext.ux.ajax.SimXhr', {
     onreadystatechange: Ext.emptyFn,
 
     onComplete: function () {
-        var me = this;
+        var me = this,
+            callback;
 
         me.readyState = 4;
         Ext.apply(me, me.simlet.exec(me));
+
+        callback = me.jsonpCallback;
+        if (callback) {
+            var text = callback + '(' + me.responseText + ')';
+            eval(text);
+        }
     },
 
     onTick: function () {
@@ -120,4 +112,3 @@ Ext.define('Ext.ux.ajax.SimXhr', {
         me.onreadystatechange();
     }
 });
-

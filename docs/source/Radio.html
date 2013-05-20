@@ -194,22 +194,29 @@ Ext.define('Ext.form.field.Radio', {
     alternateClassName: 'Ext.form.Radio',
     requires: ['Ext.form.RadioManager'],
 
+<span id='Ext-form-field-Radio-property-isRadio'>    /**
+</span>     * @property {Boolean} isRadio
+     * `true` in this class to identify an object as an instantiated Radio, or subclass thereof.
+     */
     isRadio: true,
 
 <span id='Ext-form-field-Radio-cfg-uncheckedValue'>    /**
-</span>     * @cfg {String} uncheckedValue @hide
+</span>     * @cfg {String} uncheckedValue
+     * @private
      */
 
     // private
     inputType: 'radio',
     ariaRole: 'radio',
+    
+    formId: null,
 
 <span id='Ext-form-field-Radio-method-getGroupValue'>    /**
 </span>     * If this radio is part of a group, it will return the selected value
      * @return {String}
      */
     getGroupValue: function() {
-        var selected = this.getManager().getChecked(this.name);
+        var selected = this.getManager().getChecked(this.name, this.getFormId());
         return selected ? selected.inputValue : null;
     },
 
@@ -221,6 +228,11 @@ Ext.define('Ext.form.field.Radio', {
         if (!me.disabled &amp;&amp; !me.readOnly) {
             this.setValue(true);
         }
+    },
+    
+    onRemoved: function(){
+        this.callParent(arguments);
+        this.formId = null;
     },
 
 <span id='Ext-form-field-Radio-method-setValue'>    /**
@@ -236,7 +248,7 @@ Ext.define('Ext.form.field.Radio', {
         if (Ext.isBoolean(v)) {
             me.callParent(arguments);
         } else {
-            active = me.getManager().getWithValue(me.name, v).getAt(0);
+            active = me.getManager().getWithValue(me.name, v, me.getFormId()).getAt(0);
             if (active) {
                 active.setValue(true);
             }
@@ -258,15 +270,22 @@ Ext.define('Ext.form.field.Radio', {
 
     // inherit docs
     onChange: function(newVal, oldVal) {
-        var me = this;
+        var me = this,
+            r, rLen, radio, radios;
+
         me.callParent(arguments);
 
         if (newVal) {
-            this.getManager().getByName(me.name).each(function(item){
-                if (item !== me) {
-                    item.setValue(false);
+            radios = me.getManager().getByName(me.name, me.getFormId()).items;
+            rLen   = radios.length;
+
+            for (r = 0; r &lt; rLen; r++) {
+                radio = radios[r];
+
+                if (radio !== me) {
+                    radio.setValue(false);
                 }
-            }, me);
+            }
         }
     },
 

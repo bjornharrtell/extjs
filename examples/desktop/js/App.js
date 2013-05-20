@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /*!
  * Ext JS Library 4.0
  * Copyright(c) 2006-2011 Sencha Inc.
@@ -99,20 +85,29 @@ Ext.define('Ext.ux.desktop.App', {
      * then modify the returned object before returning it.
      */
     getStartConfig: function () {
-        var me = this, cfg = {
-            app: me,
-            menu: []
-        };
+        var me = this,
+            cfg = {
+                app: me,
+                menu: []
+            },
+            launcher;
 
         Ext.apply(cfg, me.startConfig);
 
         Ext.each(me.modules, function (module) {
-            if (module.launcher) {
+            launcher = module.launcher;
+            if (launcher) {
+                launcher.handler = launcher.handler || Ext.bind(me.createWindow, me, [module]);
                 cfg.menu.push(module.launcher);
             }
         });
 
         return cfg;
+    },
+
+    createWindow: function(module) {
+        var window = module.createWindow();
+        window.show();
     },
 
     /**
@@ -170,4 +165,3 @@ Ext.define('Ext.ux.desktop.App', {
         }
     }
 });
-

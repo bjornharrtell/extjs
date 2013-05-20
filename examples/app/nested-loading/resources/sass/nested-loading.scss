@@ -39,6 +39,10 @@ $review-background-color: lighten($highlight-background-color, 20);
  * Sidebar
  */
 .sidebar-list {
+    .product {
+        cursor: pointer;
+    }
+
     //border-right: 1px solid $panel-border-color !important;
     
     background: $sidebar-background-color;

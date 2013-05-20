@@ -1,19 +1,25 @@
 /**
- * @var {string} $prefix 
- * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your 
+ * @class Global_CSS
+ *
+ * Global CSS variables and mixins of Sencha Touch.
+ */
+
+/**
+ * @var {string} $prefix
+ * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your
  * JavaScript application.
  */
 $prefix: 'x-' !default;
 
 /**
- * @var {string} $theme-name 
+ * @var {string} $theme-name
  * The name of the theme. This must match the the output directory of the images.
  * (defaults to 'default')
  */
 $theme-name: 'default' !default;
 
 /**
- * @var {boolean/string} $relative-image-path-for-uis 
+ * @var {boolean/string} $relative-image-path-for-uis
  * True to use a relative image path for all new UIs. If true, the path will be "../images/".
  * It can also be a string of the path value.
  * It defaults to false, which means it will look for the images in the ExtJS SDK folder.
@@ -23,7 +29,7 @@ $relative-image-path-for-uis: false !default;
 $color: #000 !default;
 
 /**
- * @var {string} $font-family 
+ * @var {string} $font-family
  * The default font-family to be used throughout the theme.
  */
 $font-family: tahoma,arial,verdana,sans-serif !default;
@@ -31,7 +37,7 @@ $font-family: tahoma,arial,verdana,sans-serif !default;
 $font-size  : 12px !default;
 
 /**
- * @var {string} $base-gradient 
+ * @var {string} $base-gradient
  * The base gradient to be used throughout the theme.
  */
 $base-gradient: 'matte' !default;

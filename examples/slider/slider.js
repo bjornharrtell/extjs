@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.slider.*');
 
 Ext.onReady(function(){
@@ -36,6 +22,19 @@ Ext.onReady(function(){
         maxValue: 100
     });
 
+    // This Should allow values 65, 67, 69, 71, 73 and 75
+    // The initial value of 66 should get normalized to 67
+    // The max value of 74 will also be normalized to 75.
+    Ext.create('Ext.slider.Single', {
+        renderTo: 'increment-slider-minValue',
+        hideLabel: true,
+        width: 214,
+        value: 66,
+        increment: 2,
+        minValue: 65,
+        maxValue: 74
+    });
+
     Ext.create('Ext.slider.Single', {
         renderTo: 'vertical-slider',
         hideLabel: true,
@@ -53,8 +52,6 @@ Ext.onReady(function(){
         minValue: 0,
         maxValue: 100
     });
-
-
 
     Ext.create('Ext.slider.Single', {
         renderTo: 'custom-tip-slider',
@@ -96,4 +93,3 @@ Ext.onReady(function(){
         values: [10, 50, 90]
     });
 });
-

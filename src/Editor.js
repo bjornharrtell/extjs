@@ -1,50 +1,31 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.Editor
- * @extends Ext.Component
- *
- * <p>
  * The Editor class is used to provide inline editing for elements on the page. The editor
  * is backed by a {@link Ext.form.field.Field} that will be displayed to edit the underlying content.
  * The editor is a floating Component, when the editor is shown it is automatically aligned to
  * display over the top of the bound element it is editing. The Editor contains several options
  * for how to handle key presses:
- * <ul>
- * <li>{@link #completeOnEnter}</li>
- * <li>{@link #cancelOnEsc}</li>
- * <li>{@link #swallowKeys}</li>
- * </ul>
+ *
+ * - {@link #completeOnEnter}
+ * - {@link #cancelOnEsc}
+ * - {@link #swallowKeys}
+ *
  * It also has options for how to use the value once the editor has been activated:
- * <ul>
- * <li>{@link #revertInvalid}</li>
- * <li>{@link #ignoreNoChange}</li>
- * <li>{@link #updateEl}</li>
- * </ul>
+ *
+ * - {@link #revertInvalid}
+ * - {@link #ignoreNoChange}
+ * - {@link #updateEl}
+ *
  * Sample usage:
- * </p>
- * <pre><code>
-var editor = new Ext.Editor({
-    updateEl: true, // update the innerHTML of the bound element when editing completes
-    field: {
-        xtype: 'textfield'
-    }
-});
-var el = Ext.get('my-text'); // The element to 'edit'
-editor.startEdit(el); // The value of the field will be taken as the innerHTML of the element.
- * </code></pre>
+ *
+ *     var editor = new Ext.Editor({
+ *         updateEl: true, // update the innerHTML of the bound element when editing completes
+ *         field: {
+ *             xtype: 'textfield'
+ *         }
+ *     });
+ *     var el = Ext.get('my-text'); // The element to 'edit'
+ *     editor.startEdit(el); // The value of the field will be taken as the innerHTML of the element.
+ *
  * {@img Ext.Editor/Ext.Editor.png Ext.Editor component}
  *
  */
@@ -52,15 +33,15 @@ Ext.define('Ext.Editor', {
 
     /* Begin Definitions */
 
-    extend: 'Ext.Component',
+    extend: 'Ext.container.Container',
 
     alias: 'widget.editor',
 
-    requires: ['Ext.layout.component.Editor'],
+    requires: ['Ext.layout.container.Editor'],
 
     /* End Definitions */
 
-   componentLayout: 'editor',
+   layout: 'editor',
 
     /**
     * @cfg {Ext.form.field.Field} field
@@ -81,19 +62,18 @@ Ext.define('Ext.Editor', {
      * 'field'. If a dimension is not specified, it will use the underlying height/width specified on
      * the editor object.
      * Examples:
-     * <pre><code>
-autoSize: true // The editor will be sized to the height/width of the field
-
-height: 21,
-autoSize: {
-    width: 'boundEl' // The width will be determined by the width of the boundEl, the height from the editor (21)
-}
-
-autoSize: {
-    width: 'field', // Width from the field
-    height: 'boundEl' // Height from the boundEl
-}
-     * </pre></code>
+     *
+     *     autoSize: true // The editor will be sized to the height/width of the field
+     *
+     *     height: 21,
+     *     autoSize: {
+     *         width: 'boundEl' // The width will be determined by the width of the boundEl, the height from the editor (21)
+     *     }
+     *
+     *     autoSize: {
+     *         width: 'field', // Width from the field
+     *         height: 'boundEl' // Height from the boundEl
+     *     }
      */
 
     /**
@@ -170,8 +150,8 @@ autoSize: {
     updateEl : false,
 
     /**
-     * @cfg {String/HTMLElement/Ext.Element} parentEl
-     * An element to render to. Defaults to the <tt>document.body</tt>.
+     * @cfg {String/HTMLElement/Ext.Element} [parentEl=document.body]
+     * An element to render to.
      */
 
     // private overrides
@@ -189,7 +169,7 @@ autoSize: {
         me.mon(field, {
             scope: me,
             blur: {
-                fn: me.onBlur,
+                fn: me.onFieldBlur,
                 // slight delay to avoid race condition with startEdits (e.g. grid view refresh)
                 delay: 1
             },
@@ -197,11 +177,12 @@ autoSize: {
         });
 
         if (field.grow) {
-            me.mon(field, 'autosize', me.onAutoSize,  me, {delay: 1});
+            me.mon(field, 'autosize', me.onFieldAutosize,  me, {delay: 1});
         }
         me.floating = {
             constrain: me.constrain
         };
+        me.items = field;
 
         me.callParent(arguments);
 
@@ -257,7 +238,7 @@ autoSize: {
              * Fires when any key related to navigation (arrows, tab, enter, esc, etc.) is pressed.  You can check
              * {@link Ext.EventObject#getKey} to determine which key was pressed.
              * @param {Ext.Editor} this
-             * @param {Ext.form.field.Field} The field attached to this editor
+             * @param {Ext.form.field.Field} field The field attached to this editor
              * @param {Ext.EventObject} event The event object
              */
             'specialkey'
@@ -265,20 +246,18 @@ autoSize: {
     },
 
     // private
-    onAutoSize: function(){
-        this.doComponentLayout();
+    onFieldAutosize: function(){
+        this.updateLayout();
     },
 
     // private
-    onRender : function(ct, position) {
+    afterRender : function(ct, position) {
         var me = this,
             field = me.field,
             inputEl = field.inputEl;
 
         me.callParent(arguments);
 
-        field.render(me.el);
-        //field.hide();
         // Ensure the field doesn't get submitted as part of any form
         if (inputEl) {
             inputEl.dom.name = '';
@@ -309,12 +288,12 @@ autoSize: {
                     me.cancelEdit();
                 }
                 if (field.triggerBlur) {
-                    field.triggerBlur();
+                    field.triggerBlur(event);
                 }
             }, 10);
         }
 
-        this.fireEvent('specialkey', this, field, event);
+        me.fireEvent('specialkey', me, field, event);
     },
 
     /**
@@ -329,7 +308,7 @@ autoSize: {
 
         me.completeEdit();
         me.boundEl = Ext.get(el);
-        value = Ext.isDefined(value) ? value : me.boundEl.dom.innerHTML;
+        value = Ext.isDefined(value) ? value : Ext.String.trim(me.boundEl.dom.innerText || me.boundEl.dom.innerHTML);
 
         if (!me.rendered) {
             me.render(me.parentEl || document.body);
@@ -338,8 +317,11 @@ autoSize: {
         if (me.fireEvent('beforestartedit', me, me.boundEl, value) !== false) {
             me.startValue = value;
             me.show();
+            // temporarily suspend events on field to prevent the "change" event from firing when reset() and setValue() are called
+            field.suspendEvents();
             field.reset();
             field.setValue(value);
+            field.resumeEvents();
             me.realign(true);
             field.focus(false, 10);
             if (field.autoSize) {
@@ -356,7 +338,7 @@ autoSize: {
     realign : function(autoSize) {
         var me = this;
         if (autoSize === true) {
-            me.doComponentLayout();
+            me.updateLayout();
         }
         me.alignTo(me.boundEl, me.alignment, me.offsets);
     },
@@ -411,7 +393,7 @@ autoSize: {
         if (me.hideEl !== false) {
             me.boundEl.hide();
         }
-        me.fireEvent("startedit", me.boundEl, me.startValue);
+        me.fireEvent('startedit', me, me.boundEl, me.startValue);
     },
 
     /**
@@ -422,11 +404,15 @@ autoSize: {
     cancelEdit : function(remainVisible) {
         var me = this,
             startValue = me.startValue,
+            field = me.field,
             value;
 
         if (me.editing) {
             value = me.getValue();
+            // temporarily suspend events on field to prevent the "change" event from firing when setValue() is called
+            field.suspendEvents();
             me.setValue(startValue);
+            field.resumeEvents();
             me.hideEdit(remainVisible);
             me.fireEvent('canceledit', me, value, startValue);
         }
@@ -441,12 +427,18 @@ autoSize: {
     },
 
     // private
-    onBlur : function() {
-        var me = this;
+    onFieldBlur : function(field, e) {
+        var me = this,
+            target;
 
-        // selectSameEditor flag allows the same editor to be started without onBlur firing on itself
+        // selectSameEditor flag allows the same editor to be started without onFieldBlur firing on itself
         if(me.allowBlur === true && me.editing && me.selectSameEditor !== true) {
             me.completeEdit();
+        }
+
+        // If the target of the event was focusable, prevent reacquisition of focus by editor owner
+        if (e && Ext.fly(target = e.getTarget()).focusable()) {
+            target.focus();
         }
     },
 
@@ -459,7 +451,9 @@ autoSize: {
             me.completeEdit();
             return;
         }
-        field.blur();
+        if (field.hasFocus) {
+            field.blur();
+        }
         if (field.collapse) {
             field.collapse();
         }

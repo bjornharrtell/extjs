@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A Column definition class which renders boolean data fields.  See the {@link Ext.grid.column.Column#xtype xtype}
  * config option of {@link Ext.grid.column.Column} for more details.
@@ -61,17 +47,21 @@ Ext.define('Ext.grid.column.Boolean', {
     alias: ['widget.booleancolumn'],
     alternateClassName: 'Ext.grid.BooleanColumn',
 
+    //<locale>
     /**
      * @cfg {String} trueText
      * The string returned by the renderer when the column value is not falsey.
      */
     trueText: 'true',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} falseText
      * The string returned by the renderer when the column value is falsey (but not undefined).
      */
     falseText: 'false',
+    //</locale>
 
     /**
      * @cfg {String} undefinedText
@@ -79,20 +69,23 @@ Ext.define('Ext.grid.column.Boolean', {
      */
     undefinedText: '&#160;',
 
-    constructor: function(cfg){
-        this.callParent(arguments);
-        var trueText      = this.trueText,
-            falseText     = this.falseText,
-            undefinedText = this.undefinedText;
+    /**
+     * @cfg renderer
+     * @hide
+     */
+    /**
+     * @cfg scope
+     * @hide
+     */
 
-        this.renderer = function(value){
-            if(value === undefined){
-                return undefinedText;
-            }
-            if(!value || value === 'false'){
-                return falseText;
-            }
-            return trueText;
-        };
+    defaultRenderer: function(value){
+        if (value === undefined) {
+            return this.undefinedText;
+        }
+        
+        if (!value || value === 'false') {
+            return this.falseText;
+        }
+        return this.trueText;
     }
 });

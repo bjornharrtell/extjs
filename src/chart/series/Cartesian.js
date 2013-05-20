@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.series.Cartesian
- * @extends Ext.chart.series.Series
  *
  * Common base class for series implementations which plot values using x/y coordinates.
  */
@@ -47,32 +32,40 @@ Ext.define('Ext.chart.series.Cartesian', {
     yField: null,
 
     /**
-     * @cfg {String} axis
+     * @cfg {String/String[]} axis
      * The position of the axis to bind the values to. Possible values are 'left', 'bottom', 'top' and 'right'.
      * You must explicitly set this value to bind the values of the line series to the ones in the axis, otherwise a
-     * relative scale will be used.
+     * relative scale will be used. For example, if you're using a Scatter or Line series and you'd like to have the
+     * values in the chart relative to the bottom and left axes then `axis` should be `['left', 'bottom']`.
      */
     axis: 'left',
 
     getLegendLabels: function() {
         var me = this,
             labels = [],
-            combinations = me.combinations;
+            fields, i, ln,
+            combinations = me.combinations,
+            title,
+            combo, label0, label1;
 
-        Ext.each([].concat(me.yField), function(yField, i) {
-            var title = me.title;
+        fields = [].concat(me.yField);
+        for (i = 0, ln = fields.length; i < ln; i++) {
+            title = me.title;
             // Use the 'title' config if present, otherwise use the raw yField name
-            labels.push((Ext.isArray(title) ? title[i] : title) || yField);
-        });
+            labels.push((Ext.isArray(title) ? title[i] : title) || fields[i]);
+        }
 
         // Handle yFields combined via legend drag-drop
+        // TODO need to check to see if this is supported in extjs 4 branch
         if (combinations) {
-            Ext.each(combinations, function(combo) {
-                var label0 = labels[combo[0]],
-                    label1 = labels[combo[1]];
+            combinations = Ext.Array.from(combinations);
+            for (i = 0, ln = combinations.length; i < ln; i++) {
+                combo = combinations[i];
+                label0 = labels[combo[0]];
+                label1 = labels[combo[1]];
                 labels[combo[1]] = label0 + ' & ' + label1;
                 labels.splice(combo[0], 1);
-            });
+            }
         }
 
         return labels;
@@ -87,9 +80,14 @@ Ext.define('Ext.chart.series.Cartesian', {
      * @param {Object} scope
      */
     eachYValue: function(record, fn, scope) {
-        Ext.each(this.getYValueAccessors(), function(accessor, i) {
+        var me = this,
+            yValueAccessors = me.getYValueAccessors(),
+            i, ln, accessor;
+        
+        for (i = 0, ln = yValueAccessors.length; i < ln; i++) {
+            accessor = yValueAccessors[i];
             fn.call(scope, accessor(record), i);
-        });
+        }
     },
 
     /**
@@ -131,14 +129,18 @@ Ext.define('Ext.chart.series.Cartesian', {
      */
     getYValueAccessors: function() {
         var me = this,
-            accessors = me.yValueAccessors;
+            accessors = me.yValueAccessors,
+            yFields, yField, i, ln;
         if (!accessors) {
             accessors = me.yValueAccessors = [];
-            Ext.each([].concat(me.yField), function(yField) {
+            yFields = [].concat(me.yField);
+            
+            for (i = 0, ln = yFields.length; i < ln; i++) {
+                yField = yFields[i];
                 accessors.push(function(record) {
                     return record.get(yField);
                 });
-            });
+            }
         }
         return accessors;
     },
@@ -149,21 +151,28 @@ Ext.define('Ext.chart.series.Cartesian', {
      */
     getMinMaxXValues: function() {
         var me = this,
+            chart = me.chart,
+            store = chart.getChartStore(),
+            data = store.data.items,
+            i, ln, record,
             min, max,
-            xField = me.xField;
+            xField = me.xField,
+            xValue;
 
         if (me.getRecordCount() > 0) {
             min = Infinity;
             max = -min;
-            me.eachRecord(function(record) {
-                var xValue = record.get(xField);
+                
+            for (i = 0, ln = data.length; i < ln; i++) {
+                record = data[i];
+                xValue = record.get(xField);
                 if (xValue > max) {
                     max = xValue;
                 }
                 if (xValue < min) {
                     min = xValue;
                 }
-            });
+            }
         } else {
             min = max = 0;
         }
@@ -177,6 +186,10 @@ Ext.define('Ext.chart.series.Cartesian', {
      */
     getMinMaxYValues: function() {
         var me = this,
+            chart = me.chart,
+            store = chart.getChartStore(),
+            data = store.data.items,
+            i, ln, record,
             stacked = me.stacked,
             min, max,
             positiveTotal, negativeTotal;
@@ -205,7 +218,9 @@ Ext.define('Ext.chart.series.Cartesian', {
         if (me.getRecordCount() > 0) {
             min = Infinity;
             max = -min;
-            me.eachRecord(function(record) {
+            
+            for (i = 0, ln = data.length; i < ln; i++) {
+                record = data[i];
                 if (stacked) {
                     positiveTotal = 0;
                     negativeTotal = 0;
@@ -219,7 +234,7 @@ Ext.define('Ext.chart.series.Cartesian', {
                 } else {
                     me.eachYValue(record, eachYValue);
                 }
-            });
+            }
         } else {
             min = max = 0;
         }
@@ -230,33 +245,80 @@ Ext.define('Ext.chart.series.Cartesian', {
         var me = this,
             axes = me.chart.axes,
             axis = [].concat(me.axis),
-            xAxis, yAxis;
+            yFields = {}, yFieldList = [].concat(me.yField),
+            xFields = {}, xFieldList = [].concat(me.xField),
+            fields, xAxis, yAxis, i, ln, flipXY;
 
+        
+        flipXY = me.type === 'bar' && me.column === false;
+        if(flipXY) {
+            fields = yFieldList;
+            yFieldList = xFieldList;
+            xFieldList = fields;
+        }
         if (Ext.Array.indexOf(axis, 'top') > -1) {
             xAxis = 'top';
         } else if (Ext.Array.indexOf(axis, 'bottom') > -1) {
             xAxis = 'bottom';
         } else {
-            if (axes.get('top')) {
+            if (axes.get('top') && axes.get('bottom')) {
+                for (i = 0, ln = xFieldList.length; i < ln; i++) {
+                    xFields[xFieldList[i]] = true;
+                }
+                fields = [].concat(axes.get('bottom').fields);
+                for (i = 0, ln = fields.length; i < ln; i++) {
+                    if (xFields[fields[i]]) {
+                        xAxis = 'bottom';
+                        break
+                    }
+                }
+                fields = [].concat(axes.get('top').fields);
+                for (i = 0, ln = fields.length; i < ln; i++) {
+                    if (xFields[fields[i]]) {
+                        xAxis = 'top';
+                        break
+                    }
+                }
+            } else if (axes.get('top')) {
                 xAxis = 'top';
             } else if (axes.get('bottom')) {
                 xAxis = 'bottom';
             }
         }
-
         if (Ext.Array.indexOf(axis, 'left') > -1) {
             yAxis = 'left';
         } else if (Ext.Array.indexOf(axis, 'right') > -1) {
             yAxis = 'right';
         } else {
-            if (axes.get('left')) {
+            if (axes.get('left') && axes.get('right')) {
+                for (i = 0, ln = yFieldList.length; i < ln; i++) {
+                    yFields[yFieldList[i]] = true;
+                }
+                fields = [].concat(axes.get('right').fields);
+                for (i = 0, ln = fields.length; i < ln; i++) {
+                    if (yFields[fields[i]]) {
+
+                        break
+                    }
+                }
+                fields = [].concat(axes.get('left').fields);
+                for (i = 0, ln = fields.length; i < ln; i++) {
+                    if (yFields[fields[i]]) {
+                        yAxis = 'left';
+                        break
+                    }
+                }
+            } else if (axes.get('left')) {
                 yAxis = 'left';
             } else if (axes.get('right')) {
                 yAxis = 'right';
             }
         }
 
-        return {
+        return flipXY ? {
+            xAxis: yAxis,
+            yAxis: xAxis
+        }: {
             xAxis: xAxis,
             yAxis: yAxis
         };
@@ -264,4 +326,3 @@ Ext.define('Ext.chart.series.Cartesian', {
 
 
 });
-

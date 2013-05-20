@@ -17,7 +17,6 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-direct-PollingProvider'>/**
 </span> * @class Ext.direct.PollingProvider
- * @extends Ext.direct.JsonProvider
  *
  * &lt;p&gt;Provides for repetitive polling of the server at distinct {@link #interval intervals}.
  * The initial request for data originates from the client, and then is responded to by the
@@ -163,9 +162,9 @@ Ext.define('Ext.direct.PollingProvider', {
                 me.fireEvent('data', me, events[i]);
             }
         } else {
-            me.fireEvent('data', me, Ext.create('Ext.direct.ExceptionEvent', {
+            me.fireEvent('data', me, new Ext.direct.ExceptionEvent({
                 data: null,
-                code: Ext.direct.Manager.self.exceptions.TRANSPORT,
+                code: Ext.direct.Manager.exceptions.TRANSPORT,
                 message: 'Unable to connect to the server.',
                 xhr: response
             }));

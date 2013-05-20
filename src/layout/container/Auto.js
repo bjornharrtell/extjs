@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.layout.container.Auto
- * @extends Ext.layout.container.Container
  *
  * The AutoLayout is the default layout manager delegated by {@link Ext.container.Container} to
  * render any child Components when no `{@link Ext.container.Container#layout layout}` is configured into
@@ -54,39 +39,32 @@ Ext.define('Ext.layout.container.Auto', {
 
     type: 'autocontainer',
 
-    bindToOwnerCtComponent: true,
+    childEls: [
+        'clearEl'
+    ],
 
-    // @private
-    onLayout : function(owner, target) {
+    renderTpl: [
+        '{%this.renderBody(out,values)%}',
+        // clear element is needed to prevent the bottom margins of the last child element from collapsing
+        '<div id="{ownerId}-clearEl" class="', Ext.baseCSSPrefix, 'clear" role="presentation"></div>'
+    ],
+
+    // TODO - do we need to clear sizes in beginLayout?
+
+    calculate: function(ownerContext) {
         var me = this,
-            items = me.getLayoutItems(),
-            ln = items.length,
-            i;
+            containerSize;
 
-        // Ensure the Container is only primed with the clear element if there are child items.
-        if (ln) {
-            // Auto layout uses natural HTML flow to arrange the child items.
-            // To ensure that all browsers (I'm looking at you IE!) add the bottom margin of the last child to the
-            // containing element height, we create a zero-sized element with style clear:both to force a "new line"
-            if (!me.clearEl) {
-                me.clearEl = me.getRenderTarget().createChild({
-                    cls: Ext.baseCSSPrefix + 'clear',
-                    role: 'presentation'
-                });
+        if (!ownerContext.hasDomProp('containerChildrenDone')) {
+            me.done = false;
+        } else {
+            // Once the child layouts are done we can determine the content sizes...
+            containerSize = me.getContainerSize(ownerContext);
+            if (!containerSize.gotAll) {
+                me.done = false;
             }
 
-            // Auto layout allows CSS to size its child items.
-            for (i = 0; i < ln; i++) {
-                me.setItemSize(items[i]);
-            }
+            me.calculateContentSize(ownerContext);
         }
-    },
-
-    configureItem: function(item) {
-        this.callParent(arguments);
-
-        // Auto layout does not manage any dimensions.
-        item.layoutManagedHeight = 2;
-        item.layoutManagedWidth = 2;
     }
 });

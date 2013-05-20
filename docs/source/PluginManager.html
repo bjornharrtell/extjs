@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-PluginManager'>/**
-</span> * @singleton
- *
- * Provides a registry of available Plugin classes indexed by a mnemonic code known as the Plugin's ptype.
+</span> * Provides a registry of available Plugin classes indexed by a mnemonic code known as the Plugin's ptype.
  *
  * A plugin may be specified simply as a *config object* as long as the correct `ptype` is specified:
  *
@@ -33,8 +31,7 @@
  *
  * Alternatively you can instantiate the plugin with Ext.create:
  *
- *     Ext.create('Ext.view.plugin.AutoComplete', {
- *         ptype: 'gridviewdragdrop',
+ *     Ext.create('Ext.grid.plugin.DragDrop', {
  *         dragText: 'Drag and drop to reorganize'
  *     })
  */
@@ -52,6 +49,22 @@ Ext.define('Ext.PluginManager', {
      * contain a `ptype`. (Optional if the config contains a `ptype`).
      * @return {Ext.Component} The newly instantiated Plugin.
      */
+    create : function(config, defaultType){
+        if (config.init) {
+            return config;
+        } else {
+            return Ext.createByAlias('plugin.' + (config.ptype || defaultType), config);
+        }
+
+        // Prior system supported Singleton plugins.
+        //var PluginCls = this.types[config.ptype || defaultType];
+        //if (PluginCls.init) {
+        //    return PluginCls;
+        //} else {
+        //    return new PluginCls(config);
+        //}
+    },
+
     //create: function(plugin, defaultType) {
     //    if (plugin instanceof this) {
     //        return plugin;
@@ -70,22 +83,6 @@ Ext.define('Ext.PluginManager', {
     //    }
     //},
 
-    create : function(config, defaultType){
-        if (config.init) {
-            return config;
-        } else {
-            return Ext.createByAlias('plugin.' + (config.ptype || defaultType), config);
-        }
-
-        // Prior system supported Singleton plugins.
-        //var PluginCls = this.types[config.ptype || defaultType];
-        //if (PluginCls.init) {
-        //    return PluginCls;
-        //} else {
-        //    return new PluginCls(config);
-        //}
-    },
-
 <span id='Ext-PluginManager-method-findByType'>    /**
 </span>     * Returns all plugins registered with the given type. Here, 'type' refers to the type of plugin, not its ptype.
      * @param {String} type The type to search for
@@ -95,13 +92,15 @@ Ext.define('Ext.PluginManager', {
      */
     findByType: function(type, defaultsOnly) {
         var matches = [],
-            types   = this.types;
+            types   = this.types,
+            name,
+            item;
 
-        for (var name in types) {
+        for (name in types) {
             if (!types.hasOwnProperty(name)) {
                 continue;
             }
-            var item = types[name];
+            item = types[name];
 
             if (item.type == type &amp;&amp; (!defaultsOnly || (defaultsOnly === true &amp;&amp; item.isDefault))) {
                 matches.push(item);

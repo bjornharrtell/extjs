@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.resizer.ResizeTracker
- * @extends Ext.dd.DragTracker
  * Private utility class for Ext.resizer.Resizer.
  * @private
  */
@@ -29,7 +13,9 @@ Ext.define('Ext.resizer.ResizeTracker', {
     proxyCls:  Ext.baseCSSPrefix + 'resizable-proxy',
 
     constructor: function(config) {
-        var me = this;
+        var me = this,
+            widthRatio, heightRatio,
+            throttledResizeFn;
 
         if (!config.el) {
             if (config.target.isComponent) {
@@ -42,8 +28,8 @@ Ext.define('Ext.resizer.ResizeTracker', {
 
         // Ensure that if we are preserving aspect ratio, the largest minimum is honoured
         if (me.preserveRatio && me.minWidth && me.minHeight) {
-            var widthRatio = me.minWidth / me.el.getWidth(),
-                heightRatio = me.minHeight / me.el.getHeight();
+            widthRatio = me.minWidth / me.el.getWidth();
+            heightRatio = me.minHeight / me.el.getHeight();
 
             // largest ratio of minimum:size must be preserved.
             // So if a 400x200 pixel image has
@@ -58,7 +44,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
         // If configured as throttled, create an instance version of resize which calls
         // a throttled function to perform the resize operation.
         if (me.throttle) {
-            var throttledResizeFn = Ext.Function.createThrottled(function() {
+            throttledResizeFn = Ext.Function.createThrottled(function() {
                     Ext.resizer.ResizeTracker.prototype.resize.apply(me, arguments);
                 }, me.throttle);
 
@@ -111,7 +97,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
             renderTo = Ext.getBody();
             if (Ext.scopeResetCSS) {
                 renderTo = Ext.getBody().createChild({
-                    cls: Ext.baseCSSPrefix + 'reset'
+                    cls: Ext.resetCls
                 });
             }
             proxy = target.createProxy({
@@ -126,7 +112,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
 
     onStart: function(e) {
         // returns the Ext.ResizeHandle that the user started dragging
-        this.activeResizeHandle = Ext.getCmp(this.getDragTarget().id);
+        this.activeResizeHandle = Ext.get(this.getDragTarget().id);
 
         // If we are using a proxy, ensure it is sized.
         if (!this.dynamic) {
@@ -160,7 +146,9 @@ Ext.define('Ext.resizer.ResizeTracker', {
             horizDir = offset[0] < 0 ? 'right' : 'left',
             vertDir = offset[1] < 0 ? 'down' : 'up',
             oppositeCorner,
-            axis; // 1 = x, 2 = y, 3 = x and y.
+            axis, // 1 = x, 2 = y, 3 = x and y.
+            newBox,
+            newHeight, newWidth;
 
         switch (region) {
             case 'south':
@@ -211,7 +199,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
                 break;
         }
 
-        var newBox = {
+        newBox = {
             width: box.width + widthAdjust,
             height: box.height + heightAdjust,
             x: box.x + adjustX,
@@ -267,9 +255,6 @@ Ext.define('Ext.resizer.ResizeTracker', {
 
         // If this is configured to preserve the aspect ratio, or they are dragging using the shift key
         if (me.preserveRatio || e.shiftKey) {
-            var newHeight,
-                newWidth;
-
             ratio = me.startBox.width / me.startBox.height;
 
             // Calculate aspect ratio constrained values.
@@ -330,15 +315,24 @@ Ext.define('Ext.resizer.ResizeTracker', {
     resize: function(box, direction, atEnd) {
         var target = this.getResizeTarget(atEnd);
         if (target.isComponent) {
+            target.setSize(box.width, box.height);
             if (target.floating) {
                 target.setPagePosition(box.x, box.y);
             }
-            target.setSize(box.width, box.height);
         } else {
             target.setBox(box);
-            // update the originalTarget if this was wrapped.
-            if (this.originalTarget) {
-                this.originalTarget.setBox(box);
+        }
+
+        // update the originalTarget if it was wrapped, and the target passed in was the wrap el.
+        target = this.originalTarget;
+        if (target && (this.dynamic || atEnd)) {
+            if (target.isComponent) {
+                target.setSize(box.width, box.height);
+                if (target.floating) {
+                    target.setPagePosition(box.x, box.y);
+                }
+            } else {
+                target.setBox(box);
             }
         }
     },
@@ -350,4 +344,3 @@ Ext.define('Ext.resizer.ResizeTracker', {
         }
     }
 });
-

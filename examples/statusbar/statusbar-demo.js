@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.Loader.setConfig({
     enabled: true
 });
@@ -55,7 +41,7 @@ Ext.onReady(function(){
         renderTo: 'basic',
         width: 550,
         height: 100,
-        bodyStyle: 'padding:10px;',
+        bodyPadding: 10,
         items:[{
             xtype: 'button',
             id: 'basic-button',
@@ -119,7 +105,7 @@ Ext.onReady(function(){
         renderTo: 'right-aligned',
         width: 550,
         height: 100,
-        bodyStyle: 'padding:10px;',
+        bodyPadding: 10,
         items:[{
             xtype: 'button',
             id: 'right-button',
@@ -146,7 +132,7 @@ Ext.onReady(function(){
         height: 150,
         modal: true,
         closeAction: 'hide',
-        bodyStyle: 'padding:10px;',
+        bodyPadding: 10,
         items:[{
             xtype: 'button',
             id: 'win-button',
@@ -197,8 +183,7 @@ Ext.onReady(function(){
         title: 'Ext Word Processor',
         renderTo: 'word-proc',
         width: 500,
-        autoHeight: true,
-        bodyStyle: 'padding:5px;',
+        bodyPadding: 5,
         layout: 'fit',
         bbar: Ext.create('Ext.ux.StatusBar', {
             id: 'word-status',
@@ -270,4 +255,3 @@ Ext.onReady(function(){
     }, null, {buffer: 1});
 
 });
-

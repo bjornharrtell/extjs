@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.series.Series
  *
@@ -112,8 +98,8 @@ Ext.define('Ext.chart.series.Series', {
      */
     shadowAttributes: null,
 
-    //@private triggerdrawlistener flag
-    triggerAfterDraw: false,
+    // @private animating flag
+    animating: false,
 
     /**
      * @cfg {Object} listeners
@@ -164,6 +150,10 @@ Ext.define('Ext.chart.series.Series', {
             itemmouseout: me.onItemMouseOut,
             mouseleave: me.onMouseLeave
         });
+        
+        if (me.style) {
+            Ext.apply(me.seriesStyle, me.style);
+        }
     },
     
     /**
@@ -227,14 +217,14 @@ Ext.define('Ext.chart.series.Series', {
     onAnimate: function(sprite, attr) {
         var me = this;
         sprite.stopAnimation();
-        if (me.triggerAfterDraw) {
+        if (me.animating) {
             return sprite.animate(Ext.applyIf(attr, me.chart.animate));
         } else {
-            me.triggerAfterDraw = true;
+            me.animating = true;
             return sprite.animate(Ext.apply(Ext.applyIf(attr, me.chart.animate), {
                 listeners: {
                     'afteranimate': function() {
-                        me.triggerAfterDraw = false;
+                        me.animating = false;
                         me.fireEvent('afterrender');
                     }
                 }
@@ -366,6 +356,30 @@ Ext.define('Ext.chart.series.Series', {
         me.drawSeries();
         me.chart.animate = prevAnimate;
     },
+    
+    hide: function() {
+        if (this.items) {
+            var me = this,
+                items = me.items,
+                i, j, lsh, ln, shadows;
+            
+            if (items && items.length) {
+                for (i = 0, ln = items.length; i < ln; ++i) {
+                    if (items[i].sprite) {
+                        items[i].sprite.hide(true);
+
+                        shadows = items[i].shadows || items[i].sprite.shadows;
+                        if (shadows) {
+                            for (j = 0, lsh = shadows.length; j < lsh; ++j) {
+                                shadows[j].hide(true);
+                            }
+                        }
+                    }
+                }
+                me.hideLabels();
+            }
+        }
+    },
 
     /**
      * Returns a string with the color to be used for the series legend item.
@@ -378,9 +392,11 @@ Ext.define('Ext.chart.series.Series', {
             if (fill && fill != 'none') {
                 return fill;
             }
-            return stroke;
+            if(stroke){
+                return stroke;
+            }
         }
-        return '#000';
+        return (me.colorArrayStyle)?me.colorArrayStyle[me.seriesIdx % me.colorArrayStyle.length]:'#000';
     },
 
     /**
@@ -425,4 +441,3 @@ Ext.define('Ext.chart.series.Series', {
         me.fireEvent('titlechange', title, index);
     }
 });
-

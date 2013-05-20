@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.ns('Ext.samples');
 
 (function() {
@@ -35,12 +21,12 @@ Ext.ns('Ext.samples');
                             '<div><h4>{text}',
                                 '<tpl if="this.isNew(values.status)">',
                                     '<span class="new-sample"> (New)</span>',
-                                '</tpl>',
-                                '<tpl if="this.isUpdated(values.status)">',
+                                '<tpl elseif="this.isUpdated(values.status)">',
                                     '<span class="updated-sample"> (Updated)</span>',
-                                '</tpl>',
-                                '<tpl if="this.isExperimental(values.status)">',
+                                '<tpl elseif="this.isExperimental(values.status)">',
                                     '<span class="new-sample"> (Experimental)</span>',
+                                '<tpl elseif="status">',
+                                    '<span class="status"> ({status})</span>',
                                 '</tpl>',
                             '</h4><p>{desc}</p></div>',
                         '</dd>',
@@ -92,15 +78,14 @@ Ext.onReady(function() {
             c.id = 'sample-' + i;
         }
 
-        var store = Ext.create('Ext.data.JsonStore', {
-            idProperty : 'id',
+        var store = Ext.create('Ext.data.Store', {
             fields     : ['id', 'title', 'items'],
             data       : catalog
         });
 
-        var panel = Ext.create('Ext.Panel', {
+        var panel = Ext.create('Ext.panel.Panel', {
             frame      : false,
-            renderTo   : Ext.get('all-demos'),
+            renderTo   : 'all-demos',
             height     : 300,
             autoScroll : true,
             items      : Ext.create('Ext.samples.SamplePanel', {
@@ -113,7 +98,7 @@ Ext.onReady(function() {
         );
         tpl.overwrite('sample-menu', catalog);
 
-        Ext.select('#sample-spacer').remove();
+        Ext.get('sample-spacer').remove();
 
         var headerEl  = Ext.get('hd'),
             footerEl  = Ext.get('ft'),
@@ -173,5 +158,4 @@ Ext.onReady(function() {
 
     },500));
 });
-
 

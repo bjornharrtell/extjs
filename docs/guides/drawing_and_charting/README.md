@@ -501,7 +501,6 @@ A typical configuration object for the area series could be:
         // Add Numeric and Category axis
         axes: [{
             type: 'Numeric',
-            grid: true,
             position: 'left',
             fields: ['data1', 'data2', 'data3'],
             title: 'Number of Hits',

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  *
@@ -69,8 +55,8 @@ Ext.define('Ext.data.proxy.Memory', {
     alternateClassName: 'Ext.data.MemoryProxy',
 
     /**
-     * @cfg {Ext.data.Model[]} data
-     * Optional array of Records to load into the Proxy
+     * @cfg {Object} data
+     * Optional data to pass to configured Reader.
      */
 
     constructor: function(config) {
@@ -78,6 +64,72 @@ Ext.define('Ext.data.proxy.Memory', {
 
         //ensures that the reader has been instantiated properly
         this.setReader(this.reader);
+    },
+    
+    /**
+     * @private
+     * Fake processing function to commit the records, set the current operation
+     * to successful and call the callback if provided. This function is shared
+     * by the create, update and destroy methods to perform the bare minimum
+     * processing required for the proxy to register a result from the action.
+     */
+    updateOperation: function(operation, callback, scope) {
+        var i = 0,
+            recs = operation.getRecords(),
+            len = recs.length;
+            
+        for (i; i < len; i++) {
+            recs[i].commit();
+        }
+        operation.setCompleted();
+        operation.setSuccessful();
+        
+        Ext.callback(callback, scope || this, [operation]);
+    },
+    
+    /**
+     * Currently this is a hard-coded method that simply commits any records and sets the operation to successful,
+     * then calls the callback function, if provided. It is essentially mocking a server call in memory, but since
+     * there is no real back end in this case there's not much else to do. This method can be easily overridden to 
+     * implement more complex logic if needed.
+     * @param {Ext.data.Operation} operation The Operation to perform
+     * @param {Function} callback Callback function to be called when the Operation has completed (whether
+     * successful or not)
+     * @param {Object} scope Scope to execute the callback function in
+     * @method
+     */
+    create: function() {
+        this.updateOperation.apply(this, arguments);
+    },
+    
+    /**
+     * Currently this is a hard-coded method that simply commits any records and sets the operation to successful,
+     * then calls the callback function, if provided. It is essentially mocking a server call in memory, but since
+     * there is no real back end in this case there's not much else to do. This method can be easily overridden to 
+     * implement more complex logic if needed.
+     * @param {Ext.data.Operation} operation The Operation to perform
+     * @param {Function} callback Callback function to be called when the Operation has completed (whether
+     * successful or not)
+     * @param {Object} scope Scope to execute the callback function in
+     * @method
+     */
+    update: function() {
+        this.updateOperation.apply(this, arguments);
+    },
+    
+    /**
+     * Currently this is a hard-coded method that simply commits any records and sets the operation to successful,
+     * then calls the callback function, if provided. It is essentially mocking a server call in memory, but since
+     * there is no real back end in this case there's not much else to do. This method can be easily overridden to 
+     * implement more complex logic if needed.
+     * @param {Ext.data.Operation} operation The Operation to perform
+     * @param {Function} callback Callback function to be called when the Operation has completed (whether
+     * successful or not)
+     * @param {Object} scope Scope to execute the callback function in
+     * @method
+     */
+    destroy: function() {
+        this.updateOperation.apply(this, arguments);
     },
 
     /**
@@ -87,13 +139,9 @@ Ext.define('Ext.data.proxy.Memory', {
      * @param {Object} scope The scope to call the callback function in
      */
     read: function(operation, callback, scope) {
-        var me     = this,
-            reader = me.getReader(),
-            result = reader.read(me.data);
+        var me = this;
 
-        Ext.apply(operation, {
-            resultSet: result
-        });
+        operation.resultSet = me.getReader().read(me.data);
 
         operation.setCompleted();
         operation.setSuccessful();
@@ -102,4 +150,3 @@ Ext.define('Ext.data.proxy.Memory', {
 
     clear: Ext.emptyFn
 });
-

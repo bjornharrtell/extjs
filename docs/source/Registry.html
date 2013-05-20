@@ -16,10 +16,8 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-dd-Registry'>/**
-</span> * @class Ext.dd.Registry
- * Provides easy access to all drag drop components that are registered on a page.  Items can be retrieved either
+</span> * Provides easy access to all drag drop components that are registered on a page. Items can be retrieved either
  * directly by DOM node id, or by passing in the drag drop event that occurred and looking up the event target.
- * @singleton
  */
 Ext.define('Ext.dd.Registry', {
     singleton: true,
@@ -42,20 +40,15 @@ Ext.define('Ext.dd.Registry', {
     },
     
 <span id='Ext-dd-Registry-method-register'>    /**
-</span>     * Resgister a drag drop element
+</span>     * Registers a drag drop element.
+     *
      * @param {String/HTMLElement} element The id or DOM node to register
-     * @param {Object} data (optional) An custom data object that will be passed between the elements that are involved
-     * in drag drop operations.  You can populate this object with any arbitrary properties that your own code
-     * knows how to interpret, plus there are some specific properties known to the Registry that should be
-     * populated in the data object (if applicable):
-     * &lt;pre&gt;
-Value      Description&lt;br /&gt;
----------  ------------------------------------------&lt;br /&gt;
-handles    Array of DOM nodes that trigger dragging&lt;br /&gt;
-           for the element being registered&lt;br /&gt;
-isHandle   True if the element passed in triggers&lt;br /&gt;
-           dragging itself, else false
-&lt;/pre&gt;
+     * @param {Object} data An custom data object that will be passed between the elements that are involved in drag
+     * drop operations. You can populate this object with any arbitrary properties that your own code knows how to
+     * interpret, plus there are some specific properties known to the Registry that should be populated in the data
+     * object (if applicable):
+     * @param {HTMLElement[]} data.handles Array of DOM nodes that trigger dragging for the element being registered.
+     * @param {Boolean} data.isHandle True if the element passed in triggers dragging itself, else false.
      */
     register : function(el, data){
         data = data || {};
@@ -68,8 +61,9 @@ isHandle   True if the element passed in triggers&lt;br /&gt;
             this.handles[data.ddel.id] = data;
         }
         if (data.handles) {
-            var hs = data.handles;
-            for (var i = 0, len = hs.length; i &lt; len; i++) {
+            var hs = data.handles,
+                i, len;
+            for (i = 0, len = hs.length; i &lt; len; i++) {
                 this.handles[this.getId(hs[i])] = data;
             }
         }
@@ -80,13 +74,14 @@ isHandle   True if the element passed in triggers&lt;br /&gt;
      * @param {String/HTMLElement} element The id or DOM node to unregister
      */
     unregister : function(el){
-        var id = this.getId(el, false);
-        var data = this.elements[id];
+        var id = this.getId(el, false),
+            data = this.elements[id],
+            hs, i, len;
         if(data){
             delete this.elements[id];
             if(data.handles){
-                var hs = data.handles;
-                for (var i = 0, len = hs.length; i &lt; len; i++) {
+                hs = data.handles;
+                for (i = 0, len = hs.length; i &lt; len; i++) {
                     delete this.handles[this.getId(hs[i], false)];
                 }
             }

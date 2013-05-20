@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.direct.PollingProvider
- * @extends Ext.direct.JsonProvider
  *
  * <p>Provides for repetitive polling of the server at distinct {@link #interval intervals}.
  * The initial request for data originates from the client, and then is responded to by the
@@ -160,9 +145,9 @@ Ext.define('Ext.direct.PollingProvider', {
                 me.fireEvent('data', me, events[i]);
             }
         } else {
-            me.fireEvent('data', me, Ext.create('Ext.direct.ExceptionEvent', {
+            me.fireEvent('data', me, new Ext.direct.ExceptionEvent({
                 data: null,
-                code: Ext.direct.Manager.self.exceptions.TRANSPORT,
+                code: Ext.direct.Manager.exceptions.TRANSPORT,
                 message: 'Unable to connect to the server.',
                 xhr: response
             }));

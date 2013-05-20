@@ -1,21 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.grid.property.Grid
- * @extends Ext.grid.Panel
- *
  * A specialized grid implementation intended to mimic the traditional property grid as typically seen in
  * development IDEs.  Each row in the grid represents a property of some object, and the data is stored
  * as a set of name/value pairs in {@link Ext.grid.property.Property Properties}.  Example usage:
@@ -29,7 +12,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *             "(name)": "My Object",
  *             "Created": Ext.Date.parse('10/15/2006', 'm/d/Y'),
  *             "Available": false,
- *             "Version": .01,
+ *             "Version": 0.01,
  *             "Description": "A test object"
  *         }
  *     });
@@ -50,90 +33,89 @@ Ext.define('Ext.grid.property.Grid', {
        'Ext.grid.CellEditor',
        'Ext.form.field.Date',
        'Ext.form.field.Text',
-       'Ext.form.field.Number'
+       'Ext.form.field.Number',
+       'Ext.form.field.ComboBox'
     ],
 
    /**
-    * @cfg {Object} propertyNames An object containing custom property name/display name pairs.
+    * @cfg {Object} propertyNames
+    * An object containing custom property name/display name pairs.
     * If specified, the display name will be shown in the name column instead of the property name.
     */
 
     /**
-    * @cfg {Object} source A data object to use as the data source of the grid (see {@link #setSource} for details).
-    */
+     * @cfg {Object} source
+     * A data object to use as the data source of the grid (see {@link #setSource} for details).
+     */
 
     /**
-    * @cfg {Object} customEditors An object containing name/value pairs of custom editor type definitions that allow
-    * the grid to support additional types of editable fields.  By default, the grid supports strongly-typed editing
-    * of strings, dates, numbers and booleans using built-in form editors, but any custom type can be supported and
-    * associated with a custom input control by specifying a custom editor.  The name of the editor
-    * type should correspond with the name of the property that will use the editor.  Example usage:
-    * <pre><code>
-var grid = new Ext.grid.property.Grid({
-
-    // Custom editors for certain property names
-    customEditors: {
-        evtStart: Ext.create('Ext.form.TimeField' {selectOnFocus:true})
-    },
-
-    // Displayed name for property names in the source
-    propertyNames: {
-        evtStart: 'Start Time'
-    },
-
-    // Data object containing properties to edit
-    source: {
-        evtStart: '10:00 AM'
-    }
-});
-</code></pre>
-    */
-
-    /**
-    * @cfg {Object} source A data object to use as the data source of the grid (see {@link #setSource} for details).
-    */
+     * @cfg {Object} customEditors
+     * An object containing name/value pairs of custom editor type definitions that allow
+     * the grid to support additional types of editable fields.  By default, the grid supports strongly-typed editing
+     * of strings, dates, numbers and booleans using built-in form editors, but any custom type can be supported and
+     * associated with a custom input control by specifying a custom editor.  The name of the editor
+     * type should correspond with the name of the property that will use the editor.  Example usage:
+     *
+     *     var grid = new Ext.grid.property.Grid({
+     *
+     *         // Custom editors for certain property names
+     *         customEditors: {
+     *             evtStart: Ext.create('Ext.form.TimeField', {selectOnFocus: true})
+     *         },
+     *
+     *         // Displayed name for property names in the source
+     *         propertyNames: {
+     *             evtStart: 'Start Time'
+     *         },
+     *
+     *         // Data object containing properties to edit
+     *         source: {
+     *             evtStart: '10:00 AM'
+     *         }
+     *     });
+     */
 
     /**
-    * @cfg {Object} customRenderers An object containing name/value pairs of custom renderer type definitions that allow
-    * the grid to support custom rendering of fields.  By default, the grid supports strongly-typed rendering
-    * of strings, dates, numbers and booleans using built-in form editors, but any custom type can be supported and
-    * associated with the type of the value.  The name of the renderer type should correspond with the name of the property
-    * that it will render.  Example usage:
-    * <pre><code>
-var grid = Ext.create('Ext.grid.property.Grid', {
-    customRenderers: {
-        Available: function(v){
-            if (v) {
-                return '<span style="color: green;">Yes</span>';
-            } else {
-                return '<span style="color: red;">No</span>';
-            }
-        }
-    },
-    source: {
-        Available: true
-    }
-});
-</code></pre>
-    */
+     * @cfg {Object} customRenderers
+     * An object containing name/value pairs of custom renderer type definitions that allow
+     * the grid to support custom rendering of fields.  By default, the grid supports strongly-typed rendering
+     * of strings, dates, numbers and booleans using built-in form editors, but any custom type can be supported and
+     * associated with the type of the value.  The name of the renderer type should correspond with the name of the property
+     * that it will render.  Example usage:
+     *
+     *     var grid = Ext.create('Ext.grid.property.Grid', {
+     *         customRenderers: {
+     *             Available: function(v){
+     *                 if (v) {
+     *                     return '<span style="color: green;">Yes</span>';
+     *                 } else {
+     *                     return '<span style="color: red;">No</span>';
+     *                 }
+     *             }
+     *         },
+     *         source: {
+     *             Available: true
+     *         }
+     *     });
+     */
 
     /**
      * @cfg {String} valueField
-     * Optional. The name of the field from the property store to use as the value field name. Defaults to <code>'value'</code>
+     * The name of the field from the property store to use as the value field name.
      * This may be useful if you do not configure the property Grid from an object, but use your own store configuration.
      */
     valueField: 'value',
 
     /**
      * @cfg {String} nameField
-     * Optional. The name of the field from the property store to use as the property field name. Defaults to <code>'name'</code>
+     * The name of the field from the property store to use as the property field name.
      * This may be useful if you do not configure the property Grid from an object, but use your own store configuration.
      */
     nameField: 'name',
 
     /**
-     * @cfg {Number} nameColumnWidth
-     * Optional. Specify the width for the name column. The value column will take any remaining space. Defaults to <tt>115</tt>.
+     * @cfg {Number} [nameColumnWidth=115]
+     * Specify the width for the name column. The value column will take any remaining space.
      */
 
     // private config overrides
@@ -152,7 +134,7 @@ var grid = Ext.create('Ext.grid.property.Grid', {
         me.plugins = me.plugins || [];
 
         // Enable cell editing. Inject a custom startEdit which always edits column 1 regardless of which column was clicked.
-        me.plugins.push(Ext.create('Ext.grid.plugin.CellEditing', {
+        me.plugins.push(new Ext.grid.plugin.CellEditing({
             clicksToEdit: me.clicksToEdit,
 
             // Inject a startEdit which always edits the value column
@@ -176,11 +158,13 @@ var grid = Ext.create('Ext.grid.property.Grid', {
 
         // Create a property.Store from the source object unless configured with a store
         if (!me.store) {
-            me.propStore = me.store = Ext.create('Ext.grid.property.Store', me, me.source);
+            me.propStore = me.store = new Ext.grid.property.Store(me, me.source);
         }
 
-        me.store.sort('name', 'ASC');
-        me.columns = Ext.create('Ext.grid.property.HeaderContainer', me, me.store);
+        if (me.sortableColumns) {
+            me.store.sort('name', 'ASC');
+        }
+        me.columns = new Ext.grid.property.HeaderContainer(me, me.store);
 
         me.addEvents(
             /**
@@ -212,10 +196,10 @@ var grid = Ext.create('Ext.grid.property.Grid', {
 
         // Set up our default editor set for the 4 atomic data types
         me.editors = {
-            'date'    : Ext.create('Ext.grid.CellEditor', { field: Ext.create('Ext.form.field.Date',   {selectOnFocus: true})}),
-            'string'  : Ext.create('Ext.grid.CellEditor', { field: Ext.create('Ext.form.field.Text',   {selectOnFocus: true})}),
-            'number'  : Ext.create('Ext.grid.CellEditor', { field: Ext.create('Ext.form.field.Number', {selectOnFocus: true})}),
-            'boolean' : Ext.create('Ext.grid.CellEditor', { field: Ext.create('Ext.form.field.ComboBox', {
+            'date'    : new Ext.grid.CellEditor({ field: new Ext.form.field.Date({selectOnFocus: true})}),
+            'string'  : new Ext.grid.CellEditor({ field: new Ext.form.field.Text({selectOnFocus: true})}),
+            'number'  : new Ext.grid.CellEditor({ field: new Ext.form.field.Number({selectOnFocus: true})}),
+            'boolean' : new Ext.grid.CellEditor({ field: new Ext.form.field.ComboBox({
                 editable: false,
                 store: [[ true, me.headerCt.trueText ], [false, me.headerCt.falseText ]]
             })})
@@ -230,7 +214,7 @@ var grid = Ext.create('Ext.grid.property.Grid', {
         var me = this,
             v, oldValue;
 
-        if (operation == Ext.data.Model.EDIT) {
+        if (me.rendered && operation == Ext.data.Model.EDIT) {
             v = record.get(me.valueField);
             oldValue = record.modified.value;
             if (me.fireEvent('beforepropertychange', me.source, record.getId(), v, oldValue) !== false) {
@@ -274,7 +258,7 @@ var grid = Ext.create('Ext.grid.property.Grid', {
                 if (!(editor instanceof Ext.form.field.Base)) {
                     editor = Ext.ComponentManager.create(editor, 'textfield');
                 }
-                editor = me.customEditors[propName] = Ext.create('Ext.grid.CellEditor', { field: editor });
+                editor = me.customEditors[propName] = new Ext.grid.CellEditor({ field: editor });
             }
         } else if (Ext.isDate(val)) {
             editor = me.editors.date;
@@ -313,15 +297,15 @@ var grid = Ext.create('Ext.grid.property.Grid', {
      * be loaded into the grid's {@link #store}.  The values should be supplied in the proper data type if needed,
      * otherwise string type will be assumed.  If the grid already contains data, this method will replace any
      * existing data.  See also the {@link #source} config value.  Example usage:
-     * <pre><code>
-grid.setSource({
-    "(name)": "My Object",
-    "Created": Ext.Date.parse('10/15/2006', 'm/d/Y'),  // date type
-    "Available": false,  // boolean type
-    "Version": .01,      // decimal type
-    "Description": "A test object"
-});
-</code></pre>
+     *
+     *     grid.setSource({
+     *         "(name)": "My Object",
+     *         "Created": Ext.Date.parse('10/15/2006', 'm/d/Y'),  // date type
+     *         "Available": false,  // boolean type
+     *         "Version": .01,      // decimal type
+     *         "Description": "A test object"
+     *     });
+     *
      * @param {Object} source The data object
      */
     setSource: function(source) {
@@ -342,7 +326,7 @@ grid.setSource({
      * Sets the value of a property.
      * @param {String} prop The name of the property to set
      * @param {Object} value The value to test
-     * @param {Boolean} create (Optional) True to create the property if it doesn't already exist. Defaults to <tt>false</tt>.
+     * @param {Boolean} [create=false] True to create the property if it doesn't already exist.
      */
     setProperty: function(prop, value, create) {
         this.propStore.setValue(prop, value, create);
@@ -358,18 +342,10 @@ grid.setSource({
 
     /**
      * @cfg store
-     * @hide
-     */
-    /**
-     * @cfg colModel
-     * @hide
-     */
-    /**
-     * @cfg cm
-     * @hide
+     * @private
      */
     /**
      * @cfg columns
-     * @hide
+     * @private
      */
 });

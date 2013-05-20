@@ -1,22 +1,12 @@
-/*
+//@tag foundation,core
+//@require Array.js
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.Function
  *
  * A collection of useful static methods to deal with function callbacks
  * @singleton
+ * @alternateClassName Ext.util.Functions
  */
 Ext.Function = {
 
@@ -87,7 +77,7 @@ Ext.Function = {
      *
      * @param {Function} fn The function to delegate.
      * @param {Object} scope (optional) The scope (`this` reference) in which the function is executed.
-     * **If omitted, defaults to the browser window.**
+     * **If omitted, defaults to the default global environment object (usually the browser window).**
      * @param {Array} args (optional) Overrides arguments for the call. (Defaults to the arguments passed by the caller)
      * @param {Boolean/Number} appendArgs (optional) if True args are appended to call args instead of overriding,
      * if a number the args are inserted at the specified position
@@ -97,7 +87,7 @@ Ext.Function = {
         if (arguments.length === 2) {
             return function() {
                 return fn.apply(scope, arguments);
-            }
+            };
         }
 
         var method = fn,
@@ -115,7 +105,7 @@ Ext.Function = {
                 Ext.Array.insert(callArgs, appendArgs, args);
             }
 
-            return method.apply(scope || window, callArgs);
+            return method.apply(scope || Ext.global, callArgs);
         };
     },
 
@@ -143,12 +133,18 @@ Ext.Function = {
      * @return {Function} The new callback function
      */
     pass: function(fn, args, scope) {
-        if (args) {
-            args = Ext.Array.from(args);
+        if (!Ext.isArray(args)) {
+            if (Ext.isIterable(args)) {
+                args = Ext.Array.clone(args);
+            } else {
+                args = args !== undefined ? [args] : [];
+            }
         }
 
         return function() {
-            return fn.apply(scope, args.concat(Ext.Array.toArray(arguments)));
+            var fnArgs = [].concat(args);
+            fnArgs.push.apply(fnArgs, arguments);
+            return fn.apply(scope || this, fnArgs);
         };
     },
 
@@ -163,6 +159,19 @@ Ext.Function = {
     alias: function(object, methodName) {
         return function() {
             return object[methodName].apply(object, arguments);
+        };
+    },
+
+    /**
+     * Create a "clone" of the provided method. The returned method will call the given
+     * method passing along all arguments and the "this" pointer and return its result.
+     *
+     * @param {Function} method
+     * @return {Function} cloneFn
+     */
+    clone: function(method) {
+        return function() {
+            return method.apply(this, arguments);
         };
     },
 
@@ -204,7 +213,7 @@ Ext.Function = {
                     args = arguments;
                 newFn.target = me;
                 newFn.method = origFn;
-                return (newFn.apply(scope || me || window, args) !== false) ? origFn.apply(me || window, args) : returnValue || null;
+                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue || null;
             };
         }
     },
@@ -225,10 +234,13 @@ Ext.Function = {
         if (scope || args) {
             fn = Ext.Function.bind(fn, scope, args, appendArgs);
         }
+
         return function() {
-            var me = this;
+            var me = this,
+                args = Array.prototype.slice.call(arguments);
+
             setTimeout(function() {
-                fn.apply(me, arguments);
+                fn.apply(me, args);
             }, delay);
         };
     },
@@ -264,10 +276,12 @@ Ext.Function = {
      * if a number the args are inserted at the specified position
      * @return {Number} The timeout id that can be used with clearTimeout
      */
-    defer: function(fn, millis, obj, args, appendArgs) {
-        fn = Ext.Function.bind(fn, obj, args, appendArgs);
+    defer: function(fn, millis, scope, args, appendArgs) {
+        fn = Ext.Function.bind(fn, scope, args, appendArgs);
         if (millis > 0) {
-            return setTimeout(fn, millis);
+            return setTimeout(Ext.supports.TimeoutActualLateness ? function () {
+                fn();
+            } : fn, millis);
         }
         fn();
         return 0;
@@ -290,21 +304,21 @@ Ext.Function = {
      *
      *     sayGoodbye('Fred'); // both alerts show
      *
-     * @param {Function} origFn The original function.
+     * @param {Function} originalFn The original function.
      * @param {Function} newFn The function to sequence
      * @param {Object} scope (optional) The scope (`this` reference) in which the passed function is executed.
-     * If omitted, defaults to the scope in which the original function is called or the browser window.
+     * If omitted, defaults to the scope in which the original function is called or the default global environment object (usually the browser window).
      * @return {Function} The new function
      */
-    createSequence: function(origFn, newFn, scope) {
-        if (!Ext.isFunction(newFn)) {
-            return origFn;
+    createSequence: function(originalFn, newFn, scope) {
+        if (!newFn) {
+            return originalFn;
         }
         else {
             return function() {
-                var retval = origFn.apply(this || window, arguments);
-                newFn.apply(scope || this || window, arguments);
-                return retval;
+                var result = originalFn.apply(this, arguments);
+                newFn.apply(scope || this, arguments);
+                return result;
             };
         }
     },
@@ -325,19 +339,20 @@ Ext.Function = {
      * @return {Function} A function which invokes the passed function after buffering for the specified time.
      */
     createBuffered: function(fn, buffer, scope, args) {
-        return function(){
-            var timerId;
-            return function() {
-                var me = this;
-                if (timerId) {
-                    clearTimeout(timerId);
-                    timerId = null;
-                }
-                timerId = setTimeout(function(){
-                    fn.apply(scope || me, args || arguments);
-                }, buffer);
-            };
-        }();
+        var timerId;
+
+        return function() {
+            var callArgs = args || Array.prototype.slice.call(arguments, 0),
+                me = scope || this;
+
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+
+            timerId = setTimeout(function(){
+                fn.apply(me, callArgs);
+            }, buffer);
+        };
     },
 
     /**
@@ -373,6 +388,7 @@ Ext.Function = {
         };
     },
 
+
     /**
      * Adds behavior to an existing method that is executed before the
      * original behavior of the function.  For example:
@@ -399,17 +415,18 @@ Ext.Function = {
      * be called with the same arguments as the original method.  The
      * return value of this function will be the return value of the
      * new method.
+     * @param {Object} [scope] The scope to execute the interceptor function. Defaults to the object.
      * @return {Function} The new function just created.
      */
-    interceptBefore: function(object, methodName, fn) {
+    interceptBefore: function(object, methodName, fn, scope) {
         var method = object[methodName] || Ext.emptyFn;
 
-        return object[methodName] = function() {
-            var ret = fn.apply(this, arguments);
+        return (object[methodName] = function() {
+            var ret = fn.apply(scope || this, arguments);
             method.apply(this, arguments);
 
             return ret;
-        };
+        });
     },
 
     /**
@@ -436,36 +453,36 @@ Ext.Function = {
      * be called with the same arguments as the original method.  The
      * return value of this function will be the return value of the
      * new method.
+     * @param {Object} [scope] The scope to execute the interceptor function. Defaults to the object.
      * @return {Function} The new function just created.
      */
-    interceptAfter: function(object, methodName, fn) {
+    interceptAfter: function(object, methodName, fn, scope) {
         var method = object[methodName] || Ext.emptyFn;
 
-        return object[methodName] = function() {
+        return (object[methodName] = function() {
             method.apply(this, arguments);
-            return fn.apply(this, arguments);
-        };
+            return fn.apply(scope || this, arguments);
+        });
     }
 };
 
 /**
  * @method
  * @member Ext
- * @alias Ext.Function#defer
+ * @inheritdoc Ext.Function#defer
  */
 Ext.defer = Ext.Function.alias(Ext.Function, 'defer');
 
 /**
  * @method
  * @member Ext
- * @alias Ext.Function#pass
+ * @inheritdoc Ext.Function#pass
  */
 Ext.pass = Ext.Function.alias(Ext.Function, 'pass');
 
 /**
  * @method
  * @member Ext
- * @alias Ext.Function#bind
+ * @inheritdoc Ext.Function#bind
  */
 Ext.bind = Ext.Function.alias(Ext.Function, 'bind');
-

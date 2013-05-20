@@ -35,7 +35,7 @@ Ext.define('Ext.AbstractManager', {
 </span>         * @property {Ext.util.HashMap} all
          * Contains all of the items currently managed
          */
-        this.all = Ext.create('Ext.util.HashMap');
+        this.all = new Ext.util.HashMap();
 
         this.types = {};
     },
@@ -123,18 +123,20 @@ Ext.define('Ext.AbstractManager', {
      */
     onAvailable : function(id, fn, scope){
         var all = this.all,
-            item;
+            item,
+            callback;
         
         if (all.containsKey(id)) {
             item = all.get(id);
             fn.call(scope || item, item);
         } else {
-            all.on('add', function(map, key, item){
+            callback = function(map, key, item){
                 if (key == id) {
                     fn.call(scope || item, item);
-                    all.un('add', fn, scope);
+                    all.un('add', callback);
                 }
-            });
+            }; 
+            all.on('add', callback);
         }
     },
     

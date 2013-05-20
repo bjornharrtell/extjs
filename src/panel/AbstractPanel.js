@@ -1,22 +1,10 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.panel.AbstractPanel
- * @extends Ext.container.Container
- * A base class which provides methods common to Panel classes across the Sencha product range.
  * @private
+ *
+ * A base class which provides methods common to Panel classes across the Sencha product range.
+ *
+ * Please refer to sub class's documentation
  */
 Ext.define('Ext.panel.AbstractPanel', {
 
@@ -24,12 +12,16 @@ Ext.define('Ext.panel.AbstractPanel', {
 
     extend: 'Ext.container.Container',
 
+    mixins: {
+        docking: 'Ext.container.DockingContainer'
+    },
+
     requires: ['Ext.util.MixedCollection', 'Ext.Element', 'Ext.toolbar.Toolbar'],
 
     /* End Definitions */
 
     /**
-     * @cfg {String} [baseCls='x-panel']
+     * @cfg {String} [baseCls=x-panel]
      * The base CSS class to apply to this panel's element.
      */
     baseCls : Ext.baseCSSPrefix + 'panel',
@@ -38,12 +30,13 @@ Ext.define('Ext.panel.AbstractPanel', {
      * @cfg {Number/String} bodyPadding
      * A shortcut for setting a padding style on the body element. The value can either be
      * a number to be applied to all sides, or a normal css string describing padding.
+     * Defaults to <code>undefined</code>.
      */
 
     /**
      * @cfg {Boolean} bodyBorder
-     * A shortcut to add or remove the border on the body of a panel. This only applies to a panel
-     * which has the {@link #frame} configuration set to `true`.
+     * A shortcut to add or remove the border on the body of a panel. This only applies to a panel which has the {@link #frame} configuration set to `true`.
+     * Defaults to <code>undefined</code>.
      */
 
     /**
@@ -70,47 +63,42 @@ bodyCls: ['foo', 'bar']
      * </code></pre>
      */
 
+    /**
+     * @property {Boolean} isPanel
+     * `true` in this class to identify an object as an instantiated Panel, or subclass thereof.
+     */
     isPanel: true,
 
     componentLayout: 'dock',
 
-    /**
-     * @cfg {Object} defaultDockWeights
-     * This object holds the default weights applied to dockedItems that have no weight. These start with a
-     * weight of 1, to allow negative weights to insert before top items and are odd numbers
-     * so that even weights can be used to get between different dock orders.
-     *
-     * To make default docking order match border layout, do this:
-     * <pre><code>
-Ext.panel.AbstractPanel.prototype.defaultDockWeights = { top: 1, bottom: 3, left: 5, right: 7 };</code></pre>
-     * Changing these defaults as above or individually on this object will effect all Panels.
-     * To change the defaults on a single panel, you should replace the entire object:
-     * <pre><code>
-initComponent: function () {
-    // NOTE: Don't change members of defaultDockWeights since the object is shared.
-    this.defaultDockWeights = { top: 1, bottom: 3, left: 5, right: 7 };
-
-    this.callParent();
-}</code></pre>
-     *
-     * To change only one of the default values, you do this:
-     * <pre><code>
-initComponent: function () {
-    // NOTE: Don't change members of defaultDockWeights since the object is shared.
-    this.defaultDockWeights = Ext.applyIf({ top: 10 }, this.defaultDockWeights);
-
-    this.callParent();
-}</code></pre>
-     */
-    defaultDockWeights: { top: 1, left: 3, right: 5, bottom: 7 },
+    childEls: [
+        'body'
+    ],
 
     renderTpl: [
+        // If this Panel is framed, the framing template renders the docked items round the frame
+        '{% this.renderDockedItems(out,values,0); %}',
+        // This empty div solves an IE6/7/Quirks problem where the margin-top on the bodyEl
+        // is ignored. Best we can figure, this is triggered by the previousSibling being
+        // position absolute (a docked item). The goal is to use margins to position the
+        // bodyEl rather than left/top since that allows us to avoid writing a height on the
+        // panel and the body. This in turn allows CSS height to expand or contract the
+        // panel during things like portlet dragging where we want to avoid running a ton
+        // of layouts during the drag operation.
+        (Ext.isIE6 || Ext.isIE7 || Ext.isIEQuirks) ? '<div></div>' : '',
         '<div id="{id}-body" class="{baseCls}-body<tpl if="bodyCls"> {bodyCls}</tpl>',
             ' {baseCls}-body-{ui}<tpl if="uiCls">',
                 '<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl>',
             '</tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
-        '</div>'
+            '{%this.renderContainer(out,values);%}',
+        '</div>',
+        '{% this.renderDockedItems(out,values,1); %}'
     ],
+
+    bodyPosProps: {
+        x: 'x',
+        y: 'y'
+    },
 
     // TODO: Move code examples into product-specific files. The code snippet below is Touch only.
     /**
@@ -133,25 +121,13 @@ var panel = new Ext.panel.Panel({
 
     border: true,
 
+    /**
+     * @private
+     */
+    emptyArray: [],
+
     initComponent : function() {
         var me = this;
-
-        me.addEvents(
-            /**
-             * @event bodyresize
-             * Fires after the Panel has been resized.
-             * @param {Ext.panel.Panel} p the Panel which has been resized.
-             * @param {Number} width The Panel body's new width.
-             * @param {Number} height The Panel body's new height.
-             */
-            'bodyresize'
-            // // inherited
-            // 'activate',
-            // // inherited
-            // 'deactivate'
-        );
-
-        me.addChildEls('body');
 
         //!frame
         //!border
@@ -166,28 +142,31 @@ var panel = new Ext.panel.Panel({
         me.callParent();
     },
 
+    beforeDestroy: function(){
+        this.destroyDockedItems();
+        this.callParent();
+    },
+
     // @private
     initItems : function() {
-        var me = this,
-            items = me.dockedItems;
-
-        me.callParent();
-        me.dockedItems = Ext.create('Ext.util.MixedCollection', false, me.getComponentId);
-        if (items) {
-            me.addDocked(items);
-        }
+        this.callParent();
+        this.initDockingItems();
     },
 
     /**
-     * Finds a docked component by id, itemId or position. Also see {@link #getDockedItems}
-     * @param {String/Number} comp The id, itemId or position of the docked component (see {@link #getComponent} for details)
-     * @return {Ext.Component} The docked component (if found)
+     * Initialized the renderData to be used when rendering the renderTpl.
+     * @return {Object} Object with keys and values that are going to be applied to the renderTpl
+     * @private
      */
-    getDockedComponent: function(comp) {
-        if (Ext.isObject(comp)) {
-            comp = comp.getItemId();
-        }
-        return this.dockedItems.get(comp);
+    initRenderData: function() {
+        var me = this,
+            data = me.callParent();
+
+        me.initBodyStyles();
+        me.protoBody.writeTo(data);
+        delete me.protoBody;
+
+        return data;
     },
 
     /**
@@ -206,321 +185,133 @@ var panel = new Ext.panel.Panel({
         return component;
     },
 
+    getProtoBody: function () {
+        var me = this,
+            body = me.protoBody;
+
+        if (!body) {
+            me.protoBody = body = new Ext.util.ProtoElement({
+                cls: me.bodyCls,
+                style: me.bodyStyle,
+                clsProp: 'bodyCls',
+                styleProp: 'bodyStyle',
+                styleIsText: true
+            });
+        }
+
+        return body;
+    },
+
     /**
-     * Parses the {@link bodyStyle} config if available to create a style string that will be applied to the body element.
-     * This also includes {@link bodyPadding} and {@link bodyBorder} if available.
+     * Parses the {@link #bodyStyle} config if available to create a style string that will be applied to the body element.
+     * This also includes {@link #bodyPadding} and {@link #bodyBorder} if available.
      * @return {String} A CSS style string with body styles, padding and border.
      * @private
      */
     initBodyStyles: function() {
         var me = this,
-            bodyStyle = me.bodyStyle,
-            styles = [],
-            Element = Ext.Element,
-            prop;
-
-        if (Ext.isFunction(bodyStyle)) {
-            bodyStyle = bodyStyle();
-        }
-        if (Ext.isString(bodyStyle)) {
-            styles = bodyStyle.split(';');
-        } else {
-            for (prop in bodyStyle) {
-                if (bodyStyle.hasOwnProperty(prop)) {
-                    styles.push(prop + ':' + bodyStyle[prop]);
-                }
-            }
-        }
+            body = me.getProtoBody(),
+            Element = Ext.Element;
 
         if (me.bodyPadding !== undefined) {
-            styles.push('padding: ' + Element.unitizeBox((me.bodyPadding === true) ? 5 : me.bodyPadding));
+            body.setStyle('padding', Element.unitizeBox((me.bodyPadding === true) ? 5 : me.bodyPadding));
         }
         if (me.frame && me.bodyBorder) {
             if (!Ext.isNumber(me.bodyBorder)) {
                 me.bodyBorder = 1;
             }
-            styles.push('border-width: ' + Element.unitizeBox(me.bodyBorder));
+            body.setStyle('border-width', Element.unitizeBox(me.bodyBorder));
         }
-        delete me.bodyStyle;
-        return styles.length ? styles.join(';') : undefined;
+    },
+
+    getCollapsedDockedItems: function () {
+        var me = this;
+        return me.collapseMode == 'placeholder' ? me.emptyArray : [ me.getReExpander() ];
     },
 
     /**
-     * Parse the {@link bodyCls} config if available to create a comma-delimited string of
-     * CSS classes to be applied to the body element.
-     * @return {String} The CSS class(es)
-     * @private
+     * Sets the body style according to the passed parameters.
+     * @param {Mixed} style A full style specification string, or object, or the name of a style property to set.
+     * @param {String} value If the first param was a style property name, the style property value.
+     * @return {Ext.panel.Panel} this
      */
-    initBodyCls: function() {
+    setBodyStyle: function(style, value) {
         var me = this,
-            cls = '',
-            bodyCls = me.bodyCls;
+            body = me.rendered ? me.body : me.getProtoBody();
 
-        if (bodyCls) {
-            Ext.each(bodyCls, function(v) {
-                cls += " " + v;
-            });
-            delete me.bodyCls;
+        if (Ext.isFunction(style)) {
+            style = style();
         }
-        return cls.length > 0 ? cls : undefined;
+        if (arguments.length == 1) {
+            if (Ext.isString(style)) {
+                style = Ext.Element.parseStyles(style);     
+            }
+            body.setStyle(style);
+        } else {
+            body.setStyle(style, value);
+        }
+        return me;
     },
 
     /**
-     * Initialized the renderData to be used when rendering the renderTpl.
-     * @return {Object} Object with keys and values that are going to be applied to the renderTpl
-     * @private
+     * Adds a CSS class to the body element. If not rendered, the class will
+     * be added when the panel is rendered. 
+     * @param {String} cls The class to add
+     * @return {Ext.panel.Panel} this
      */
-    initRenderData: function() {
-        return Ext.applyIf(this.callParent(), {
-            bodyStyle: this.initBodyStyles(),
-            bodyCls: this.initBodyCls()
-        });
-    },
-
-    /**
-     * Adds docked item(s) to the panel.
-     * @param {Object/Object[]} component The Component or array of components to add. The components
-     * must include a 'dock' parameter on each component to indicate where it should be docked ('top', 'right',
-     * 'bottom', 'left').
-     * @param {Number} pos (optional) The index at which the Component will be added
-     */
-    addDocked : function(items, pos) {
+    addBodyCls: function(cls) {
         var me = this,
-            i = 0,
-            item, length;
+            body = me.rendered ? me.body : me.getProtoBody();
 
-        items = me.prepareItems(items);
-        length = items.length;
-
-        for (; i < length; i++) {
-            item = items[i];
-            item.dock = item.dock || 'top';
-
-            // Allow older browsers to target docked items to style without borders
-            if (me.border === false) {
-                // item.cls = item.cls || '' + ' ' + me.baseCls + '-noborder-docked-' + item.dock;
-            }
-
-            if (pos !== undefined) {
-                me.dockedItems.insert(pos + i, item);
-            }
-            else {
-                me.dockedItems.add(item);
-            }
-            item.onAdded(me, i);
-            me.onDockedAdd(item);
-        }
-
-        // Set flag which means that beforeLayout will not veto the layout due to the size not changing
-        me.componentLayout.childrenChanged = true;
-        if (me.rendered && !me.suspendLayout) {
-            me.doComponentLayout();
-        }
-        return items;
-    },
-
-    // Placeholder empty functions
-    onDockedAdd : Ext.emptyFn,
-    onDockedRemove : Ext.emptyFn,
-
-    /**
-     * Inserts docked item(s) to the panel at the indicated position.
-     * @param {Number} pos The index at which the Component will be inserted
-     * @param {Object/Object[]} component. The Component or array of components to add. The components
-     * must include a 'dock' paramater on each component to indicate where it should be docked ('top', 'right',
-     * 'bottom', 'left').
-     */
-    insertDocked : function(pos, items) {
-        this.addDocked(items, pos);
+        body.addCls(cls);
+        return me;
     },
 
     /**
-     * Removes the docked item from the panel.
-     * @param {Ext.Component} item. The Component to remove.
-     * @param {Boolean} autoDestroy (optional) Destroy the component after removal.
+     * Removes a CSS class from the body element.
+     * @param {String} cls The class to remove
+     * @return {Ext.panel.Panel} this
      */
-    removeDocked : function(item, autoDestroy) {
+    removeBodyCls: function(cls) {
         var me = this,
-            layout,
-            hasLayout;
+            body = me.rendered ? me.body : me.getProtoBody();
 
-        if (!me.dockedItems.contains(item)) {
-            return item;
-        }
-
-        layout = me.componentLayout;
-        hasLayout = layout && me.rendered;
-
-        if (hasLayout) {
-            layout.onRemove(item);
-        }
-
-        me.dockedItems.remove(item);
-        item.onRemoved();
-        me.onDockedRemove(item);
-
-        if (autoDestroy === true || (autoDestroy !== false && me.autoDestroy)) {
-            item.destroy();
-        } else if (hasLayout) {
-            // not destroying, make any layout related removals
-            layout.afterRemove(item);    
-        }
-
-
-        // Set flag which means that beforeLayout will not veto the layout due to the size not changing
-        me.componentLayout.childrenChanged = true;
-        if (!me.destroying && !me.suspendLayout) {
-            me.doComponentLayout();
-        }
-
-        return item;
-    },
-
-    /**
-     * Retrieve an array of all currently docked Components.
-     * @param {String} cqSelector A {@link Ext.ComponentQuery ComponentQuery} selector string to filter the returned items.
-     * @return {Ext.Component[]} An array of components.
-     */
-    getDockedItems : function(cqSelector) {
-        var me = this,
-            defaultWeight = me.defaultDockWeights,
-            dockedItems;
-
-        if (me.dockedItems && me.dockedItems.items.length) {
-            // Allow filtering of returned docked items by CQ selector.
-            if (cqSelector) {
-                dockedItems = Ext.ComponentQuery.query(cqSelector, me.dockedItems.items);
-            } else {
-                dockedItems = me.dockedItems.items.slice();
-            }
-
-            Ext.Array.sort(dockedItems, function(a, b) {
-                // Docked items are ordered by their visual representation by default (t,l,r,b)
-                var aw = a.weight || defaultWeight[a.dock],
-                    bw = b.weight || defaultWeight[b.dock];
-                if (Ext.isNumber(aw) && Ext.isNumber(bw)) {
-                    return aw - bw;
-                }
-                return 0;
-            });
-
-            return dockedItems;
-        }
-        return [];
+        body.removeCls(cls);
+        return me;
     },
 
     // inherit docs
-    addUIClsToElement: function(cls, force) {
+    addUIClsToElement: function(cls) {
         var me = this,
-            result = me.callParent(arguments),
-            classes = [Ext.baseCSSPrefix + cls, me.baseCls + '-body-' + cls, me.baseCls + '-body-' + me.ui + '-' + cls],
-            array, i;
+            result = me.callParent(arguments);
 
-        if (!force && me.rendered) {
-            if (me.bodyCls) {
-                me.body.addCls(me.bodyCls);
-            } else {
-                me.body.addCls(classes);
-            }
-        } else {
-            if (me.bodyCls) {
-                array = me.bodyCls.split(' ');
-
-                for (i = 0; i < classes.length; i++) {
-                    if (!Ext.Array.contains(array, classes[i])) {
-                        array.push(classes[i]);
-                    }
-                }
-
-                me.bodyCls = array.join(' ');
-            } else {
-                me.bodyCls = classes.join(' ');
-            }
-        }
-
+        me.addBodyCls([Ext.baseCSSPrefix + cls, me.baseCls + '-body-' + cls, me.baseCls + '-body-' + me.ui + '-' + cls]);
         return result;
     },
 
     // inherit docs
-    removeUIClsFromElement: function(cls, force) {
+    removeUIClsFromElement: function(cls) {
         var me = this,
-            result = me.callParent(arguments),
-            classes = [Ext.baseCSSPrefix + cls, me.baseCls + '-body-' + cls, me.baseCls + '-body-' + me.ui + '-' + cls],
-            array, i;
+            result = me.callParent(arguments);
 
-        if (!force && me.rendered) {
-            if (me.bodyCls) {
-                me.body.removeCls(me.bodyCls);
-            } else {
-                me.body.removeCls(classes);
-            }
-        } else {
-            if (me.bodyCls) {
-                array = me.bodyCls.split(' ');
-
-                for (i = 0; i < classes.length; i++) {
-                    Ext.Array.remove(array, classes[i]);
-                }
-
-                me.bodyCls = array.join(' ');
-            }
-        }
-
+        me.removeBodyCls([Ext.baseCSSPrefix + cls, me.baseCls + '-body-' + cls, me.baseCls + '-body-' + me.ui + '-' + cls]);
         return result;
     },
 
     // inherit docs
-    addUIToElement: function(force) {
-        var me = this,
-            cls = me.baseCls + '-body-' + me.ui,
-            array;
+    addUIToElement: function() {
+        var me = this;
 
         me.callParent(arguments);
-
-        if (!force && me.rendered) {
-            if (me.bodyCls) {
-                me.body.addCls(me.bodyCls);
-            } else {
-                me.body.addCls(cls);
-            }
-        } else {
-            if (me.bodyCls) {
-                array = me.bodyCls.split(' ');
-
-                if (!Ext.Array.contains(array, cls)) {
-                    array.push(cls);
-                }
-
-                me.bodyCls = array.join(' ');
-            } else {
-                me.bodyCls = cls;
-            }
-        }
+        me.addBodyCls(me.baseCls + '-body-' + me.ui);
     },
 
     // inherit docs
     removeUIFromElement: function() {
-        var me = this,
-            cls = me.baseCls + '-body-' + me.ui,
-            array;
+        var me = this;
 
         me.callParent(arguments);
-
-        if (me.rendered) {
-            if (me.bodyCls) {
-                me.body.removeCls(me.bodyCls);
-            } else {
-                me.body.removeCls(cls);
-            }
-        } else {
-            if (me.bodyCls) {
-                array = me.bodyCls.split(' ');
-                Ext.Array.remove(array, cls);
-                me.bodyCls = array.join(' ');
-            } else {
-                me.bodyCls = cls;
-            }
-        }
+        me.removeBodyCls(me.baseCls + '-body-' + me.ui);
     },
 
     // @private
@@ -529,44 +320,13 @@ var panel = new Ext.panel.Panel({
     },
 
     getRefItems: function(deep) {
-        var items = this.callParent(arguments),
-            // deep fetches all docked items, and their descendants using '*' selector and then '* *'
-            dockedItems = this.getDockedItems(deep ? '*,* *' : undefined),
-            ln = dockedItems.length,
-            i = 0,
-            item;
+        var items = this.callParent(arguments);
 
-        // Find the index where we go from top/left docked items to right/bottom docked items
-        for (; i < ln; i++) {
-            item = dockedItems[i];
-            if (item.dock === 'right' || item.dock === 'bottom') {
-                break;
-            }
-        }
-
-        // Return docked items in the top/left position before our container items, and
-        // return right/bottom positioned items after our container items.
-        // See AbstractDock.renderItems() for more information.
-        return Ext.Array.splice(dockedItems, 0, i).concat(items).concat(dockedItems);
+        return this.getDockingRefItems(deep, items);
     },
 
-    beforeDestroy: function(){
-        var docked = this.dockedItems,
-            c;
-
-        if (docked) {
-            while ((c = docked.first())) {
-                this.removeDocked(c, true);
-            }
-        }
-        this.callParent();
-    },
-
-    setBorder: function(border) {
-        var me = this;
-        me.border = (border !== undefined) ? border : true;
-        if (me.rendered) {
-            me.doComponentLayout();
-        }
+    setupRenderTpl: function (renderTpl) {
+        this.callParent(arguments);
+        this.setupDockingRenderTpl(renderTpl);
     }
 });

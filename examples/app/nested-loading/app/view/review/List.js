@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A view which displays a list of reviews for a specified book.
  * @extends Ext.view.View
@@ -42,20 +28,22 @@ Ext.define('Books.view.review.List', {
                 '</tpl>',
                 {
                     stars: function(values) {
-                        var res = "";
+                        var res = [],
+                            extension = Ext.isIE6 ? 'gif' : 'png',
+                            i = 0;
 
                         //print out the stars for each of the ratings
-                        for (var i = 0; i < values.rating; i++) {
-                            res += '<img src="./resources/images/star.' + ((Ext.isIE6) ? 'gif' : 'png') + '" />';
+                        for (; i < values.rating; i++) {
+                            res.push('<img src="./resources/images/star.', extension, '" />');
                         }
 
                         //print out transparent stars for the rest (up to 5)
                         while (i < 5) {
-                            res += '<img src="./resources/images/star_no.' + ((Ext.isIE6) ? 'gif' : 'png') + '" />';
+                            res.push('<img src="./resources/images/star_no.', extension, '" />');
                             i++;
                         }
 
-                        return res;
+                        return res.join('');
                     }
                 }
             )
@@ -74,13 +62,7 @@ Ext.define('Books.view.review.List', {
                 })
             ],
 
-            items: [
-                this.dataview,
-                Ext.create('widget.panel', {
-                    id: 'test2',
-                    html: 'asdasdsa'
-                })
-            ]
+            items: this.dataview
         });
 
         this.callParent(arguments);
@@ -94,8 +76,6 @@ Ext.define('Books.view.review.List', {
      */
     bind: function(record, store) {
         //put the reviews into the store and bind the store to thie dataview
-        store.loadData(record.data.reviews || []);
-        this.dataview.bindStore(store);
+        this.dataview.bindStore(record.reviews());
     }
 });
-

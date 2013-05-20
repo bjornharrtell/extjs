@@ -1,41 +1,13 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.util.History
- *
  * History management component that allows you to register arbitrary tokens that signify application
  * history state on navigation actions.  You can then handle the history {@link #change} event in order
  * to reset your application UI to the appropriate state when the user navigates forward or backward through
  * the browser history stack.
  *
  * ## Initializing
+ *
  * The {@link #init} method of the History object must be called before using History. This sets up the internal
  * state and must be the first thing called before using History.
- *
- * ## Setup
- * The History objects requires elements on the page to keep track of the browser history. For older versions of IE,
- * an IFrame is required to do the tracking. For other browsers, a hidden field can be used. The history objects expects
- * these to be on the page before the {@link #init} method is called. The following markup is suggested in order
- * to support all browsers:
- *
- *     <form id="history-form" class="x-hide-display">
- *         <input type="hidden" id="x-history-field" />
- *         <iframe id="x-history-frame"></iframe>
- *     </form>
- *
- * @singleton
  */
 Ext.define('Ext.util.History', {
     singleton: true,
@@ -44,6 +16,23 @@ Ext.define('Ext.util.History', {
         observable: 'Ext.util.Observable'
     },
 
+    /**
+     * @property
+     * True to use `window.top.location.hash` or false to use `window.location.hash`.
+     */
+    useTopWindow: true,
+
+    /**
+     * @property
+     * The id of the hidden field required for storing the current history token.
+     */
+    fieldId: Ext.baseCSSPrefix + 'history-field',
+    /**
+     * @property
+     * The id of the iframe required by IE to manage the history stack.
+     */
+    iframeId: Ext.baseCSSPrefix + 'history-frame',
+
     constructor: function() {
         var me = this;
         me.oldIEMode = Ext.isIE6 || Ext.isIE7 || !Ext.isStrict && Ext.isIE8;
@@ -51,6 +40,7 @@ Ext.define('Ext.util.History', {
         me.hiddenField = null;
         me.ready = false;
         me.currentToken = null;
+        me.mixins.observable.constructor.call(me);
     },
 
     getHash: function() {
@@ -58,6 +48,16 @@ Ext.define('Ext.util.History', {
             i = href.indexOf("#");
 
         return i >= 0 ? href.substr(i + 1) : null;
+    },
+
+    setHash: function (hash) {
+        var me = this,
+            win = me.useTopWindow ? window.top : window;
+        try {
+            win.location.hash = hash;
+        } catch (e) {
+            // IE can give Access Denied (esp. in popup windows)
+        }
     },
 
     doSave: function() {
@@ -73,10 +73,11 @@ Ext.define('Ext.util.History', {
     updateIFrame: function(token) {
         var html = '<html><body><div id="state">' +
                     Ext.util.Format.htmlEncode(token) +
-                    '</div></body></html>';
+                    '</div></body></html>',
+            doc;
 
         try {
-            var doc = this.iframe.contentWindow.document;
+            doc = this.iframe.contentWindow.document;
             doc.open();
             doc.write(html);
             doc.close();
@@ -88,17 +89,18 @@ Ext.define('Ext.util.History', {
 
     checkIFrame: function () {
         var me = this,
-            contentWindow = me.iframe.contentWindow;
+            contentWindow = me.iframe.contentWindow,
+            doc, elem, oldToken, oldHash;
 
         if (!contentWindow || !contentWindow.document) {
             Ext.Function.defer(this.checkIFrame, 10, this);
             return;
         }
 
-        var doc = contentWindow.document,
-            elem = doc.getElementById("state"),
-            oldToken = elem ? elem.innerText : null,
-            oldHash = me.getHash();
+        doc = contentWindow.document;
+        elem = doc.getElementById("state");
+        oldToken = elem ? elem.innerText : null;
+        oldHash = me.getHash();
 
         Ext.TaskManager.start({
             run: function () {
@@ -110,7 +112,7 @@ Ext.define('Ext.util.History', {
                 if (newToken !== oldToken) {
                     oldToken = newToken;
                     me.handleStateChange(newToken);
-                    window.top.location.hash = newToken;
+                    me.setHash(newToken);
                     oldHash = newToken;
                     me.doSave();
                 } else if (newHash !== oldHash) {
@@ -126,14 +128,15 @@ Ext.define('Ext.util.History', {
     },
 
     startUp: function () {
-        var me = this;
+        var me = this,
+            hash;
 
         me.currentToken = me.hiddenField.value || this.getHash();
 
         if (me.oldIEMode) {
             me.checkIFrame();
         } else {
-            var hash = me.getHash();
+            hash = me.getHash();
             Ext.TaskManager.start({
                 run: function () {
                     var newHash = me.getHash();
@@ -153,26 +156,15 @@ Ext.define('Ext.util.History', {
     },
 
     /**
-     * The id of the hidden field required for storing the current history token.
-     * @type String
-     * @property
-     */
-    fieldId: Ext.baseCSSPrefix + 'history-field',
-    /**
-     * The id of the iframe required by IE to manage the history stack.
-     * @type String
-     * @property
-     */
-    iframeId: Ext.baseCSSPrefix + 'history-frame',
-
-    /**
-     * Initialize the global History instance.
-     * @param {Boolean} onReady (optional) A callback function that will be called once the history
+     * Initializes the global History instance.
+     * @param {Function} [onReady] A callback function that will be called once the history
      * component is fully initialized.
-     * @param {Object} scope (optional) The scope (`this` reference) in which the callback is executed. Defaults to the browser window.
+     * @param {Object} [scope] The scope (`this` reference) in which the callback is executed.
+     * Defaults to the browser window.
      */
     init: function (onReady, scope) {
-        var me = this;
+        var me = this,
+            DomHelper = Ext.DomHelper;
 
         if (me.ready) {
             Ext.callback(onReady, scope, [me]);
@@ -186,10 +178,35 @@ Ext.define('Ext.util.History', {
             return;
         }
 
+        /*
+        <form id="history-form" class="x-hide-display">
+            <input type="hidden" id="x-history-field" />
+            <iframe id="x-history-frame"></iframe>
+        </form>
+        */
         me.hiddenField = Ext.getDom(me.fieldId);
+        if (!me.hiddenField) {
+            me.hiddenField = Ext.getBody().createChild({
+                id: Ext.id(),
+                tag: 'form',
+                cls: Ext.baseCSSPrefix + 'hide-display',
+                children: [{
+                    tag: 'input',
+                    type: 'hidden',
+                    id: me.fieldId
+                }]
+            }, false, true).firstChild;
+        }
 
         if (me.oldIEMode) {
             me.iframe = Ext.getDom(me.iframeId);
+            if (!me.iframe) {
+                me.iframe = DomHelper.append(me.hiddenField.parentNode, {
+                    tag: 'iframe',
+                    id: me.iframeId,
+                    src: Ext.SSL_SECURE_URL
+                });
+            }
         }
 
         me.addEvents(
@@ -240,7 +257,7 @@ Ext.define('Ext.util.History', {
         if (me.oldIEMode) {
             return me.updateIFrame(token);
         } else {
-            window.top.location.hash = token;
+            me.setHash(token);
             return true;
         }
     },

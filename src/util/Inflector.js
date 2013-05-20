@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * General purpose inflector class that {@link #pluralize pluralizes}, {@link #singularize singularizes} and
  * {@link #ordinalize ordinalizes} words. Sample usage:
@@ -28,7 +14,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     //ordinalizing numbers
  *     Ext.util.Inflector.ordinalize(11); //"11th"
- *     Ext.util.Inflector.ordinalize(21); //"21th"
+ *     Ext.util.Inflector.ordinalize(21); //"21st"
  *     Ext.util.Inflector.ordinalize(1043); //"1043rd"
  *
  * # Customization

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  *
@@ -117,7 +103,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     var proxy = new Ext.data.proxy.Ajax({
  *         url: '/users',
- *         pagePage: 'pageNumber'
+ *         pageParam: 'pageNumber'
  *     });
  *
  *     proxy.read(operation); //GET /users?pageNumber=2
@@ -210,7 +196,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * @constructor
  * Note that if this HttpProxy is being used by a {@link Ext.data.Store Store}, then the Store's call to
- * {@link Ext.data.Store#load load} will override any specified callback and params options. In this case, use the
+ * {@link Ext.data.Store#method-load load} will override any specified callback and params options. In this case, use the
  * {@link Ext.data.Store Store}'s events to modify parameters, or react to loading events.
  *
  * @param {Object} config (optional) Config object.
@@ -240,9 +226,6 @@ Ext.define('Ext.data.proxy.Ajax', {
      * Any headers to add to the Ajax request. Defaults to undefined.
      */
     
-    /**
-     * @ignore
-     */
     doRequest: function(operation, callback, scope) {
         var writer  = this.getWriter(),
             request = this.buildRequest(operation, callback, scope);
@@ -297,4 +280,3 @@ Ext.define('Ext.data.proxy.Ajax', {
     //backwards compatibility, remove in Ext JS 5.0
     Ext.data.HttpProxy = this;
 });
-

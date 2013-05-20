@@ -1,34 +1,21 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.fx.Anim
- *
  * This class manages animation for a specific {@link #target}. The animation allows
  * animation of various properties on the target, such as size, position, color and others.
  *
  * ## Starting Conditions
+ *
  * The starting conditions for the animation are provided by the {@link #from} configuration.
  * Any/all of the properties in the {@link #from} configuration can be specified. If a particular
  * property is not defined, the starting value for that property will be read directly from the target.
  *
  * ## End Conditions
+ *
  * The ending conditions for the animation are provided by the {@link #to} configuration. These mark
  * the final values once the animations has finished. The values in the {@link #from} can mirror
  * those in the {@link #to} configuration to provide a starting point.
  *
  * ## Other Options
+ *
  *  - {@link #duration}: Specifies the time period of the animation.
  *  - {@link #easing}: Specifies the easing of the animation.
  *  - {@link #iterations}: Allows the animation to repeat a number of times.
@@ -52,7 +39,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         },
  *         to: {
  *             width: 300, //end width 300
- *             height: 300 // end width 300
+ *             height: 300 // end height 300
  *         }
  *     });
  */
@@ -68,6 +55,10 @@ Ext.define('Ext.fx.Anim', {
 
     /* End Definitions */
 
+    /**
+     * @property {Boolean} isAnimation
+     * `true` in this class to identify an object as an instantiated Anim, or subclass thereof.
+     */
     isAnimation: true,
 
     /**
@@ -82,77 +73,75 @@ Ext.define('Ext.fx.Anim', {
 
     /**
      * @cfg {Number} duration
-     * Time in milliseconds for a single animation to last. Defaults to 250. If the {@link #iterations} property is
+     * Time in milliseconds for a single animation to last. If the {@link #iterations} property is
      * specified, then each animate will take the same duration for each iteration.
      */
     duration: 250,
 
     /**
      * @cfg {Number} delay
-     * Time to delay before starting the animation. Defaults to 0.
+     * Time to delay before starting the animation.
      */
     delay: 0,
 
-    /* private used to track a delayed starting time */
+    /* @private used to track a delayed starting time */
     delayStart: 0,
 
     /**
      * @cfg {Boolean} dynamic
-     * Currently only for Component Animation: Only set a component's outer element size bypassing layouts.  Set to true to do full layouts for every frame of the animation.  Defaults to false.
+     * Currently only for Component Animation: Only set a component's outer element size bypassing layouts.
+     * Set to true to do full layouts for every frame of the animation.
      */
     dynamic: false,
 
     /**
      * @cfg {String} easing
-This describes how the intermediate values used during a transition will be calculated. It allows for a transition to change
-speed over its duration.
-
-         -backIn
-         -backOut
-         -bounceIn
-         -bounceOut
-         -ease
-         -easeIn
-         -easeOut
-         -easeInOut
-         -elasticIn
-         -elasticOut
-         -cubic-bezier(x1, y1, x2, y2)
-
-Note that cubic-bezier will create a custom easing curve following the CSS3 [transition-timing-function][0]
-specification.  The four values specify points P1 and P2 of the curve as (x1, y1, x2, y2). All values must
-be in the range [0, 1] or the definition is invalid.
-
-[0]: http://www.w3.org/TR/css3-transitions/#transition-timing-function_tag
-
-     * @markdown
+     * This describes how the intermediate values used during a transition will be calculated.
+     * It allows for a transition to change speed over its duration.
+     *
+     * - backIn
+     * - backOut
+     * - bounceIn
+     * - bounceOut
+     * - ease
+     * - easeIn
+     * - easeOut
+     * - easeInOut
+     * - elasticIn
+     * - elasticOut
+     * - cubic-bezier(x1, y1, x2, y2)
+     *
+     * Note that cubic-bezier will create a custom easing curve following the CSS3 [transition-timing-function][0]
+     * specification.  The four values specify points P1 and P2 of the curve as (x1, y1, x2, y2). All values must
+     * be in the range [0, 1] or the definition is invalid.
+     *
+     * [0]: http://www.w3.org/TR/css3-transitions/#transition-timing-function_tag
      */
     easing: 'ease',
 
-     /**
-      * @cfg {Object} keyframes
-      * Animation keyframes follow the CSS3 Animation configuration pattern. 'from' is always considered '0%' and 'to'
-      * is considered '100%'.<b>Every keyframe declaration must have a keyframe rule for 0% and 100%, possibly defined using
-      * "from" or "to"</b>.  A keyframe declaration without these keyframe selectors is invalid and will not be available for
-      * animation.  The keyframe declaration for a keyframe rule consists of properties and values. Properties that are unable to
-      * be animated are ignored in these rules, with the exception of 'easing' which can be changed at each keyframe. For example:
- <pre><code>
-keyframes : {
-    '0%': {
-        left: 100
-    },
-    '40%': {
-        left: 150
-    },
-    '60%': {
-        left: 75
-    },
-    '100%': {
-        left: 100
-    }
-}
- </code></pre>
-      */
+    /**
+     * @cfg {Object} keyframes
+     * Animation keyframes follow the CSS3 Animation configuration pattern. 'from' is always considered '0%' and 'to'
+     * is considered '100%'. **Every keyframe declaration must have a keyframe rule for 0% and 100%, possibly defined using
+     * "from" or "to".**  A keyframe declaration without these keyframe selectors is invalid and will not be available for
+     * animation.  The keyframe declaration for a keyframe rule consists of properties and values. Properties that are unable to
+     * be animated are ignored in these rules, with the exception of 'easing' which can be changed at each keyframe. For example:
+     *
+     *     keyframes : {
+     *         '0%': {
+     *             left: 100
+     *         },
+     *         '40%': {
+     *             left: 150
+     *         },
+     *         '60%': {
+     *             left: 75
+     *         },
+     *         '100%': {
+     *             left: 100
+     *         }
+     *     }
+     */
 
     /**
      * @private
@@ -187,15 +176,14 @@ keyframes : {
     paused: false,
 
     /**
-     * Number of times to execute the animation. Defaults to 1.
      * @cfg {Number} iterations
+     * Number of times to execute the animation.
      */
     iterations: 1,
 
     /**
-     * Used in conjunction with iterations to reverse the animation each time an iteration completes.
      * @cfg {Boolean} alternate
-     * Defaults to false.
+     * Used in conjunction with iterations to reverse the animation each time an iteration completes.
      */
     alternate: false,
 
@@ -232,26 +220,29 @@ keyframes : {
      * @cfg {Object} from
      * An object containing property/value pairs for the beginning of the animation.  If not specified, the current state of the
      * Ext.fx.target will be used. For example:
-<pre><code>
-from : {
-    opacity: 0,       // Transparent
-    color: '#ffffff', // White
-    left: 0
-}
-</code></pre>
+     *
+     *     from: {
+     *         opacity: 0,       // Transparent
+     *         color: '#ffffff', // White
+     *         left: 0
+     *     }
+     *
      */
 
     /**
-     * @cfg {Object} to
+     * @cfg {Object} to (required)
      * An object containing property/value pairs for the end of the animation. For example:
- <pre><code>
- to : {
-     opacity: 1,       // Opaque
-     color: '#00ff00', // Green
-     left: 500
- }
- </code></pre>
+     *
+     *     to: {
+     *         opacity: 1,       // Opaque
+     *         color: '#00ff00', // Green
+     *         left: 500
+     *     }
+     *
      */
+    
+    // @private
+    frameCount: 0,
 
     // @private
     constructor: function(config) {
@@ -261,9 +252,9 @@ from : {
         config = config || {};
         // If keyframes are passed, they really want an Animator instead.
         if (config.keyframes) {
-            return Ext.create('Ext.fx.Animator', config);
+            return new Ext.fx.Animator(config);
         }
-        config = Ext.apply(me, config);
+        Ext.apply(me, config);
         if (me.from === undefined) {
             me.from = {};
         }
@@ -282,7 +273,6 @@ from : {
             }
         }
         me.id = Ext.id(null, 'ext-anim-');
-        Ext.fx.Manager.addAnim(me);
         me.addEvents(
             /**
              * @event beforeanimate
@@ -305,11 +295,8 @@ from : {
               */
             'lastframe'
         );
-        me.mixins.observable.constructor.call(me, config);
-        if (config.callback) {
-            me.on('afteranimate', config.callback, config.scope);
-        }
-        return me;
+        me.mixins.observable.constructor.call(me);
+        Ext.fx.Manager.addAnim(me);
     },
 
     /**
@@ -363,6 +350,7 @@ from : {
             delay = me.delay,
             delayStart = me.delayStart,
             delayDelta;
+        
         if (delay) {
             if (!delayStart) {
                 me.delayStart = startTime;
@@ -385,6 +373,7 @@ from : {
                 me.initAttrs();
             }
             me.running = true;
+            me.frameCount = 0;
         }
     },
 
@@ -417,6 +406,8 @@ from : {
                 ret[attr] = propHandlers[attr].set(values, easing);
             }
         }
+        me.frameCount++;
+            
         return ret;
     },
 
@@ -447,20 +438,33 @@ from : {
         }
     },
 
+    endWasCalled: 0,
+
     /**
      * Fire afteranimate event and end the animation. Usually called automatically when the
      * animation reaches its final frame, but can also be called manually to pre-emptively
      * stop and destroy the running animation.
      */
     end: function() {
+        if (this.endWasCalled++) {
+            return;
+        }
         var me = this;
         me.startTime = 0;
         me.paused = false;
         me.running = false;
         Ext.fx.Manager.removeAnim(me);
         me.fireEvent('afteranimate', me, me.startTime);
+        Ext.callback(me.callback, me.scope, [me, me.startTime]);
+    },
+    
+    isReady: function() {
+        return this.paused === false && this.running === false && this.iterations > 0;
+    },
+    
+    isRunning: function() {
+        return this.paused === false && this.running === true && this.isAnimator !== true;
     }
 });
 // Set flag to indicate that Fx is available. Class might not be available immediately.
 Ext.enableFx = true;
-

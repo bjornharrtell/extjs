@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.ns('Ext.ux');
 /**
  * @class Ext.ux.TabScrollerMenu
@@ -24,7 +10,7 @@ Ext.ns('Ext.ux');
 Ext.define('Ext.ux.TabScrollerMenu', {
     alias: 'plugin.tabscrollermenu',
 
-    uses: ['Ext.menu.Menu'],
+    requires: ['Ext.menu.Menu'],
 
     /**
      * @cfg {Number} pageSize How many items to allow per submenu.
@@ -39,14 +25,13 @@ Ext.define('Ext.ux.TabScrollerMenu', {
      */
     menuPrefixText: 'Items',
     constructor: function(config) {
-        config = config || {};
         Ext.apply(this, config);
     },
+    
     //private
     init: function(tabPanel) {
         var me = this;
 
-        Ext.apply(tabPanel, me.parentOverrides);
         me.tabPanel = tabPanel;
 
         tabPanel.on({
@@ -72,7 +57,7 @@ Ext.define('Ext.ux.TabScrollerMenu', {
             me.menuButton.on('click', me.showTabsMenu, me);
         }
         me.menuButton.show();
-        result.targetSize.width -= me.menuButton.getWidth();
+        result.reservedSpace += me.menuButton.getWidth();
         return result;
     },
 
@@ -132,14 +117,14 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         if (me.tabsMenu) {
             me.tabsMenu.removeAll();
         } else {
-            me.tabsMenu = Ext.create('Ext.menu.Menu');
+            me.tabsMenu = new Ext.menu.Menu();
             me.tabPanel.on('destroy', me.tabsMenu.destroy, me.tabsMenu);
         }
 
         me.generateTabMenuItems();
 
-        var target = Ext.get(e.getTarget());
-        var xy = target.getXY();
+        var target = Ext.get(e.getTarget()),
+            xy = target.getXY();
 
         //Y param + 24 pixels
         xy[1] += 24;
@@ -152,11 +137,22 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         var me = this,
             tabPanel = me.tabPanel,
             curActive = tabPanel.getActiveTab(),
-            totalItems = tabPanel.items.getCount(),
+            allItems = tabPanel.items.getRange(),
             pageSize = me.getPageSize(),
-            numSubMenus = Math.floor(totalItems / pageSize),
-            remainder = totalItems % pageSize,
+            tabsMenu = me.tabsMenu,
+            totalItems, numSubMenus, remainder,
             i, curPage, menuItems, x, item, start, index;
+            
+        tabsMenu.suspendLayouts();
+        allItems = Ext.Array.filter(allItems, function(item){
+            if (item.id == curActive.id) {
+                return false;
+            }
+            return item.hidden ? !!item.hiddenByLayout : true;
+        });
+        totalItems = allItems.length;
+        numSubMenus = Math.floor(totalItems / pageSize);
+        remainder = totalItems % pageSize;
 
         if (totalItems > pageSize) {
 
@@ -167,11 +163,11 @@ Ext.define('Ext.ux.TabScrollerMenu', {
 
                 for (x = 0; x < pageSize; x++) {
                     index = x + curPage - pageSize;
-                    item = tabPanel.items.get(index);
+                    item = allItems[index];
                     menuItems.push(me.autoGenMenuItem(item));
                 }
 
-                me.tabsMenu.add({
+                tabsMenu.add({
                     text: me.getMenuPrefixText() + ' ' + (curPage - pageSize + 1) + ' - ' + curPage,
                     menu: menuItems
                 });
@@ -181,7 +177,7 @@ Ext.define('Ext.ux.TabScrollerMenu', {
                 start = numSubMenus * pageSize;
                 menuItems = [];
                 for (i = start; i < totalItems; i++) {
-                    item = tabPanel.items.get(i);
+                    item = allItems[i];
                     menuItems.push(me.autoGenMenuItem(item));
                 }
 
@@ -191,14 +187,12 @@ Ext.define('Ext.ux.TabScrollerMenu', {
                 });
 
             }
+        } else {
+            for (i = 0; i < totalItems; ++i) {
+                tabsMenu.add(me.autoGenMenuItem(allItems[i]));
+            }
         }
-        else {
-            tabPanel.items.each(function(item) {
-                if (item.id != curActive.id && !item.hidden) {
-                    me.tabsMenu.add(me.autoGenMenuItem(item));
-                }
-            });
-        }
+        tabsMenu.resumeLayouts(true);
     },
 
     // private
@@ -221,4 +215,3 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         this.tabPanel.setActiveTab(menuItem.tabToShow);
     }
 });
-

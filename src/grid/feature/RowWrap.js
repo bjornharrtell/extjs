@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.grid.feature.RowWrap
- * @extends Ext.grid.feature.Feature
  * @private
  */
 Ext.define('Ext.grid.feature.RowWrap', {
@@ -23,31 +7,69 @@ Ext.define('Ext.grid.feature.RowWrap', {
 
     // turn off feature events.
     hasFeatureEvent: false,
-    
-    mutateMetaRowTpl: function(metaRowTpl) {        
+
+    init: function() {
+        if (!this.disabled) {
+            this.enable();
+        }
+    },
+
+    getRowSelector: function(){
+        return 'tr:has(> ' + this.view.cellSelector + ')';
+    },
+
+    enable: function(){
+        var me = this,
+            view = me.view;
+
+        me.callParent();
+        // we need to mutate the rowSelector since the template changes the ordering
+        me.savedRowSelector = view.rowSelector;
+        view.rowSelector = me.getRowSelector();
+
+        // Extra functionality needed on header resize when row is wrapped:
+        // Every individual cell in a column needs its width syncing.
+        // So we produce a different column selector which includes al TDs in a column
+        view.getComponentLayout().getColumnSelector = me.getColumnSelector;
+    },
+
+    disable: function(){
+        var me = this,
+            view = me.view,
+            saved = me.savedRowSelector;
+
+        me.callParent();
+        if (saved) {
+            view.rowSelector = saved;
+        }
+        delete me.savedRowSelector;
+    },
+
+    mutateMetaRowTpl: function(metaRowTpl) {  
+        var prefix = Ext.baseCSSPrefix;      
         // Remove "x-grid-row" from the first row, note this could be wrong
         // if some other feature unshifted things in front.
-        metaRowTpl[0] = metaRowTpl[0].replace(Ext.baseCSSPrefix + 'grid-row', '');
+        metaRowTpl[0] = metaRowTpl[0].replace(prefix + 'grid-row', '');
         metaRowTpl[0] = metaRowTpl[0].replace("{[this.embedRowCls()]}", "");
         // 2
-        metaRowTpl.unshift('<table class="' + Ext.baseCSSPrefix + 'grid-table ' + Ext.baseCSSPrefix + 'grid-table-resizer" style="width: {[this.embedFullWidth()]}px;">');
+        metaRowTpl.unshift('<table class="' + prefix + 'grid-table ' + prefix + 'grid-table-resizer" style="width: {[this.embedFullWidth()]}px;">');
         // 1
-        metaRowTpl.unshift('<tr class="' + Ext.baseCSSPrefix + 'grid-row {[this.embedRowCls()]}"><td colspan="{[this.embedColSpan()]}"><div class="' + Ext.baseCSSPrefix + 'grid-rowwrap-div">');
-        
+        metaRowTpl.unshift('<tr class="' + prefix + 'grid-row {[this.embedRowCls()]}"><td colspan="{[this.embedColSpan()]}"><div class="' + prefix + 'grid-rowwrap-div">');
+
         // 3
         metaRowTpl.push('</table>');
         // 4
         metaRowTpl.push('</div></td></tr>');
     },
-    
+
     embedColSpan: function() {
         return '{colspan}';
     },
-    
+
     embedFullWidth: function() {
         return '{fullWidth}';
     },
-    
+
     getAdditionalData: function(data, idx, record, orig) {
         var headerCt = this.view.headerCt,
             colspan  = headerCt.getColumnCount(),
@@ -76,17 +98,20 @@ Ext.define('Ext.grid.feature.RowWrap', {
             if (orig[id+'-tdAttr']) {
                 o[id+'-tdAttr'] += orig[id+'-tdAttr'];
             }
-            
         }
 
         return o;
     },
-    
+
     getMetaRowTplFragments: function() {
         return {
             embedFullWidth: this.embedFullWidth,
             embedColSpan: this.embedColSpan
         };
+    },
+
+    getColumnSelector: function(header) {
+        var s = Ext.baseCSSPrefix + 'grid-col-resizer-' + header.id;
+        return 'th.' + s + ',td.' + s;
     }
-    
 });

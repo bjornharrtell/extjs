@@ -1,22 +1,9 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.chart.*');
 Ext.require('Ext.data.*');
 Ext.require('Ext.Window');
 Ext.require('Ext.layout.container.Fit');
 Ext.require('Ext.fx.target.Sprite');
+Ext.require('Ext.window.MessageBox');
 
 var jsonData = [
     {
@@ -238,7 +225,7 @@ var jsonData = [
 ];
 
 Ext.onReady(function () {
-    var fields = ['IE', 'Chrome', 'Firefox', 'Safari', 'Opera', 'Other'];
+    var fields = ['date', 'IE', 'Chrome', 'Firefox', 'Safari', 'Opera', 'Other'];
 
     var browserStore = Ext.create('Ext.data.JsonStore', {
         fields: fields,
@@ -260,18 +247,7 @@ Ext.onReady(function () {
         }
     });
 
-    var win = Ext.create('Ext.Window', {
-        width: 800,
-        height: 600,
-        minHeight: 400,
-        minWidth: 550,
-        hidden: false,
-        shadow: false,
-        maximizable: false,
-        title: 'What is the trend in Browser Usage?',
-        renderTo: Ext.getBody(),
-        layout: 'fit',
-        items: {
+    var chart = Ext.create('Ext.chart.Chart', {
             id: 'chartCmp',
             xtype: 'chart',
             style: 'background:#fff',
@@ -285,7 +261,7 @@ Ext.onReady(function () {
             axes: [{
                 type: 'Numeric',
                 position: 'left',
-                fields: fields,
+                fields: fields.slice(1),
                 title: 'Usage %',
                 grid: true,
                 decimals: 0,
@@ -317,14 +293,39 @@ Ext.onReady(function () {
                   }
                 },
                 xField: 'name',
-                yField: fields,
+                yField: fields.slice(1),
                 style: {
                     lineWidth: 1,
                     stroke: '#666',
                     opacity: 0.86
                 }
             }]
-        }
+        });
+ 
+
+    var win = Ext.create('Ext.Window', {
+        width: 800,
+        height: 600,
+        minHeight: 400,
+        minWidth: 550,
+        hidden: false,
+        shadow: false,
+        maximizable: false,
+        title: 'What is the trend in Browser Usage?',
+        renderTo: Ext.getBody(),
+        layout: 'fit',
+        tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }],
+        items: chart
     });
 });
-

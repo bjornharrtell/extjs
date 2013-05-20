@@ -1,30 +1,10 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.TabCloseMenu
- * Plugin (ptype = 'tabclosemenu') for adding a close context menu to tabs. Note that the menu respects
- * the closable configuration on the tab. As such, commands like remove others and remove all will not
- * remove items that are not closable.
- *
- * @constructor
- * @param {Object} config The configuration options
- * @ptype tabclosemenu
+ * Plugin for adding a close context menu to tabs. Note that the menu respects
+ * the closable configuration on the tab. As such, commands like remove others
+ * and remove all will not remove items that are not closable.
  */
-Ext.define('Ext.tab.TabCloseMenu', {
+Ext.define('Ext.ux.TabCloseMenu', {
     alias: 'plugin.tabclosemenu',
-    alternateClassName: 'Ext.ux.TabCloseMenu',
 
     mixins: {
         observable: 'Ext.util.Observable'
@@ -32,31 +12,31 @@ Ext.define('Ext.tab.TabCloseMenu', {
 
     /**
      * @cfg {String} closeTabText
-     * The text for closing the current tab. Defaults to <tt>'Close Tab'</tt>.
+     * The text for closing the current tab.
      */
     closeTabText: 'Close Tab',
 
     /**
      * @cfg {Boolean} showCloseOthers
-     * Indicates whether to show the 'Close Others' option. Defaults to <tt>true</tt>.
+     * Indicates whether to show the 'Close Others' option.
      */
     showCloseOthers: true,
 
     /**
-     * @cfg {String} closeOtherTabsText
-     * The text for closing all tabs except the current one. Defaults to <tt>'Close Other Tabs'</tt>.
+     * @cfg {String} closeOthersTabsText
+     * The text for closing all tabs except the current one.
      */
     closeOthersTabsText: 'Close Other Tabs',
 
     /**
      * @cfg {Boolean} showCloseAll
-     * Indicates whether to show the 'Close All' option. Defaults to <tt>true</tt>.
+     * Indicates whether to show the 'Close All' option.
      */
     showCloseAll: true,
 
     /**
      * @cfg {String} closeAllTabsText
-     * <p>The text for closing all tabs. Defaults to <tt>'Close All Tabs'</tt>.
+     * <p>The text for closing all tabs.
      */
     closeAllTabsText: 'Close All Tabs',
 
@@ -229,4 +209,3 @@ Ext.define('Ext.tab.TabCloseMenu', {
         }, this);
     }
 });
-

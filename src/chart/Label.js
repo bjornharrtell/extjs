@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.Label
  *
@@ -93,10 +79,10 @@ Ext.define('Ext.chart.Label', {
      *   Default value: function(v) { return v; }
      */
 
-    //@private a regex to parse url type colors.
+    // @private a regex to parse url type colors.
     colorStringRe: /url\s*\(\s*#([^\/)]+)\s*\)/,
 
-    //@private the mixin constructor. Used internally by Series.
+    // @private the mixin constructor. Used internally by Series.
     constructor: function(config) {
         var me = this;
         me.label = Ext.applyIf(me.label || {},
@@ -117,7 +103,7 @@ Ext.define('Ext.chart.Label', {
         }
     },
 
-    //@private a method to render all labels in the labelGroup
+    // @private a method to render all labels in the labelGroup
     renderLabels: function() {
         var me = this,
             chart = me.chart,
@@ -130,7 +116,7 @@ Ext.define('Ext.chart.Label', {
             field = [].concat(config.field),
             group = me.labelsGroup,
             groupLength = (group || 0) && group.length,
-            store = me.chart.store,
+            store = me.chart.getChartStore(),
             len = store.getCount(),
             itemLength = (items || 0) && items.length,
             ratio = itemLength / len,
@@ -145,9 +131,10 @@ Ext.define('Ext.chart.Label', {
         }
         // no items displayed, hide all labels
         if(itemLength == 0){
-            while(groupLength--)
+            while(groupLength--) {
                 hides.push(groupLength);
-        }else{
+            }
+        } else {
             for (i = 0, count = 0, groupIndex = 0; i < len; i++) {
                 index = 0;
                 for (j = 0; j < ratio; j++) {
@@ -155,12 +142,8 @@ Ext.define('Ext.chart.Label', {
                     label = group.getAt(groupIndex);
                     storeItem = store.getAt(i);
                     //check the excludes
-                    while(this.__excludes && this.__excludes[index] && ratio > 1) {
-                        if(field[j]){
-                            hides.push(groupIndex);
-                        }
+                    while(this.__excludes && this.__excludes[index]) {
                         index++;
-
                     }
 
                     if (!item && label) {
@@ -226,13 +209,33 @@ Ext.define('Ext.chart.Label', {
                     index++;
                 }
             }
+            groupLength = group.length;
+        
+            while(groupLength > groupIndex){
+                hides.push(groupIndex);
+                groupIndex++;
+           }
         }
         me.hideLabels(hides);
     },
+
     hideLabels: function(hides){
         var labelsGroup = this.labelsGroup,
-            hlen = hides.length;
-        while(hlen--)
-            labelsGroup.getAt(hides[hlen]).hide(true);
+            hlen = !!hides && hides.length;
+
+        if (!labelsGroup) {
+            return;
+        }
+
+        if (hlen === false) {
+            hlen = labelsGroup.getCount();
+            while (hlen--) {
+              labelsGroup.getAt(hlen).hide(true);
+            }
+        } else {
+            while(hlen--) {
+                labelsGroup.getAt(hides[hlen]).hide(true);
+            }
+        }
     }
 });

@@ -16,38 +16,20 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ShadowPool'>/**
-</span> * Private utility class that manages the internal Shadow cache
+</span> * Private utility class that manages the internal Shadow cache.
  * @private
  */
 Ext.define('Ext.ShadowPool', {
     singleton: true,
     requires: ['Ext.DomHelper'],
 
-    markup: function() {
-        if (Ext.supports.CSS3BoxShadow) {
-            return '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'css-shadow&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;';
-        } else if (Ext.isIE) {
-            return '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'ie-shadow&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;';
-        } else {
-            return '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'frame-shadow&quot; role=&quot;presentation&quot;&gt;' +
-                '&lt;div class=&quot;xst&quot; role=&quot;presentation&quot;&gt;' +
-                    '&lt;div class=&quot;xstl&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xstc&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xstr&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                '&lt;/div&gt;' +
-                '&lt;div class=&quot;xsc&quot; role=&quot;presentation&quot;&gt;' +
-                    '&lt;div class=&quot;xsml&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xsmc&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xsmr&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                '&lt;/div&gt;' +
-                '&lt;div class=&quot;xsb&quot; role=&quot;presentation&quot;&gt;' +
-                    '&lt;div class=&quot;xsbl&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xsbc&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                    '&lt;div class=&quot;xsbr&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;' +
-                '&lt;/div&gt;' +
-            '&lt;/div&gt;';
-        }
-    }(),
+    markup: (function() {
+        return Ext.String.format(
+            '&lt;div class=&quot;{0}{1}-shadow&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;',
+            Ext.baseCSSPrefix,
+            Ext.isIE &amp;&amp; !Ext.supports.CSS3BoxShadow ? 'ie' : 'css'
+        );
+    }()),
 
     shadows: [],
 
@@ -65,9 +47,14 @@ Ext.define('Ext.ShadowPool', {
     },
     
     reset: function() {
-        Ext.Array.each(this.shadows, function(shadow) {
-            shadow.remove();
-        });
+        var shadows = [].concat(this.shadows),
+            s,
+            sLen    = shadows.length;
+
+        for (s = 0; s &lt; sLen; s++) {
+            shadows[s].remove();
+        }
+
         this.shadows = [];
     }
 });</pre>

@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.axis.Gauge
- * @extends Ext.chart.axis.Abstract
  *
  * Gauge Axis is the axis to be used with a Gauge series. The Gauge axis
  * displays numeric data from an interval defined by the `minimum`, `maximum` and
@@ -170,6 +155,7 @@ Ext.define('Ext.chart.axis.Gauge', {
             round = Math.round,
             labelArray = [], label,
             maxValue = this.maximum || 0,
+            minValue = this.minimum || 0,
             steps = this.steps, i = 0,
             adjY,
             pi = Math.PI,
@@ -185,7 +171,7 @@ Ext.define('Ext.chart.axis.Gauge', {
                 adjY = (i === 0 || i === steps) ? 7 : 0;
                 label = surface.add({
                     type: 'text',
-                    text: renderer(round(i / steps * maxValue)),
+                    text: renderer(round(minValue + i / steps * (maxValue - minValue))),
                     x: centerX + rho * cos(i / steps * pi - pi),
                     y: centerY + rho * sin(i / steps * pi - pi) - adjY,
                     'text-anchor': 'middle',
@@ -206,7 +192,7 @@ Ext.define('Ext.chart.axis.Gauge', {
                 // TODO Adjust for height of text / 2 instead
                 adjY = (i === 0 || i === steps) ? 7 : 0;
                 labelArray[i].setAttributes({
-                    text: renderer(round(i / steps * maxValue)),
+                    text: renderer(round(minValue + i / steps * (maxValue - minValue))),
                     x: centerX + rho * cos(i / steps * pi - pi),
                     y: centerY + rho * sin(i / steps * pi - pi) - adjY
                 }, true);

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Ed Spencer
  *
@@ -54,10 +40,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  *     Ext.define('User', {
  *         extend: 'Ext.data.Model',
  *         fields: [
- *             'name', 'email',
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'},
- *
  *             {
  *                 name: 'firstName',
  *                 convert: function(value, record) {
@@ -67,7 +49,10 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *                     return firstName;
  *                 }
- *             }
+ *             },
+ *             'name', 'email',
+ *             {name: 'age', type: 'int'},
+ *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
  *         ]
  *     });
  *
@@ -76,6 +61,10 @@ If you are unsure which license is appropriate for your use, please contact the 
  *     var ed = Ext.create('User', {name: 'Ed Spencer'});
  *
  *     console.log(ed.get('firstName')); //logs 'Ed', based on our convert function
+ *     
+ * Fields which are configured with a custom ```convert``` function are read *after* all other fields
+ * when constructing and reading records, so that if convert functions rely on other, non-converted fields
+ * (as in this example), they can be sure of those fields being present.
  *
  * In fact, if we log out all of the data inside ed, we'll see this:
  *
@@ -103,34 +92,47 @@ If you are unsure which license is appropriate for your use, please contact the 
 Ext.define('Ext.data.Field', {
     requires: ['Ext.data.Types', 'Ext.data.SortTypes'],
     alias: 'data.field',
+
+    isField: true,
     
     constructor : function(config) {
+        var me = this,
+            types = Ext.data.Types,
+            st;
+        
         if (Ext.isString(config)) {
             config = {name: config};
         }
-        Ext.apply(this, config);
-        
-        var types = Ext.data.Types,
-            st = this.sortType,
-            t;
+        Ext.apply(me, config);
 
-        if (this.type) {
-            if (Ext.isString(this.type)) {
-                this.type = types[this.type.toUpperCase()] || types.AUTO;
+        st = me.sortType;
+
+        if (me.type) {
+            if (Ext.isString(me.type)) {
+                me.type = types[me.type.toUpperCase()] || types.AUTO;
             }
         } else {
-            this.type = types.AUTO;
+            me.type = types.AUTO;
         }
 
         // named sortTypes are supported, here we look them up
         if (Ext.isString(st)) {
-            this.sortType = Ext.data.SortTypes[st];
+            me.sortType = Ext.data.SortTypes[st];
         } else if(Ext.isEmpty(st)) {
-            this.sortType = this.type.sortType;
+            me.sortType = me.type.sortType;
         }
 
-        if (!this.convert) {
-            this.convert = this.type.convert;
+        // Reference this type's default converter if we did not recieve one in configuration.
+        if (!config.hasOwnProperty('convert')) {
+            me.convert = me.type.convert; // this may be undefined (e.g., AUTO)
+        } else if (!me.convert && me.type.convert && !config.hasOwnProperty('defaultValue')) {
+            // If the converter has been nulled out, and we have not been configured
+            // with a field-specific defaultValue, then coerce the inherited defaultValue into our data type.
+            me.defaultValue = me.type.convert(me.defaultValue);
+        }
+
+        if (config.convert) {
+            me.hasCustomConvert = true;
         }
     },
     
@@ -163,11 +165,16 @@ Ext.define('Ext.data.Field', {
      * Developers may create their own application-specific data types by defining new members of the {@link
      * Ext.data.Types} class.
      */
-    
+
     /**
-     * @cfg {Function} convert
+     * @cfg {Function} [convert]
      *
      * A function which converts the value provided by the Reader into an object that will be stored in the Model.
+     * 
+     * If configured as `null`, then no conversion will be applied to the raw data property when this Field
+     * is read. This will increase performance. but you must ensure that the data is of the correct type and does
+     * not *need* converting.
+     * 
      * It is passed the following parameters:
      *
      * - **v** : Mixed
@@ -179,16 +186,16 @@ Ext.define('Ext.data.Field', {
      *
      *   The data object containing the Model as read so far by the Reader. Note that the Model may not be fully populated
      *   at this point as the fields are read in the order that they are defined in your
-     *   {@link Ext.data.Model#fields fields} array.
+     *   {@link Ext.data.Model#cfg-fields fields} array.
      *
      * Example of convert functions:
      *
      *     function fullName(v, record){
-     *         return record.name.last + ', ' + record.name.first;
+     *         return record.data.last + ', ' + record.data.first;
      *     }
      *
      *     function location(v, record){
-     *         return !record.city ? '' : (record.city + ', ' + record.state);
+     *         return !record.data.city ? '' : (record.data.city + ', ' + record.data.state);
      *     }
      *
      *     Ext.define('Dude', {
@@ -231,9 +238,30 @@ Ext.define('Ext.data.Field', {
      */
 
     /**
+     * @cfg {Function} [serialize]
+     * A function which converts the Model's value for this Field into a form which can be used by whatever {@link Ext.data.writer.Writer Writer}
+     * is being used to sync data with the server.
+     * 
+     * The function should return a string which represents the Field's value.
+     *
+     * It is passed the following parameters:
+     *
+     * - **v** : Mixed
+     *
+     *   The Field's value - the value to be serialized.
+     *
+     * - **rec** : Ext.data.Model
+     *
+     *   The record being serialized.
+     *
+     */
+
+    /**
      * @cfg {String} dateFormat
      *
      * Used when converting received data into a Date when the {@link #type} is specified as `"date"`.
+     * 
+     * The format dtring is also used when serializing Date fields for use by {@link Ext.data.writer.Writer Writers}.
      *
      * A format string for the {@link Ext.Date#parse Ext.Date.parse} function, or "timestamp" if the value provided by
      * the Reader is a UNIX timestamp, or "time" if the value provided by the Reader is a javascript millisecond
@@ -244,17 +272,24 @@ Ext.define('Ext.data.Field', {
     /**
      * @cfg {Boolean} useNull
      *
-     * Use when converting received data into a Number type (either int or float). If the value cannot be
-     * parsed, null will be used if useNull is true, otherwise the value will be 0. Defaults to false.
+     * Use when converting received data into a INT, FLOAT, BOOL or STRING type. If the value cannot be
+     * parsed, `null` will be used if useNull is true, otherwise a default value for that type will be used:
+     *
+     * - for INT and FLOAT - `0`.
+     * - for STRING - `""`.
+     * - for BOOL - `false`.
+     *
+     * Note that when parsing of DATE type fails, the value will be `null` regardless of this setting.
      */
     useNull: false,
     
     /**
-     * @cfg {Object} defaultValue
+     * @cfg {Object} [defaultValue=""]
      *
-     * The default value used **when a Model is being created by a {@link Ext.data.reader.Reader Reader}**
-     * when the item referenced by the `{@link Ext.data.Field#mapping mapping}` does not exist in the data object
-     * (i.e. undefined). Defaults to "".
+     * The default value used when the creating an instance from a raw data object, and the property referenced by the
+     * `{@link Ext.data.Field#mapping mapping}` does not exist in that data object.
+     * 
+     * May be specified as `undefined` to prevent defaulting in a value.
      */
     defaultValue: "",
 
@@ -270,7 +305,7 @@ Ext.define('Ext.data.Field', {
      * - {@link Ext.data.reader.Json}
      *
      *   The mapping is a string containing the javascript expression to reference the data from an element of the data
-     *   item's {@link Ext.data.reader.Json#root root} Array. Defaults to the field name.
+     *   item's {@link Ext.data.reader.Json#cfg-root root} Array. Defaults to the field name.
      *
      * - {@link Ext.data.reader.Xml}
      *
@@ -337,4 +372,3 @@ Ext.define('Ext.data.Field', {
      */
     persist: true
 });
-

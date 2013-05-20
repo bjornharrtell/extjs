@@ -1,46 +1,11 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.chart.*');
-Ext.require('Ext.layout.container.Fit');
+Ext.require(['Ext.layout.container.Fit', 'Ext.window.MessageBox']);
 
 Ext.onReady(function () {
     store1.loadData(generateData(6, 20));
 
     var donut = false,
-        panel1 = Ext.create('widget.panel', {
-        width: 800,
-        height: 600,
-        title: 'Semester Trends',
-        renderTo: Ext.getBody(),
-        layout: 'fit',
-        tbar: [{
-            text: 'Reload Data',
-            handler: function() {
-                store1.loadData(generateData(6, 20));
-            }
-        }, {
-            enableToggle: true,
-            pressed: false,
-            text: 'Donut',
-            toggleHandler: function(btn, pressed) {
-                var chart = Ext.getCmp('chartCmp');
-                chart.series.first().donut = pressed ? 35 : false;
-                chart.refresh();
-            }
-        }],
-        items: {
+        chart = Ext.create('Ext.chart.Chart', {
             xtype: 'chart',
             id: 'chartCmp',
             animate: true,
@@ -81,7 +46,41 @@ Ext.onReady(function () {
                     font: '18px Arial'
                 }
             }]
-        }
+        });
+
+
+    var panel1 = Ext.create('widget.panel', {
+        width: 800,
+        height: 600,
+        title: 'Semester Trends',
+        renderTo: Ext.getBody(),
+        layout: 'fit',
+        tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }, {
+            text: 'Reload Data',
+            handler: function() {
+                store1.loadData(generateData(6, 20));
+            }
+        }, {
+            enableToggle: true,
+            pressed: false,
+            text: 'Donut',
+            toggleHandler: function(btn, pressed) {
+                var chart = Ext.getCmp('chartCmp');
+                chart.series.first().donut = pressed ? 35 : false;
+                chart.refresh();
+            }
+        }],
+        items: chart
     });
 });
-

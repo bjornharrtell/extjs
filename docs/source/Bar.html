@@ -25,11 +25,12 @@ Ext.define('Ext.tab.Bar', {
     alias: 'widget.tabbar',
     baseCls: Ext.baseCSSPrefix + 'tab-bar',
 
-    requires: [
-        'Ext.tab.Tab',
-        'Ext.FocusManager'
-    ],
+    requires: ['Ext.tab.Tab'],
 
+<span id='Ext-tab-Bar-property-isTabBar'>    /**
+</span>     * @property {Boolean} isTabBar
+     * `true` in this class to identify an objact as an instantiated Tab Bar, or subclass thereof.
+     */
     isTabBar: true,
     
 <span id='Ext-tab-Bar-cfg-title'>    /**
@@ -49,9 +50,15 @@ Ext.define('Ext.tab.Bar', {
      */
     plain: false,
 
+    childEls: [
+        'body', 'strip'
+    ],
+
     // @private
     renderTpl: [
-        '&lt;div id=&quot;{id}-body&quot; class=&quot;{baseCls}-body &lt;tpl if=&quot;bodyCls&quot;&gt; {bodyCls}&lt;/tpl&gt; &lt;tpl if=&quot;ui&quot;&gt; {baseCls}-body-{ui}&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-body-{parent.ui}-{.}&lt;/tpl&gt;&lt;/tpl&gt;&quot;&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;&lt;/div&gt;',
+        '&lt;div id=&quot;{id}-body&quot; class=&quot;{baseCls}-body {bodyCls}&lt;tpl if=&quot;ui&quot;&gt; {baseCls}-body-{ui}&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-body-{parent.ui}-{.}&lt;/tpl&gt;&lt;/tpl&gt;&quot;&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;',
+            '{%this.renderContainer(out,values)%}',
+        '&lt;/div&gt;',
         '&lt;div id=&quot;{id}-strip&quot; class=&quot;{baseCls}-strip&lt;tpl if=&quot;ui&quot;&gt; {baseCls}-strip-{ui}&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-strip-{parent.ui}-{.}&lt;/tpl&gt;&lt;/tpl&gt;&quot;&gt;&lt;/div&gt;'
     ],
 
@@ -69,8 +76,7 @@ Ext.define('Ext.tab.Bar', {
 
     // @private
     initComponent: function() {
-        var me = this,
-            keys;
+        var me = this;
 
         if (me.plain) {
             me.setUI(me.ui + '-plain');
@@ -89,25 +95,25 @@ Ext.define('Ext.tab.Bar', {
             'change'
         );
 
-        me.addChildEls('body', 'strip');
+        // Element onClick listener added by Header base class
         me.callParent(arguments);
 
         // TabBar must override the Header's align setting.
         me.layout.align = (me.orientation == 'vertical') ? 'left' : 'top';
-        me.layout.overflowHandler = Ext.create('Ext.layout.container.boxOverflow.Scroller', me.layout);
+        me.layout.overflowHandler = new Ext.layout.container.boxOverflow.Scroller(me.layout);
 
         me.remove(me.titleCmp);
         delete me.titleCmp;
 
-        // Subscribe to Ext.FocusManager for key navigation
-        keys = me.orientation == 'vertical' ? ['up', 'down'] : ['left', 'right'];
-        Ext.FocusManager.subscribe(me, {
-            keys: keys
-        });
-
         Ext.apply(me.renderData, {
             bodyCls: me.bodyCls
         });
+    },
+
+    getLayout: function() {
+        var me = this;
+        me.layout.type = (me.dock === 'top' || me.dock === 'bottom') ? 'hbox' : 'vbox';
+        return me.callParent(arguments);
     },
 
     // @private
@@ -122,49 +128,35 @@ Ext.define('Ext.tab.Bar', {
         if (tab === me.previousTab) {
             me.previousTab = null;
         }
-        if (me.items.getCount() === 0) {
-            me.activeTab = null;
-        }
         me.callParent(arguments);    
     },
 
-    // @private
-    afterRender: function() {
-        var me = this;
-
-        me.mon(me.el, {
-            scope: me,
-            click: me.onClick,
-            delegate: '.' + Ext.baseCSSPrefix + 'tab'
-        });
-        me.callParent(arguments);
-
-    },
-
-    afterComponentLayout : function() {
-        var me = this;
-
-        me.callParent(arguments);
-        me.strip.setWidth(me.el.getWidth());
+    afterComponentLayout : function(width) {
+        this.callParent(arguments);
+        this.strip.setWidth(width);
     },
 
     // @private
     onClick: function(e, target) {
         // The target might not be a valid tab el.
-        var tab = Ext.getCmp(target.id),
-            tabPanel = this.tabPanel;
+        var me = this,
+            tabEl = e.getTarget('.' + Ext.tab.Tab.prototype.baseCls),
+            tab = tabEl &amp;&amp; Ext.getCmp(tabEl.id),
+            tabPanel = me.tabPanel,
+            isCloseClick = tab &amp;&amp; tab.closeEl &amp;&amp; (target === tab.closeEl.dom);
 
-        target = e.getTarget();
-
+        if (isCloseClick) {
+            e.preventDefault();
+        }
         if (tab &amp;&amp; tab.isDisabled &amp;&amp; !tab.isDisabled()) {
-            if (tab.closable &amp;&amp; target === tab.closeEl.dom) {
+            if (tab.closable &amp;&amp; isCloseClick) {
                 tab.onCloseClick();
             } else {
                 if (tabPanel) {
                     // TabPanel will card setActiveTab of the TabBar
                     tabPanel.setActiveTab(tab.card);
                 } else {
-                    this.setActiveTab(tab);
+                    me.setActiveTab(tab);
                 }
                 tab.focus();
             }
@@ -174,40 +166,74 @@ Ext.define('Ext.tab.Bar', {
 <span id='Ext-tab-Bar-method-closeTab'>    /**
 </span>     * @private
      * Closes the given tab by removing it from the TabBar and removing the corresponding card from the TabPanel
-     * @param {Ext.tab.Tab} tab The tab to close
+     * @param {Ext.tab.Tab} toClose The tab to close
      */
-    closeTab: function(tab) {
+    closeTab: function(toClose) {
         var me = this,
-            card = tab.card,
+            card = toClose.card,
             tabPanel = me.tabPanel,
-            nextTab;
+            toActivate;
 
         if (card &amp;&amp; card.fireEvent('beforeclose', card) === false) {
             return false;
         }
+        
+        // If we are closing the active tab, revert to the previously active tab (or the previous or next enabled sibling if
+        // there *is* no previously active tab, or the previously active tab is the one that's being closed or the previously
+        // active tab has since been disabled)
+        toActivate = me.findNextActivatable(toClose);
 
-        if (tab.active &amp;&amp; me.items.getCount() &gt; 1) {
-            nextTab = me.previousTab || tab.next('tab') || me.items.first();
-            me.setActiveTab(nextTab);
-            if (tabPanel) {
-                tabPanel.setActiveTab(nextTab.card);
-            }
-        }
-        /*
-         * force the close event to fire. By the time this function returns,
-         * the tab is already destroyed and all listeners have been purged
-         * so the tab can't fire itself.
-         */
-        tab.fireClose();
-        me.remove(tab);
+        // We are going to remove the associated card, and then, if that was sucessful, remove the Tab,
+        // And then potentially activate another Tab. We should not layout for each of these operations.
+        Ext.suspendLayouts();
 
         if (tabPanel &amp;&amp; card) {
+            // Remove the ownerCt so the tab doesn't get destroyed if the remove is successful
+            // We need this so we can have the tab fire it's own close event.
+            delete toClose.ownerCt;
+            
+            // we must fire 'close' before removing the card from panel, otherwise
+            // the event will no loger have any listener
             card.fireEvent('close', card);
             tabPanel.remove(card);
+            
+            // Remove succeeded
+            if (!tabPanel.getComponent(card)) {
+                /*
+                 * Force the close event to fire. By the time this function returns,
+                 * the tab is already destroyed and all listeners have been purged
+                 * so the tab can't fire itself.
+                 */
+                toClose.fireClose();
+                me.remove(toClose);
+            } else {
+                // Restore the ownerCt from above
+                toClose.ownerCt = me;
+                Ext.resumeLayouts(true);
+                return false;
+            }
         }
 
-        if (nextTab) {
-            nextTab.focus();
+        // If we are closing the active tab, revert to the previously active tab (or the previous sibling or the nnext sibling)
+        if (toActivate) {
+            // Our owning TabPanel calls our setActiveTab method, so only call that if this Bar is being used
+            // in some other context (unlikely)
+            if (tabPanel) {
+                tabPanel.setActiveTab(toActivate.card);
+            } else {
+                me.setActiveTab(toActivate);
+            }
+            toActivate.focus();
+        }
+        Ext.resumeLayouts(true);
+    },
+
+    // private - used by TabPanel too.
+    // Works out the next tab to activate when one tab is closed.
+    findNextActivatable: function(toClose) {
+        var me = this;
+        if (toClose.active &amp;&amp; me.items.getCount() &gt; 1) {
+            return (me.previousTab &amp;&amp; me.previousTab !== toClose &amp;&amp; !me.previousTab.disabled) ? me.previousTab : (toClose.next('tab[disabled=false]') || toClose.prev('tab[disabled=false]'));
         }
     },
 
@@ -217,22 +243,34 @@ Ext.define('Ext.tab.Bar', {
      * @param {Ext.tab.Tab} tab The tab to mark active
      */
     setActiveTab: function(tab) {
-        if (tab.disabled) {
-            return;
-        }
         var me = this;
-        if (me.activeTab) {
-            me.previousTab = me.activeTab;
-            me.activeTab.deactivate();
-        }
-        tab.activate();
 
-        if (me.rendered) {
-            me.layout.layout();
-            tab.el &amp;&amp; tab.el.scrollIntoView(me.layout.getRenderTarget());
+        if (!tab.disabled &amp;&amp; tab !== me.activeTab) {
+            if (me.activeTab) {
+                if (me.activeTab.isDestroyed) {
+                    me.previousTab = null;
+                } else {
+                    me.previousTab = me.activeTab;
+                    me.activeTab.deactivate();
+                }
+            }
+            tab.activate();
+
+            me.activeTab = tab;
+            me.fireEvent('change', me, tab, tab.card);
+
+            // Ensure that after the currently in progress layout, the active tab is scrolled into view
+            me.on({
+                afterlayout: me.afterTabActivate,
+                scope: me,
+                single: true
+            });
+            me.updateLayout();
         }
-        me.activeTab = tab;
-        me.fireEvent('change', me, tab, tab.card);
+    },
+
+    afterTabActivate: function() {
+        this.layout.overflowHandler.scrollToItem(this.activeTab);
     }
 });
 </pre>

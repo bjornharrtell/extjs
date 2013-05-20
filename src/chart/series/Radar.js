@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.chart.series.Radar
- * @extends Ext.chart.series.Series
  *
  * Creates a Radar Chart. A Radar Chart is a useful visualization technique for comparing different quantitative values for
  * a constrained number of categories.
@@ -24,13 +9,13 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     @example
  *     var store = Ext.create('Ext.data.JsonStore', {
- *         fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
+ *         fields: ['name', 'data1', 'data2', 'data3'],
  *         data: [
- *             { 'name': 'metric one',   'data1': 10, 'data2': 12, 'data3': 14, 'data4': 8,  'data5': 13 },
- *             { 'name': 'metric two',   'data1': 7,  'data2': 8,  'data3': 16, 'data4': 10, 'data5': 3  },
- *             { 'name': 'metric three', 'data1': 5,  'data2': 2,  'data3': 14, 'data4': 12, 'data5': 7  },
- *             { 'name': 'metric four',  'data1': 2,  'data2': 14, 'data3': 6,  'data4': 1,  'data5': 23 },
- *             { 'name': 'metric five',  'data1': 27, 'data2': 38, 'data3': 36, 'data4': 13, 'data5': 33 }
+ *             { 'name': 'metric one',   'data1': 14, 'data2': 12, 'data3': 13 },
+ *             { 'name': 'metric two',   'data1': 16, 'data2':  8, 'data3':  3 },
+ *             { 'name': 'metric three', 'data1': 14, 'data2':  2, 'data3':  7 },
+ *             { 'name': 'metric four',  'data1':  6, 'data2': 14, 'data3': 23 },
+ *             { 'name': 'metric five',  'data1': 36, 'data2': 38, 'data3': 33 }
  *         ]
  *     });
  *
@@ -51,7 +36,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         series: [{
  *             type: 'radar',
  *             xField: 'name',
- *             yField: 'data3',
+ *             yField: 'data1',
  *             showInLegend: true,
  *             showMarkers: true,
  *             markerConfig: {
@@ -79,7 +64,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         },{
  *             type: 'radar',
  *             xField: 'name',
- *             yField: 'data5',
+ *             yField: 'data3',
  *             showMarkers: true,
  *             showInLegend: true,
  *             markerConfig: {
@@ -141,14 +126,19 @@ Ext.define('Ext.chart.series.Radar', {
     drawSeries: function() {
         var me = this,
             store = me.chart.getChartStore(),
+            data = store.data.items,
+            d, record,
             group = me.group,
             sprite,
             chart = me.chart,
+            seriesItems = chart.series.items,
+            s, sLen, series,
             animate = chart.animate,
             field = me.field || me.yField,
             surface = chart.surface,
             chartBBox = chart.chartBBox,
-            rendererAttributes,
+            seriesIdx = me.seriesIdx,
+            colorArrayStyle = me.colorArrayStyle,
             centerX, centerY,
             items,
             radius,
@@ -168,14 +158,24 @@ Ext.define('Ext.chart.series.Radar', {
             aggregate = !(axis && axis.maximum);
 
         me.setBBox();
-
+        
         maxValue = aggregate? 0 : (axis.maximum || 0);
-
+        
         Ext.apply(seriesStyle, me.style || {});
 
         //if the store is empty then there's nothing to draw
-        if (!store || !store.getCount()) {
+        if (!store || !store.getCount() || me.seriesIsHidden) {
+            me.hide();
+            me.items = [];
+            if (me.radar) {
+                me.radar.hide(true);
+            }
+            me.radar = null;
             return;
+        }
+        
+        if(!seriesStyle['stroke']){
+            seriesStyle['stroke'] = colorArrayStyle[seriesIdx % colorArrayStyle.length];
         }
 
         me.unHighlightItem();
@@ -188,21 +188,24 @@ Ext.define('Ext.chart.series.Radar', {
 
         if (aggregate) {
             //get all renderer fields
-            chart.series.each(function(series) {
+            for (s = 0, sLen = seriesItems.length; s < sLen; s++) {
+                series = seriesItems[s];
                 fields.push(series.yField);
-            });
+            }
             //get maxValue to interpolate
-            store.each(function(record, i) {
+            for (d = 0; d < l; d++) {
+                record = data[d];
                 for (i = 0, nfields = fields.length; i < nfields; i++) {
                     maxValue = max(+record.get(fields[i]), maxValue);
                 }
-            });
+            }
         }
         //ensure non-zero value.
         maxValue = maxValue || 1;
         //create path and items
         startPath = []; path = [];
-        store.each(function(record, i) {
+        for (i = 0; i < l; i++) {
+            record = data[i];
             rho = radius * record.get(field) / maxValue;
             x = rho * cos(i / l * pi2);
             y = rho * sin(i / l * pi2);
@@ -216,9 +219,10 @@ Ext.define('Ext.chart.series.Radar', {
             items.push({
                 sprite: false, //TODO(nico): add markers
                 point: [centerX + x, centerY + y],
+                storeItem: record,
                 series: me
             });
-        });
+        }
         path.push('Z');
         //create path sprite
         if (!me.radar) {
@@ -260,14 +264,15 @@ Ext.define('Ext.chart.series.Radar', {
             chart = me.chart,
             surface = chart.surface,
             markerStyle = Ext.apply({}, me.markerStyle || {}),
-            endMarkerStyle = Ext.apply(markerStyle, me.markerConfig),
+            endMarkerStyle = Ext.apply(markerStyle, me.markerConfig, {
+                fill: me.colorArrayStyle[me.seriesIdx % me.colorArrayStyle.length]
+            }),
             items = me.items,
             type = endMarkerStyle.type,
             markerGroup = me.markerGroup,
             centerX = me.centerX,
             centerY = me.centerY,
             item, i, l, marker;
-
         delete endMarkerStyle.type;
 
         for (i = 0, l = items.length; i < l; i++) {
@@ -287,6 +292,7 @@ Ext.define('Ext.chart.series.Radar', {
             else {
                 marker.show();
             }
+            item.sprite = marker;
             if (chart.resizing) {
                 marker.setAttributes({
                     x: 0,
@@ -431,5 +437,4 @@ Ext.define('Ext.chart.series.Radar', {
         }
     }
 });
-
 

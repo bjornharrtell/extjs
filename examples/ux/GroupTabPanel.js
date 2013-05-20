@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Nicolas Ferrero
  * @class Ext.ux.GroupTabPanel
@@ -32,37 +18,54 @@ Ext.define('Ext.ux.GroupTabPanel', {
     baseCls : Ext.baseCSSPrefix + 'grouptabpanel',
 
     initComponent: function(config) {
-        var me = this,
-            items = [];
+        var me = this;
 
         Ext.apply(me, config);
 
-        me.store = me.createItemsStore();
+        // Processes items to create the TreeStore and also set up
+        // "this.cards" containing the actual card items.
+        me.store = me.createTreeStore();
+
         me.layout = {
             type: 'hbox',
-            pack: 'start',
             align: 'stretch'
         };
         me.defaults = {
             border: false
         };
 
-        me.items = Ext.each(me.items, function(item) {
-            items.push(item.items);
-        });
-
         me.items = [{
             xtype: 'treepanel',
             cls: 'x-tree-panel x-grouptabbar',
             width: 150,
             rootVisible: false,
-            height: 400,
             store: me.store,
             hideHeaders: true,
-            useArrows: true,
             animate: false,
+            processEvent: Ext.emptyFn,
             viewConfig: {
-                overItemCls: ''
+                overItemCls: '',
+                getRowClass: me.getRowClass,
+                itemSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab-row',
+                cellSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab',
+                getTableChunker: function() {
+                    return Ext.ux.GroupTreeChunker;
+                },
+                onHeaderResize: function(header, w, suppressFocus) {
+                    var me = this,
+                        el = me.el;
+
+                    if (el) {
+                        el.select('div.' + Ext.baseCSSPrefix + 'grid-table-resizer').setWidth(me.headerCt.getFullWidth());
+                        if (!me.ignoreTemplate) {
+                            me.setNewTemplate();
+                        }
+                        if (!suppressFocus) {
+                            me.el.focus();
+                        }
+                        me.forceReflow();
+                    }
+                }
             },
             columns: [{
                 xtype: 'treecolumn',
@@ -72,12 +75,13 @@ Ext.define('Ext.ux.GroupTabPanel', {
                 renderer: function (value, cell, node, idx1, idx2, store, tree) {
                     var cls = '';
 
-                    if (!node.data.activeGroup) {
-                        cls += ' x-inactive-group';
-                    } else if (node.parentNode && node.parentNode.parentNode === null) {
+                    if (node.parentNode && node.parentNode.parentNode === null) {
                         cls += ' x-grouptab-first';
                         if (node.previousSibling) {
                             cls += ' x-grouptab-prev';
+                        }
+                        if (!node.get('expanded') || node.firstChild == null) {
+                            cls += ' x-grouptab-last';
                         }
                     } else if (node.nextSibling === null) {
                         cls += ' x-grouptab-last';
@@ -85,7 +89,7 @@ Ext.define('Ext.ux.GroupTabPanel', {
                         cls += ' x-grouptab-center';
                     }
                     if (node.data.activeTab) {
-                            cls += ' x-active-tab';
+                        cls += ' x-active-tab';
                     }
                     cell.tdCls= 'x-grouptab'+ cls;
 
@@ -98,7 +102,7 @@ Ext.define('Ext.ux.GroupTabPanel', {
             layout: 'card',
             activeItem: me.mainItem,
             baseCls: Ext.baseCSSPrefix + 'grouptabcontainer',
-            items: items
+            items: me.cards
         }];
 
         me.addEvents(
@@ -147,6 +151,14 @@ Ext.define('Ext.ux.GroupTabPanel', {
         me.mon(me.down('treepanel').getSelectionModel(), 'select', me.onNodeSelect, me);
     },
 
+    getRowClass: function(node, rowIndex, rowParams, store) {
+        var cls = '';
+        if (node.data.activeGroup) {
+           cls += ' x-active-group';
+        }
+        return cls;
+    },
+
     /**
      * @private
      * Node selection listener.
@@ -166,16 +178,14 @@ Ext.define('Ext.ux.GroupTabPanel', {
             return false;
         }
 
-        while(currentNode) {
+        while (currentNode) {
             currentNode.set('activeTab', false);
             currentNode.set('activeGroup', false);
             currentNode = currentNode.firstChild || currentNode.nextSibling || currentNode.parentNode.nextSibling;
         }
 
         parent.set('activeGroup', true);
-
         parent.eachChild(function(child) {
-
             child.set('activeGroup', true);
         });
         node.set('activeTab', true);
@@ -241,69 +251,68 @@ Ext.define('Ext.ux.GroupTabPanel', {
      * @private
      * Creates the TreeStore used by the GroupTabBar.
      */
-    createItemsStore: function() {
+    createTreeStore: function() {
         var me = this,
+            groups = me.prepareItems(me.items),
             data = {
-            text:'.',
-            children: []
-        };
+                text: '.',
+                children: []
+            },
+            cards = me.cards = [];
         me.activeGroup = me.activeGroup || 0;
-
-        Ext.each(me.items, function(item, idx){
-            var items = item.items,
-                rootItem = (items[item.mainItem] || items[0]),
-                root = {
+        
+        Ext.each(groups, function(groupItem, idx) {
+            var leafItems = groupItem.items.items,
+                rootItem = (leafItems[groupItem.mainItem] || leafItems[0]),
+                groupRoot = {
                     children: []
                 };
 
-            if (!rootItem.id) {
-                rootItem.id = Ext.id();
+            // Create the root node of the group
+            groupRoot.id = rootItem.id;
+            groupRoot.text = rootItem.title;
+            groupRoot.iconCls = rootItem.iconCls;
+
+            groupRoot.expanded = true;
+            groupRoot.activeGroup = (me.activeGroup === idx);
+            groupRoot.activeTab = groupRoot.activeGroup ? true : false;
+            if (groupRoot.activeTab) {
+                me.activeTab = groupRoot.id;
             }
 
-            root.id = rootItem.id;
-            root.text = rootItem.title;
-            root.iconCls = rootItem.iconCls;
-            delete rootItem.iconCls;
-            delete rootItem.title;
-            root.expanded = true;
-            root.activeGroup = (me.activeGroup === idx);
-            root.activeTab = root.activeGroup ? true : false;
-            if (root.activeTab) {
-                me.activeTab = root.id;
+            if (groupRoot.activeGroup) {
+                me.mainItem = groupItem.mainItem || 0;
+                me.activeGroup = groupRoot.id;
             }
 
-            if (root.activeGroup) {
-                me.mainItem = item.mainItem || 0;
-                me.activeGroup = root.id;
-            }
-
-            Ext.each(item.items, function(childItem) {
-                if (!childItem.id) {
-                    childItem.id = Ext.id();
-                }
-                if(childItem.id !== root.id) {
+            Ext.each(leafItems, function(leafItem) {
+                // First node has been done
+                if (leafItem.id !== groupRoot.id) {
                     var child = {
-                        id: childItem.id,
+                        id: leafItem.id,
                         leaf: true,
-                        text: childItem.title,
-                        iconCls: childItem.iconCls,
+                        text: leafItem.title,
+                        iconCls: leafItem.iconCls,
+                        activeGroup: groupRoot.activeGroup,
                         activeTab: false
                     };
-                    delete childItem.title;
-                    delete childItem.iconCls;
-
-                    child.activeGroup = root.activeGroup;
-                    root.children.push(child);
+                    groupRoot.children.push(child);
                 }
-            }, me);
 
-            data.children.push(root);
+                // Ensure the items do not get headers
+                delete leafItem.title;
+                delete leafItem.iconCls;
+                cards.push(leafItem);
+            });
 
-      }, me);
+            data.children.push(groupRoot);
+      });
 
        return Ext.create('Ext.data.TreeStore', {
             fields: ['id', 'text', 'activeGroup', 'activeTab'],
-            root: {expanded: true},
+            root: {
+                expanded: true
+            },
             proxy: {
                 type: 'memory',
                 data: data
@@ -313,7 +322,7 @@ Ext.define('Ext.ux.GroupTabPanel', {
 
     /**
      * Returns the item that is currently active inside this GroupTabPanel.
-     * @return {Ext.Component/Integer} The currently active item
+     * @return {Ext.Component/Number} The currently active item
      */
     getActiveTab: function() {
         return this.activeTab;
@@ -321,10 +330,125 @@ Ext.define('Ext.ux.GroupTabPanel', {
 
     /**
      * Returns the root group item that is currently active inside this GroupTabPanel.
-     * @return {Ext.Component/Integer} The currently active root group item
+     * @return {Ext.Component/Number} The currently active root group item
      */
     getActiveGroup: function() {
         return this.activeGroup;
     }
 });
 
+/**
+ * Allows GroupTab to render a table structure.
+ */
+Ext.define('Ext.ux.GroupTreeChunker', {
+    singleton: true,
+    requires: ['Ext.XTemplate'],
+    metaTableTpl: [
+        '{%if (this.openTableWrap)out.push(this.openTableWrap())%}',
+        '<table class="' + Ext.baseCSSPrefix + 'grid-table-resizer" border="0" cellspacing="0" cellpadding="0" {[this.embedFullWidth(values)]}><tr><td>',
+            '{[this.openRows()]}',
+                '{row}',
+            '{[this.closeRows()]}',
+        '</td></tr><table>',
+        '{%if (this.closeTableWrap)out.push(this.closeTableWrap())%}'
+    ],
+
+    constructor: function() {
+        Ext.XTemplate.prototype.recurse = function(values, reference) {
+            return this.apply(reference ? values[reference] : values);
+        };
+    },
+
+    embedFullWidth: function(values) {
+        var result = 'style="width:{fullWidth}px;';
+
+        // If there are no records, we need to give the table a height so that it
+        // is displayed and causes q scrollbar if the width exceeds the View's width.
+        if (!values.rowCount) {
+            result += 'height:1px;';
+        }
+        return result + '"';
+    },
+
+    openRows: function() {
+        return '<tpl for="rows">';
+    },
+
+    closeRows: function() {
+        return '</tpl>';
+    },
+
+    metaRowTpl: [
+        '<div class="' + Ext.baseCSSPrefix + 'grouptab-row {[this.embedRowCls()]}" {[this.embedRowAttr()]}>',
+            '<tpl for="columns">',
+                '<div class="{cls} ' + Ext.baseCSSPrefix + 'grouptab-cell ' + Ext.baseCSSPrefix + 'grid-cell-{columnId} {{id}-modified} {{id}-tdCls} {[this.firstOrLastCls(xindex, xcount)]}" {{id}-tdAttr}>',
+                    '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'grid-cell-inner {unselectableCls}" style="text-align: {align}; {{id}-style};">{{id}}</div>',
+                    '<div class="x-grouptabs-corner x-grouptabs-corner-top-left" id="ext-gen25"></div>',
+                    '<div class="x-grouptabs-corner x-grouptabs-corner-bottom-left" id="ext-gen26"></div>',
+                '</div>',
+            '</tpl>',
+        '</div>'
+    ],
+
+    firstOrLastCls: function(xindex, xcount) {
+        if (xindex === 1) {
+            return Ext.view.Table.prototype.firstCls;
+        } else if (xindex === xcount) {
+            return Ext.view.Table.prototype.lastCls;
+        }
+    },
+    
+    embedRowCls: function() {
+        return '{rowCls}';
+    },
+    
+    embedRowAttr: function() {
+        return '{rowAttr}';
+    },
+
+    getTableTpl: function(cfg, textOnly) {
+        var tpl,
+            tableTplMemberFns = {
+                openRows: this.openRows,
+                closeRows: this.closeRows,
+                embedFullWidth: this.embedFullWidth
+            },
+            tplMemberFns = {},
+            features = cfg.features || [],
+            ln = features.length,
+            i  = 0,
+            memberFns = {
+                embedRowCls: this.embedRowCls,
+                embedRowAttr: this.embedRowAttr,
+                firstOrLastCls: this.firstOrLastCls,
+                unselectableAttr: cfg.enableTextSelection ? '' : 'unselectable="on"',
+                unselectableCls: cfg.enableTextSelection ? '' : Ext.baseCSSPrefix + 'unselectable'
+            },
+            // copy the default
+            metaRowTpl = Array.prototype.slice.call(this.metaRowTpl, 0),
+            metaTableTpl;
+            
+        for (; i < ln; i++) {
+            if (!features[i].disabled) {
+                features[i].mutateMetaRowTpl(metaRowTpl);
+                Ext.apply(memberFns, features[i].getMetaRowTplFragments());
+                Ext.apply(tplMemberFns, features[i].getFragmentTpl());
+                Ext.apply(tableTplMemberFns, features[i].getTableFragments());
+            }
+        }
+        
+        metaRowTpl = new Ext.XTemplate(metaRowTpl.join(''), memberFns);
+        cfg.row = metaRowTpl.applyTemplate(cfg);
+        
+        metaTableTpl = new Ext.XTemplate(this.metaTableTpl.join(''), tableTplMemberFns);
+        
+        tpl = metaTableTpl.applyTemplate(cfg);
+        
+        // TODO: Investigate eliminating.
+        if (!textOnly) {
+            tpl = new Ext.XTemplate(tpl, tplMemberFns);
+        }
+        return tpl;
+        
+    }
+});

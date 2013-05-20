@@ -17,7 +17,6 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-layout-container-Auto'>/**
 </span> * @class Ext.layout.container.Auto
- * @extends Ext.layout.container.Container
  *
  * The AutoLayout is the default layout manager delegated by {@link Ext.container.Container} to
  * render any child Components when no `{@link Ext.container.Container#layout layout}` is configured into
@@ -57,41 +56,35 @@ Ext.define('Ext.layout.container.Auto', {
 
     type: 'autocontainer',
 
-    bindToOwnerCtComponent: true,
+    childEls: [
+        'clearEl'
+    ],
 
-    // @private
-    onLayout : function(owner, target) {
+    renderTpl: [
+        '{%this.renderBody(out,values)%}',
+        // clear element is needed to prevent the bottom margins of the last child element from collapsing
+        '&lt;div id=&quot;{ownerId}-clearEl&quot; class=&quot;', Ext.baseCSSPrefix, 'clear&quot; role=&quot;presentation&quot;&gt;&lt;/div&gt;'
+    ],
+
+    // TODO - do we need to clear sizes in beginLayout?
+
+    calculate: function(ownerContext) {
         var me = this,
-            items = me.getLayoutItems(),
-            ln = items.length,
-            i;
+            containerSize;
 
-        // Ensure the Container is only primed with the clear element if there are child items.
-        if (ln) {
-            // Auto layout uses natural HTML flow to arrange the child items.
-            // To ensure that all browsers (I'm looking at you IE!) add the bottom margin of the last child to the
-            // containing element height, we create a zero-sized element with style clear:both to force a &quot;new line&quot;
-            if (!me.clearEl) {
-                me.clearEl = me.getRenderTarget().createChild({
-                    cls: Ext.baseCSSPrefix + 'clear',
-                    role: 'presentation'
-                });
+        if (!ownerContext.hasDomProp('containerChildrenDone')) {
+            me.done = false;
+        } else {
+            // Once the child layouts are done we can determine the content sizes...
+            containerSize = me.getContainerSize(ownerContext);
+            if (!containerSize.gotAll) {
+                me.done = false;
             }
 
-            // Auto layout allows CSS to size its child items.
-            for (i = 0; i &lt; ln; i++) {
-                me.setItemSize(items[i]);
-            }
+            me.calculateContentSize(ownerContext);
         }
-    },
-
-    configureItem: function(item) {
-        this.callParent(arguments);
-
-        // Auto layout does not manage any dimensions.
-        item.layoutManagedHeight = 2;
-        item.layoutManagedWidth = 2;
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

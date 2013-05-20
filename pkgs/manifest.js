@@ -1,77 +1,37 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-(function(){ var data = {
+this.ExtBootstrapData = {
     "nameToAliasesMap":{
-        "Ext.AbstractComponent":[""
-        ],
-        "Ext.AbstractManager":[""
-        ],
-        "Ext.AbstractPlugin":[""
-        ],
-        "Ext.Ajax":[""
-        ],
-        "Ext.ComponentLoader":[""
-        ],
-        "Ext.ComponentManager":[""
-        ],
-        "Ext.ComponentQuery":[""
-        ],
-        "Ext.ElementLoader":[""
-        ],
-        "Ext.ModelManager":[""
-        ],
-        "Ext.PluginManager":[""
-        ],
-        "Ext.Template":[""
-        ],
-        "Ext.XTemplate":[""
-        ],
-        "Ext.app.Application":[""
-        ],
-        "Ext.app.Controller":[""
-        ],
-        "Ext.app.EventBus":[""
-        ],
-        "Ext.chart.Callout":[""
-        ],
+        "Ext.AbstractComponent":[],
+        "Ext.AbstractManager":[],
+        "Ext.AbstractPlugin":[],
+        "Ext.Ajax":[],
+        "Ext.ComponentLoader":[],
+        "Ext.ComponentManager":[],
+        "Ext.ComponentQuery":[],
+        "Ext.ElementLoader":[],
+        "Ext.ModelManager":[],
+        "Ext.PluginManager":[],
+        "Ext.Template":[],
+        "Ext.XTemplate":[],
+        "Ext.XTemplateCompiler":[],
+        "Ext.XTemplateParser":[],
+        "Ext.app.Application":[],
+        "Ext.app.Controller":[],
+        "Ext.app.EventBus":[],
+        "Ext.chart.Callout":[],
         "Ext.chart.Chart":["widget.chart"
         ],
-        "Ext.chart.Highlight":[""
-        ],
-        "Ext.chart.Label":[""
-        ],
-        "Ext.chart.Legend":[""
-        ],
-        "Ext.chart.LegendItem":[""
-        ],
-        "Ext.chart.Mask":[""
-        ],
-        "Ext.chart.MaskLayer":[""
-        ],
-        "Ext.chart.Navigation":[""
-        ],
-        "Ext.chart.Shape":[""
-        ],
-        "Ext.chart.Tip":[""
-        ],
-        "Ext.chart.TipSurface":[""
-        ],
-        "Ext.chart.axis.Abstract":[""
-        ],
-        "Ext.chart.axis.Axis":[""
-        ],
+        "Ext.chart.Highlight":[],
+        "Ext.chart.Label":[],
+        "Ext.chart.Legend":[],
+        "Ext.chart.LegendItem":[],
+        "Ext.chart.Mask":[],
+        "Ext.chart.MaskLayer":[],
+        "Ext.chart.Navigation":[],
+        "Ext.chart.Shape":[],
+        "Ext.chart.Tip":[],
+        "Ext.chart.TipSurface":[],
+        "Ext.chart.axis.Abstract":[],
+        "Ext.chart.axis.Axis":[],
         "Ext.chart.axis.Category":["axis.category"
         ],
         "Ext.chart.axis.Gauge":["axis.gauge"
@@ -86,8 +46,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.chart.series.Bar":["series.bar"
         ],
-        "Ext.chart.series.Cartesian":[""
-        ],
+        "Ext.chart.series.Cartesian":[],
         "Ext.chart.series.Column":["series.column"
         ],
         "Ext.chart.series.Gauge":["series.gauge"
@@ -100,80 +59,61 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.chart.series.Scatter":["series.scatter"
         ],
-        "Ext.chart.series.Series":[""
-        ],
-        "Ext.chart.theme.Base":[""
-        ],
-        "Ext.chart.theme.Theme":[""
-        ],
-        "Ext.container.AbstractContainer":[""
-        ],
-        "Ext.data.AbstractStore":[""
-        ],
+        "Ext.chart.series.Series":[],
+        "Ext.chart.theme.Base":[],
+        "Ext.chart.theme.Theme":[],
+        "Ext.container.AbstractContainer":[],
+        "Ext.container.DockingContainer":[],
+        "Ext.data.AbstractStore":[],
         "Ext.data.ArrayStore":["store.array"
         ],
-        "Ext.data.Association":[""
-        ],
-        "Ext.data.Batch":[""
-        ],
-        "Ext.data.BelongsToAssociation":["association.belongsto"
-        ],
+        "Ext.data.Batch":[],
         "Ext.data.BufferStore":["store.buffer"
         ],
-        "Ext.data.Connection":[""
-        ],
+        "Ext.data.Connection":[],
         "Ext.data.DirectStore":["store.direct"
         ],
-        "Ext.data.Errors":[""
-        ],
+        "Ext.data.Errors":[],
         "Ext.data.Field":["data.field"
         ],
-        "Ext.data.HasManyAssociation":["association.hasmany"
-        ],
-        "Ext.data.IdGenerator":[""
-        ],
-        "Ext.data.JsonP":[""
-        ],
+        "Ext.data.IdGenerator":[],
+        "Ext.data.JsonP":[],
         "Ext.data.JsonPStore":["store.jsonp"
         ],
         "Ext.data.JsonStore":["store.json"
         ],
-        "Ext.data.Model":[""
-        ],
-        "Ext.data.NodeInterface":[""
-        ],
+        "Ext.data.Model":[],
+        "Ext.data.NodeInterface":[],
         "Ext.data.NodeStore":["store.node"
         ],
-        "Ext.data.Operation":[""
-        ],
-        "Ext.data.Request":[""
-        ],
-        "Ext.data.ResultSet":[""
-        ],
+        "Ext.data.Operation":[],
+        "Ext.data.Request":[],
+        "Ext.data.ResultSet":[],
         "Ext.data.SequentialIdGenerator":["idgen.sequential"
         ],
-        "Ext.data.SortTypes":[""
-        ],
+        "Ext.data.SortTypes":[],
         "Ext.data.Store":["store.store"
         ],
-        "Ext.data.StoreManager":[""
-        ],
+        "Ext.data.StoreManager":[],
         "Ext.data.Tree":["data.tree"
         ],
         "Ext.data.TreeStore":["store.tree"
         ],
-        "Ext.data.Types":[""
-        ],
-        "Ext.data.UuidGenerator":[""
-        ],
-        "Ext.data.validations":[""
-        ],
+        "Ext.data.Types":[],
+        "Ext.data.UuidGenerator":[],
+        "Ext.data.validations":[],
         "Ext.data.XmlStore":["store.xml"
+        ],
+        "Ext.data.association.Association":[],
+        "Ext.data.association.BelongsTo":["association.belongsto"
+        ],
+        "Ext.data.association.HasMany":["association.hasmany"
+        ],
+        "Ext.data.association.HasOne":["association.hasone"
         ],
         "Ext.data.proxy.Ajax":["proxy.ajax"
         ],
-        "Ext.data.proxy.Client":[""
-        ],
+        "Ext.data.proxy.Client":[],
         "Ext.data.proxy.Direct":["proxy.direct"
         ],
         "Ext.data.proxy.JsonP":["proxy.jsonp",
@@ -191,14 +131,12 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.data.proxy.SessionStorage":["proxy.sessionstorage"
         ],
-        "Ext.data.proxy.WebStorage":[""
-        ],
+        "Ext.data.proxy.WebStorage":[],
         "Ext.data.reader.Array":["reader.array"
         ],
         "Ext.data.reader.Json":["reader.json"
         ],
-        "Ext.data.reader.Reader":[""
-        ],
+        "Ext.data.reader.Reader":[],
         "Ext.data.reader.Xml":["reader.xml"
         ],
         "Ext.data.writer.Json":["writer.json"
@@ -213,156 +151,106 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.direct.JsonProvider":["direct.jsonprovider"
         ],
-        "Ext.direct.Manager":[""
-        ],
+        "Ext.direct.Manager":[],
         "Ext.direct.PollingProvider":["direct.pollingprovider"
         ],
         "Ext.direct.Provider":["direct.provider"
         ],
         "Ext.direct.RemotingEvent":["direct.rpc"
         ],
-        "Ext.direct.RemotingMethod":[""
-        ],
+        "Ext.direct.RemotingMethod":[],
         "Ext.direct.RemotingProvider":["direct.remotingprovider"
         ],
         "Ext.direct.Transaction":["direct.transaction"
         ],
-        "Ext.draw.Color":[""
-        ],
+        "Ext.draw.Color":[],
         "Ext.draw.Component":["widget.draw"
         ],
-        "Ext.draw.CompositeSprite":[""
+        "Ext.draw.CompositeSprite":[],
+        "Ext.draw.Draw":[],
+        "Ext.draw.Matrix":[],
+        "Ext.draw.Sprite":[],
+        "Ext.draw.SpriteDD":[],
+        "Ext.draw.Surface":[],
+        "Ext.draw.Text":["widget.text"
         ],
-        "Ext.draw.Draw":[""
-        ],
-        "Ext.draw.Matrix":[""
-        ],
-        "Ext.draw.Sprite":[""
-        ],
-        "Ext.draw.SpriteDD":[""
-        ],
-        "Ext.draw.Surface":[""
-        ],
-        "Ext.draw.engine.Svg":[""
-        ],
-        "Ext.draw.engine.Vml":[""
-        ],
-        "Ext.fx.Anim":[""
-        ],
-        "Ext.fx.Animator":[""
-        ],
-        "Ext.fx.CubicBezier":[""
-        ],
-        "Ext.fx.Easing":[],
-        "Ext.fx.Manager":[""
-        ],
-        "Ext.fx.PropertyHandler":[""
-        ],
-        "Ext.fx.Queue":[""
-        ],
-        "Ext.fx.target.Component":[""
-        ],
-        "Ext.fx.target.CompositeElement":[""
-        ],
-        "Ext.fx.target.CompositeElementCSS":[""
-        ],
-        "Ext.fx.target.CompositeSprite":[""
-        ],
-        "Ext.fx.target.Element":[""
-        ],
-        "Ext.fx.target.ElementCSS":[""
-        ],
-        "Ext.fx.target.Sprite":[""
-        ],
-        "Ext.fx.target.Target":[""
-        ],
-        "Ext.layout.Layout":[""
-        ],
-        "Ext.layout.component.AbstractDock":[""
-        ],
+        "Ext.draw.engine.ImageExporter":[],
+        "Ext.draw.engine.Svg":[],
+        "Ext.draw.engine.SvgExporter":[],
+        "Ext.draw.engine.Vml":[],
+        "Ext.fx.Anim":[],
+        "Ext.fx.Animator":[],
+        "Ext.fx.CubicBezier":[],
+        "Ext.fx.Manager":[],
+        "Ext.fx.PropertyHandler":[],
+        "Ext.fx.Queue":[],
+        "Ext.fx.target.Component":[],
+        "Ext.fx.target.CompositeElement":[],
+        "Ext.fx.target.CompositeElementCSS":[],
+        "Ext.fx.target.CompositeSprite":[],
+        "Ext.fx.target.Element":[],
+        "Ext.fx.target.ElementCSS":[],
+        "Ext.fx.target.Sprite":[],
+        "Ext.fx.target.Target":[],
+        "Ext.layout.ClassList":[],
+        "Ext.layout.Context":[],
+        "Ext.layout.ContextItem":[],
+        "Ext.layout.Layout":[],
         "Ext.layout.component.Auto":["layout.autocomponent"
         ],
-        "Ext.layout.component.Component":[""
-        ],
+        "Ext.layout.component.Component":[],
         "Ext.layout.component.Draw":["layout.draw"
-        ],
-        "Ext.layout.container.AbstractCard":[""
-        ],
-        "Ext.layout.container.AbstractContainer":[""
-        ],
-        "Ext.layout.container.AbstractFit":[""
         ],
         "Ext.layout.container.Auto":["layout.auto",
             "layout.autocontainer"
         ],
-        "Ext.panel.AbstractPanel":[""
-        ],
-        "Ext.selection.DataViewModel":[""
-        ],
-        "Ext.selection.Model":[""
-        ],
-        "Ext.state.CookieProvider":[""
-        ],
+        "Ext.panel.AbstractPanel":[],
+        "Ext.selection.DataViewModel":[],
+        "Ext.selection.Model":[],
+        "Ext.state.CookieProvider":[],
         "Ext.state.LocalStorageProvider":["state.localstorage"
         ],
-        "Ext.state.Manager":[""
-        ],
-        "Ext.state.Provider":[""
-        ],
-        "Ext.state.Stateful":[""
-        ],
-        "Ext.util.AbstractMixedCollection":[""
-        ],
-        "Ext.util.Filter":[""
-        ],
-        "Ext.util.Grouper":[""
-        ],
-        "Ext.util.HashMap":[""
-        ],
-        "Ext.util.Inflector":[""
-        ],
-        "Ext.util.Memento":[""
-        ],
-        "Ext.util.MixedCollection":[""
-        ],
-        "Ext.util.Observable":[""
-        ],
-        "Ext.util.Offset":[""
-        ],
-        "Ext.util.Point":[""
-        ],
-        "Ext.util.Region":[""
-        ],
-        "Ext.util.Sortable":[""
-        ],
-        "Ext.util.Sorter":[""
-        ],
-        "Ext.view.AbstractView":[""
-        ],
-        "Ext.Action":[""
-        ],
+        "Ext.state.Manager":[],
+        "Ext.state.Provider":[],
+        "Ext.state.Stateful":[],
+        "Ext.util.AbstractMixedCollection":[],
+        "Ext.util.Bindable":[],
+        "Ext.util.ElementContainer":[],
+        "Ext.util.Filter":[],
+        "Ext.util.Grouper":[],
+        "Ext.util.HashMap":[],
+        "Ext.util.Inflector":[],
+        "Ext.util.LruCache":[],
+        "Ext.util.Memento":[],
+        "Ext.util.MixedCollection":[],
+        "Ext.util.Observable":[],
+        "Ext.util.Offset":[],
+        "Ext.util.Point":[],
+        "Ext.util.ProtoElement":[],
+        "Ext.util.Queue":[],
+        "Ext.util.Region":[],
+        "Ext.util.Renderable":[],
+        "Ext.util.Sortable":[],
+        "Ext.util.Sorter":[],
+        "Ext.view.AbstractView":[],
+        "Ext.Action":[],
         "Ext.Component":["widget.component",
             "widget.box"
         ],
         "Ext.Editor":["widget.editor"
         ],
-        "Ext.FocusManager":[""
-        ],
+        "Ext.FocusManager":[],
         "Ext.Img":["widget.image",
             "widget.imagecomponent"
         ],
-        "Ext.Layer":[""
-        ],
+        "Ext.Layer":[],
         "Ext.LoadMask":["widget.loadmask"
         ],
         "Ext.ProgressBar":["widget.progressbar"
         ],
-        "Ext.Shadow":[""
-        ],
-        "Ext.ShadowPool":[""
-        ],
-        "Ext.ZIndexManager":[""
-        ],
+        "Ext.Shadow":[],
+        "Ext.ShadowPool":[],
+        "Ext.ZIndexManager":[],
         "Ext.button.Button":["widget.button"
         ],
         "Ext.button.Cycle":["widget.cycle"
@@ -375,58 +263,41 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.container.Viewport":["widget.viewport"
         ],
-        "Ext.dd.DD":[""
-        ],
-        "Ext.dd.DDProxy":[""
-        ],
-        "Ext.dd.DDTarget":[""
-        ],
-        "Ext.dd.DragDrop":[""
-        ],
-        "Ext.dd.DragDropManager":[""
-        ],
-        "Ext.dd.DragSource":[""
-        ],
-        "Ext.dd.DragTracker":[""
-        ],
-        "Ext.dd.DragZone":[""
-        ],
-        "Ext.dd.DropTarget":[""
-        ],
-        "Ext.dd.DropZone":[""
-        ],
-        "Ext.dd.Registry":[""
-        ],
-        "Ext.dd.ScrollManager":[""
-        ],
-        "Ext.dd.StatusProxy":[""
-        ],
+        "Ext.dd.DD":[],
+        "Ext.dd.DDProxy":[],
+        "Ext.dd.DDTarget":[],
+        "Ext.dd.DragDrop":[],
+        "Ext.dd.DragDropManager":[],
+        "Ext.dd.DragSource":[],
+        "Ext.dd.DragTracker":[],
+        "Ext.dd.DragZone":[],
+        "Ext.dd.DropTarget":[],
+        "Ext.dd.DropZone":[],
+        "Ext.dd.Registry":[],
+        "Ext.dd.ScrollManager":[],
+        "Ext.dd.StatusProxy":[],
+        "Ext.dom.Element":[],
+        "Ext.dom.Helper":[],
         "Ext.flash.Component":["widget.flash"
         ],
-        "Ext.form.Basic":[""
-        ],
+        "Ext.form.Basic":[],
         "Ext.form.CheckboxGroup":["widget.checkboxgroup"
         ],
-        "Ext.form.CheckboxManager":[""
-        ],
-        "Ext.form.FieldAncestor":[""
-        ],
+        "Ext.form.CheckboxManager":[],
+        "Ext.form.FieldAncestor":[],
         "Ext.form.FieldContainer":["widget.fieldcontainer"
         ],
         "Ext.form.FieldSet":["widget.fieldset"
         ],
         "Ext.form.Label":["widget.label"
         ],
-        "Ext.form.Labelable":[""
-        ],
+        "Ext.form.Labelable":[],
         "Ext.form.Panel":["widget.form"
         ],
         "Ext.form.RadioGroup":["widget.radiogroup"
         ],
-        "Ext.form.RadioManager":[""
-        ],
-        "Ext.form.action.Action":[""
-        ],
+        "Ext.form.RadioManager":[],
+        "Ext.form.action.Action":[],
         "Ext.form.action.DirectLoad":["formaction.directload"
         ],
         "Ext.form.action.DirectSubmit":["formaction.directsubmit"
@@ -449,8 +320,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.form.field.Display":["widget.displayfield"
         ],
-        "Ext.form.field.Field":[""
-        ],
+        "Ext.form.field.Field":[],
         "Ext.form.field.File":["widget.filefield",
             "widget.fileuploadfield"
         ],
@@ -478,31 +348,25 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.form.field.Trigger":["widget.triggerfield",
             "widget.trigger"
         ],
-        "Ext.form.field.VTypes":[""
-        ],
-        "Ext.grid.CellEditor":[""
+        "Ext.form.field.VTypes":[],
+        "Ext.grid.CellEditor":[],
+        "Ext.grid.ColumnComponentLayout":["layout.columncomponent"
         ],
         "Ext.grid.ColumnLayout":["layout.gridcolumn"
         ],
-        "Ext.grid.Lockable":[""
-        ],
-        "Ext.grid.LockingView":[""
-        ],
-        "Ext.grid.PagingScroller":["widget.paginggridscroller"
-        ],
+        "Ext.grid.Lockable":[],
+        "Ext.grid.LockingView":[],
+        "Ext.grid.PagingScroller":[],
         "Ext.grid.Panel":["widget.gridpanel",
             "widget.grid"
         ],
-        "Ext.grid.RowEditor":[""
-        ],
+        "Ext.grid.RowEditor":[],
         "Ext.grid.RowNumberer":["widget.rownumberer"
         ],
-        "Ext.grid.Scroller":["widget.gridscroller"
-        ],
+        "Ext.grid.Scroller":[],
         "Ext.grid.View":["widget.gridview"
         ],
-        "Ext.grid.ViewDropZone":[""
-        ],
+        "Ext.grid.ViewDropZone":[],
         "Ext.grid.column.Action":["widget.actioncolumn"
         ],
         "Ext.grid.column.Boolean":["widget.booleancolumn"
@@ -533,10 +397,8 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.grid.header.Container":["widget.headercontainer"
         ],
-        "Ext.grid.header.DragZone":[""
-        ],
-        "Ext.grid.header.DropZone":[""
-        ],
+        "Ext.grid.header.DragZone":[],
+        "Ext.grid.header.DropZone":[],
         "Ext.grid.plugin.CellEditing":["plugin.cellediting"
         ],
         "Ext.grid.plugin.DragDrop":["plugin.gridviewdragdrop"
@@ -551,12 +413,9 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.grid.property.Grid":["widget.propertygrid"
         ],
-        "Ext.grid.property.HeaderContainer":[""
-        ],
-        "Ext.grid.property.Property":[""
-        ],
-        "Ext.grid.property.Store":[""
-        ],
+        "Ext.grid.property.HeaderContainer":[],
+        "Ext.grid.property.Property":[],
+        "Ext.grid.property.Store":[],
         "Ext.layout.component.Body":["layout.body"
         ],
         "Ext.layout.component.BoundList":["layout.boundlist"
@@ -565,19 +424,17 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.layout.component.Dock":["layout.dock"
         ],
-        "Ext.layout.component.Editor":["layout.editor"
-        ],
         "Ext.layout.component.FieldSet":["layout.fieldset"
         ],
         "Ext.layout.component.ProgressBar":["layout.progressbar"
         ],
         "Ext.layout.component.Tab":["layout.tab"
         ],
-        "Ext.layout.component.Tip":["layout.tip"
+        "Ext.layout.component.field.ComboBox":["layout.combobox"
         ],
         "Ext.layout.component.field.Field":["layout.field"
         ],
-        "Ext.layout.component.field.File":["layout.filefield"
+        "Ext.layout.component.field.FieldContainer":["layout.fieldcontainer"
         ],
         "Ext.layout.component.field.HtmlEditor":["layout.htmleditor"
         ],
@@ -605,9 +462,12 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.layout.container.Column":["layout.column"
         ],
-        "Ext.layout.container.Container":[""
+        "Ext.layout.container.Container":[],
+        "Ext.layout.container.Editor":["layout.editor"
         ],
         "Ext.layout.container.Fit":["layout.fit"
+        ],
+        "Ext.layout.container.Form":["layout.form"
         ],
         "Ext.layout.container.HBox":["layout.hbox"
         ],
@@ -615,12 +475,9 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.layout.container.VBox":["layout.vbox"
         ],
-        "Ext.layout.container.boxOverflow.Menu":[""
-        ],
-        "Ext.layout.container.boxOverflow.None":[""
-        ],
-        "Ext.layout.container.boxOverflow.Scroller":[""
-        ],
+        "Ext.layout.container.boxOverflow.Menu":[],
+        "Ext.layout.container.boxOverflow.None":[],
+        "Ext.layout.container.boxOverflow.Scroller":[],
         "Ext.menu.CheckItem":["widget.menucheckitem"
         ],
         "Ext.menu.ColorPicker":["widget.colormenu"
@@ -629,22 +486,18 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.menu.Item":["widget.menuitem"
         ],
-        "Ext.menu.KeyNav":[""
-        ],
-        "Ext.menu.Manager":[""
-        ],
+        "Ext.menu.KeyNav":[],
+        "Ext.menu.Manager":[],
         "Ext.menu.Menu":["widget.menu"
         ],
         "Ext.menu.Separator":["widget.menuseparator"
         ],
-        "Ext.panel.DD":[""
-        ],
+        "Ext.panel.DD":[],
         "Ext.panel.Header":["widget.header"
         ],
         "Ext.panel.Panel":["widget.panel"
         ],
-        "Ext.panel.Proxy":[""
-        ],
+        "Ext.panel.Proxy":[],
         "Ext.panel.Table":["widget.tablepanel"
         ],
         "Ext.panel.Tool":["widget.tool"
@@ -657,16 +510,15 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.picker.Time":["widget.timepicker"
         ],
-        "Ext.resizer.Handle":[""
+        "Ext.resizer.BorderSplitter":["widget.bordersplitter"
         ],
-        "Ext.resizer.Resizer":[""
-        ],
-        "Ext.resizer.ResizeTracker":[""
-        ],
+        "Ext.resizer.BorderSplitterTracker":[],
+        "Ext.resizer.Handle":[],
+        "Ext.resizer.Resizer":[],
+        "Ext.resizer.ResizeTracker":[],
         "Ext.resizer.Splitter":["widget.splitter"
         ],
-        "Ext.resizer.SplitterTracker":[""
-        ],
+        "Ext.resizer.SplitterTracker":[],
         "Ext.selection.CellModel":["selection.cellmodel"
         ],
         "Ext.selection.CheckboxModel":["selection.checkboxmodel"
@@ -680,8 +532,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.slider.Single":["widget.slider",
             "widget.sliderfield"
         ],
-        "Ext.slider.Thumb":[""
-        ],
+        "Ext.slider.Thumb":[],
         "Ext.slider.Tip":["widget.slidertip"
         ],
         "Ext.tab.Bar":["widget.tabbar"
@@ -690,12 +541,10 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.tab.Tab":["widget.tab"
         ],
-        "Ext.tip.QuickTip":[""
+        "Ext.tip.QuickTip":["widget.quicktip"
         ],
-        "Ext.tip.QuickTipManager":[""
-        ],
-        "Ext.tip.Tip":[""
-        ],
+        "Ext.tip.QuickTipManager":[],
+        "Ext.tip.Tip":[],
         "Ext.tip.ToolTip":["widget.tooltip"
         ],
         "Ext.toolbar.Fill":["widget.tbfill"
@@ -718,44 +567,28 @@ If you are unsure which license is appropriate for your use, please contact the 
         ],
         "Ext.tree.View":["widget.treeview"
         ],
-        "Ext.tree.ViewDragZone":[""
-        ],
-        "Ext.tree.ViewDropZone":[""
-        ],
+        "Ext.tree.ViewDragZone":[],
+        "Ext.tree.ViewDropZone":[],
         "Ext.tree.plugin.TreeViewDragDrop":["plugin.treeviewdragdrop"
         ],
-        "Ext.util.Animate":[""
-        ],
-        "Ext.util.ClickRepeater":[""
-        ],
-        "Ext.util.ComponentDragger":[""
-        ],
-        "Ext.util.Cookies":[""
-        ],
-        "Ext.util.CSS":[""
-        ],
-        "Ext.util.Floating":[""
-        ],
-        "Ext.util.History":[""
-        ],
-        "Ext.util.KeyMap":[""
-        ],
-        "Ext.util.KeyNav":[""
-        ],
-        "Ext.util.TextMetrics":[""
-        ],
+        "Ext.util.Animate":[],
+        "Ext.util.ClickRepeater":[],
+        "Ext.util.ComponentDragger":[],
+        "Ext.util.Cookies":[],
+        "Ext.util.CSS":[],
+        "Ext.util.Floating":[],
+        "Ext.util.History":[],
+        "Ext.util.KeyMap":[],
+        "Ext.util.KeyNav":[],
+        "Ext.util.TextMetrics":[],
         "Ext.view.BoundList":["widget.boundlist"
         ],
-        "Ext.view.BoundListKeyNav":[""
-        ],
-        "Ext.view.DragZone":[""
-        ],
-        "Ext.view.DropZone":[""
-        ],
+        "Ext.view.BoundListKeyNav":[],
+        "Ext.view.DragZone":[],
+        "Ext.view.DropZone":[],
         "Ext.view.Table":["widget.tableview"
         ],
-        "Ext.view.TableChunker":[""
-        ],
+        "Ext.view.TableChunker":[],
         "Ext.view.View":["widget.dataview"
         ],
         "Ext.window.MessageBox":["widget.messagebox"
@@ -787,7 +620,10 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.StoreMgr":"Ext.data.StoreManager",
         "Ext.data.StoreMgr":"Ext.data.StoreManager",
         "Ext.StoreManager":"Ext.data.StoreManager",
-        "Ext.data.XmlStore":"Ext.data.XmlStore",
+        "Ext.data.Association":"Ext.data.association.Association",
+        "Ext.data.BelongsToAssociation":"Ext.data.association.BelongsTo",
+        "Ext.data.HasManyAssociation":"Ext.data.association.HasMany",
+        "Ext.data.HasOneAssociation":"Ext.data.association.HasOne",
         "Ext.data.HttpProxy":"Ext.data.proxy.Ajax",
         "Ext.data.AjaxProxy":"Ext.data.proxy.Ajax",
         "Ext.data.ClientProxy":"Ext.data.proxy.Client",
@@ -812,7 +648,6 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.data.XmlWriter":"Ext.data.writer.Xml",
         "Ext.Direct.Transaction":"Ext.direct.Transaction",
         "Ext.AbstractSelectionModel":"Ext.selection.Model",
-        "Ext.view.AbstractView":"Ext.view.AbstractView",
         "Ext.FocusMgr":"Ext.FocusManager",
         "Ext.WindowGroup":"Ext.ZIndexManager",
         "Ext.Button":"Ext.button.Button",
@@ -823,6 +658,8 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.Viewport":"Ext.container.Viewport",
         "Ext.dd.DragDropMgr":"Ext.dd.DragDropManager",
         "Ext.dd.DDM":"Ext.dd.DragDropManager",
+        "Ext.Element":"Ext.dom.Element",
+        "Ext.core.Element":"Ext.dom.Element",
         "Ext.FlashComponent":"Ext.flash.Component",
         "Ext.form.BasicForm":"Ext.form.Basic",
         "Ext.FormPanel":"Ext.form.Panel",
@@ -871,6 +708,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.grid.PropertyColumnModel":"Ext.grid.property.HeaderContainer",
         "Ext.PropGridProperty":"Ext.grid.property.Property",
         "Ext.grid.PropertyStore":"Ext.grid.property.Store",
+        "Ext.layout.component.AbstractDock":"Ext.layout.component.Dock",
         "Ext.layout.AbsoluteLayout":"Ext.layout.container.Absolute",
         "Ext.layout.AccordionLayout":"Ext.layout.container.Accordion",
         "Ext.layout.AnchorLayout":"Ext.layout.container.Anchor",
@@ -880,6 +718,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.layout.ColumnLayout":"Ext.layout.container.Column",
         "Ext.layout.ContainerLayout":"Ext.layout.container.Container",
         "Ext.layout.FitLayout":"Ext.layout.container.Fit",
+        "Ext.layout.FormLayout":"Ext.layout.container.Form",
         "Ext.layout.HBoxLayout":"Ext.layout.container.HBox",
         "Ext.layout.TableLayout":"Ext.layout.container.Table",
         "Ext.layout.VBoxLayout":"Ext.layout.container.VBox",
@@ -919,50 +758,53 @@ If you are unsure which license is appropriate for your use, please contact the 
         "Ext.DataView":"Ext.view.View",
         "Ext.Window":"Ext.window.Window"
     }
-};var scripts = document.getElementsByTagName('script'),
-    path = '',
-    i, ln, src, match;
+};
 
-for (i = 0, ln = scripts.length; i < ln; i++) {
-    src = scripts[i].src;
+(function() {
+    var scripts = document.getElementsByTagName('script'),
+        currentScript = scripts[scripts.length - 1],
+        src = currentScript.src,
+        path = src.substring(0, src.lastIndexOf('/') + 1),
+        Loader = Ext.Loader,
+        ClassManager = Ext.ClassManager,
+        data = this.ExtBootstrapData,
+        nameToAliasesMap = data.nameToAliasesMap,
+        alternateToNameMap = data.alternateToNameMap,
+        i, ln, name, aliases;
 
-    match = src.match(/ext(-debug)?\.js$/);
+    if (nameToAliasesMap) {
+        for (name in nameToAliasesMap) {
+            if (nameToAliasesMap.hasOwnProperty(name)) {
+                aliases = nameToAliasesMap[name];
 
-    if (match) {
-        path = src.substring(0, src.length - match[0].length);
-        break;
-    }
-}
-
-var nameToAliasesMap = data.nameToAliasesMap,
-    alternateToNameMap = data.alternateToNameMap,
-    classManager = Ext.ClassManager,
-    name, aliases;
-
-for (name in nameToAliasesMap) {
-    if (nameToAliasesMap.hasOwnProperty(name)) {
-        aliases = nameToAliasesMap[name];
-
-        if (aliases.length > 0) {
-            for (i = 0, ln = aliases.length; i < ln; i++) {
-                classManager.setAlias(name, aliases[i]);
+                if (aliases.length > 0) {
+                    for (i = 0,ln = aliases.length; i < ln; i++) {
+                        ClassManager.setAlias(name, aliases[i]);
+                    }
+                }
+                else {
+                    ClassManager.setAlias(name, null);
+                }
             }
         }
-        else {
-            classManager.setAlias(name, null);
+    }
+
+    if (alternateToNameMap) {
+        Ext.merge(ClassManager.maps.alternateToName, alternateToNameMap);
+    }
+
+    Loader.setConfig({
+        enabled: true,
+        disableCaching: true,
+        paths: {
+            'Ext': path + 'src'
         }
-    }
-}
+    });
 
-Ext.Object.merge(classManager.maps.alternateToName, alternateToNameMap);
-
-Ext.Loader.setConfig({
-    enabled: true,
-    disableCaching: true,
-    paths: {
-        'Ext': path + 'src'
+    try {
+        delete this.ExtBootstrapData;
+    } catch (e) {
+        this.ExtBootstrapData = null;
     }
-});
 })();
-
 

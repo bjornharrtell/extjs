@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * The AbstractPlugin class is the base class from which user-implemented plugins should inherit.
  *
@@ -35,17 +21,34 @@ Ext.define('Ext.AbstractPlugin', {
     disabled: false,
 
     constructor: function(config) {
-        //<debug>
-        if (!config.cmp && Ext.global.console) {
-            Ext.global.console.warn("Attempted to attach a plugin ");
-        }
-        //</debug>
+        this.initialConfig = config;
         Ext.apply(this, config);
+    },
+
+    clone: function() {
+        return new this.self(this.initialConfig);
     },
 
     getCmp: function() {
         return this.cmp;
     },
+
+    /**
+     * @cfg {String} pluginId
+     * A name for the plugin that can be set at creation time to then retrieve the plugin
+     * through {@link Ext.AbstractComponent#getPlugin getPlugin} method.  For example:
+     *
+     *     var grid = Ext.create('Ext.grid.Panel', {
+     *         plugins: [{
+     *             ptype: 'cellediting',
+     *             clicksToEdit: 2,
+     *             pluginId: 'cellplugin'
+     *         }]
+     *     });
+     *
+     *     // later on:
+     *     var plugin = grid.getPlugin('cellplugin');
+     */
 
     /**
      * @method

@@ -1,19 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.chart.*');
-Ext.require('Ext.layout.container.Fit');
+Ext.require(['Ext.layout.container.Fit', 'Ext.window.MessageBox']);
 
 Ext.onReady(function () {
     var store = Ext.create('Ext.data.JsonStore', {
@@ -26,13 +12,7 @@ Ext.onReady(function () {
               ]
     });
 
-    var panel1 = Ext.create('widget.panel', {
-        width: 800,
-        height: 400,
-        title: 'Stacked Bar Chart - Movies by Genre',
-        renderTo: Ext.getBody(),
-        layout: 'fit',
-        items: {
+    var chart = Ext.create('Ext.chart.Chart',{
             xtype: 'chart',
             animate: true,
             shadow: true,
@@ -48,10 +28,9 @@ Ext.onReady(function () {
                 grid: true,
                 label: {
                     renderer: function(v) {
-                        return String(v).replace(/000000$/, 'M');
+                        return String(v).replace(/(.)00000$/, '.$1M');
                     }
-                },
-                roundToDecimal: false
+                }
             }, {
                 type: 'Category',
                 position: 'left',
@@ -74,7 +53,27 @@ Ext.onReady(function () {
                     }
                 }
             }]
-        }
+        });
+
+
+    var panel1 = Ext.create('widget.panel', {
+        width: 800,
+        height: 400,
+        title: 'Stacked Bar Chart - Movies by Genre',
+        renderTo: Ext.getBody(),
+        layout: 'fit',
+        tbar: [{
+            text: 'Save Chart',
+            handler: function() {
+                Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
+                    if(choice == 'yes'){
+                        chart.save({
+                            type: 'image/png'
+                        });
+                    }
+                });
+            }
+        }],
+        items: chart
     });
 });
-

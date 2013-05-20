@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 // feature idea to enable Ajax loading and then the content
 // cache would actually make sense. Should we dictate that they use
 // data or support raw html as well?
@@ -74,16 +60,16 @@ Ext.define('Ext.ux.RowExpander', {
     /**
      * @event expandbody
      * <b<Fired through the grid's View</b>
-     * @param {HtmlElement} rowNode The &lt;tr> element which owns the expanded row.
+     * @param {HTMLElement} rowNode The &lt;tr> element which owns the expanded row.
      * @param {Ext.data.Model} record The record providing the data.
-     * @param {HtmlElement} expandRow The &lt;tr> element containing the expanded data.
+     * @param {HTMLElement} expandRow The &lt;tr> element containing the expanded data.
      */
     /**
      * @event collapsebody
      * <b<Fired through the grid's View.</b>
-     * @param {HtmlElement} rowNode The &lt;tr> element which owns the expanded row.
+     * @param {HTMLElement} rowNode The &lt;tr> element which owns the expanded row.
      * @param {Ext.data.Model} record The record providing the data.
-     * @param {HtmlElement} expandRow The &lt;tr> element containing the expanded data.
+     * @param {HTMLElement} expandRow The &lt;tr> element containing the expanded data.
      */
 
     constructor: function() {
@@ -123,12 +109,21 @@ Ext.define('Ext.ux.RowExpander', {
 
     init: function(grid) {
         this.callParent(arguments);
-
+        this.grid = grid;
         // Columns have to be added in init (after columns has been used to create the
         // headerCt). Otherwise, shared column configs get corrupted, e.g., if put in the
         // prototype.
-        grid.headerCt.insert(0, this.getHeaderConfig());
+        this.addExpander();
         grid.on('render', this.bindView, this, {single: true});
+        grid.on('reconfigure', this.onReconfigure, this);
+    },
+    
+    onReconfigure: function(){
+        this.addExpander();
+    },
+    
+    addExpander: function(){
+        this.grid.headerCt.insert(0, this.getHeaderConfig());
     },
 
     getHeaderId: function() {
@@ -189,34 +184,29 @@ Ext.define('Ext.ux.RowExpander', {
     },
 
     toggleRow: function(rowIdx) {
-        var rowNode = this.view.getNode(rowIdx),
+        var view = this.view,
+            rowNode = view.getNode(rowIdx),
             row = Ext.get(rowNode),
             nextBd = Ext.get(row).down(this.rowBodyTrSelector),
-            record = this.view.getRecord(rowNode),
+            record = view.getRecord(rowNode),
             grid = this.getCmp();
 
         if (row.hasCls(this.rowCollapsedCls)) {
             row.removeCls(this.rowCollapsedCls);
             nextBd.removeCls(this.rowBodyHiddenCls);
             this.recordsExpanded[record.internalId] = true;
-            this.view.fireEvent('expandbody', rowNode, record, nextBd.dom);
+            view.refreshSize();
+            view.fireEvent('expandbody', rowNode, record, nextBd.dom);
         } else {
             row.addCls(this.rowCollapsedCls);
             nextBd.addCls(this.rowBodyHiddenCls);
             this.recordsExpanded[record.internalId] = false;
-            this.view.fireEvent('collapsebody', rowNode, record, nextBd.dom);
+            view.refreshSize();
+            view.fireEvent('collapsebody', rowNode, record, nextBd.dom);
         }
-
-
-        // If Grid is auto-heighting itself, then perform a component layhout to accommodate the new height
-        if (!grid.isFixedHeight()) {
-            grid.doComponentLayout();
-        }
-        this.view.up('gridpanel').invalidateScroller();
     },
 
     onDblClick: function(view, cell, rowIdx, cellIndex, e) {
-
         this.toggleRow(rowIdx);
     },
 
@@ -249,4 +239,3 @@ Ext.define('Ext.ux.RowExpander', {
         };
     }
 });
-

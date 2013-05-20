@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -93,7 +79,7 @@ Ext.define('Ext.form.field.Field', {
         this.addEvents(
             /**
              * @event change
-             * Fires when a user-initiated change is detected in the value of the field.
+             * Fires when the value of a field is changed via the {@link #setValue} method.
              * @param {Ext.form.field.Field} this
              * @param {Object} newValue The new value
              * @param {Object} oldValue The original value
@@ -124,6 +110,7 @@ Ext.define('Ext.form.field.Field', {
     initValue: function() {
         var me = this;
 
+        me.value = me.transformOriginalValue(me.value);
         /**
          * @property {Object} originalValue
          * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
@@ -135,6 +122,17 @@ Ext.define('Ext.form.field.Field', {
         me.suspendCheckChange++;
         me.setValue(me.value);
         me.suspendCheckChange--;
+    },
+    
+    /**
+     * Allows for any necessary modifications before the original
+     * value is set
+     * @protected
+     * @param {Object} value The initial value
+     * @return {Object} The modified initial value
+     */
+    transformOriginalValue: function(value){
+        return value;
     },
 
     /**
@@ -177,7 +175,7 @@ Ext.define('Ext.form.field.Field', {
     isEqual: function(value1, value2) {
         return String(value1) === String(value2);
     },
-    
+
     /**
      * Returns whether two values are logically equal.
      * Similar to {@link #isEqual}, however null or undefined values will be treated as empty strings.
@@ -187,7 +185,7 @@ Ext.define('Ext.form.field.Field', {
      * @return {Boolean} True if the values are equal, false if inequal.
      */
     isEqualAsString: function(value1, value2){
-        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));    
+        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));
     },
 
     /**
@@ -243,11 +241,18 @@ Ext.define('Ext.form.field.Field', {
     reset : function(){
         var me = this;
 
+        me.beforeReset();
         me.setValue(me.originalValue);
         me.clearInvalid();
         // delete here so we reset back to the original state
         delete me.wasValid;
     },
+    
+    /**
+     * Template method before a field is reset.
+     * @protected
+     */
+    beforeReset: Ext.emptyFn,
 
     /**
      * Resets the field's {@link #originalValue} property so it matches the current {@link #getValue value}. This is
@@ -442,4 +447,3 @@ Ext.define('Ext.form.field.Field', {
     clearInvalid: Ext.emptyFn
 
 });
-

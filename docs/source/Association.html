@@ -15,7 +15,7 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-data-Association'>/**
+  <pre class="prettyprint lang-js"><span id='Ext-data-association-Association'>/**
 </span> * @author Ed Spencer
  *
  * Associations enable you to express relationships between different {@link Ext.data.Model Models}. Let's say we're
@@ -43,8 +43,9 @@
  *
  * **Further Reading**
  *
- *   - {@link Ext.data.HasManyAssociation hasMany associations}
- *   - {@link Ext.data.BelongsToAssociation belongsTo associations}
+ *   - {@link Ext.data.association.HasMany hasMany associations}
+ *   - {@link Ext.data.association.BelongsTo belongsTo associations}
+ *   - {@link Ext.data.association.HasOne hasOne associations}
  *   - {@link Ext.data.Model using Models}
  *
  * # Self association models
@@ -122,76 +123,103 @@
  *     });
  *
  */
-Ext.define('Ext.data.Association', {
-<span id='Ext-data-Association-cfg-ownerModel'>    /**
-</span>     * @cfg {String} ownerModel (required)
+Ext.define('Ext.data.association.Association', {
+    alternateClassName: 'Ext.data.Association',
+<span id='Ext-data-association-Association-cfg-ownerModel'>    /**
+</span>     * @cfg {String} ownerModel
      * The string name of the model that owns the association.
+     *
+     * **NB!** This config is required when instantiating the Association directly.
+     * However, it cannot be used at all when defining the association as a config
+     * object inside Model, because the name of the model itself will be supplied
+     * automatically as the value of this config.
      */
 
-<span id='Ext-data-Association-cfg-associatedModel'>    /**
-</span>     * @cfg {String} associatedModel (required)
+<span id='Ext-data-association-Association-cfg-associatedModel'>    /**
+</span>     * @cfg {String} associatedModel
      * The string name of the model that is being associated with.
+     *
+     * **NB!** This config is required when instantiating the Association directly.
+     * When defining the association as a config object inside Model, the #model
+     * configuration will shadow this config.
      */
 
-<span id='Ext-data-Association-cfg-primaryKey'>    /**
+<span id='Ext-data-association-Association-cfg-model'>    /**
+</span>     * @cfg {String} model
+     * The string name of the model that is being associated with.
+     *
+     * This config option is to be used when defining the association as a config
+     * object within Model.  The value is then mapped to #associatedModel when
+     * Association is instantiated inside Model.
+     */
+
+<span id='Ext-data-association-Association-cfg-primaryKey'>    /**
 </span>     * @cfg {String} primaryKey
      * The name of the primary key on the associated model. In general this will be the
      * {@link Ext.data.Model#idProperty} of the Model.
      */
     primaryKey: 'id',
 
-<span id='Ext-data-Association-cfg-reader'>    /**
+<span id='Ext-data-association-Association-cfg-reader'>    /**
 </span>     * @cfg {Ext.data.reader.Reader} reader
      * A special reader to read associated data
      */
     
-<span id='Ext-data-Association-cfg-associationKey'>    /**
+<span id='Ext-data-association-Association-cfg-associationKey'>    /**
 </span>     * @cfg {String} associationKey
      * The name of the property in the data to read the association from. Defaults to the name of the associated model.
      */
 
     defaultReaderType: 'json',
 
-    statics: {
-        create: function(association){
-            if (!association.isAssociation) {
-                if (Ext.isString(association)) {
-                    association = {
-                        type: association
-                    };
-                }
+    isAssociation: true,
 
-                switch (association.type) {
-                    case 'belongsTo':
-                        return Ext.create('Ext.data.BelongsToAssociation', association);
-                    case 'hasMany':
-                        return Ext.create('Ext.data.HasManyAssociation', association);
-                    //TODO Add this back when it's fixed
+    initialConfig: null,
+
+    statics: {
+        AUTO_ID: 1000,
+        
+        create: function(association){
+            if (Ext.isString(association)) {
+                association = {
+                    type: association
+                };
+            }
+
+            switch (association.type) {
+                case 'belongsTo':
+                    return new Ext.data.association.BelongsTo(association);
+                case 'hasMany':
+                    return new Ext.data.association.HasMany(association);
+                case 'hasOne':
+                    return new Ext.data.association.HasOne(association);
+                //TODO Add this back when it's fixed
 //                    case 'polymorphic':
 //                        return Ext.create('Ext.data.PolymorphicAssociation', association);
-                    default:
-                        //&lt;debug&gt;
-                        Ext.Error.raise('Unknown Association type: &quot;' + association.type + '&quot;');
-                        //&lt;/debug&gt;
-                }
+                default:
+                    //&lt;debug&gt;
+                    Ext.Error.raise('Unknown Association type: &quot;' + association.type + '&quot;');
+                    //&lt;/debug&gt;
             }
             return association;
         }
     },
 
-<span id='Ext-data-Association-method-constructor'>    /**
+<span id='Ext-data-association-Association-method-constructor'>    /**
 </span>     * Creates the Association object.
      * @param {Object} [config] Config object.
      */
     constructor: function(config) {
         Ext.apply(this, config);
 
-        var types           = Ext.ModelManager.types,
+        var me = this,
+            types           = Ext.ModelManager.types,
             ownerName       = config.ownerModel,
             associatedName  = config.associatedModel,
             ownerModel      = types[ownerName],
-            associatedModel = types[associatedName],
-            ownerProto;
+            associatedModel = types[associatedName];
+
+        me.initialConfig = config;
 
         //&lt;debug&gt;
         if (ownerModel === undefined) {
@@ -202,27 +230,29 @@ Ext.define('Ext.data.Association', {
         }
         //&lt;/debug&gt;
 
-        this.ownerModel = ownerModel;
-        this.associatedModel = associatedModel;
+        me.ownerModel = ownerModel;
+        me.associatedModel = associatedModel;
 
-<span id='Ext-data-Association-property-ownerName'>        /**
+<span id='Ext-data-association-Association-property-ownerName'>        /**
 </span>         * @property {String} ownerName
          * The name of the model that 'owns' the association
          */
 
-<span id='Ext-data-Association-property-associatedName'>        /**
+<span id='Ext-data-association-Association-property-associatedName'>        /**
 </span>         * @property {String} associatedName
          * The name of the model is on the other end of the association (e.g. if a User model hasMany Orders, this is
          * 'Order')
          */
 
-        Ext.applyIf(this, {
+        Ext.applyIf(me, {
             ownerName : ownerName,
             associatedName: associatedName
         });
+        
+        me.associationId = 'association' + (++me.statics().AUTO_ID);
     },
 
-<span id='Ext-data-Association-method-getReader'>    /**
+<span id='Ext-data-association-Association-method-getReader'>    /**
 </span>     * Get a specialized reader for reading associated data
      * @return {Ext.data.reader.Reader} The reader, null if not supplied
      */

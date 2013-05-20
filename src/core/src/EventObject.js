@@ -1,17 +1,7 @@
-/*
+//@tag dom,core
+//@require EventManager.js
+//@define Ext.EventObject
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.EventObject
 
@@ -265,7 +255,7 @@ Ext.define('Ext.EventObjectImpl', {
         }
 
         return scale;
-    })(),
+    }()),
 
     /**
      * Simple click regex
@@ -295,6 +285,20 @@ Ext.define('Ext.EventObjectImpl', {
         1: 1,
         2: 2
     },
+    
+    /**
+     * @property {Boolean} ctrlKey
+     * True if the control key was down during the event.
+     * In Mac this will also be true when meta key was down.
+     */
+    /**
+     * @property {Boolean} altKey
+     * True if the alt key was down during the event.
+     */
+    /**
+     * @property {Boolean} shiftKey
+     * True if the shift key was down during the event.
+     */
 
     constructor: function(event, freezeEvent){
         if (event) {
@@ -615,7 +619,7 @@ Ext.getBody().on('click', function(e,t){
      */
     getPoint : function(){
         var xy = this.getXY();
-        return Ext.create('Ext.util.Point', xy[0], xy[1]);
+        return new Ext.util.Point(xy[0], xy[1]);
     },
 
    /**
@@ -663,9 +667,10 @@ Ext.getBody().on('click', function(e,t){
      * is likely to be used when relaying a DOM event. If not specified, {@link #getTarget}
      * is used to determine the target.
      */
-    injectEvent: function () {
+    injectEvent: (function () {
         var API,
-            dispatchers = {}; // keyed by event type (e.g., 'mousedown')
+            dispatchers = {}, // keyed by event type (e.g., 'mousedown')
+            crazyIEButtons;
 
         // Good reference: http://developer.yahoo.com/yui/docs/UserAction.js.html
 
@@ -733,7 +738,7 @@ Ext.getBody().on('click', function(e,t){
                 }
             };
         } else if (document.createEventObject) { // else if (IE)
-            var crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
+            crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
 
             API = {
                 createHtmlEvent: function (doc, type, bubbles, cancelable) {
@@ -872,12 +877,11 @@ Ext.getBody().on('click', function(e,t){
             t = API.fixTarget(t);
             dispatcher(t, me);
         };
-    }() // call to produce method
+    }()) // call to produce method
 
 }, function() {
 
 Ext.EventObject = new Ext.EventObjectImpl();
 
 });
-
 

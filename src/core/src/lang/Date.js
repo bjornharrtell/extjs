@@ -1,17 +1,7 @@
-/*
+//@tag foundation,core
+//@require Object.js
+//@define Ext.Date
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.Date
  * A set of useful static methods to deal with date
@@ -143,8 +133,8 @@ function xf(format) {
 
 Ext.Date = {
     /**
-     * Returns the current timestamp
-     * @return {Date} The current timestamp
+     * Returns the current timestamp.
+     * @return {Number} Milliseconds since UNIX epoch.
      * @method
      */
     now: Date.now || function() {
@@ -230,8 +220,8 @@ Ext.Date.parseFunctions['x-date-format'] = myDateParser;
         "MS": function(input, strict) {
             // note: the timezone offset is ignored since the MS Ajax server sends
             // a UTC milliseconds-since-Unix-epoch value (negative values are allowed)
-            var re = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/');
-            var r = (input || '').match(re);
+            var re = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
+                r = (input || '').match(re);
             return r? new Date(((r[1] || '') + r[2]) * 1) : null;
         }
     },
@@ -334,6 +324,7 @@ Ext.Date.parse('2009-02', 'Y-m'); // returns a Date object representing February
      */
     defaults: {},
 
+    //<locale type="array">
     /**
      * @property {String[]} dayNames
      * An array of textual day names.
@@ -356,7 +347,9 @@ Ext.Date.dayNames = [
         "Friday",
         "Saturday"
     ],
+    //</locale>
 
+    //<locale type="array">
     /**
      * @property {String[]} monthNames
      * An array of textual month names.
@@ -384,7 +377,9 @@ Ext.Date.monthNames = [
         "November",
         "December"
     ],
+    //</locale>
 
+    //<locale type="object">
     /**
      * @property {Object} monthNumbers
      * An object hash of zero-based javascript month numbers (with short month names as keys. note: keys are case-sensitive).
@@ -392,26 +387,42 @@ Ext.Date.monthNames = [
      * Example:
      * <pre><code>
 Ext.Date.monthNumbers = {
+    'LongJanNameInYourLang': 0,
     'ShortJanNameInYourLang':0,
+    'LongFebNameInYourLang':1,
     'ShortFebNameInYourLang':1,
     ...
 };
 </code></pre>
      */
     monthNumbers : {
-        Jan:0,
-        Feb:1,
-        Mar:2,
-        Apr:3,
-        May:4,
-        Jun:5,
-        Jul:6,
-        Aug:7,
-        Sep:8,
-        Oct:9,
-        Nov:10,
-        Dec:11
+        January: 0,
+        Jan: 0,
+        February: 1,
+        Feb: 1,
+        March: 2,
+        Mar: 2,
+        April: 3,
+        Apr: 3,
+        May: 4,
+        June: 5,
+        Jun: 5,
+        July: 6,
+        Jul: 6,
+        August: 7,
+        Aug: 7,
+        September: 8,
+        Sep: 8,
+        October: 9,
+        Oct: 9,
+        November: 10,
+        Nov: 10,
+        December: 11,
+        Dec: 11
     },
+    //</locale>
+    
+    //<locale>
     /**
      * @property {String} defaultFormat
      * <p>The date format string that the {@link Ext.util.Format#dateRenderer}
@@ -419,6 +430,8 @@ Ext.Date.monthNumbers = {
      * <p>This may be overridden in a locale file.</p>
      */
     defaultFormat : "m/d/Y",
+    //</locale>
+    //<locale type="function">
     /**
      * Get the short month name for the given month number.
      * Override this function for international dates.
@@ -426,9 +439,11 @@ Ext.Date.monthNumbers = {
      * @return {String} The short month name.
      */
     getShortMonthName : function(month) {
-        return utilDate.monthNames[month].substring(0, 3);
+        return Ext.Date.monthNames[month].substring(0, 3);
     },
+    //</locale>
 
+    //<locale type="function">
     /**
      * Get the short day name for the given day number.
      * Override this function for international dates.
@@ -436,9 +451,11 @@ Ext.Date.monthNumbers = {
      * @return {String} The short day name.
      */
     getShortDayName : function(day) {
-        return utilDate.dayNames[day].substring(0, 3);
+        return Ext.Date.dayNames[day].substring(0, 3);
     },
+    //</locale>
 
+    //<locale type="function">
     /**
      * Get the zero-based javascript month number for the given short/full month name.
      * Override this function for international dates.
@@ -447,8 +464,9 @@ Ext.Date.monthNumbers = {
      */
     getMonthNumber : function(name) {
         // handle camel casing for english month names (since the keys for the Ext.Date.monthNumbers hash are case sensitive)
-        return utilDate.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
+        return Ext.Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
     },
+    //</locale>
 
     /**
      * Checks if the specified format contains hour information
@@ -462,7 +480,7 @@ Ext.Date.monthNumbers = {
         return function(format){
             return hourInfoRe.test(format.replace(stripEscapeRe, ''));
         };
-    })(),
+    }()),
 
     /**
      * Checks if the specified format contains information about
@@ -479,7 +497,24 @@ Ext.Date.monthNumbers = {
         return function(format){
             return dateInfoRe.test(format.replace(stripEscapeRe, ''));
         };
-    })(),
+    }()),
+    
+    /**
+     * Removes all escaping for a date format string. In date formats,
+     * using a '\' can be used to escape special characters.
+     * @param {String} format The format to unescape
+     * @return {String} The unescaped format
+     * @method
+     */
+    unescapeFormat: (function() { 
+        var slashRe = /\\/gi;
+        return function(format) {
+            // Escape the format, since \ can be used to escape special
+            // characters in a date format. For example, in a spanish
+            // locale the format may be: 'd \\de F \\de Y'
+            return format.replace(slashRe, '');
+        }
+    }()),
 
     /**
      * The base format-code to formatting-function hashmap used by the {@link #format} method.
@@ -529,8 +564,9 @@ console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the 
         Z: "(this.getTimezoneOffset() * -60)",
 
         c: function() { // ISO-8601 -- GMT format
-            for (var c = "Y-m-dTH:i:sP", code = [], i = 0, l = c.length; i < l; ++i) {
-                var e = c.charAt(i);
+            var c, code, i, l, e;
+            for (c = "Y-m-dTH:i:sP", code = [], i = 0, l = c.length; i < l; ++i) {
+                e = c.charAt(i);
                 code.push(e == "T" ? "'T'" : utilDate.getFormatCode(e)); // treat T as a character literal
             }
             return code.join(" + ");
@@ -644,9 +680,10 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
     createFormat : function(format) {
         var code = [],
             special = false,
-            ch = '';
+            ch = '',
+            i;
 
-        for (var i = 0; i < format.length; ++i) {
+        for (i = 0; i < format.length; ++i) {
             ch = format.charAt(i);
             if (!special && ch == "\\") {
                 special = true;
@@ -729,9 +766,13 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 calc = [],
                 regex = [],
                 special = false,
-                ch = "";
+                ch = "",
+                i = 0,
+                len = format.length,
+                atEnd = [],
+                obj;
 
-            for (var i = 0; i < format.length; ++i) {
+            for (; i < len; ++i) {
                 ch = format.charAt(i);
                 if (!special && ch == "\\") {
                     special = true;
@@ -739,19 +780,25 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     special = false;
                     regex.push(Ext.String.escape(ch));
                 } else {
-                    var obj = utilDate.formatCodeToRegex(ch, currentGroup);
+                    obj = utilDate.formatCodeToRegex(ch, currentGroup);
                     currentGroup += obj.g;
                     regex.push(obj.s);
                     if (obj.g && obj.c) {
-                        calc.push(obj.c);
+                        if (obj.calcAtEnd) {
+                            atEnd.push(obj.c);
+                        } else {
+                            calc.push(obj.c);
+                        }
                     }
                 }
             }
+            
+            calc = calc.concat(atEnd);
 
             utilDate.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
             utilDate.parseFunctions[format] = Ext.functionFactory("input", "strict", xf(code, regexNum, calc.join('')));
         };
-    })(),
+    }()),
 
     // private
     parseCodes : {
@@ -764,12 +811,12 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         d: {
             g:1,
             c:"d = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // day of month with leading zeroes (01 - 31)
+            s:"(3[0-1]|[1-2][0-9]|0[1-9])" // day of month with leading zeroes (01 - 31)
         },
         j: {
             g:1,
             c:"d = parseInt(results[{0}], 10);\n",
-            s:"(\\d{1,2})" // day of month without leading zeroes (1 - 31)
+            s:"(3[0-1]|[1-2][0-9]|[1-9])" // day of month without leading zeroes (1 - 31)
         },
         D: function() {
             for (var a = [], i = 0; i < 7; a.push(utilDate.getShortDayName(i)), ++i); // get localised short day names
@@ -791,11 +838,13 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
             c:null,
             s:"[1-7]" // ISO-8601 day number (1 (monday) - 7 (sunday))
         },
+        //<locale type="object" property="parseCodes">
         S: {
             g:0,
             c:null,
             s:"(?:st|nd|rd|th)"
         },
+        //</locale>
         w: {
             g:0,
             c:null,
@@ -827,12 +876,12 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         m: {
             g:1,
             c:"m = parseInt(results[{0}], 10) - 1;\n",
-            s:"(\\d{2})" // month number with leading zeros (01 - 12)
+            s:"(1[0-2]|0[1-9])" // month number with leading zeros (01 - 12)
         },
         n: {
             g:1,
             c:"m = parseInt(results[{0}], 10) - 1;\n",
-            s:"(\\d{1,2})" // month number without leading zeros (1 - 12)
+            s:"(1[0-2]|[1-9])" // month number without leading zeros (1 - 12)
         },
         t: {
             g:0,
@@ -863,45 +912,55 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
          * even though it doesn't exactly match the spec. It gives much more flexibility
          * in being able to specify case insensitive regexes.
          */
+        //<locale type="object" property="parseCodes">
         a: {
             g:1,
             c:"if (/(am)/i.test(results[{0}])) {\n"
                 + "if (!h || h == 12) { h = 0; }\n"
                 + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(am|pm|AM|PM)"
+            s:"(am|pm|AM|PM)",
+            calcAtEnd: true
         },
+        //</locale>
+        //<locale type="object" property="parseCodes">
         A: {
             g:1,
             c:"if (/(am)/i.test(results[{0}])) {\n"
                 + "if (!h || h == 12) { h = 0; }\n"
                 + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(AM|PM|am|pm)"
+            s:"(AM|PM|am|pm)",
+            calcAtEnd: true
         },
-        g: function() {
-            return utilDate.formatCodeToRegex("G");
+        //</locale>
+        g: {
+            g:1,
+            c:"h = parseInt(results[{0}], 10);\n",
+            s:"(1[0-2]|[0-9])" //  12-hr format of an hour without leading zeroes (1 - 12)
         },
         G: {
             g:1,
             c:"h = parseInt(results[{0}], 10);\n",
-            s:"(\\d{1,2})" // 24-hr format of an hour without leading zeroes (0 - 23)
+            s:"(2[0-3]|1[0-9]|[0-9])" // 24-hr format of an hour without leading zeroes (0 - 23)
         },
-        h: function() {
-            return utilDate.formatCodeToRegex("H");
+        h: {
+            g:1,
+            c:"h = parseInt(results[{0}], 10);\n",
+            s:"(1[0-2]|0[1-9])" //  12-hr format of an hour with leading zeroes (01 - 12)
         },
         H: {
             g:1,
             c:"h = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" //  24-hr format of an hour with leading zeroes (00 - 23)
+            s:"(2[0-3]|[0-1][0-9])" //  24-hr format of an hour with leading zeroes (00 - 23)
         },
         i: {
             g:1,
             c:"i = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // minutes with leading zeros (00 - 59)
+            s:"([0-5][0-9])" // minutes with leading zeros (00 - 59)
         },
         s: {
             g:1,
             c:"s = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // seconds with leading zeros (00 - 59)
+            s:"([0-5][0-9])" // seconds with leading zeros (00 - 59)
         },
         u: {
             g:1,
@@ -917,7 +976,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     "mn = o.substring(3,5) % 60;", // get minutes
                 "o = ((-12 <= (hr*60 + mn)/60) && ((hr*60 + mn)/60 <= 14))? (sn + Ext.String.leftPad(hr, 2, '0') + Ext.String.leftPad(mn, 2, '0')) : null;\n" // -12hrs <= GMT offset <= 14hrs
             ].join("\n"),
-            s: "([+\-]\\d{4})" // GMT offset in hrs and mins
+            s: "([+-]\\d{4})" // GMT offset in hrs and mins
         },
         P: {
             g:1,
@@ -928,7 +987,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     "mn = o.substring(4,6) % 60;", // get minutes
                 "o = ((-12 <= (hr*60 + mn)/60) && ((hr*60 + mn)/60 <= 14))? (sn + Ext.String.leftPad(hr, 2, '0') + Ext.String.leftPad(mn, 2, '0')) : null;\n" // -12hrs <= GMT offset <= 14hrs
             ].join("\n"),
-            s: "([+\-]\\d{2}:\\d{2})" // GMT offset in hrs and mins (with colon separator)
+            s: "([+-]\\d{2}:\\d{2})" // GMT offset in hrs and mins (with colon separator)
         },
         T: {
             g:0,
@@ -939,7 +998,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
             g:1,
             c:"zz = results[{0}] * 1;\n" // -43200 <= UTC offset <= 50400
                   + "zz = (-43200 <= zz && zz <= 50400)? zz : null;\n",
-            s:"([+\-]?\\d{1,5})" // leading '+' sign is optional for UTC offset
+            s:"([+-]?\\d{1,5})" // leading '+' sign is optional for UTC offset
         },
         c: function() {
             var calc = [],
@@ -947,7 +1006,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     utilDate.formatCodeToRegex("Y", 1), // year
                     utilDate.formatCodeToRegex("m", 2), // month
                     utilDate.formatCodeToRegex("d", 3), // day
-                    utilDate.formatCodeToRegex("h", 4), // hour
+                    utilDate.formatCodeToRegex("H", 4), // hour
                     utilDate.formatCodeToRegex("i", 5), // minute
                     utilDate.formatCodeToRegex("s", 6), // second
                     {c:"ms = results[7] || '0'; ms = parseInt(ms, 10)/Math.pow(10, ms.length - 3);\n"}, // decimal fraction of a second (minimum = 1 digit, maximum = unlimited)
@@ -962,9 +1021,11 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                             "}",
                         "}"
                     ].join('\n')}
-                ];
+                ],
+                i,
+                l;
 
-            for (var i = 0, l = arr.length; i < l; ++i) {
+            for (i = 0, l = arr.length; i < l; ++i) {
                 calc.push(arr[i].c);
             }
 
@@ -1001,17 +1062,38 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
     },
 
     /**
+     * Compares if two dates are equal by comparing their values.
+     * @param {Date} date1
+     * @param {Date} date2
+     * @return {Boolean} True if the date values are equal
+     */
+    isEqual: function(date1, date2) {
+        // check we have 2 date objects
+        if (date1 && date2) {
+            return (date1.getTime() === date2.getTime());
+        }
+        // one or both isn't a date, only equal if both are falsey
+        return !(date1 || date2);
+    },
+
+    /**
      * Formats a date given the supplied format string.
      * @param {Date} date The date to format
      * @param {String} format The format string
-     * @return {String} The formatted date
+     * @return {String} The formatted date or an empty string if date parameter is not a JavaScript Date object
      */
     format: function(date, format) {
-        if (utilDate.formatFunctions[format] == null) {
+        var formatFunctions = utilDate.formatFunctions;
+
+        if (!Ext.isDate(date)) {
+            return '';
+        }
+
+        if (formatFunctions[format] == null) {
             utilDate.createFormat(format);
         }
-        var result = utilDate.formatFunctions[format].call(date);
-        return result + '';
+
+        return formatFunctions[format].call(date) + '';
     },
 
     /**
@@ -1092,7 +1174,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
 
             return AWN - Math.floor(Date.UTC(Wyr, 0, 7) / ms7d) + 1;
         };
-    })(),
+    }()),
 
     /**
      * Checks if the current date falls within a leap year.
@@ -1172,8 +1254,9 @@ console.log(Ext.Date.dayNames[lastDay]); //output: 'Wednesday'
 
             return m == 1 && utilDate.isLeapYear(date) ? 29 : daysInMonth[m];
         };
-    })(),
+    }()),
 
+    //<locale type="function">
     /**
      * Get the English ordinal suffix of the current day (equivalent to the format specifier 'S').
      * @param {Date} date The date
@@ -1195,6 +1278,7 @@ console.log(Ext.Date.dayNames[lastDay]); //output: 'Wednesday'
                 return "th";
         }
     },
+    //</locale>
 
     /**
      * Creates and returns a new Date instance with the exact same date value as the called instance.
@@ -1248,7 +1332,9 @@ console.log(orig);  //returns 'Thu Oct 01 2006'
         }
 
         // get current date before clearing time
-        var d = date.getDate();
+        var d = date.getDate(),
+            hr,
+            c;
 
         // clear time
         date.setHours(0);
@@ -1261,7 +1347,7 @@ console.log(orig);  //returns 'Thu Oct 01 2006'
             // refer to http://www.timeanddate.com/time/aboutdst.html for the (rare) exceptions to this rule
 
             // increment hour until cloned date == current date
-            for (var hr = 1, c = utilDate.add(date, Ext.Date.HOUR, hr); c.getDate() != d; hr++, c = utilDate.add(date, Ext.Date.HOUR, hr));
+            for (hr = 1, c = utilDate.add(date, Ext.Date.HOUR, hr); c.getDate() != d; hr++, c = utilDate.add(date, Ext.Date.HOUR, hr));
 
             date.setDate(d);
             date.setHours(c.getHours());
@@ -1294,8 +1380,11 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
      */
     add : function(date, interval, value) {
         var d = Ext.Date.clone(date),
-            Date = Ext.Date;
-        if (!interval || value === 0) return d;
+            Date = Ext.Date,
+            day;
+        if (!interval || value === 0) {
+            return d;
+        }
 
         switch(interval.toLowerCase()) {
             case Ext.Date.MILLI:
@@ -1314,14 +1403,19 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
                 d.setDate(d.getDate() + value);
                 break;
             case Ext.Date.MONTH:
-                var day = date.getDate();
+                day = date.getDate();
                 if (day > 28) {
-                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), 'mo', value)).getDate());
+                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
                 }
                 d.setDate(day);
                 d.setMonth(date.getMonth() + value);
                 break;
             case Ext.Date.YEAR:
+                day = date.getDate();
+                if (day > 28) {
+                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
+                }
+                d.setDate(day);
                 d.setFullYear(date.getFullYear() + value);
                 break;
         }
@@ -1345,25 +1439,29 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
         var nativeDate = window.Date,
             p, u,
             statics = ['useStrict', 'formatCodeToRegex', 'parseFunctions', 'parseRegexes', 'formatFunctions', 'y2kYear', 'MILLI', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'MONTH', 'YEAR', 'defaults', 'dayNames', 'monthNames', 'monthNumbers', 'getShortMonthName', 'getShortDayName', 'getMonthNumber', 'formatCodes', 'isValid', 'parseDate', 'getFormatCode', 'createFormat', 'createParser', 'parseCodes'],
-            proto = ['dateFormat', 'format', 'getTimezone', 'getGMTOffset', 'getDayOfYear', 'getWeekOfYear', 'isLeapYear', 'getFirstDayOfMonth', 'getLastDayOfMonth', 'getDaysInMonth', 'getSuffix', 'clone', 'isDST', 'clearTime', 'add', 'between'];
+            proto = ['dateFormat', 'format', 'getTimezone', 'getGMTOffset', 'getDayOfYear', 'getWeekOfYear', 'isLeapYear', 'getFirstDayOfMonth', 'getLastDayOfMonth', 'getDaysInMonth', 'getSuffix', 'clone', 'isDST', 'clearTime', 'add', 'between'],
+            sLen    = statics.length,
+            pLen    = proto.length,
+            stat, prot, s;
 
         //Append statics
-        Ext.Array.forEach(statics, function(s) {
-            nativeDate[s] = utilDate[s];
-        });
+        for (s = 0; s < sLen; s++) {
+            stat = statics[s];
+            nativeDate[stat] = utilDate[stat];
+        }
 
         //Append to prototype
-        Ext.Array.forEach(proto, function(s) {
-            nativeDate.prototype[s] = function() {
+        for (p = 0; p < pLen; p++) {
+            prot = proto[p];
+            nativeDate.prototype[prot] = function() {
                 var args = Array.prototype.slice.call(arguments);
                 args.unshift(this);
-                return utilDate[s].apply(utilDate, args);
+                return utilDate[prot].apply(utilDate, args);
             };
-        });
+        }
     }
 };
 
 var utilDate = Ext.Date;
 
-})();
-
+}());

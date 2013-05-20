@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A Provider implementation which saves and retrieves state via cookies. The CookieProvider supports the usual cookie
  * options, such as:
@@ -23,7 +9,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * Example:
  *
- *     Ext.create('Ext.state.CookieProvider', {
+ *     var cp = Ext.create('Ext.state.CookieProvider', {
  *         path: "/cgi-bin/",
  *         expires: new Date(new Date().getTime()+(1000*60*60*24*30)), //30 days
  *         domain: "sencha.com"
@@ -31,10 +17,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  *     Ext.state.Manager.setProvider(cp);
  *
- * @constructor
- * Creates a new CookieProvider.
- * @param {Object} config (optional) Config object.
- * @return {Object}
  */
 Ext.define('Ext.state.CookieProvider', {
     extend: 'Ext.state.Provider',
@@ -136,4 +118,3 @@ Ext.define('Ext.state.CookieProvider', {
            ((me.secure == true) ? "; secure" : "");
     }
 });
-

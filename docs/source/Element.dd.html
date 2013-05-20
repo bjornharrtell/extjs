@@ -15,11 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Element'>/**
-</span> * @class Ext.Element
+  <pre class="prettyprint lang-js"><span id='Ext-dom-Element'>/**
+</span> * @class Ext.dom.Element
  */
-Ext.Element.addMethods({
-<span id='Ext-Element-method-initDD'>    /**
+Ext.dom.Element.override({
+<span id='Ext-dom-Element-method-initDD'>    /**
 </span>     * Initializes a {@link Ext.dd.DD} drag drop object for this element.
      * @param {String} group The group the DD object is member of
      * @param {Object} config The DD config object
@@ -31,7 +31,7 @@ Ext.Element.addMethods({
         return Ext.apply(dd, overrides);
     },
 
-<span id='Ext-Element-method-initDDProxy'>    /**
+<span id='Ext-dom-Element-method-initDDProxy'>    /**
 </span>     * Initializes a {@link Ext.dd.DDProxy} object for this element.
      * @param {String} group The group the DDProxy object is member of
      * @param {Object} config The DDProxy config object
@@ -43,7 +43,7 @@ Ext.Element.addMethods({
         return Ext.apply(dd, overrides);
     },
 
-<span id='Ext-Element-method-initDDTarget'>    /**
+<span id='Ext-dom-Element-method-initDDTarget'>    /**
 </span>     * Initializes a {@link Ext.dd.DDTarget} object for this element.
      * @param {String} group The group the DDTarget object is member of
      * @param {Object} config The DDTarget config object
@@ -54,6 +54,7 @@ Ext.Element.addMethods({
         var dd = new Ext.dd.DDTarget(Ext.id(this.dom), group, config);
         return Ext.apply(dd, overrides);
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

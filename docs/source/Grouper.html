@@ -17,7 +17,6 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-util-Grouper'>/**
 </span> * @class Ext.util.Grouper
- * @extends Ext.util.Sorter
 
 Represents a single grouper that can be applied to a Store. The grouper works
 in the same fashion as the {@link Ext.util.Sorter}.
@@ -32,6 +31,8 @@ Ext.define('Ext.util.Grouper', {
     extend: 'Ext.util.Sorter',
 
     /* End Definitions */
+   
+   isGrouper: true,
 
 <span id='Ext-util-Grouper-method-getGroupString'>    /**
 </span>     * Returns the value for grouping to be used.

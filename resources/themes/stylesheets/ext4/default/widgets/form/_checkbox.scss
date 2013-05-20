@@ -1,3 +1,7 @@
+/**
+ * Creates the base structure of checkbox field.
+ * @member Ext.form.field.Checkbox
+ */
 @mixin extjs-form-checkboxfield {
     .#{$prefix}form-cb-wrap {
         padding-top: 3px;
@@ -5,7 +9,6 @@
 
     .#{$prefix}form-checkbox,
     .#{$prefix}form-radio {
-        float: none;
         vertical-align: -1px;
 
         width: $form-checkbox-size;
@@ -60,6 +63,6 @@
         margin-left: 4px;
     }
 
-    
+
 
 }

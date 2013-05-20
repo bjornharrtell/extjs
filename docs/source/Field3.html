@@ -15,331 +15,380 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-data-Field'>/**
-</span> * @author Ed Spencer
- *
- * Fields are used to define what a Model is. They aren't instantiated directly - instead, when we create a class that
- * extends {@link Ext.data.Model}, it will automatically create a Field instance for each field configured in a {@link
- * Ext.data.Model Model}. For example, we might set up a model like this:
- *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             'name', 'email',
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
- *         ]
- *     });
- *
- * Four fields will have been created for the User Model - name, email, age and gender. Note that we specified a couple
- * of different formats here; if we only pass in the string name of the field (as with name and email), the field is set
- * up with the 'auto' type. It's as if we'd done this instead:
- *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             {name: 'name', type: 'auto'},
- *             {name: 'email', type: 'auto'},
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
- *         ]
- *     });
- *
- * # Types and conversion
- *
- * The {@link #type} is important - it's used to automatically convert data passed to the field into the correct format.
- * In our example above, the name and email fields used the 'auto' type and will just accept anything that is passed
- * into them. The 'age' field had an 'int' type however, so if we passed 25.4 this would be rounded to 25.
- *
- * Sometimes a simple type isn't enough, or we want to perform some processing when we load a Field's data. We can do
- * this using a {@link #convert} function. Here, we're going to create a new field based on another:
- *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             'name', 'email',
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'},
- *
- *             {
- *                 name: 'firstName',
- *                 convert: function(value, record) {
- *                     var fullName  = record.get('name'),
- *                         splits    = fullName.split(&quot; &quot;),
- *                         firstName = splits[0];
- *
- *                     return firstName;
- *                 }
- *             }
- *         ]
- *     });
- *
- * Now when we create a new User, the firstName is populated automatically based on the name:
- *
- *     var ed = Ext.create('User', {name: 'Ed Spencer'});
- *
- *     console.log(ed.get('firstName')); //logs 'Ed', based on our convert function
- *
- * In fact, if we log out all of the data inside ed, we'll see this:
- *
- *     console.log(ed.data);
- *
- *     //outputs this:
- *     {
- *         age: 0,
- *         email: &quot;&quot;,
- *         firstName: &quot;Ed&quot;,
- *         gender: &quot;Unknown&quot;,
- *         name: &quot;Ed Spencer&quot;
- *     }
- *
- * The age field has been given a default of zero because we made it an int type. As an auto field, email has defaulted
- * to an empty string. When we registered the User model we set gender's {@link #defaultValue} to 'Unknown' so we see
- * that now. Let's correct that and satisfy ourselves that the types work as we expect:
- *
- *     ed.set('gender', 'Male');
- *     ed.get('gender'); //returns 'Male'
- *
- *     ed.set('age', 25.4);
- *     ed.get('age'); //returns 25 - we wanted an int, not a float, so no decimal places allowed
+  <pre class="prettyprint lang-js"><span id='Ext-layout-component-field-Field'>/**
+</span> * Layout class for components with {@link Ext.form.Labelable field labeling}, handling the sizing and alignment of
+ * the form control, label, and error message treatment.
+ * @private
  */
-Ext.define('Ext.data.Field', {
-    requires: ['Ext.data.Types', 'Ext.data.SortTypes'],
-    alias: 'data.field',
+Ext.define('Ext.layout.component.field.Field', {
+
+    /* Begin Definitions */
+
+    extend: 'Ext.layout.component.Auto',
+
+    alias: 'layout.field',
+
+    uses: ['Ext.tip.QuickTip', 'Ext.util.TextMetrics', 'Ext.util.CSS'],
+
+    /* End Definitions */
+
+    type: 'field',
     
-    constructor : function(config) {
-        if (Ext.isString(config)) {
-            config = {name: config};
-        }
-        Ext.apply(this, config);
-        
-        var types = Ext.data.Types,
-            st = this.sortType,
-            t;
+    naturalSizingProp: 'size',
 
-        if (this.type) {
-            if (Ext.isString(this.type)) {
-                this.type = types[this.type.toUpperCase()] || types.AUTO;
+    beginLayout: function(ownerContext) {
+        var me = this,
+            owner = me.owner,
+            widthModel = ownerContext.widthModel,
+            ownerNaturalSize = owner[me.naturalSizingProp],
+            width;
+
+        me.callParent(arguments);
+
+        ownerContext.labelStrategy = me.getLabelStrategy();
+        ownerContext.errorStrategy = me.getErrorStrategy();
+
+        ownerContext.labelContext = ownerContext.getEl('labelEl');
+        ownerContext.bodyCellContext = ownerContext.getEl('bodyEl');
+        ownerContext.inputContext = ownerContext.getEl('inputEl');
+        ownerContext.errorContext = ownerContext.getEl('errorEl');
+
+        // width:100% on an element inside a table in IE6/7 &quot;strict&quot; sizes the content box.
+        // store the input element's border and padding info so that subclasses can take it into consideration if needed
+        if ((Ext.isIE6 || Ext.isIE7) &amp;&amp; Ext.isStrict &amp;&amp; ownerContext.inputContext) {
+            me.ieInputWidthAdjustment = ownerContext.inputContext.getPaddingInfo().width + ownerContext.inputContext.getBorderInfo().width;
+        }
+
+        // perform preparation on the label and error (setting css classes, qtips, etc.)
+        ownerContext.labelStrategy.prepare(ownerContext, owner);
+        ownerContext.errorStrategy.prepare(ownerContext, owner);
+
+        // Body cell must stretch to use up available width unless the field is auto width
+        if (widthModel.shrinkWrap) {
+            // When the width needs to be auto, table-layout cannot be fixed
+            me.beginLayoutShrinkWrap(ownerContext);
+        } else if (widthModel.natural) {
+
+            // When a size specified, natural becomes fixed width unless the inpiutWidth is specified - we shrinkwrap that
+            if (typeof ownerNaturalSize == 'number' &amp;&amp; !owner.inputWidth) {
+                me.beginLayoutFixed(ownerContext, (width = ownerNaturalSize * 6.5 + 20), 'px');
             }
+
+            // Otherwise it is the same as shrinkWrap
+            else {
+                me.beginLayoutShrinkWrap(ownerContext);
+            }
+            ownerContext.setWidth(width, false);
         } else {
-            this.type = types.AUTO;
-        }
-
-        // named sortTypes are supported, here we look them up
-        if (Ext.isString(st)) {
-            this.sortType = Ext.data.SortTypes[st];
-        } else if(Ext.isEmpty(st)) {
-            this.sortType = this.type.sortType;
-        }
-
-        if (!this.convert) {
-            this.convert = this.type.convert;
+            me.beginLayoutFixed(ownerContext, '100', '%');
         }
     },
+
+    beginLayoutFixed: function (ownerContext, width, suffix) {
+        var owner = ownerContext.target,
+            inputEl = owner.inputEl,
+            inputWidth = owner.inputWidth;
+
+        owner.el.setStyle('table-layout', 'fixed');
+        owner.bodyEl.setStyle('width', width + suffix);
+        if (inputEl &amp;&amp; inputWidth) {
+            inputEl.setStyle('width', inputWidth + 'px');
+        }
+        ownerContext.isFixed = true;
+    },
+
+    beginLayoutShrinkWrap: function (ownerContext) {
+        var owner = ownerContext.target,
+            inputEl = owner.inputEl,
+            inputWidth = owner.inputWidth;
+
+        if (inputEl &amp;&amp; inputEl.dom) {
+            inputEl.dom.removeAttribute('size');
+            if (inputWidth) {
+                inputEl.setStyle('width', inputWidth + 'px');
+            }
+        }
+        owner.el.setStyle('table-layout', 'auto');
+        owner.bodyEl.setStyle('width', '');
+    },
+
+    finishedLayout: function(ownerContext){
+        var owner = this.owner;
+
+        this.callParent(arguments);        
+        ownerContext.labelStrategy.finishedLayout(ownerContext, owner);
+        ownerContext.errorStrategy.finishedLayout(ownerContext, owner);
+    },
+
+    calculateOwnerHeightFromContentHeight: function(ownerContext, contentHeight) {
+        return contentHeight;
+    },
+
+    measureContentHeight: function (ownerContext) {
+        return ownerContext.el.getHeight();
+    },
     
-<span id='Ext-data-Field-cfg-name'>    /**
-</span>     * @cfg {String} name
-     *
-     * The name by which the field is referenced within the Model. This is referenced by, for example, the `dataIndex`
-     * property in column definition objects passed to {@link Ext.grid.property.HeaderContainer}.
-     *
-     * Note: In the simplest case, if no properties other than `name` are required, a field definition may consist of
-     * just a String for the field name.
-     */
-    
-<span id='Ext-data-Field-cfg-type'>    /**
-</span>     * @cfg {String/Object} type
-     *
-     * The data type for automatic conversion from received data to the *stored* value if
-     * `{@link Ext.data.Field#convert convert}` has not been specified. This may be specified as a string value.
-     * Possible values are
-     *
-     * - auto (Default, implies no conversion)
-     * - string
-     * - int
-     * - float
-     * - boolean
-     * - date
-     *
-     * This may also be specified by referencing a member of the {@link Ext.data.Types} class.
-     *
-     * Developers may create their own application-specific data types by defining new members of the {@link
-     * Ext.data.Types} class.
-     */
-    
-<span id='Ext-data-Field-cfg-convert'>    /**
-</span>     * @cfg {Function} convert
-     *
-     * A function which converts the value provided by the Reader into an object that will be stored in the Model.
-     * It is passed the following parameters:
-     *
-     * - **v** : Mixed
-     *
-     *   The data value as read by the Reader, if undefined will use the configured `{@link Ext.data.Field#defaultValue
-     *   defaultValue}`.
-     *
-     * - **rec** : Ext.data.Model
-     *
-     *   The data object containing the Model as read so far by the Reader. Note that the Model may not be fully populated
-     *   at this point as the fields are read in the order that they are defined in your
-     *   {@link Ext.data.Model#fields fields} array.
-     *
-     * Example of convert functions:
-     *
-     *     function fullName(v, record){
-     *         return record.name.last + ', ' + record.name.first;
-     *     }
-     *
-     *     function location(v, record){
-     *         return !record.city ? '' : (record.city + ', ' + record.state);
-     *     }
-     *
-     *     Ext.define('Dude', {
-     *         extend: 'Ext.data.Model',
-     *         fields: [
-     *             {name: 'fullname',  convert: fullName},
-     *             {name: 'firstname', mapping: 'name.first'},
-     *             {name: 'lastname',  mapping: 'name.last'},
-     *             {name: 'city', defaultValue: 'homeless'},
-     *             'state',
-     *             {name: 'location',  convert: location}
-     *         ]
-     *     });
-     *
-     *     // create the data store
-     *     var store = Ext.create('Ext.data.Store', {
-     *         reader: {
-     *             type: 'json',
-     *             model: 'Dude',
-     *             idProperty: 'key',
-     *             root: 'daRoot',
-     *             totalProperty: 'total'
-     *         }
-     *     });
-     *
-     *     var myData = [
-     *         { key: 1,
-     *           name: { first: 'Fat',    last:  'Albert' }
-     *           // notice no city, state provided in data object
-     *         },
-     *         { key: 2,
-     *           name: { first: 'Barney', last:  'Rubble' },
-     *           city: 'Bedrock', state: 'Stoneridge'
-     *         },
-     *         { key: 3,
-     *           name: { first: 'Cliff',  last:  'Claven' },
-     *           city: 'Boston',  state: 'MA'
-     *         }
-     *     ];
-     */
+    measureContentWidth: function (ownerContext) {
+        return ownerContext.el.getWidth();
+    },
 
-<span id='Ext-data-Field-cfg-dateFormat'>    /**
-</span>     * @cfg {String} dateFormat
-     *
-     * Used when converting received data into a Date when the {@link #type} is specified as `&quot;date&quot;`.
-     *
-     * A format string for the {@link Ext.Date#parse Ext.Date.parse} function, or &quot;timestamp&quot; if the value provided by
-     * the Reader is a UNIX timestamp, or &quot;time&quot; if the value provided by the Reader is a javascript millisecond
-     * timestamp. See {@link Ext.Date}.
-     */
-    dateFormat: null,
-    
-<span id='Ext-data-Field-cfg-useNull'>    /**
-</span>     * @cfg {Boolean} useNull
-     *
-     * Use when converting received data into a Number type (either int or float). If the value cannot be
-     * parsed, null will be used if useNull is true, otherwise the value will be 0. Defaults to false.
-     */
-    useNull: false,
-    
-<span id='Ext-data-Field-cfg-defaultValue'>    /**
-</span>     * @cfg {Object} defaultValue
-     *
-     * The default value used **when a Model is being created by a {@link Ext.data.reader.Reader Reader}**
-     * when the item referenced by the `{@link Ext.data.Field#mapping mapping}` does not exist in the data object
-     * (i.e. undefined). Defaults to &quot;&quot;.
-     */
-    defaultValue: &quot;&quot;,
+    measureLabelErrorHeight: function (ownerContext) {
+        return ownerContext.labelStrategy.getHeight(ownerContext) +
+               ownerContext.errorStrategy.getHeight(ownerContext);
+    },
 
-<span id='Ext-data-Field-cfg-mapping'>    /**
-</span>     * @cfg {String/Number} mapping
-     *
-     * (Optional) A path expression for use by the {@link Ext.data.reader.Reader} implementation that is creating the
-     * {@link Ext.data.Model Model} to extract the Field value from the data object. If the path expression is the same
-     * as the field name, the mapping may be omitted.
-     *
-     * The form of the mapping expression depends on the Reader being used.
-     *
-     * - {@link Ext.data.reader.Json}
-     *
-     *   The mapping is a string containing the javascript expression to reference the data from an element of the data
-     *   item's {@link Ext.data.reader.Json#root root} Array. Defaults to the field name.
-     *
-     * - {@link Ext.data.reader.Xml}
-     *
-     *   The mapping is an {@link Ext.DomQuery} path to the data item relative to the DOM element that represents the
-     *   {@link Ext.data.reader.Xml#record record}. Defaults to the field name.
-     *
-     * - {@link Ext.data.reader.Array}
-     *
-     *   The mapping is a number indicating the Array index of the field's value. Defaults to the field specification's
-     *   Array position.
-     *
-     * If a more complex value extraction strategy is required, then configure the Field with a {@link #convert}
-     * function. This is passed the whole row object, and may interrogate it in whatever way is necessary in order to
-     * return the desired data.
-     */
-    mapping: null,
+    onFocus: function() {
+        this.getErrorStrategy().onFocus(this.owner);    
+    },
 
-<span id='Ext-data-Field-cfg-sortType'>    /**
-</span>     * @cfg {Function} sortType
-     *
-     * A function which converts a Field's value to a comparable value in order to ensure correct sort ordering.
-     * Predefined functions are provided in {@link Ext.data.SortTypes}. A custom sort example:
-     *
-     *     // current sort     after sort we want
-     *     // +-+------+          +-+------+
-     *     // |1|First |          |1|First |
-     *     // |2|Last  |          |3|Second|
-     *     // |3|Second|          |2|Last  |
-     *     // +-+------+          +-+------+
-     *
-     *     sortType: function(value) {
-     *        switch (value.toLowerCase()) // native toLowerCase():
-     *        {
-     *           case 'first': return 1;
-     *           case 'second': return 2;
-     *           default: return 3;
-     *        }
-     *     }
+<span id='Ext-layout-component-field-Field-method-getLabelStrategy'>    /**
+</span>     * Return the set of strategy functions from the {@link #labelStrategies labelStrategies collection}
+     * that is appropriate for the field's {@link Ext.form.Labelable#labelAlign labelAlign} config.
      */
-    sortType : null,
+    getLabelStrategy: function() {
+        var me = this,
+            strategies = me.labelStrategies,
+            labelAlign = me.owner.labelAlign;
+        return strategies[labelAlign] || strategies.base;
+    },
 
-<span id='Ext-data-Field-cfg-sortDir'>    /**
-</span>     * @cfg {String} sortDir
-     *
-     * Initial direction to sort (`&quot;ASC&quot;` or `&quot;DESC&quot;`). Defaults to `&quot;ASC&quot;`.
+<span id='Ext-layout-component-field-Field-method-getErrorStrategy'>    /**
+</span>     * Return the set of strategy functions from the {@link #errorStrategies errorStrategies collection}
+     * that is appropriate for the field's {@link Ext.form.Labelable#msgTarget msgTarget} config.
      */
-    sortDir : &quot;ASC&quot;,
+    getErrorStrategy: function() {
+        var me = this,
+            owner = me.owner,
+            strategies = me.errorStrategies,
+            msgTarget = owner.msgTarget;
+        return !owner.preventMark &amp;&amp; Ext.isString(msgTarget) ?
+                (strategies[msgTarget] || strategies.elementId) :
+                strategies.none;
+    },
 
-<span id='Ext-data-Field-cfg-allowBlank'>    /**
-</span>     * @cfg {Boolean} allowBlank
-     * @private
-     *
-     * Used for validating a {@link Ext.data.Model model}. Defaults to true. An empty value here will cause
-     * {@link Ext.data.Model}.{@link Ext.data.Model#isValid isValid} to evaluate to false.
+<span id='Ext-layout-component-field-Field-property-labelStrategies'>    /**
+</span>     * Collection of named strategies for laying out and adjusting labels to accommodate error messages.
+     * An appropriate one will be chosen based on the owner field's {@link Ext.form.Labelable#labelAlign} config.
      */
-    allowBlank : true,
+    labelStrategies: (function() {
+        var base = {
+                prepare: function(ownerContext, owner) {
+                    var cls = owner.labelCls + '-' + owner.labelAlign,
+                        labelEl = owner.labelEl;
 
-<span id='Ext-data-Field-cfg-persist'>    /**
-</span>     * @cfg {Boolean} persist
-     *
-     * False to exclude this field from the {@link Ext.data.Model#modified} fields in a model. This will also exclude
-     * the field from being written using a {@link Ext.data.writer.Writer}. This option is useful when model fields are
-     * used to keep state on the client but do not need to be persisted to the server. Defaults to true.
+                    if (labelEl) {
+                        labelEl.addCls(cls);
+                    }
+                },
+
+                getHeight: function () {
+                    return 0;
+                },
+                
+                finishedLayout: Ext.emptyFn
+            };
+
+        return {
+            base: base,
+
+<span id='Ext-layout-component-field-Field-property-top'>            /**
+</span>             * Label displayed above the bodyEl
+             */
+            top: Ext.applyIf({        
+                        
+                getHeight: function (ownerContext) {
+                    var labelContext = ownerContext.labelContext,
+                        props = labelContext.props,
+                        height = props.height;
+                        
+                    if (height === undefined) {
+                        props.height = height = labelContext.el.getHeight();
+                    }
+
+                    return height;
+                }
+            }, base),
+
+<span id='Ext-layout-component-field-Field-property-left'>            /**
+</span>             * Label displayed to the left of the bodyEl
+             */
+            left: base,
+
+<span id='Ext-layout-component-field-Field-property-right'>            /**
+</span>             * Same as left, only difference is text-align in CSS
+             */
+            right: base
+        };
+    }()),
+
+<span id='Ext-layout-component-field-Field-property-errorStrategies'>    /**
+</span>     * Collection of named strategies for laying out and adjusting insets to accommodate error messages.
+     * An appropriate one will be chosen based on the owner field's {@link Ext.form.Labelable#msgTarget} config.
      */
-    persist: true
-});
-</pre>
+    errorStrategies: (function() {
+        function showTip(owner) {
+            var tip = Ext.layout.component.field.Field.tip,
+                target;
+                
+            if (tip &amp;&amp; tip.isVisible()) {
+                target = tip.activeTarget;
+                if (target &amp;&amp; target.el === owner.getActionEl().dom) {
+                    tip.toFront(true);
+                }
+            }
+        }
+
+        var applyIf = Ext.applyIf,
+            emptyFn = Ext.emptyFn,
+            iconCls = Ext.baseCSSPrefix + 'form-invalid-icon',
+            iconWidth,
+            base = {
+                prepare: function(ownerContext, owner) {
+                    var el = owner.errorEl;
+                    if (el) {
+                        el.setDisplayed(false);
+                    }
+                },
+                getHeight: function () {
+                    return 0;
+                },
+                onFocus: emptyFn,
+                finishedLayout: emptyFn
+            };
+
+        return {
+            none: base,
+
+<span id='Ext-layout-component-field-Field-property-side'>            /**
+</span>             * Error displayed as icon (with QuickTip on hover) to right of the bodyEl
+             */
+            side: applyIf({
+                prepare: function(ownerContext, owner) {
+                    var errorEl = owner.errorEl,
+                        sideErrorCell = owner.sideErrorCell,
+                        displayError = owner.hasActiveError(),
+                        tempEl;
+
+                    // Capture error icon width once
+                    if (!iconWidth) {
+                        iconWidth = (tempEl = Ext.getBody().createChild({style: 'position:absolute', cls: iconCls})).getWidth();
+                        tempEl.remove();
+                    }
+
+                    errorEl.addCls(iconCls);
+                    errorEl.set({'data-errorqtip': owner.getActiveError() || ''});
+                    if (owner.autoFitErrors) {
+                        errorEl.setDisplayed(displayError);
+                    }
+                    // Not autofitting, the space must still be allocated.
+                    else {
+                        errorEl.setVisible(displayError);
+                    }
+
+                    // If we are auto fitting, then hide and show the entire cell
+                    if (sideErrorCell &amp;&amp; owner.autoFitErrors) {
+                        sideErrorCell.setDisplayed(displayError);
+                    }
+                    owner.bodyEl.dom.colSpan = owner.getBodyColspan();
+
+                    // TODO: defer the tip call until after the layout to avoid immediate DOM reads now
+                    Ext.layout.component.field.Field.initTip();
+                },
+                onFocus: showTip
+            }, base),
+
+<span id='Ext-layout-component-field-Field-property-under'>            /**
+</span>             * Error message displayed underneath the bodyEl
+             */
+            under: applyIf({
+                prepare: function(ownerContext, owner) {
+                    var errorEl = owner.errorEl,
+                        cls = Ext.baseCSSPrefix + 'form-invalid-under';
+
+                    errorEl.addCls(cls);
+                    errorEl.setDisplayed(owner.hasActiveError());
+                },
+                getHeight: function (ownerContext) {
+                    var height = 0,
+                        errorContext, props;
+
+                    if (ownerContext.target.hasActiveError()) {
+                        errorContext = ownerContext.errorContext;
+                        props = errorContext.props;
+                        height = props.height;
+
+                        if (height === undefined) {
+                            props.height = height = errorContext.el.getHeight();
+                        }
+                    }
+
+                    return height;
+                }
+            }, base),
+
+<span id='Ext-layout-component-field-Field-property-qtip'>            /**
+</span>             * Error displayed as QuickTip on hover of the field container
+             */
+            qtip: applyIf({
+                prepare: function(ownerContext, owner) {
+                    Ext.layout.component.field.Field.initTip();
+                    owner.getActionEl().set({'data-errorqtip': owner.getActiveError() || ''});
+                },
+                onFocus: showTip
+            }, base),
+
+<span id='Ext-layout-component-field-Field-property-title'>            /**
+</span>             * Error displayed as title tip on hover of the field container
+             */
+            title: applyIf({
+                prepare: function(ownerContext, owner) {
+                    owner.el.set({'title': owner.getActiveError() || ''});
+                }
+            }, base),
+
+<span id='Ext-layout-component-field-Field-property-elementId'>            /**
+</span>             * Error message displayed as content of an element with a given id elsewhere in the app
+             */
+            elementId: applyIf({
+                prepare: function(ownerContext, owner) {
+                    var targetEl = Ext.fly(owner.msgTarget);
+                    if (targetEl) {
+                        targetEl.dom.innerHTML = owner.getActiveError() || '';
+                        targetEl.setDisplayed(owner.hasActiveError());
+                    }
+                }
+            }, base)
+        };
+    }()),
+
+    statics: {
+<span id='Ext-layout-component-field-Field-static-method-initTip'>        /**
+</span>         * Use a custom QuickTip instance separate from the main QuickTips singleton, so that we
+         * can give it a custom frame style. Responds to errorqtip rather than the qtip property.
+         * @static
+         */
+        initTip: function() {
+            var tip = this.tip;
+            if (!tip) {
+                tip = this.tip = Ext.create('Ext.tip.QuickTip', {
+                    baseCls: Ext.baseCSSPrefix + 'form-invalid-tip'
+                });
+                tip.tagConfig = Ext.apply({}, {attribute: 'errorqtip'}, tip.tagConfig);
+            }
+        },
+
+<span id='Ext-layout-component-field-Field-static-method-destroyTip'>        /**
+</span>         * Destroy the error tip instance.
+         * @static
+         */
+        destroyTip: function() {
+            var tip = this.tip;
+            if (tip) {
+                tip.destroy();
+                delete this.tip;
+            }
+        }
+    }
+});</pre>
 </body>
 </html>

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.app.PortalDropZone
  * @extends Ext.dd.DropTarget
@@ -117,11 +103,10 @@ Ext.define('Ext.app.PortalDropZone', {
 
             // make sure proxy width is fluid in different width columns
             proxy.getProxy().setWidth('auto');
-
             if (overPortlet) {
-                proxy.moveProxy(overPortlet.el.dom.parentNode, match ? overPortlet.el.dom : null);
+                dd.panelProxy.moveProxy(overPortlet.el.dom.parentNode, match ? overPortlet.el.dom : null);
             } else {
-                proxy.moveProxy(overColumn.el.dom, null);
+                dd.panelProxy.moveProxy(overColumn.el.dom, null);
             }
 
             this.lastPos = {
@@ -154,10 +139,15 @@ Ext.define('Ext.app.PortalDropZone', {
             panel = dd.panel,
             dropEvent = this.createEvent(dd, e, data, col, c, pos !== false ? pos : c.items.getCount());
 
-        if (this.portal.fireEvent('validatedrop', dropEvent) !== false && this.portal.fireEvent('beforedrop', dropEvent) !== false) {
+        if (this.portal.fireEvent('validatedrop', dropEvent) !== false && 
+            this.portal.fireEvent('beforedrop', dropEvent) !== false) {
 
+            Ext.suspendLayouts();
+            
             // make sure panel is visible prior to inserting so that the layout doesn't ignore it
             panel.el.dom.style.display = '';
+            dd.panelProxy.hide();
+            dd.proxy.hide();
 
             if (pos !== false) {
                 c.insert(pos, panel);
@@ -165,7 +155,8 @@ Ext.define('Ext.app.PortalDropZone', {
                 c.add(panel);
             }
 
-            dd.proxy.hide();
+            Ext.resumeLayouts(true);
+
             this.portal.fireEvent('drop', dropEvent);
 
             // scroll position is lost on drop, fix it
@@ -177,8 +168,8 @@ Ext.define('Ext.app.PortalDropZone', {
                 },
                 10);
             }
-
         }
+        
         delete this.lastPos;
         return true;
     },
@@ -202,4 +193,3 @@ Ext.define('Ext.app.PortalDropZone', {
         Ext.app.PortalDropZone.superclass.unreg.call(this);
     }
 });
-

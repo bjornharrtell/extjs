@@ -1,18 +1,4 @@
 /*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-/*
  * This is a derivative of the similarly named class in the YUI Library.
  * The original license:
  * Copyright (c) 2006, Yahoo! Inc. All rights reserved.
@@ -81,114 +67,107 @@ Ext.define('Ext.dd.DragDrop', {
     },
 
     /**
+     * @property {Boolean} ignoreSelf
      * Set to false to enable a DragDrop object to fire drag events while dragging
      * over its own Element. Defaults to true - DragDrop objects do not by default
      * fire drag events to themselves.
-     * @property ignoreSelf
-     * @type Boolean
      */
 
     /**
+     * @property {String} id
      * The id of the element associated with this object.  This is what we
      * refer to as the "linked element" because the size and position of
      * this element is used to determine when the drag and drop objects have
      * interacted.
-     * @property id
-     * @type String
      */
     id: null,
 
     /**
+     * @property {Object} config
      * Configuration attributes passed into the constructor
-     * @property config
-     * @type Object
      */
     config: null,
 
     /**
+     * @property {String} dragElId
      * The id of the element that will be dragged.  By default this is same
      * as the linked element, but could be changed to another element. Ex:
      * Ext.dd.DDProxy
-     * @property dragElId
-     * @type String
      * @private
      */
     dragElId: null,
 
     /**
+     * @property {String} handleElId
      * The ID of the element that initiates the drag operation.  By default
      * this is the linked element, but could be changed to be a child of this
      * element.  This lets us do things like only starting the drag when the
      * header element within the linked html element is clicked.
-     * @property handleElId
-     * @type String
      * @private
      */
     handleElId: null,
 
     /**
+     * @property {Object} invalidHandleTypes
      * An object who's property names identify HTML tags to be considered invalid as drag handles.
      * A non-null property value identifies the tag as invalid. Defaults to the
-     * following value which prevents drag operations from being initiated by &lt;a> elements:<pre><code>
-{
-    A: "A"
-}</code></pre>
-     * @property invalidHandleTypes
-     * @type Object
+     * following value which prevents drag operations from being initiated by `<a>` elements:
+     *
+     *     {
+     *         A: "A"
+     *     }
      */
     invalidHandleTypes: null,
 
     /**
+     * @property {Object} invalidHandleIds
      * An object who's property names identify the IDs of elements to be considered invalid as drag handles.
      * A non-null property value identifies the ID as invalid. For example, to prevent
-     * dragging from being initiated on element ID "foo", use:<pre><code>
-{
-    foo: true
-}</code></pre>
-     * @property invalidHandleIds
-     * @type Object
+     * dragging from being initiated on element ID "foo", use:
+     *
+     *     {
+     *         foo: true
+     *     }
      */
     invalidHandleIds: null,
 
     /**
-     * An Array of CSS class names for elements to be considered in valid as drag handles.
      * @property {String[]} invalidHandleClasses
+     * An Array of CSS class names for elements to be considered in valid as drag handles.
      */
     invalidHandleClasses: null,
 
     /**
+     * @property {Number} startPageX
      * The linked element's absolute X position at the time the drag was
      * started
-     * @property startPageX
-     * @type Number
      * @private
      */
     startPageX: 0,
 
     /**
+     * @property {Number} startPageY
      * The linked element's absolute X position at the time the drag was
      * started
-     * @property startPageY
-     * @type Number
      * @private
      */
     startPageY: 0,
 
     /**
+     * @property {Object} groups
      * The group defines a logical collection of DragDrop objects that are
      * related.  Instances only get events when interacting with other
      * DragDrop object in the same group.  This lets us define multiple
      * groups using a single DragDrop subclass if we want.
-     * @property groups
-     * @type Object An object in the format {'group1':true, 'group2':true}
+     *
+     * An object in the format {'group1':true, 'group2':true}
      */
     groups: null,
 
     /**
+     * @property {Boolean} locked
      * Individual drag/drop instances can be locked.  This will prevent
      * onmousedown start drag.
-     * @property locked
-     * @type Boolean
      * @private
      */
     locked: false,
@@ -201,10 +180,9 @@ Ext.define('Ext.dd.DragDrop', {
     },
 
     /**
+     * @property {Boolean} moveOnly
      * When set to true, other DD objects in cooperating DDGroups do not receive
-     * notification events when this DD object is dragged over them. Defaults to false.
-     * @property moveOnly
-     * @type Boolean
+     * notification events when this DD object is dragged over them.
      */
     moveOnly: false,
 
@@ -216,135 +194,122 @@ Ext.define('Ext.dd.DragDrop', {
     },
 
     /**
+     * @property {Boolean} isTarget
      * By default, all instances can be a drop target.  This can be disabled by
      * setting isTarget to false.
-     * @property isTarget
-     * @type Boolean
      */
     isTarget: true,
 
     /**
+     * @property {Number[]} padding
      * The padding configured for this drag and drop object for calculating
      * the drop zone intersection with this object.
      * An array containing the 4 padding values: [top, right, bottom, left]
-     * @property {Number[]} padding
      */
     padding: null,
 
     /**
-     * Cached reference to the linked element
      * @property _domRef
+     * Cached reference to the linked element
      * @private
      */
     _domRef: null,
 
     /**
-     * Internal typeof flag
      * @property __ygDragDrop
+     * Internal typeof flag
      * @private
      */
     __ygDragDrop: true,
 
     /**
+     * @property {Boolean} constrainX
      * Set to true when horizontal contraints are applied
-     * @property constrainX
-     * @type Boolean
      * @private
      */
     constrainX: false,
 
     /**
+     * @property {Boolean} constrainY
      * Set to true when vertical contraints are applied
-     * @property constrainY
-     * @type Boolean
      * @private
      */
     constrainY: false,
 
     /**
+     * @property {Number} minX
      * The left constraint
-     * @property minX
-     * @type Number
      * @private
      */
     minX: 0,
 
     /**
+     * @property {Number} maxX
      * The right constraint
-     * @property maxX
-     * @type Number
      * @private
      */
     maxX: 0,
 
     /**
+     * @property {Number} minY
      * The up constraint
-     * @property minY
-     * @type Number
      * @private
      */
     minY: 0,
 
     /**
+     * @property {Number} maxY
      * The down constraint
-     * @property maxY
-     * @type Number
      * @private
      */
     maxY: 0,
 
     /**
+     * @property {Boolean} maintainOffset
      * Maintain offsets when we resetconstraints.  Set to true when you want
      * the position of the element relative to its parent to stay the same
      * when the page changes
-     *
-     * @property maintainOffset
-     * @type Boolean
      */
     maintainOffset: false,
 
     /**
+     * @property {Number[]} xTicks
      * Array of pixel locations the element will snap to if we specified a
      * horizontal graduation/interval.  This array is generated automatically
      * when you define a tick interval.
-     * @property {Number[]} xTicks
      */
     xTicks: null,
 
     /**
+     * @property {Number[]} yTicks
      * Array of pixel locations the element will snap to if we specified a
      * vertical graduation/interval.  This array is generated automatically
      * when you define a tick interval.
-     * @property {Number[]} yTicks
      */
     yTicks: null,
 
     /**
+     * @property {Boolean} primaryButtonOnly
      * By default the drag and drop instance will only respond to the primary
      * button click (left button for a right-handed mouse).  Set to true to
      * allow drag and drop to start with any mouse click that is propogated
      * by the browser
-     * @property primaryButtonOnly
-     * @type Boolean
      */
     primaryButtonOnly: true,
 
     /**
+     * @property {Boolean} available
      * The available property is false until the linked dom element is accessible.
-     * @property available
-     * @type Boolean
      */
     available: false,
 
     /**
+     * @property {Boolean} hasOuterHandles
      * By default, drags can only be initiated if the mousedown occurs in the
      * region the linked element is.  This is done in part to work around a
      * bug in some browsers that mis-report the mousedown if the previous
      * mouseup happened outside of the window.  This property is set to true
      * if outer handles are defined. Defaults to false.
-     *
-     * @property hasOuterHandles
-     * @type Boolean
      */
     hasOuterHandles: false,
 
@@ -522,26 +487,28 @@ Ext.define('Ext.dd.DragDrop', {
             ce = Ext.get(constrainTo),
             s = ce.getScroll(),
             c,
-            cd = ce.dom;
+            cd = ce.dom,
+            xy,
+            topSpace,
+            leftSpace;
         if(cd == document.body){
             c = { x: s.left, y: s.top, width: Ext.Element.getViewWidth(), height: Ext.Element.getViewHeight()};
         }else{
-            var xy = ce.getXY();
+            xy = ce.getXY();
             c = {x : xy[0], y: xy[1], width: cd.clientWidth, height: cd.clientHeight};
         }
 
-
-        var topSpace = b.y - c.y,
-            leftSpace = b.x - c.x;
+        topSpace = b.y - c.y;
+        leftSpace = b.x - c.x;
 
         this.resetConstraints();
         this.setXConstraint(leftSpace - (pad.left||0), // left
                 c.width - leftSpace - b.width - (pad.right||0), //right
-				this.xTickSize
+        this.xTickSize
         );
         this.setYConstraint(topSpace - (pad.top||0), //top
                 c.height - topSpace - b.height - (pad.bottom||0), //bottom
-				this.yTickSize
+        this.yTickSize
         );
     },
 
@@ -681,16 +648,17 @@ Ext.define('Ext.dd.DragDrop', {
      * @param {Number} diffY   the Y offset, default 0
      */
     setInitPosition: function(diffX, diffY) {
-        var el = this.getEl();
+        var el = this.getEl(),
+            dx, dy, p;
 
         if (!this.DDMInstance.verifyEl(el)) {
             return;
         }
 
-        var dx = diffX || 0;
-        var dy = diffY || 0;
+        dx = diffX || 0;
+        dy = diffY || 0;
 
-        var p = Ext.Element.getXY( el );
+        p = Ext.Element.getXY( el );
 
         this.initPageX = p[0] - dx;
         this.initPageY = p[1] - dy;
@@ -820,9 +788,7 @@ Ext.define('Ext.dd.DragDrop', {
 
         this.DDMInstance.refreshCache(this.groups);
 
-        var pt = e.getPoint();
-        if (!this.hasOuterHandles && !this.DDMInstance.isOverTarget(pt, this) )  {
-        } else {
+        if (this.hasOuterHandles || this.DDMInstance.isOverTarget(e.getPoint(), this) )  {
             if (this.clickValidator(e)) {
                 // set the initial element position
                 this.setStartPosition();
@@ -832,9 +798,6 @@ Ext.define('Ext.dd.DragDrop', {
                 this.DDMInstance.handleMouseDown(e, this);
 
                 this.DDMInstance.stopEvent(e);
-            } else {
-
-
             }
         }
     },
@@ -920,9 +883,10 @@ Ext.define('Ext.dd.DragDrop', {
      */
     isValidHandleChild: function(node) {
 
-        var valid = true;
+        var valid = true,
+            nodeName,
+            i, len;
         // var n = (node.nodeName == "#text") ? node.parentNode : node;
-        var nodeName;
         try {
             nodeName = node.nodeName.toUpperCase();
         } catch(e) {
@@ -931,7 +895,7 @@ Ext.define('Ext.dd.DragDrop', {
         valid = valid && !this.invalidHandleTypes[nodeName];
         valid = valid && !this.invalidHandleIds[node.id];
 
-        for (var i=0, len=this.invalidHandleClasses.length; valid && i<len; ++i) {
+        for (i=0, len=this.invalidHandleClasses.length; valid && i<len; ++i) {
             valid = !Ext.fly(node).hasCls(this.invalidHandleClasses[i]);
         }
 
@@ -949,9 +913,10 @@ Ext.define('Ext.dd.DragDrop', {
         this.xTicks = [];
         this.xTickSize = iTickSize;
 
-        var tickMap = {};
+        var tickMap = {},
+            i;
 
-        for (var i = this.initPageX; i >= this.minX; i = i - iTickSize) {
+        for (i = this.initPageX; i >= this.minX; i = i - iTickSize) {
             if (!tickMap[i]) {
                 this.xTicks[this.xTicks.length] = i;
                 tickMap[i] = true;
@@ -977,9 +942,10 @@ Ext.define('Ext.dd.DragDrop', {
         this.yTicks = [];
         this.yTickSize = iTickSize;
 
-        var tickMap = {};
+        var tickMap = {},
+            i;
 
-        for (var i = this.initPageY; i >= this.minY; i = i - iTickSize) {
+        for (i = this.initPageY; i >= this.minY; i = i - iTickSize) {
             if (!tickMap[i]) {
                 this.yTicks[this.yTicks.length] = i;
                 tickMap[i] = true;
@@ -1066,8 +1032,8 @@ Ext.define('Ext.dd.DragDrop', {
         // Maintain offsets if necessary
         if (this.initPageX || this.initPageX === 0) {
             // figure out how much this thing has moved
-            var dx = (this.maintainOffset) ? this.lastPageX - this.initPageX : 0;
-            var dy = (this.maintainOffset) ? this.lastPageY - this.initPageY : 0;
+            var dx = (this.maintainOffset) ? this.lastPageX - this.initPageX : 0,
+                dy = (this.maintainOffset) ? this.lastPageY - this.initPageY : 0;
 
             this.setInitPosition(dx, dy);
 
@@ -1108,11 +1074,12 @@ Ext.define('Ext.dd.DragDrop', {
             // tick.
             return tickArray[0];
         } else {
-            for (var i=0, len=tickArray.length; i<len; ++i) {
-                var next = i + 1;
+            var i, len, next, diff1, diff2;
+            for (i=0, len=tickArray.length; i<len; ++i) {
+                next = i + 1;
                 if (tickArray[next] && tickArray[next] >= val) {
-                    var diff1 = val - tickArray[i];
-                    var diff2 = tickArray[next] - val;
+                    diff1 = val - tickArray[i];
+                    diff2 = tickArray[next] - val;
                     return (diff2 > diff1) ? tickArray[i] : tickArray[next];
                 }
             }
@@ -1132,4 +1099,3 @@ Ext.define('Ext.dd.DragDrop', {
     }
 
 });
-

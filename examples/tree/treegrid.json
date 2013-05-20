@@ -21,7 +21,8 @@
                 duration:.4,
                 user:'Tommy Maintz',
                 leaf:true,
-                iconCls:'task'
+                iconCls:'task',
+                done: true
             },{
                 task:'Cleaning supplies',
                 duration:.4,
@@ -70,13 +71,15 @@
                 duration:2.75,
                 user:'Tommy Maintz',
                 leaf:true,
-                iconCls:'task'
+                iconCls:'task',
+                done: true
             },{
                 task: 'Fix lights',
                 duration: .75,
                 user: 'Tommy Maintz',
                 leaf: true,
-                iconCls: 'task'
+                iconCls: 'task',
+                done: true
             }, {
                 task: 'Reattach screen door',
                 duration: 2,

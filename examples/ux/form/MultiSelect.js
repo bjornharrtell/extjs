@@ -1,57 +1,38 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.form.MultiSelect
- * @extends Ext.form.field.Base
- * A control that allows selection and form submission of multiple list items.
- *
- *  @history
- *    2008-06-19 bpm Original code contributed by Toby Stuart (with contributions from Robert Williams)
- *    2008-06-19 bpm Docs and demo code clean up
- *
- * @constructor
- * Create a new MultiSelect
- * @param {Object} config Configuration options
- * @xtype multiselect
+ * A control that allows selection of multiple items in a list
  */
 Ext.define('Ext.ux.form.MultiSelect', {
-    extend: 'Ext.form.field.Base',
+    
+    extend: 'Ext.form.FieldContainer',
+    
+    mixins: {
+        bindable: 'Ext.util.Bindable',
+        field: 'Ext.form.field.Field'    
+    },
+    
     alternateClassName: 'Ext.ux.Multiselect',
-    alias: ['widget.multiselect', 'widget.multiselectfield'],
-    uses: [
-        'Ext.view.BoundList',
-        'Ext.form.FieldSet',
-        'Ext.ux.layout.component.form.MultiSelect',
-        'Ext.view.DragZone',
-        'Ext.view.DropZone'
-    ],
-
+    alias: ['widget.multiselectfield', 'widget.multiselect'],
+    
+    requires: ['Ext.panel.Panel', 'Ext.view.BoundList', 'Ext.layout.container.Fit'],
+    
+    uses: ['Ext.view.DragZone', 'Ext.view.DropZone'],
+    
+    layout: 'fit',
+    
     /**
-     * @cfg {String} listTitle An optional title to be displayed at the top of the selection list.
+     * @cfg {String} [dragGroup=""] The ddgroup name for the MultiSelect DragZone.
      */
 
     /**
-     * @cfg {String/Array} dragGroup The ddgroup name(s) for the MultiSelect DragZone (defaults to undefined).
+     * @cfg {String} [dropGroup=""] The ddgroup name for the MultiSelect DropZone.
      */
-
+    
     /**
-     * @cfg {String/Array} dropGroup The ddgroup name(s) for the MultiSelect DropZone (defaults to undefined).
+     * @cfg {String} [title=""] A title for the underlying panel.
      */
-
+    
     /**
-     * @cfg {Boolean} ddReorder Whether the items in the MultiSelect list are drag/drop reorderable (defaults to false).
+     * @cfg {Boolean} [ddReorder=false] Whether the items in the MultiSelect list are drag/drop reorderable.
      */
     ddReorder: false,
 
@@ -62,57 +43,58 @@ Ext.define('Ext.ux.form.MultiSelect', {
      */
 
     /**
-     * @cfg {String} appendOnly True if the list should only allow append drops when drag/drop is enabled
-     * (use for lists which are sorted, defaults to false).
+     * @cfg {String} [appendOnly=false] True if the list should only allow append drops when drag/drop is enabled.
+     * This is useful for lists which are sorted.
      */
     appendOnly: false,
 
     /**
-     * @cfg {String} displayField Name of the desired display field in the dataset (defaults to 'text').
+     * @cfg {String} [displayField="text"] Name of the desired display field in the dataset.
      */
     displayField: 'text',
 
     /**
-     * @cfg {String} valueField Name of the desired value field in the dataset (defaults to the
-     * value of {@link #displayField}).
+     * @cfg {String} [valueField="text"] Name of the desired value field in the dataset.
      */
 
     /**
-     * @cfg {Boolean} allowBlank False to require at least one item in the list to be selected, true to allow no
-     * selection (defaults to true).
+     * @cfg {Boolean} [allowBlank=true] False to require at least one item in the list to be selected, true to allow no
+     * selection.
      */
     allowBlank: true,
 
     /**
-     * @cfg {Number} minSelections Minimum number of selections allowed (defaults to 0).
+     * @cfg {Number} [minSelections=0] Minimum number of selections allowed.
      */
     minSelections: 0,
 
     /**
-     * @cfg {Number} maxSelections Maximum number of selections allowed (defaults to Number.MAX_VALUE).
+     * @cfg {Number} [maxSelections=Number.MAX_VALUE] Maximum number of selections allowed.
      */
     maxSelections: Number.MAX_VALUE,
 
     /**
-     * @cfg {String} blankText Default text displayed when the control contains no items (defaults to 'This field is required')
+     * @cfg {String} [blankText="This field is required"] Default text displayed when the control contains no items.
      */
     blankText: 'This field is required',
 
     /**
-     * @cfg {String} minSelectionsText Validation message displayed when {@link #minSelections} is not met (defaults to 'Minimum {0}
-     * item(s) required').  The {0} token will be replaced by the value of {@link #minSelections}.
+     * @cfg {String} [minSelectionsText="Minimum {0}item(s) required"] 
+     * Validation message displayed when {@link #minSelections} is not met. 
+     * The {0} token will be replaced by the value of {@link #minSelections}.
      */
     minSelectionsText: 'Minimum {0} item(s) required',
-
+    
     /**
-     * @cfg {String} maxSelectionsText Validation message displayed when {@link #maxSelections} is not met (defaults to 'Maximum {0}
-     * item(s) allowed').  The {0} token will be replaced by the value of {@link #maxSelections}.
+     * @cfg {String} [maxSelectionsText="Maximum {0}item(s) allowed"] 
+     * Validation message displayed when {@link #maxSelections} is not met
+     * The {0} token will be replaced by the value of {@link #maxSelections}.
      */
-    maxSelectionsText: 'Maximum {0} item(s) allowed',
+    maxSelectionsText: 'Minimum {0} item(s) required',
 
     /**
-     * @cfg {String} delimiter The string used to delimit the selected values when {@link #getSubmitValue submitting}
-     * the field as part of a form. Defaults to ','. If you wish to have the selected values submitted as separate
+     * @cfg {String} [delimiter=","] The string used to delimit the selected values when {@link #getSubmitValue submitting}
+     * the field as part of a form. If you wish to have the selected values submitted as separate
      * parameters rather than a single delimited parameter, set this to <tt>null</tt>.
      */
     delimiter: ',',
@@ -132,13 +114,15 @@ Ext.define('Ext.ux.form.MultiSelect', {
      * {@link #valueField value}, while the value at index 1 is assumed to be the combo {@link #displayField text}.
      * </div></li></ul></div></li></ul></div>
      */
+    
+    ignoreSelectChange: 0,
 
-    componentLayout: 'multiselectfield',
+    /**
+     * @cfg {Object} listConfig
+     * An optional set of configuration properties that will be passed to the {@link Ext.view.BoundList}'s constructor.
+     * Any configuration that is valid for BoundList can be included.
+     */
 
-    fieldBodyCls: Ext.baseCSSPrefix + 'form-multiselect-body',
-
-
-    // private
     initComponent: function(){
         var me = this;
 
@@ -153,73 +137,80 @@ Ext.define('Ext.ux.form.MultiSelect', {
         if (!Ext.isDefined(me.valueField)) {
             me.valueField = me.displayField;
         }
-
+        me.items = me.setupItems();
+        
+        
         me.callParent();
+        me.initField();
+        me.addEvents('drop');    
     },
-
-    bindStore: function(store, initial) {
-        var me = this,
-            oldStore = me.store,
-            boundList = me.boundList;
-
-        if (oldStore && !initial && oldStore !== store && oldStore.autoDestroy) {
-            oldStore.destroyStore();
-        }
-
-        me.store = store ? Ext.data.StoreManager.lookup(store) : null;
-        if (boundList) {
-            boundList.bindStore(store || null);
-        }
-    },
-
-
-    // private
-    onRender: function(ct, position) {
-        var me = this,
-            panel, boundList, selModel;
-
-        me.callParent(arguments);
-
-        boundList = me.boundList = Ext.create('Ext.view.BoundList', {
+    
+    setupItems: function() {
+        var me = this;
+        
+        me.boundList = Ext.create('Ext.view.BoundList', Ext.apply({
             deferInitialRefresh: false,
+            border: false,
             multiSelect: true,
             store: me.store,
             displayField: me.displayField,
-            border: false,
             disabled: me.disabled
-        });
-
-        selModel = boundList.getSelectionModel();
-        me.mon(selModel, {
-            selectionChange: me.onSelectionChange,
-            scope: me
-        });
-
-        panel = me.panel = Ext.create('Ext.panel.Panel', {
-            title: me.listTitle,
+        }, me.listConfig));
+        
+        me.boundList.getSelectionModel().on('selectionchange', me.onSelectChange, me);
+        return {
+            border: true,
+            layout: 'fit',
+            title: me.title,
             tbar: me.tbar,
-            items: [boundList],
-            renderTo: me.bodyEl,
-            layout: 'fit'
-        });
-
-        // Must set upward link after first render
-        panel.ownerCt = me;
-
-        // Set selection to current value
-        me.setRawValue(me.rawValue);
+            items: me.boundList
+        };
     },
-
-    // No content generated via template, it's all added components
-    getSubTplMarkup: function() {
-        return '';
+    
+    onSelectChange: function(selModel, selections){
+        if (!this.ignoreSelectChange) {
+            this.setValue(selections);
+        }    
     },
+    
+    getSelected: function(){
+        return this.boundList.getSelectionModel().getSelection();
+    },
+    
+    // compare array values
+    isEqual: function(v1, v2) {
+        var fromArray = Ext.Array.from,
+            i = 0, 
+            len;
 
-    // private
-    afterRender: function() {
+        v1 = fromArray(v1);
+        v2 = fromArray(v2);
+        len = v1.length;
+
+        if (len !== v2.length) {
+            return false;
+        }
+
+        for(; i < len; i++) {
+            if (v2[i] !== v1[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    },
+    
+    afterRender: function(){
         var me = this;
+        
         me.callParent();
-
+        if (me.selectOnRender) {
+            ++me.ignoreSelectChange;
+            me.boundList.getSelectionModel().select(me.getRecordsForValue(me.value));
+            --me.ignoreSelectChange;
+            delete me.toSelect;
+        }    
+        
         if (me.ddReorder && !me.dragGroup && !me.dropGroup){
             me.dragGroup = me.dropGroup = 'MultiselectDD-' + Ext.id();
         }
@@ -250,101 +241,196 @@ Ext.define('Ext.ux.form.MultiSelect', {
                     }
                     store.insert(index, records);
                     view.getSelectionModel().select(records);
+                    me.fireEvent('drop', me, records);
                 }
             });
         }
     },
+    
+    isValid : function() {
+        var me = this,
+            disabled = me.disabled,
+            validate = me.forceValidation || !disabled;
+            
+        
+        return validate ? me.validateValue(me.value) : disabled;
+    },
+    
+    validateValue: function(value) {
+        var me = this,
+            errors = me.getErrors(value),
+            isValid = Ext.isEmpty(errors);
+            
+        if (!me.preventMark) {
+            if (isValid) {
+                me.clearInvalid();
+            } else {
+                me.markInvalid(errors);
+            }
+        }
 
-    onSelectionChange: function() {
-        this.checkChange();
+        return isValid;
+    },
+    
+    markInvalid : function(errors) {
+        // Save the message and fire the 'invalid' event
+        var me = this,
+            oldMsg = me.getActiveError();
+        me.setActiveErrors(Ext.Array.from(errors));
+        if (oldMsg !== me.getActiveError()) {
+            me.updateLayout();
+        }
     },
 
     /**
-     * Clears any values currently selected.
+     * Clear any invalid styles/messages for this field.
+     *
+     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
+     * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
+     * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
      */
-    clearValue: function() {
-        this.setValue([]);
+    clearInvalid : function() {
+        // Clear the message and fire the 'valid' event
+        var me = this,
+            hadError = me.hasActiveError();
+        me.unsetActiveError();
+        if (hadError) {
+            me.updateLayout();
+        }
+    },
+    
+    getSubmitData: function() {
+        var me = this,
+            data = null,
+            val;
+        if (!me.disabled && me.submitValue && !me.isFileUpload()) {
+            val = me.getSubmitValue();
+            if (val !== null) {
+                data = {};
+                data[me.getName()] = val;
+            }
+        }
+        return data;
     },
 
     /**
-     * Return the value(s) to be submitted for this field. The returned value depends on the {@link #delimiter}
-     * config: If it is set to a String value (like the default ',') then this will return the selected values
-     * joined by the delimiter. If it is set to <tt>null</tt> then the values will be returned as an Array.
+     * Returns the value that would be included in a standard form submit for this field.
+     *
+     * @return {String} The value to be submitted, or null.
      */
     getSubmitValue: function() {
         var me = this,
             delimiter = me.delimiter,
             val = me.getValue();
+            
         return Ext.isString(delimiter) ? val.join(delimiter) : val;
     },
-
-    // inherit docs
-    getRawValue: function() {
-        var me = this,
-            boundList = me.boundList;
-        if (boundList) {
-            me.rawValue = Ext.Array.map(boundList.getSelectionModel().getSelection(), function(model) {
-                return model.get(me.valueField);
-            });
-        }
-        return me.rawValue;
+    
+    getValue: function(){
+        return this.value;
     },
-
-    // inherit docs
-    setRawValue: function(value) {
+    
+    getRecordsForValue: function(value){
         var me = this,
-            boundList = me.boundList,
-            models;
-
-        value = Ext.Array.from(value);
-        me.rawValue = value;
-
-        if (boundList) {
-            models = [];
-            Ext.Array.forEach(value, function(val) {
-                var undef,
-                    model = me.store.findRecord(me.valueField, val, undef, undef, true, true);
-                if (model) {
-                    models.push(model);
+            records = [],
+            all = me.store.getRange(),
+            valueField = me.valueField,
+            i = 0,
+            allLen = all.length,
+            rec,
+            j,
+            valueLen;
+            
+        for (valueLen = value.length; i < valueLen; ++i) {
+            for (j = 0; j < allLen; ++j) {
+                rec = all[j];   
+                if (rec.get(valueField) == value[i]) {
+                    records.push(rec);
                 }
-            });
-            boundList.getSelectionModel().select(models, false, true);
+            }    
         }
-
-        return value;
+            
+        return records;
     },
-
-    // no conversion
-    valueToRaw: function(value) {
-        return value;
-    },
-
-    // compare array values
-    isEqual: function(v1, v2) {
-        var fromArray = Ext.Array.from,
-            i, len;
-
-        v1 = fromArray(v1);
-        v2 = fromArray(v2);
-        len = v1.length;
-
-        if (len !== v2.length) {
-            return false;
-        }
-
-        for(i = 0; i < len; i++) {
-            if (v2[i] !== v1[i]) {
-                return false;
+    
+    setupValue: function(value){
+        var delimiter = this.delimiter,
+            valueField = this.valueField,
+            i = 0,
+            out,
+            len,
+            item;
+            
+        if (Ext.isDefined(value)) {
+            if (delimiter && Ext.isString(value)) {
+                value = value.split(delimiter);
+            } else if (!Ext.isArray(value)) {
+                value = [value];
             }
+        
+            for (len = value.length; i < len; ++i) {
+                item = value[i];
+                if (item && item.isModel) {
+                    value[i] = item.get(valueField);
+                }
+            }
+            out = Ext.Array.unique(value);
+        } else {
+            out = [];
+        }
+        return out;
+    },
+    
+    setValue: function(value){
+        var me = this,
+            selModel = me.boundList.getSelectionModel();
+
+        // Store not loaded yet - we cannot set the value
+        if (!me.store.getCount()) {
+            me.store.on({
+                load: Ext.Function.bind(me.setValue, me, [value]),
+                single: true
+            });
+            return;
         }
 
-        return true;
+        value = me.setupValue(value);
+        me.mixins.field.setValue.call(me, value);
+        
+        if (me.rendered) {
+            ++me.ignoreSelectChange;
+            selModel.deselectAll();
+            selModel.select(me.getRecordsForValue(value));
+            --me.ignoreSelectChange;
+        } else {
+            me.selectOnRender = true;
+        }
     },
-
+    
+    clearValue: function(){
+        this.setValue([]);    
+    },
+    
+    onEnable: function(){
+        var list = this.boundList;
+        this.callParent();
+        if (list) {
+            list.enable();
+        }
+    },
+    
+    onDisable: function(){
+        var list = this.boundList;
+        this.callParent();
+        if (list) {
+            list.disable();
+        }
+    },
+    
     getErrors : function(value) {
         var me = this,
             format = Ext.String.format,
-            errors = me.callParent(arguments),
+            errors = [],
             numSelected;
 
         value = Ext.Array.from(value || me.getValue());
@@ -353,58 +439,29 @@ Ext.define('Ext.ux.form.MultiSelect', {
         if (!me.allowBlank && numSelected < 1) {
             errors.push(me.blankText);
         }
-        if (numSelected < this.minSelections) {
+        if (numSelected < me.minSelections) {
             errors.push(format(me.minSelectionsText, me.minSelections));
         }
-        if (numSelected > this.maxSelections) {
+        if (numSelected > me.maxSelections) {
             errors.push(format(me.maxSelectionsText, me.maxSelections));
         }
-
         return errors;
     },
-
-    onDisable: function() {
-        var me = this;
-        
-        me.callParent();
-        me.updateReadOnly();
-        if (me.boundList) {
-            me.boundList.disable();
-        }
-    },
-
-    onEnable: function() {
-        var me = this;
-        
-        me.callParent();
-        me.updateReadOnly();
-        if (me.boundList) {
-            me.boundList.enable();
-        }
-    },
-
-    setReadOnly: function(readOnly) {
-        this.readOnly = readOnly;
-        this.updateReadOnly();
-    },
-
-    /**
-     * @private Lock or unlock the BoundList's selection model to match the current disabled/readonly state
-     */
-    updateReadOnly: function() {
-        var me = this,
-            boundList = me.boundList,
-            readOnly = me.readOnly || me.disabled;
-        if (boundList) {
-            boundList.getSelectionModel().setLocked(readOnly);
-        }
-    },
-
+    
     onDestroy: function(){
-        Ext.destroyMembers(this, 'panel', 'boundList', 'dragZone', 'dropZone');
-        this.callParent();
+        var me = this;
+        
+        me.bindStore(null);
+        Ext.destroy(me.dragZone, me.dropZone);
+        me.callParent();
+    },
+    
+    onBindStore: function(store){
+        var boundList = this.boundList;
+        
+        if (boundList) {
+            boundList.bindStore(store);
+        }
     }
+    
 });
-
-
-

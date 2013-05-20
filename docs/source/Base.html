@@ -15,812 +15,1123 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-form-field-Base'>/**
-</span> * @docauthor Jason Johnston &lt;jason@sencha.com&gt;
+  <pre class="prettyprint lang-js"><span id='Ext-Base'>/**
+</span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
+ * @docauthor Jacky Nguyen &lt;jacky@sencha.com&gt;
+ * @class Ext.Base
  *
- * Base class for form fields that provides default event handling, rendering, and other common functionality
- * needed by all form field types. Utilizes the {@link Ext.form.field.Field} mixin for value handling and validation,
- * and the {@link Ext.form.Labelable} mixin to provide label and error message display.
+ * The root of all classes created with {@link Ext#define}.
  *
- * In most cases you will want to use a subclass, such as {@link Ext.form.field.Text} or {@link Ext.form.field.Checkbox},
- * rather than creating instances of this class directly. However if you are implementing a custom form field,
- * using this as the parent class is recommended.
- *
- * # Values and Conversions
- *
- * Because BaseField implements the Field mixin, it has a main value that can be initialized with the
- * {@link #value} config and manipulated via the {@link #getValue} and {@link #setValue} methods. This main
- * value can be one of many data types appropriate to the current field, for instance a {@link Ext.form.field.Date Date}
- * field would use a JavaScript Date object as its value type. However, because the field is rendered as a HTML
- * input, this value data type can not always be directly used in the rendered field.
- *
- * Therefore BaseField introduces the concept of a &quot;raw value&quot;. This is the value of the rendered HTML input field,
- * and is normally a String. The {@link #getRawValue} and {@link #setRawValue} methods can be used to directly
- * work with the raw value, though it is recommended to use getValue and setValue in most cases.
- *
- * Conversion back and forth between the main value and the raw value is handled by the {@link #valueToRaw} and
- * {@link #rawToValue} methods. If you are implementing a subclass that uses a non-String value data type, you
- * should override these methods to handle the conversion.
- *
- * # Rendering
- *
- * The content of the field body is defined by the {@link #fieldSubTpl} XTemplate, with its argument data
- * created by the {@link #getSubTplData} method. Override this template and/or method to create custom
- * field renderings.
- *
- * # Example usage:
- *
- *     @example
- *     // A simple subclass of BaseField that creates a HTML5 search field. Redirects to the
- *     // searchUrl when the Enter key is pressed.222
- *     Ext.define('Ext.form.SearchField', {
- *         extend: 'Ext.form.field.Base',
- *         alias: 'widget.searchfield',
- *     
- *         inputType: 'search',
- *     
- *         // Config defining the search URL
- *         searchUrl: 'http://www.google.com/search?q={0}',
- *     
- *         // Add specialkey listener
- *         initComponent: function() {
- *             this.callParent();
- *             this.on('specialkey', this.checkEnterKey, this);
- *         },
- *     
- *         // Handle enter key presses, execute the search if the field has a value
- *         checkEnterKey: function(field, e) {
- *             var value = this.getValue();
- *             if (e.getKey() === e.ENTER &amp;&amp; !Ext.isEmpty(value)) {
- *                 location.href = Ext.String.format(this.searchUrl, value);
- *             }
- *         }
- *     });
- *     
- *     Ext.create('Ext.form.Panel', {
- *         title: 'BaseField Example',
- *         bodyPadding: 5,
- *         width: 250,
- *     
- *         // Fields will be arranged vertically, stretched to full width
- *         layout: 'anchor',
- *         defaults: {
- *             anchor: '100%'
- *         },
- *         items: [{
- *             xtype: 'searchfield',
- *             fieldLabel: 'Search',
- *             name: 'query'
- *         }],
- *         renderTo: Ext.getBody()
- *     });
+ * Ext.Base is the building block of all Ext classes. All classes in Ext inherit from Ext.Base.
+ * All prototype and static members of this class are inherited by all other classes.
  */
-Ext.define('Ext.form.field.Base', {
-    extend: 'Ext.Component',
-    mixins: {
-        labelable: 'Ext.form.Labelable',
-        field: 'Ext.form.field.Field'
-    },
-    alias: 'widget.field',
-    alternateClassName: ['Ext.form.Field', 'Ext.form.BaseField'],
-    requires: ['Ext.util.DelayedTask', 'Ext.XTemplate', 'Ext.layout.component.field.Field'],
+(function(flexSetter) {
 
-<span id='Ext-form-field-Base-cfg-fieldSubTpl'>    /**
-</span>     * @cfg {Ext.XTemplate} fieldSubTpl
-     * The content of the field body is defined by this config option.
-     */
-    fieldSubTpl: [ // note: {id} here is really {inputId}, but {cmpId} is available
-        '&lt;input id=&quot;{id}&quot; type=&quot;{type}&quot; ',
-        '&lt;tpl if=&quot;name&quot;&gt;name=&quot;{name}&quot; &lt;/tpl&gt;',
-        '&lt;tpl if=&quot;size&quot;&gt;size=&quot;{size}&quot; &lt;/tpl&gt;',
-        '&lt;tpl if=&quot;tabIdx&quot;&gt;tabIndex=&quot;{tabIdx}&quot; &lt;/tpl&gt;',
-        'class=&quot;{fieldCls} {typeCls}&quot; autocomplete=&quot;off&quot; /&gt;',
-        {
-            compiled: true,
-            disableFormats: true
-        }
-    ],
+var noArgs = [],
+    Base = function(){};
 
-<span id='Ext-form-field-Base-cfg-name'>    /**
-</span>     * @cfg {String} name
-     * The name of the field. This is used as the parameter name when including the field value
-     * in a {@link Ext.form.Basic#submit form submit()}. If no name is configured, it falls back to the {@link #inputId}.
-     * To prevent the field from being included in the form submit, set {@link #submitValue} to false.
-     */
+    // These static properties will be copied to every newly created class with {@link Ext#define}
+    Ext.apply(Base, {
+        $className: 'Ext.Base',
 
-<span id='Ext-form-field-Base-cfg-inputType'>    /**
-</span>     * @cfg {String} inputType
-     * The type attribute for input fields -- e.g. radio, text, password, file. The extended types
-     * supported by HTML5 inputs (url, email, etc.) may also be used, though using them will cause older browsers to
-     * fall back to 'text'.
-     *
-     * The type 'password' must be used to render that field type currently -- there is no separate Ext component for
-     * that. You can use {@link Ext.form.field.File} which creates a custom-rendered file upload field, but if you want
-     * a plain unstyled file input you can use a BaseField with inputType:'file'.
-     */
-    inputType: 'text',
+        $isClass: true,
 
-<span id='Ext-form-field-Base-cfg-tabIndex'>    /**
-</span>     * @cfg {Number} tabIndex
-     * The tabIndex for this field. Note this only applies to fields that are rendered, not those which are built via
-     * applyTo
-     */
-
-<span id='Ext-form-field-Base-cfg-invalidText'>    /**
-</span>     * @cfg {String} invalidText
-     * The error text to use when marking a field invalid and no message is provided
-     */
-    invalidText : 'The value in this field is invalid',
-
-<span id='Ext-form-field-Base-cfg-fieldCls'>    /**
-</span>     * @cfg {String} [fieldCls='x-form-field']
-     * The default CSS class for the field input
-     */
-    fieldCls : Ext.baseCSSPrefix + 'form-field',
-
-<span id='Ext-form-field-Base-cfg-fieldStyle'>    /**
-</span>     * @cfg {String} fieldStyle
-     * Optional CSS style(s) to be applied to the {@link #inputEl field input element}. Should be a valid argument to
-     * {@link Ext.Element#applyStyles}. Defaults to undefined. See also the {@link #setFieldStyle} method for changing
-     * the style after initialization.
-     */
-
-<span id='Ext-form-field-Base-cfg-focusCls'>    /**
-</span>     * @cfg {String} [focusCls='x-form-focus']
-     * The CSS class to use when the field receives focus
-     */
-    focusCls : Ext.baseCSSPrefix + 'form-focus',
-
-<span id='Ext-form-field-Base-cfg-dirtyCls'>    /**
-</span>     * @cfg {String} dirtyCls
-     * The CSS class to use when the field value {@link #isDirty is dirty}.
-     */
-    dirtyCls : Ext.baseCSSPrefix + 'form-dirty',
-
-<span id='Ext-form-field-Base-cfg-checkChangeEvents'>    /**
-</span>     * @cfg {String[]} checkChangeEvents
-     * A list of event names that will be listened for on the field's {@link #inputEl input element}, which will cause
-     * the field's value to be checked for changes. If a change is detected, the {@link #change change event} will be
-     * fired, followed by validation if the {@link #validateOnChange} option is enabled.
-     *
-     * Defaults to ['change', 'propertychange'] in Internet Explorer, and ['change', 'input', 'textInput', 'keyup',
-     * 'dragdrop'] in other browsers. This catches all the ways that field values can be changed in most supported
-     * browsers; the only known exceptions at the time of writing are:
-     *
-     *   - Safari 3.2 and older: cut/paste in textareas via the context menu, and dragging text into textareas
-     *   - Opera 10 and 11: dragging text into text fields and textareas, and cut via the context menu in text fields
-     *     and textareas
-     *   - Opera 9: Same as Opera 10 and 11, plus paste from context menu in text fields and textareas
-     *
-     * If you need to guarantee on-the-fly change notifications including these edge cases, you can call the
-     * {@link #checkChange} method on a repeating interval, e.g. using {@link Ext.TaskManager}, or if the field is within
-     * a {@link Ext.form.Panel}, you can use the FormPanel's {@link Ext.form.Panel#pollForChanges} configuration to set up
-     * such a task automatically.
-     */
-    checkChangeEvents: Ext.isIE &amp;&amp; (!document.documentMode || document.documentMode &lt; 9) ?
-                        ['change', 'propertychange'] :
-                        ['change', 'input', 'textInput', 'keyup', 'dragdrop'],
-
-<span id='Ext-form-field-Base-cfg-checkChangeBuffer'>    /**
-</span>     * @cfg {Number} checkChangeBuffer
-     * Defines a timeout in milliseconds for buffering {@link #checkChangeEvents} that fire in rapid succession.
-     * Defaults to 50 milliseconds.
-     */
-    checkChangeBuffer: 50,
-
-    componentLayout: 'field',
-
-<span id='Ext-form-field-Base-cfg-readOnly'>    /**
-</span>     * @cfg {Boolean} readOnly
-     * true to mark the field as readOnly in HTML.
-     *
-     * **Note**: this only sets the element's readOnly DOM attribute. Setting `readOnly=true`, for example, will not
-     * disable triggering a ComboBox or Date; it gives you the option of forcing the user to choose via the trigger
-     * without typing in the text box. To hide the trigger use `{@link Ext.form.field.Trigger#hideTrigger hideTrigger}`.
-     */
-    readOnly : false,
-
-<span id='Ext-form-field-Base-cfg-readOnlyCls'>    /**
-</span>     * @cfg {String} readOnlyCls
-     * The CSS class applied to the component's main element when it is {@link #readOnly}.
-     */
-    readOnlyCls: Ext.baseCSSPrefix + 'form-readonly',
-
-<span id='Ext-form-field-Base-cfg-inputId'>    /**
-</span>     * @cfg {String} inputId
-     * The id that will be given to the generated input DOM element. Defaults to an automatically generated id. If you
-     * configure this manually, you must make sure it is unique in the document.
-     */
-
-<span id='Ext-form-field-Base-cfg-validateOnBlur'>    /**
-</span>     * @cfg {Boolean} validateOnBlur
-     * Whether the field should validate when it loses focus. This will cause fields to be validated
-     * as the user steps through the fields in the form regardless of whether they are making changes to those fields
-     * along the way. See also {@link #validateOnChange}.
-     */
-    validateOnBlur: true,
-
-    // private
-    hasFocus : false,
-
-    baseCls: Ext.baseCSSPrefix + 'field',
-
-    maskOnDisable: false,
-
-    // private
-    initComponent : function() {
-        var me = this;
-
-        me.callParent();
-
-        me.subTplData = me.subTplData || {};
-
-        me.addEvents(
-<span id='Ext-form-field-Base-event-focus'>            /**
-</span>             * @event focus
-             * Fires when this field receives input focus.
-             * @param {Ext.form.field.Base} this
-             */
-            'focus',
-<span id='Ext-form-field-Base-event-blur'>            /**
-</span>             * @event blur
-             * Fires when this field loses input focus.
-             * @param {Ext.form.field.Base} this
-             */
-            'blur',
-<span id='Ext-form-field-Base-event-specialkey'>            /**
-</span>             * @event specialkey
-             * Fires when any key related to navigation (arrows, tab, enter, esc, etc.) is pressed. To handle other keys
-             * see {@link Ext.util.KeyMap}. You can check {@link Ext.EventObject#getKey} to determine which key was
-             * pressed. For example:
-             *
-             *     var form = new Ext.form.Panel({
-             *         ...
-             *         items: [{
-             *                 fieldLabel: 'Field 1',
-             *                 name: 'field1',
-             *                 allowBlank: false
-             *             },{
-             *                 fieldLabel: 'Field 2',
-             *                 name: 'field2',
-             *                 listeners: {
-             *                     specialkey: function(field, e){
-             *                         // e.HOME, e.END, e.PAGE_UP, e.PAGE_DOWN,
-             *                         // e.TAB, e.ESC, arrow keys: e.LEFT, e.RIGHT, e.UP, e.DOWN
-             *                         if (e.{@link Ext.EventObject#getKey getKey()} == e.ENTER) {
-             *                             var form = field.up('form').getForm();
-             *                             form.submit();
-             *                         }
-             *                     }
-             *                 }
-             *             }
-             *         ],
-             *         ...
-             *     });
-             *
-             * @param {Ext.form.field.Base} this
-             * @param {Ext.EventObject} e The event object
-             */
-            'specialkey'
-        );
-
-        // Init mixins
-        me.initLabelable();
-        me.initField();
-
-        // Default name to inputId
-        if (!me.name) {
-            me.name = me.getInputId();
-        }
-    },
-
-<span id='Ext-form-field-Base-method-getInputId'>    /**
-</span>     * Returns the input id for this field. If none was specified via the {@link #inputId} config, then an id will be
-     * automatically generated.
-     */
-    getInputId: function() {
-        return this.inputId || (this.inputId = Ext.id());
-    },
-
-<span id='Ext-form-field-Base-method-getSubTplData'>    /**
-</span>     * Creates and returns the data object to be used when rendering the {@link #fieldSubTpl}.
-     * @return {Object} The template data
-     * @template
-     */
-    getSubTplData: function() {
-        var me = this,
-            type = me.inputType,
-            inputId = me.getInputId();
-
-        return Ext.applyIf(me.subTplData, {
-            id: inputId,
-            cmpId: me.id,
-            name: me.name || inputId,
-            type: type,
-            size: me.size || 20,
-            cls: me.cls,
-            fieldCls: me.fieldCls,
-            tabIdx: me.tabIndex,
-            typeCls: Ext.baseCSSPrefix + 'form-' + (type === 'password' ? 'text' : type)
-        });
-    },
-
-    afterRender: function() {
-        this.callParent();
-        
-        if (this.inputEl) {
-            this.inputEl.selectable();
-        }
-    },
-
-<span id='Ext-form-field-Base-method-getSubTplMarkup'>    /**
-</span>     * Gets the markup to be inserted into the outer template's bodyEl. For fields this is the actual input element.
-     */
-    getSubTplMarkup: function() {
-        return this.getTpl('fieldSubTpl').apply(this.getSubTplData());
-    },
-
-    initRenderTpl: function() {
-        var me = this;
-        if (!me.hasOwnProperty('renderTpl')) {
-            me.renderTpl = me.getTpl('labelableRenderTpl');
-        }
-        return me.callParent();
-    },
-
-    initRenderData: function() {
-        return Ext.applyIf(this.callParent(), this.getLabelableRenderData());
-    },
-
-<span id='Ext-form-field-Base-method-setFieldStyle'>    /**
-</span>     * Set the {@link #fieldStyle CSS style} of the {@link #inputEl field input element}.
-     * @param {String/Object/Function} style The style(s) to apply. Should be a valid argument to {@link
-     * Ext.Element#applyStyles}.
-     */
-    setFieldStyle: function(style) {
-        var me = this,
-            inputEl = me.inputEl;
-        if (inputEl) {
-            inputEl.applyStyles(style);
-        }
-        me.fieldStyle = style;
-    },
-
-    // private
-    onRender : function() {
-        var me = this,
-            fieldStyle = me.fieldStyle;
-
-        me.onLabelableRender();
-
-<span id='Ext-form-field-Base-property-inputEl'>        /**
-</span>         * @property {Ext.Element} inputEl
-         * The input Element for this Field. Only available after the field has been rendered.
+<span id='Ext-Base-static-method-create'>        /**
+</span>         * Create a new instance of this Class.
+         *
+         *     Ext.define('My.cool.Class', {
+         *         ...
+         *     });
+         *
+         *     My.cool.Class.create({
+         *         someConfig: true
+         *     });
+         *
+         * All parameters are passed to the constructor of the class.
+         *
+         * @return {Object} the created instance.
+         * @static
+         * @inheritable
          */
-        me.addChildEls({ name: 'inputEl', id: me.getInputId() });
+        create: function() {
+            return Ext.create.apply(Ext, [this].concat(Array.prototype.slice.call(arguments, 0)));
+        },
 
-        me.callParent(arguments);
+<span id='Ext-Base-static-method-extend'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         * @param config
+         */
+        extend: function(parent) {
+            var parentPrototype = parent.prototype,
+                basePrototype, prototype, i, ln, name, statics;
 
-        // Make the stored rawValue get set as the input element's value
-        me.setRawValue(me.rawValue);
+            prototype = this.prototype = Ext.Object.chain(parentPrototype);
+            prototype.self = this;
 
-        if (me.readOnly) {
-            me.setReadOnly(true);
-        }
-        if (me.disabled) {
-            me.disable();
-        }
-        if (fieldStyle) {
-            me.setFieldStyle(fieldStyle);
-        }
+            this.superclass = prototype.superclass = parentPrototype;
 
-        me.renderActiveError();
-    },
+            if (!parent.$isClass) {
+                basePrototype = Ext.Base.prototype;
 
-    initAria: function() {
-        var me = this;
-        me.callParent();
-
-        // Associate the field to the error message element
-        me.getActionEl().dom.setAttribute('aria-describedby', Ext.id(me.errorEl));
-    },
-
-    getFocusEl: function() {
-        return this.inputEl;
-    },
-
-    isFileUpload: function() {
-        return this.inputType === 'file';
-    },
-
-    extractFileInput: function() {
-        var me = this,
-            fileInput = me.isFileUpload() ? me.inputEl.dom : null,
-            clone;
-        if (fileInput) {
-            clone = fileInput.cloneNode(true);
-            fileInput.parentNode.replaceChild(clone, fileInput);
-            me.inputEl = Ext.get(clone);
-        }
-        return fileInput;
-    },
-
-    // private override to use getSubmitValue() as a convenience
-    getSubmitData: function() {
-        var me = this,
-            data = null,
-            val;
-        if (!me.disabled &amp;&amp; me.submitValue &amp;&amp; !me.isFileUpload()) {
-            val = me.getSubmitValue();
-            if (val !== null) {
-                data = {};
-                data[me.getName()] = val;
-            }
-        }
-        return data;
-    },
-
-<span id='Ext-form-field-Base-method-getSubmitValue'>    /**
-</span>     * Returns the value that would be included in a standard form submit for this field. This will be combined with the
-     * field's name to form a name=value pair in the {@link #getSubmitData submitted parameters}. If an empty string is
-     * returned then just the name= will be submitted; if null is returned then nothing will be submitted.
-     *
-     * Note that the value returned will have been {@link #processRawValue processed} but may or may not have been
-     * successfully {@link #validate validated}.
-     *
-     * @return {String} The value to be submitted, or null.
-     */
-    getSubmitValue: function() {
-        return this.processRawValue(this.getRawValue());
-    },
-
-<span id='Ext-form-field-Base-method-getRawValue'>    /**
-</span>     * Returns the raw value of the field, without performing any normalization, conversion, or validation. To get a
-     * normalized and converted value see {@link #getValue}.
-     * @return {String} value The raw String value of the field
-     */
-    getRawValue: function() {
-        var me = this,
-            v = (me.inputEl ? me.inputEl.getValue() : Ext.value(me.rawValue, ''));
-        me.rawValue = v;
-        return v;
-    },
-
-<span id='Ext-form-field-Base-method-setRawValue'>    /**
-</span>     * Sets the field's raw value directly, bypassing {@link #valueToRaw value conversion}, change detection, and
-     * validation. To set the value with these additional inspections see {@link #setValue}.
-     * @param {Object} value The value to set
-     * @return {Object} value The field value that is set
-     */
-    setRawValue: function(value) {
-        var me = this;
-        value = Ext.value(value, '');
-        me.rawValue = value;
-
-        // Some Field subclasses may not render an inputEl
-        if (me.inputEl) {
-            me.inputEl.dom.value = value;
-        }
-        return value;
-    },
-
-<span id='Ext-form-field-Base-method-valueToRaw'>    /**
-</span>     * Converts a mixed-type value to a raw representation suitable for displaying in the field. This allows controlling
-     * how value objects passed to {@link #setValue} are shown to the user, including localization. For instance, for a
-     * {@link Ext.form.field.Date}, this would control how a Date object passed to {@link #setValue} would be converted
-     * to a String for display in the field.
-     *
-     * See {@link #rawToValue} for the opposite conversion.
-     *
-     * The base implementation simply does a standard toString conversion, and converts {@link Ext#isEmpty empty values}
-     * to an empty string.
-     *
-     * @param {Object} value The mixed-type value to convert to the raw representation.
-     * @return {Object} The converted raw value.
-     */
-    valueToRaw: function(value) {
-        return '' + Ext.value(value, '');
-    },
-
-<span id='Ext-form-field-Base-method-rawToValue'>    /**
-</span>     * Converts a raw input field value into a mixed-type value that is suitable for this particular field type. This
-     * allows controlling the normalization and conversion of user-entered values into field-type-appropriate values,
-     * e.g. a Date object for {@link Ext.form.field.Date}, and is invoked by {@link #getValue}.
-     *
-     * It is up to individual implementations to decide how to handle raw values that cannot be successfully converted
-     * to the desired object type.
-     *
-     * See {@link #valueToRaw} for the opposite conversion.
-     *
-     * The base implementation does no conversion, returning the raw value untouched.
-     *
-     * @param {Object} rawValue
-     * @return {Object} The converted value.
-     */
-    rawToValue: function(rawValue) {
-        return rawValue;
-    },
-
-<span id='Ext-form-field-Base-method-processRawValue'>    /**
-</span>     * Performs any necessary manipulation of a raw field value to prepare it for {@link #rawToValue conversion} and/or
-     * {@link #validate validation}, for instance stripping out ignored characters. In the base implementation it does
-     * nothing; individual subclasses may override this as needed.
-     *
-     * @param {Object} value The unprocessed string value
-     * @return {Object} The processed string value
-     */
-    processRawValue: function(value) {
-        return value;
-    },
-
-<span id='Ext-form-field-Base-method-getValue'>    /**
-</span>     * Returns the current data value of the field. The type of value returned is particular to the type of the
-     * particular field (e.g. a Date object for {@link Ext.form.field.Date}), as the result of calling {@link #rawToValue} on
-     * the field's {@link #processRawValue processed} String value. To return the raw String value, see {@link #getRawValue}.
-     * @return {Object} value The field value
-     */
-    getValue: function() {
-        var me = this,
-            val = me.rawToValue(me.processRawValue(me.getRawValue()));
-        me.value = val;
-        return val;
-    },
-
-<span id='Ext-form-field-Base-method-setValue'>    /**
-</span>     * Sets a data value into the field and runs the change detection and validation. To set the value directly
-     * without these inspections see {@link #setRawValue}.
-     * @param {Object} value The value to set
-     * @return {Ext.form.field.Field} this
-     */
-    setValue: function(value) {
-        var me = this;
-        me.setRawValue(me.valueToRaw(value));
-        return me.mixins.field.setValue.call(me, value);
-    },
-
-
-    //private
-    onDisable: function() {
-        var me = this,
-            inputEl = me.inputEl;
-        me.callParent();
-        if (inputEl) {
-            inputEl.dom.disabled = true;
-        }
-    },
-
-    //private
-    onEnable: function() {
-        var me = this,
-            inputEl = me.inputEl;
-        me.callParent();
-        if (inputEl) {
-            inputEl.dom.disabled = false;
-        }
-    },
-
-<span id='Ext-form-field-Base-method-setReadOnly'>    /**
-</span>     * Sets the read only state of this field.
-     * @param {Boolean} readOnly Whether the field should be read only.
-     */
-    setReadOnly: function(readOnly) {
-        var me = this,
-            inputEl = me.inputEl;
-        if (inputEl) {
-            inputEl.dom.readOnly = readOnly;
-            inputEl.dom.setAttribute('aria-readonly', readOnly);
-        }
-        me[readOnly ? 'addCls' : 'removeCls'](me.readOnlyCls);
-        me.readOnly = readOnly;
-    },
-
-    // private
-    fireKey: function(e){
-        if(e.isSpecialKey()){
-            this.fireEvent('specialkey', this, Ext.create('Ext.EventObjectImpl', e));
-        }
-    },
-
-    // private
-    initEvents : function(){
-        var me = this,
-            inputEl = me.inputEl,
-            onChangeTask,
-            onChangeEvent;
-        if (inputEl) {
-            me.mon(inputEl, Ext.EventManager.getKeyEvent(), me.fireKey,  me);
-            me.mon(inputEl, 'focus', me.onFocus, me);
-
-            // standardise buffer across all browsers + OS-es for consistent event order.
-            // (the 10ms buffer for Editors fixes a weird FF/Win editor issue when changing OS window focus)
-            me.mon(inputEl, 'blur', me.onBlur, me, me.inEditor ? {buffer:10} : null);
-
-            // listen for immediate value changes
-            onChangeTask = Ext.create('Ext.util.DelayedTask', me.checkChange, me);
-            me.onChangeEvent = onChangeEvent = function() {
-                onChangeTask.delay(me.checkChangeBuffer);
-            };
-            Ext.each(me.checkChangeEvents, function(eventName) {
-                if (eventName === 'propertychange') {
-                    me.usesPropertychange = true;
+                for (i in basePrototype) {
+                    if (i in prototype) {
+                        prototype[i] = basePrototype[i];
+                    }
                 }
-                me.mon(inputEl, eventName, onChangeEvent);
-            }, me);
-        }
-        me.callParent();
-    },
-
-    doComponentLayout: function() {
-        var me = this,
-            inputEl = me.inputEl,
-            usesPropertychange = me.usesPropertychange,
-            ename = 'propertychange',
-            onChangeEvent = me.onChangeEvent;
-
-        // In IE if propertychange is one of the checkChangeEvents, we need to remove
-        // the listener prior to layout and re-add it after, to prevent it from firing
-        // needlessly for attribute and style changes applied to the inputEl.
-        if (usesPropertychange) {
-            me.mun(inputEl, ename, onChangeEvent);
-        }
-        me.callParent(arguments);
-        if (usesPropertychange) {
-            me.mon(inputEl, ename, onChangeEvent);
-        }
-    },
-
-    // private
-    preFocus: Ext.emptyFn,
-
-    // private
-    onFocus: function() {
-        var me = this,
-            focusCls = me.focusCls,
-            inputEl = me.inputEl;
-        me.preFocus();
-        if (focusCls &amp;&amp; inputEl) {
-            inputEl.addCls(focusCls);
-        }
-        if (!me.hasFocus) {
-            me.hasFocus = true;
-            me.componentLayout.onFocus();
-            me.fireEvent('focus', me);
-        }
-    },
-
-    // private
-    beforeBlur : Ext.emptyFn,
-
-    // private
-    onBlur : function(){
-        var me = this,
-            focusCls = me.focusCls,
-            inputEl = me.inputEl;
-
-        if (me.destroying) {
-            return;
-        }
-
-        me.beforeBlur();
-        if (focusCls &amp;&amp; inputEl) {
-            inputEl.removeCls(focusCls);
-        }
-        if (me.validateOnBlur) {
-            me.validate();
-        }
-        me.hasFocus = false;
-        me.fireEvent('blur', me);
-        me.postBlur();
-    },
-
-    // private
-    postBlur : Ext.emptyFn,
-
-
-<span id='Ext-form-field-Base-method-onDirtyChange'>    /**
-</span>     * @private Called when the field's dirty state changes. Adds/removes the {@link #dirtyCls} on the main element.
-     * @param {Boolean} isDirty
-     */
-    onDirtyChange: function(isDirty) {
-        this[isDirty ? 'addCls' : 'removeCls'](this.dirtyCls);
-    },
-
-
-<span id='Ext-form-field-Base-method-isValid'>    /**
-</span>     * Returns whether or not the field value is currently valid by {@link #getErrors validating} the
-     * {@link #processRawValue processed raw value} of the field. **Note**: {@link #disabled} fields are
-     * always treated as valid.
-     *
-     * @return {Boolean} True if the value is valid, else false
-     */
-    isValid : function() {
-        var me = this;
-        return me.disabled || me.validateValue(me.processRawValue(me.getRawValue()));
-    },
-
-
-<span id='Ext-form-field-Base-method-validateValue'>    /**
-</span>     * Uses {@link #getErrors} to build an array of validation errors. If any errors are found, they are passed to
-     * {@link #markInvalid} and false is returned, otherwise true is returned.
-     *
-     * Previously, subclasses were invited to provide an implementation of this to process validations - from 3.2
-     * onwards {@link #getErrors} should be overridden instead.
-     *
-     * @param {Object} value The value to validate
-     * @return {Boolean} True if all validations passed, false if one or more failed
-     */
-    validateValue: function(value) {
-        var me = this,
-            errors = me.getErrors(value),
-            isValid = Ext.isEmpty(errors);
-        if (!me.preventMark) {
-            if (isValid) {
-                me.clearInvalid();
-            } else {
-                me.markInvalid(errors);
             }
+
+            //&lt;feature classSystem.inheritableStatics&gt;
+            // Statics inheritance
+            statics = parentPrototype.$inheritableStatics;
+
+            if (statics) {
+                for (i = 0,ln = statics.length; i &lt; ln; i++) {
+                    name = statics[i];
+
+                    if (!this.hasOwnProperty(name)) {
+                        this[name] = parent[name];
+                    }
+                }
+            }
+            //&lt;/feature&gt;
+
+            if (parent.$onExtended) {
+                this.$onExtended = parent.$onExtended.slice();
+            }
+
+            //&lt;feature classSystem.config&gt;
+            prototype.config = new prototype.configClass();
+            prototype.initConfigList = prototype.initConfigList.slice();
+            prototype.initConfigMap = Ext.clone(prototype.initConfigMap);
+            prototype.configMap = Ext.Object.chain(prototype.configMap);
+            //&lt;/feature&gt;
+        },
+
+<span id='Ext-Base-static-property-S-onExtended'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         */
+        $onExtended: [],
+
+<span id='Ext-Base-static-method-triggerExtended'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         */
+        triggerExtended: function() {
+            var callbacks = this.$onExtended,
+                ln = callbacks.length,
+                i, callback;
+
+            if (ln &gt; 0) {
+                for (i = 0; i &lt; ln; i++) {
+                    callback = callbacks[i];
+                    callback.fn.apply(callback.scope || this, arguments);
+                }
+            }
+        },
+
+<span id='Ext-Base-static-method-onExtended'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         */
+        onExtended: function(fn, scope) {
+            this.$onExtended.push({
+                fn: fn,
+                scope: scope
+            });
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-addConfig'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         * @param config
+         */
+        addConfig: function(config, fullMerge) {
+            var prototype = this.prototype,
+                configNameCache = Ext.Class.configNameCache,
+                hasConfig = prototype.configMap,
+                initConfigList = prototype.initConfigList,
+                initConfigMap = prototype.initConfigMap,
+                defaultConfig = prototype.config,
+                initializedName, name, value;
+
+            for (name in config) {
+                if (config.hasOwnProperty(name)) {
+                    if (!hasConfig[name]) {
+                        hasConfig[name] = true;
+                    }
+
+                    value = config[name];
+
+                    initializedName = configNameCache[name].initialized;
+
+                    if (!initConfigMap[name] &amp;&amp; value !== null &amp;&amp; !prototype[initializedName]) {
+                        initConfigMap[name] = true;
+                        initConfigList.push(name);
+                    }
+                }
+            }
+
+            if (fullMerge) {
+                Ext.merge(defaultConfig, config);
+            }
+            else {
+                Ext.mergeIf(defaultConfig, config);
+            }
+
+            prototype.configClass = Ext.Object.classify(defaultConfig);
+        },
+
+<span id='Ext-Base-static-method-addStatics'>        /**
+</span>         * Add / override static properties of this class.
+         *
+         *     Ext.define('My.cool.Class', {
+         *         ...
+         *     });
+         *
+         *     My.cool.Class.addStatics({
+         *         someProperty: 'someValue',      // My.cool.Class.someProperty = 'someValue'
+         *         method1: function() { ... },    // My.cool.Class.method1 = function() { ... };
+         *         method2: function() { ... }     // My.cool.Class.method2 = function() { ... };
+         *     });
+         *
+         * @param {Object} members
+         * @return {Ext.Base} this
+         * @static
+         * @inheritable
+         */
+        addStatics: function(members) {
+            var member, name;
+
+            for (name in members) {
+                if (members.hasOwnProperty(name)) {
+                    member = members[name];
+                    //&lt;debug&gt;
+                    if (typeof member == 'function') {
+                        member.displayName = Ext.getClassName(this) + '.' + name;
+                    }
+                    //&lt;/debug&gt;
+                    this[name] = member;
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-addInheritableStatics'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         * @param {Object} members
+         */
+        addInheritableStatics: function(members) {
+            var inheritableStatics,
+                hasInheritableStatics,
+                prototype = this.prototype,
+                name, member;
+
+            inheritableStatics = prototype.$inheritableStatics;
+            hasInheritableStatics = prototype.$hasInheritableStatics;
+
+            if (!inheritableStatics) {
+                inheritableStatics = prototype.$inheritableStatics = [];
+                hasInheritableStatics = prototype.$hasInheritableStatics = {};
+            }
+
+            for (name in members) {
+                if (members.hasOwnProperty(name)) {
+                    member = members[name];
+                    //&lt;debug&gt;
+                    if (typeof member == 'function') {
+                        member.displayName = Ext.getClassName(this) + '.' + name;
+                    }
+                    //&lt;/debug&gt;
+                    this[name] = member;
+
+                    if (!hasInheritableStatics[name]) {
+                        hasInheritableStatics[name] = true;
+                        inheritableStatics.push(name);
+                    }
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-addMembers'>        /**
+</span>         * Add methods / properties to the prototype of this class.
+         *
+         *     Ext.define('My.awesome.Cat', {
+         *         constructor: function() {
+         *             ...
+         *         }
+         *     });
+         *
+         *      My.awesome.Cat.addMembers({
+         *          meow: function() {
+         *             alert('Meowww...');
+         *          }
+         *      });
+         *
+         *      var kitty = new My.awesome.Cat;
+         *      kitty.meow();
+         *
+         * @param {Object} members
+         * @static
+         * @inheritable
+         */
+        addMembers: function(members) {
+            var prototype = this.prototype,
+                enumerables = Ext.enumerables,
+                names = [],
+                i, ln, name, member;
+
+            for (name in members) {
+                names.push(name);
+            }
+
+            if (enumerables) {
+                names.push.apply(names, enumerables);
+            }
+
+            for (i = 0,ln = names.length; i &lt; ln; i++) {
+                name = names[i];
+
+                if (members.hasOwnProperty(name)) {
+                    member = members[name];
+
+                    if (typeof member == 'function' &amp;&amp; !member.$isClass &amp;&amp; member !== Ext.emptyFn) {
+                        member.$owner = this;
+                        member.$name = name;
+                        //&lt;debug&gt;
+                        member.displayName = (this.$className || '') + '#' + name;
+                        //&lt;/debug&gt;
+                    }
+
+                    prototype[name] = member;
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-addMember'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         * @param name
+         * @param member
+         */
+        addMember: function(name, member) {
+            if (typeof member == 'function' &amp;&amp; !member.$isClass &amp;&amp; member !== Ext.emptyFn) {
+                member.$owner = this;
+                member.$name = name;
+                //&lt;debug&gt;
+                member.displayName = (this.$className || '') + '#' + name;
+                //&lt;/debug&gt;
+            }
+
+            this.prototype[name] = member;
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-implement'>        /**
+</span>         * Adds members to class.
+         * @static
+         * @inheritable
+         * @deprecated 4.1 Use {@link #addMembers} instead.
+         */
+        implement: function() {
+            this.addMembers.apply(this, arguments);
+        },
+
+<span id='Ext-Base-static-method-borrow'>        /**
+</span>         * Borrow another class' members to the prototype of this class.
+         *
+         *     Ext.define('Bank', {
+         *         money: '$$$',
+         *         printMoney: function() {
+         *             alert('$$$$$$$');
+         *         }
+         *     });
+         *
+         *     Ext.define('Thief', {
+         *         ...
+         *     });
+         *
+         *     Thief.borrow(Bank, ['money', 'printMoney']);
+         *
+         *     var steve = new Thief();
+         *
+         *     alert(steve.money); // alerts '$$$'
+         *     steve.printMoney(); // alerts '$$$$$$$'
+         *
+         * @param {Ext.Base} fromClass The class to borrow members from
+         * @param {Array/String} members The names of the members to borrow
+         * @return {Ext.Base} this
+         * @static
+         * @inheritable
+         * @private
+         */
+        borrow: function(fromClass, members) {
+            var prototype = this.prototype,
+                fromPrototype = fromClass.prototype,
+                //&lt;debug&gt;
+                className = Ext.getClassName(this),
+                //&lt;/debug&gt;
+                i, ln, name, fn, toBorrow;
+
+            members = Ext.Array.from(members);
+
+            for (i = 0,ln = members.length; i &lt; ln; i++) {
+                name = members[i];
+
+                toBorrow = fromPrototype[name];
+
+                if (typeof toBorrow == 'function') {
+                    fn = Ext.Function.clone(toBorrow);
+
+                    //&lt;debug&gt;
+                    if (className) {
+                        fn.displayName = className + '#' + name;
+                    }
+                    //&lt;/debug&gt;
+
+                    fn.$owner = this;
+                    fn.$name = name;
+
+                    prototype[name] = fn;
+                }
+                else {
+                    prototype[name] = toBorrow;
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-static-method-override'>        /**
+</span>         * Override members of this class. Overridden methods can be invoked via
+         * {@link Ext.Base#callParent}.
+         *
+         *     Ext.define('My.Cat', {
+         *         constructor: function() {
+         *             alert(&quot;I'm a cat!&quot;);
+         *         }
+         *     });
+         *
+         *     My.Cat.override({
+         *         constructor: function() {
+         *             alert(&quot;I'm going to be a cat!&quot;);
+         *
+         *             this.callParent(arguments);
+         *
+         *             alert(&quot;Meeeeoooowwww&quot;);
+         *         }
+         *     });
+         *
+         *     var kitty = new My.Cat(); // alerts &quot;I'm going to be a cat!&quot;
+         *                               // alerts &quot;I'm a cat!&quot;
+         *                               // alerts &quot;Meeeeoooowwww&quot;
+         *
+         * As of 4.1, direct use of this method is deprecated. Use {@link Ext#define Ext.define}
+         * instead:
+         *
+         *     Ext.define('My.CatOverride', {
+         *         override: 'My.Cat',
+         *         constructor: function() {
+         *             alert(&quot;I'm going to be a cat!&quot;);
+         *
+         *             this.callParent(arguments);
+         *
+         *             alert(&quot;Meeeeoooowwww&quot;);
+         *         }
+         *     });
+         *
+         * The above accomplishes the same result but can be managed by the {@link Ext.Loader}
+         * which can properly order the override and its target class and the build process
+         * can determine whether the override is needed based on the required state of the
+         * target class (My.Cat).
+         *
+         * @param {Object} members The properties to add to this class. This should be
+         * specified as an object literal containing one or more properties.
+         * @return {Ext.Base} this class
+         * @static
+         * @inheritable
+         * @markdown
+         * @deprecated 4.1.0 Use {@link Ext#define Ext.define} instead
+         */
+        override: function(members) {
+            var me = this,
+                enumerables = Ext.enumerables,
+                target = me.prototype,
+                cloneFunction = Ext.Function.clone,
+                name, index, member, statics, names, previous;
+
+            if (arguments.length === 2) {
+                name = members;
+                members = {};
+                members[name] = arguments[1];
+                enumerables = null;
+            }
+
+            do {
+                names = []; // clean slate for prototype (1st pass) and static (2nd pass)
+                statics = null; // not needed 1st pass, but needs to be cleared for 2nd pass
+
+                for (name in members) { // hasOwnProperty is checked in the next loop...
+                    if (name == 'statics') {
+                        statics = members[name];
+                    } else if (name == 'config') {
+                        me.addConfig(members[name], true);
+                    } else {
+                        names.push(name);
+                    }
+                }
+
+                if (enumerables) {
+                    names.push.apply(names, enumerables);
+                }
+
+                for (index = names.length; index--; ) {
+                    name = names[index];
+
+                    if (members.hasOwnProperty(name)) {
+                        member = members[name];
+
+                        if (typeof member == 'function' &amp;&amp; !member.$className &amp;&amp; member !== Ext.emptyFn) {
+                            if (typeof member.$owner != 'undefined') {
+                                member = cloneFunction(member);
+                            }
+
+                            //&lt;debug&gt;
+                            if (me.$className) {
+                                member.displayName = me.$className + '#' + name;
+                            }
+                            //&lt;/debug&gt;
+
+                            member.$owner = me;
+                            member.$name = name;
+
+                            previous = target[name];
+                            if (previous) {
+                                member.$previous = previous;
+                            }
+                        }
+
+                        target[name] = member;
+                    }
+                }
+
+                target = me; // 2nd pass is for statics
+                members = statics; // statics will be null on 2nd pass
+            } while (members);
+
+            return this;
+        },
+
+        // Documented downwards
+        callParent: function(args) {
+            var method;
+
+            // This code is intentionally inlined for the least number of debugger stepping
+            return (method = this.callParent.caller) &amp;&amp; (method.$previous ||
+                  ((method = method.$owner ? method : method.caller) &amp;&amp;
+                        method.$owner.superclass.$class[method.$name])).apply(this, args || noArgs);
+        },
+
+        //&lt;feature classSystem.mixins&gt;
+<span id='Ext-Base-static-method-mixin'>        /**
+</span>         * Used internally by the mixins pre-processor
+         * @private
+         * @static
+         * @inheritable
+         */
+        mixin: function(name, mixinClass) {
+            var mixin = mixinClass.prototype,
+                prototype = this.prototype,
+                key;
+
+            if (typeof mixin.onClassMixedIn != 'undefined') {
+                mixin.onClassMixedIn.call(mixinClass, this);
+            }
+
+            if (!prototype.hasOwnProperty('mixins')) {
+                if ('mixins' in prototype) {
+                    prototype.mixins = Ext.Object.chain(prototype.mixins);
+                }
+                else {
+                    prototype.mixins = {};
+                }
+            }
+
+            for (key in mixin) {
+                if (key === 'mixins') {
+                    Ext.merge(prototype.mixins, mixin[key]);
+                }
+                else if (typeof prototype[key] == 'undefined' &amp;&amp; key != 'mixinId' &amp;&amp; key != 'config') {
+                    prototype[key] = mixin[key];
+                }
+            }
+
+            //&lt;feature classSystem.config&gt;
+            if ('config' in mixin) {
+                this.addConfig(mixin.config, false);
+            }
+            //&lt;/feature&gt;
+
+            prototype.mixins[name] = mixin;
+        },
+        //&lt;/feature&gt;
+
+<span id='Ext-Base-static-method-getName'>        /**
+</span>         * Get the current class' name in string format.
+         *
+         *     Ext.define('My.cool.Class', {
+         *         constructor: function() {
+         *             alert(this.self.getName()); // alerts 'My.cool.Class'
+         *         }
+         *     });
+         *
+         *     My.cool.Class.getName(); // 'My.cool.Class'
+         *
+         * @return {String} className
+         * @static
+         * @inheritable
+         */
+        getName: function() {
+            return Ext.getClassName(this);
+        },
+
+<span id='Ext-Base-static-method-createAlias'>        /**
+</span>         * Create aliases for existing prototype methods. Example:
+         *
+         *     Ext.define('My.cool.Class', {
+         *         method1: function() { ... },
+         *         method2: function() { ... }
+         *     });
+         *
+         *     var test = new My.cool.Class();
+         *
+         *     My.cool.Class.createAlias({
+         *         method3: 'method1',
+         *         method4: 'method2'
+         *     });
+         *
+         *     test.method3(); // test.method1()
+         *
+         *     My.cool.Class.createAlias('method5', 'method3');
+         *
+         *     test.method5(); // test.method3() -&gt; test.method1()
+         *
+         * @param {String/Object} alias The new method name, or an object to set multiple aliases. See
+         * {@link Ext.Function#flexSetter flexSetter}
+         * @param {String/Object} origin The original method name
+         * @static
+         * @inheritable
+         * @method
+         */
+        createAlias: flexSetter(function(alias, origin) {
+            this.override(alias, function() {
+                return this[origin].apply(this, arguments);
+            });
+        }),
+
+<span id='Ext-Base-static-method-addXtype'>        /**
+</span>         * @private
+         * @static
+         * @inheritable
+         */
+        addXtype: function(xtype) {
+            var prototype = this.prototype,
+                xtypesMap = prototype.xtypesMap,
+                xtypes = prototype.xtypes,
+                xtypesChain = prototype.xtypesChain;
+
+            if (!prototype.hasOwnProperty('xtypesMap')) {
+                xtypesMap = prototype.xtypesMap = Ext.merge({}, prototype.xtypesMap || {});
+                xtypes = prototype.xtypes = prototype.xtypes ? [].concat(prototype.xtypes) : [];
+                xtypesChain = prototype.xtypesChain = prototype.xtypesChain ? [].concat(prototype.xtypesChain) : [];
+                prototype.xtype = xtype;
+            }
+
+            if (!xtypesMap[xtype]) {
+                xtypesMap[xtype] = true;
+                xtypes.push(xtype);
+                xtypesChain.push(xtype);
+                Ext.ClassManager.setAlias(this, 'widget.' + xtype);
+            }
+
+            return this;
         }
+    });
 
-        return isValid;
-    },
+    Base.implement({
+<span id='Ext-Base-property-isInstance'>        /** @private */
+</span>        isInstance: true,
 
-<span id='Ext-form-field-Base-method-markInvalid'>    /**
-</span>     * Display one or more error messages associated with this field, using {@link #msgTarget} to determine how to
-     * display the messages and applying {@link #invalidCls} to the field's UI element.
+<span id='Ext-Base-property-S-className'>        /** @private */
+</span>        $className: 'Ext.Base',
+
+<span id='Ext-Base-method-configClass'>        /** @private */
+</span>        configClass: Ext.emptyFn,
+
+<span id='Ext-Base-property-initConfigList'>        /** @private */
+</span>        initConfigList: [],
+
+<span id='Ext-Base-property-configMap'>        /** @private */
+</span>        configMap: {},
+
+<span id='Ext-Base-property-initConfigMap'>        /** @private */
+</span>        initConfigMap: {},
+
+<span id='Ext-Base-method-statics'>        /**
+</span>         * Get the reference to the class from which this object was instantiated. Note that unlike {@link Ext.Base#self},
+         * `this.statics()` is scope-independent and it always returns the class from which it was called, regardless of what
+         * `this` points to during run-time
+         *
+         *     Ext.define('My.Cat', {
+         *         statics: {
+         *             totalCreated: 0,
+         *             speciesName: 'Cat' // My.Cat.speciesName = 'Cat'
+         *         },
+         *
+         *         constructor: function() {
+         *             var statics = this.statics();
+         *
+         *             alert(statics.speciesName);     // always equals to 'Cat' no matter what 'this' refers to
+         *                                             // equivalent to: My.Cat.speciesName
+         *
+         *             alert(this.self.speciesName);   // dependent on 'this'
+         *
+         *             statics.totalCreated++;
+         *         },
+         *
+         *         clone: function() {
+         *             var cloned = new this.self;                      // dependent on 'this'
+         *
+         *             cloned.groupName = this.statics().speciesName;   // equivalent to: My.Cat.speciesName
+         *
+         *             return cloned;
+         *         }
+         *     });
+         *
+         *
+         *     Ext.define('My.SnowLeopard', {
+         *         extend: 'My.Cat',
+         *
+         *         statics: {
+         *             speciesName: 'Snow Leopard'     // My.SnowLeopard.speciesName = 'Snow Leopard'
+         *         },
+         *
+         *         constructor: function() {
+         *             this.callParent();
+         *         }
+         *     });
+         *
+         *     var cat = new My.Cat();                 // alerts 'Cat', then alerts 'Cat'
+         *
+         *     var snowLeopard = new My.SnowLeopard(); // alerts 'Cat', then alerts 'Snow Leopard'
+         *
+         *     var clone = snowLeopard.clone();
+         *     alert(Ext.getClassName(clone));         // alerts 'My.SnowLeopard'
+         *     alert(clone.groupName);                 // alerts 'Cat'
+         *
+         *     alert(My.Cat.totalCreated);             // alerts 3
+         *
+         * @protected
+         * @return {Ext.Class}
+         */
+        statics: function() {
+            var method = this.statics.caller,
+                self = this.self;
+
+            if (!method) {
+                return self;
+            }
+
+            return method.$owner;
+        },
+
+<span id='Ext-Base-method-callParent'>        /**
+</span>         * Call the &quot;parent&quot; method of the current method. That is the method previously
+         * overridden by derivation or by an override (see {@link Ext#define}).
+         *
+         *      Ext.define('My.Base', {
+         *          constructor: function (x) {
+         *              this.x = x;
+         *          },
+         *
+         *          statics: {
+         *              method: function (x) {
+         *                  return x;
+         *              }
+         *          }
+         *      });
+         *
+         *      Ext.define('My.Derived', {
+         *          extend: 'My.Base',
+         *
+         *          constructor: function () {
+         *              this.callParent([21]);
+         *          }
+         *      });
+         *
+         *      var obj = new My.Derived();
+         *
+         *      alert(obj.x);  // alerts 21
+         *
+         * This can be used with an override as follows:
+         *
+         *      Ext.define('My.DerivedOverride', {
+         *          override: 'My.Derived',
+         *
+         *          constructor: function (x) {
+         *              this.callParent([x*2]); // calls original My.Derived constructor
+         *          }
+         *      });
+         *
+         *      var obj = new My.Derived();
+         *
+         *      alert(obj.x);  // now alerts 42
+         *
+         * This also works with static methods.
+         *
+         *      Ext.define('My.Derived2', {
+         *          extend: 'My.Base',
+         *
+         *          statics: {
+         *              method: function (x) {
+         *                  return this.callParent([x*2]); // calls My.Base.method
+         *              }
+         *          }
+         *      });
+         *
+         *      alert(My.Base.method(10);     // alerts 10
+         *      alert(My.Derived2.method(10); // alerts 20
+         *
+         * Lastly, it also works with overridden static methods.
+         *
+         *      Ext.define('My.Derived2Override', {
+         *          override: 'My.Derived2',
+         *
+         *          statics: {
+         *              method: function (x) {
+         *                  return this.callParent([x*2]); // calls My.Derived2.method
+         *              }
+         *          }
+         *      });
+         *
+         *      alert(My.Derived2.method(10); // now alerts 40
+         *
+         * @protected
+         * @param {Array/Arguments} args The arguments, either an array or the `arguments` object
+         * from the current method, for example: `this.callParent(arguments)`
+         * @return {Object} Returns the result of calling the parent method
+         */
+        callParent: function(args) {
+            // NOTE: this code is deliberately as few expressions (and no function calls)
+            // as possible so that a debugger can skip over this noise with the minimum number
+            // of steps. Basically, just hit Step Into until you are where you really wanted
+            // to be.
+            var method,
+                superMethod = (method = this.callParent.caller) &amp;&amp; (method.$previous ||
+                        ((method = method.$owner ? method : method.caller) &amp;&amp;
+                                method.$owner.superclass[method.$name]));
+
+            //&lt;debug error&gt;
+            if (!superMethod) {
+                method = this.callParent.caller;
+                var parentClass, methodName;
+
+                if (!method.$owner) {
+                    if (!method.caller) {
+                        throw new Error(&quot;Attempting to call a protected method from the public scope, which is not allowed&quot;);
+                    }
+
+                    method = method.caller;
+                }
+
+                parentClass = method.$owner.superclass;
+                methodName = method.$name;
+
+                if (!(methodName in parentClass)) {
+                    throw new Error(&quot;this.callParent() was called but there's no such method (&quot; + methodName +
+                                &quot;) found in the parent class (&quot; + (Ext.getClassName(parentClass) || 'Object') + &quot;)&quot;);
+                }
+            }
+            //&lt;/debug&gt;
+
+            return superMethod.apply(this, args || noArgs);
+        },
+
+<span id='Ext-Base-property-self'>        /**
+</span>         * @property {Ext.Class} self
+         *
+         * Get the reference to the current class from which this object was instantiated. Unlike {@link Ext.Base#statics},
+         * `this.self` is scope-dependent and it's meant to be used for dynamic inheritance. See {@link Ext.Base#statics}
+         * for a detailed comparison
+         *
+         *     Ext.define('My.Cat', {
+         *         statics: {
+         *             speciesName: 'Cat' // My.Cat.speciesName = 'Cat'
+         *         },
+         *
+         *         constructor: function() {
+         *             alert(this.self.speciesName); // dependent on 'this'
+         *         },
+         *
+         *         clone: function() {
+         *             return new this.self();
+         *         }
+         *     });
+         *
+         *
+         *     Ext.define('My.SnowLeopard', {
+         *         extend: 'My.Cat',
+         *         statics: {
+         *             speciesName: 'Snow Leopard'         // My.SnowLeopard.speciesName = 'Snow Leopard'
+         *         }
+         *     });
+         *
+         *     var cat = new My.Cat();                     // alerts 'Cat'
+         *     var snowLeopard = new My.SnowLeopard();     // alerts 'Snow Leopard'
+         *
+         *     var clone = snowLeopard.clone();
+         *     alert(Ext.getClassName(clone));             // alerts 'My.SnowLeopard'
+         *
+         * @protected
+         */
+        self: Base,
+
+        // Default constructor, simply returns `this`
+        constructor: function() {
+            return this;
+        },
+
+        //&lt;feature classSystem.config&gt;
+<span id='Ext-Base-method-initConfig'>        /**
+</span>         * Initialize configuration for this class. a typical example:
+         *
+         *     Ext.define('My.awesome.Class', {
+         *         // The default config
+         *         config: {
+         *             name: 'Awesome',
+         *             isAwesome: true
+         *         },
+         *
+         *         constructor: function(config) {
+         *             this.initConfig(config);
+         *         }
+         *     });
+         *
+         *     var awesome = new My.awesome.Class({
+         *         name: 'Super Awesome'
+         *     });
+         *
+         *     alert(awesome.getName()); // 'Super Awesome'
+         *
+         * @protected
+         * @param {Object} config
+         * @return {Ext.Base} this
+         */
+        initConfig: function(config) {
+            var instanceConfig = config,
+                configNameCache = Ext.Class.configNameCache,
+                defaultConfig = new this.configClass(),
+                defaultConfigList = this.initConfigList,
+                hasConfig = this.configMap,
+                nameMap, i, ln, name, initializedName;
+
+            this.initConfig = Ext.emptyFn;
+
+            this.initialConfig = instanceConfig || {};
+
+            this.config = config = (instanceConfig) ? Ext.merge(defaultConfig, config) : defaultConfig;
+
+            if (instanceConfig) {
+                defaultConfigList = defaultConfigList.slice();
+
+                for (name in instanceConfig) {
+                    if (hasConfig[name]) {
+                        if (instanceConfig[name] !== null) {
+                            defaultConfigList.push(name);
+                            this[configNameCache[name].initialized] = false;
+                        }
+                    }
+                }
+            }
+
+            for (i = 0,ln = defaultConfigList.length; i &lt; ln; i++) {
+                name = defaultConfigList[i];
+                nameMap = configNameCache[name];
+                initializedName = nameMap.initialized;
+
+                if (!this[initializedName]) {
+                    this[initializedName] = true;
+                    this[nameMap.set].call(this, config[name]);
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-method-hasConfig'>        /**
+</span>         * @private
+         * @param config
+         */
+        hasConfig: function(name) {
+            return Boolean(this.configMap[name]);
+        },
+
+<span id='Ext-Base-method-setConfig'>        /**
+</span>         * @private
+         */
+        setConfig: function(config, applyIfNotSet) {
+            if (!config) {
+                return this;
+            }
+
+            var configNameCache = Ext.Class.configNameCache,
+                currentConfig = this.config,
+                hasConfig = this.configMap,
+                initialConfig = this.initialConfig,
+                name, value;
+
+            applyIfNotSet = Boolean(applyIfNotSet);
+
+            for (name in config) {
+                if (applyIfNotSet &amp;&amp; initialConfig.hasOwnProperty(name)) {
+                    continue;
+                }
+
+                value = config[name];
+                currentConfig[name] = value;
+
+                if (hasConfig[name]) {
+                    this[configNameCache[name].set](value);
+                }
+            }
+
+            return this;
+        },
+
+<span id='Ext-Base-method-getConfig'>        /**
+</span>         * @private
+         * @param name
+         */
+        getConfig: function(name) {
+            var configNameCache = Ext.Class.configNameCache;
+
+            return this[configNameCache[name].get]();
+        },
+
+<span id='Ext-Base-method-getInitialConfig'>        /**
+</span>         * Returns the initial configuration passed to constructor when instantiating
+         * this class.
+         * @param {String} [name] Name of the config option to return.
+         * @return {Object/Mixed} The full config object or a single config value
+         * when `name` parameter specified.
+         */
+        getInitialConfig: function(name) {
+            var config = this.config;
+
+            if (!name) {
+                return config;
+            }
+            else {
+                return config[name];
+            }
+        },
+
+<span id='Ext-Base-method-onConfigUpdate'>        /**
+</span>         * @private
+         * @param names
+         * @param callback
+         * @param scope
+         */
+        onConfigUpdate: function(names, callback, scope) {
+            var self = this.self,
+                //&lt;debug&gt;
+                className = self.$className,
+                //&lt;/debug&gt;
+                i, ln, name,
+                updaterName, updater, newUpdater;
+
+            names = Ext.Array.from(names);
+
+            scope = scope || this;
+
+            for (i = 0,ln = names.length; i &lt; ln; i++) {
+                name = names[i];
+                updaterName = 'update' + Ext.String.capitalize(name);
+                updater = this[updaterName] || Ext.emptyFn;
+                newUpdater = function() {
+                    updater.apply(this, arguments);
+                    scope[callback].apply(scope, arguments);
+                };
+                newUpdater.$name = updaterName;
+                newUpdater.$owner = self;
+                //&lt;debug&gt;
+                newUpdater.displayName = className + '#' + updaterName;
+                //&lt;/debug&gt;
+
+                this[updaterName] = newUpdater;
+            }
+        },
+        //&lt;/feature&gt;
+
+<span id='Ext-Base-method-destroy'>        /**
+</span>         * @private
+         */
+        destroy: function() {
+            this.destroy = Ext.emptyFn;
+        }
+    });
+
+<span id='Ext-Base-method-callOverridden'>    /**
+</span>     * Call the original method that was previously overridden with {@link Ext.Base#override}
      *
-     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `false`
-     * if the value does _pass_ validation. So simply marking a Field as invalid will not prevent submission of forms
-     * submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     *     Ext.define('My.Cat', {
+     *         constructor: function() {
+     *             alert(&quot;I'm a cat!&quot;);
+     *         }
+     *     });
      *
-     * @param {String/String[]} errors The validation message(s) to display.
-     */
-    markInvalid : function(errors) {
-        // Save the message and fire the 'invalid' event
-        var me = this,
-            oldMsg = me.getActiveError();
-        me.setActiveErrors(Ext.Array.from(errors));
-        if (oldMsg !== me.getActiveError()) {
-            me.doComponentLayout();
-        }
-    },
-
-<span id='Ext-form-field-Base-method-clearInvalid'>    /**
-</span>     * Clear any invalid styles/messages for this field.
+     *     My.Cat.override({
+     *         constructor: function() {
+     *             alert(&quot;I'm going to be a cat!&quot;);
      *
-     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
-     * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
-     * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     *             this.callOverridden();
+     *
+     *             alert(&quot;Meeeeoooowwww&quot;);
+     *         }
+     *     });
+     *
+     *     var kitty = new My.Cat(); // alerts &quot;I'm going to be a cat!&quot;
+     *                               // alerts &quot;I'm a cat!&quot;
+     *                               // alerts &quot;Meeeeoooowwww&quot;
+     *
+     * @param {Array/Arguments} args The arguments, either an array or the `arguments` object
+     * from the current method, for example: `this.callOverridden(arguments)`
+     * @return {Object} Returns the result of calling the overridden method
+     * @protected
+     * @deprecated as of 4.1. Use {@link #callParent} instead.
      */
-    clearInvalid : function() {
-        // Clear the message and fire the 'valid' event
-        var me = this,
-            hadError = me.hasActiveError();
-        me.unsetActiveError();
-        if (hadError) {
-            me.doComponentLayout();
-        }
-    },
+    Base.prototype.callOverridden = Base.prototype.callParent;
 
-<span id='Ext-form-field-Base-method-renderActiveError'>    /**
-</span>     * @private Overrides the method from the Ext.form.Labelable mixin to also add the invalidCls to the inputEl,
-     * as that is required for proper styling in IE with nested fields (due to lack of child selector)
-     */
-    renderActiveError: function() {
-        var me = this,
-            hasError = me.hasActiveError();
-        if (me.inputEl) {
-            // Add/remove invalid class
-            me.inputEl[hasError ? 'addCls' : 'removeCls'](me.invalidCls + '-field');
-        }
-        me.mixins.labelable.renderActiveError.call(me);
-    },
+    Ext.Base = Base;
 
-
-    getActionEl: function() {
-        return this.inputEl || this.el;
-    }
-
-});
+}(Ext.Function.flexSetter));
 </pre>
 </body>
 </html>

@@ -1,20 +1,27 @@
-/*
+//@tag dom,core
+//@define Ext.util.Event
+//@require Ext.util.DelayedTask
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require('Ext.util.DelayedTask', function() {
 
+    /**
+     * Represents single event type that an Observable object listens to.
+     * All actual listeners are tracked inside here.  When the event fires,
+     * it calls all the registered listener functions.
+     *
+     * @private
+     */
     Ext.util.Event = Ext.extend(Object, (function() {
+        var noOptions = {};
+
+        function createTargeted(handler, listener, o, scope){
+            return function(){
+                if (o.target === arguments[0]){
+                    handler.apply(scope, arguments);
+                }
+            };
+        }
+
         function createBuffered(handler, listener, o, scope) {
             listener.task = new Ext.util.DelayedTask();
             return function() {
@@ -35,12 +42,23 @@ Ext.require('Ext.util.DelayedTask', function() {
 
         function createSingle(handler, listener, o, scope) {
             return function() {
-                listener.ev.removeListener(listener.fn, scope);
+                var event = listener.ev;
+
+                if (event.removeListener(listener.fn, scope) && event.observable) {
+                    // Removing from a regular Observable-owned, named event (not an anonymous
+                    // event such as Ext's readyEvent): Decrement the listeners count
+                    event.observable.hasListeners[event.name]--;
+                }
+
                 return handler.apply(scope, arguments);
             };
         }
 
         return {
+            /**
+             * @property {Boolean} isEvent
+             * `true` in this class to identify an object as an instantiated Event, or subclass thereof.
+             */
             isEvent: true,
 
             constructor: function(observable, name) {
@@ -74,28 +92,31 @@ Ext.require('Ext.util.DelayedTask', function() {
                 }
             },
 
-            createListener: function(fn, scope, o) {
-                o = o || {};
+            createListener: function(fn, scope, options) {
+                options = options || noOptions;
                 scope = scope || this.observable;
 
                 var listener = {
                         fn: fn,
                         scope: scope,
-                        o: o,
+                        o: options,
                         ev: this
                     },
                     handler = fn;
 
                 // The order is important. The 'single' wrapper must be wrapped by the 'buffer' and 'delayed' wrapper
                 // because the event removal that the single listener does destroys the listener's DelayedTask(s)
-                if (o.single) {
-                    handler = createSingle(handler, listener, o, scope);
+                if (options.single) {
+                    handler = createSingle(handler, listener, options, scope);
                 }
-                if (o.delay) {
-                    handler = createDelayed(handler, listener, o, scope);
+                if (options.target) {
+                    handler = createTargeted(handler, listener, options, scope);
                 }
-                if (o.buffer) {
-                    handler = createBuffered(handler, listener, o, scope);
+                if (options.delay) {
+                    handler = createDelayed(handler, listener, options, scope);
+                }
+                if (options.buffer) {
+                    handler = createBuffered(handler, listener, options, scope);
                 }
 
                 listener.fireFn = handler;
@@ -112,7 +133,11 @@ Ext.require('Ext.util.DelayedTask', function() {
                     listener = listeners[i];
                     if (listener) {
                         s = listener.scope;
-                        if (listener.fn == fn && (s == scope || s == this.observable)) {
+
+                        // Compare the listener's scope with *JUST THE PASSED SCOPE* if one is passed, and only fall back to the owning Observable if none is passed.
+                        // We cannot use the test (s == scope || s == this.observable)
+                        // Otherwise, if the Observable itself adds Ext.emptyFn as a listener, and then Ext.emptyFn is added under another scope, there will be a false match.
+                        if (listener.fn == fn && (s == (scope || this.observable))) {
                             return i;
                         }
                     }
@@ -196,6 +221,5 @@ Ext.require('Ext.util.DelayedTask', function() {
                 return true;
             }
         };
-    })());
+    }()));
 });
-

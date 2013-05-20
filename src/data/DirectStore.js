@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Small helper class to create an {@link Ext.data.Store} configured with an {@link Ext.data.proxy.Direct}
  * and {@link Ext.data.reader.Json} to make interacting with an {@link Ext.direct.Manager} server-side
@@ -24,7 +10,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *
  * - **{@link Ext.data.reader.Json JsonReader}**
  *
- *   - **{@link Ext.data.reader.Json#root root}**
+ *   - **{@link Ext.data.reader.Json#cfg-root root}**
  *   - **{@link Ext.data.reader.Json#idProperty idProperty}**
  *   - **{@link Ext.data.reader.Json#totalProperty totalProperty}**
  *
@@ -62,4 +48,3 @@ Ext.define('Ext.data.DirectStore', {
         this.callParent([config]);
     }    
 });
-

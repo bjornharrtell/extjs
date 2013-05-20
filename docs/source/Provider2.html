@@ -106,8 +106,10 @@ Ext.define('Ext.state.Provider', {
             matches = re.exec(unescape(value)),
             all,
             type,
-            value,
-            keyValue;
+            keyValue,
+            values,
+            vLen,
+            v;
             
         if(!matches || !matches[1]){
             return; // non state
@@ -127,18 +129,26 @@ Ext.define('Ext.state.Provider', {
             case 'a':
                 all = [];
                 if(value != ''){
-                    Ext.each(value.split('^'), function(val){
-                        all.push(me.decodeValue(val));
-                    }, me);
+                    values = value.split('^');
+                    vLen   = values.length;
+
+                    for (v = 0; v &lt; vLen; v++) {
+                        value = values[v];
+                        all.push(me.decodeValue(value));
+                    }
                 }
                 return all;
            case 'o':
                 all = {};
                 if(value != ''){
-                    Ext.each(value.split('^'), function(val){
-                        keyValue = val.split('=');
+                    values = value.split('^');
+                    vLen   = values.length;
+
+                    for (v = 0; v &lt; vLen; v++) {
+                        value = values[v];
+                        keyValue         = value.split('=');
                         all[keyValue[0]] = me.decodeValue(keyValue[1]);
-                    }, me);
+                    }
                 }
                 return all;
            default:

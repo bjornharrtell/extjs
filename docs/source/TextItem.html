@@ -31,7 +31,7 @@
  *
  * @constructor
  * Creates a new TextItem
- * @param {Object} text A text string, or a config object containing a &lt;tt&gt;text&lt;/tt&gt; property
+ * @param {Object} text A text string, or a config object containing a #text property
  */
 Ext.define('Ext.toolbar.TextItem', {
     extend: 'Ext.toolbar.Item',
@@ -40,7 +40,8 @@ Ext.define('Ext.toolbar.TextItem', {
     alternateClassName: 'Ext.Toolbar.TextItem',
 
 <span id='Ext-toolbar-TextItem-cfg-text'>    /**
-</span>     * @cfg {String} text The text to be used as innerHTML (html tags are accepted)
+</span>     * @cfg {String} text
+     * The text to be used as innerHTML (html tags are accepted).
      */
     text: '',
 
@@ -48,23 +49,27 @@ Ext.define('Ext.toolbar.TextItem', {
     //
     baseCls: Ext.baseCSSPrefix + 'toolbar-text',
 
-    onRender : function() {
-        Ext.apply(this.renderData, {
-            text: this.text
+    beforeRender : function() {
+        var me = this;
+
+        me.callParent();
+
+        Ext.apply(me.renderData, {
+            text: me.text
         });
-        this.callParent(arguments);
     },
 
 <span id='Ext-toolbar-TextItem-method-setText'>    /**
 </span>     * Updates this item's text, setting the text to be used as innerHTML.
-     * @param {String} t The text to display (html accepted).
+     * @param {String} text The text to display (html accepted).
      */
-    setText : function(t) {
-        if (this.rendered) {
-            this.el.update(t);
-            this.ownerCt.doLayout(); // In case an empty text item (centered at zero height) receives new text.
+    setText : function(text) {
+        var me = this;
+        if (me.rendered) {
+            me.el.update(text);
+            me.updateLayout();
         } else {
-            this.text = t;
+            this.text = text;
         }
     }
 });</pre>

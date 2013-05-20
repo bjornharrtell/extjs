@@ -1,3 +1,11 @@
+.x-grid-cell-checkcolumn .x-grid-cell-inner {
+    padding-top: 4px;
+    padding-bottom: 2px;
+    line-height: 14px;
+}
+.x-grid-with-row-lines .x-grid-cell-checkcolumn .x-grid-cell-inner {
+    padding-top: 3px;
+}
 .x-grid-checkheader {
     height: 14px;
     background-image: url('images/unchecked.gif');

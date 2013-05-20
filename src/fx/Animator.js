@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.fx.Animator
  *
@@ -81,6 +67,10 @@ Ext.define('Ext.fx.Animator', {
 
     /* End Definitions */
 
+    /**
+     * @property {Boolean} isAnimator
+     * `true` in this class to identify an object as an instantiated Animator, or subclass thereof.
+     */
     isAnimator: true,
 
     /**
@@ -315,7 +305,7 @@ keyframes : {
                 damper = attrs.damper || me.damper;
                 delete attrs.easing;
                 delete attrs.damper;
-                anim = Ext.create('Ext.fx.Anim', {
+                anim = new Ext.fx.Anim({
                     target: target,
                     easing: easing,
                     damper: damper,
@@ -407,5 +397,14 @@ keyframes : {
     end: function() {
         var me = this;
         me.fireEvent('afteranimate', me, me.startTime, new Date() - me.startTime);
+    },
+    
+    isReady: function() {
+        return this.paused === false && this.running === false && this.iterations > 0;
+    },
+    
+    isRunning: function() {
+        // Explicitly return false, we don't want to be run continuously by the manager
+        return false;
     }
 });

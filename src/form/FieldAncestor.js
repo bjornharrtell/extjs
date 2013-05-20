@@ -1,81 +1,65 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.form.FieldAncestor
-
-A mixin for {@link Ext.container.Container} components that are likely to have form fields in their
-items subtree. Adds the following capabilities:
-
-- Methods for handling the addition and removal of {@link Ext.form.Labelable} and {@link Ext.form.field.Field}
-  instances at any depth within the container.
-- Events ({@link #fieldvaliditychange} and {@link #fielderrorchange}) for handling changes to the state
-  of individual fields at the container level.
-- Automatic application of {@link #fieldDefaults} config properties to each field added within the
-  container, to facilitate uniform configuration of all fields.
-
-This mixin is primarily for internal use by {@link Ext.form.Panel} and {@link Ext.form.FieldContainer},
-and should not normally need to be used directly.
-
- * @markdown
- * @docauthor Jason Johnston <jason@sencha.com>
+ * A mixin for {@link Ext.container.Container} components that are likely to have form fields in their
+ * items subtree. Adds the following capabilities:
+ *
+ * - Methods for handling the addition and removal of {@link Ext.form.Labelable} and {@link Ext.form.field.Field}
+ *   instances at any depth within the container.
+ * - Events ({@link #fieldvaliditychange} and {@link #fielderrorchange}) for handling changes to the state
+ *   of individual fields at the container level.
+ * - Automatic application of {@link #fieldDefaults} config properties to each field added within the
+ *   container, to facilitate uniform configuration of all fields.
+ *
+ * This mixin is primarily for internal use by {@link Ext.form.Panel} and {@link Ext.form.FieldContainer},
+ * and should not normally need to be used directly. @docauthor Jason Johnston <jason@sencha.com>
  */
 Ext.define('Ext.form.FieldAncestor', {
 
     /**
      * @cfg {Object} fieldDefaults
-     * <p>If specified, the properties in this object are used as default config values for each
-     * {@link Ext.form.Labelable} instance (e.g. {@link Ext.form.field.Base} or {@link Ext.form.FieldContainer})
-     * that is added as a descendant of this container. Corresponding values specified in an individual field's
-     * own configuration, or from the {@link Ext.container.Container#defaults defaults config} of its parent container,
-     * will take precedence. See the documentation for {@link Ext.form.Labelable} to see what config
-     * options may be specified in the <tt>fieldDefaults</tt>.</p>
-     * <p>Example:</p>
-     * <pre><code>new Ext.form.Panel({
-    fieldDefaults: {
-        labelAlign: 'left',
-        labelWidth: 100
-    },
-    items: [{
-        xtype: 'fieldset',
-        defaults: {
-            labelAlign: 'top'
-        },
-        items: [{
-            name: 'field1'
-        }, {
-            name: 'field2'
-        }]
-    }, {
-        xtype: 'fieldset',
-        items: [{
-            name: 'field3',
-            labelWidth: 150
-        }, {
-            name: 'field4'
-        }]
-    }]
-});</code></pre>
-     * <p>In this example, field1 and field2 will get labelAlign:'top' (from the fieldset's <tt>defaults</tt>)
-     * and labelWidth:100 (from <tt>fieldDefaults</tt>), field3 and field4 will both get labelAlign:'left' (from
-     * <tt>fieldDefaults</tt> and field3 will use the labelWidth:150 from its own config.</p>
+     * If specified, the properties in this object are used as default config values for each {@link Ext.form.Labelable}
+     * instance (e.g. {@link Ext.form.field.Base} or {@link Ext.form.FieldContainer}) that is added as a descendant of
+     * this container. Corresponding values specified in an individual field's own configuration, or from the {@link
+     * Ext.container.Container#defaults defaults config} of its parent container, will take precedence. See the
+     * documentation for {@link Ext.form.Labelable} to see what config options may be specified in the fieldDefaults.
+     *
+     * Example:
+     *
+     *     new Ext.form.Panel({
+     *         fieldDefaults: {
+     *             labelAlign: 'left',
+     *             labelWidth: 100
+     *         },
+     *         items: [{
+     *             xtype: 'fieldset',
+     *             defaults: {
+     *                 labelAlign: 'top'
+     *             },
+     *             items: [{
+     *                 name: 'field1'
+     *             }, {
+     *                 name: 'field2'
+     *             }]
+     *         }, {
+     *             xtype: 'fieldset',
+     *             items: [{
+     *                 name: 'field3',
+     *                 labelWidth: 150
+     *             }, {
+     *                 name: 'field4'
+     *             }]
+     *         }]
+     *     });
+     *
+     * In this example, field1 and field2 will get labelAlign:'top' (from the fieldset's defaults) and labelWidth:100
+     * (from fieldDefaults), field3 and field4 will both get labelAlign:'left' (from fieldDefaults and field3 will use
+     * the labelWidth:150 from its own config.
      */
 
 
     /**
-     * @protected Initializes the FieldAncestor's state; this must be called from the initComponent method
-     * of any components importing this mixin.
+     * Initializes the FieldAncestor's state; this must be called from the initComponent method of any components
+     * importing this mixin.
+     * @protected
      */
     initFieldAncestor: function() {
         var me = this,
@@ -94,8 +78,8 @@ Ext.define('Ext.form.FieldAncestor', {
 
             /**
              * @event fielderrorchange
-             * Fires when the active error message is changed for any one of the {@link Ext.form.Labelable}
-             * instances within this container.
+             * Fires when the active error message is changed for any one of the {@link Ext.form.Labelable} instances
+             * within this container.
              * @param {Ext.form.FieldAncestor} this
              * @param {Ext.form.Labelable} The Labelable instance whose active error was changed
              * @param {String} error The active error message
@@ -146,8 +130,9 @@ Ext.define('Ext.form.FieldAncestor', {
     },
 
     /**
-     * @protected Called when a {@link Ext.form.Labelable} instance is added to the container's subtree.
+     * Called when a {@link Ext.form.Labelable} instance is added to the container's subtree.
      * @param {Ext.form.Labelable} labelable The instance that was added
+     * @protected
      */
     onLabelableAdded: function(labelable) {
         var me = this;
@@ -159,8 +144,9 @@ Ext.define('Ext.form.FieldAncestor', {
     },
 
     /**
-     * @protected Called when a {@link Ext.form.field.Field} instance is added to the container's subtree.
+     * Called when a {@link Ext.form.field.Field} instance is added to the container's subtree.
      * @param {Ext.form.field.Field} field The field which was added
+     * @protected
      */
     onFieldAdded: function(field) {
         var me = this;
@@ -168,8 +154,9 @@ Ext.define('Ext.form.FieldAncestor', {
     },
 
     /**
-     * @protected Called when a {@link Ext.form.Labelable} instance is removed from the container's subtree.
+     * Called when a {@link Ext.form.Labelable} instance is removed from the container's subtree.
      * @param {Ext.form.Labelable} labelable The instance that was removed
+     * @protected
      */
     onLabelableRemoved: function(labelable) {
         var me = this;
@@ -177,8 +164,9 @@ Ext.define('Ext.form.FieldAncestor', {
     },
 
     /**
-     * @protected Called when a {@link Ext.form.field.Field} instance is removed from the container's subtree.
+     * Called when a {@link Ext.form.field.Field} instance is removed from the container's subtree.
      * @param {Ext.form.field.Field} field The field which was removed
+     * @protected
      */
     onFieldRemoved: function(field) {
         var me = this;
@@ -191,7 +179,7 @@ Ext.define('Ext.form.FieldAncestor', {
     handleFieldValidityChange: function(field, isValid) {
         var me = this;
         me.fireEvent('fieldvaliditychange', me, field, isValid);
-        me.onFieldValidityChange();
+        me.onFieldValidityChange(field, isValid);
     },
 
     /**
@@ -200,20 +188,22 @@ Ext.define('Ext.form.FieldAncestor', {
     handleFieldErrorChange: function(labelable, activeError) {
         var me = this;
         me.fireEvent('fielderrorchange', me, labelable, activeError);
-        me.onFieldErrorChange();
+        me.onFieldErrorChange(labelable, activeError);
     },
 
     /**
-     * @protected Fired when the validity of any field within the container changes.
-     * @param {Ext.form.field.Field} The sub-field whose validity changed
-     * @param {String} The new validity state
+     * Fired when the validity of any field within the container changes.
+     * @param {Ext.form.field.Field} field The sub-field whose validity changed
+     * @param {Boolean} valid The new validity state
+     * @protected
      */
     onFieldValidityChange: Ext.emptyFn,
 
     /**
-     * @protected Fired when the error message of any field within the container changes.
-     * @param {Ext.form.Labelable} The sub-field whose active error changed
-     * @param {String} The new active error message
+     * Fired when the error message of any field within the container changes.
+     * @param {Ext.form.Labelable} field The sub-field whose active error changed
+     * @param {String} error The new active error message
+     * @protected
      */
     onFieldErrorChange: Ext.emptyFn
 

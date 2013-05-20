@@ -27,7 +27,7 @@
     display: block;
     overflow: hidden;
     text-align: center;
-    width: 86px; // for ie to ensure that the text is centered
+    width: 86px; /* for ie to ensure that the text is centered */
 }
 
 #images-view .x-item-over{

@@ -1,35 +1,23 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.util.Memento
  * This class manages a set of captured properties from an object. These captured properties
  * can later be restored to an object.
  */
-Ext.define('Ext.util.Memento', function () {
+Ext.define('Ext.util.Memento', (function () {
 
-    function captureOne (src, target, prop) {
-        src[prop] = target[prop];
+    function captureOne (src, target, prop, prefix) {
+        src[prefix ? prefix + prop : prop] = target[prop];
     }
 
     function removeOne (src, target, prop) {
         delete src[prop];
     }
 
-    function restoreOne (src, target, prop) {
-        var value = src[prop];
-        if (value || src.hasOwnProperty(prop)) {
+    function restoreOne (src, target, prop, prefix) {
+        var name = prefix ? prefix + prop : prop,
+            value = src[name];
+
+        if (value || src.hasOwnProperty(name)) {
             restoreValue(target, prop, value);
         }
     }
@@ -42,14 +30,15 @@ Ext.define('Ext.util.Memento', function () {
         }
     }
 
-    function doMany (doOne, src, target, props) {
+    function doMany (doOne, src, target, props, prefix) {
         if (src) {
             if (Ext.isArray(props)) {
-                Ext.each(props, function (prop) {
-                    doOne(src, target, prop);
-                });
+                var p, pLen = props.length;
+                for (p = 0; p < pLen; p++) {
+                    doOne(src, target, props[p], prefix);
+                }
             } else {
-                doOne(src, target, props);
+                doOne(src, target, props, prefix);
             }
         }
     }
@@ -88,8 +77,9 @@ Ext.define('Ext.util.Memento', function () {
          * @param {String/String[]} props The property or array of properties to capture.
          * @param {Object} target The object from which to capture properties.
          */
-        capture: function (props, target) {
-            doMany(captureOne, this.data || (this.data = {}), target || this.target, props);
+        capture: function (props, target, prefix) {
+            var me = this;
+            doMany(captureOne, me.data || (me.data = {}), target || me.target, props, prefix);
         },
 
         /**
@@ -108,8 +98,8 @@ Ext.define('Ext.util.Memento', function () {
          * false to keep them (default is true).
          * @param {Object} target The object to which to restore properties.
          */
-        restore: function (props, clear, target) {
-            doMany(restoreOne, this.data, target || this.target, props);
+        restore: function (props, clear, target, prefix) {
+            doMany(restoreOne, this.data, target || this.target, props, prefix);
             if (clear !== false) {
                 this.remove(props);
             }
@@ -122,17 +112,20 @@ Ext.define('Ext.util.Memento', function () {
          * @param {Object} target The object to which to restore properties.
          */
         restoreAll: function (clear, target) {
-            var me = this,
-                t = target || this.target;
+            var me   = this,
+                t    = target || this.target,
+                data = me.data,
+                prop;
 
-            Ext.Object.each(me.data, function (prop, value) {
-                restoreValue(t, prop, value);
-            });
+            for (prop in data) {
+                if (data.hasOwnProperty(prop)) {
+                    restoreValue(t, prop, data[prop]);
+                }
+            }
 
             if (clear !== false) {
                 delete me.data;
             }
         }
     };
-}());
-
+}()));

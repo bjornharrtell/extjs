@@ -1,64 +1,44 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.statusbar.ValidationStatus
- * A {@link Ext.StatusBar} plugin that provides automatic error notification when the
- * associated form contains validation errors.
- * @extends Ext.Component
- * @constructor
- * Creates a new ValiationStatus plugin
- * @param {Object} config A config object
+ * A {@link Ext.ux.statusbar.StatusBar} plugin that provides automatic error
+ * notification when the associated form contains validation errors.
  */
 Ext.define('Ext.ux.statusbar.ValidationStatus', {
     extend: 'Ext.Component', 
     requires: ['Ext.util.MixedCollection'],
     /**
      * @cfg {String} errorIconCls
-     * The {@link #iconCls} value to be applied to the status message when there is a
-     * validation error. Defaults to <tt>'x-status-error'</tt>.
+     * The {@link Ext.ux.statusbar.StatusBar#iconCls iconCls} value to be applied
+     * to the status message when there is a validation error.
      */
     errorIconCls : 'x-status-error',
     /**
      * @cfg {String} errorListCls
      * The css class to be used for the error list when there are validation errors.
-     * Defaults to <tt>'x-status-error-list'</tt>.
      */
     errorListCls : 'x-status-error-list',
     /**
      * @cfg {String} validIconCls
-     * The {@link #iconCls} value to be applied to the status message when the form
-     * validates. Defaults to <tt>'x-status-valid'</tt>.
+     * The {@link Ext.ux.statusbar.StatusBar#iconCls iconCls} value to be applied
+     * to the status message when the form validates.
      */
     validIconCls : 'x-status-valid',
     
     /**
      * @cfg {String} showText
-     * The {@link #text} value to be applied when there is a form validation error.
-     * Defaults to <tt>'The form has errors (click for details...)'</tt>.
+     * The {@link Ext.ux.statusbar.StatusBar#text text} value to be applied when
+     * there is a form validation error.
      */
     showText : 'The form has errors (click for details...)',
     /**
-     * @cfg {String} showText
-     * The {@link #text} value to display when the error list is displayed.
-     * Defaults to <tt>'Click again to hide the error list'</tt>.
+     * @cfg {String} hideText
+     * The {@link Ext.ux.statusbar.StatusBar#text text} value to display when
+     * the error list is displayed.
      */
     hideText : 'Click again to hide the error list',
     /**
      * @cfg {String} submitText
-     * The {@link #text} value to be applied when the form is being submitted.
-     * Defaults to <tt>'Saving...'</tt>.
+     * The {@link Ext.ux.statusbar.StatusBar#text text} value to be applied when
+     * the form is being submitted.
      */
     submitText : 'Saving...',
     

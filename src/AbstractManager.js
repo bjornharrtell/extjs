@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Base Manager class
  */
@@ -32,7 +18,7 @@ Ext.define('Ext.AbstractManager', {
          * @property {Ext.util.HashMap} all
          * Contains all of the items currently managed
          */
-        this.all = Ext.create('Ext.util.HashMap');
+        this.all = new Ext.util.HashMap();
 
         this.types = {};
     },
@@ -120,18 +106,20 @@ Ext.define('Ext.AbstractManager', {
      */
     onAvailable : function(id, fn, scope){
         var all = this.all,
-            item;
+            item,
+            callback;
         
         if (all.containsKey(id)) {
             item = all.get(id);
             fn.call(scope || item, item);
         } else {
-            all.on('add', function(map, key, item){
+            callback = function(map, key, item){
                 if (key == id) {
                     fn.call(scope || item, item);
-                    all.un('add', fn, scope);
+                    all.un('add', callback);
                 }
-            });
+            }; 
+            all.on('add', callback);
         }
     },
     
@@ -156,4 +144,3 @@ Ext.define('Ext.AbstractManager', {
         return this.all.getCount();
     }
 });
-

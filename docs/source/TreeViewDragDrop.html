@@ -97,13 +97,14 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * @param {String} dropPosition `&quot;before&quot;`, `&quot;after&quot;` or `&quot;append&quot;` depending on whether the mouse is above or below
      * the midline of the node, or the node is a branch node which accepts new child nodes.
      *
-     * @param {Function} dropFunction A function to call to complete the data transfer operation and either move or copy
-     * Model instances from the source View's Store to the destination View's Store.
+     * @param {Object} dropHandler An object containing methods to complete/cancel the data transfer operation and either
+     * move or copy Model instances from the source View's Store to the destination View's Store.
      *
-     * This is useful when you want to perform some kind of asynchronous processing before confirming the drop, such as
-     * an {@link Ext.window.MessageBox#confirm confirm} call, or an Ajax request.
+     * This is useful when you want to perform some kind of asynchronous processing before confirming/cancelling
+     * the drop, such as an {@link Ext.window.MessageBox#confirm confirm} call, or an Ajax request.
      *
-     * Return `0` from this event handler, and call the `dropFunction` at any time to perform the data transfer.
+     * Set dropHandler.wait = true in this event handler to delay processing. When you want to complete the event, call
+     * dropHandler.processDrop(). To cancel the drop, call dropHandler.cancelDrop.
      */
 
 <span id='Ext-tree-plugin-TreeViewDragDrop-event-drop'>    /**
@@ -131,23 +132,34 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * the midline of the node, or the node is a branch node which accepts new child nodes.
      */
 
+    //&lt;locale&gt;
+<span id='Ext-tree-plugin-TreeViewDragDrop-cfg-dragText'>    /**
+</span>     * @cfg
+     * The text to show while dragging.
+     *
+     * Two placeholders can be used in the text:
+     *
+     * - `{0}` The number of selected items.
+     * - `{1}` 's' when more than 1 items (only useful for English).
+     */
     dragText : '{0} selected node{1}',
+    //&lt;/locale&gt;
 
-<span id='Ext-tree-plugin-TreeViewDragDrop-cfg-allowParentInsert'>    /**
-</span>     * @cfg {Boolean} allowParentInsert
+<span id='Ext-tree-plugin-TreeViewDragDrop-cfg-allowParentInserts'>    /**
+</span>     * @cfg {Boolean} allowParentInserts
      * Allow inserting a dragged node between an expanded parent node and its first child that will become a sibling of
      * the parent when dropped.
      */
     allowParentInserts: false,
 
-<span id='Ext-tree-plugin-TreeViewDragDrop-cfg-allowContainerDrop'>    /**
-</span>     * @cfg {String} allowContainerDrop
+<span id='Ext-tree-plugin-TreeViewDragDrop-cfg-allowContainerDrops'>    /**
+</span>     * @cfg {Boolean} allowContainerDrops
      * True if drops on the tree container (outside of a specific tree node) are allowed.
      */
     allowContainerDrops: false,
 
 <span id='Ext-tree-plugin-TreeViewDragDrop-cfg-appendOnly'>    /**
-</span>     * @cfg {String} appendOnly
+</span>     * @cfg {Boolean} appendOnly
      * True if the tree should only allow append drops (use for trees which are sorted).
      */
     appendOnly: false,
@@ -234,7 +246,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
         var me = this;
 
         if (me.enableDrag) {
-            me.dragZone = Ext.create('Ext.tree.ViewDragZone', {
+            me.dragZone = new Ext.tree.ViewDragZone({
                 view: view,
                 ddGroup: me.dragGroup || me.ddGroup,
                 dragText: me.dragText,
@@ -244,7 +256,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
         }
 
         if (me.enableDrop) {
-            me.dropZone = Ext.create('Ext.tree.ViewDropZone', {
+            me.dropZone = new Ext.tree.ViewDropZone({
                 view: view,
                 ddGroup: me.dropGroup || me.ddGroup,
                 allowContainerDrops: me.allowContainerDrops,
@@ -256,6 +268,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
             });
         }
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

@@ -1,22 +1,34 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require(['*']);
 Ext.onReady(function() {
     var cw;
-    
-    Ext.create('Ext.Viewport', {
+
+    function closeRegion (e, target, header, tool) {
+        var region = header.ownerCt;
+        newRegions.unshift(region.initialConfig);
+        viewport.remove(region);
+    }
+
+    var newRegions = [{
+            region: 'north',
+            title: 'North 2',
+            height: 100,
+            collapsible: true,
+            weight: -120
+        }, {
+            region: 'east',
+            title: 'East 2',
+            width: 100,
+            collapsible: true,
+            weight: -110
+        }, {
+            region: 'west',
+            title: 'West 2',
+            width: 100,
+            collapsible: true,
+            weight: -110
+        }];
+
+    var viewport = Ext.create('Ext.Viewport', {
         layout: {
             type: 'border',
             padding: 5
@@ -43,48 +55,59 @@ Ext.onReady(function() {
             html: 'west<br>I am floatable'
         },{
             region: 'center',
-            layout: 'border',
-            border: false,
-            items: [{
-                region: 'center',
-                html: 'center center',
-                title: 'Center',
-                minHeight: 80,
-                items: [cw = Ext.create('Ext.Window', {
-                    xtype: 'window',
-                    closable: false,
-                    minimizable: true,
-                    title: 'Constrained Window',
-                    height: 200,
-                    width: 400,
-                    constrain: true,
-                    html: 'I am in a Container',
-                    itemId: 'center-window',
-                    minimize: function() {
-                        this.floatParent.down('button#toggleCw').toggle();
-                    }
-                })],
-                dockedItems: [{
-                    xtype: 'toolbar',
-                    dock: 'bottom',
-                    items: ['Text followed by a spacer',
-                        ' ', {
-                            itemId: 'toggleCw',
-                            text: 'Constrained Window',
-                            enableToggle: true,
-                            toggleHandler: function() {
-                            cw.setVisible(!cw.isVisible());
+            html: 'center center',
+            title: 'Center',
+            minHeight: 80,
+            items: [cw = Ext.create('Ext.Window', {
+                xtype: 'window',
+                closable: false,
+                minimizable: true,
+                title: 'Constrained Window',
+                height: 200,
+                width: 400,
+                constrain: true,
+                html: 'I am in a Container',
+                itemId: 'center-window',
+                minimize: function() {
+                    this.floatParent.down('button#toggleCw').toggle();
+                }
+            })],
+            bbar: [ 'Text followed by a spacer', ' ', {
+                itemId: 'toggleCw',
+                text: 'Constrained Window',
+                enableToggle: true,
+                toggleHandler: function() {
+                    cw.setVisible(!cw.isVisible());
+                }
+            }, {
+                text: 'Add Region',
+                listeners: {
+                    click: function () {
+                        if (newRegions.length) {
+                            var region = newRegions.pop();
+                            region.tools = [ { type: 'close', handler: closeRegion }];
+                            viewport.add(region);
+                        } else {
+                            Ext.Msg.show({
+                                title: 'All added',
+                                msg: 'Close one of the dynamic regions first',
+                                //minWidth: Ext.Msg.minWidth,
+                                buttons: Ext.Msg.OK,
+                                icon: Ext.Msg.ERROR
+                            });
                         }
-                    }]
-                }]
-            },{
-                region: 'south',
-                height: 100,
-                split: true,
-                collapsible: true,
-                title: 'Splitter above me',
-                minHeight: 60,
-                html: 'center south'
+                    }
+                }
+            }, {
+                text: 'Change Titles',
+                listeners: {
+                    click: function () {
+                        var panels = viewport.query('panel');
+                        Ext.each(panels, function (panel) {
+                            panel.setTitle(panel.title + '!');
+                        })
+                    }
+                }
             }]
         },{
             region: 'east',
@@ -110,6 +133,15 @@ Ext.onReady(function() {
             }]
         },{
             region: 'south',
+            height: 100,
+            split: true,
+            collapsible: true,
+            title: 'Splitter above me',
+            minHeight: 60,
+            html: 'center south',
+            weight: -100
+        },{
+            region: 'south',
             collapsible: true,
             split: true,
             height: 200,
@@ -133,13 +165,14 @@ Ext.onReady(function() {
                 split: true,
                 collapsible: true
             }, {
-                title: 'South Western',
+                title: 'South Western - not resizable',
                 region: 'west',
                 flex: 1,
                 minWidth: 80,
                 html: 'South Western<br>I collapse to nothing',
                 split: true,
                 collapsible: true,
+                splitterResize: false,
                 collapseMode: 'mini'
             }]
         }]

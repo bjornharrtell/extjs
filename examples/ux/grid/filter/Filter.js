@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.ux.grid.filter.Filter
  * @extends Ext.util.Observable
@@ -82,8 +68,7 @@ Ext.define('Ext.ux.grid.filter.Filter', {
         );
         Ext.ux.grid.filter.Filter.superclass.constructor.call(this);
 
-        // setting filtered to true on all filter instances ensures that the filter won't be blurred when the mouse leaves the component
-        this.menu = this.createMenu(Ext.applyIf({filtered: true}, config));
+        this.menu = this.createMenu(config);
         this.init(config);
         if(config && config.value){
             this.setValue(config.value);
@@ -202,4 +187,3 @@ Ext.define('Ext.ux.grid.filter.Filter', {
         }
     }
 });
-

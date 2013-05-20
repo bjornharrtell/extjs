@@ -1,6 +1,7 @@
 @mixin extjs-dragdrop {
+    // Must always be on top
     .#{$prefix}dd-drag-proxy {
-        
+        z-index: 1000000!important;
     }
     
     .#{$prefix}dd-drag-repair {

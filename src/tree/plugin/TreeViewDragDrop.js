@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * This plugin provides drag and/or drop functionality for a TreeView.
  *
@@ -94,13 +80,14 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * @param {String} dropPosition `"before"`, `"after"` or `"append"` depending on whether the mouse is above or below
      * the midline of the node, or the node is a branch node which accepts new child nodes.
      *
-     * @param {Function} dropFunction A function to call to complete the data transfer operation and either move or copy
-     * Model instances from the source View's Store to the destination View's Store.
+     * @param {Object} dropHandler An object containing methods to complete/cancel the data transfer operation and either
+     * move or copy Model instances from the source View's Store to the destination View's Store.
      *
-     * This is useful when you want to perform some kind of asynchronous processing before confirming the drop, such as
-     * an {@link Ext.window.MessageBox#confirm confirm} call, or an Ajax request.
+     * This is useful when you want to perform some kind of asynchronous processing before confirming/cancelling
+     * the drop, such as an {@link Ext.window.MessageBox#confirm confirm} call, or an Ajax request.
      *
-     * Return `0` from this event handler, and call the `dropFunction` at any time to perform the data transfer.
+     * Set dropHandler.wait = true in this event handler to delay processing. When you want to complete the event, call
+     * dropHandler.processDrop(). To cancel the drop, call dropHandler.cancelDrop.
      */
 
     /**
@@ -128,23 +115,34 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * the midline of the node, or the node is a branch node which accepts new child nodes.
      */
 
+    //<locale>
+    /**
+     * @cfg
+     * The text to show while dragging.
+     *
+     * Two placeholders can be used in the text:
+     *
+     * - `{0}` The number of selected items.
+     * - `{1}` 's' when more than 1 items (only useful for English).
+     */
     dragText : '{0} selected node{1}',
+    //</locale>
 
     /**
-     * @cfg {Boolean} allowParentInsert
+     * @cfg {Boolean} allowParentInserts
      * Allow inserting a dragged node between an expanded parent node and its first child that will become a sibling of
      * the parent when dropped.
      */
     allowParentInserts: false,
 
     /**
-     * @cfg {String} allowContainerDrop
+     * @cfg {Boolean} allowContainerDrops
      * True if drops on the tree container (outside of a specific tree node) are allowed.
      */
     allowContainerDrops: false,
 
     /**
-     * @cfg {String} appendOnly
+     * @cfg {Boolean} appendOnly
      * True if the tree should only allow append drops (use for trees which are sorted).
      */
     appendOnly: false,
@@ -231,7 +229,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
         var me = this;
 
         if (me.enableDrag) {
-            me.dragZone = Ext.create('Ext.tree.ViewDragZone', {
+            me.dragZone = new Ext.tree.ViewDragZone({
                 view: view,
                 ddGroup: me.dragGroup || me.ddGroup,
                 dragText: me.dragText,
@@ -241,7 +239,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
         }
 
         if (me.enableDrop) {
-            me.dropZone = Ext.create('Ext.tree.ViewDropZone', {
+            me.dropZone = new Ext.tree.ViewDropZone({
                 view: view,
                 ddGroup: me.dropGroup || me.ddGroup,
                 allowContainerDrops: me.allowContainerDrops,

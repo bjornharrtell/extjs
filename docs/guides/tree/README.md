@@ -160,7 +160,7 @@ Although this is useful for very small trees with only a few static nodes, most 
 
     parent.expand();
 
-Every node that is not a leaf node has an {@link Ext.data.NodeInterface#appendChild appendChild} method which accepts a Node, or a config object for a Node as its first parameter, and returns the Node that was appended. The above example also calls the {@link Ext.data.NodeInterface#expand expand} method to expand the newly created parent.
+Every node that is not a leaf node has an {@link Ext.data.NodeInterface#appendChild appendChild} method which accepts a Node, or a config object for a Node as its first parameter, and returns the Node that was appended. The above example also calls the {@link Ext.data.NodeInterface#method-expand expand} method to expand the newly created parent.
 
 {@img append-children.png Appending to the tree}
 
@@ -199,3 +199,255 @@ NodeInterface also provides several more properties on nodes that can be used to
 * {@link Ext.data.NodeInterface#lastChild lastChild}
 * {@link Ext.data.NodeInterface#firstChild firstChild}
 * {@link Ext.data.NodeInterface#childNodes childNodes}
+
+## Loading and Saving Tree Data using a Proxy
+
+Loading and saving Tree data is somewhat more complex than dealing with flat data because of all the fields that are required to represent the hierarchical structure of the tree.
+This section will explain the intricacies of working with tree data.
+
+### NodeInterface Fields
+
+The first and most important thing to understand when working with tree data is how the {@link Ext.data.NodeInterface NodeInterface} class' fields work.
+Every node in a Tree is simply a {@link Ext.data.Model Model} instance decorated with the NodeInterface's fields and methods.
+Assume for a moment that an application has a Model called Person.  A Person only has two fields - id and name:
+
+    Ext.define('Person', {
+        extend: 'Ext.data.Model',
+        fields: [
+            { name: 'id', type: 'int' },
+            { name: 'name', type: 'string' }
+        ]
+    });
+
+At this point Person is just a plain vanilla Model.  If an instance is created, it can easily be verified that it only has two fields by looking at its `fields` collection
+
+    console.log(Person.prototype.fields.getCount()); // outputs '2'
+
+When the Person model is used in a TreeStore, something interesting happens.  Notice the field count now:
+
+    var store = Ext.create('Ext.data.TreeStore', {
+        model: 'Person',
+        root: {
+            name: 'Phil'
+        }
+    });
+
+    console.log(Person.prototype.fields.getCount()); // outputs '24'
+
+The Person model's prototype got 22 extra fields added to it just by using it in a TreeStore.  All of these extra fields are defined on the {@link Ext.data.NodeInterface NodeInterface}
+class and are added to the Model's prototype the first time an instance of that Model is used in a TreeStore (by setting it as the root node).
+
+So what exactly are these 22 extra fields, and what do they do?  A quick look at the NodeInterface source code reveals that it decorates the Model with the following fields.
+These fields are used internally to store information relating to the tree's structure and state:
+
+    {name: 'parentId',   type: idType,    defaultValue: null},
+    {name: 'index',      type: 'int',     defaultValue: null, persist: false},
+    {name: 'depth',      type: 'int',     defaultValue: 0, persist: false},
+    {name: 'expanded',   type: 'bool',    defaultValue: false, persist: false},
+    {name: 'expandable', type: 'bool',    defaultValue: true, persist: false},
+    {name: 'checked',    type: 'auto',    defaultValue: null, persist: false},
+    {name: 'leaf',       type: 'bool',    defaultValue: false},
+    {name: 'cls',        type: 'string',  defaultValue: null, persist: false},
+    {name: 'iconCls',    type: 'string',  defaultValue: null, persist: false},
+    {name: 'icon',       type: 'string',  defaultValue: null, persist: false},
+    {name: 'root',       type: 'boolean', defaultValue: false, persist: false},
+    {name: 'isLast',     type: 'boolean', defaultValue: false, persist: false},
+    {name: 'isFirst',    type: 'boolean', defaultValue: false, persist: false},
+    {name: 'allowDrop',  type: 'boolean', defaultValue: true, persist: false},
+    {name: 'allowDrag',  type: 'boolean', defaultValue: true, persist: false},
+    {name: 'loaded',     type: 'boolean', defaultValue: false, persist: false},
+    {name: 'loading',    type: 'boolean', defaultValue: false, persist: false},
+    {name: 'href',       type: 'string',  defaultValue: null, persist: false},
+    {name: 'hrefTarget', type: 'string',  defaultValue: null, persist: false},
+    {name: 'qtip',       type: 'string',  defaultValue: null, persist: false},
+    {name: 'qtitle',     type: 'string',  defaultValue: null, persist: false},
+    {name: 'children',   type: 'auto',   defaultValue: null, persist: false}
+
+#### NodeInterface Fields are Reserved Names
+
+It is important to note that all of the above field names should be treated as "reserved" names.  For example, it is not allowed to have a field called "parentId"
+in a Model, if that Model is intended to be used in a Tree, since the Model's field will override the NodeInterface field.  The exception to this rule is
+when there is a legitimate need to override the persistence of a field.
+
+#### Persistent Fields vs Non-persistent Fields and Overriding the Persistence of Fields
+
+Most of NodeInterface's fields default to `persist: false`.  This means they are non-persistent fields by default.  Non-persistent fields will not be saved via
+the Proxy when calling the TreeStore's sync method or calling save() on the Model.  In most cases, the majority of these fields can be left at their default
+persistence setting,  but there are cases where it is necessary to override the persistence of some fields.  The following example demonstrates how to override
+the persistence of a NodeInterface field.  When overriding a NodeInterface field it is important to only change the `persist` property.  `name`, `type`, and `defaultValue`
+should never be changed.
+
+    // overriding the persistence of NodeInterface fields in a Model definition
+    Ext.define('Person', {
+        extend: 'Ext.data.Model',
+        fields: [
+            // Person fields
+            { name: 'id', type: 'int' },
+            { name: 'name', type: 'string' }
+
+            // override a non-persistent NodeInterface field to make it persistent
+            { name: 'iconCls', type: 'string',  defaultValue: null, persist: true },
+        ]
+    });
+
+Let's take a more in-depth look at each NodeInterface field and the scenarios in which it might be necessary to  override its `persist` property.
+In each example below it is assumed that a {@link Ext.data.proxy.Server Server Proxy} is being used unless otherwise noted.
+
+Persistent by default:
+
+* `parentId` - used to store the id of a node's parent node.  This field should always be persistent, and should not be overridden.
+* `leaf` - used to indicate that the node is a leaf node, and therefore cannot have children appended to it.  This field should not normally need to be overridden.
+
+Non-persistent by default:
+
+* `index` - used to store the order of nodes within their parent. When a node is {@link Ext.data.NodeInterface#insertBefore inserted} or
+{@link Ext.data.NodeInterface#removeChild removed}, all of its sibling nodes after the insertion or removal point will have their indexes updated.
+If desired, the application can use this field to persist the ordering of nodes. However, if the server uses a different method of storing order,
+it may be more appropriate to leave the index field as non-persistent. When using a {@link Ext.data.proxy.WebStorage WebStorage Proxy} if storing order
+is required, this field must be overridden to be persistent. Also if client-side {@link Ext.data.TreeStore#folderSort sorting} is being used it is recommended
+for the index field to be left as non-persistent, since sorting updates the indexes of all the sorted nodes, which would cause them to be persisted
+on next sync or save if the `persist` property is true.
+* `depth` - used to store the depth of a node in the tree hierarchy.  Override this field to turn on persistence if the server needs to store the depth field.
+When using a {@link Ext.data.proxy.WebStorage WebStorage Proxy} it is recommended to not override the persistence of the depth field since it is not needed
+to properly store the tree structure and will just take up extra space.
+* `checked` - this field should be overridden to be persistent if the tree is using the [checkbox feature](#!/example/tree/check-tree.html)
+* `expanded` - used to store the expanded/collapsed state of a node.  This field should not normally need to be overridden.
+* `expandable` - used internally to indicate that this node is expandable.  Do not override the persistence of this field.
+* `cls` - used to apply a css class to the node when it is rendered in a TreePanel.  Override this field to be persistent if desired.
+* `iconCls` - used to apply a css class to the node's icon when it is rendered in a TreePanel.  Override this field to be persistent if desired.
+* `icon` - used to apply a cutom icon to the node node when it is rendered in a TreePanel.  Override this field to be persistent if desired.
+* `root` - used to indicate that this node is the root node.  This field should not be overridden.
+* `isLast` - used to indicate that this node is the last of its siblings. This field should not normally need to be overridden.
+* `isFirst` - used to indicate that this node is the first of its siblings. This field should not normally need to be overridden.
+* `allowDrop` - used internally to deny dropping on the node.  Do not override the persistence of this field.
+* `allowDrag` - used internally to deny dragging the node.  Do not override the persistence of this field.
+* `loaded` - used internally to indicate that the node's children have been loaded.  Do not override the persistence of this field.
+* `loading` - used internally to indicate that the proxy is in the process of loading the node's children. Do not override the persistence of this field.
+* `href` - used to specify a url that the node should be a link to.  Override to be persistent if desired.
+* `hrefTarget` - used to specify the target for the `href`.  Override to be persistent if desired.
+* `qtip` - used to add a tooltip text to the node.  Override to be persistent if desired.
+* `qtitle` - used to specify the title for the `tooltip`.  Override to be persistent if desired.
+* `children` - used internally when loading a node and its children all in one request.  Do not override the persistence of this field.
+
+### Loading Data
+
+There are two ways to load tree data.  The first is to for the proxy to fetch the entire tree all at once.  For larger trees where loading everything
+at once is not ideal, it may be preferable to use the second method - dynamically loading the children for each node when it is expanded.
+
+#### Loading the Entire Tree
+
+Internally the tree only loads data in response to a node being expanded.  However the entire hierarchy can be loaded if the proxy retrieves a nested object
+containing the whole tree structure.  To accomplish this, initialize the TreeStore's root node to `expanded`:
+
+    Ext.define('Person', {
+        extend: 'Ext.data.Model',
+        fields: [
+            { name: 'id', type: 'int' },
+            { name: 'name', type: 'string' }
+        ],
+        proxy: {
+            type: 'ajax',
+            api: {
+                create: 'createPersons',
+                read: 'readPersons',
+                update: 'updatePersons',
+                destroy: 'destroyPersons'
+            }
+        }
+
+    });
+
+    var store = Ext.create('Ext.data.TreeStore', {
+        model: 'Person',
+        root: {
+            name: 'People',
+            expanded: true
+        }
+    });
+
+    Ext.create('Ext.tree.Panel', {
+        renderTo: Ext.getBody(),
+        width: 300,
+        height: 200,
+        title: 'People',
+        store: store,
+        columns: [
+            { xtype: 'treecolumn', header: 'Name', dataIndex: 'name', flex: 1 }
+        ]
+    });
+
+Assume that the `readPersons` url returns the following json object
+
+    {
+        "success": true,
+        "children": [
+            { "id": 1, "name": "Phil", "leaf": true },
+            { "id": 2, "name": "Nico", "expanded": true, "children": [
+                { "id": 3, "name": "Mitchell", "leaf": true }
+            ]},
+            { "id": 4, "name": "Sue", "loaded": true }
+        ]
+    }
+
+That's all that's needed to load the entire tree.
+
+{@img tree-bulk-load.png Tree with Bulk Loaded Data}
+
+Important items to note:
+
+* For all non-leaf nodes that do not have children (for example, Person with name Sue above),
+the server response MUST set the `loaded` property to `true`.  Otherwise the proxy will attempt to load children for these nodes when they are expanded.
+* The question then arises - if the server is allowed to set the `loaded` property on a node in the JSON response can it set any of the other non-persistent fields?
+The answer is yes - sometimes.  In the example above the node with name "Nico" has is `expanded` field set to `true` so that it will be initially displayed as expanded
+in the Tree Panel.  Caution should be exercised as there are cases where this is not appropriate and could cause serious problems, like setting the `root` property on
+a node that is not the root node for example.  In general `loaded` and `expanded` are the only cases where it is recommended for the server to set a non-persistent field
+in the JSON response.
+
+#### Dynamically Loading Children When a Node is Expanded
+
+For larger trees it may be desirable to only load parts of the tree by loading child nodes only when their parent node is expanded.  Suppose in the above example,
+that the node with name "Sue" does not have its `loaded` field set to `true` by the server response.  The Tree would display an expander icon next to the node.
+When the node is expanded the proxy will make another request to the `readPersons` url that looks something like this:
+
+    /readPersons?node=4
+
+This tells the server to retrieve the child nodes for the node with an id of 4.  The data should be returned in the same format as the data that was used to load the root node:
+
+    {
+        "success": true,
+        "children": [
+            { "id": 5, "name": "Evan", "leaf": true }
+        ]
+    }
+
+Now the Tree looks something like this:
+
+{@img tree-dynamic-load.png Tree with Dynamically Loaded Node}
+
+### Saving Data
+
+Creating, updating, and deleting nodes is handled automatically and seamlessly by the Proxy.
+
+#### Creating a New Node
+
+    // Create a new node and append it to the tree:
+    var newPerson = Ext.create('Person', { name: 'Nige', leaf: true });
+    store.getNodeById(2).appendChild(newPerson);
+
+Since the proxy is defined directly on the Model, the Model's {@link Ext.data.Model#save save()} method can be used to persist the data:
+
+    newPerson.save();
+
+#### Updating an Existing Node
+
+    store.getNodeById(1).set('name', 'Philip');
+
+#### Removing a Node
+
+    store.getRootNode().lastChild.remove();
+
+#### Bulk Operations
+
+After creating, updating, and removing several nodes, they can all be persisted in one operation by calling the TreeStore's {@link Ext.data.TreeStore#sync sync()} method:
+
+    store.sync();

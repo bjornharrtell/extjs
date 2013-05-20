@@ -1,65 +1,49 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Lithuanian Translations (UTF-8)
  * Vladas Saulis (vladas at prodata dot lt),  03-29-2009
  * Vladas Saulis (vladas at prodata dot lt),  10-18-2007
  */
-Ext.onReady(function(){
-    if(Ext.Updater){
+Ext.onReady(function() {
+    var cm = Ext.ClassManager,
+        exists = Ext.Function.bind(cm.get, cm);
+
+    if (Ext.Updater) {
         Ext.Updater.defaults.indicatorText = '<div class="loading-indicator">Kraunasi...</div>';
     }
 
-    if(Ext.view.View){
-        Ext.view.View.prototype.emptyText = "";
-    }
+    Ext.define("Ext.locale.lt.view.View", {
+        override: "Ext.view.View",
+        emptyText: ""
+    });
 
-    if(Ext.view.View){
-        Ext.view.View.prototype.emptyText = "";
-    }
-    if(Ext.grid.Panel){
-        Ext.grid.Panel.prototype.ddText = "{0} pažymėtų eilučių";
-    }
+    Ext.define("Ext.locale.lt.view.View", {
+        override: "Ext.view.View",
+        emptyText: ""
+    });
 
-    if(Ext.TabPanelItem){
-        Ext.TabPanelItem.prototype.closeText = "Uždaryti šią užsklandą";
-    }
+    Ext.define("Ext.locale.lt.grid.Panel", {
+        override: "Ext.grid.Panel",
+        ddText: "{0} pažymėtų eilučių"
+    });
 
-    if(Ext.form.field.Base){
-        Ext.form.field.Base.prototype.invalidText = "Šio lauko reikšmė neteisinga";
-    }
+    Ext.define("Ext.locale.lt.TabPanelItem", {
+        override: "Ext.TabPanelItem",
+        closeText: "Uždaryti šią užsklandą"
+    });
 
-    if(Ext.LoadMask){
-        Ext.LoadMask.prototype.msg = "Kraunasi...";
-    }
+    Ext.define("Ext.locale.lt.form.field.Base", {
+        override: "Ext.form.field.Base",
+        invalidText: "Šio lauko reikšmė neteisinga"
+    });
 
-    if(Ext.Date) {
-        Ext.Date.monthNames = [
-        "Sausis",
-        "Vasaris",
-        "Kovas",
-        "Balandis",
-        "Gegužė",
-        "Birželis",
-        "Liepa",
-        "Rugpjūtis",
-        "Rugsėjis",
-        "Spalis",
-        "Lapkritis",
-        "Gruodis"
-        ];
+    // changing the msg text below will affect the LoadMask
+    Ext.define("Ext.locale.lt.view.AbstractView", {
+        override: "Ext.view.AbstractView",
+        msg: "Kraunasi..."
+    });
+
+    if (Ext.Date) {
+        Ext.Date.monthNames = ["Sausis", "Vasaris", "Kovas", "Balandis", "Gegužė", "Birželis", "Liepa", "Rugpjūtis", "Rugsėjis", "Spalis", "Lapkritis", "Gruodis"];
 
         Ext.Date.getShortMonthName = function(month) {
             // Uncommons
@@ -70,18 +54,18 @@ Ext.onReady(function(){
         };
 
         Ext.Date.monthNumbers = {
-            Sau : 0,
-            Vas : 1,
-            Kov : 2,
-            Bal : 3,
-            Geg : 4,
-            Bir : 5,
-            Lie : 6,
-            Rgp : 7,
-            Rgs : 8,
-            Spa : 9,
-            Lap : 10,
-            Grd : 11
+            Sau: 0,
+            Vas: 1,
+            Kov: 2,
+            Bal: 3,
+            Geg: 4,
+            Bir: 5,
+            Lie: 6,
+            Rgp: 7,
+            Rgs: 8,
+            Spa: 9,
+            Lap: 10,
+            Grd: 11
         };
 
         Ext.Date.getMonthNumber = function(name) {
@@ -93,15 +77,7 @@ Ext.onReady(function(){
             return Ext.Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
         };
 
-        Ext.Date.dayNames = [
-        "Sekmadienis",
-        "Pirmadienis",
-        "Antradienis",
-        "Trečiadienis",
-        "Ketvirtadienis",
-        "Penktadienis",
-        "Šeštadienis"
-        ];
+        Ext.Date.dayNames = ["Sekmadienis", "Pirmadienis", "Antradienis", "Trečiadienis", "Ketvirtadienis", "Penktadienis", "Šeštadienis"];
 
         Ext.Date.parseCodes.S.s = "(?:as|as|as|as)";
 
@@ -109,245 +85,230 @@ Ext.onReady(function(){
             return Ext.Date.dayNames[day].substring(0, 3);
         };
     }
-    if(Ext.MessageBox){
+    if (Ext.MessageBox) {
         Ext.MessageBox.buttonText = {
-            ok     : "Gerai",
-            cancel : "Atsisakyti",
-            yes    : "Taip",
-            no     : "Ne"
+            ok: "Gerai",
+            cancel: "Atsisakyti",
+            yes: "Taip",
+            no: "Ne"
         };
     }
 
-    if(Ext.util.Format){
+    if (exists('Ext.util.Format')) {
         Ext.apply(Ext.util.Format, {
             thousandSeparator: '.',
             decimalSeparator: ',',
-            currencySign: 'Lt',  // Lithuanian Litai
+            currencySign: 'Lt',
+            // Lithuanian Litai
             dateFormat: 'Y-m-d'
         });
     }
 
-    if(Ext.picker.Date){
-        Ext.apply(Ext.picker.Date.prototype, {
-            todayText         : "Šiandien",
-            minText           : "Ši data yra mažesnė už leistiną",
-            maxText           : "Ši data yra didesnė už leistiną",
-            disabledDaysText  : "",
-            disabledDatesText : "",
-            monthNames        : Ext.Date.monthNames,
-            dayNames          : Ext.Date.dayNames,
-            nextText          : 'Kitas mėnuo (Control+Right)',
-            prevText          : 'Ankstesnis mėnuo (Control+Left)',
-            monthYearText     : 'Pasirinkti mėnesį (Control+Up/Down perėjimui tarp metų)',
-            todayTip          : "{0} (Tarpas)",
-            format            : "y-m-d",
-            startDay          : 1
-        });
-    }
+    Ext.define("Ext.locale.lt.picker.Date", {
+        override: "Ext.picker.Date",
+        todayText: "Šiandien",
+        minText: "Ši data yra mažesnė už leistiną",
+        maxText: "Ši data yra didesnė už leistiną",
+        disabledDaysText: "",
+        disabledDatesText: "",
+        monthNames: Ext.Date.monthNames,
+        dayNames: Ext.Date.dayNames,
+        nextText: 'Kitas mėnuo (Control+Right)',
+        prevText: 'Ankstesnis mėnuo (Control+Left)',
+        monthYearText: 'Pasirinkti mėnesį (Control+Up/Down perėjimui tarp metų)',
+        todayTip: "{0} (Tarpas)",
+        format: "y-m-d",
+        startDay: 1
+    });
 
-    if(Ext.picker.Month) {
-        Ext.apply(Ext.picker.Month.prototype, {
-            okText            : "&#160;Gerai&#160;",
-            cancelText        : "Atsisaktyi"
-        });
-    }
+    Ext.define("Ext.locale.lt.picker.Month", {
+        override: "Ext.picker.Month",
+        okText: "&#160;Gerai&#160;",
+        cancelText: "Atsisaktyi"
+    });
 
-    if(Ext.toolbar.Paging){
-        Ext.apply(Ext.PagingToolbar.prototype, {
-            beforePageText : "Puslapis",
-            afterPageText  : "iš {0}",
-            firstText      : "Pirmas puslapis",
-            prevText       : "Ankstesnis pusl.",
-            nextText       : "Kitas puslapis",
-            lastText       : "Pakutinis pusl.",
-            refreshText    : "Atnaujinti",
-            displayMsg     : "Rodomi įrašai {0} - {1} iš {2}",
-            emptyMsg       : 'Nėra duomenų'
-        });
-    }
+    Ext.define("Ext.locale.lt.toolbar.Paging", {
+        override: "Ext.PagingToolbar",
+        beforePageText: "Puslapis",
+        afterPageText: "iš {0}",
+        firstText: "Pirmas puslapis",
+        prevText: "Ankstesnis pusl.",
+        nextText: "Kitas puslapis",
+        lastText: "Pakutinis pusl.",
+        refreshText: "Atnaujinti",
+        displayMsg: "Rodomi įrašai {0} - {1} iš {2}",
+        emptyMsg: 'Nėra duomenų'
+    });
 
-    if(Ext.form.field.Text){
-        Ext.apply(Ext.form.field.Text.prototype, {
-            minLengthText : "Minimalus šio lauko ilgis yra {0}",
-            maxLengthText : "Maksimalus šio lauko ilgis yra {0}",
-            blankText     : "Šis laukas yra privalomas",
-            regexText     : "",
-            emptyText     : null
-        });
-    }
+    Ext.define("Ext.locale.lt.form.field.Text", {
+        override: "Ext.form.field.Text",
+        minLengthText: "Minimalus šio lauko ilgis yra {0}",
+        maxLengthText: "Maksimalus šio lauko ilgis yra {0}",
+        blankText: "Šis laukas yra privalomas",
+        regexText: "",
+        emptyText: null
+    });
 
-    if(Ext.form.field.Number){
-        Ext.apply(Ext.form.field.Number.prototype, {
-            minText : "Minimalus šio lauko ilgis yra {0}",
-            maxText : "Maksimalus šio lauko ilgis yra {0}",
-            nanText : "{0} yra neleistina reikšmė"
-        });
-    }
+    Ext.define("Ext.locale.lt.form.field.Number", {
+        override: "Ext.form.field.Number",
+        minText: "Minimalus šio lauko ilgis yra {0}",
+        maxText: "Maksimalus šio lauko ilgis yra {0}",
+        nanText: "{0} yra neleistina reikšmė"
+    });
 
-    if(Ext.form.field.Date){
-        Ext.apply(Ext.form.field.Date.prototype, {
-            disabledDaysText  : "Neprieinama",
-            disabledDatesText : "Neprieinama",
-            minText           : "Šiame lauke data turi būti didesnė už {0}",
-            maxText           : "Šiame lauke data turi būti mažesnėė už {0}",
-            invalidText       : "{0} yra neteisinga data - ji turi būti įvesta formatu {1}",
-            format            : "y-m-d",
-            altFormats        : "y-m-d|y/m/d|Y-m-d|m/d|m-d|md|ymd|Ymd|d|Y-m-d"
-        });
-    }
+    Ext.define("Ext.locale.lt.form.field.Date", {
+        override: "Ext.form.field.Date",
+        disabledDaysText: "Neprieinama",
+        disabledDatesText: "Neprieinama",
+        minText: "Šiame lauke data turi būti didesnė už {0}",
+        maxText: "Šiame lauke data turi būti mažesnėė už {0}",
+        invalidText: "{0} yra neteisinga data - ji turi būti įvesta formatu {1}",
+        format: "y-m-d",
+        altFormats: "y-m-d|y/m/d|Y-m-d|m/d|m-d|md|ymd|Ymd|d|Y-m-d"
+    });
 
-    if(Ext.form.field.ComboBox){
-        Ext.apply(Ext.form.field.ComboBox.prototype, {
-            valueNotFoundText : undefined
-        });
+    Ext.define("Ext.locale.lt.form.field.ComboBox", {
+        override: "Ext.form.field.ComboBox",
+        valueNotFoundText: undefined
+    }, function() {
         Ext.apply(Ext.form.field.ComboBox.prototype.defaultListConfig, {
-            loadingText       : "Kraunasi..."
+            loadingText: "Kraunasi..."
         });
-    }
+    });
 
-    if(Ext.form.field.VTypes){
+    if (exists('Ext.form.field.VTypes')) {
         Ext.apply(Ext.form.field.VTypes, {
-            emailText    : 'Šiame lauke turi būti el.pašto adresas formatu "user@example.com"',
-            urlText      : 'Šiame lauke turi būti nuoroda (URL) formatu "http:/'+'/www.example.com"',
-            alphaText    : 'Šiame lauke gali būti tik raidės ir ženklas "_"',
-            alphanumText : 'Šiame lauke gali būti tik raidės, skaičiai ir ženklas "_"'
+            emailText: 'Šiame lauke turi būti el.pašto adresas formatu "user@example.com"',
+            urlText: 'Šiame lauke turi būti nuoroda (URL) formatu "http:/' + '/www.example.com"',
+            alphaText: 'Šiame lauke gali būti tik raidės ir ženklas "_"',
+            alphanumText: 'Šiame lauke gali būti tik raidės, skaičiai ir ženklas "_"'
         });
     }
 
-    if(Ext.form.field.HtmlEditor){
+    Ext.define("Ext.locale.lt.form.field.HtmlEditor", {
+        override: "Ext.form.field.HtmlEditor",
+        createLinkText: 'Įveskite URL šiai nuorodai:'
+    }, function() {
         Ext.apply(Ext.form.field.HtmlEditor.prototype, {
-            createLinkText : 'Įveskite URL šiai nuorodai:',
-            buttonTips : {
-                bold : {
+            buttonTips: {
+                bold: {
                     title: 'Bold (Ctrl+B)',
                     text: 'Teksto paryškinimas.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                italic : {
+                italic: {
                     title: 'Italic (Ctrl+I)',
                     text: 'Kursyvinis tekstas.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                underline : {
+                underline: {
                     title: 'Underline (Ctrl+U)',
                     text: 'Teksto pabraukimas.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                increasefontsize : {
+                increasefontsize: {
                     title: 'Padidinti šriftą',
                     text: 'Padidinti šrifto dydį.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                decreasefontsize : {
+                decreasefontsize: {
                     title: 'Sumažinti šriftą',
                     text: 'Sumažinti šrifto dydį.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                backcolor : {
+                backcolor: {
                     title: 'Nuspalvinti teksto foną',
                     text: 'Pakeisti teksto fono spalvą.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                forecolor : {
+                forecolor: {
                     title: 'Teksto spalva',
                     text: 'Pakeisti pažymėto teksto spalvą.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                justifyleft : {
+                justifyleft: {
                     title: 'Išlyginti kairen',
                     text: 'Išlyginti tekstą į kairę.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                justifycenter : {
+                justifycenter: {
                     title: 'Centruoti tekstą',
                     text: 'Centruoti tektą redaktoriaus lange.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                justifyright : {
+                justifyright: {
                     title: 'Išlyginti dešinėn',
                     text: 'Išlyginti tekstą į dešinę.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                insertunorderedlist : {
+                insertunorderedlist: {
                     title: 'Paprastas sąrašas',
                     text: 'Pradėti neorganizuotą sąrašą.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                insertorderedlist : {
+                insertorderedlist: {
                     title: 'Numeruotas sąrašas',
                     text: 'Pradėti numeruotą sąrašą.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                createlink : {
+                createlink: {
                     title: 'Nuoroda',
                     text: 'Padaryti pažymėta tekstą nuoroda.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 },
-                sourceedit : {
+                sourceedit: {
                     title: 'Išeities tekstas',
                     text: 'Persijungti į išeities teksto koregavimo režimą.',
                     cls: Ext.baseCSSPrefix + 'html-editor-tip'
                 }
             }
         });
-    }
+    });
 
-    if(Ext.form.Basic){
-        Ext.form.Basic.prototype.waitTitle = "Palaukite...";
-    }
+    Ext.define("Ext.locale.lt.form.Basic", {
+        override: "Ext.form.Basic",
+        waitTitle: "Palaukite..."
+    });
 
-    if(Ext.grid.header.Container){
-        Ext.apply(Ext.grid.header.Container.prototype, {
-            sortAscText  : "Rūšiuoti didėjančia tvarka",
-            sortDescText : "Rūšiuoti mažėjančia tvarka",
-            lockText     : "Užfiksuoti stulpelį",
-            unlockText   : "Atlaisvinti stulpelį",
-            columnsText  : "Stulpeliai"
-        });
-    }
+    Ext.define("Ext.locale.lt.grid.header.Container", {
+        override: "Ext.grid.header.Container",
+        sortAscText: "Rūšiuoti didėjančia tvarka",
+        sortDescText: "Rūšiuoti mažėjančia tvarka",
+        lockText: "Užfiksuoti stulpelį",
+        unlockText: "Atlaisvinti stulpelį",
+        columnsText: "Stulpeliai"
+    });
 
-    if(Ext.grid.GroupingFeature){
-        Ext.apply(Ext.grid.GroupingFeature.prototype, {
-            emptyGroupText : '(Nėra)',
-            groupByText    : 'Grupuoti pagal šį lauką',
-            showGroupsText : 'Rodyti grupėse'
-        });
-    }
+    Ext.define("Ext.locale.lt.grid.GroupingFeature", {
+        override: "Ext.grid.GroupingFeature",
+        emptyGroupText: '(Nėra)',
+        groupByText: 'Grupuoti pagal šį lauką',
+        showGroupsText: 'Rodyti grupėse'
+    });
 
-    if(Ext.grid.PropertyColumnModel){
-        Ext.apply(Ext.grid.PropertyColumnModel.prototype, {
-            nameText   : "Pavadinimas",
-            valueText  : "Reikšmė",
-            dateFormat : "Y-m-d"
-        });
-    }
+    Ext.define("Ext.locale.lt.grid.PropertyColumnModel", {
+        override: "Ext.grid.PropertyColumnModel",
+        nameText: "Pavadinimas",
+        valueText: "Reikšmė",
+        dateFormat: "Y-m-d"
+    });
 
-    if(Ext.layout.BorderLayout && Ext.layout.BorderLayout.SplitRegion){
-        Ext.apply(Ext.layout.BorderLayout.SplitRegion.prototype, {
-            splitTip            : "Patraukite juostelę.",
-            collapsibleSplitTip : "Patraukite juostelę arba Paspauskite dvigubai kad paslėpti."
-        });
-    }
+    Ext.define("Ext.locale.lt.form.field.Time", {
+        override: "Ext.form.field.Time",
+        minText: "Laikas turi buti lygus arba vėlesnis už {0}",
+        maxText: "Laikas turi būti lygus arba ankstesnis už {0}",
+        invalidText: "{0} yra neteisingas laikas",
+        format: "H:i",
+        altFormats: "g:ia|g:iA|g:i a|g:i A|h:i|g:i|H:i|ga|ha|gA|h a|g a|g A|gi|hi|gia|hia|g|H"
+    });
 
-    if(Ext.form.field.Time){
-        Ext.apply(Ext.form.field.Time.prototype, {
-            minText : "Laikas turi buti lygus arba vėlesnis už {0}",
-            maxText : "Laikas turi būti lygus arba ankstesnis už {0}",
-            invalidText : "{0} yra neteisingas laikas",
-            format : "H:i",
-            altFormats : "g:ia|g:iA|g:i a|g:i A|h:i|g:i|H:i|ga|ha|gA|h a|g a|g A|gi|hi|gia|hia|g|H"
-        });
-    }
+    Ext.define("Ext.locale.lt.form.CheckboxGroup", {
+        override: "Ext.form.CheckboxGroup",
+        blankText: "Jūs turite padaryti bent vieną pasirinkimą šioje grupėje"
+    });
 
-    if(Ext.form.CheckboxGroup){
-        Ext.apply(Ext.form.CheckboxGroup.prototype, {
-            blankText : "Jūs turite padaryti bent vieną pasirinkimą šioje grupėje"
-        });
-    }
-
-    if(Ext.form.RadioGroup){
-        Ext.apply(Ext.form.RadioGroup.prototype, {
-            blankText : "Jūs turite padaryti bent vieną pasirinkimą šioje grupėje"
-        });
-    }
+    Ext.define("Ext.locale.lt.form.RadioGroup", {
+        override: "Ext.form.RadioGroup",
+        blankText: "Jūs turite padaryti bent vieną pasirinkimą šioje grupėje"
+    });
 });

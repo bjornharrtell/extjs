@@ -17,16 +17,11 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-data-XmlStore'>/**
 </span> * @author Ed Spencer
- * @class Ext.data.XmlStore
- * @extends Ext.data.Store
- * @private
- * @ignore
  * &lt;p&gt;Small helper class to make creating {@link Ext.data.Store}s from XML data easier.
  * A XmlStore will be automatically configured with a {@link Ext.data.reader.Xml}.&lt;/p&gt;
  * &lt;p&gt;A store configuration would be something like:&lt;pre&gt;&lt;code&gt;
 var store = new Ext.data.XmlStore({
     // store configs
-    autoDestroy: true,
     storeId: 'myStore',
     url: 'sheldon.xml', // automatically configures a HttpProxy
     // reader configs
@@ -69,34 +64,31 @@ var store = new Ext.data.XmlStore({
     &amp;#60/Items&gt;
 &amp;#60/ItemSearchResponse&gt;
  * &lt;/code&gt;&lt;/pre&gt;
- * An object literal of this form could also be used as the {@link #data} config option.&lt;/p&gt;
+ * An object literal of this form could also be used as the {@link #cfg-data} config option.&lt;/p&gt;
  * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; This class accepts all of the configuration options of
  * &lt;b&gt;{@link Ext.data.reader.Xml XmlReader}&lt;/b&gt;.&lt;/p&gt;
- * @xtype xmlstore
  */
 Ext.define('Ext.data.XmlStore', {
     extend: 'Ext.data.Store',
-    alternateClassName: 'Ext.data.XmlStore',
     alias: 'store.xml',
 
-<span id='Ext-data-XmlStore-cfg-reader'>    /**
-</span>     * @cfg {Ext.data.DataReader} reader @hide
-     */
+    requires: [
+        'Ext.data.proxy.Ajax',
+        'Ext.data.reader.Xml',
+        'Ext.data.writer.Xml'
+    ],
+    
     constructor: function(config){
-        config = config || {};
-        config = config || {};
-
-        Ext.applyIf(config, {
+        config = Ext.apply({
             proxy: {
                 type: 'ajax',
                 reader: 'xml',
                 writer: 'xml'
             }
-        });
+        }, config);
 
         this.callParent([config]);
     }
-});
-</pre>
+});</pre>
 </body>
 </html>

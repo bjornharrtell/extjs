@@ -1,27 +1,11 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.view.DropZone
- * @extends Ext.dd.DropZone
  * @private
  */
 Ext.define('Ext.view.DropZone', {
     extend: 'Ext.dd.DropZone',
 
-    indicatorHtml: '<div class="x-grid-drop-indicator-left"></div><div class="x-grid-drop-indicator-right"></div>',
-    indicatorCls: 'x-grid-drop-indicator',
+    indicatorHtml: '<div class="' + Ext.baseCSSPrefix + 'grid-drop-indicator-left"></div><div class="' + Ext.baseCSSPrefix + 'grid-drop-indicator-right"></div>',
+    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
 
     constructor: function(config) {
         var me = this;
@@ -77,7 +61,7 @@ Ext.define('Ext.view.DropZone', {
         var me = this;
 
         if (!me.indicator) {
-            me.indicator = Ext.createWidget('component', {
+            me.indicator = new Ext.Component({
                 html: me.indicatorHtml,
                 cls: me.indicatorCls,
                 ownerCt: me.view,
@@ -127,7 +111,7 @@ Ext.define('Ext.view.DropZone', {
             pos = me.getPosition(e, node),
             overRecord = view.getRecord(node),
             draggingRecords = data.records,
-            indicator, indicatorY;
+            indicatorY;
 
         if (!Ext.Array.contains(draggingRecords, overRecord) && (
             pos == 'before' && !me.containsRecordAtOffset(draggingRecords, overRecord, -1) ||
@@ -209,26 +193,39 @@ Ext.define('Ext.view.DropZone', {
 
     onNodeDrop: function(node, dragZone, e, data) {
         var me = this,
-            dropped = false,
-
+            dropHandled = false,
+ 
             // Create a closure to perform the operation which the event handler may use.
-            // Users may now return <code>false</code> from the beforedrop handler, and perform any kind
+            // Users may now set the wait parameter in the beforedrop handler, and perform any kind
             // of asynchronous processing such as an Ext.Msg.confirm, or an Ajax request,
-            // and complete the drop gesture at some point in the future by calling this function.
-            processDrop = function () {
-                me.invalidateDrop();
-                me.handleNodeDrop(data, me.overRecord, me.currentPosition);
-                dropped = true;
-                me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+            // and complete the drop gesture at some point in the future by calling either the
+            // processDrop or cancelDrop methods.
+            dropHandlers = {
+                wait: false,
+                processDrop: function () {
+                    me.invalidateDrop();
+                    me.handleNodeDrop(data, me.overRecord, me.currentPosition);
+                    dropHandled = true;
+                    me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+                },
+ 
+                cancelDrop: function() {
+                    me.invalidateDrop();
+                    dropHandled = true;
+                }
             },
             performOperation = false;
-
+ 
         if (me.valid) {
-            performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, processDrop);
+            performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, dropHandlers);
+            if (dropHandlers.wait) {
+                return;
+            }
+ 
             if (performOperation !== false) {
-                // If the processDrop function was called in the event handler, do not do it again.
-                if (!dropped) {
-                    processDrop();
+                // If either of the drop handlers were called in the event handler, do not do it again.
+                if (!dropHandled) {
+                    dropHandlers.processDrop();
                 }
             }
         }
@@ -241,4 +238,3 @@ Ext.define('Ext.view.DropZone', {
         this.callParent();
     }
 });
-

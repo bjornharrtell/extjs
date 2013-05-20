@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-grid-header-DragZone'>/**
-</span> * @class Ext.grid.header.DragZone
- * @extends Ext.dd.DragZone
- * @private
+</span> * @private
  */
 Ext.define('Ext.grid.header.DragZone', {
     extend: 'Ext.dd.DragZone',
@@ -38,12 +36,13 @@ Ext.define('Ext.grid.header.DragZone', {
 
     getDragData: function(e) {
         var header = e.getTarget('.'+this.colHeaderCls),
-            headerCmp;
+            headerCmp,
+            ddel;
 
         if (header) {
             headerCmp = Ext.getCmp(header.id);
             if (!this.headerCt.dragging &amp;&amp; headerCmp.draggable &amp;&amp; !(headerCmp.isOnLeftEdge(e) || headerCmp.isOnRightEdge(e))) {
-                var ddel = document.createElement('div');
+                ddel = document.createElement('div');
                 ddel.innerHTML = Ext.getCmp(header.id).text;
                 return {
                     ddel: ddel,

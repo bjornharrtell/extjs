@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A date picker. This class is used by the Ext.form.field.Date field to allow browsing and selection of valid
  * dates in a popup next to the field, but may also be used with other components.
@@ -54,11 +40,17 @@ Ext.define('Ext.picker.Date', {
     alias: 'widget.datepicker',
     alternateClassName: 'Ext.DatePicker',
 
+    childEls: [
+        'innerEl', 'eventEl', 'prevEl', 'nextEl', 'middleBtnEl', 'footerEl'
+    ],
+    
+    border: true,
+
     renderTpl: [
-        '<div class="{cls}" id="{id}" role="grid" title="{ariaTitle} {value:this.longDay}">',
+        '<div id="{id}-innerEl" role="grid">',
             '<div role="presentation" class="{baseCls}-header">',
                 '<div class="{baseCls}-prev"><a id="{id}-prevEl" href="#" role="button" title="{prevText}"></a></div>',
-                '<div class="{baseCls}-month" id="{id}-middleBtnEl"></div>',
+                '<div class="{baseCls}-month" id="{id}-middleBtnEl">{%this.renderMonthBtn(values, out)%}</div>',
                 '<div class="{baseCls}-next"><a id="{id}-nextEl" href="#" role="button" title="{nextText}"></a></div>',
             '</div>',
             '<table id="{id}-eventEl" class="{baseCls}-inner" cellspacing="0" role="presentation">',
@@ -79,12 +71,12 @@ Ext.define('Ext.picker.Date', {
                 '</tr></tbody>',
             '</table>',
             '<tpl if="showToday">',
-                '<div id="{id}-footerEl" role="presentation" class="{baseCls}-footer"></div>',
+                '<div id="{id}-footerEl" role="presentation" class="{baseCls}-footer">{%this.renderTodayBtn(values, out)%}</div>',
             '</tpl>',
         '</div>',
         {
             firstInitial: function(value) {
-                return value.substr(0,1);
+                return Ext.picker.Date.prototype.getDayInitial(value);
             },
             isEndOfWeek: function(value) {
                 // convert from 1 based index to 0 based
@@ -93,19 +85,38 @@ Ext.define('Ext.picker.Date', {
                 var end = value % 7 === 0 && value !== 0;
                 return end ? '</tr><tr role="row">' : '';
             },
-            longDay: function(value){
-                return Ext.Date.format(value, this.longDayFormat);
+            renderTodayBtn: function(values, out) {
+                Ext.DomHelper.generateMarkup(values.$comp.todayBtn.getRenderTree(), out);
+            },
+            renderMonthBtn: function(values, out) {
+                Ext.DomHelper.generateMarkup(values.$comp.monthBtn.getRenderTree(), out);
             }
         }
     ],
 
-    ariaTitle: 'Date Picker',
-
+    //<locale>
     /**
      * @cfg {String} todayText
      * The text to display on the button that selects the current date
      */
     todayText : 'Today',
+    //</locale>
+    
+    //<locale>
+    /**
+     * @cfg {String} ariaTitle
+     * The text to display for the aria title
+     */
+    ariaTitle: 'Date Picker: {0}',
+    //</locale>
+    
+    //<locale>
+    /**
+     * @cfg {String} ariaTitleDateFormat
+     * The date format to display for the current value in the {@link #ariaTitle}
+     */
+    ariaTitleDateFormat: 'F d, Y',
+    //</locale>
 
     /**
      * @cfg {Function} handler
@@ -123,28 +134,35 @@ Ext.define('Ext.picker.Date', {
 
     /**
      * @cfg {Object} scope
-     * The scope (`this` reference) in which the `{@link #handler}` function will be called. Defaults to this
-     * DatePicker instance.
+     * The scope (`this` reference) in which the `{@link #handler}` function will be called.
+     *
+     * Defaults to this DatePicker instance.
      */
 
+    //<locale>
     /**
      * @cfg {String} todayTip
      * A string used to format the message for displaying in a tooltip over the button that selects the current date.
      * The `{0}` token in string is replaced by today's date.
      */
     todayTip : '{0} (Spacebar)',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} minText
      * The error text to display if the minDate validation fails.
      */
     minText : 'This date is before the minimum date',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} maxText
      * The error text to display if the maxDate validation fails.
      */
     maxText : 'This date is after the maximum date',
+    //</locale>
 
     /**
      * @cfg {String} format
@@ -152,17 +170,21 @@ Ext.define('Ext.picker.Date', {
      * according to {@link Ext.Date#parse} (defaults to {@link Ext.Date#defaultFormat}).
      */
 
+    //<locale>
     /**
      * @cfg {String} disabledDaysText
      * The tooltip to display when the date falls on a disabled day.
      */
     disabledDaysText : 'Disabled',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} disabledDatesText
      * The tooltip text to display when the date falls on a disabled date.
      */
     disabledDatesText : 'Disabled',
+    //</locale>
 
     /**
      * @cfg {String[]} monthNames
@@ -174,36 +196,56 @@ Ext.define('Ext.picker.Date', {
      * An array of textual day names which can be overriden for localization support (defaults to Ext.Date.dayNames)
      */
 
+    //<locale>
     /**
      * @cfg {String} nextText
      * The next month navigation button tooltip
      */
     nextText : 'Next Month (Control+Right)',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} prevText
      * The previous month navigation button tooltip
      */
     prevText : 'Previous Month (Control+Left)',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} monthYearText
      * The header month selector tooltip
      */
     monthYearText : 'Choose a month (Control+Up/Down to move years)',
-
+    //</locale>
+    
+    //<locale>
     /**
-     * @cfg {Number} startDay
-     * Day index at which the week should begin, 0-based (defaults to Sunday)
+     * @cfg {String} monthYearFormat
+     * The date format for the header month
+     */
+    monthYearFormat: 'F Y',
+    //</locale>
+
+    //<locale>
+    /**
+     * @cfg {Number} [startDay=undefined]
+     * Day index at which the week should begin, 0-based.
+     *
+     * Defaults to `0` (Sunday).
      */
     startDay : 0,
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {Boolean} showToday
      * False to hide the footer area containing the Today button and disable the keyboard handler for spacebar that
      * selects the current date.
      */
     showToday : true,
+    //</locale>
 
     /**
      * @cfg {Date} [minDate=null]
@@ -265,11 +307,13 @@ Ext.define('Ext.picker.Date', {
      * The class to apply to disabled cells.
      */
 
+    //<locale>
     /**
      * @cfg {String} longDayFormat
      * The format for displaying a date in a longer format.
      */
     longDayFormat: 'F d, Y',
+    //</locale>
 
     /**
      * @cfg {Object} keyNavConfig
@@ -308,6 +352,20 @@ Ext.define('Ext.picker.Date', {
         me.nextCls = me.baseCls + '-prevday';
         me.todayCls = me.baseCls + '-today';
         me.dayNames = me.dayNames.slice(me.startDay).concat(me.dayNames.slice(0, me.startDay));
+
+        me.listeners = Ext.apply(me.listeners||{}, {
+            mousewheel: {
+                element: 'eventEl',
+                fn: me.handleMouseWheel,
+                scope: me
+            },
+            click: {
+                element: 'eventEl',
+                fn: me.handleDateClick, 
+                scope: me,
+                delegate: 'a.' + me.baseCls + '-date'
+            }
+        });
         this.callParent();
 
         me.value = me.value ?
@@ -326,17 +384,47 @@ Ext.define('Ext.picker.Date', {
         me.initDisabledDays();
     },
 
-    // private, inherit docs
-    onRender : function(container, position){
+    beforeRender: function () {
         /*
          * days array for looping through 6 full weeks (6 weeks * 7 days)
          * Note that we explicitly force the size here so the template creates
          * all the appropriate cells.
          */
-
         var me = this,
             days = new Array(me.numDays),
             today = Ext.Date.format(new Date(), me.format);
+
+        // If there's a Menu among our ancestors, then add the menu class.
+        // This is so that the MenuManager does not see a mousedown in this Component as a document mousedown, outside the Menu
+        if (me.up('menu')) {
+            me.addCls(Ext.baseCSSPrefix + 'menu');
+        }
+
+        me.monthBtn = new Ext.button.Split({
+            ownerCt: me,
+            ownerLayout: me.getComponentLayout(),
+            text: '',
+            tooltip: me.monthYearText,
+            listeners: {
+                click: me.showMonthPicker,
+                arrowclick: me.showMonthPicker,
+                scope: me
+            }
+        });
+
+        if (this.showToday) {
+            me.todayBtn = new Ext.button.Button({
+                ownerCt: me,
+                ownerLayout: me.getComponentLayout(),
+                text: Ext.String.format(me.todayText, today),
+                tooltip: Ext.String.format(me.todayTip, today),
+                tooltipType: 'title',
+                handler: me.selectToday,
+                scope: me
+            });
+        }
+
+        me.callParent();
 
         Ext.applyIf(me, {
             renderData: {}
@@ -344,38 +432,33 @@ Ext.define('Ext.picker.Date', {
 
         Ext.apply(me.renderData, {
             dayNames: me.dayNames,
-            ariaTitle: me.ariaTitle,
-            value: me.value,
             showToday: me.showToday,
             prevText: me.prevText,
             nextText: me.nextText,
             days: days
         });
-        me.getTpl('renderTpl').longDayFormat = me.longDayFormat;
+    },
 
-        me.addChildEls('eventEl', 'prevEl', 'nextEl', 'middleBtnEl', 'footerEl');
+    // Do the job of a container layout at this point even though we are not a Container.
+    // TODO: Refactor as a Container.
+    finishRenderChildren: function () {
+        var me = this;
+        
+        me.callParent();
+        me.monthBtn.finishRender();
+        if (me.showToday) {
+            me.todayBtn.finishRender();
+        }
+    },
 
-        this.callParent(arguments);
+    // private, inherit docs
+    onRender : function(container, position){
+        var me = this;
+
+        me.callParent(arguments);
         me.el.unselectable();
-
         me.cells = me.eventEl.select('tbody td');
         me.textNodes = me.eventEl.query('tbody td span');
-
-        me.monthBtn = Ext.create('Ext.button.Split', {
-            text: '',
-            tooltip: me.monthYearText,
-            renderTo: me.middleBtnEl
-        });
-        //~ me.middleBtnEl.down('button').addCls(Ext.baseCSSPrefix + 'btn-arrow');
-
-
-        me.todayBtn = Ext.create('Ext.button.Button', {
-            renderTo: me.footerEl,
-            text: Ext.String.format(me.todayText, today),
-            tooltip: Ext.String.format(me.todayTip, today),
-            handler: me.selectToday,
-            scope: me
-        });
     },
 
     // private, inherit docs
@@ -384,25 +467,25 @@ Ext.define('Ext.picker.Date', {
             eDate = Ext.Date,
             day = eDate.DAY;
 
-        this.callParent();
+        me.callParent();
 
-        me.prevRepeater = Ext.create('Ext.util.ClickRepeater', me.prevEl, {
+        me.prevRepeater = new Ext.util.ClickRepeater(me.prevEl, {
             handler: me.showPrevMonth,
             scope: me,
             preventDefault: true,
             stopDefault: true
         });
 
-        me.nextRepeater = Ext.create('Ext.util.ClickRepeater', me.nextEl, {
+        me.nextRepeater = new Ext.util.ClickRepeater(me.nextEl, {
             handler: me.showNextMonth,
             scope: me,
             preventDefault:true,
             stopDefault:true
         });
 
-        me.keyNav = Ext.create('Ext.util.KeyNav', me.eventEl, Ext.apply({
+        me.keyNav = new Ext.util.KeyNav(me.eventEl, Ext.apply({
             scope: me,
-            'left' : function(e){
+            left : function(e){
                 if(e.ctrlKey){
                     me.showPrevMonth();
                 }else{
@@ -410,7 +493,7 @@ Ext.define('Ext.picker.Date', {
                 }
             },
 
-            'right' : function(e){
+            right : function(e){
                 if(e.ctrlKey){
                     me.showNextMonth();
                 }else{
@@ -418,7 +501,7 @@ Ext.define('Ext.picker.Date', {
                 }
             },
 
-            'up' : function(e){
+            up : function(e){
                 if(e.ctrlKey){
                     me.showNextYear();
                 }else{
@@ -426,28 +509,24 @@ Ext.define('Ext.picker.Date', {
                 }
             },
 
-            'down' : function(e){
+            down : function(e){
                 if(e.ctrlKey){
                     me.showPrevYear();
                 }else{
                     me.update(eDate.add(me.activeDate, day, 7));
                 }
             },
-            'pageUp' : me.showNextMonth,
-            'pageDown' : me.showPrevMonth,
-            'enter' : function(e){
+            pageUp : me.showNextMonth,
+            pageDown : me.showPrevMonth,
+            enter : function(e){
                 e.stopPropagation();
                 return true;
             }
         }, me.keyNavConfig));
 
-        if(me.showToday){
+        if (me.showToday) {
             me.todayKeyListener = me.eventEl.addKeyListener(Ext.EventObject.SPACE, me.selectToday,  me);
         }
-        me.mon(me.eventEl, 'mousewheel', me.handleMouseWheel, me);
-        me.mon(me.eventEl, 'click', me.handleDateClick,  me, {delegate: 'a.' + me.baseCls + '-date'});
-        me.mon(me.monthBtn, 'click', me.showMonthPicker, me);
-        me.mon(me.monthBtn, 'arrowclick', me.showMonthPicker, me);
         me.update(me.value);
     },
 
@@ -459,17 +538,23 @@ Ext.define('Ext.picker.Date', {
         var me = this,
             dd = me.disabledDates,
             re = '(?:',
-            len;
+            len,
+            d, dLen, dI;
 
         if(!me.disabledDatesRE && dd){
                 len = dd.length - 1;
 
-            Ext.each(dd, function(d, i){
-                re += Ext.isDate(d) ? '^' + Ext.String.escapeRegex(Ext.Date.dateFormat(d, me.format)) + '$' : dd[i];
-                if(i != len){
+            dLen = dd.length;
+
+            for (d = 0; d < dLen; d++) {
+                dI = dd[d];
+
+                re += Ext.isDate(dI) ? '^' + Ext.String.escapeRegex(Ext.Date.dateFormat(dI, me.format)) + '$' : dI;
+                if (d != len) {
                     re += '|';
                 }
-            }, me);
+            }
+
             me.disabledDatesRE = new RegExp(re + ')');
         }
     },
@@ -542,6 +627,16 @@ Ext.define('Ext.picker.Date', {
     getValue : function(){
         return this.value;
     },
+
+    //<locale type="function">
+    /**
+     * Gets a single character to represent the day of the week
+     * @return {String} The character
+     */
+    getDayInitial: function(value){
+        return value.substr(0,1);
+    },
+    //</locale>
 
     // private
     focus : function(){
@@ -679,7 +774,7 @@ Ext.define('Ext.picker.Date', {
             picker = me.monthPicker;
 
         if (!picker) {
-            me.monthPicker = picker = Ext.create('Ext.picker.Month', {
+            me.monthPicker = picker = new Ext.picker.Month({
                 renderTo: me.el,
                 floating: true,
                 shadow: false,
@@ -713,7 +808,7 @@ Ext.define('Ext.picker.Date', {
 
         if (date.getMonth() !== month) {
             // 'fix' the JS rolling date conversion if needed
-            date = new Date(year, month, 1).getLastDateOfMonth();
+            date = Ext.Date.getLastDateOfMonth(new Date(year, month, 1));
         }
         me.update(date);
         me.hideMonthPicker();
@@ -724,6 +819,8 @@ Ext.define('Ext.picker.Date', {
      * @private
      */
     onCancelClick: function(){
+        // update the selected value, also triggers a focus
+        this.selectedUpdate(this.activeDate);
         this.hideMonthPicker();
     },
 
@@ -790,9 +887,9 @@ Ext.define('Ext.picker.Date', {
 
         e.stopEvent();
         if(!me.disabled && t.dateValue && !Ext.fly(t.parentNode).hasCls(me.disabledCellCls)){
-            me.cancelFocus = me.focusOnSelect === false;
+            me.doCancelFocus = me.focusOnSelect === false;
             me.setValue(new Date(t.dateValue));
-            delete me.cancelFocus;
+            delete me.doCancelFocus;
             me.fireEvent('select', me, me.value);
             if (handler) {
                 handler.call(me.scope || me, me, me.value);
@@ -839,34 +936,41 @@ Ext.define('Ext.picker.Date', {
      * Update the selected cell
      * @private
      * @param {Date} date The new date
-     * @param {Date} active The active date
      */
-    selectedUpdate: function(date, active){
-        var me = this,
-            t = date.getTime(),
-            cells = me.cells,
-            cls = me.selectedCls;
+    selectedUpdate: function(date){
+        var me        = this,
+            t         = date.getTime(),
+            cells     = me.cells,
+            cls       = me.selectedCls,
+            cellItems = cells.elements,
+            c,
+            cLen      = cellItems.length,
+            cell;
 
         cells.removeCls(cls);
-        cells.each(function(c){
-            if (c.dom.firstChild.dateValue == t) {
-                me.el.dom.setAttribute('aria-activedescendent', c.dom.id);
-                c.addCls(cls);
-                if(me.isVisible() && !me.cancelFocus){
-                    Ext.fly(c.dom.firstChild).focus(50);
+
+        for (c = 0; c < cLen; c++) {
+            cell = Ext.fly(cellItems[c]);
+
+            if (cell.dom.firstChild.dateValue == t) {
+                me.fireEvent('highlightitem', me, cell);
+                cell.addCls(cls);
+
+                if(me.isVisible() && !me.doCancelFocus){
+                    Ext.fly(cell.dom.firstChild).focus(50);
                 }
-                return false;
+
+                break;
             }
-        }, this);
+        }
     },
 
     /**
      * Update the contents of the picker for a new month
      * @private
      * @param {Date} date The new date
-     * @param {Date} active The active date
      */
-    fullUpdate: function(date, active){
+    fullUpdate: function(date){
         var me = this,
             cells = me.cells.elements,
             textNodes = me.textNodes,
@@ -930,7 +1034,7 @@ Ext.define('Ext.picker.Date', {
             }
             if(value == sel){
                 cell.className += ' ' + me.selectedCls;
-                me.el.dom.setAttribute('aria-activedescendant', cell.id);
+                me.fireEvent('highlightitem', me, cell);
                 if (visible && me.floating) {
                     Ext.fly(cell.firstChild).focus(50);
                 }
@@ -978,7 +1082,7 @@ Ext.define('Ext.picker.Date', {
             setCellClass(cells[i]);
         }
 
-        me.monthBtn.setText(me.monthNames[date.getMonth()] + ' ' + date.getFullYear());
+        me.monthBtn.setText(Ext.Date.format(date, me.monthYearFormat));
     },
 
     /**
@@ -998,6 +1102,7 @@ Ext.define('Ext.picker.Date', {
             } else {
                 me.fullUpdate(date, active);
             }
+            me.innerEl.dom.title = Ext.String.format(me.ariaTitle, Ext.Date.format(me.activeDate, me.ariaTitleDateFormat));
         }
         return me;
     },
@@ -1033,12 +1138,10 @@ Ext.define('Ext.picker.Date', {
 
 // After dependencies have loaded:
 function() {
-    var proto = this.prototype;
+    var proto = this.prototype,
+        date = Ext.Date;
 
-    proto.monthNames = Ext.Date.monthNames;
-
-    proto.dayNames = Ext.Date.dayNames;
-
-    proto.format = Ext.Date.defaultFormat;
+    proto.monthNames = date.monthNames;
+    proto.dayNames   = date.dayNames;
+    proto.format     = date.defaultFormat;
 });
-

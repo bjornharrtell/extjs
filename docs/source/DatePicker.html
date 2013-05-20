@@ -74,7 +74,7 @@
 
 <span id='Ext-menu-DatePicker-cfg-maxHeight'>    /**
 </span>     * @cfg {Number} maxHeight
-     * @hide
+     * @private
      */
 
 <span id='Ext-menu-DatePicker-property-picker'>    /**
@@ -82,19 +82,13 @@
      * The {@link Ext.picker.Date} instance for this DateMenu
      */
 
-<span id='Ext-menu-DatePicker-event-click'>    /**
-</span>     * @event click
-     * @hide
-     */
-
-<span id='Ext-menu-DatePicker-event-itemclick'>    /**
-</span>     * @event itemclick
-     * @hide
-     */
-
     initComponent : function(){
-        var me = this;
-
+        var me = this,
+            cfg = Ext.apply({}, me.initialConfig);
+            
+        // Ensure we clear any listeners so they aren't duplicated
+        delete cfg.listeners;
+            
         Ext.apply(me, {
             showSeparator: false,
             plain: true,
@@ -104,7 +98,7 @@
                 cls: Ext.baseCSSPrefix + 'menu-date-item',
                 id: me.pickerId,
                 xtype: 'datepicker'
-            }, me.initialConfig)
+            }, cfg)
         });
 
         me.callParent(arguments);
@@ -112,7 +106,7 @@
         me.picker = me.down('datepicker');
 <span id='Ext-menu-DatePicker-event-select'>        /**
 </span>         * @event select
-         * @alias Ext.picker.Date#select
+         * @inheritdoc Ext.picker.Date#select
          */
         me.relayEvents(me.picker, ['select']);
 

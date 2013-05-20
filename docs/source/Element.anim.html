@@ -15,24 +15,89 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Element'>/**
-</span> * @class Ext.Element
+  <pre class="prettyprint lang-js"><span id='Ext-dom-Element'>/**
+</span> * @class Ext.dom.Element
  */
-Ext.applyIf(Ext.Element.prototype, {
-    // @private override base Ext.util.Animate mixin for animate for backwards compatibility
+/* ================================
+ * A Note About Wrapped Animations
+ * ================================
+ * A few of the effects below implement two different animations per effect, one wrapping
+ * animation that performs the visual effect and a &quot;no-op&quot; animation on this Element where
+ * no attributes of the element itself actually change. The purpose for this is that the
+ * wrapper is required for the effect to work and so it does the actual animation work, but
+ * we always animate `this` so that the element's events and callbacks work as expected to
+ * the callers of this API.
+ * 
+ * Because of this, we always want each wrap animation to complete first (we don't want to
+ * cut off the visual effect early). To ensure that, we arbitrarily increase the duration of
+ * the element's no-op animation, also ensuring that it has a decent minimum value -- on slow
+ * systems, too-low durations can cause race conditions between the wrap animation and the
+ * element animation being removed out of order. Note that in each wrap's `afteranimate`
+ * callback it will explicitly terminate the element animation as soon as the wrap is complete,
+ * so there's no real danger in making the duration too long.
+ * 
+ * This applies to all effects that get wrapped, including slideIn, slideOut, switchOff and frame.
+ */
+
+Ext.dom.Element.override({
+<span id='Ext-dom-Element-method-animate'>    /**
+</span>     * Performs custom animation on this Element.
+     *
+     * The following properties may be specified in `from`, `to`, and `keyframe` objects:
+     *
+     *   - `x` - The page X position in pixels.
+     *
+     *   - `y` - The page Y position in pixels
+     *
+     *   - `left` - The element's CSS `left` value. Units must be supplied.
+     *
+     *   - `top` - The element's CSS `top` value. Units must be supplied.
+     *
+     *   - `width` - The element's CSS `width` value. Units must be supplied.
+     *
+     *   - `height` - The element's CSS `height` value. Units must be supplied.
+     *
+     *   - `scrollLeft` - The element's `scrollLeft` value.
+     *
+     *   - `scrollTop` - The element's `scrollTop` value.
+     *
+     *   - `opacity` - The element's `opacity` value. This must be a value between `0` and `1`.
+     *
+     * **Be aware** that animating an Element which is being used by an Ext Component without in some way informing the
+     * Component about the changed element state will result in incorrect Component behaviour. This is because the
+     * Component will be using the old state of the element. To avoid this problem, it is now possible to directly
+     * animate certain properties of Components.
+     *
+     * @param {Object} config  Configuration for {@link Ext.fx.Anim}.
+     * Note that the {@link Ext.fx.Anim#to to} config is required.
+     * @return {Ext.dom.Element} this
+     */
     animate: function(config) {
-        var me = this;
-        if (!me.id) {
-            me = Ext.get(me.dom);
+        var me = this,
+            listeners,
+            anim,
+            animId = me.dom.id || Ext.id(me.dom);
+
+        if (!Ext.fx.Manager.hasFxBlock(animId)) {
+            // Bit of gymnastics here to ensure our internal listeners get bound first
+            if (config.listeners) {
+                listeners = config.listeners;
+                delete config.listeners;
+            }
+            if (config.internalListeners) {
+                config.listeners = config.internalListeners;
+                delete config.internalListeners;
+            }
+            anim = new Ext.fx.Anim(me.anim(config));
+            if (listeners) {
+                anim.on(listeners);
+            }
+            Ext.fx.Manager.queueFx(anim);
         }
-        if (Ext.fx.Manager.hasFxBlock(me.id)) {
-            return me;
-        }
-        Ext.fx.Manager.queueFx(Ext.create('Ext.fx.Anim', me.anim(config)));
-        return this;
+        return me;
     },
 
-    // @private override base Ext.util.Animate mixin for animate for backwards compatibility
+    // @private - process the passed fx configuration.
     anim: function(config) {
         if (!Ext.isObject(config)) {
             return (config) ? {} : false;
@@ -55,7 +120,8 @@ Ext.applyIf(Ext.Element.prototype, {
         });
 
         animConfig = {
-            target: me,
+            // Pass the DOM reference. That's tested first so will be converted to an Ext.fx.Target fastest.
+            target: me.dom,
             remove: config.remove,
             alternate: config.alternate || false,
             duration: duration,
@@ -95,7 +161,7 @@ Ext.applyIf(Ext.Element.prototype, {
         return animConfig;
     },
 
-<span id='Ext-Element-method-slideIn'>    /**
+<span id='Ext-dom-Element-method-slideIn'>    /**
 </span>     * Slides the element into view. An anchor point can be optionally passed to set the point of origin for the slide
      * effect. This function automatically handles wrapping the element with a fixed-size container if needed. See the
      * Fx class overview for valid anchor point options. Usage:
@@ -112,14 +178,20 @@ Ext.applyIf(Ext.Element.prototype, {
      *         duration: 500
      *     });
      *
-     * @param {String} [anchor='t'] One of the valid Fx anchor positions
-     * @param {Object} [options] Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
+     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Boolean} options.preserveScroll Set to true if preservation of any descendant elements'
+     * `scrollTop` values is required. By default the DOM wrapping operation performed by `slideIn` and
+     * `slideOut` causes the browser to lose all scroll positions.
+     * @return {Ext.dom.Element} The Element
      */
     slideIn: function(anchor, obj, slideOut) {
         var me = this,
             elStyle = me.dom.style,
-            beforeAnim, wrapAnim;
+            beforeAnim,
+            wrapAnim,
+            restoreScroll,
+            wrapDomParentNode;
 
         anchor = anchor || &quot;t&quot;;
         obj = obj || {};
@@ -127,7 +199,7 @@ Ext.applyIf(Ext.Element.prototype, {
         beforeAnim = function() {
             var animScope = this,
                 listeners = obj.listeners,
-                box, position, restoreSize, wrap, anim;
+                box, originalStyles, anim, wrap;
 
             if (!slideOut) {
                 me.fixDisplay();
@@ -141,20 +213,32 @@ Ext.applyIf(Ext.Element.prototype, {
                 box.width = me.dom.scrollWidth;
             }
 
-            position = me.getPositioning();
+            originalStyles = me.getStyles('width', 'height', 'left', 'right', 'top', 'bottom', 'position', 'z-index', true);
             me.setSize(box.width, box.height);
 
+            // Cache all descendants' scrollTop &amp; scrollLeft values if configured to preserve scroll.
+            if (obj.preserveScroll) {
+                restoreScroll = me.cacheScrollValues();
+            }
+
             wrap = me.wrap({
+                id: Ext.id() + '-anim-wrap-for-' + me.id,
                 style: {
                     visibility: slideOut ? 'visible' : 'hidden'
                 }
             });
-            wrap.setPositioning(position);
+            wrapDomParentNode = wrap.dom.parentNode;
+            wrap.setPositioning(me.getPositioning());
             if (wrap.isStyle('position', 'static')) {
                 wrap.position('relative');
             }
             me.clearPositioning('auto');
             wrap.clip();
+
+            // The wrap will have reset all descendant scrollTops. Restore them if we cached them.
+            if (restoreScroll) {
+                restoreScroll();
+            }
 
             // This element is temporarily positioned absolute within its wrapper.
             // Restore to its default, CSS-inherited visibility setting.
@@ -241,17 +325,17 @@ Ext.applyIf(Ext.Element.prototype, {
                 case 'bl':
                     anim = {
                         from: {
-                            x: box.x + box.width,
+                            y: box.y + box.height,
                             width: '0px',
                             height: '0px'
                         },
                         to: {
-                            x: box.x,
+                            y: box.y,
                             width: box.width + 'px',
                             height: box.height + 'px'
                         }
                     };
-                    elStyle.right = '0px';
+                    elStyle.bottom = '0px';
                     break;
                 case 'br':
                     anim = {
@@ -272,24 +356,24 @@ Ext.applyIf(Ext.Element.prototype, {
                 case 'tr':
                     anim = {
                         from: {
-                            y: box.y + box.height,
+                            x: box.x + box.width,
                             width: '0px',
                             height: '0px'
                         },
                         to: {
-                            y: box.y,
+                            x: box.x,
                             width: box.width + 'px',
                             height: box.height + 'px'
                         }
                     };
-                    elStyle.bottom = '0px';
+                    elStyle.right = '0px';
                     break;
             }
 
             wrap.show();
             wrapAnim = Ext.apply({}, obj);
             delete wrapAnim.listeners;
-            wrapAnim = Ext.create('Ext.fx.Anim', Ext.applyIf(wrapAnim, {
+            wrapAnim = new Ext.fx.Anim(Ext.applyIf(wrapAnim, {
                 target: wrap,
                 duration: 500,
                 easing: 'ease-out',
@@ -299,23 +383,27 @@ Ext.applyIf(Ext.Element.prototype, {
 
             // In the absence of a callback, this listener MUST be added first
             wrapAnim.on('afteranimate', function() {
+                me.setStyle(originalStyles);
                 if (slideOut) {
-                    me.setPositioning(position);
                     if (obj.useDisplay) {
                         me.setDisplayed(false);
                     } else {
                         me.hide();
                     }
                 }
-                else {
-                    me.clearPositioning();
-                    me.setPositioning(position);
-                }
                 if (wrap.dom) {
-                    wrap.dom.parentNode.insertBefore(me.dom, wrap.dom);
+                    if (wrap.dom.parentNode) {
+                        wrap.dom.parentNode.insertBefore(me.dom, wrap.dom);
+                    } else {
+                        wrapDomParentNode.appendChild(me.dom);
+                    }
                     wrap.remove();
                 }
-                me.setSize(box.width, box.height);
+                // The unwrap will have reset all descendant scrollTops. Restore them if we cached them.
+                if (restoreScroll) {
+                    restoreScroll();
+                }
+                // kill the no-op element animation created below
                 animScope.end();
             });
             // Add configured listeners after
@@ -325,25 +413,17 @@ Ext.applyIf(Ext.Element.prototype, {
         };
 
         me.animate({
-            duration: obj.duration ? obj.duration * 2 : 1000,
+            // See &quot;A Note About Wrapped Animations&quot; at the top of this class:
+            duration: obj.duration ? Math.max(obj.duration, 500) * 2 : 1000,
             listeners: {
-                beforeanimate: {
-                    fn: beforeAnim
-                },
-                afteranimate: {
-                    fn: function() {
-                        if (wrapAnim &amp;&amp; wrapAnim.running) {
-                            wrapAnim.end();
-                        }
-                    }
-                }
+                beforeanimate: beforeAnim // kick off the wrap animation
             }
         });
         return me;
     },
 
 
-<span id='Ext-Element-method-slideOut'>    /**
+<span id='Ext-dom-Element-method-slideOut'>    /**
 </span>     * Slides the element out of view. An anchor point can be optionally passed to set the end point for the slide
      * effect. When the effect is completed, the element will be hidden (visibility = 'hidden') but block elements will
      * still take up space in the document. The element must be removed from the DOM using the 'remove' config option if
@@ -364,15 +444,15 @@ Ext.applyIf(Ext.Element.prototype, {
      *         useDisplay: false
      *     });
      *
-     * @param {String} [anchor='t'] One of the valid Fx anchor positions
-     * @param {Object} [options] Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
+     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @return {Ext.dom.Element} The Element
      */
     slideOut: function(anchor, o) {
         return this.slideIn(anchor, o, true);
     },
 
-<span id='Ext-Element-method-puff'>    /**
+<span id='Ext-dom-Element-method-puff'>    /**
 </span>     * Fades the element out while slowly expanding it in all directions. When the effect is completed, the element will
      * be hidden (visibility = 'hidden') but block elements will still take up space in the document. Usage:
      *
@@ -387,12 +467,15 @@ Ext.applyIf(Ext.Element.prototype, {
      *     });
      *
      * @param {Object} options (optional) Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @return {Ext.dom.Element} The Element
      */
     puff: function(obj) {
         var me = this,
-            beforeAnim;
-        obj = Ext.applyIf(obj || {}, {
+            beforeAnim,
+            box = me.getBox(),
+            originalStyles = me.getStyles('width', 'height', 'left', 'right', 'top', 'bottom', 'position', 'z-index', 'font-size', 'opacity', true);
+
+       obj = Ext.applyIf(obj || {}, {
             easing: 'ease-out',
             duration: 500,
             useDisplay: false
@@ -401,10 +484,6 @@ Ext.applyIf(Ext.Element.prototype, {
         beforeAnim = function() {
             me.clearOpacity();
             me.show();
-
-            var box = me.getBox(),
-                fontSize = me.getStyle('fontSize'),
-                position = me.getPositioning();
             this.to = {
                 width: box.width * 2,
                 height: box.height * 2,
@@ -420,9 +499,8 @@ Ext.applyIf(Ext.Element.prototype, {
                     } else {
                         me.hide();
                     }
-                    me.clearOpacity();
-                    me.setPositioning(position);
-                    me.setStyle({fontSize: fontSize});
+                    me.setStyle(originalStyles);
+                    obj.callback.call(obj.scope);
                 }
             });
         };
@@ -439,7 +517,7 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-switchOff'>    /**
+<span id='Ext-dom-Element-method-switchOff'>    /**
 </span>     * Blinks the element as if it was clicked and then collapses on its center (similar to switching off a television).
      * When the effect is completed, the element will be hidden (visibility = 'hidden') but block elements will still
      * take up space in the document. The element must be removed from the DOM using the 'remove' config option if
@@ -457,7 +535,7 @@ Ext.applyIf(Ext.Element.prototype, {
      *     });
      *
      * @param {Object} options (optional) Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @return {Ext.dom.Element} The Element
      */
     switchOff: function(obj) {
         var me = this,
@@ -479,7 +557,7 @@ Ext.applyIf(Ext.Element.prototype, {
             me.clip();
             position = me.getPositioning();
 
-            keyframe = Ext.create('Ext.fx.Animator', {
+            keyframe = new Ext.fx.Animator({
                 target: me,
                 duration: obj.duration,
                 easing: obj.easing,
@@ -506,11 +584,14 @@ Ext.applyIf(Ext.Element.prototype, {
                 me.clearOpacity();
                 me.setPositioning(position);
                 me.setSize(size);
+                // kill the no-op element animation created below
                 animScope.end();
             });
         };
+        
         me.animate({
-            duration: (obj.duration * 2),
+            // See &quot;A Note About Wrapped Animations&quot; at the top of this class:
+            duration: (Math.max(obj.duration, 500) * 2),
             listeners: {
                 beforeanimate: {
                     fn: beforeAnim
@@ -520,26 +601,25 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-frame'>    /**
+<span id='Ext-dom-Element-method-frame'>    /**
 </span>     * Shows a ripple of exploding, attenuating borders to draw attention to an Element. Usage:
      *
      *     // default: a single light blue ripple
      *     el.frame();
      *
      *     // custom: 3 red ripples lasting 3 seconds total
-     *     el.frame(&quot;#ff0000&quot;, 3, { duration: 3 });
+     *     el.frame(&quot;#ff0000&quot;, 3, { duration: 3000 });
      *
      *     // common config options shown with default values
      *     el.frame(&quot;#C3DAF9&quot;, 1, {
-     *         duration: 1 //duration of each individual ripple.
+     *         duration: 1000 // duration of each individual ripple.
      *         // Note: Easing is not configurable and will be ignored if included
      *     });
      *
-     * @param {String} [color='C3DAF9'] The color of the border. Should be a 6 char hex color without the leading #
-     * (defaults to light blue).
-     * @param {Number} [count=1] The number of ripples to display
+     * @param {String} [color='#C3DAF9'] The hex color value for the border.
+     * @param {Number} [count=1] The number of ripples to display.
      * @param {Object} [options] Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @return {Ext.dom.Element} The Element
      */
     frame : function(color, count, obj){
         var me = this,
@@ -554,6 +634,7 @@ Ext.applyIf(Ext.Element.prototype, {
             var animScope = this,
                 box = me.getBox(),
                 proxy = Ext.getBody().createChild({
+                    id: me.id + '-anim-proxy',
                     style: {
                         position : 'absolute',
                         'pointer-events': 'none',
@@ -562,7 +643,7 @@ Ext.applyIf(Ext.Element.prototype, {
                     }
                 }),
                 proxyAnim;
-            proxyAnim = Ext.create('Ext.fx.Anim', {
+            proxyAnim = new Ext.fx.Anim({
                 target: proxy,
                 duration: obj.duration || 1000,
                 iterations: count,
@@ -585,12 +666,14 @@ Ext.applyIf(Ext.Element.prototype, {
             });
             proxyAnim.on('afteranimate', function() {
                 proxy.remove();
+                // kill the no-op element animation created below
                 animScope.end();
             });
         };
 
         me.animate({
-            duration: (obj.duration * 2) || 2000,
+            // See &quot;A Note About Wrapped Animations&quot; at the top of this class:
+            duration: (Math.max(obj.duration, 500) * 2) || 2000,
             listeners: {
                 beforeanimate: {
                     fn: beforeAnim
@@ -600,7 +683,7 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-ghost'>    /**
+<span id='Ext-dom-Element-method-ghost'>    /**
 </span>     * Slides the element while fading it out of view. An anchor point can be optionally passed to set the ending point
      * of the effect. Usage:
      *
@@ -616,9 +699,9 @@ Ext.applyIf(Ext.Element.prototype, {
      *         duration: 500
      *     });
      *
-     * @param {String} [anchor='b'] One of the valid Fx anchor positions
-     * @param {Object} [options] Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to bottom: 'b')
+     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @return {Ext.dom.Element} The Element
      */
     ghost: function(anchor, obj) {
         var me = this,
@@ -685,7 +768,7 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-highlight'>    /**
+<span id='Ext-dom-Element-method-highlight'>    /**
 </span>     * Highlights the Element by setting a color (applies to the background-color by default, but can be changed using
      * the &quot;attr&quot; config option) and then fading back to the original color. If no original color is available, you
      * should provide the &quot;endColor&quot; config option which will be cleared after the animation. Usage:
@@ -704,9 +787,10 @@ Ext.applyIf(Ext.Element.prototype, {
      *         duration: 1000
      *     });
      *
-     * @param {String} [color='ffff9c'] The highlight color. Should be a 6 char hex color without the leading #
-     * @param {Object} [options] Object literal with any of the Fx config options
-     * @return {Ext.Element} The Element
+     * @param {String} color (optional) The highlight color. Should be a 6 char hex color without the leading #
+     * (defaults to yellow: 'ffff9c')
+     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @return {Ext.dom.Element} The Element
      */
     highlight: function(color, o) {
         var me = this,
@@ -762,13 +846,13 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-pause'>   /**
-</span>    * @deprecated 4.0
-    * Creates a pause before any subsequent queued effects begin. If there are no effects queued after the pause it will
+<span id='Ext-dom-Element-method-pause'>   /**
+</span>    * Creates a pause before any subsequent queued effects begin. If there are no effects queued after the pause it will
     * have no effect. Usage:
     *
     *     el.pause(1);
     *
+    * @deprecated 4.0 Use the `delay` config to {@link #animate} instead.
     * @param {Number} seconds The length of time to pause (in seconds)
     * @return {Ext.Element} The Element
     */
@@ -780,7 +864,7 @@ Ext.applyIf(Ext.Element.prototype, {
         return me;
     },
 
-<span id='Ext-Element-method-fadeIn'>    /**
+<span id='Ext-dom-Element-method-fadeIn'>    /**
 </span>     * Fade an element in (from transparent to opaque). The ending opacity can be specified using the `opacity`
      * config option. Usage:
      *
@@ -801,13 +885,25 @@ Ext.applyIf(Ext.Element.prototype, {
      * @return {Ext.Element} The Element
      */
     fadeIn: function(o) {
-        this.animate(Ext.apply({}, o, {
-            opacity: 1
+        var me = this;
+        me.animate(Ext.apply({}, o, {
+            opacity: 1,
+            internalListeners: {
+                beforeanimate: function(anim){
+                    // restore any visibility/display that may have 
+                    // been applied by a fadeout animation
+                    if (me.isStyle('display', 'none')) {
+                        me.setDisplayed('');
+                    } else {
+                        me.show();
+                    } 
+                }
+            }
         }));
         return this;
     },
 
-<span id='Ext-Element-method-fadeOut'>    /**
+<span id='Ext-dom-Element-method-fadeOut'>    /**
 </span>     * Fade an element out (from opaque to transparent). The ending opacity can be specified using the `opacity`
      * config option. Note that IE may require `useDisplay:true` in order to redisplay correctly.
      * Usage:
@@ -831,15 +927,28 @@ Ext.applyIf(Ext.Element.prototype, {
      * @return {Ext.Element} The Element
      */
     fadeOut: function(o) {
-        this.animate(Ext.apply({}, o, {
-            opacity: 0
-        }));
-        return this;
+        var me = this;
+        o = Ext.apply({
+            opacity: 0,
+            internalListeners: {
+                afteranimate: function(anim){
+                    var dom = me.dom;
+                    if (dom &amp;&amp; anim.to.opacity === 0) {
+                        if (o.useDisplay) {
+                            me.setDisplayed(false);
+                        } else {
+                            me.hide();
+                        }
+                    }         
+                }
+            }
+        }, o);
+        me.animate(o);
+        return me;
     },
 
-<span id='Ext-Element-method-scale'>    /**
-</span>     * @deprecated 4.0
-     * Animates the transition of an element's dimensions from a starting height/width to an ending height/width. This
+<span id='Ext-dom-Element-method-scale'>    /**
+</span>     * Animates the transition of an element's dimensions from a starting height/width to an ending height/width. This
      * method is a convenience implementation of {@link #shift}. Usage:
      *
      *     // change height and width to 100x100 pixels
@@ -851,10 +960,11 @@ Ext.applyIf(Ext.Element.prototype, {
      *         [element's width],
      *         [element's height], {
      *             easing: 'easeOut',
-     *             duration: .35
+     *             duration: 350
      *         }
      *     );
      *
+     * @deprecated 4.0 Just use {@link #animate} instead.
      * @param {Number} width The new width (pass undefined to keep the original width)
      * @param {Number} height The new height (pass undefined to keep the original height)
      * @param {Object} options (optional) Object literal with any of the Fx config options
@@ -868,9 +978,8 @@ Ext.applyIf(Ext.Element.prototype, {
         return this;
     },
 
-<span id='Ext-Element-method-shift'>    /**
-</span>     * @deprecated 4.0
-     * Animates the transition of any combination of an element's dimensions, xy position and/or opacity. Any of these
+<span id='Ext-dom-Element-method-shift'>    /**
+</span>     * Animates the transition of any combination of an element's dimensions, xy position and/or opacity. Any of these
      * properties not specified in the config object will not be changed. This effect requires that at least one new
      * dimension, position or opacity setting must be passed in on the config object in order for the function to have
      * any effect. Usage:
@@ -886,9 +995,10 @@ Ext.applyIf(Ext.Element.prototype, {
      *         y: [element's y position],
      *         opacity: [element's opacity],
      *         easing: 'easeOut',
-     *         duration: .35
+     *         duration: 350
      *     });
      *
+     * @deprecated 4.0 Just use {@link #animate} instead.
      * @param {Object} options Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
      */

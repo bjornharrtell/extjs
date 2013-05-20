@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Base class that provides a common interface for publishing events. Subclasses are expected to to have a property
  * "events" with all the events defined, and, optionally, a property "listeners" with configured listeners defined.
@@ -19,20 +5,21 @@ If you are unsure which license is appropriate for your use, please contact the 
  * For example:
  *
  *     Ext.define('Employee', {
- *         extend: 'Ext.util.Observable',
- *         constructor: function(config){
- *             this.name = config.name;
- *             this.addEvents({
- *                 "fired" : true,
- *                 "quit" : true
- *             });
+ *         mixins: {
+ *             observable: 'Ext.util.Observable'
+ *         },
  *
- *             // Copy configured listeners into *this* object so that the base class's
- *             // constructor will add them.
- *             this.listeners = config.listeners;
+ *         constructor: function (config) {
+ *             // The Observable constructor copies all of the properties of `config` on
+ *             // to `this` using {@link Ext#apply}. Further, the `listeners` property is
+ *             // processed to add listeners.
+ *             //
+ *             this.mixins.observable.constructor.call(this, config);
  *
- *             // Call our superclass constructor to complete construction process.
- *             this.callParent(arguments)
+ *             this.addEvents(
+ *                 'fired',
+ *                 'quit'
+ *             );
  *         }
  *     });
  *
@@ -106,7 +93,38 @@ Ext.define('Ext.util.Observable', {
                 if (Ext.isObject(listeners)) {
                     cls.on(listeners);
                 }
-                return cls;
+            }
+            return cls;
+        },
+
+        /**
+         * Prepares a given class for observable instances. This method is called when a
+         * class derives from this class or uses this class as a mixin.
+         * @param {Function} T The class constructor to prepare.
+         * @private
+         */
+        prepareClass: function (T, mixin) {
+            // T.hasListeners is the object to track listeners on class T. This object's
+            // prototype (__proto__) is the "hasListeners" of T.superclass.
+
+            // Instances of T will create "hasListeners" that have T.hasListeners as their
+            // immediate prototype (__proto__).
+
+            if (!T.HasListeners) {
+                // We create a HasListeners "class" for this class. The "prototype" of the
+                // HasListeners class is an instance of the HasListeners class associated
+                // with this class's super class (or with Observable).
+                var Observable = Ext.util.Observable,
+                    HasListeners = function () {},
+                    SuperHL = T.superclass.HasListeners || (mixin && mixin.HasListeners) ||
+                              Observable.HasListeners;
+
+                // Make the HasListener class available on the class and its prototype:
+                T.prototype.HasListeners = T.HasListeners = HasListeners;
+
+                // And connect its "prototype" to the new HasListeners of our super class
+                // (which is also the class-level "hasListeners" instance).
+                HasListeners.prototype = T.hasListeners = new SuperHL();
             }
         }
     },
@@ -146,21 +164,64 @@ Ext.define('Ext.util.Observable', {
      *         }
      *     });
      */
-    // @private
+
+    /**
+     * @property {Boolean} isObservable
+     * `true` in this class to identify an object as an instantiated Observable, or subclass thereof.
+     */
     isObservable: true,
+
+    /**
+     * @private
+     * Initial suspended call count. Incremented when {@link #suspendEvents} is called, decremented when {@link #resumeEvents} is called.
+     */
+    eventsSuspended: 0,
+
+    /**
+     * @property {Object} hasListeners
+     * @readonly
+     * This object holds a key for any event that has a listener. The listener may be set
+     * directly on the instance, or on its class or a super class (via {@link #observe}) or
+     * on the {@link Ext.app.EventBus MVC EventBus}. The values of this object are truthy
+     * (a non-zero number) and falsy (0 or undefined). They do not represent an exact count
+     * of listeners. The value for an event is truthy if the event must be fired and is
+     * falsy if there is no need to fire the event.
+     * 
+     * The intended use of this property is to avoid the expense of fireEvent calls when
+     * there are no listeners. This can be particularly helpful when one would otherwise
+     * have to call fireEvent hundreds or thousands of times. It is used like this:
+     * 
+     *      if (this.hasListeners.foo) {
+     *          this.fireEvent('foo', this, arg1);
+     *      }
+     */
 
     constructor: function(config) {
         var me = this;
 
         Ext.apply(me, config);
+
+        // The subclass may have already initialized it.
+        if (!me.hasListeners) {
+            me.hasListeners = new me.HasListeners();
+        }
+
+        me.events = me.events || {};
         if (me.listeners) {
             me.on(me.listeners);
-            delete me.listeners;
+            me.listeners = null; //Set as an instance property to pre-empt the prototype in case any are set there.
         }
-        me.events = me.events || {};
 
         if (me.bubbleEvents) {
             me.enableBubble(me.bubbleEvents);
+        }
+    },
+
+    onClassExtended: function (T) {
+        if (!T.HasListeners) {
+            // Some classes derive from us and some others derive from those classes. All
+            // of these are passed to this method.
+            Ext.util.Observable.prepareClass(T);
         }
     },
 
@@ -256,12 +317,18 @@ Ext.define('Ext.util.Observable', {
      * @return {Boolean} returns false if any of the handlers return false otherwise it returns true.
      */
     fireEvent: function(eventName) {
-        var name = eventName.toLowerCase(),
-            events = this.events,
-            event = events && events[name],
-            bubbles = event && event.bubble;
+        eventName = eventName.toLowerCase();
+        var me = this,
+            events = me.events,
+            event = events && events[eventName],
+            ret = true;
 
-        return this.continueFireEvent(name, Ext.Array.slice(arguments, 1), bubbles);
+        // Only continue firing the event if there are listeners to be informed.
+        // Bubbled events will always have a listener count, so will be fired.
+        if (event && me.hasListeners[eventName]) {
+            ret = me.continueFireEvent(eventName, Ext.Array.slice(arguments, 1), event.bubble);
+        }
+        return ret;
     },
 
     /**
@@ -278,7 +345,7 @@ Ext.define('Ext.util.Observable', {
             ret = true;
 
         do {
-            if (target.eventsSuspended === true) {
+            if (target.eventsSuspended) {
                 if ((queue = target.eventQueue)) {
                     queue.push([eventName, args, bubbles]);
                 }
@@ -311,48 +378,74 @@ Ext.define('Ext.util.Observable', {
     },
 
     /**
-     * Appends an event handler to this object.
+     * Appends an event handler to this object.  For example:
      *
-     * @param {String} eventName The name of the event to listen for. May also be an object who's property names are
-     * event names.
-     * @param {Function} fn The method the event invokes.  Will be called with arguments given to
-     * {@link #fireEvent} plus the `options` parameter described below.
-     * @param {Object} [scope] The scope (`this` reference) in which the handler function is executed. **If
-     * omitted, defaults to the object which fired the event.**
+     *     myGridPanel.on("mouseover", this.onMouseOver, this);
+     *
+     * The method also allows for a single argument to be passed which is a config object
+     * containing properties which specify multiple events. For example:
+     *
+     *     myGridPanel.on({
+     *         cellClick: this.onCellClick,
+     *         mouseover: this.onMouseOver,
+     *         mouseout: this.onMouseOut,
+     *         scope: this // Important. Ensure "this" is correct during handler execution
+     *     });
+     *
+     * One can also specify options for each event handler separately:
+     *
+     *     myGridPanel.on({
+     *         cellClick: {fn: this.onCellClick, scope: this, single: true},
+     *         mouseover: {fn: panel.onMouseOver, scope: panel}
+     *     });
+     *
+     * *Names* of methods in a specified scope may also be used. Note that
+     * `scope` MUST be specified to use this option:
+     *
+     *     myGridPanel.on({
+     *         cellClick: {fn: 'onCellClick', scope: this, single: true},
+     *         mouseover: {fn: 'onMouseOver', scope: panel}
+     *     });
+     *
+     * @param {String/Object} eventName The name of the event to listen for.
+     * May also be an object who's property names are event names.
+     *
+     * @param {Function} [fn] The method the event invokes, or *if `scope` is specified, the *name* of the method within
+     * the specified `scope`.  Will be called with arguments
+     * given to {@link #fireEvent} plus the `options` parameter described below.
+     *
+     * @param {Object} [scope] The scope (`this` reference) in which the handler function is
+     * executed. **If omitted, defaults to the object which fired the event.**
+     *
      * @param {Object} [options] An object containing handler configuration.
      *
-     * **Note:** Unlike in ExtJS 3.x, the options object will also be passed as the last argument to every event handler.
+     * **Note:** Unlike in ExtJS 3.x, the options object will also be passed as the last
+     * argument to every event handler.
      *
      * This object may contain any of the following properties:
      *
-     * - **scope** : Object
+     * @param {Object} options.scope
+     *   The scope (`this` reference) in which the handler function is executed. **If omitted,
+     *   defaults to the object which fired the event.**
      *
-     *   The scope (`this` reference) in which the handler function is executed. **If omitted, defaults to the object
-     *   which fired the event.**
-     *
-     * - **delay** : Number
-     *
+     * @param {Number} options.delay
      *   The number of milliseconds to delay the invocation of the handler after the event fires.
      *
-     * - **single** : Boolean
-     *
+     * @param {Boolean} options.single
      *   True to add a handler to handle just the next firing of the event, and then remove itself.
      *
-     * - **buffer** : Number
+     * @param {Number} options.buffer
+     *   Causes the handler to be scheduled to run in an {@link Ext.util.DelayedTask} delayed
+     *   by the specified number of milliseconds. If the event fires again within that time,
+     *   the original handler is _not_ invoked, but the new handler is scheduled in its place.
      *
-     *   Causes the handler to be scheduled to run in an {@link Ext.util.DelayedTask} delayed by the specified number of
-     *   milliseconds. If the event fires again within that time, the original handler is _not_ invoked, but the new
-     *   handler is scheduled in its place.
+     * @param {Ext.util.Observable} options.target
+     *   Only call the handler if the event was fired on the target Observable, _not_ if the event
+     *   was bubbled up from a child Observable.
      *
-     * - **target** : Observable
-     *
-     *   Only call the handler if the event was fired on the target Observable, _not_ if the event was bubbled up from a
-     *   child Observable.
-     *
-     * - **element** : String
-     *
-     *   **This option is only valid for listeners bound to {@link Ext.Component Components}.** The name of a Component
-     *   property which references an element to add a listener to.
+     * @param {String} options.element
+     *   **This option is only valid for listeners bound to {@link Ext.Component Components}.**
+     *   The name of a Component property which references an element to add a listener to.
      *
      *   This option is useful during Component construction to add DOM event listeners to elements of
      *   {@link Ext.Component Components} which will exist only after the Component is rendered.
@@ -377,30 +470,11 @@ Ext.define('Ext.util.Observable', {
      *         delay: 100
      *     });
      *
-     * **Attaching multiple handlers in 1 call**
-     *
-     * The method also allows for a single argument to be passed which is a config object containing properties which
-     * specify multiple events. For example:
-     *
-     *     myGridPanel.on({
-     *         cellClick: this.onCellClick,
-     *         mouseover: this.onMouseOver,
-     *         mouseout: this.onMouseOut,
-     *         scope: this // Important. Ensure "this" is correct during handler execution
-     *     });
-     *
-     * One can also specify options for each event handler separately:
-     *
-     *     myGridPanel.on({
-     *         cellClick: {fn: this.onCellClick, scope: this, single: true},
-     *         mouseover: {fn: panel.onMouseOver, scope: panel}
-     *     });
-     *
      */
     addListener: function(ename, fn, scope, options) {
         var me = this,
-            config,
-            event;
+            config, event, hasListeners,
+            prevListenerCount = 0;
 
         if (typeof ename !== 'string') {
             options = ename;
@@ -412,15 +486,39 @@ Ext.define('Ext.util.Observable', {
                     }
                 }
             }
-        }
-        else {
+        } else {
             ename = ename.toLowerCase();
-            me.events[ename] = me.events[ename] || true;
-            event = me.events[ename] || true;
-            if (Ext.isBoolean(event)) {
+            event = me.events[ename];
+            if (event && event.isEvent) {
+                prevListenerCount = event.listeners.length;
+            } else {
                 me.events[ename] = event = new Ext.util.Event(me, ename);
             }
-            event.addListener(fn, scope, Ext.isObject(options) ? options : {});
+
+            // Allow listeners: { click: 'onClick', scope: myObject }
+            if (typeof fn === 'string') {
+                //<debug>
+                if (!(scope[fn] || me[fn])) {
+                    Ext.Error.raise('No method named "' + fn + '"');
+                }
+                //</debug>
+                fn = scope[fn] || me[fn];
+            }
+            event.addListener(fn, scope, options);
+
+            // If a new listener has been added (Event.addListener rejects duplicates of the same fn+scope)
+            // then increment the hasListeners counter
+            if (event.listeners.length !== prevListenerCount) {
+                hasListeners = me.hasListeners;
+                if (hasListeners.hasOwnProperty(ename)) {
+                    // if we already have listeners at this level, just increment the count...
+                    ++hasListeners[ename];
+                } else {
+                    // otherwise, start the count at 1 (which hides whatever is in our prototype
+                    // chain)...
+                    hasListeners[ename] = 1;
+                }
+            }
         }
     },
 
@@ -453,7 +551,12 @@ Ext.define('Ext.util.Observable', {
             ename = ename.toLowerCase();
             event = me.events[ename];
             if (event && event.isEvent) {
-                event.removeListener(fn, scope);
+                if (event.removeListener(fn, scope) && !--me.hasListeners[ename]) {
+                    // Delete this entry, since 0 does not mean no one is listening, just
+                    // that no one is *directly& listening. This allows the eventBus or
+                    // class observers to "poke" through and expose their presence.
+                    delete me.hasListeners[ename];
+                }
             }
         }
     },
@@ -530,33 +633,30 @@ Ext.define('Ext.util.Observable', {
     /**
      * Adds the specified events to the list of events which this Observable may fire.
      *
-     * @param {Object/String} o Either an object with event names as properties with a value of `true` or the first
-     * event name string if multiple event names are being passed as separate parameters. Usage:
+     * @param {Object/String...} eventNames Either an object with event names as properties with
+     * a value of `true`. For example:
      *
      *     this.addEvents({
      *         storeloaded: true,
      *         storecleared: true
      *     });
      *
-     * @param {String...} more (optional) Additional event names if multiple event names are being passed as separate
-     * parameters. Usage:
+     * Or any number of event names as separate parameters. For example:
      *
      *     this.addEvents('storeloaded', 'storecleared');
      *
      */
     addEvents: function(o) {
         var me = this,
-            args,
-            len,
-            i;
+            events = me.events || (me.events = {}),
+            arg, args, i;
 
-            me.events = me.events || {};
-        if (Ext.isString(o)) {
-            args = arguments;
-            i = args.length;
-
-            while (i--) {
-                me.events[args[i]] = me.events[args[i]] || true;
+        if (typeof o == 'string') {
+            for (args = arguments, i = args.length; i--; ) {
+                arg = args[i];
+                if (!events[arg]) {
+                    events[arg] = true;
+                }
             }
         } else {
             Ext.applyIf(me.events, o);
@@ -564,14 +664,14 @@ Ext.define('Ext.util.Observable', {
     },
 
     /**
-     * Checks to see if this object has any listeners for a specified event
+     * Checks to see if this object has any listeners for a specified event, or whether the event bubbles. The answer
+     * indicates whether the event needs firing or not.
      *
      * @param {String} eventName The name of the event to check for
-     * @return {Boolean} True if the event is being listened for, else false
+     * @return {Boolean} `true` if the event is being listened for or bubbles, else `false`
      */
     hasListener: function(ename) {
-        var event = this.events[ename.toLowerCase()];
-        return event && event.isEvent === true && event.listeners.length > 0;
+        return !!this.hasListeners[ename.toLowerCase()];
     },
 
     /**
@@ -581,7 +681,7 @@ Ext.define('Ext.util.Observable', {
      * after the {@link #resumeEvents} call instead of discarding all suspended events.
      */
     suspendEvents: function(queueSuspended) {
-        this.eventsSuspended = true;
+        this.eventsSuspended += 1;
         if (queueSuspended && !this.eventQueue) {
             this.eventQueue = [];
         }
@@ -595,27 +695,42 @@ Ext.define('Ext.util.Observable', {
      */
     resumeEvents: function() {
         var me = this,
-            queued = me.eventQueue;
+            queued = me.eventQueue,
+            qLen, q;
 
-        me.eventsSuspended = false;
-        delete me.eventQueue;
+        if (me.eventsSuspended && ! --me.eventsSuspended) {
+            delete me.eventQueue;
 
-        if (queued) {
-            Ext.each(queued, function(e) {
-                me.continueFireEvent.apply(me, e);
-            });
+            if (queued) {
+                qLen = queued.length;
+                for (q = 0; q < qLen; q++) {
+                    me.continueFireEvent.apply(me, queued[q]);
+                }
+            }
         }
     },
 
     /**
      * Relays selected events from the specified Observable as if the events were fired by `this`.
      *
+     * For example if you are extending Grid, you might decide to forward some events from store.
+     * So you can do this inside your initComponent:
+     *
+     *     this.relayEvents(this.getStore(), ['load']);
+     *
+     * The grid instance will then have an observable 'load' event which will be passed the
+     * parameters of the store's load event and any function fired with the grid's load event
+     * would have access to the grid using the `this` keyword.
+     *
      * @param {Object} origin The Observable whose events this object is to relay.
      * @param {String[]} events Array of event names to relay.
-     * @param {String} prefix
+     * @param {String} [prefix] A common prefix to prepend to the event names. For example:
+     *
+     *     this.relayEvents(this.getStore(), ['load', 'clear'], 'store');
+     *
+     * Now the grid will forward 'load' and 'clear' events of store as 'storeload' and 'storeclear'.
      */
     relayEvents : function(origin, events, prefix) {
-        prefix = prefix || '';
         var me = this,
             len = events.length,
             i = 0,
@@ -623,10 +738,11 @@ Ext.define('Ext.util.Observable', {
             newName;
 
         for (; i < len; i++) {
-            oldName = events[i].substr(prefix.length);
-            newName = prefix + oldName;
-            me.events[newName] = me.events[newName] || true;
-            origin.on(oldName, me.createRelayer(newName));
+            oldName = events[i];
+            newName = prefix ? prefix + oldName : oldName;
+
+            // Add the relaying function as a ManagedListener so that it is removed when this.clearListeners is called (usually when _this_ is destroyed)
+            me.mon(origin, oldName, me.createRelayer(newName));
         }
     },
 
@@ -634,12 +750,13 @@ Ext.define('Ext.util.Observable', {
      * @private
      * Creates an event handling function which refires the event from this object as the passed event name.
      * @param newName
+     * @param {Array} beginEnd (optional) The caller can specify on which indices to slice
      * @returns {Function}
      */
-    createRelayer: function(newName){
+    createRelayer: function(newName, beginEnd){
         var me = this;
-        return function(){
-            return me.fireEvent.apply(me, [newName].concat(Array.prototype.slice.call(arguments, 0, -1)));
+        return function() {
+            return me.fireEvent.apply(me, [newName].concat(Array.prototype.slice.apply(arguments, beginEnd || [0, -1])));
         };
     },
 
@@ -682,169 +799,216 @@ Ext.define('Ext.util.Observable', {
      *         }
      *     });
      *
-     * @param {String/String[]} events The event name to bubble, or an Array of event names.
+     * @param {String/String[]} eventNames The event name to bubble, or an Array of event names.
      */
-    enableBubble: function(events) {
-        var me = this;
-        if (!Ext.isEmpty(events)) {
-            events = Ext.isArray(events) ? events: Ext.Array.toArray(arguments);
-            Ext.each(events,
-            function(ename) {
-                ename = ename.toLowerCase();
-                var ce = me.events[ename] || true;
-                if (Ext.isBoolean(ce)) {
-                    ce = new Ext.util.Event(me, ename);
-                    me.events[ename] = ce;
+    enableBubble: function(eventNames) {
+        if (eventNames) {
+            var me = this,
+                names = (typeof eventNames == 'string') ? arguments : eventNames,
+                length = names.length,
+                events = me.events,
+                ename, event, i;
+
+            for (i = 0; i < length; ++i) {
+                ename = names[i].toLowerCase();
+                event = events[ename];
+
+                if (!event || typeof event == 'boolean') {
+                    events[ename] = event = new Ext.util.Event(me, ename);
                 }
-                ce.bubble = true;
-            });
+
+                // Event must fire if it bubbles (We don't know if anyone up the bubble hierarchy has listeners added)
+                me.hasListeners[ename] = (me.hasListeners[ename]||0) + 1;
+
+                event.bubble = true;
+            }
         }
     }
 }, function() {
+    var Observable = this,
+        proto = Observable.prototype,
+        HasListeners = function () {},
+        prepareMixin = function (T) {
+            if (!T.HasListeners) {
+                var proto = T.prototype;
 
-    this.createAlias({
+                // Classes that use us as a mixin (best practice) need to be prepared.
+                Observable.prepareClass(T, this);
+
+                // Now that we are mixed in to class T, we need to watch T for derivations
+                // and prepare them also.
+                T.onExtended(function (U) {
+                    Observable.prepareClass(U);
+                });
+
+                // Also, if a class uses us as a mixin and that class is then used as
+                // a mixin, we need to be notified of that as well.
+                if (proto.onClassMixedIn) {
+                    // play nice with other potential overrides...
+                    Ext.override(T, {
+                        onClassMixedIn: function (U) {
+                            prepareMixin.call(this, U);
+                            this.callParent(arguments);
+                        }
+                    });
+                } else {
+                    // just us chickens, so add the method...
+                    proto.onClassMixedIn = function (U) {
+                        prepareMixin.call(this, U);
+                    };
+                }
+            }
+        };
+
+    HasListeners.prototype = {
+        //$$: 42  // to make sure we have a proper prototype
+    };
+
+    proto.HasListeners = Observable.HasListeners = HasListeners;
+
+    Observable.createAlias({
         /**
          * @method
          * Shorthand for {@link #addListener}.
-         * @alias Ext.util.Observable#addListener
+         * @inheritdoc Ext.util.Observable#addListener
          */
         on: 'addListener',
         /**
          * @method
          * Shorthand for {@link #removeListener}.
-         * @alias Ext.util.Observable#removeListener
+         * @inheritdoc Ext.util.Observable#removeListener
          */
         un: 'removeListener',
         /**
          * @method
          * Shorthand for {@link #addManagedListener}.
-         * @alias Ext.util.Observable#addManagedListener
+         * @inheritdoc Ext.util.Observable#addManagedListener
          */
         mon: 'addManagedListener',
         /**
          * @method
          * Shorthand for {@link #removeManagedListener}.
-         * @alias Ext.util.Observable#removeManagedListener
+         * @inheritdoc Ext.util.Observable#removeManagedListener
          */
         mun: 'removeManagedListener'
     });
 
     //deprecated, will be removed in 5.0
-    this.observeClass = this.observe;
+    Observable.observeClass = Observable.observe;
 
-    Ext.apply(Ext.util.Observable.prototype, function(){
-        // this is considered experimental (along with beforeMethod, afterMethod, removeMethodListener?)
-        // allows for easier interceptor and sequences, including cancelling and overwriting the return value of the call
-        // private
-        function getMethodEvent(method){
-            var e = (this.methodEvents = this.methodEvents || {})[method],
-                returnValue,
-                v,
-                cancel,
-                obj = this;
+    // this is considered experimental (along with beforeMethod, afterMethod, removeMethodListener?)
+    // allows for easier interceptor and sequences, including cancelling and overwriting the return value of the call
+    // private
+    function getMethodEvent(method){
+        var e = (this.methodEvents = this.methodEvents || {})[method],
+            returnValue,
+            v,
+            cancel,
+            obj = this,
+            makeCall;
 
-            if (!e) {
-                this.methodEvents[method] = e = {};
-                e.originalFn = this[method];
-                e.methodName = method;
-                e.before = [];
-                e.after = [];
+        if (!e) {
+            this.methodEvents[method] = e = {};
+            e.originalFn = this[method];
+            e.methodName = method;
+            e.before = [];
+            e.after = [];
 
-                var makeCall = function(fn, scope, args){
-                    if((v = fn.apply(scope || obj, args)) !== undefined){
-                        if (typeof v == 'object') {
-                            if(v.returnValue !== undefined){
-                                returnValue = v.returnValue;
-                            }else{
-                                returnValue = v;
-                            }
-                            cancel = !!v.cancel;
+            makeCall = function(fn, scope, args){
+                if((v = fn.apply(scope || obj, args)) !== undefined){
+                    if (typeof v == 'object') {
+                        if(v.returnValue !== undefined){
+                            returnValue = v.returnValue;
+                        }else{
+                            returnValue = v;
                         }
-                        else
-                            if (v === false) {
-                                cancel = true;
-                            }
-                            else {
-                                returnValue = v;
-                            }
+                        cancel = !!v.cancel;
                     }
-                };
-
-                this[method] = function(){
-                    var args = Array.prototype.slice.call(arguments, 0),
-                        b, i, len;
-                    returnValue = v = undefined;
-                    cancel = false;
-
-                    for(i = 0, len = e.before.length; i < len; i++){
-                        b = e.before[i];
-                        makeCall(b.fn, b.scope, args);
-                        if (cancel) {
-                            return returnValue;
+                    else
+                        if (v === false) {
+                            cancel = true;
                         }
-                    }
-
-                    if((v = e.originalFn.apply(obj, args)) !== undefined){
-                        returnValue = v;
-                    }
-
-                    for(i = 0, len = e.after.length; i < len; i++){
-                        b = e.after[i];
-                        makeCall(b.fn, b.scope, args);
-                        if (cancel) {
-                            return returnValue;
+                        else {
+                            returnValue = v;
                         }
-                    }
-                    return returnValue;
-                };
-            }
-            return e;
-        }
+                }
+            };
 
-        return {
-            // these are considered experimental
-            // allows for easier interceptor and sequences, including cancelling and overwriting the return value of the call
-            // adds an 'interceptor' called before the original method
-            beforeMethod : function(method, fn, scope){
-                getMethodEvent.call(this, method).before.push({
-                    fn: fn,
-                    scope: scope
-                });
-            },
+            this[method] = function(){
+                var args = Array.prototype.slice.call(arguments, 0),
+                    b, i, len;
+                returnValue = v = undefined;
+                cancel = false;
 
-            // adds a 'sequence' called after the original method
-            afterMethod : function(method, fn, scope){
-                getMethodEvent.call(this, method).after.push({
-                    fn: fn,
-                    scope: scope
-                });
-            },
-
-            removeMethodListener: function(method, fn, scope){
-                var e = this.getMethodEvent(method),
-                    i, len;
                 for(i = 0, len = e.before.length; i < len; i++){
-                    if(e.before[i].fn == fn && e.before[i].scope == scope){
-                        Ext.Array.erase(e.before, i, 1);
-                        return;
+                    b = e.before[i];
+                    makeCall(b.fn, b.scope, args);
+                    if (cancel) {
+                        return returnValue;
                     }
                 }
+
+                if((v = e.originalFn.apply(obj, args)) !== undefined){
+                    returnValue = v;
+                }
+
                 for(i = 0, len = e.after.length; i < len; i++){
-                    if(e.after[i].fn == fn && e.after[i].scope == scope){
-                        Ext.Array.erase(e.after, i, 1);
-                        return;
+                    b = e.after[i];
+                    makeCall(b.fn, b.scope, args);
+                    if (cancel) {
+                        return returnValue;
                     }
                 }
-            },
+                return returnValue;
+            };
+        }
+        return e;
+    }
 
-            toggleEventLogging: function(toggle) {
-                Ext.util.Observable[toggle ? 'capture' : 'releaseCapture'](this, function(en) {
-                    if (Ext.isDefined(Ext.global.console)) {
-                        Ext.global.console.log(en, arguments);
-                    }
-                });
+    Ext.apply(proto, {
+        onClassMixedIn: prepareMixin,
+
+        // these are considered experimental
+        // allows for easier interceptor and sequences, including cancelling and overwriting the return value of the call
+        // adds an 'interceptor' called before the original method
+        beforeMethod : function(method, fn, scope){
+            getMethodEvent.call(this, method).before.push({
+                fn: fn,
+                scope: scope
+            });
+        },
+
+        // adds a 'sequence' called after the original method
+        afterMethod : function(method, fn, scope){
+            getMethodEvent.call(this, method).after.push({
+                fn: fn,
+                scope: scope
+            });
+        },
+
+        removeMethodListener: function(method, fn, scope){
+            var e = this.getMethodEvent(method),
+                i, len;
+            for(i = 0, len = e.before.length; i < len; i++){
+                if(e.before[i].fn == fn && e.before[i].scope == scope){
+                    Ext.Array.erase(e.before, i, 1);
+                    return;
+                }
             }
-        };
-    }());
-});
+            for(i = 0, len = e.after.length; i < len; i++){
+                if(e.after[i].fn == fn && e.after[i].scope == scope){
+                    Ext.Array.erase(e.after, i, 1);
+                    return;
+                }
+            }
+        },
 
+        toggleEventLogging: function(toggle) {
+            Ext.util.Observable[toggle ? 'capture' : 'releaseCapture'](this, function(en) {
+                if (Ext.isDefined(Ext.global.console)) {
+                    Ext.global.console.log(en, arguments);
+                }
+            });
+        }
+    });
+});

@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.define('FV.controller.Articles', {
     extend: 'Ext.app.Controller',
 
@@ -85,26 +71,38 @@ Ext.define('FV.controller.Articles', {
     },
     
     openAllArticles: function() {
-        var articles = [],
-            viewer = this.getViewer();
-            
-        this.getArticlesStore().each(function(article) {
-            articles.push(this.loadArticle(null, article, true));
-        }, this);
-        
-        viewer.add(articles);
-        viewer.setActiveTab(articles[articles.length-1]);
+        this.loadArticles(this.getArticlesStore().getRange());
     },
 
     viewArticle: function(btn) {
         this.loadArticle(null, btn.up('articlepreview').article);
+    },
+    
+    loadArticles: function(articles){
+        var viewer = this.getViewer(),
+            toAdd = [],
+            id;
+            
+        Ext.Array.forEach(articles, function(article){
+            id = article.id;
+            if (!viewer.down('[articleId=' + id + ']')) {
+                tab = this.getArticleTab();
+                tab.down('button[action=viewintab]').destroy();
+                tab.setTitle(article.get('title'));
+                tab.article = article;
+                tab.articleId = id;
+                tab.update(article.data);
+                toAdd.push(tab);
+            }
+        }, this);
+        viewer.add(toAdd);
     },
 
     /**
      * Loads the given article into a new tab
      * @param {FV.model.Article} article The article to load into a new tab
      */
-    loadArticle: function(view, article, preventAdd) {
+    loadArticle: function(view, article) {
         var viewer = this.getViewer(),
             title = article.get('title'),
             articleId = article.id;
@@ -120,12 +118,9 @@ Ext.define('FV.controller.Articles', {
         tab.articleId = articleId;
         tab.update(article.data);
 
-        if (preventAdd !== true) {
-            viewer.add(tab);
-            viewer.setActiveTab(tab);            
-        }
+        viewer.add(tab);
+        viewer.setActiveTab(tab);            
         
         return tab;
     }
 });
-

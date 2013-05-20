@@ -27,7 +27,7 @@
  * sometimes you want to require a user to select one of a group of radios. RadioGroup
  * allows this by setting the config `{@link #allowBlank}:false`; when the user does not check at
  * one of the radio buttons, the entire group will be highlighted as invalid and the
- * {@link #blankText error message} will be displayed according to the {@link #msgTarget} config.&lt;/p&gt;
+ * {@link #blankText error message} will be displayed according to the {@link #msgTarget} config.
  *
  * # Layout
  *
@@ -73,15 +73,19 @@ Ext.define('Ext.form.RadioGroup', {
      * An Array of {@link Ext.form.field.Radio Radio}s or Radio config objects to arrange in the group.
      */
 <span id='Ext-form-RadioGroup-cfg-allowBlank'>    /**
-</span>     * @cfg {Boolean} allowBlank True to allow every item in the group to be blank.
+</span>     * @cfg {Boolean} allowBlank
+     * True to allow every item in the group to be blank.
      * If allowBlank = false and no items are selected at validation time, {@link #blankText} will
      * be used as the error text.
      */
     allowBlank : true,
+    //&lt;locale&gt;
 <span id='Ext-form-RadioGroup-cfg-blankText'>    /**
-</span>     * @cfg {String} blankText Error text to display if the {@link #allowBlank} validation fails
+</span>     * @cfg {String} blankText
+     * Error text to display if the {@link #allowBlank} validation fails
      */
     blankText : 'You must select one item in this group',
+    //&lt;/locale&gt;
 
     // private
     defaultType : 'radiofield',
@@ -89,8 +93,20 @@ Ext.define('Ext.form.RadioGroup', {
     // private
     groupCls : Ext.baseCSSPrefix + 'form-radio-group',
 
-    getBoxes: function() {
-        return this.query('[isRadio]');
+    getBoxes: function(query) {
+        return this.query('[isRadio]' + (query||''));
+    },
+    
+    checkChange: function() {
+        var value = this.getValue(),
+            key = Ext.Object.getKeys(value)[0];
+            
+        // If the value is an array we skip out here because it's during a change
+        // between multiple items, so we never want to fire a change
+        if (Ext.isArray(value[key])) {
+            return;
+        }
+        this.callParent(arguments);    
     },
 
 <span id='Ext-form-RadioGroup-method-setValue'>    /**
@@ -102,16 +118,25 @@ Ext.define('Ext.form.RadioGroup', {
      * @return {Ext.form.CheckboxGroup} this
      */
     setValue: function(value) {
-        var me = this;
+        var cbValue, first, formId, radios,
+            i, len, name;
+
         if (Ext.isObject(value)) {
-            Ext.Object.each(value, function(name, cbValue) {
-                var radios = Ext.form.RadioManager.getWithValue(name, cbValue);
-                radios.each(function(cb) {
-                    cb.setValue(true);
-                });
-            });
+            for (name in value) {
+                if (value.hasOwnProperty(name)) {
+                    cbValue = value[name];
+                    first = this.items.first();
+                    formId = first ? first.getFormId() : null;
+                    radios = Ext.form.RadioManager.getWithValue(name, cbValue, formId).items;
+                    len = radios.length;
+
+                    for (i = 0; i &lt; len; ++i) {
+                        radios[i].setValue(true);
+                    }
+                }
+            }
         }
-        return me;
+        return this;
     }
 });
 </pre>

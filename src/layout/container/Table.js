@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * This layout allows you to easily render content into an HTML table. The total number of columns can be specified, and
  * rowspan and colspan can be used to create complex layouts within the table. This class is intended to be extended or
@@ -32,7 +18,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * simply add each panel (or "cell") that you want to include along with any span attributes specified as the special
  * config properties of rowspan and colspan which work exactly like their HTML counterparts. Rather than explicitly
  * creating and nesting rows and columns as you would in HTML, you simply specify the total column count in the
- * layoutConfig and start adding panels in their natural order from left to right, top to bottom. The layout will
+ * layout config and start adding panels in their natural order from left to right, top to bottom. The layout will
  * automatically figure out, based on the column count, rowspans and colspans, how to position each panel within the
  * table. Just like with HTML tables, your rowspans and colspans must add up correctly in your overall layout or you'll
  * end up with missing and/or extra cells! Example usage:
@@ -71,7 +57,7 @@ Ext.define('Ext.layout.container.Table', {
     /* Begin Definitions */
 
     alias: ['layout.table'],
-    extend: 'Ext.layout.container.Auto',
+    extend: 'Ext.layout.container.Container',
     alternateClassName: 'Ext.layout.TableLayout',
 
     /* End Definitions */
@@ -86,10 +72,6 @@ Ext.define('Ext.layout.container.Table', {
     monitorResize:false,
 
     type: 'table',
-
-    // Table layout is a self-sizing layout. When an item of for example, a dock layout, the Panel must expand to accommodate
-    // a table layout. See in particular AbstractDock::onLayout for use of this flag.
-    autoSize: true,
 
     clearEl: true, // Base class will not create it if already truthy. Not needed in tables.
 
@@ -115,34 +97,61 @@ Ext.define('Ext.layout.container.Table', {
      *         }
      *     }
      */
-    tableAttrs:null,
+    tableAttrs: null,
 
     /**
      * @cfg {Object} trAttrs
      * An object containing properties which are added to the {@link Ext.DomHelper DomHelper} specification used to
-     * create the layout's <tr> elements.
+     * create the layout's `<tr>` elements.
      */
 
     /**
      * @cfg {Object} tdAttrs
      * An object containing properties which are added to the {@link Ext.DomHelper DomHelper} specification used to
-     * create the layout's <td> elements.
+     * create the layout's `<td>` elements.
      */
+
+    itemSizePolicy: {
+        setsWidth: 0,
+        setsHeight: 0
+    },
+
+    getItemSizePolicy: function (item) {
+        return this.itemSizePolicy;
+    },
+
+    getLayoutItems: function() {
+        var me = this,
+            result = [],
+            items = me.callParent(),
+            item,
+            len = items.length, i;
+
+        for (i = 0; i < len; i++) {
+            item = items[i];
+            if (!item.hidden) {
+                result.push(item);
+            }
+        }
+        return result;
+    },
 
     /**
      * @private
      * Iterates over all passed items, ensuring they are rendered in a cell in the proper
      * location in the table structure.
      */
-    renderItems: function(items) {
-        var tbody = this.getTable().tBodies[0],
+    renderChildren: function() {
+        var me = this,
+            items = me.getLayoutItems(),
+            tbody = me.owner.getTargetEl().child('table', true).tBodies[0],
             rows = tbody.rows,
             i = 0,
             len = items.length,
             cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt;
 
         // Calculate the correct cell structure for the current items
-        cells = this.calculateCells(items);
+        cells = me.calculateCells(items);
 
         // Loop over each cell and compare to the current cells in the table, inserting/
         // removing/moving cells as needed, and making sure each item is rendered into
@@ -157,35 +166,38 @@ Ext.define('Ext.layout.container.Table', {
             trEl = rows[rowIdx];
             if (!trEl) {
                 trEl = tbody.insertRow(rowIdx);
-                if (this.trAttrs) {
-                    trEl.set(this.trAttrs);
+                if (me.trAttrs) {
+                    trEl.set(me.trAttrs);
                 }
             }
 
             // If no cell present, create and insert one
             itemCt = tdEl = Ext.get(trEl.cells[cellIdx] || trEl.insertCell(cellIdx));
-            if (this.needsDivWrap()) { //create wrapper div if needed - see docs below
+            if (me.needsDivWrap()) { //create wrapper div if needed - see docs below
                 itemCt = tdEl.first() || tdEl.createChild({tag: 'div'});
                 itemCt.setWidth(null);
             }
 
             // Render or move the component into the cell
             if (!item.rendered) {
-                this.renderItem(item, itemCt, 0);
+                me.renderItem(item, itemCt, 0);
             }
-            else if (!this.isValidParent(item, itemCt, 0)) {
-                this.moveItem(item, itemCt, 0);
+            else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
+                me.moveItem(item, itemCt, 0);
             }
 
             // Set the cell properties
-            if (this.tdAttrs) {
-                tdEl.set(this.tdAttrs);
+            if (me.tdAttrs) {
+                tdEl.set(me.tdAttrs);
+            }
+            if (item.tdAttrs) {
+                tdEl.set(item.tdAttrs);
             }
             tdEl.set({
                 colSpan: item.colspan || 1,
                 rowSpan: item.rowspan || 1,
                 id: item.cellId || '',
-                cls: this.cellCls + ' ' + (item.cellCls || '')
+                cls: me.cellCls + ' ' + (item.cellCls || '')
             });
 
             // If at the end of a row, remove any extra cells
@@ -204,14 +216,44 @@ Ext.define('Ext.layout.container.Table', {
         }
     },
 
-    afterLayout: function() {
-        this.callParent();
+    calculate: function (ownerContext) {
+        if (!ownerContext.hasDomProp('containerChildrenDone')) {
+            this.done = false;
+        } else {
+            var targetContext = ownerContext.targetContext,
+                widthShrinkWrap = ownerContext.widthModel.shrinkWrap,
+                heightShrinkWrap = ownerContext.heightModel.shrinkWrap,
+                shrinkWrap = heightShrinkWrap || widthShrinkWrap,
+                table = shrinkWrap && targetContext.el.child('table', true),
+                targetPadding = shrinkWrap && targetContext.getPaddingInfo();
 
+            if (widthShrinkWrap) {
+                ownerContext.setContentWidth(table.offsetWidth + targetPadding.width, true);
+            }
+
+            if (heightShrinkWrap) {
+                ownerContext.setContentHeight(table.offsetHeight + targetPadding.height, true);
+            }
+        }
+    },
+
+    finalizeLayout: function() {
         if (this.needsDivWrap()) {
             // set wrapper div width to match layed out item - see docs below
-            Ext.Array.forEach(this.getLayoutItems(), function(item) {
+            var items = this.getLayoutItems(),
+                i,
+                iLen  = items.length,
+                item;
+
+            for (i = 0; i < iLen; i++) {
+                item = items[i];
+
                 Ext.fly(item.el.dom.parentNode).setWidth(item.getWidth());
-            });
+            }
+        }
+        if (Ext.isIE6 || (Ext.isIEQuirks)) {
+            // Fixes an issue where the table won't paint
+            this.owner.getTargetEl().child('table').repaint();
         }
     },
 
@@ -272,25 +314,87 @@ Ext.define('Ext.layout.container.Table', {
         return cells;
     },
 
-    /**
-     * @private
-     * Return the layout's table element, creating it if necessary.
-     */
-    getTable: function() {
-        var table = this.table;
-        if (!table) {
-            table = this.table = this.getTarget().createChild(
-                Ext.apply({
-                    tag: 'table',
-                    role: 'presentation',
-                    cls: this.tableCls,
-                    cellspacing: 0, //TODO should this be specified or should CSS handle it?
-                    cn: {tag: 'tbody'}
-                }, this.tableAttrs),
-                null, true
-            );
+    getRenderTree: function() {
+        var me = this,
+            items = me.getLayoutItems(),
+            cells,
+            rows = [],
+            result = Ext.apply({
+                tag: 'table',
+                role: 'presentation',
+                cls: me.tableCls,
+                cellspacing: 0,
+                cn: {
+                    tag: 'tbody',
+                    cn: rows
+                }
+            }, me.tableAttrs),
+            tdAttrs = me.tdAttrs,
+            needsDivWrap = me.needsDivWrap(),
+            i, len = items.length, item, curCell, tr, rowIdx, cellIdx, cell;
+
+        // Calculate the correct cell structure for the current items
+        cells = me.calculateCells(items);
+
+        for (i = 0; i < len; i++) {
+            item = items[i];
+            
+            curCell = cells[i];
+            rowIdx = curCell.rowIdx;
+            cellIdx = curCell.cellIdx;
+
+            // If no row present, create and insert one
+            tr = rows[rowIdx];
+            if (!tr) {
+                tr = rows[rowIdx] = {
+                    tag: 'tr',
+                    cn: []
+                };
+                if (me.trAttrs) {
+                    Ext.apply(tr, me.trAttrs);
+                }
+            }
+
+            // If no cell present, create and insert one
+            cell = tr.cn[cellIdx] = {
+                tag: 'td'
+            };
+            if (tdAttrs) {
+                Ext.apply(cell, tdAttrs);
+            }
+            Ext.apply(cell, {
+                colSpan: item.colspan || 1,
+                rowSpan: item.rowspan || 1,
+                id: item.cellId || '',
+                cls: me.cellCls + ' ' + (item.cellCls || '')
+            });
+
+            if (needsDivWrap) { //create wrapper div if needed - see docs below
+                cell = cell.cn = {
+                    tag: 'div'
+                };
+            }
+
+            me.configureItem(item);
+            // The DomHelper config of the item is the cell's sole child
+            cell.cn = item.getRenderTree();
         }
-        return table;
+        return result;
+    },
+
+    isValidParent: function(item, target, rowIdx, cellIdx) {
+        var tbody,
+            correctCell,
+            table;
+
+        // If we were called with the 3 arg signature just check that the parent table of the item is within the render target
+        if (arguments.length === 3) {
+            table = item.el.up('table');
+            return table && table.dom.parentNode === target.dom;
+        }
+        tbody = this.owner.getTargetEl().child('table', true).tBodies[0];
+        correctCell = tbody.rows[rowIdx].cells[cellIdx];
+        return item.el.dom.parentNode === correctCell;
     },
 
     /**

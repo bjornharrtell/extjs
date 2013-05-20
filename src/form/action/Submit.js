@@ -1,73 +1,62 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.form.action.Submit
- * @extends Ext.form.action.Action
- * <p>A class which handles submission of data from {@link Ext.form.Basic Form}s
- * and processes the returned response.</p>
- * <p>Instances of this class are only created by a {@link Ext.form.Basic Form} when
- * {@link Ext.form.Basic#submit submit}ting.</p>
- * <p><u><b>Response Packet Criteria</b></u></p>
- * <p>A response packet may contain:
- * <div class="mdetail-params"><ul>
- * <li><b><code>success</code></b> property : Boolean
- * <div class="sub-desc">The <code>success</code> property is required.</div></li>
- * <li><b><code>errors</code></b> property : Object
- * <div class="sub-desc"><div class="sub-desc">The <code>errors</code> property,
- * which is optional, contains error messages for invalid fields.</div></li>
- * </ul></div>
- * <p><u><b>JSON Packets</b></u></p>
- * <p>By default, response packets are assumed to be JSON, so a typical response
- * packet may look like this:</p><pre><code>
-{
-    success: false,
-    errors: {
-        clientCode: "Client not found",
-        portOfLoading: "This field must not be null"
-    }
-}</code></pre>
- * <p>Other data may be placed into the response for processing by the {@link Ext.form.Basic}'s callback
- * or event handler methods. The object decoded from this JSON is available in the
- * {@link Ext.form.action.Action#result result} property.</p>
- * <p>Alternatively, if an {@link Ext.form.Basic#errorReader errorReader} is specified as an {@link Ext.data.reader.Xml XmlReader}:</p><pre><code>
-    errorReader: new Ext.data.reader.Xml({
-            record : 'field',
-            success: '@success'
-        }, [
-            'id', 'msg'
-        ]
-    )
-</code></pre>
- * <p>then the results may be sent back in XML format:</p><pre><code>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;message success="false"&gt;
-&lt;errors&gt;
-    &lt;field&gt;
-        &lt;id&gt;clientCode&lt;/id&gt;
-        &lt;msg&gt;&lt;![CDATA[Code not found. &lt;br /&gt;&lt;i&gt;This is a test validation message from the server &lt;/i&gt;]]&gt;&lt;/msg&gt;
-    &lt;/field&gt;
-    &lt;field&gt;
-        &lt;id&gt;portOfLoading&lt;/id&gt;
-        &lt;msg&gt;&lt;![CDATA[Port not found. &lt;br /&gt;&lt;i&gt;This is a test validation message from the server &lt;/i&gt;]]&gt;&lt;/msg&gt;
-    &lt;/field&gt;
-&lt;/errors&gt;
-&lt;/message&gt;
-</code></pre>
- * <p>Other elements may be placed into the response XML for processing by the {@link Ext.form.Basic}'s callback
- * or event handler methods. The XML document is available in the {@link Ext.form.Basic#errorReader errorReader}'s
- * {@link Ext.data.reader.Xml#xmlData xmlData} property.</p>
+ * A class which handles submission of data from {@link Ext.form.Basic Form}s and processes the returned response.
+ *
+ * Instances of this class are only created by a {@link Ext.form.Basic Form} when
+ * {@link Ext.form.Basic#submit submit}ting.
+ *
+ * # Response Packet Criteria
+ *
+ * A response packet may contain:
+ *
+ *   - **`success`** property : Boolean - required.
+ *
+ *   - **`errors`** property : Object - optional, contains error messages for invalid fields.
+ *
+ * # JSON Packets
+ *
+ * By default, response packets are assumed to be JSON, so a typical response packet may look like this:
+ *
+ *     {
+ *         success: false,
+ *         errors: {
+ *             clientCode: "Client not found",
+ *             portOfLoading: "This field must not be null"
+ *         }
+ *     }
+ *
+ * Other data may be placed into the response for processing by the {@link Ext.form.Basic}'s callback or event handler
+ * methods. The object decoded from this JSON is available in the {@link Ext.form.action.Action#result result} property.
+ *
+ * Alternatively, if an {@link Ext.form.Basic#errorReader errorReader} is specified as an
+ * {@link Ext.data.reader.Xml XmlReader}:
+ *
+ *     errorReader: new Ext.data.reader.Xml({
+ *             record : 'field',
+ *             success: '@success'
+ *         }, [
+ *             'id', 'msg'
+ *         ]
+ *     )
+ *
+ * then the results may be sent back in XML format:
+ *
+ *     <?xml version="1.0" encoding="UTF-8"?>
+ *     <message success="false">
+ *     <errors>
+ *         <field>
+ *             <id>clientCode</id>
+ *             <msg><![CDATA[Code not found. <br /><i>This is a test validation message from the server </i>]]></msg>
+ *         </field>
+ *         <field>
+ *             <id>portOfLoading</id>
+ *             <msg><![CDATA[Port not found. <br /><i>This is a test validation message from the server </i>]]></msg>
+ *         </field>
+ *     </errors>
+ *     </message>
+ *
+ * Other elements may be placed into the response XML for processing by the {@link Ext.form.Basic}'s callback or event
+ * handler methods. The XML document is available in the {@link Ext.form.Basic#errorReader errorReader}'s
+ * {@link Ext.data.reader.Xml#xmlData xmlData} property.
  */
 Ext.define('Ext.form.action.Submit', {
     extend:'Ext.form.action.Action',
@@ -77,9 +66,9 @@ Ext.define('Ext.form.action.Submit', {
     type: 'submit',
 
     /**
-     * @cfg {Boolean} clientValidation Determines whether a Form's fields are validated
-     * in a final call to {@link Ext.form.Basic#isValid isValid} prior to submission.
-     * Pass <tt>false</tt> in the Form's submit options to prevent this. Defaults to true.
+     * @cfg {Boolean} [clientValidation=true]
+     * Determines whether a Form's fields are validated in a final call to {@link Ext.form.Basic#isValid isValid} prior
+     * to submission. Pass false in the Form's submit options to prevent this.
      */
 
     // inherit docs
@@ -96,7 +85,7 @@ Ext.define('Ext.form.action.Submit', {
 
     /**
      * @private
-     * Perform the submit of the form data.
+     * Performs the submit of the form data.
      */
     doSubmit: function() {
         var formEl,
@@ -124,7 +113,7 @@ Ext.define('Ext.form.action.Submit', {
 
     /**
      * @private
-     * Build the full set of parameters from the field values plus any additional configured params.
+     * Builds the full set of parameters from the field values plus any additional configured params.
      */
     getParams: function() {
         var nope = false,
@@ -135,11 +124,13 @@ Ext.define('Ext.form.action.Submit', {
 
     /**
      * @private
-     * Build a form element containing fields corresponding to all the parameters to be
+     * Builds a form element containing fields corresponding to all the parameters to be
      * submitted (everything returned by {@link #getParams}.
+     *
      * NOTE: the form element is automatically added to the DOM, so any code that uses
      * it must remove it from the DOM after finishing with it.
-     * @return HTMLFormElement
+     *
+     * @return {HTMLElement}
      */
     buildForm: function() {
         var fieldsSpec = [],
@@ -147,13 +138,20 @@ Ext.define('Ext.form.action.Submit', {
             formEl,
             basicForm = this.form,
             params = this.getParams(),
-            uploadFields = [];
+            uploadFields = [],
+            fields = basicForm.getFields().items,
+            f,
+            fLen   = fields.length,
+            field, key, value, v, vLen,
+            u, uLen;
 
-        basicForm.getFields().each(function(field) {
+        for (f = 0; f < fLen; f++) {
+            field = fields[f];
+
             if (field.isFileUpload()) {
                 uploadFields.push(field);
             }
-        });
+        }
 
         function addField(name, val) {
             fieldsSpec.push({
@@ -164,16 +162,20 @@ Ext.define('Ext.form.action.Submit', {
             });
         }
 
-        // Add the form field values
-        Ext.iterate(params, function(key, val) {
-            if (Ext.isArray(val)) {
-                Ext.each(val, function(v) {
-                    addField(key, v);
-                });
-            } else {
-                addField(key, val);
+        for (key in params) {
+            if (params.hasOwnProperty(key)) {
+                value = params[key];
+
+                if (Ext.isArray(value)) {
+                    vLen = value.length;
+                    for (v = 0; v < vLen; v++) {
+                        addField(key, value[v]);
+                    }
+                } else {
+                    addField(key, value);
+                }
             }
-        });
+        }
 
         formSpec = {
             tag: 'form',
@@ -195,11 +197,14 @@ Ext.define('Ext.form.action.Submit', {
         // Special handling for file upload fields: since browser security measures prevent setting
         // their values programatically, and prevent carrying their selected values over when cloning,
         // we have to move the actual field instances out of their components and into the form.
-        Ext.Array.each(uploadFields, function(field) {
+        uLen = uploadFields.length;
+
+        for (u = 0; u < uLen; u++) {
+            field = uploadFields[u];
             if (field.rendered) { // can only have a selected file value after being rendered
                 formEl.appendChild(field.extractFileInput());
             }
-        });
+        }
 
         return formEl;
     },
@@ -250,4 +255,3 @@ Ext.define('Ext.form.action.Submit', {
         return Ext.decode(response.responseText);
     }
 });
-

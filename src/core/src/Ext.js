@@ -1,32 +1,24 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
+//@tag foundation,core
 /**
  * @class Ext
  * @singleton
  */
+var Ext = Ext || {};
+Ext._startTime = new Date().getTime();
 (function() {
     var global = this,
         objectPrototype = Object.prototype,
         toString = objectPrototype.toString,
         enumerables = true,
         enumerablesTest = { toString: 1 },
+        emptyFn = function () {},
+        // This is the "$previous" method of a hook function on an instance. When called, it
+        // calls through the class prototype by the name of the called method.
+        callOverrideParent = function () {
+            var method = callOverrideParent.caller.caller; // skip callParent (our caller)
+            return method.$owner.prototype[method.$name].apply(this, arguments);
+        },
         i;
-
-    if (typeof Ext === 'undefined') {
-        global.Ext = {};
-    }
 
     Ext.global = global;
 
@@ -51,7 +43,7 @@ If you are unsure which license is appropriate for your use, please contact the 
      * {@link Ext.Object#merge} instead.
      * @param {Object} object The receiver of the properties
      * @param {Object} config The source of the properties
-     * @param {Object} defaults A different object that will also be applied for default values
+     * @param {Object} [defaults] A different object that will also be applied for default values
      * @return {Object} returns obj
      */
     Ext.apply = function(object, config, defaults) {
@@ -85,10 +77,26 @@ If you are unsure which license is appropriate for your use, please contact the 
     }, Ext.buildSettings || {});
 
     Ext.apply(Ext, {
+
+        /**
+         * @property {String} [name='Ext']
+         * <p>The name of the property in the global namespace (The <code>window</code> in browser environments) which refers to the current instance of Ext.</p>
+         * <p>This is usually <code>"Ext"</code>, but if a sandboxed build of ExtJS is being used, this will be an alternative name.</p>
+         * <p>If code is being generated for use by <code>eval</code> or to create a <code>new Function</code>, and the global instance
+         * of Ext must be referenced, this is the name that should be built into the code.</p>
+         */
+        name: Ext.sandboxName || 'Ext',
+
         /**
          * A reusable empty function
          */
-        emptyFn: function() {},
+        emptyFn: emptyFn,
+
+        /**
+         * A zero length string which will pass a truth test. Useful for passing to methods
+         * which use a truth test to reject <i>falsy</i> values where a string value must be cleared.
+         */
+        emptyString: new String(),
 
         baseCSSPrefix: Ext.buildSettings.baseCSSPrefix,
 
@@ -152,7 +160,7 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @return {Function} The subclass constructor from the <tt>overrides</tt> parameter, or a generated one if not provided.
          * @deprecated 4.0.0 Use {@link Ext#define Ext.define} instead
          */
-        extend: function() {
+        extend: (function() {
             // inline overrides
             var objectConstructor = objectPrototype.constructor,
                 inlineOverrides = function(o) {
@@ -211,45 +219,79 @@ If you are unsure which license is appropriate for your use, please contact the 
 
                 return subclass;
             };
-        }(),
+        }()),
 
         /**
-         * Proxy to {@link Ext.Base#override}. Please refer {@link Ext.Base#override} for further details.
-
-    Ext.define('My.cool.Class', {
-        sayHi: function() {
-            alert('Hi!');
-        }
-    }
-
-    Ext.override(My.cool.Class, {
-        sayHi: function() {
-            alert('About to say...');
-
-            this.callOverridden();
-        }
-    });
-
-    var cool = new My.cool.Class();
-    cool.sayHi(); // alerts 'About to say...'
-                  // alerts 'Hi!'
-
-         * Please note that `this.callOverridden()` only works if the class was previously
-         * created with {@link Ext#define)
+         * Overrides members of the specified `target` with the given values.
+         * 
+         * If the `target` is a class declared using {@link Ext#define Ext.define}, the
+         * `override` method of that class is called (see {@link Ext.Base#override}) given
+         * the `overrides`.
          *
-         * @param {Object} cls The class to override
-         * @param {Object} overrides The list of functions to add to origClass. This should be specified as an object literal
-         * containing one or more methods.
+         * If the `target` is a function, it is assumed to be a constructor and the contents
+         * of `overrides` are applied to its `prototype` using {@link Ext#apply Ext.apply}.
+         * 
+         * If the `target` is an instance of a class declared using {@link Ext#define Ext.define},
+         * the `overrides` are applied to only that instance. In this case, methods are
+         * specially processed to allow them to use {@link Ext.Base#callParent}.
+         * 
+         *      var panel = new Ext.Panel({ ... });
+         *      
+         *      Ext.override(panel, {
+         *          initComponent: function () {
+         *              // extra processing...
+         *              
+         *              this.callParent();
+         *          }
+         *      });
+         *
+         * If the `target` is none of these, the `overrides` are applied to the `target`
+         * using {@link Ext#apply Ext.apply}.
+         *
+         * Please refer to {@link Ext#define Ext.define} and {@link Ext.Base#override} for
+         * further details.
+         *
+         * @param {Object} target The target to override.
+         * @param {Object} overrides The properties to add or replace on `target`. 
          * @method override
-         * @markdown
          */
-        override: function(cls, overrides) {
-            if (cls.prototype.$className) {
-                return cls.override(overrides);
+        override: function (target, overrides) {
+            if (target.$isClass) {
+                target.override(overrides);
+            } else if (typeof target == 'function') {
+                Ext.apply(target.prototype, overrides);
+            } else {
+                var owner = target.self,
+                    name, value;
+
+                if (owner && owner.$isClass) { // if (instance of Ext.define'd class)
+                    for (name in overrides) {
+                        if (overrides.hasOwnProperty(name)) {
+                            value = overrides[name];
+
+                            if (typeof value == 'function') {
+                                //<debug>
+                                if (owner.$className) {
+                                    value.displayName = owner.$className + '#' + name;
+                                }
+                                //</debug>
+
+                                value.$name = name;
+                                value.$owner = owner;
+                                value.$previous = target.hasOwnProperty(name)
+                                    ? target[name] // already hooked, so call previous hook
+                                    : callOverrideParent; // calls by name on prototype
+                            }
+
+                            target[name] = value;
+                        }
+                    }
+                } else {
+                    Ext.apply(target, overrides);
+                }
             }
-            else {
-                Ext.apply(cls.prototype, overrides);
-            }
+
+            return target;
         }
     });
 
@@ -291,17 +333,20 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @markdown
          */
         typeOf: function(value) {
+            var type,
+                typeToString;
+            
             if (value === null) {
                 return 'null';
             }
 
-            var type = typeof value;
+            type = typeof value;
 
             if (type === 'undefined' || type === 'string' || type === 'number' || type === 'boolean') {
                 return type;
             }
 
-            var typeToString = toString.call(value);
+            typeToString = toString.call(value);
 
             switch(typeToString) {
                 case '[object Array]':
@@ -395,6 +440,12 @@ If you are unsure which license is appropriate for your use, please contact the 
         },
 
         /**
+         * @private
+         */
+        isSimpleObject: function(value) {
+            return value instanceof Object && value.constructor === Object;
+        },
+        /**
          * Returns true if the passed value is a JavaScript 'primitive', a string, number or boolean.
          * @param {Object} value The value to test
          * @return {Boolean}
@@ -413,7 +464,7 @@ If you are unsure which license is appropriate for your use, please contact the 
          */
         isFunction:
         // Safari 3.x and 4.x returns 'function' for typeof <NodeList>, hence we need to fall back to using
-        // Object.prorotype.toString (slower)
+        // Object.prototype.toString (slower)
         (typeof document !== 'undefined' && typeof document.getElementsByTagName('body') === 'function') ? function(value) {
             return toString.call(value) === '[object Function]';
         } : function(value) {
@@ -490,18 +541,42 @@ If you are unsure which license is appropriate for your use, please contact the 
          * @return {Boolean}
          */
         isIterable: function(value) {
-            return (value && typeof value !== 'string') ? value.length !== undefined : false;
+            var type = typeof value,
+                checkLength = false;
+            if (value && type != 'string') {
+                // Functions have a length property, so we need to filter them out
+                if (type == 'function') {
+                    // In Safari, NodeList/HTMLCollection both return "function" when using typeof, so we need
+                    // to explicitly check them here.
+                    if (Ext.isSafari) {
+                        checkLength = value instanceof NodeList || value instanceof HTMLCollection;
+                    }
+                } else {
+                    checkLength = true;
+                }
+            }
+            return checkLength ? value.length !== undefined : false;
         }
     });
 
     Ext.apply(Ext, {
 
         /**
-         * Clone almost any type of variable including array, object, DOM nodes and Date without keeping the old reference
+         * Clone simple variables including array, {}-like objects, DOM nodes and Date without keeping the old reference.
+         * A reference for the object itself is returned if it's not a direct decendant of Object. For model cloning,
+         * see {@link Ext.data.Model#copy Model.copy}.
+         * 
          * @param {Object} item The variable to clone
          * @return {Object} clone
          */
         clone: function(item) {
+            var type,
+                i,
+                j,
+                k,
+                clone,
+                key;
+            
             if (item === null || item === undefined) {
                 return item;
             }
@@ -513,14 +588,13 @@ If you are unsure which license is appropriate for your use, please contact the 
                 return item.cloneNode(true);
             }
 
-            var type = toString.call(item);
+            type = toString.call(item);
 
             // Date
             if (type === '[object Date]') {
                 return new Date(item.getTime());
             }
 
-            var i, j, k, clone, key;
 
             // Array
             if (type === '[object Array]') {
@@ -556,10 +630,11 @@ If you are unsure which license is appropriate for your use, please contact the 
          * Generate a unique reference of Ext in the global scope, useful for sandboxing
          */
         getUniqueGlobalNamespace: function() {
-            var uniqueGlobalNamespace = this.uniqueGlobalNamespace;
+            var uniqueGlobalNamespace = this.uniqueGlobalNamespace,
+                i;
 
             if (uniqueGlobalNamespace === undefined) {
-                var i = 0;
+                i = 0;
 
                 do {
                     uniqueGlobalNamespace = 'ExtBox' + (++i);
@@ -571,19 +646,64 @@ If you are unsure which license is appropriate for your use, please contact the 
 
             return uniqueGlobalNamespace;
         },
-
+        
         /**
          * @private
          */
-        functionFactory: function() {
-            var args = Array.prototype.slice.call(arguments);
-
-            if (args.length > 0) {
-                args[args.length - 1] = 'var Ext=window.' + this.getUniqueGlobalNamespace() + ';' +
-                    args[args.length - 1];
+        functionFactoryCache: {},
+        
+        cacheableFunctionFactory: function() {
+            var me = this,
+                args = Array.prototype.slice.call(arguments),
+                cache = me.functionFactoryCache,
+                idx, fn, ln;
+                
+             if (Ext.isSandboxed) {
+                ln = args.length;
+                if (ln > 0) {
+                    ln--;
+                    args[ln] = 'var Ext=window.' + Ext.name + ';' + args[ln];
+                }
             }
-
+            idx = args.join('');
+            fn = cache[idx];
+            if (!fn) {
+                fn = Function.prototype.constructor.apply(Function.prototype, args);
+                
+                cache[idx] = fn;
+            }
+            return fn;
+        },
+        
+        functionFactory: function() {
+            var me = this,
+                args = Array.prototype.slice.call(arguments),
+                ln;
+                
+            if (Ext.isSandboxed) {
+                ln = args.length;
+                if (ln > 0) {
+                    ln--;
+                    args[ln] = 'var Ext=window.' + Ext.name + ';' + args[ln];
+                }
+            }
+     
             return Function.prototype.constructor.apply(Function.prototype, args);
+        },
+
+        /**
+         * @private
+         * @property
+         */
+        Logger: {
+            verbose: emptyFn,
+            log: emptyFn,
+            info: emptyFn,
+            warn: emptyFn,
+            error: function(message) {
+                throw new Error(message);
+            },
+            deprecate: emptyFn
         }
     });
 
@@ -591,9 +711,27 @@ If you are unsure which license is appropriate for your use, please contact the 
      * Old alias to {@link Ext#typeOf}
      * @deprecated 4.0.0 Use {@link Ext#typeOf} instead
      * @method
-     * @alias Ext#typeOf
+     * @inheritdoc Ext#typeOf
      */
     Ext.type = Ext.typeOf;
 
-})();
+}());
 
+/*
+ * This method evaluates the given code free of any local variable. In some browsers this
+ * will be at global scope, in others it will be in a function.
+ * @parma {String} code The code to evaluate.
+ * @private
+ * @method
+ */
+Ext.globalEval = Ext.global.execScript
+    ? function(code) {
+        execScript(code);
+    }
+    : function($$code) {
+        // IMPORTANT: because we use eval we cannot place this in the above function or it
+        // will break the compressor's ability to rename local variables...
+        (function(){
+            eval($$code);
+        }());
+    };

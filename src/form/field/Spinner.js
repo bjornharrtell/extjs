@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A field with a pair of up/down spinner buttons. This class is not normally instantiated directly,
  * instead it is subclassed and the {@link #onSpinUp} and {@link #onSpinDown} methods are implemented
@@ -30,10 +16,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         onSpinUp: function() {
  *             var me = this;
  *             if (!me.readOnly) {
- *                 var val = me.step; // set the default value to the step value
- *                 if(me.getValue() !== '') {
- *                     val = parseInt(me.getValue().slice(0, -5)); // gets rid of " Pack"
- *                 }
+ *                 var val = parseInt(me.getValue().split(' '), 10)||0; // gets rid of " Pack", defaults to zero on parse failure
  *                 me.setValue((val + me.step) + ' Pack');
  *             }
  *         },
@@ -42,10 +25,12 @@ If you are unsure which license is appropriate for your use, please contact the 
  *         onSpinDown: function() {
  *             var val, me = this;
  *             if (!me.readOnly) {
- *                 if(me.getValue() !== '') {
- *                     val = parseInt(me.getValue().slice(0, -5)); // gets rid of " Pack"
- *                 }
- *                 me.setValue((val - me.step) + ' Pack');
+ *                var val = parseInt(me.getValue().split(' '), 10)||0; // gets rid of " Pack", defaults to zero on parse failure
+ *                if (val <= me.step) {
+ *                    me.setValue('Dry!');
+ *                } else {
+ *                    me.setValue((val - me.step) + ' Pack');
+ *                }
  *             }
  *         }
  *     });
@@ -124,6 +109,12 @@ Ext.define('Ext.form.field.Spinner', {
      */
     onSpinDown: Ext.emptyFn,
 
+    triggerTpl: '<td style="{triggerStyle}">' +
+                    '<div class="' + Ext.baseCSSPrefix + 'trigger-index-0 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-up" role="button"></div>' +
+                    '<div class="' + Ext.baseCSSPrefix + 'trigger-index-1 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-down" role="button"></div>' +
+                '</td>' +
+            '</tr>',
+
     initComponent: function() {
         this.callParent();
 
@@ -162,7 +153,7 @@ Ext.define('Ext.form.field.Spinner', {
 
         me.callParent(arguments);
         triggers = me.triggerEl;
-
+        
         /**
          * @property {Ext.Element} spinUpEl
          * The spinner up button element
@@ -173,6 +164,8 @@ Ext.define('Ext.form.field.Spinner', {
          * The spinner down button element
          */
         me.spinDownEl = triggers.item(1);
+        
+        me.triggerCell = me.spinUpEl.parent(); 
 
         // Set initial enabled/disabled states
         me.setSpinUpEnabled(me.spinUpEnabled);
@@ -180,7 +173,7 @@ Ext.define('Ext.form.field.Spinner', {
 
         // Init up/down arrow keys
         if (me.keyNavEnabled) {
-            me.spinnerKeyNav = Ext.create('Ext.util.KeyNav', me.inputEl, {
+            me.spinnerKeyNav = new Ext.util.KeyNav(me.inputEl, {
                 scope: me,
                 up: me.spinUp,
                 down: me.spinDown
@@ -193,12 +186,38 @@ Ext.define('Ext.form.field.Spinner', {
         }
     },
 
+    getSubTplMarkup: function() {
+        var me = this,
+            field = Ext.form.field.Base.prototype.getSubTplMarkup.apply(me, arguments);
+
+        return '<table id="' + me.id + '-triggerWrap" class="' + Ext.baseCSSPrefix + 'form-trigger-wrap" cellpadding="0" cellspacing="0">' +
+            '<tbody>' +
+                '<tr><td id="' + me.id + '-inputCell" class="' + Ext.baseCSSPrefix + 'form-trigger-input-cell">' + field + '</td>' +
+                me.getTriggerMarkup() +
+            '</tbody></table>';
+    },
+
+    getTriggerMarkup: function() {
+        var me = this,
+            hideTrigger = (me.readOnly || me.hideTrigger);
+
+        return me.getTpl('triggerTpl').apply({
+            triggerStyle: 'width:' + me.triggerWidth + (hideTrigger ? 'px;display:none' : 'px')
+        });
+    },
+
     /**
-     * @private
-     * Override. Since the triggers are stacked, only measure the width of one of them.
+     * Get the total width of the spinner button area.
+     * @return {Number} The total spinner button width
      */
     getTriggerWidth: function() {
-        return this.hideTrigger || this.readOnly ? 0 : this.spinUpEl.getWidth() + this.triggerWrap.getFrameWidth('lr');
+        var me = this,
+            totalTriggerWidth = 0;
+
+        if (me.triggerWrap && !me.hideTrigger && !me.readOnly) {
+            totalTriggerWidth = me.triggerWidth;
+        }
+        return totalTriggerWidth;
     },
 
     /**
@@ -215,6 +234,12 @@ Ext.define('Ext.form.field.Spinner', {
      */
     onTrigger2Click: function() {
         this.spinDown();
+    },
+
+    // private
+    // Handle trigger mouse up gesture; refocuses the input element upon end of spin.
+    onTriggerWrapMouseup: function() {
+        this.inputEl.focus();
     },
 
     /**

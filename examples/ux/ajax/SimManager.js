@@ -1,20 +1,5 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Don Griffin
- * @class Ext.ux.ajax.SimManager
  *
  * This singleton manages simulated Ajax responses. This allows application logic to be
  * written unaware that its Ajax calls are being handled by simulations ("simlets"). This
@@ -22,7 +7,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * class (and {@link Ext.Ajax} since it is a derived class) qualify for simulation.
  *
  * The requires hooks are inserted when either the {@link #init} method is called or the
- * first {@link Simlet} is registered. For example:
+ * first {@link Ext.ux.ajax.Simlet} is registered. For example:
  *
  *      Ext.onReady(function () {
  *          initAjaxSim();
@@ -44,7 +29,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  *          });
  *      }
  *
- * As many URL's as desired can be registered and associated with a {@link Simlet}. To make
+ * As many URL's as desired can be registered and associated with a {@link Ext.ux.ajax.Simlet}. To make
  * non-simulated Ajax requests once this singleton is initialized, add a `nosim:true` option
  * to the Ajax options:
  *
@@ -59,8 +44,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  *              // process server response here
  *          }
  *      });
- *
- * @markdown
  */
 Ext.define('Ext.ux.ajax.SimManager', {
     singleton: true,
@@ -74,13 +57,13 @@ Ext.define('Ext.ux.ajax.SimManager', {
 
     /**
      * @cfg {Ext.ux.ajax.Simlet} defaultSimlet
-     * The {@link Simlet} instance to use for non-matching URL's. By default, this will
+     * The {@link Ext.ux.ajax.Simlet} instance to use for non-matching URL's. By default, this will
      * return 404. Set this to null to use real Ajax calls for non-matching URL's.
      */
 
     /**
      * @cfg {String} defaultType
-     * The default `stype` to apply to generic {@link Simlet} configuration objects. The
+     * The default `stype` to apply to generic {@link Ext.ux.ajax.Simlet} configuration objects. The
      * default is 'basic'.
      */
     defaultType: 'basic',
@@ -102,7 +85,7 @@ Ext.define('Ext.ux.ajax.SimManager', {
         this.simlets = {};
     },
 
-    getXhr: function (url) {
+    getSimlet: function (url) {
         // Strip down to base URL (no query parameters or hash):
         var me = this,
             index = url.indexOf('?');
@@ -114,26 +97,27 @@ Ext.define('Ext.ux.ajax.SimManager', {
             url = url.substring(0, index);
         }
 
-        var simlet = me.simlets[url] || me.defaultSimlet;
+        return me.simlets[url] || me.defaultSimlet;
+    },
+
+    getXhr: function (method, url, options, async) {
+        var simlet = this.getSimlet(url);
 
         if (simlet) {
-            return Ext.create('Ext.ux.ajax.SimXhr', { mgr: me, simlet: simlet });
+            return simlet.openRequest(method, url, options, async);
         }
+
         return null;
     },
 
     /**
      * Initializes this singleton and applies configuration options.
      * @param {Object} config An optional object with configuration properties to apply.
-     * @return {SimManager} this
+     * @return {Ext.ux.ajax.SimManager} this
      * @markdown
      */
     init: function (config) {
-        var me = this,
-            proto = Ext.data.Connection.prototype,
-            newXhr = proto.getXhrInstance,
-            setOptions = proto.setOptions,
-            url;
+        var me = this;
 
         Ext.apply(me, config);
 
@@ -141,42 +125,72 @@ Ext.define('Ext.ux.ajax.SimManager', {
             me.ready = true;
 
             if (!('defaultSimlet' in me)) {
-                me.defaultSimlet = Ext.create('Ext.ux.ajax.Simlet', {
+                me.defaultSimlet = new Ext.ux.ajax.Simlet({
                     status: 404,
                     statusText: 'Not Found'
                 });
             }
 
-            proto.getXhrInstance = function () {
-                // the only way 'url' will be null is for nosim...
-                var xhr = url && me.getXhr(url);
-                if (!xhr) {
-                    xhr = newXhr.call(this);
-                }
-                return xhr;
-            };
+            me._openRequest = Ext.data.Connection.prototype.openRequest;
 
-            proto.setOptions = function (options) {
-                var ret = setOptions.apply(this, arguments);
-                // remember the URL so we can give the right Simlet to the SimXhr...
-                url = options.nosim ? null : ret.url;
-                return ret;
-            };
+            Ext.data.Connection.override({
+                openRequest: function (options, requestOptions, async) {
+                    var xhr = !options.nosim &&
+                              me.getXhr(requestOptions.method, requestOptions.url, options, async);
+                    if (!xhr) {
+                        xhr = this.callParent(arguments);
+                    }
+                    return xhr;
+                }
+            });
+
+            if (Ext.data.JsonP) {
+                Ext.data.JsonP.self.override({
+                    createScript: function (url, params, options) {
+                        var fullUrl = Ext.urlAppend(url, Ext.Object.toQueryString(params)),
+                            script = !options.nosim &&
+                                     me.getXhr('GET', fullUrl, options, true);
+
+                        if (!script) {
+                            script = this.callParent(arguments);
+                        }
+
+                        return script;
+                    },
+
+                    loadScript: function (request) {
+                        var script = request.script;
+                        if (script.simlet) {
+                            script.jsonpCallback = request.params[request.callbackKey];
+                            script.send(null);
+                        } else {
+                            this.callParent(arguments);
+                        }
+                    }
+                });
+            }
         }
 
         return me;
     },
 
+    openRequest: function (method, url, async) {
+        var opt = {
+            method: method,
+            url: url
+        };
+        return this._openRequest.call(Ext.data.Connection.prototype, {}, opt, async);
+    },
+
     /**
-     * Registeres one or more {@link Simlet} instances.
-     * @param {Array/Object} simlet Either a {@link Simlet} instance or config, an Array
-     * of such elements or an Object keyed by URL with values that are {@link Simlet}
+     * Registeres one or more {@link Ext.ux.ajax.Simlet} instances.
+     * @param {Array/Object} simlet Either a {@link Ext.ux.ajax.Simlet} instance or config, an Array
+     * of such elements or an Object keyed by URL with values that are {@link Ext.ux.ajax.Simlet}
      * instances or configs.
      * @markdown
      */
     register: function (simlet) {
-        var me = this,
-            i, n;
+        var me = this;
 
         me.init();
 
@@ -186,6 +200,7 @@ Ext.define('Ext.ux.ajax.SimManager', {
                 simlet = Ext.create('simlet.' + (simlet.stype || me.defaultType), one);
             }
             me.simlets[one.url] = simlet;
+            simlet.manager = me;
         }
 
         if (Ext.isArray(simlet)) {
@@ -202,4 +217,3 @@ Ext.define('Ext.ux.ajax.SimManager', {
         return me;
     }
 });
-

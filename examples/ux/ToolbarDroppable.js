@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.ux.ToolbarDroppable
  * @extends Object
@@ -30,7 +16,6 @@ If you are unsure which license is appropriate for your use, please contact the 
  * the item has been created.
  */
  Ext.define('Ext.ux.ToolbarDroppable', {
-    extend: 'Object',
 
     /**
      * @constructor
@@ -85,32 +70,30 @@ If you are unsure which license is appropriate for your use, please contact the 
      * drag event
      * @param {Ext.EventObject} e The event object
      * @return {Number} The index at which to insert the new button
-     */
+     */    
     calculateEntryIndex: function(e) {
         var entryIndex = 0,
-            toolbar    = this.toolbar,
-            items      = toolbar.items.items,
-            count      = items.length,
-            xTotal     = toolbar.getEl().getXY()[0],
-            xHover     = e.getXY()[0] - xTotal;
-
-        for (var index = 0; index < count; index++) {
-            var item     = items[index],
-                width    = item.getEl().getWidth(),
-                midpoint = xTotal + width / 2;
-
-            xTotal += width;
-
+            toolbar = this.toolbar,
+            items = toolbar.items.items,
+            count = items.length,
+            xHover = e.getXY()[0],
+            index = 0,
+            el, xTotal, width, midpoint;
+ 
+        for (; index < count; index++) {
+            el = items[index].getEl();
+            xTotal = el.getXY()[0];
+            width = el.getWidth();
+            midpoint = xTotal + width / 2;
+ 
             if (xHover < midpoint) {
-                entryIndex = index;
-
+                entryIndex = index; 
                 break;
             } else {
                 entryIndex = index + 1;
             }
-        }
-
-        return entryIndex;
+       }
+       return entryIndex;
     },
 
     /**
@@ -167,4 +150,3 @@ If you are unsure which license is appropriate for your use, please contact the 
      */
     afterLayout: Ext.emptyFn
 });
-

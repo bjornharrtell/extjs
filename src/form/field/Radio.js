@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Robert Dougan <rob@sencha.com>
  *
@@ -191,22 +177,29 @@ Ext.define('Ext.form.field.Radio', {
     alternateClassName: 'Ext.form.Radio',
     requires: ['Ext.form.RadioManager'],
 
+    /**
+     * @property {Boolean} isRadio
+     * `true` in this class to identify an object as an instantiated Radio, or subclass thereof.
+     */
     isRadio: true,
 
     /**
-     * @cfg {String} uncheckedValue @hide
+     * @cfg {String} uncheckedValue
+     * @private
      */
 
     // private
     inputType: 'radio',
     ariaRole: 'radio',
+    
+    formId: null,
 
     /**
      * If this radio is part of a group, it will return the selected value
      * @return {String}
      */
     getGroupValue: function() {
-        var selected = this.getManager().getChecked(this.name);
+        var selected = this.getManager().getChecked(this.name, this.getFormId());
         return selected ? selected.inputValue : null;
     },
 
@@ -218,6 +211,11 @@ Ext.define('Ext.form.field.Radio', {
         if (!me.disabled && !me.readOnly) {
             this.setValue(true);
         }
+    },
+    
+    onRemoved: function(){
+        this.callParent(arguments);
+        this.formId = null;
     },
 
     /**
@@ -233,7 +231,7 @@ Ext.define('Ext.form.field.Radio', {
         if (Ext.isBoolean(v)) {
             me.callParent(arguments);
         } else {
-            active = me.getManager().getWithValue(me.name, v).getAt(0);
+            active = me.getManager().getWithValue(me.name, v, me.getFormId()).getAt(0);
             if (active) {
                 active.setValue(true);
             }
@@ -255,15 +253,22 @@ Ext.define('Ext.form.field.Radio', {
 
     // inherit docs
     onChange: function(newVal, oldVal) {
-        var me = this;
+        var me = this,
+            r, rLen, radio, radios;
+
         me.callParent(arguments);
 
         if (newVal) {
-            this.getManager().getByName(me.name).each(function(item){
-                if (item !== me) {
-                    item.setValue(false);
+            radios = me.getManager().getByName(me.name, me.getFormId()).items;
+            rLen   = radios.length;
+
+            for (r = 0; r < rLen; r++) {
+                radio = radios[r];
+
+                if (radio !== me) {
+                    radio.setValue(false);
                 }
-            }, me);
+            }
         }
     },
 
@@ -272,4 +277,3 @@ Ext.define('Ext.form.field.Radio', {
         return Ext.form.RadioManager;
     }
 });
-

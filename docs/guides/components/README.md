@@ -88,7 +88,7 @@ and so its Container Tab Panel instantiates and renders it immediately.
 {@img lazy_render1.png Lazy Render 1}
 
 The alert for the second tab does not get displayed until the tab is clicked on. This shows that the tab was not rendered until
-needed, since the `{@link Ext.Component#render render}` event did not fire until the tab was activated.
+needed, since the `{@link Ext.Component#event-render render}` event did not fire until the tab was activated.
 
 {@img lazy_render2.png Lazy Render 2}
 
@@ -212,8 +212,7 @@ Allows addition of behavior to the hide operation. After calling the superclass�
 - `afterHide`
 This method is invoked after the Component has been hidden
 - `onRender`
-Allows addition of behavior to the rendering phase. After calling the superclass’s onRender,
-the Component's Element will exist. Extra DOM processing may be performed at this stage to complete the desired structure of the Component.
+Allows addition of behavior to the rendering phase.
 - `afterRender`
 Allows addition of behavior after rendering is complete. At this stage the Component’s Element will have been styled according to the configuration,
 will have had any configured CSS class names added, and will be in the configured visibility and the configured enable state.
@@ -310,7 +309,7 @@ Usage:
         height: 200,
         renderTo: Ext.getBody(),
         items: [ image ]
-    })
+    });
 
     image.on('load', function() {
         console.log('image loaded: ', image.getSrc());

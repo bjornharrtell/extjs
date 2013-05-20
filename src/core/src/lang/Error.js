@@ -1,17 +1,6 @@
-/*
+//@tag foundation,core
+//@require ../class/Loader.js
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @author Brian Moeskau <brian@sencha.com>
  * @docauthor Brian Moeskau <brian@sencha.com>
@@ -158,7 +147,8 @@ Ext.Error = Ext.extend(Error, {
                 err = { msg: err };
             }
 
-            var method = this.raise.caller;
+            var method = this.raise.caller,
+                msg;
 
             if (method) {
                 if (method.$name) {
@@ -170,7 +160,7 @@ Ext.Error = Ext.extend(Error, {
             }
 
             if (Ext.Error.handle(err) !== true) {
-                var msg = Ext.Error.prototype.toString.call(err);
+                msg = Ext.Error.prototype.toString.call(err);
 
                 Ext.log({
                     msg: msg,
@@ -243,13 +233,36 @@ Ext.Error = Ext.extend(Error, {
      */
     toString: function(){
         var me = this,
-            className = me.className ? me.className  : '',
-            methodName = me.methodName ? '.' + me.methodName + '(): ' : '',
+            className = me.sourceClass ? me.sourceClass : '',
+            methodName = me.sourceMethod ? '.' + me.sourceMethod + '(): ' : '',
             msg = me.msg || '(No description provided)';
 
         return className + methodName + msg;
     }
 });
+
+/*
+ * Create a function that will throw an error if called (in debug mode) with a message that
+ * indicates the method has been removed.
+ * @param {String} suggestion Optional text to include in the message (a workaround perhaps).
+ * @return {Function} The generated function.
+ * @private
+ */
+Ext.deprecated = function (suggestion) {
+    //<debug>
+    if (!suggestion) {
+        suggestion = '';
+    }
+
+    function fail () {
+        Ext.Error.raise('The method "' + fail.$owner.$className + '.' + fail.$name + 
+                '" has been removed. ' + suggestion);
+    }
+
+    return fail;
+    //</debug>
+    return Ext.emptyFn;
+};
 
 /*
  * This mechanism is used to notify the user of the first error encountered on the page. This
@@ -259,9 +272,9 @@ Ext.Error = Ext.extend(Error, {
  */
 //<debug>
 (function () {
-    var prevOnError, timer, errors = 0,
-        extraordinarilyBad = /(out of stack)|(too much recursion)|(stack overflow)|(out of memory)/i,
-        win = Ext.global;
+    var timer, errors = 0,
+        win = Ext.global,
+        msg;
 
     if (typeof window === 'undefined') {
         return; // build system or some such environment...
@@ -275,7 +288,7 @@ Ext.Error = Ext.extend(Error, {
 
         // Put log counters to the status bar (for most browsers):
         if (counters && (counters.error + counters.warn + counters.info + counters.log)) {
-            var msg = [ 'Logged Errors:',counters.error, 'Warnings:',counters.warn,
+            msg = [ 'Logged Errors:',counters.error, 'Warnings:',counters.warn,
                         'Info:',counters.info, 'Log:',counters.log].join(' ');
             if (errors) {
                 msg = '*** Errors: ' + errors + ' - ' + msg;
@@ -312,6 +325,5 @@ Ext.Error = Ext.extend(Error, {
     // window.onerror sounds ideal but it prevents the built-in error dialog from doing
     // its (better) thing.
     poll();
-})();
+}());
 //</debug>
-

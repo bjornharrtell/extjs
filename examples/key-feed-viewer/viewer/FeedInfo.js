@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class FeedViewer.FeedInfo
  * @extends Ext.tab.Panel
@@ -72,16 +58,51 @@ Ext.define('FeedViewer.FeedInfo', {
      * @param {Ext.data.Model} model The model
      */
     onTabOpen: function(post, rec){
-        var item = this.add({
-            inTab: true,
-            xtype: 'feedpost',
-            title: rec.get('title'),
-            closable: true,
-            data: rec.data,
-            active: rec
-        });
-        item.tab.setClosable(true);
-        this.setActiveTab(item);
+        var items = [],
+            item,
+            title;
+            
+        if (Ext.isArray(rec)) {
+            Ext.each(rec, function(rec) {
+                title = rec.get('title');
+                if (!this.getTabByTitle(title)) {
+                    items.push({
+                        inTab: true,
+                        xtype: 'feedpost',
+                        title: title,
+                        closable: true,
+                        data: rec.data,
+                        active: rec
+                    });
+                }
+            }, this);
+            this.add(items);
+        }
+        else {
+            title = rec.get('title');
+            item = this.getTabByTitle(title);
+            if (!item) {
+                item = this.add({
+                    inTab: true,
+                    xtype: 'feedpost',
+                    title: title,
+                    closable: true,
+                    data: rec.data,
+                    active: rec
+                });
+            }
+            this.setActiveTab(item);
+        }
+    },
+    
+    /**
+     * Find a tab by title
+     * @param {String} title The title of the tab
+     * @return {Ext.Component} The panel matching the title. null if not found.
+     */
+    getTabByTitle: function(title) {
+        var index = this.items.findIndex('title', title);
+        return (index < 0) ? null : this.items.getAt(index);
     },
     
     /**
@@ -100,9 +121,6 @@ Ext.define('FeedViewer.FeedInfo', {
      * @param {FeedViewer.FeedDetail}
      */
     onOpenAll: function(detail){
-        var items = detail.getFeedData();
-        Ext.each(items, function(rec){
-            this.onTabOpen(null, rec);
-        }, this);
+        this.onTabOpen(null, detail.getFeedData());
     }
 });

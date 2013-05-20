@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A split button that provides a built-in dropdown arrow that can fire an event separately from the default click event
  * of the button. Typically this would be used to display a dropdown menu that provides additional options to the
@@ -58,6 +44,8 @@ Ext.define('Ext.button.Split', {
     /**
      * @cfg {Function} arrowHandler
      * A function called when the arrow button is clicked (can be used instead of click event)
+     * @cfg {Ext.button.Split} arrowHandler.this
+     * @cfg {Event} arrowHandler.e The click event
      */
     /**
      * @cfg {String} arrowTooltip
@@ -104,7 +92,7 @@ Ext.define('Ext.button.Split', {
                 }
             } else {
                 me.doToggle();
-                me.fireHandler();
+                me.fireHandler(e);
             }
         }
     }

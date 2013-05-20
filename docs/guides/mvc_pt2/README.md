@@ -32,7 +32,7 @@ It is important during this process to focus on scaffolding your views and not o
 
 Leveraging the work we already did in the previous article, we are able to define many of the views at once.
 
-{@img balanced.png}
+{@img balanced.png Balanced}
 
 ### `app/view/NewStation.js`
 
@@ -83,7 +83,7 @@ We have left out some of the configuration here since component configurations a
 
 In the above configurations, you’ll notice that we have three stores configured. These map to the store names prepared in the previous article. At this point we’ll go ahead and create our stores.
 
-{@img stores.png}
+{@img stores.png Stores}
 
 ## The models and stores
 
@@ -328,7 +328,7 @@ In terms of architecture, one of the most important things to note here is the f
 
 ## Application logic
 
-In Ext JS 3, we often added our application’s logic to the views themselves using handlers on buttons, binding listeners to subcomponents, and overriding methods on the views when extending them. However, just like you shouldn’t inline CSS styles in your HTML markup, it’s preferable to separate the application’s logic from the view definitions. In Ext JS 4, we provide controlleres in the MVC package. They are responsible for listening to events fired by the views and other controllers, and for implementing application logic to act on those events. There are several benefits to this design.
+In Ext JS 3, we often added our application’s logic to the views themselves using handlers on buttons, binding listeners to subcomponents, and overriding methods on the views when extending them. However, just like you shouldn’t inline CSS styles in your HTML markup, it’s preferrable to separate the application’s logic from the view definitions. In Ext JS 4, we provide controlleres in the MVC package. They are responsible for listening to events fired by the views and other controllers, and for implementing application logic to act on those events. There are several benefits to this design.
 
 One benefit is that your application logic is not bound to instances of views which means we can destroy and instantiate our views, as needed, while the application logic continues processing other things, like synchronizing data.
 
@@ -403,7 +403,7 @@ The control method is passed an object where the keys are component queries. In 
 
 Each query is bound to a listener configuration. Inside each listener configuration, we want to listen for the key which is the event name. The events available are the ones provided by the component that is targeted by your query. In this case, we use the selectionchange event provided by Grid (from which our StationsList view extends) and the select event provided by ComboBox (from which our NewStation view extends). To find out which events are available for a particular component, you can look in the events section available for each component in the API docs.
 
-{@img apidocs-events.png}
+{@img apidocs-events.png API Docs Events}
 
 The value in the listener configuration is the function that gets executed whenever that event fires. The scope of this function is always the controller itself.
 

@@ -37,7 +37,7 @@ Ext.define('Ext.data.validations', {
     lengthMessage: 'is the wrong length',
     
 <span id='Ext-data-validations-property-formatMessage'>    /**
-</span>     * @property {Boolean} formatMessage
+</span>     * @property {String} formatMessage
      * The default error message used when a format validation fails.
      */
     formatMessage: 'is the wrong format',
@@ -77,7 +77,8 @@ Ext.define('Ext.data.validations', {
      * @return {Boolean} True if validation passed
      */
     presence: function(config, value) {
-        if (value === undefined) {
+        // No configs read, so allow just value to be passed
+        if (arguments.length === 1) {
             value = config;
         }
         
@@ -150,7 +151,7 @@ Ext.define('Ext.data.validations', {
     },
     
 <span id='Ext-data-validations-method-exclusion'>    /**
-</span>     * Validates that the given value is present in the configured `list`.
+</span>     * Validates that the given value is not present in the configured `list`.
      * For example:
      *
      *     validations: [{type: 'exclusion', field: 'username', list: ['Admin', 'Operator']}]

@@ -1,18 +1,4 @@
 /*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
-/*
  * This example features a window with a DataView from which the user can select images to add to a <div> on the page.
  * To create the example we create simple subclasses of Window, DataView and Panel. When the user selects an image
  * we just add it to the page using the insertSelectedImage function below.

@@ -77,12 +77,13 @@
         cursor: row-resize;
         font-size:1px;
     }
+    
     .#{$prefix}splitter-vertical {
         cursor: e-resize;
         cursor: col-resize;
         font-size:1px;
     }
-    .#{$prefix}splitter-collapsed {
+    .#{$prefix}splitter-collapsed, .#{$prefix}splitter-horizontal-noresize, .#{$prefix}splitter-vertical-noresize {
         cursor: default;
     }
 

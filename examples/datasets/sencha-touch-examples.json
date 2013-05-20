@@ -18,6 +18,13 @@
         type: 'Application'
     },
     {
+        // duplicate Kiva app as an example so something happens when type is the secondary sort in the multisort example
+        name: 'Kiva app',
+        thumb: 'kiva.png',
+        url: 'kiva',
+        type: 'Example' 
+    },
+    {
         name: 'Geocongress',
         thumb: 'geocongress.png',
         url: 'geocongress',

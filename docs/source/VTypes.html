@@ -110,12 +110,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'email' : function(v){
             return email.test(v);
         },
+        //&lt;locale&gt;
 <span id='Ext-form-field-VTypes-property-emailText'>        /**
 </span>         * @property {String} emailText
          * The error text to display when the email validation function returns false.
          * Defaults to: 'This field should be an e-mail address in the format &quot;user@example.com&quot;'
          */
         'emailText' : 'This field should be an e-mail address in the format &quot;user@example.com&quot;',
+        //&lt;/locale&gt;
 <span id='Ext-form-field-VTypes-property-emailMask'>        /**
 </span>         * @property {RegExp} emailMask
          * The keystroke filter mask to be applied on email input. See the {@link #email} method for information about
@@ -131,12 +133,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'url' : function(v){
             return url.test(v);
         },
+        //&lt;locale&gt;
 <span id='Ext-form-field-VTypes-property-urlText'>        /**
 </span>         * @property {String} urlText
          * The error text to display when the url validation function returns false.
          * Defaults to: 'This field should be a URL in the format &quot;http:/'+'/www.example.com&quot;'
          */
         'urlText' : 'This field should be a URL in the format &quot;http:/'+'/www.example.com&quot;',
+        //&lt;/locale&gt;
 
 <span id='Ext-form-field-VTypes-method-alpha'>        /**
 </span>         * The function used to validate alpha values
@@ -146,12 +150,14 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'alpha' : function(v){
             return alpha.test(v);
         },
+        //&lt;locale&gt;
 <span id='Ext-form-field-VTypes-property-alphaText'>        /**
 </span>         * @property {String} alphaText
          * The error text to display when the alpha validation function returns false.
          * Defaults to: 'This field should only contain letters and _'
          */
         'alphaText' : 'This field should only contain letters and _',
+        //&lt;/locale&gt;
 <span id='Ext-form-field-VTypes-property-alphaMask'>        /**
 </span>         * @property {RegExp} alphaMask
          * The keystroke filter mask to be applied on alpha input. Defaults to: /[a-z_]/i
@@ -166,19 +172,21 @@ Ext.define('Ext.form.field.VTypes', (function(){
         'alphanum' : function(v){
             return alphanum.test(v);
         },
+        //&lt;locale&gt;
 <span id='Ext-form-field-VTypes-property-alphanumText'>        /**
 </span>         * @property {String} alphanumText
          * The error text to display when the alphanumeric validation function returns false.
          * Defaults to: 'This field should only contain letters, numbers and _'
          */
         'alphanumText' : 'This field should only contain letters, numbers and _',
+        //&lt;/locale&gt;
 <span id='Ext-form-field-VTypes-property-alphanumMask'>        /**
 </span>         * @property {RegExp} alphanumMask
          * The keystroke filter mask to be applied on alphanumeric input. Defaults to: /[a-z0-9_]/i
          */
         'alphanumMask' : /[a-z0-9_]/i
     };
-})());
+}()));
 </pre>
 </body>
 </html>

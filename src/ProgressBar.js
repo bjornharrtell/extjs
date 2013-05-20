@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * An updateable progress bar component. The progress bar supports two different modes: manual and automatic.
  *
@@ -61,11 +47,6 @@ Ext.define('Ext.ProgressBar', {
     */
 
    /**
-    * @cfg {String} [text='']
-    * The progress bar text (defaults to '')
-    */
-
-   /**
     * @cfg {String/HTMLElement/Ext.Element} textEl
     * The element to render the progress text to (defaults to the progress bar's internal text element)
     */
@@ -81,31 +62,35 @@ Ext.define('Ext.ProgressBar', {
     */
     baseCls: Ext.baseCSSPrefix + 'progress',
 
-    config: {
-        /**
-        * @cfg {Boolean} animate
-        * True to animate the progress bar during transitions
-        */
-        animate: false,
+    /**
+     * @cfg {Boolean} animate
+     * True to animate the progress bar during transitions.
+     */
+    animate: false,
 
-        /**
-         * @cfg {String} text
-         * The text shown in the progress bar
-         */
-        text: ''
-    },
+    /**
+     * @cfg {String} text
+     * The text shown in the progress bar.
+     */
+    text: '',
 
     // private
     waitTimer: null,
 
+    childEls: [
+        'bar'
+    ],
+
     renderTpl: [
-        '<div class="{baseCls}-text {baseCls}-text-back">',
-            '<div>&#160;</div>',
-        '</div>',
-        '<div id="{id}-bar" class="{baseCls}-bar">',
-            '<div class="{baseCls}-text">',
-                '<div>&#160;</div>',
-            '</div>',
+        '<tpl if="internalText">',
+            '<div class="{baseCls}-text {baseCls}-text-back">{text}</div>',
+        '</tpl>',
+        '<div id="{id}-bar" class="{baseCls}-bar" style="width:{percentage}%">',
+            '<tpl if="internalText">',
+                '<div class="{baseCls}-text">',
+                    '<div>{text}</div>',
+                '</div>',
+            '</tpl>',
         '</div>'
     ],
 
@@ -114,8 +99,6 @@ Ext.define('Ext.ProgressBar', {
     // private
     initComponent: function() {
         this.callParent();
-
-        this.addChildEls('bar');
 
         this.addEvents(
             /**
@@ -129,20 +112,30 @@ Ext.define('Ext.ProgressBar', {
         );
     },
 
-    afterRender : function() {
+    initRenderData: function() {
         var me = this;
+        return Ext.apply(me.callParent(), {
+            internalText : !me.hasOwnProperty('textEl'),
+            text         : me.text || '&#160;',
+            percentage   : me.value ? me.value * 100 : 0
+        });
+    },
 
-        // This produces a composite w/2 el's (which is why we cannot use childEls or
-        // renderSelectors):
-        me.textEl = me.textEl ? Ext.get(me.textEl) : me.el.select('.' + me.baseCls + '-text');
+    onRender : function() {
+        var me = this;
 
         me.callParent(arguments);
 
-        if (me.value) {
-            me.updateProgress(me.value, me.text);
-        }
-        else {
+        // External text display
+        if (me.textEl) {
+            me.textEl = Ext.get(me.textEl);
             me.updateText(me.text);
+        }
+        // Inline text display
+        else {
+            // This produces a composite w/2 el's (which is why we cannot use childEls or
+            // renderSelectors):
+            me.textEl = me.el.select('.' + me.baseCls + '-text');
         }
     },
 
@@ -159,31 +152,25 @@ Ext.define('Ext.ProgressBar', {
      */
     updateProgress: function(value, text, animate) {
         var me = this,
-            newWidth;
-            
+            oldValue = me.value;
+
         me.value = value || 0;
         if (text) {
             me.updateText(text);
         }
         if (me.rendered && !me.isDestroyed) {
-            if (me.isVisible(true)) {
-                newWidth = Math.floor(me.value * me.el.getWidth(true));
-                if (Ext.isForcedBorderBox) {
-                    newWidth += me.bar.getBorderWidth("lr");
-                }
-                if (animate === true || (animate !== false && me.animate)) {
-                    me.bar.stopAnimation();
-                    me.bar.animate(Ext.apply({
-                        to: {
-                            width: newWidth + 'px'
-                        }
-                    }, me.animate));
-                } else {
-                    me.bar.setWidth(newWidth);
-                }
+            if (animate === true || (animate !== false && me.animate)) {
+                me.bar.stopAnimation();
+                me.bar.animate(Ext.apply({
+                    from: {
+                        width: (oldValue * 100) + '%'
+                    },
+                    to: {
+                        width: (me.value * 100) + '%'
+                    }
+                }, me.animate));
             } else {
-                // force a layout when we're visible again
-                me.doComponentLayout();
+                me.bar.setStyle('width', (me.value * 100) + '%');
             }
         }
         me.fireEvent('update', me, me.value, text);
@@ -208,6 +195,10 @@ Ext.define('Ext.ProgressBar', {
 
     applyText : function(text) {
         this.updateText(text);
+    },
+    
+    getText: function(){
+        return this.text;    
     },
 
     /**
@@ -268,7 +259,7 @@ Ext.define('Ext.ProgressBar', {
      * @return {Ext.ProgressBar} this
      */
     wait: function(o) {
-        var me = this;
+        var me = this, scope;
             
         if (!me.waitTimer) {
             scope = me;
@@ -343,4 +334,3 @@ Ext.define('Ext.ProgressBar', {
         me.callParent();
     }
 });
-

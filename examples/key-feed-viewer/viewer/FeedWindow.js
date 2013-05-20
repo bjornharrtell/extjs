@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class FeedViewer.FeedWindow
  * @extends Ext.window.Window
@@ -29,7 +15,11 @@ Ext.define('FeedViewer.FeedWindow', {
     alias: 'widget.feedwindow',
 
     plain: true,
-    
+    resizable: false,
+    modal: true,
+    closeAction: 'hide',
+    defaultFocus: '#feed',
+
     defaultFeeds: [
         ['http://rss.cnn.com/rss/edition.rss', 'CNN Top Stories'],
         ['http://sports.espn.go.com/espn/rss/news', 'ESPN Top News'],
@@ -38,7 +28,8 @@ Ext.define('FeedViewer.FeedWindow', {
     ],
     
     initComponent: function(){
-        this.addEvents(
+        var me = this;
+        me.addEvents(
             /**
              * @event feedvalid
              * @param {FeedViewer.FeedWindow} this
@@ -49,7 +40,7 @@ Ext.define('FeedViewer.FeedWindow', {
             'feedvalid'
         );
         
-        this.form = Ext.create('widget.form', {
+        me.form = Ext.create('widget.form', {
             bodyPadding: '12 10 10',
             border: false,
             unstyled: true,
@@ -66,32 +57,33 @@ Ext.define('FeedViewer.FeedWindow', {
                 }
             }]
         });
-        Ext.apply(this, {
-            width: 600,
+        Ext.apply(me, {
+            width: 500,
             title: 'Add Feed',
             iconCls: 'feed',
             layout: 'fit',
-            items: this.form,
+            items: me.form,
             buttons: [{
                 xtype: 'button',
                 text: 'Add Feed',
-                scope: this,
-                handler: this.onAddClick
+                scope: me,
+                handler: me.onAddClick
             }, {
                 xtype: 'button',
                 text: 'Cancel',
-                scope: this,
-                handler: this.destroy
+                scope: me,
+                handler: me.hide
             }]
         });
-        this.callParent(arguments);
+        me.callParent(arguments);
     },
     
     /**
      * React to the add button being clicked.
      * @private
      */
-    onAddClick: function(){
+    onAddClick: function(addBtn) {
+        addBtn.disable();
         var url = this.form.getComponent('feed').getValue();
         this.form.setLoading({
             msg: 'Validating feed...'
@@ -112,8 +104,9 @@ Ext.define('FeedViewer.FeedWindow', {
      * @private
      * @param {Object} response The response object
      */
-    validateFeed: function(response){
+    validateFeed: function(response) {
         this.form.setLoading(false);
+        this.down('button[text=Add Feed]').enable();
         
         var dq = Ext.DomQuery,
             url = this.form.getComponent('feed').getValue(),
@@ -127,7 +120,7 @@ Ext.define('FeedViewer.FeedWindow', {
             if (channel) {
                 title = dq.selectValue('title', channel, url);
                 this.fireEvent('feedvalid', this, title, url);
-                this.destroy();
+                this.hide();
                 return;
             }
         } catch(e) {
@@ -141,6 +134,7 @@ Ext.define('FeedViewer.FeedWindow', {
      * @private
      */
     markInvalid: function(){
+        this.down('button[text=Add Feed]').enable();
         this.form.setLoading(false);
         this.form.getComponent('feed').markInvalid('The URL specified is not a valid RSS2 feed.');
     }

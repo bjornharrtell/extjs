@@ -1,32 +1,11 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
-    'Ext.form.*',
-    'Ext.layout.container.Column',
-    'Ext.tab.Panel'
+    //'Ext.form.*',
+    //'Ext.layout.container.Column',
+    //'Ext.tab.Panel'
+    '*'
 ]);
 
-
-/*!
- * Ext JS Library 3.3.1
- * Copyright(c) 2006-2010 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-Ext.onReady(function(){
-
+Ext.onReady(function() {
     Ext.QuickTips.init();
 
     var bd = Ext.getBody();
@@ -36,36 +15,52 @@ Ext.onReady(function(){
      */
     bd.createChild({tag: 'h2', html: 'Form 1 - Very Simple'});
 
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
 
-    var simple = Ext.create('Ext.form.Panel', {
-        url:'save-form.php',
-        frame:true,
+    var simple = Ext.widget({
+        xtype: 'form',
+        layout: 'form',
+        collapsible: true,
+        id: 'simpleForm',
+        url: 'save-form.php',
+        frame: true,
         title: 'Simple Form',
-        bodyStyle:'padding:5px 5px 0',
+        bodyPadding: '5 5 0',
         width: 350,
         fieldDefaults: {
             msgTarget: 'side',
             labelWidth: 75
         },
         defaultType: 'textfield',
-        defaults: {
-            anchor: '100%'
-        },
-
         items: [{
             fieldLabel: 'First Name',
+            afterLabelTextTpl: required,
             name: 'first',
-            allowBlank:false
+            allowBlank: false
         },{
             fieldLabel: 'Last Name',
-            name: 'last'
+            afterLabelTextTpl: required,
+            name: 'last',
+            allowBlank: false
         },{
             fieldLabel: 'Company',
             name: 'company'
         }, {
             fieldLabel: 'Email',
+            afterLabelTextTpl: required,
             name: 'email',
+            allowBlank: false,
             vtype:'email'
+        }, {
+            fieldLabel: 'DOB',
+            name: 'dob',
+            xtype: 'datefield'
+        }, {
+            fieldLabel: 'Age',
+            name: 'age',
+            xtype: 'numberfield',
+            minValue: 0,
+            maxValue: 100
         }, {
             xtype: 'timefield',
             fieldLabel: 'Time',
@@ -75,9 +70,15 @@ Ext.onReady(function(){
         }],
 
         buttons: [{
-            text: 'Save'
+            text: 'Save',
+            handler: function() {
+                this.up('form').getForm().isValid();
+            }
         },{
-            text: 'Cancel'
+            text: 'Cancel',
+            handler: function() {
+                this.up('form').getForm().reset();
+            }
         }]
     });
 
@@ -89,11 +90,14 @@ Ext.onReady(function(){
      */
     bd.createChild({tag: 'h2', html: 'Form 2 - Adding fieldsets'});
 
-    var fsf = Ext.create('Ext.form.Panel', {
-        url:'save-form.php',
-        frame:true,
+    var fsf = Ext.widget({
+        xtype: 'form',
+        id: 'fieldSetForm',
+        collapsible: true,
+        url: 'save-form.php',
+        frame: true,
         title: 'Simple Form with FieldSets',
-        bodyStyle:'padding:5px 5px 0',
+        bodyPadding: '5 5 0',
         width: 350,
         fieldDefaults: {
             msgTarget: 'side',
@@ -115,16 +119,19 @@ Ext.onReady(function(){
             },
             items :[{
                 fieldLabel: 'First Name',
+                afterLabelTextTpl: required,
                 name: 'first',
                 allowBlank:false
             },{
                 fieldLabel: 'Last Name',
+                afterLabelTextTpl: required,
                 name: 'last'
             },{
                 fieldLabel: 'Company',
                 name: 'company'
             }, {
                 fieldLabel: 'Email',
+                afterLabelTextTpl: required,
                 name: 'email',
                 vtype:'email'
             }]
@@ -168,10 +175,13 @@ Ext.onReady(function(){
     bd.createChild({tag: 'h2', html: 'Form 3 - A little more complex'});
 
 
-    var top = Ext.create('Ext.form.Panel', {
-        frame:true,
+    var top = Ext.widget({
+        xtype: 'form',
+        id: 'multiColumnForm',
+        collapsible: true,
+        frame: true,
         title: 'Multi Column, Nested Layouts and Anchoring',
-        bodyStyle:'padding:5px 5px 0',
+        bodyPadding: '5 5 0',
         width: 600,
         fieldDefaults: {
             labelAlign: 'top',
@@ -181,34 +191,42 @@ Ext.onReady(function(){
         items: [{
             xtype: 'container',
             anchor: '100%',
-            layout:'column',
+            layout: 'hbox',
             items:[{
                 xtype: 'container',
-                columnWidth:.5,
+                flex: 1,
                 layout: 'anchor',
                 items: [{
                     xtype:'textfield',
                     fieldLabel: 'First Name',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'first',
-                    anchor:'96%'
+                    anchor:'95%',
+                    value: 'Don'
                 }, {
                     xtype:'textfield',
                     fieldLabel: 'Company',
                     name: 'company',
-                    anchor:'96%'
+                    anchor:'95%'
                 }]
             },{
                 xtype: 'container',
-                columnWidth:.5,
+                flex: 1,
                 layout: 'anchor',
                 items: [{
                     xtype:'textfield',
                     fieldLabel: 'Last Name',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'last',
-                    anchor:'100%'
+                    anchor:'100%',
+                    value: 'Griffin'
                 },{
                     xtype:'textfield',
                     fieldLabel: 'Email',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'email',
                     vtype:'email',
                     anchor:'100%'
@@ -223,9 +241,15 @@ Ext.onReady(function(){
         }],
 
         buttons: [{
-            text: 'Save'
+            text: 'Save',
+            handler: function() {
+                this.up('form').getForm().isValid();
+            }
         },{
-            text: 'Cancel'
+            text: 'Cancel',
+            handler: function() {
+                this.up('form').getForm().reset();
+            }
         }]
     });
 
@@ -237,9 +261,9 @@ Ext.onReady(function(){
      */
     bd.createChild({tag: 'h2', html: 'Form 4 - Forms can be a TabPanel...'});
 
-
-
-    var tabs = Ext.create('Ext.form.Panel', {
+    var tabs = Ext.widget({
+        xtype: 'form',
+        id: 'tabForm',
         width: 350,
         border: false,
         bodyBorder: false,
@@ -247,28 +271,30 @@ Ext.onReady(function(){
             labelWidth: 75,
             msgTarget: 'side'
         },
-        defaults: {
-            anchor: '100%'
-        },
-
         items: {
             xtype:'tabpanel',
             activeTab: 0,
             defaults:{
-                bodyStyle:'padding:10px'
+                bodyPadding: 10,
+                layout: 'anchor'
             },
 
             items:[{
                 title:'Personal Details',
                 defaultType: 'textfield',
-
+                defaults: {
+                    anchor: '100%'
+                },
                 items: [{
                     fieldLabel: 'First Name',
                     name: 'first',
-                    allowBlank:false,
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     value: 'Ed'
                 },{
                     fieldLabel: 'Last Name',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'last',
                     value: 'Spencer'
                 },{
@@ -277,13 +303,17 @@ Ext.onReady(function(){
                     value: 'Ext JS'
                 }, {
                     fieldLabel: 'Email',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'email',
                     vtype:'email'
                 }]
             },{
-                title:'Phone Numbers',
+                title: 'Phone Numbers',
                 defaultType: 'textfield',
-
+                defaults: {
+                    anchor: '100%'
+                },
                 items: [{
                     fieldLabel: 'Home',
                     name: 'home',
@@ -302,9 +332,15 @@ Ext.onReady(function(){
         },
 
         buttons: [{
-            text: 'Save'
+            text: 'Save',
+            handler: function() {
+                this.up('form').getForm().isValid();
+            }
         },{
-            text: 'Cancel'
+            text: 'Cancel',
+            handler: function() {
+                this.up('form').getForm().reset();
+            }
         }]
     });
 
@@ -317,9 +353,12 @@ Ext.onReady(function(){
      */
     bd.createChild({tag: 'h2', html: 'Form 5 - ... and forms can contain TabPanel(s)'});
 
-    var tab2 = Ext.create('Ext.form.Panel', {
+    var tab2 = Ext.widget({
         title: 'Inner Tabs',
-        bodyStyle:'padding:5px',
+        xtype: 'form',
+        id: 'innerTabsForm',
+        collapsible: true,
+        bodyPadding: 5,
         width: 600,
         fieldDefaults: {
             labelAlign: 'top',
@@ -330,15 +369,18 @@ Ext.onReady(function(){
         },
 
         items: [{
-            layout:'column',
-            border:false,
+            xtype: 'container',
+            layout:'hbox',
             items:[{
-                columnWidth:.5,
+                xtype: 'container',
+                flex: 1,
                 border:false,
                 layout: 'anchor',
                 defaultType: 'textfield',
                 items: [{
                     fieldLabel: 'First Name',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'first',
                     anchor:'95%'
                 }, {
@@ -347,16 +389,20 @@ Ext.onReady(function(){
                     anchor:'95%'
                 }]
             },{
-                columnWidth:.5,
-                border:false,
+                xtype: 'container',
+                flex: 1,
                 layout: 'anchor',
                 defaultType: 'textfield',
                 items: [{
                     fieldLabel: 'Last Name',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'last',
                     anchor:'95%'
                 },{
                     fieldLabel: 'Email',
+                    afterLabelTextTpl: required,
+                    allowBlank: false,
                     name: 'email',
                     vtype:'email',
                     anchor:'95%'
@@ -367,16 +413,19 @@ Ext.onReady(function(){
             plain:true,
             activeTab: 0,
             height:235,
-            defaults:{bodyStyle:'padding:10px'},
+            defaults:{
+                bodyPadding: 10
+            },
             items:[{
                 title:'Personal Details',
-                defaults: {width: 230},
+                defaults: {
+                    width: 230
+                },
                 defaultType: 'textfield',
 
                 items: [{
                     fieldLabel: 'First Name',
                     name: 'first',
-                    allowBlank:false,
                     value: 'Jamie'
                 },{
                     fieldLabel: 'Last Name',
@@ -393,7 +442,9 @@ Ext.onReady(function(){
                 }]
             },{
                 title:'Phone Numbers',
-                defaults: {width: 230},
+                defaults: {
+                    width: 230
+                },
                 defaultType: 'textfield',
 
                 items: [{
@@ -423,14 +474,17 @@ Ext.onReady(function(){
         }],
 
         buttons: [{
-            text: 'Save'
+            text: 'Save',
+            handler: function() {
+                this.up('form').getForm().isValid();
+            }
         },{
-            text: 'Cancel'
+            text: 'Cancel',
+            handler: function() {
+                this.up('form').getForm().reset();
+            }
         }]
     });
 
     tab2.render(document.body);
 });
-
-
-

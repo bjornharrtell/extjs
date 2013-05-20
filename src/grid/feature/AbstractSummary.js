@@ -1,41 +1,49 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.grid.feature.AbstractSummary
- * @extends Ext.grid.feature.Feature
  * A small abstract class that contains the shared behaviour for any summary
  * calculations to be used in the grid.
  */
 Ext.define('Ext.grid.feature.AbstractSummary', {
     
     /* Begin Definitions */
-   
+
     extend: 'Ext.grid.feature.Feature',
     
     alias: 'feature.abstractsummary',
-   
+
     /* End Definitions */
-   
+
    /**
-    * @cfg {Boolean} showSummaryRow True to show the summary row. Defaults to <tt>true</tt>.
+    * @cfg
+    * True to show the summary row.
     */
     showSummaryRow: true,
-    
+
     // @private
     nestedIdRe: /\{\{id\}([\w\-]*)\}/g,
-    
+
+    // Listen for store updates. Eg, from an Editor.
+    init: function() {
+        var me = this;
+
+        // Summary rows must be kept in column order, so view must be refreshed on column move
+        me.grid.optimizedColumnMove = false;
+
+        me.view.mon(me.view.store, {
+            update: me.onStoreUpdate,
+            scope: me
+        });
+    },
+
+    // Refresh the whole view on edit so that the Summary gets updated
+    onStoreUpdate: function() {
+        var v = this.view;
+        if (this.showSummaryRow) {
+            v.saveScrollState();
+            v.refresh();
+            v.restoreScrollState();
+        }
+    },
+
     /**
      * Toggle whether or not to show the summary row.
      * @param {Boolean} visible True to show the summary row
@@ -43,7 +51,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     toggleSummaryRow: function(visible){
         this.showSummaryRow = !!visible;
     },
-    
+
     /**
      * Gets any fragments to be used in the tpl
      * @private
@@ -58,7 +66,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         }
         return fragments;
     },
-    
+
     /**
      * Prints a summary row
      * @private
@@ -68,21 +76,21 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     printSummaryRow: function(index){
         var inner = this.view.getTableChunker().metaRowTpl.join(''),
             prefix = Ext.baseCSSPrefix;
-        
+
         inner = inner.replace(prefix + 'grid-row', prefix + 'grid-row-summary');
         inner = inner.replace('{{id}}', '{gridSummaryValue}');
         inner = inner.replace(this.nestedIdRe, '{id$1}');  
         inner = inner.replace('{[this.embedRowCls()]}', '{rowCls}');
         inner = inner.replace('{[this.embedRowAttr()]}', '{rowAttr}');
-        inner = Ext.create('Ext.XTemplate', inner, {
+        inner = new Ext.XTemplate(inner, {
             firstOrLastCls: Ext.view.TableChunker.firstOrLastCls
         });
-        
+
         return inner.applyTemplate({
             columns: this.getPrintData(index)
         });
     },
-    
+
     /**
      * Gets the value for the column from the attached data.
      * @param {Ext.grid.column.Column} column The header
@@ -93,6 +101,10 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         var comp     = Ext.getCmp(column.id),
             value    = summaryData[column.id],
             renderer = comp.summaryRenderer;
+            
+        if (!value && value !== 0) {
+            value = '\u00a0';
+        }
 
         if (renderer) {
             value = renderer.call(
@@ -104,7 +116,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         }
         return value;
     },
-    
+
     /**
      * Get the summary data for a field.
      * @private
@@ -120,7 +132,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             if (Ext.isFunction(type)) {
                 return store.aggregate(type, null, group);
             }
-            
+
             switch (type) {
                 case 'count':
                     return store.count(group);
@@ -138,6 +150,5 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             }
         }
     }
-    
-});
 
+});

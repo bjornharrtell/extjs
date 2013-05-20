@@ -1,26 +1,8 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
     'Ext.Editor',
     'Ext.form.Panel',
     'Ext.form.field.ComboBox',
-    'Ext.form.field.Date',
-    'Ext.data.Store',
-    'Ext.data.proxy.Ajax',
-    'Ext.data.reader.Json',
-    'Ext.data.writer.Json'
+    'Ext.form.field.Date'
 ]);
 
 Ext.onReady(function(){
@@ -30,8 +12,10 @@ Ext.onReady(function(){
         height: 400,
         title: 'User Details',
         defaultType: 'textfield',
-        bodyStyle: 'padding: 10px;',
-        labelWidth: 90,
+        bodyPadding: 10,
+        defaults: {
+            labelWidth: 100
+        },
         items: [{
             fieldLabel: 'First Name',
             name: 'firstname'
@@ -57,9 +41,11 @@ Ext.onReady(function(){
                 }, height = form.child('textfield').getHeight();
 
                 var labelEditor = Ext.create('Ext.Editor', Ext.apply({
-                    width: 100,
+                    autoSize: {
+                        width: 'field'
+                    },
                     height: height,
-                    offsets: [0, 2],
+                    offsets: [0, (Ext.isIEQuirks ? 0 : 2)],
                     alignment: 'l-l',
                     listeners: {
                         beforecomplete: function(ed, value){
@@ -70,11 +56,13 @@ Ext.onReady(function(){
                         }
                     },
                     field: {
+                        width: 100,
                         name: 'labelfield',
                         allowBlank: false,
                         xtype: 'textfield',
-                        width: 90,
-                        selectOnFocus: true
+                        selectOnFocus: true,
+                        maxLength: 20,
+                        enforceMaxLength: true
                     }
                 }, cfg));
                 form.body.on('dblclick', function(e, t){
@@ -86,8 +74,8 @@ Ext.onReady(function(){
                 });
 
                 var titleEditor = Ext.create('Ext.Editor', Ext.apply({
-                    alignment: 'bl-bl?',
-                    offsets: [0, 10],
+                    alignment: 'tl',
+                    offsets: [0, -3],
                     field: {
                         width: 130,
                         xtype: 'combo',
@@ -101,7 +89,7 @@ Ext.onReady(function(){
                             data: [{
                                 text: 'User Details'
                             },{
-                                text: 'Developer Detail'
+                                text: 'Developer Details'
                             },{
                                 text: 'Manager Details'
                             }]
@@ -116,4 +104,3 @@ Ext.onReady(function(){
         }
     });
 });
-

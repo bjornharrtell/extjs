@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.util.MixedCollection
  * <p>
@@ -159,8 +145,43 @@ Ext.define('Ext.util.MixedCollection', {
             items[i] = temp[i].value;
             keys[i]  = temp[i].key;
         }
-        
+
         me.fireEvent('sort', me, items, keys);
+    },
+
+    /**
+     * Calculates the insertion index of the new item based upon the comparison function passed, or the current sort order.
+     * @param {Object} newItem The new object to find the insertion position of.
+     * @param {Function} [sorterFn] The function to sort by. This is the same as the sorting function
+     * passed to {@link #sortBy}. It accepts 2 items from this MixedCollection, and returns -1 0, or 1
+     * depending on the relative sort positions of the 2 compared items.
+     *
+     * If omitted, a function {@link #generateComparator generated} from the currently defined set of
+     * {@link #sorters} will be used.
+     *
+     * @return {Number} The insertion point to add the new item into this MixedCollection at using {@link #insert}
+     */
+    findInsertionIndex: function(newItem, sorterFn) {
+        var me    = this,
+            items = me.items,
+            start = 0,
+            end   = items.length - 1,
+            middle,
+            comparison;
+
+        if (!sorterFn) {
+            sorterFn = me.generateComparator();
+        }
+        while (start <= end) {
+            middle = (start + end) >> 1;
+            comparison = sorterFn(newItem, items[middle]);
+            if (comparison >= 0) {
+                start = middle + 1;
+            } else if (comparison < 0) {
+                end = middle - 1;
+            }
+        }
+        return start;
     },
 
     /**
@@ -216,4 +237,3 @@ Ext.define('Ext.util.MixedCollection', {
         });
     }
 });
-

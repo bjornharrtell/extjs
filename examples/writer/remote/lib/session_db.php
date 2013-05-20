@@ -6,8 +6,7 @@
 class SessionDB {
     public function __construct() {
         if (!isset($_SESSION['pk'])) {
-            $_SESSION['pk'] = 10;           // <-- start fake pks at 10
-            $_SESSION['rs'] = getData();    // <-- populate $_SESSION with data.
+            $this->reset();
         }
     }
     // fake a database pk
@@ -26,6 +25,11 @@ class SessionDB {
     }
     public function destroy($idx) {
         return array_shift(array_splice($_SESSION['rs'], $idx, 1));
+    }
+    
+    public function reset() {
+        $_SESSION['pk'] = 10;           // <-- start fake pks at 10
+        $_SESSION['rs'] = getData();    // <-- populate $_SESSION with data.
     }
 }
 

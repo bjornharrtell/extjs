@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * A menu containing an Ext.picker.Date Component.
  *
@@ -71,7 +57,7 @@ If you are unsure which license is appropriate for your use, please contact the 
 
     /**
      * @cfg {Number} maxHeight
-     * @hide
+     * @private
      */
 
     /**
@@ -79,19 +65,13 @@ If you are unsure which license is appropriate for your use, please contact the 
      * The {@link Ext.picker.Date} instance for this DateMenu
      */
 
-    /**
-     * @event click
-     * @hide
-     */
-
-    /**
-     * @event itemclick
-     * @hide
-     */
-
     initComponent : function(){
-        var me = this;
-
+        var me = this,
+            cfg = Ext.apply({}, me.initialConfig);
+            
+        // Ensure we clear any listeners so they aren't duplicated
+        delete cfg.listeners;
+            
         Ext.apply(me, {
             showSeparator: false,
             plain: true,
@@ -101,7 +81,7 @@ If you are unsure which license is appropriate for your use, please contact the 
                 cls: Ext.baseCSSPrefix + 'menu-date-item',
                 id: me.pickerId,
                 xtype: 'datepicker'
-            }, me.initialConfig)
+            }, cfg)
         });
 
         me.callParent(arguments);
@@ -109,7 +89,7 @@ If you are unsure which license is appropriate for your use, please contact the 
         me.picker = me.down('datepicker');
         /**
          * @event select
-         * @alias Ext.picker.Date#select
+         * @inheritdoc Ext.picker.Date#select
          */
         me.relayEvents(me.picker, ['select']);
 

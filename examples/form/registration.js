@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
     'Ext.form.*',
     'Ext.Img',
@@ -119,7 +105,7 @@ Ext.onReady(function() {
             fieldLabel: 'Terms of Use',
             hideLabel: true,
             style: 'margin-top:15px',
-            boxLabel: 'I have read and accept the <a href="http://www.sencha.com/legal/terms-of-use/" class="terms">Terms of Use</a>.',
+            boxLabel: 'I have read and accept the <a href="#" class="terms">Terms of Use</a>.',
 
             // Listener to open the Terms of Use page link in a modal window
             listeners: {
@@ -128,11 +114,19 @@ Ext.onReady(function() {
                     fn: function(e) {
                         var target = e.getTarget('.terms'),
                             win;
+                        
+                        e.preventDefault();
+                        
                         if (target) {
                             win = Ext.widget('window', {
                                 title: 'Terms of Use',
                                 modal: true,
-                                html: '<iframe src="' + target.href + '" width="950" height="500" style="border:0"></iframe>',
+                                html: Ext.getDom('legalese').innerHTML,
+                                width: 700,
+                                height: 400,
+                                bodyStyle: 'padding: 10px 20px;',
+                                autoScroll: true,
+                                
                                 buttons: [{
                                     text: 'Decline',
                                     handler: function() {
@@ -148,7 +142,6 @@ Ext.onReady(function() {
                                 }]
                             });
                             win.show();
-                            e.preventDefault();
                         }
                     }
                 }
@@ -249,4 +242,3 @@ Ext.onReady(function() {
     });
 
 });
-

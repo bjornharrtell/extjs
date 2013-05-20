@@ -1,31 +1,13 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @private
- * @class Ext.layout.component.field.Trigger
- * @extends Ext.layout.component.field.Field
  * Layout class for {@link Ext.form.field.Trigger} fields. Adjusts the input field size to accommodate
  * the trigger button(s).
  * @private
  */
-
 Ext.define('Ext.layout.component.field.Trigger', {
 
     /* Begin Definitions */
 
-    alias: ['layout.triggerfield'],
+    alias: 'layout.triggerfield',
 
     extend: 'Ext.layout.component.field.Field',
 
@@ -33,22 +15,139 @@ Ext.define('Ext.layout.component.field.Trigger', {
 
     type: 'triggerfield',
 
-    sizeBodyContents: function(width, height) {
+    beginLayout: function(ownerContext) {
+        var me = this,
+            owner = me.owner,
+            flags;
+
+        ownerContext.triggerWrap = ownerContext.getEl('triggerWrap');
+
+        me.callParent(arguments);
+
+        // if any of these important states have changed, sync them now:
+        flags = owner.getTriggerStateFlags();
+        if (flags != owner.lastTriggerStateFlags) {
+            owner.lastTriggerStateFlags = flags;
+            me.updateEditState();
+        }
+    },
+
+    beginLayoutFixed: function (ownerContext, width, suffix) {
+        var me = this,
+            owner = ownerContext.target,
+            ieInputWidthAdjustment = me.ieInputWidthAdjustment || 0,
+            inputWidth = '100%',
+            triggerWrap = owner.triggerWrap;
+
+        me.callParent(arguments);
+
+        owner.inputCell.setStyle('width', '100%');
+        if(ieInputWidthAdjustment) {
+            // adjust for IE 6/7 strict content-box model
+            // RTL: This might have to be padding-left unless the senses of the padding styles switch when in RTL mode.
+            owner.inputCell.setStyle('padding-right', ieInputWidthAdjustment + 'px');
+            if(suffix === 'px') {
+                if (owner.inputWidth) {
+                    inputWidth = owner.inputWidth - owner.getTriggerWidth();
+                } else {
+                    inputWidth = width - ieInputWidthAdjustment - owner.getTriggerWidth();
+                }
+                inputWidth += 'px';
+            }
+        }
+        owner.inputEl.setStyle('width', inputWidth);
+        inputWidth = owner.inputWidth;
+        if (inputWidth) {
+            triggerWrap.setStyle('width', inputWidth + (ieInputWidthAdjustment) + 'px');
+        } else {
+            triggerWrap.setStyle('width', width + suffix);
+        }
+        triggerWrap.setStyle('table-layout', 'fixed');
+    },
+
+    beginLayoutShrinkWrap: function (ownerContext) {
+        var owner = ownerContext.target,
+            emptyString = '',
+            inputWidth = owner.inputWidth,
+            triggerWrap = owner.triggerWrap,
+            ieInputWidthAdjustment = this.ieInputWidthAdjustment || 0;
+
+        this.callParent(arguments);
+
+        if (inputWidth) {
+            triggerWrap.setStyle('width', inputWidth + 'px');
+            inputWidth = (inputWidth - owner.getTriggerWidth()) + 'px';
+            owner.inputEl.setStyle('width', inputWidth);
+            owner.inputCell.setStyle('width', inputWidth);
+        } else {
+            owner.inputCell.setStyle('width', emptyString);
+            owner.inputEl.setStyle('width', emptyString);
+            triggerWrap.setStyle('width', emptyString);
+            triggerWrap.setStyle('table-layout', 'auto');
+        }
+    },
+
+    getTextWidth: function () {
         var me = this,
             owner = me.owner,
             inputEl = owner.inputEl,
-            triggerWrap = owner.triggerWrap,
-            triggerWidth = owner.getTriggerWidth();
+            value;
 
-        // If we or our ancestor is hidden, we can get a triggerWidth calculation
-        // of 0.  We don't want to resize in this case.
-        if (owner.hideTrigger || owner.readOnly || triggerWidth > 0) {
-            // Decrease the field's width by the width of the triggers. Both the field and the triggerWrap
-            // are floated left in CSS so they'll stack up side by side.
-            me.setElementSize(inputEl, Ext.isNumber(width) ? width - triggerWidth : width);
-    
-            // Explicitly set the triggerWrap's width, to prevent wrapping
-            triggerWrap.setWidth(triggerWidth);
+        // Find the width that contains the whole text value
+        value = (inputEl.dom.value || (owner.hasFocus ? '' : owner.emptyText) || '') + owner.growAppend;
+        return inputEl.getTextWidth(value);
+    },
+
+    measureContentWidth: function (ownerContext) {
+        var me = this,
+            owner = me.owner,
+            width = me.callParent(arguments),
+            inputContext = ownerContext.inputContext,
+            calcWidth, max, min;
+
+        if (owner.grow && !ownerContext.state.growHandled) {
+            calcWidth = me.getTextWidth() + ownerContext.inputContext.getFrameInfo().width;
+
+            max = owner.growMax;
+            min = Math.min(max, width);
+            max = Math.max(owner.growMin, max, min);
+
+            // Constrain
+            calcWidth = Ext.Number.constrain(calcWidth, owner.growMin, max);
+            inputContext.setWidth(calcWidth);
+            ownerContext.state.growHandled = true;
+            
+            // Now that we've set the inputContext, we need to recalculate the width
+            inputContext.domBlock(me, 'width');
+            width = NaN;
         }
+        return width;
+    },
+
+    updateEditState: function() {
+        var me = this,
+            owner = me.owner,
+            inputEl = owner.inputEl,
+            noeditCls = Ext.baseCSSPrefix + 'trigger-noedit',
+            displayed,
+            readOnly;
+
+        if (me.owner.readOnly) {
+            inputEl.addCls(noeditCls);
+            readOnly = true;
+            displayed = false;
+        } else {
+            if (me.owner.editable) {
+                inputEl.removeCls(noeditCls);
+                readOnly = false;
+            } else {
+                inputEl.addCls(noeditCls);
+                readOnly = true;
+            }
+            displayed = !me.owner.hideTrigger;
+        }
+
+        owner.triggerCell.setDisplayed(displayed);
+        inputEl.dom.readOnly = readOnly;
     }
 });

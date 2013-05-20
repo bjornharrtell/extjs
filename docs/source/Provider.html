@@ -16,19 +16,18 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-direct-Provider'>/**
-</span> * @class Ext.direct.Provider
- * &lt;p&gt;Ext.direct.Provider is an abstract class meant to be extended.&lt;/p&gt;
+</span> * Ext.direct.Provider is an abstract class meant to be extended.
  *
- * &lt;p&gt;For example Ext JS implements the following subclasses:&lt;/p&gt;
- * &lt;pre&gt;&lt;code&gt;
-Provider
-|
-+---{@link Ext.direct.JsonProvider JsonProvider}
-    |
-    +---{@link Ext.direct.PollingProvider PollingProvider}
-    |
-    +---{@link Ext.direct.RemotingProvider RemotingProvider}
- * &lt;/code&gt;&lt;/pre&gt;
+ * For example Ext JS implements the following subclasses:
+ *
+ *     Provider
+ *     |
+ *     +---{@link Ext.direct.JsonProvider JsonProvider}
+ *         |
+ *         +---{@link Ext.direct.PollingProvider PollingProvider}
+ *         |
+ *         +---{@link Ext.direct.RemotingProvider RemotingProvider}
+ *
  * @abstract
  */
 Ext.define('Ext.direct.Provider', {
@@ -48,15 +47,15 @@ Ext.define('Ext.direct.Provider', {
      * The unique id of the provider (defaults to an {@link Ext#id auto-assigned id}).
      * You should assign an id if you need to be able to access the provider later and you do
      * not have an object reference available, for example:
-     * &lt;pre&gt;&lt;code&gt;
-Ext.direct.Manager.addProvider({
-    type: 'polling',
-    url:  'php/poll.php',
-    id:   'poll-provider'
-});
-var p = {@link Ext.direct.Manager}.{@link Ext.direct.Manager#getProvider getProvider}('poll-provider');
-p.disconnect();
-     * &lt;/code&gt;&lt;/pre&gt;
+     *
+     *     Ext.direct.Manager.addProvider({
+     *         type: 'polling',
+     *         url:  'php/poll.php',
+     *         id:   'poll-provider'
+     *     });
+     *     var p = {@link Ext.direct.Manager}.{@link Ext.direct.Manager#getProvider getProvider}('poll-provider');
+     *     p.disconnect();
+     *
      */
 
     constructor : function(config){

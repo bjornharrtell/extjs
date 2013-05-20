@@ -96,7 +96,7 @@ Ext.define('Ext.form.field.Field', {
         this.addEvents(
 <span id='Ext-form-field-Field-event-change'>            /**
 </span>             * @event change
-             * Fires when a user-initiated change is detected in the value of the field.
+             * Fires when the value of a field is changed via the {@link #setValue} method.
              * @param {Ext.form.field.Field} this
              * @param {Object} newValue The new value
              * @param {Object} oldValue The original value
@@ -127,6 +127,7 @@ Ext.define('Ext.form.field.Field', {
     initValue: function() {
         var me = this;
 
+        me.value = me.transformOriginalValue(me.value);
 <span id='Ext-form-field-Field-property-originalValue'>        /**
 </span>         * @property {Object} originalValue
          * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
@@ -138,6 +139,17 @@ Ext.define('Ext.form.field.Field', {
         me.suspendCheckChange++;
         me.setValue(me.value);
         me.suspendCheckChange--;
+    },
+    
+<span id='Ext-form-field-Field-method-transformOriginalValue'>    /**
+</span>     * Allows for any necessary modifications before the original
+     * value is set
+     * @protected
+     * @param {Object} value The initial value
+     * @return {Object} The modified initial value
+     */
+    transformOriginalValue: function(value){
+        return value;
     },
 
 <span id='Ext-form-field-Field-method-getName'>    /**
@@ -180,7 +192,7 @@ Ext.define('Ext.form.field.Field', {
     isEqual: function(value1, value2) {
         return String(value1) === String(value2);
     },
-    
+
 <span id='Ext-form-field-Field-method-isEqualAsString'>    /**
 </span>     * Returns whether two values are logically equal.
      * Similar to {@link #isEqual}, however null or undefined values will be treated as empty strings.
@@ -190,7 +202,7 @@ Ext.define('Ext.form.field.Field', {
      * @return {Boolean} True if the values are equal, false if inequal.
      */
     isEqualAsString: function(value1, value2){
-        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));    
+        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));
     },
 
 <span id='Ext-form-field-Field-method-getSubmitData'>    /**
@@ -246,11 +258,18 @@ Ext.define('Ext.form.field.Field', {
     reset : function(){
         var me = this;
 
+        me.beforeReset();
         me.setValue(me.originalValue);
         me.clearInvalid();
         // delete here so we reset back to the original state
         delete me.wasValid;
     },
+    
+<span id='Ext-form-field-Field-method-beforeReset'>    /**
+</span>     * Template method before a field is reset.
+     * @protected
+     */
+    beforeReset: Ext.emptyFn,
 
 <span id='Ext-form-field-Field-method-resetOriginalValue'>    /**
 </span>     * Resets the field's {@link #originalValue} property so it matches the current {@link #getValue value}. This is
@@ -326,7 +345,7 @@ Ext.define('Ext.form.field.Field', {
         }
     },
 
-<span id='Ext-form-field-Field-property-onDirtyChange'>    /**
+<span id='Ext-form-field-Field-method-onDirtyChange'>    /**
 </span>     * @private Called when the field's dirty state changes.
      * @param {Boolean} isDirty
      */

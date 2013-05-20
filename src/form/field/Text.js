@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -84,9 +70,8 @@ Ext.define('Ext.form.field.Text', {
     /**
      * @cfg {RegExp} stripCharsRe
      * A JavaScript RegExp object used to strip unwanted content from the value
-     * before validation. If <tt>stripCharsRe</tt> is specified,
-     * every character matching <tt>stripCharsRe</tt> will be removed before fed to validation.
-     * This does not change the value of the field.
+     * during input. If `stripCharsRe` is specified,
+     * every *character sequence* matching `stripCharsRe` will be removed.
      */
 
     /**
@@ -113,6 +98,7 @@ Ext.define('Ext.form.field.Text', {
      */
     growMax : 800,
 
+    //<locale>
     /**
      * @cfg {String} growAppend
      * A string that will be appended to the field's current value for the purposes of calculating the target field
@@ -121,6 +107,7 @@ Ext.define('Ext.form.field.Text', {
      * width is adjusted.
      */
     growAppend: 'W',
+    //</locale>
 
     /**
      * @cfg {String} vtype
@@ -130,7 +117,7 @@ Ext.define('Ext.form.field.Text', {
     /**
      * @cfg {RegExp} maskRe An input mask regular expression that will be used to filter keystrokes (character being
      * typed) that do not match.
-     * Note: It dose not filter characters already in the input.
+     * Note: It does not filter characters already in the input.
      */
 
     /**
@@ -152,10 +139,12 @@ Ext.define('Ext.form.field.Text', {
 
     /**
      * @cfg {Number} maxLength
-     * Maximum input field length allowed by validation (defaults to Number.MAX_VALUE). This behavior is intended to
+     * Maximum input field length allowed by validation. This behavior is intended to
      * provide instant feedback to the user by improving usability to allow pasting and editing or overtyping and back
-     * tracking. To restrict the maximum number of characters that can be entered into the field use the **{@link
-     * Ext.form.field.Text#enforceMaxLength enforceMaxLength}** option.
+     * tracking. To restrict the maximum number of characters that can be entered into the field use the
+     * **{@link Ext.form.field.Text#enforceMaxLength enforceMaxLength}** option.
+     *
+     * Defaults to Number.MAX_VALUE.
      */
     maxLength : Number.MAX_VALUE,
 
@@ -168,24 +157,30 @@ Ext.define('Ext.form.field.Text', {
      * @cfg {String} minLengthText
      * Error text to display if the **{@link #minLength minimum length}** validation fails.
      */
+    //<locale>
     minLengthText : 'The minimum length for this field is {0}',
+    //</locale>
 
+    //<locale>
     /**
      * @cfg {String} maxLengthText
      * Error text to display if the **{@link #maxLength maximum length}** validation fails
      */
     maxLengthText : 'The maximum length for this field is {0}',
+    //</locale>
 
     /**
      * @cfg {Boolean} [selectOnFocus=false]
      * true to automatically select any existing field text when the field receives input focus
      */
 
+    //<locale>
     /**
      * @cfg {String} blankText
      * The error text to display if the **{@link #allowBlank}** validation fails
      */
     blankText : 'This field is required',
+    //</locale>
 
     /**
      * @cfg {Function} validator
@@ -203,9 +198,10 @@ Ext.define('Ext.form.field.Text', {
      */
 
     /**
-     * @cfg {RegExp} regex A JavaScript RegExp object to be tested against the field value during validation.
+     * @cfg {RegExp} regex
+     * A JavaScript RegExp object to be tested against the field value during validation.
      * If the test fails, the field will be marked invalid using
-     * either <b><tt>{@link #regexText}</tt></b> or <b><tt>{@link #invalidText}</tt></b>.
+     * either **{@link #regexText}** or **{@link #invalidText}**.
      */
 
     /**
@@ -224,6 +220,11 @@ Ext.define('Ext.form.field.Text', {
      *
      * Also note that if you use {@link #inputType inputType}:'file', {@link #emptyText} is not supported and should be
      * avoided.
+     *
+     * Note that for browsers that support it, setting this property will use the HTML 5 placeholder attribute, and for
+     * older browsers that don't support the HTML 5 placeholder attribute the value will be placed directly into the input
+     * element itself as the raw value. This means that older browsers will obfuscate the {@link #emptyText} value for
+     * password input fields.
      */
 
     /**
@@ -233,7 +234,11 @@ Ext.define('Ext.form.field.Text', {
      */
     emptyCls : Ext.baseCSSPrefix + 'form-empty-field',
 
-    ariaRole: 'textbox',
+    /**
+     * @cfg {String} [requiredCls='x-form-required-field']
+     * The CSS class to apply to a required field, i.e. a field where **{@link #allowBlank}** is false.
+     */
+    requiredCls : Ext.baseCSSPrefix + 'form-required-field',
 
     /**
      * @cfg {Boolean} [enableKeyEvents=false]
@@ -242,9 +247,16 @@ Ext.define('Ext.form.field.Text', {
 
     componentLayout: 'textfield',
 
-    initComponent : function(){
-        this.callParent();
-        this.addEvents(
+    // private
+    valueContainsPlaceholder : false,
+
+
+    initComponent: function () {
+        var me = this;
+
+        me.callParent();
+
+        me.addEvents(
             /**
              * @event autosize
              * Fires when the **{@link #autoSize}** function is triggered and the field is resized according to the
@@ -277,6 +289,15 @@ Ext.define('Ext.form.field.Text', {
              */
             'keypress'
         );
+        me.addStateEvents('change');
+        me.setGrowSizePolicy();
+    },
+
+    // private
+    setGrowSizePolicy: function(){
+        if (this.grow) {
+            this.shrinkWrap |= 1; // width must shrinkWrap
+        }    
     },
 
     // private
@@ -319,14 +340,45 @@ Ext.define('Ext.form.field.Text', {
         this.autoSize();
     },
 
-    afterRender: function(){
-        var me = this;
+    getSubTplData: function() {
+        var me = this,
+            value = me.getRawValue(),
+            isEmpty = me.emptyText && value.length < 1,
+            maxLength = me.maxLength,
+            placeholder;
+            
+        // We can't just dump the value here, since MAX_VALUE ends up
+        // being something like 1.xxxxe+300, which gets interpreted as 1
+        // in the markup
         if (me.enforceMaxLength) {
-            me.inputEl.dom.maxLength = me.maxLength;
+            if (maxLength === Number.MAX_VALUE) {
+                maxLength = undefined;
+            }
+        } else {
+            maxLength = undefined;
         }
-        me.applyEmptyText();
-        me.autoSize();
-        me.callParent();
+
+        if (isEmpty) {
+            if (Ext.supports.Placeholder) {
+                placeholder = me.emptyText;
+            } else {
+                value = me.emptyText;
+                me.valueContainsPlaceholder = true;
+            }
+        }
+
+        return Ext.apply(me.callParent(), {
+            maxLength   : maxLength,
+            readOnly    : me.readOnly,
+            placeholder : placeholder,
+            value       : value,
+            fieldCls    : me.fieldCls + ((isEmpty && (placeholder || value)) ? ' ' + me.emptyCls : '') + (me.allowBlank ? '' :  ' ' + me.requiredCls)
+        });
+    },
+
+    afterRender: function(){
+        this.autoSize();
+        this.callParent();
     },
 
     onMouseDown: function(e){
@@ -407,6 +459,7 @@ Ext.define('Ext.form.field.Text', {
                 me.inputEl.dom.placeholder = emptyText;
             } else if (isEmpty) {
                 me.setRawValue(emptyText);
+                me.valueContainsPlaceholder = true;
             }
 
             //all browsers need this because of a styling issue with chrome + placeholders.
@@ -418,7 +471,17 @@ Ext.define('Ext.form.field.Text', {
             me.autoSize();
         }
     },
-
+    
+    afterFirstLayout: function() {
+        this.callParent();
+        if (Ext.isIE && this.disabled) {
+            var el = this.inputEl;
+            if (el) {
+                el.dom.unselectable = 'on';
+            }
+        }
+    },
+    
     // private
     preFocus : function(){
         var me = this,
@@ -426,10 +489,12 @@ Ext.define('Ext.form.field.Text', {
             emptyText = me.emptyText,
             isEmpty;
 
-        if (emptyText && !Ext.supports.Placeholder && inputEl.dom.value === emptyText) {
+        me.callParent(arguments);
+        if ((emptyText && !Ext.supports.Placeholder) && (inputEl.dom.value === me.emptyText && me.valueContainsPlaceholder)) {
             me.setRawValue('');
             isEmpty = true;
             inputEl.removeCls(me.emptyCls);
+            me.valueContainsPlaceholder = false;
         } else if (Ext.supports.Placeholder) {
             me.inputEl.removeCls(me.emptyCls);
         }
@@ -448,6 +513,7 @@ Ext.define('Ext.form.field.Text', {
 
     // private
     postBlur : function(){
+        this.callParent(arguments);
         this.applyEmptyText();
     },
 
@@ -464,15 +530,26 @@ Ext.define('Ext.form.field.Text', {
         var key = e.getKey(),
             charCode = String.fromCharCode(e.getCharCode());
 
-        if(Ext.isGecko && (e.isNavKeyPress() || key === e.BACKSPACE || (key === e.DELETE && e.button === -1))){
+        if((Ext.isGecko || Ext.isOpera) && (e.isNavKeyPress() || key === e.BACKSPACE || (key === e.DELETE && e.button === -1))){
             return;
         }
 
-        if(!Ext.isGecko && e.isSpecialKey() && !charCode){
+        if((!Ext.isGecko && !Ext.isOpera) && e.isSpecialKey() && !charCode){
             return;
         }
         if(!this.maskRe.test(charCode)){
             e.stopEvent();
+        }
+    },
+
+    getState: function() {
+        return this.addPropertyToState(this.callParent(), 'value');
+    },
+
+    applyState: function(state) {
+        this.callParent(arguments);
+        if(state.hasOwnProperty('value')) {
+            this.setValue(state.value);
         }
     },
 
@@ -485,7 +562,7 @@ Ext.define('Ext.form.field.Text', {
     getRawValue: function() {
         var me = this,
             v = me.callParent();
-        if (v === me.emptyText) {
+        if (v === me.emptyText && me.valueContainsPlaceholder) {
             v = '';
         }
         return v;
@@ -503,6 +580,7 @@ Ext.define('Ext.form.field.Text', {
 
         if (inputEl && me.emptyText && !Ext.isEmpty(value)) {
             inputEl.removeCls(me.emptyCls);
+            me.valueContainsPlaceholder = false;
         }
 
         me.callParent(arguments);
@@ -530,7 +608,7 @@ Ext.define('Ext.form.field.Text', {
      *     If the `{@link #validator}` has not halted validation,
      *     basic validation proceeds as follows:
      *
-     *     - `{@link #allowBlank}` : (Invalid message = `{@link #emptyText}`)
+     *     - `{@link #allowBlank}` : (Invalid message = `{@link #blankText}`)
      *
      *         Depending on the configuration of `{@link #allowBlank}`, a
      *         blank field will cause validation to halt at this step and return
@@ -559,7 +637,7 @@ Ext.define('Ext.form.field.Text', {
      * 4. **Field specific regex test**
      *
      *     If none of the prior validation steps halts validation, a field's
-     *     configured <code>{@link #regex}</code> test will be processed.
+     *     configured `{@link #regex}` test will be processed.
      *     The invalid message for this test is configured with `{@link #regexText}`
      *
      * @param {Object} value The value to validate. The processed raw value will be used if nothing is passed.
@@ -586,7 +664,7 @@ Ext.define('Ext.form.field.Text', {
             }
         }
 
-        if (value.length < 1 || value === emptyText) {
+        if (value.length < 1 || (value === me.emptyText && me.valueContainsPlaceholder)) {
             if (!allowBlank) {
                 errors.push(me.blankText);
             }
@@ -652,32 +730,25 @@ Ext.define('Ext.form.field.Text', {
      * only takes effect if {@link #grow} = true, and fires the {@link #autosize} event if the width changes.
      */
     autoSize: function() {
-        var me = this,
-            width;
+        var me = this;
         if (me.grow && me.rendered) {
-            me.doComponentLayout();
-            width = me.inputEl.getWidth();
-            if (width !== me.lastInputWidth) {
-                me.fireEvent('autosize', width);
-                me.lastInputWidth = width;
-            }
+            me.autoSizing = true;
+            me.updateLayout();
         }
     },
 
-    initAria: function() {
-        this.callParent();
-        this.getActionEl().dom.setAttribute('aria-required', this.allowBlank === false);
-    },
+    afterComponentLayout: function() {
+        var me = this,
+            width;
 
-    /**
-     * To get the natural width of the inputEl, we do a simple calculation based on the 'size' config. We use
-     * hard-coded numbers to approximate what browsers do natively, to avoid having to read any styles which would hurt
-     * performance. Overrides Labelable method.
-     * @protected
-     */
-    getBodyNaturalWidth: function() {
-        return Math.round(this.size * 6.5) + 20;
+        me.callParent(arguments);
+        if (me.autoSizing) {
+            width = me.inputEl.getWidth();
+            if (width !== me.lastInputWidth) {
+                me.fireEvent('autosize', me, width);
+                me.lastInputWidth = width;
+                delete me.autoSizing;
+            }
+        }
     }
-
 });
-

@@ -170,7 +170,7 @@ Ext.define('Ext.util.Sorter', {
      */
     setDirection: function(direction) {
         var me = this;
-        me.direction = direction;
+        me.direction = direction ? direction.toUpperCase() : direction;
         me.updateSortFunction();
     },
     

@@ -54,14 +54,17 @@ Ext.define('Ext.chart.Callout', {
             i,
             count,
             j,
-            p;
+            p,
+            item,
+            label,
+            storeItem,
+            display;
             
         for (i = 0, count = 0; i &lt; len; i++) {
             for (j = 0; j &lt; ratio; j++) {
-                var item = items[count],
-                    label = group[count],
-                    storeItem = store.getAt(i),
-                    display;
+                item = items[count];
+                label = group[count];
+                storeItem = store.getAt(i);
                 
                 display = config.filter(storeItem);
                 
@@ -125,7 +128,7 @@ Ext.define('Ext.chart.Callout', {
         styles));
 
         if (config.items) {
-            calloutObj.panel = Ext.create('widget.panel', {
+            calloutObj.panel = new Ext.Panel({
                 style: &quot;position: absolute;&quot;,    
                 width: width,
                 height: height,

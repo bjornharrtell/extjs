@@ -24,36 +24,54 @@ Ext.define('Ext.util.Floating', {
 
 <span id='Ext-util-Floating-cfg-focusOnToFront'>    /**
 </span>     * @cfg {Boolean} focusOnToFront
-     * Specifies whether the floated component should be automatically {@link Ext.Component#focus focused} when
+     * Specifies whether the floated component should be automatically {@link Ext.Component#method-focus focused} when
      * it is {@link #toFront brought to the front}.
      */
     focusOnToFront: true,
 
 <span id='Ext-util-Floating-cfg-shadow'>    /**
 </span>     * @cfg {String/Boolean} shadow
-     * Specifies whether the floating component should be given a shadow. Set to true to automatically create an {@link
-     * Ext.Shadow}, or a string indicating the shadow's display {@link Ext.Shadow#mode}. Set to false to disable the
-     * shadow.
+     * Specifies whether the floating component should be given a shadow. Set to true to automatically create an
+     * {@link Ext.Shadow}, or a string indicating the shadow's display {@link Ext.Shadow#mode}. Set to false to
+     * disable the shadow.
      */
     shadow: 'sides',
 
-    constructor: function(config) {
+<span id='Ext-util-Floating-cfg-shadowOffset'>    /**
+</span>     * @cfg {String/Boolean} shadowOffset
+     * Number of pixels to offset the shadow.
+     */
+
+    constructor: function (dom) {
         var me = this;
-        
+
+        me.el = new Ext.Layer(Ext.apply({
+            hideMode     : me.hideMode,
+            hidden       : me.hidden,
+            shadow       : (typeof me.shadow != 'undefined') ? me.shadow : 'sides',
+            shadowOffset : me.shadowOffset,
+            constrain    : false,
+            shim         : (me.shim === false) ? false : undefined
+        }, me.floating), dom);
+
+        // release config object (if it was one)
         me.floating = true;
-        me.el = Ext.create('Ext.Layer', Ext.apply({}, config, {
-            hideMode: me.hideMode,
-            hidden: me.hidden,
-            shadow: Ext.isDefined(me.shadow) ? me.shadow : 'sides',
-            shadowOffset: me.shadowOffset,
-            constrain: false,
-            shim: me.shim === false ? false : undefined
-        }), me.el);
+        
+        // Register with the configured ownerCt.
+        // With this we acquire a floatParent for relative positioning, and a zIndexParent which is an
+        // ancestor floater which provides zIndex management.
+        me.registerWithOwnerCt();
     },
 
-    onFloatRender: function() {
+    registerWithOwnerCt: function() {
         var me = this;
-        me.zIndexParent = me.getZIndexParent();
+
+        if (me.zIndexParent) {
+            me.zIndexParent.unregisterFloatingItem(me);
+        }
+
+        // Acquire a zIndexParent by traversing the ownerCt axis for the nearest floating ancestor
+        me.zIndexParent = me.up('[floating]');
         me.setFloatParent(me.ownerCt);
         delete me.ownerCt;
 
@@ -93,13 +111,17 @@ Ext.define('Ext.util.Floating', {
             me.constrainTo = floatParent ? floatParent.getTargetEl() : me.container;
         }
     },
+    
+    onAfterFloatLayout: function(){
+        this.syncShadow();   
+    },
 
     onFloatParentHide: function() {
         var me = this;
-        
-        if (me.hideOnParentHide !== false) {
-            me.showOnParentShow = me.isVisible();
+
+        if (me.hideOnParentHide !== false &amp;&amp; me.isVisible()) {
             me.hide();
+            me.showOnParentShow = true;
         }
     },
 
@@ -110,30 +132,6 @@ Ext.define('Ext.util.Floating', {
         }
     },
 
-<span id='Ext-util-Floating-method-getZIndexParent'>    /**
-</span>     * @private
-     * Finds the ancestor Container responsible for allocating zIndexes for the passed Component.
-     *
-     * That will be the outermost floating Container (a Container which has no ownerCt and has floating:true).
-     *
-     * If we have no ancestors, or we walk all the way up to the document body, there's no zIndexParent,
-     * and the global Ext.WindowManager will be used.
-     */
-    getZIndexParent: function() {
-        var p = this.ownerCt,
-            c;
-
-        if (p) {
-            while (p) {
-                c = p;
-                p = p.ownerCt;
-            }
-            if (c.floating) {
-                return c;
-            }
-        }
-    },
-
     // private
     // z-index is managed by the zIndexManager and may be overwritten at any time.
     // Returns the next z-index to be used.
@@ -141,15 +139,16 @@ Ext.define('Ext.util.Floating', {
     // and so the next available z-index will be approximately 10000 above that.
     setZIndex: function(index) {
         var me = this;
+
         me.el.setZIndex(index);
 
         // Next item goes 10 above;
         index += 10;
 
-        // When a Container with floating items has its z-index set, it rebases any floating items it is managing.
+        // When a Container with floating descendants has its z-index set, it rebases any floating descendants it is managing.
         // The returned value is a round number approximately 10000 above the last z-index used.
-        if (me.floatingItems) {
-            index = Math.floor(me.floatingItems.setBase(index) / 100) * 100 + 10000;
+        if (me.floatingDescendants) {
+            index = Math.floor(me.floatingDescendants.setBase(index) / 100) * 100 + 10000;
         }
         return index;
     },
@@ -161,16 +160,21 @@ Ext.define('Ext.util.Floating', {
      * rendered to.
      *
      * An alternative constraint may be passed.
-     * @param {String/HTMLElement/Ext.Element/Ext.util.Region} constrainTo (Optional) The Element or {@link Ext.util.Region Region} into which this Component is
-     * to be constrained. Defaults to the element into which this floating Component was rendered.
+     * @param {String/HTMLElement/Ext.Element/Ext.util.Region} [constrainTo] The Element or {@link Ext.util.Region Region}
+     * into which this Component is to be constrained. Defaults to the element into which this floating Component
+     * was rendered.
      */
     doConstrain: function(constrainTo) {
         var me = this,
-            vector = me.getConstrainVector(constrainTo || me.el.getScopeParent()),
+
+            // Calculate the constrain vector to coerce our position to within our
+            // constrainTo setting. getConstrainVector will provide a default constraint
+            // region if there is no explicit constrainTo, *and* there is no floatParent owner Component.
+            vector = me.getConstrainVector(constrainTo),
             xy;
 
         if (vector) {
-            xy = me.getPosition();
+            xy = me.getPosition(!!me.floatParent);
             xy[0] += vector[0];
             xy[1] += vector[1];
             me.setPosition(xy);
@@ -181,17 +185,16 @@ Ext.define('Ext.util.Floating', {
 <span id='Ext-util-Floating-method-getConstrainVector'>    /**
 </span>     * Gets the x/y offsets to constrain this float
      * @private
-     * @param {String/HTMLElement/Ext.Element/Ext.util.Region} constrainTo (Optional) The Element or {@link Ext.util.Region Region} into which this Component is to be constrained.
+     * @param {String/HTMLElement/Ext.Element/Ext.util.Region} [constrainTo] The Element or {@link Ext.util.Region Region}
+     * into which this Component is to be constrained.
      * @return {Number[]} The x/y constraints
      */
     getConstrainVector: function(constrainTo){
-        var me = this,
-            el;
+        var me = this;
 
         if (me.constrain || me.constrainHeader) {
-            el = me.constrainHeader ? me.header.el : me.el;
-            constrainTo = constrainTo || (me.floatParent &amp;&amp; me.floatParent.getTargetEl()) || me.container;
-            return el.getConstrainVector(constrainTo);
+            constrainTo = constrainTo || (me.floatParent &amp;&amp; me.floatParent.getTargetEl()) || me.container || me.el.getScopeParent();
+            return (me.constrainHeader ? me.header.el : me.el).getConstrainVector(constrainTo);
         }
     },
 
@@ -200,24 +203,23 @@ Ext.define('Ext.util.Floating', {
      *
      * @param {Ext.Component/Ext.Element/HTMLElement/String} element
      * The element or {@link Ext.Component} to align to. If passing a component, it must be a
-     * omponent instance. If a string id is passed, it will be used as an element id.
-     * @param {String} [position=&quot;tl-bl?&quot;] The position to align to (see {@link
-     * Ext.Element#alignTo} for more details).
+     * component instance. If a string id is passed, it will be used as an element id.
+     * @param {String} [position=&quot;tl-bl?&quot;] The position to align to
+     * (see {@link Ext.Element#alignTo} for more details).
      * @param {Number[]} [offsets] Offset the positioning by [x, y]
      * @return {Ext.Component} this
      */
     alignTo: function(element, position, offsets) {
-        if (element.isComponent) {
-            element = element.getEl();
-        }
-        var xy = this.el.getAlignToXY(element, position, offsets);
-        this.setPagePosition(xy);
+
+        // element may be a Component, so first attempt to use its el to align to.
+        // When aligning to an Element's X,Y position, we must use setPagePosition which disregards any floatParent
+        this.setPagePosition(this.el.getAlignToXY(element.el || element, position, offsets));
         return this;
     },
 
 <span id='Ext-util-Floating-method-toFront'>    /**
-</span>     * Brings this floating Component to the front of any other visible, floating Components managed by the same {@link
-     * Ext.ZIndexManager ZIndexManager}
+</span>     * Brings this floating Component to the front of any other visible, floating Components managed by the same
+     * {@link Ext.ZIndexManager ZIndexManager}
      *
      * If this Component is modal, inserts the modal mask just below this Component in the z-index stack.
      *
@@ -229,13 +231,18 @@ Ext.define('Ext.util.Floating', {
 
         // Find the floating Component which provides the base for this Component's zIndexing.
         // That must move to front to then be able to rebase its zIndex stack and move this to the front
-        if (me.zIndexParent) {
+        if (me.zIndexParent &amp;&amp; me.bringParentToFront !== false) {
             me.zIndexParent.toFront(true);
         }
-        if (me.zIndexManager.bringToFront(me)) {
-            if (!Ext.isDefined(preventFocus)) {
-                preventFocus = !me.focusOnToFront;
-            }
+        
+        if (!Ext.isDefined(preventFocus)) {
+            preventFocus = !me.focusOnToFront;
+        }
+        
+        if (preventFocus) {
+            me.preventFocusOnActivate = true;
+        }
+        if (me.zIndexManager.bringToFront(me)) {    
             if (!preventFocus) {
                 // Kick off a delayed focus request.
                 // If another floating Component is toFronted before the delay expires
@@ -243,6 +250,7 @@ Ext.define('Ext.util.Floating', {
                 me.focus(false, true);
             }
         }
+        delete me.preventFocusOnActivate;
         return me;
     },
 
@@ -265,11 +273,14 @@ Ext.define('Ext.util.Floating', {
             if (me.el.shadow &amp;&amp; !me.maximized) {
                 me.el.enableShadow(true);
             }
+            if (me.modal &amp;&amp; !me.preventFocusOnActivate) {
+                me.focus(false, true);
+            }
             me.fireEvent('activate', me);
         } else {
             // Only the *Windows* in a zIndex stack share a shadow. All other types of floaters
             // can keep their shadows all the time
-            if ((me instanceof Ext.window.Window) &amp;&amp; (newActive instanceof Ext.window.Window)) {
+            if (me.isWindow &amp;&amp; (newActive &amp;&amp; newActive.isWindow)) {
                 me.el.disableShadow();
             }
             me.fireEvent('deactivate', me);
@@ -291,13 +302,26 @@ Ext.define('Ext.util.Floating', {
      */
     center: function() {
         var me = this,
+            xy;
+            
+        if (me.isVisible()) {
             xy = me.el.getAlignToXY(me.container, 'c-c');
-        me.setPagePosition(xy);
+            me.setPagePosition(xy);
+        } else {
+            me.needsCenter = true;
+        }
         return me;
+    },
+    
+    onFloatShow: function() {
+        if (this.needsCenter) {
+            this.center();    
+        }
+        delete this.needsCenter;
     },
 
     // private
-    syncShadow : function(){
+    syncShadow : function() {
         if (this.floating) {
             this.el.sync(true);
         }
@@ -305,12 +329,14 @@ Ext.define('Ext.util.Floating', {
 
     // private
     fitContainer: function() {
-        var parent = this.floatParent,
-            container = parent ? parent.getTargetEl() : this.container,
-            size = container.getViewSize(false);
+        var me = this,
+            parent = me.floatParent,
+            container = parent ? parent.getTargetEl() : me.container;
 
-        this.setSize(size);
+        me.setSize(container.getViewSize(false));
+        me.setPosition.apply(me, parent ? [0, 0] : container.getXY());
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

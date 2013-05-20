@@ -1,17 +1,6 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
+/**
+ * @private
+ */
 Ext.define('Ext.tree.ViewDragZone', {
     extend: 'Ext.view.DragZone',
 
@@ -24,15 +13,18 @@ Ext.define('Ext.tree.ViewDragZone', {
             view = me.view,
             selectedRowCls = view.selectedItemCls,
             records = me.dragData.records,
-            fly = Ext.fly;
+            r,
+            rLen    = records.length,
+            fly = Ext.fly,
+            item;
         
         if (Ext.enableFx && me.repairHighlight) {
             // Roll through all records and highlight all the ones we attempted to drag.
-            Ext.Array.forEach(records, function(record) {
+            for (r = 0; r < rLen; r++) {
                 // anonymous fns below, don't hoist up unless below is wrapped in
                 // a self-executing function passing in item.
-                var item = view.getNode(record);
-                
+                item = view.getNode(records[r]);
+
                 // We must remove the selected row class before animating, because
                 // the selected row class declares !important on its background-color.
                 fly(item.firstChild).highlight(me.repairHighlightColor, {
@@ -49,7 +41,8 @@ Ext.define('Ext.tree.ViewDragZone', {
                         }
                     }
                 });
-            });
+            }
+
         }
         me.dragging = false;
     }

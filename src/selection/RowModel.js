@@ -1,20 +1,7 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.selection.RowModel
- * @extends Ext.selection.Model
+ * Implements row based navigation via keyboard.
+ *
+ * Must synchronize across grid sections.
  */
 Ext.define('Ext.selection.RowModel', {
     extend: 'Ext.selection.Model',
@@ -36,14 +23,14 @@ Ext.define('Ext.selection.RowModel', {
     enableKeyNav: true,
     
     /**
-     * @cfg {Boolean} [ignoreRightMouseSelection=true]
+     * @cfg {Boolean} [ignoreRightMouseSelection=false]
      * True to ignore selections that are made when using the right mouse button if there are
      * records that are already selected. If no records are selected, selection will continue 
      * as normal
      */
-    ignoreRightMouseSelection: true,
+    ignoreRightMouseSelection: false,
 
-    constructor: function(){
+    constructor: function() {
         this.addEvents(
             /**
              * @event beforedeselect
@@ -83,6 +70,7 @@ Ext.define('Ext.selection.RowModel', {
              */
             'select'
         );
+        this.views = [];
         this.callParent(arguments);
     },
 
@@ -91,7 +79,7 @@ Ext.define('Ext.selection.RowModel', {
 
         me.views = me.views || [];
         me.views.push(view);
-        me.bind(view.getStore(), true);
+        me.bindStore(view.getStore(), true);
 
         view.on({
             itemmousedown: me.onRowMouseDown,
@@ -111,13 +99,22 @@ Ext.define('Ext.selection.RowModel', {
             return;
         }
 
+        // view.el has tabIndex -1 to allow for
+        // keyboard events to be passed to it.
         view.el.set({
             tabIndex: -1
         });
 
-        // view.el has tabIndex -1 to allow for
-        // keyboard events to be passed to it.
-        me.keyNav = new Ext.util.KeyNav(view.el, {
+        // Drive the KeyNav off the View's itemkeydown event so that beforeitemkeydown listeners may veto
+        me.keyNav = new Ext.util.KeyNav({
+            target: view,
+            ignoreInputFields: true,
+            eventName: 'itemkeydown',
+            processEvent: function(view, record, node, index, event) {
+                event.record = record;
+                event.recordIndex = index;
+                return event;
+            },
             up: me.onKeyUp,
             down: me.onKeyDown,
             right: me.onKeyRight,
@@ -126,9 +123,10 @@ Ext.define('Ext.selection.RowModel', {
             pageUp: me.onKeyPageUp,
             home: me.onKeyHome,
             end: me.onKeyEnd,
+            space: me.onKeySpace,
+            enter: me.onKeyEnter,
             scope: me
         });
-        view.el.on(Ext.EventManager.getKeyEvent(), me.onKeyPress, me);
     },
 
     // Returns the number of rows currently visible on the screen or
@@ -150,7 +148,7 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     // go to last visible record in grid.
-    onKeyEnd: function(e, t) {
+    onKeyEnd: function(e) {
         var me = this,
             last = me.store.getAt(me.store.getCount() - 1);
 
@@ -167,7 +165,7 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     // go to first visible record in grid.
-    onKeyHome: function(e, t) {
+    onKeyHome: function(e) {
         var me = this,
             first = me.store.getAt(0);
 
@@ -184,24 +182,22 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     // Go one page up from the lastFocused record in the grid.
-    onKeyPageUp: function(e, t) {
+    onKeyPageUp: function(e) {
         var me = this,
             rowsVisible = me.getRowsVisible(),
             selIdx,
             prevIdx,
-            prevRecord,
-            currRec;
+            prevRecord;
 
         if (rowsVisible) {
-            selIdx = me.lastFocused ? me.store.indexOf(me.lastFocused) : 0;
+            selIdx = e.recordIndex;
             prevIdx = selIdx - rowsVisible;
             if (prevIdx < 0) {
                 prevIdx = 0;
             }
             prevRecord = me.store.getAt(prevIdx);
             if (e.shiftKey) {
-                currRec = me.store.getAt(selIdx);
-                me.selectRange(prevRecord, currRec, e.ctrlKey, 'up');
+                me.selectRange(prevRecord, e.record, e.ctrlKey, 'up');
                 me.setLastFocused(prevRecord);
             } else if (e.ctrlKey) {
                 e.preventDefault();
@@ -214,24 +210,22 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     // Go one page down from the lastFocused record in the grid.
-    onKeyPageDown: function(e, t) {
+    onKeyPageDown: function(e) {
         var me = this,
             rowsVisible = me.getRowsVisible(),
             selIdx,
             nextIdx,
-            nextRecord,
-            currRec;
+            nextRecord;
 
         if (rowsVisible) {
-            selIdx = me.lastFocused ? me.store.indexOf(me.lastFocused) : 0;
+            selIdx = e.recordIndex;
             nextIdx = selIdx + rowsVisible;
             if (nextIdx >= me.store.getCount()) {
                 nextIdx = me.store.getCount() - 1;
             }
             nextRecord = me.store.getAt(nextIdx);
             if (e.shiftKey) {
-                currRec = me.store.getAt(selIdx);
-                me.selectRange(nextRecord, currRec, e.ctrlKey, 'down');
+                me.selectRange(nextRecord, e.record, e.ctrlKey, 'down');
                 me.setLastFocused(nextRecord);
             } else if (e.ctrlKey) {
                 // some browsers, this means go thru browser tabs
@@ -246,28 +240,26 @@ Ext.define('Ext.selection.RowModel', {
 
     // Select/Deselect based on pressing Spacebar.
     // Assumes a SIMPLE selectionmode style
-    onKeyPress: function(e, t) {
-        if (e.getKey() === e.SPACE) {
-            e.stopEvent();
-            var me = this,
-                record = me.lastFocused;
+    onKeySpace: function(e) {
+        var me = this,
+            record = me.lastFocused;
 
-            if (record) {
-                if (me.isSelected(record)) {
-                    me.doDeselect(record, false);
-                } else {
-                    me.doSelect(record, true);
-                }
+        if (record) {
+            if (me.isSelected(record)) {
+                me.doDeselect(record, false);
+            } else {
+                me.doSelect(record, true);
             }
         }
     },
+    
+    onKeyEnter: Ext.emptyFn,
 
     // Navigate one record up. This could be a selection or
     // could be simply focusing a record for discontiguous
     // selection. Provides bounds checking.
-    onKeyUp: function(e, t) {
+    onKeyUp: function(e) {
         var me = this,
-            view = me.views[0],
             idx  = me.store.indexOf(me.lastFocused),
             record;
 
@@ -304,9 +296,8 @@ Ext.define('Ext.selection.RowModel', {
     // Navigate one record down. This could be a selection or
     // could be simply focusing a record for discontiguous
     // selection. Provides bounds checking.
-    onKeyDown: function(e, t) {
+    onKeyDown: function(e) {
         var me = this,
-            view = me.views[0],
             idx  = me.store.indexOf(me.lastFocused),
             record;
 
@@ -315,7 +306,11 @@ Ext.define('Ext.selection.RowModel', {
         if (idx + 1 < me.store.getCount()) {
             record = me.store.getAt(idx + 1);
             if (me.selected.getCount() === 0) {
-                me.doSelect(record);
+                if (!e.ctrlKey) {
+                    me.doSelect(record);
+                } else {
+                    me.setLastFocused(record);
+                }
                 //view.focusRow(idx + 1);
             } else if (e.shiftKey && me.lastFocused) {
                 if (me.isSelected(me.lastFocused) && me.isSelected(record)) {
@@ -346,22 +341,24 @@ Ext.define('Ext.selection.RowModel', {
         }
     },
 
-    onKeyLeft: function(e, t) {
+    onKeyLeft: function(e) {
         this.scrollByDeltaX(-this.deltaScroll);
     },
 
-    onKeyRight: function(e, t) {
+    onKeyRight: function(e) {
         this.scrollByDeltaX(this.deltaScroll);
     },
 
     // Select the record with the event included so that
     // we can take into account ctrlKey, shiftKey, etc
     onRowMouseDown: function(view, record, item, index, e) {
-        view.el.focus();
         if (!this.allowRightMouseSelection(e)) {
             return;
         }
-        this.selectWithEvent(record, e);
+
+        if (e.button === 0 || !this.isSelected(record)) {
+            this.selectWithEvent(record, e);
+        }
     },
     
     /**
@@ -433,6 +430,7 @@ Ext.define('Ext.selection.RowModel', {
                 }
             }
         }
+        this.callParent();
     },
 
     onEditorTab: function(editingPlugin, e) {
@@ -441,16 +439,79 @@ Ext.define('Ext.selection.RowModel', {
             record = editingPlugin.getActiveRecord(),
             header = editingPlugin.getActiveColumn(),
             position = view.getPosition(record, header),
-            direction = e.shiftKey ? 'left' : 'right',
-            newPosition  = view.walkCells(position, direction, e, this.preventWrap);
+            direction = e.shiftKey ? 'left' : 'right';
 
-        if (newPosition) {
-            editingPlugin.startEditByPosition(newPosition);
+        do {
+            position  = view.walkCells(position, direction, e, me.preventWrap);
+        } while(position && !view.headerCt.getHeaderAtIndex(position.column).getEditor());
+
+        if (position) {
+            editingPlugin.startEditByPosition(position);
+        }
+    },
+
+
+    /**
+     * Returns position of the first selected cell in the selection in the format {row: row, column: column}
+     */
+    getCurrentPosition: function() {
+        var firstSelection = this.selected.items[0];
+        if (firstSelection) {
+            return {
+                row: this.store.indexOf(firstSelection),
+                column: 0
+            };
         }
     },
 
     selectByPosition: function(position) {
         var record = this.store.getAt(position.row);
         this.select(record);
+    },
+
+
+    /**
+     * Selects the record immediately following the currently selected record.
+     * @param {Boolean} [keepExisting] True to retain existing selections
+     * @param {Boolean} [suppressEvent] Set to false to not fire a select event
+     * @return {Boolean} `true` if there is a next record, else `false`
+     */
+    selectNext: function(keepExisting, suppressEvent) {
+        var me = this,
+            store = me.store,
+            selection = me.getSelection(),
+            record = selection[selection.length - 1],
+            index = store.indexOf(record) + 1,
+            success;
+
+        if(index === store.getCount() || index === 0) {
+            success = false;
+        } else {
+            me.doSelect(index, keepExisting, suppressEvent);
+            success = true;
+        }
+        return success;
+    },
+
+    /**
+     * Selects the record that precedes the currently selected record.
+     * @param {Boolean} [keepExisting] True to retain existing selections
+     * @param {Boolean} [suppressEvent] Set to false to not fire a select event
+     * @return {Boolean} `true` if there is a previous record, else `false`
+     */
+    selectPrevious: function(keepExisting, suppressEvent) {
+        var me = this,
+            selection = me.getSelection(),
+            record = selection[0],
+            index = me.store.indexOf(record) - 1,
+            success;
+
+        if (index < 0) {
+            success = false;
+        } else {
+            me.doSelect(index, keepExisting, suppressEvent);
+            success = true;
+        }
+        return success;
     }
 });

@@ -1,19 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.menu.Manager
  * Provides a common registry of all menus on a page.
  * @singleton
  */
@@ -35,7 +20,7 @@ Ext.define('Ext.menu.Manager', {
     init: function() {
         var me = this;
         
-        me.active = Ext.create('Ext.util.MixedCollection');
+        me.active = new Ext.util.MixedCollection();
         Ext.getDoc().addKeyListener(27, function() {
             if (me.active.length > 0) {
                 me.hideAll();
@@ -49,12 +34,17 @@ Ext.define('Ext.menu.Manager', {
      */
     hideAll: function() {
         var active = this.active,
-            c;
+        clone, menus, m, mLen;
+
         if (active && active.length > 0) {
-            c = active.clone();
-            c.each(function(m) {
-                m.hide();
-            });
+            clone = active.clone();
+            menus = clone.items;
+            mLen  = menus.length;
+
+            for (m = 0; m < mLen; m++) {
+                menus[m].hide();
+            }
+
             return true;
         }
         return false;
@@ -81,7 +71,11 @@ Ext.define('Ext.menu.Manager', {
         me.lastShow = new Date();
         active.add(m);
         if (!attached) {
-            Ext.getDoc().on('mousedown', me.onMouseDown, me);
+            Ext.getDoc().on('mousedown', me.onMouseDown, me, {
+                // On IE we have issues with the menu stealing focus at certain points
+                // during the head, so give it a short buffer
+                buffer: Ext.isIE ? 10 : undefined
+            });
             me.attached = true;
         }
         m.toFront();
@@ -114,16 +108,10 @@ Ext.define('Ext.menu.Manager', {
     onMouseDown: function(e) {
         var me = this,
             active = me.active,
-            lastShow = me.lastShow,
-            target = e.target;
+            lastShow = me.lastShow;
 
         if (Ext.Date.getElapsed(lastShow) > 50 && active.length > 0 && !e.getTarget('.' + Ext.baseCSSPrefix + 'menu')) {
             me.hideAll();
-            // in IE, if we mousedown on a focusable element, the focus gets cancelled and the focus event is never
-            // fired on the element, so we'll focus it here
-            if (Ext.isIE && Ext.fly(target).focusable()) {
-                target.focus();
-            }
         }
     },
 
@@ -164,7 +152,7 @@ Ext.define('Ext.menu.Manager', {
         } else if (menu.isMenu) {  // menu instance
             return menu;
         } else if (Ext.isArray(menu)) { // array of menu items
-            return Ext.create('Ext.menu.Menu', {items:menu});
+            return new Ext.menu.Menu({items:menu});
         } else { // otherwise, must be a config
             return Ext.ComponentManager.create(menu, 'menu');
         }

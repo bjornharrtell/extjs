@@ -115,8 +115,8 @@ Ext.define('Ext.chart.series.Series', {
      */
     shadowAttributes: null,
 
-    //@private triggerdrawlistener flag
-    triggerAfterDraw: false,
+    // @private animating flag
+    animating: false,
 
 <span id='Ext-chart-series-Series-cfg-listeners'>    /**
 </span>     * @cfg {Object} listeners
@@ -167,6 +167,10 @@ Ext.define('Ext.chart.series.Series', {
             itemmouseout: me.onItemMouseOut,
             mouseleave: me.onMouseLeave
         });
+        
+        if (me.style) {
+            Ext.apply(me.seriesStyle, me.style);
+        }
     },
     
 <span id='Ext-chart-series-Series-method-eachRecord'>    /**
@@ -230,14 +234,14 @@ Ext.define('Ext.chart.series.Series', {
     onAnimate: function(sprite, attr) {
         var me = this;
         sprite.stopAnimation();
-        if (me.triggerAfterDraw) {
+        if (me.animating) {
             return sprite.animate(Ext.applyIf(attr, me.chart.animate));
         } else {
-            me.triggerAfterDraw = true;
+            me.animating = true;
             return sprite.animate(Ext.apply(Ext.applyIf(attr, me.chart.animate), {
                 listeners: {
                     'afteranimate': function() {
-                        me.triggerAfterDraw = false;
+                        me.animating = false;
                         me.fireEvent('afterrender');
                     }
                 }
@@ -369,6 +373,30 @@ Ext.define('Ext.chart.series.Series', {
         me.drawSeries();
         me.chart.animate = prevAnimate;
     },
+    
+    hide: function() {
+        if (this.items) {
+            var me = this,
+                items = me.items,
+                i, j, lsh, ln, shadows;
+            
+            if (items &amp;&amp; items.length) {
+                for (i = 0, ln = items.length; i &lt; ln; ++i) {
+                    if (items[i].sprite) {
+                        items[i].sprite.hide(true);
+
+                        shadows = items[i].shadows || items[i].sprite.shadows;
+                        if (shadows) {
+                            for (j = 0, lsh = shadows.length; j &lt; lsh; ++j) {
+                                shadows[j].hide(true);
+                            }
+                        }
+                    }
+                }
+                me.hideLabels();
+            }
+        }
+    },
 
 <span id='Ext-chart-series-Series-method-getLegendColor'>    /**
 </span>     * Returns a string with the color to be used for the series legend item.
@@ -381,9 +409,11 @@ Ext.define('Ext.chart.series.Series', {
             if (fill &amp;&amp; fill != 'none') {
                 return fill;
             }
-            return stroke;
+            if(stroke){
+                return stroke;
+            }
         }
-        return '#000';
+        return (me.colorArrayStyle)?me.colorArrayStyle[me.seriesIdx % me.colorArrayStyle.length]:'#000';
     },
 
 <span id='Ext-chart-series-Series-method-visibleInLegend'>    /**

@@ -1,25 +1,20 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * Provides searching of Components within Ext.ComponentManager (globally) or a specific
  * Ext.container.Container on the document with a similar syntax to a CSS selector.
  *
- * Components can be retrieved by using their {@link Ext.Component xtype} with an optional . prefix
+ * Components can be retrieved by using their {@link Ext.Component xtype}
  *
- * - `component` or `.component`
- * - `gridpanel` or `.gridpanel`
+ * - `component`
+ * - `gridpanel`
+ * 
+ * Matching by xtype matches inherited types, so in the following code, the previous field
+ * *of any type which inherits from `TextField`* will be found:
+ *
+ *     prevField = myField.previousNode('textfield');
+ *
+ * To match only the exact type, pass the "shallow" flag (See {@link Ext.AbstractComponent#isXType AbstractComponent's isXType method})
+ *
+ *     prevTextField = myField.previousNode('textfield(true)');
  *
  * An itemId or id must be prefixed with a #
  *
@@ -59,6 +54,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  * Default pseudos include:
  *
  * - not
+ * - first
  * - last
  *
  * Queries return an array of components.
@@ -82,7 +78,7 @@ If you are unsure which license is appropriate for your use, please contact the 
  */
 Ext.define('Ext.ComponentQuery', {
     singleton: true,
-    uses: ['Ext.ComponentManager']
+    requires: ['Ext.ComponentManager']
 }, function() {
 
     var cq = this,
@@ -170,7 +166,7 @@ Ext.define('Ext.ComponentQuery', {
                 candidate;
             for (; i < length; i++) {
                 candidate = items[i];
-                if (candidate.el ? candidate.el.hasCls(className) : EA.contains(candidate.initCls(), className)) {
+                if (candidate.hasCls(className)) {
                     result.push(candidate);
                 }
             }
@@ -241,8 +237,7 @@ Ext.define('Ext.ComponentQuery', {
             method: filterFnPattern
         }];
 
-    // @class Ext.ComponentQuery.Query
-    // This internal class is completely hidden in documentation.
+    // Internal class Ext.ComponentQuery.Query
     cq.Query = Ext.extend(Object, {
         constructor: function(cfg) {
             cfg = cfg || {};
@@ -271,6 +266,10 @@ Ext.define('Ext.ComponentQuery', {
             // Root is a candidate Array
             else if (Ext.isArray(root)) {
                 workingItems = root;
+            }
+            // Root is a MixedCollection
+            else if (root.isMixedCollection) {
+                workingItems = root.items;
             }
 
             // We are going to loop over our operations and take care of them
@@ -348,8 +347,22 @@ Ext.define('Ext.ComponentQuery', {
                 }
                 return results;
             },
+            first: function(components) {
+                var ret = [];
+                    
+                if (components.length > 0) {
+                    ret.push(components[0]);
+                }
+                return ret;       
+            },
             last: function(components) {
-                return components[components.length - 1];
+                var len = components.length,
+                    ret = [];
+                    
+                if (len > 0) {
+                    ret.push(components[len - 1]);
+                }
+                return ret;
             }
         },
 
@@ -381,10 +394,7 @@ Ext.define('Ext.ComponentQuery', {
 
             for (; i < length; i++) {
                 selector = Ext.String.trim(selectors[i]);
-                query = this.cache[selector];
-                if (!query) {
-                    this.cache[selector] = query = this.parse(selector);
-                }
+                query = this.cache[selector] || (this.cache[selector] = this.parse(selector));
                 results = results.concat(query.execute(root));
             }
 
@@ -415,11 +425,19 @@ Ext.define('Ext.ComponentQuery', {
             if (!selector) {
                 return true;
             }
-            var query = this.cache[selector];
-            if (!query) {
-                this.cache[selector] = query = this.parse(selector);
+            var selectors = selector.split(','),
+                length = selectors.length,
+                i = 0,
+                query;
+
+            for (; i < length; i++) {
+                selector = Ext.String.trim(selectors[i]);
+                query = this.cache[selector] || (this.cache[selector] = this.parse(selector));
+                if (query.is(component)) {
+                    return true;
+                }
             }
-            return query.is(component);
+            return false;
         },
 
         parse: function(selector) {
@@ -499,12 +517,10 @@ Ext.define('Ext.ComponentQuery', {
                             selector = selector.replace(selectorMatch[0], '');
                             break; // Break on match
                         }
-                        //<debug>
                         // Exhausted all matches: It's an error
                         if (i === (length - 1)) {
                             Ext.Error.raise('Invalid ComponentQuery selector: "' + arguments[0] + '"');
                         }
-                        //</debug>
                     }
                 }
 

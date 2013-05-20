@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * This class is used to display small visual icons in the header of a panel. There are a set of
  * 25 icons that can be specified by using the {@link #type} config. The {@link #handler} config
@@ -53,10 +39,27 @@ Ext.define('Ext.panel.Tool', {
 
     baseCls: Ext.baseCSSPrefix + 'tool',
     disabledCls: Ext.baseCSSPrefix + 'tool-disabled',
+    
+    /**
+     * @cfg
+     * @private
+     */
     toolPressedCls: Ext.baseCSSPrefix + 'tool-pressed',
+    /**
+     * @cfg
+     * @private
+     */
     toolOverCls: Ext.baseCSSPrefix + 'tool-over',
+
     ariaRole: 'button',
-    renderTpl: ['<img id="{id}-toolEl" src="{blank}" class="{baseCls}-{type}" role="presentation"/>'],
+
+    childEls: [
+        'toolEl'
+    ],
+
+    renderTpl: [
+        '<img id="{id}-toolEl" src="{blank}" class="{baseCls}-{type}" role="presentation"/>'
+    ],
 
     /**
      * @cfg {Function} handler
@@ -119,6 +122,39 @@ Ext.define('Ext.panel.Tool', {
      * Specify as false to allow click event to propagate.
      */
     stopEvent: true,
+    
+    height: 15,
+    width: 15,
+
+    //<debug>
+    _toolTypes: {
+        close:1,
+        collapse:1,
+        down:1,
+        expand:1,
+        gear:1,
+        help:1,
+        left:1,
+        maximize:1,
+        minimize:1,
+        minus:1,
+        //move:1,
+        next:1,
+        pin:1,
+        plus:1,
+        prev:1,
+        print:1,
+        refresh:1,
+        //resize:1,
+        restore:1,
+        right:1,
+        save:1,
+        search:1,
+        toggle:1,
+        unpin:1,
+        up:1
+    },
+    //</debug>
 
     initComponent: function() {
         var me = this;
@@ -133,35 +169,7 @@ Ext.define('Ext.panel.Tool', {
         );
 
         //<debug>
-        var types = [
-            'close',
-            'collapse',
-            'down',
-            'expand',
-            'gear',
-            'help',
-            'left',
-            'maximize',
-            'minimize',
-            'minus',
-            'move',
-            'next',
-            'pin',
-            'plus',
-            'prev',
-            'print',
-            'refresh',
-            'resize',
-            'restore',
-            'right',
-            'save',
-            'search',
-            'toggle',
-            'unpin',
-            'up'
-        ];
-
-        if (me.id && Ext.Array.indexOf(types, me.id) > -1 && Ext.global.console) {
+        if (me.id && me._toolTypes[me.id] && Ext.global.console) {
             Ext.global.console.warn('When specifying a tool you should use the type option, the id can conflict now that tool is a Component');
         }
         //</debug>
@@ -174,11 +182,17 @@ Ext.define('Ext.panel.Tool', {
             type: me.type
         });
 
-        me.addChildEls('toolEl');
-
         // alias qtip, should use tooltip since it's what we have in the docs
         me.tooltip = me.tooltip || me.qtip;
         me.callParent();
+        me.on({
+            element: 'toolEl',
+            click: me.onClick,
+            mousedown: me.onMouseDown,
+            mouseover: me.onMouseOver,
+            mouseout: me.onMouseOut,
+            scope: me
+        });
     },
 
     // inherit docs
@@ -198,14 +212,10 @@ Ext.define('Ext.panel.Tool', {
                 me.toolEl.dom.setAttribute(attr, me.tooltip);
             }
         }
+    },
 
-        me.mon(me.toolEl, {
-            click: me.onClick,
-            mousedown: me.onMouseDown,
-            mouseover: me.onMouseOver,
-            mouseout: me.onMouseOut,
-            scope: me
-        });
+    getFocusEl: function() {
+        return this.el;
     },
 
     /**

@@ -16,15 +16,11 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-util-ClickRepeater'>/**
-</span> * @class Ext.util.ClickRepeater
- * @extends Ext.util.Observable
- *
- * A wrapper class which can be applied to any element. Fires a &quot;click&quot; event while the
+</span> * A wrapper class which can be applied to any element. Fires a &quot;click&quot; event while the
  * mouse is pressed. The interval between firings may be specified in the config but
  * defaults to 20 milliseconds.
  *
  * Optionally, a CSS class may be applied to the element during the time it is pressed.
- *
  */
 Ext.define('Ext.util.ClickRepeater', {
     extend: 'Ext.util.Observable',
@@ -32,15 +28,19 @@ Ext.define('Ext.util.ClickRepeater', {
 <span id='Ext-util-ClickRepeater-method-constructor'>    /**
 </span>     * Creates new ClickRepeater.
      * @param {String/HTMLElement/Ext.Element} el The element or its ID to listen on
-     * @param {Object} config (optional) Config object.
+     * @param {Object} [config] Config object.
      */
     constructor : function(el, config){
-        this.el = Ext.get(el);
-        this.el.unselectable();
+        var me = this;
 
-        Ext.apply(this, config);
+        me.el = Ext.get(el);
+        me.el.unselectable();
 
-        this.addEvents(
+        Ext.apply(me, config);
+
+        me.callParent();
+
+        me.addEvents(
 <span id='Ext-util-ClickRepeater-event-mousedown'>        /**
 </span>         * @event mousedown
          * Fires when the mouse button is depressed.
@@ -64,49 +64,55 @@ Ext.define('Ext.util.ClickRepeater', {
         &quot;mouseup&quot;
         );
 
-        if(!this.disabled){
-            this.disabled = true;
-            this.enable();
+        if(!me.disabled){
+            me.disabled = true;
+            me.enable();
         }
 
         // allow inline handler
-        if(this.handler){
-            this.on(&quot;click&quot;, this.handler,  this.scope || this);
+        if(me.handler){
+            me.on(&quot;click&quot;, me.handler,  me.scope || me);
         }
-
-        this.callParent();
     },
 
 <span id='Ext-util-ClickRepeater-cfg-el'>    /**
-</span>     * @cfg {String/HTMLElement/Ext.Element} el The element to act as a button.
+</span>     * @cfg {String/HTMLElement/Ext.Element} el
+     * The element to act as a button.
      */
 
 <span id='Ext-util-ClickRepeater-cfg-pressedCls'>    /**
-</span>     * @cfg {String} pressedCls A CSS class name to be applied to the element while pressed.
+</span>     * @cfg {String} pressedCls
+     * A CSS class name to be applied to the element while pressed.
      */
 
 <span id='Ext-util-ClickRepeater-cfg-accelerate'>    /**
-</span>     * @cfg {Boolean} accelerate True if autorepeating should start slowly and accelerate.
+</span>     * @cfg {Boolean} accelerate
+     * True if autorepeating should start slowly and accelerate.
      * &quot;interval&quot; and &quot;delay&quot; are ignored.
      */
 
 <span id='Ext-util-ClickRepeater-cfg-interval'>    /**
-</span>     * @cfg {Number} interval The interval between firings of the &quot;click&quot; event. Default 20 ms.
+</span>     * @cfg {Number} interval
+     * The interval between firings of the &quot;click&quot; event (in milliseconds).
      */
     interval : 20,
 
 <span id='Ext-util-ClickRepeater-cfg-delay'>    /**
-</span>     * @cfg {Number} delay The initial delay before the repeating event begins firing.
+</span>     * @cfg {Number} delay
+     * The initial delay before the repeating event begins firing.
      * Similar to an autorepeat key delay.
      */
     delay: 250,
 
 <span id='Ext-util-ClickRepeater-cfg-preventDefault'>    /**
-</span>     * @cfg {Boolean} preventDefault True to prevent the default click event
+</span>     * @cfg {Boolean} preventDefault
+     * True to prevent the default click event
      */
     preventDefault : true,
+
 <span id='Ext-util-ClickRepeater-cfg-stopDefault'>    /**
-</span>     * @cfg {Boolean} stopDefault True to stop the default click event
+</span>     * @cfg {Boolean} stopDefault
+     * True to stop the default click event
      */
     stopDefault : false,
 
@@ -118,7 +124,9 @@ Ext.define('Ext.util.ClickRepeater', {
     enable: function(){
         if(this.disabled){
             this.el.on('mousedown', this.handleMouseDown, this);
-            if (Ext.isIE){
+            // IE versions will detect clicks as in sequence as dblclicks
+            // if they happen in quick succession
+            if (Ext.isIE &amp;&amp; !(Ext.isStrict &amp;&amp; Ext.isIE9)){
                 this.el.on('dblclick', this.handleDblClick, this);
             }
             if(this.preventDefault || this.stopDefault){

@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.dd.DropTarget
- * @extends Ext.dd.DDTarget
  * A simple class that provides the basic implementation needed to make any element a drop target that can have
  * draggable items dropped onto it.  The drop has no effect until an implementation of notifyDrop is provided.
  */
@@ -50,12 +34,12 @@ Ext.define('Ext.dd.DropTarget', {
      * The CSS class applied to the drop target element while the drag source is over it.
      */
     /**
-     * @cfg {String} [dropAllowed="x-dd-drop-ok"]
+     * @cfg {String} dropAllowed
      * The CSS class returned to the drag source when drop is allowed.
      */
     dropAllowed : Ext.baseCSSPrefix + 'dd-drop-ok',
     /**
-     * @cfg {String} [dropNotAllowed="x-dd-drop-nodrop"]
+     * @cfg {String} dropNotAllowed
      * The CSS class returned to the drag source when drop is not allowed.
      */
     dropNotAllowed : Ext.baseCSSPrefix + 'dd-drop-nodrop',
@@ -75,6 +59,7 @@ Ext.define('Ext.dd.DropTarget', {
      * @param {Object} data An object containing arbitrary data supplied by the drag source
      * @return {String} status The CSS class that communicates the drop status back to the source so that the
      * underlying {@link Ext.dd.StatusProxy} can be updated
+     * @template
      */
     notifyEnter : function(dd, e, data){
         if(this.overClass){
@@ -92,6 +77,7 @@ Ext.define('Ext.dd.DropTarget', {
      * @param {Object} data An object containing arbitrary data supplied by the drag source
      * @return {String} status The CSS class that communicates the drop status back to the source so that the
      * underlying {@link Ext.dd.StatusProxy} can be updated
+     * @template
      */
     notifyOver : function(dd, e, data){
         return this.dropAllowed;
@@ -104,6 +90,7 @@ Ext.define('Ext.dd.DropTarget', {
      * @param {Ext.dd.DragSource} source The drag source that was dragged over this drop target
      * @param {Event} e The event
      * @param {Object} data An object containing arbitrary data supplied by the drag source
+     * @template
      */
     notifyOut : function(dd, e, data){
         if(this.overClass){
@@ -120,6 +107,7 @@ Ext.define('Ext.dd.DropTarget', {
      * @param {Event} e The event
      * @param {Object} data An object containing arbitrary data supplied by the drag source
      * @return {Boolean} False if the drop was invalid.
+     * @template
      */
     notifyDrop : function(dd, e, data){
         return false;
@@ -132,4 +120,3 @@ Ext.define('Ext.dd.DropTarget', {
         }
     }
 });
-

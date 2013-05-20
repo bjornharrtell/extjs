@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
  * @class Ext.data.JsonP
  * @singleton
@@ -24,12 +10,19 @@ Ext.define('Ext.data.JsonP', {
 
     singleton: true,
 
-    statics: {
-        requestCount: 0,
-        requests: {}
-    },
-
     /* End Definitions */
+
+    /**
+     * Number of requests done so far.
+     * @private
+     */
+    requestCount: 0,
+
+    /**
+     * Hash of pending requests.
+     * @private
+     */
+    requests: {},
 
     /**
      * @property timeout
@@ -100,13 +93,13 @@ Ext.define('Ext.data.JsonP', {
         var me = this,
             disableCaching = Ext.isDefined(options.disableCaching) ? options.disableCaching : me.disableCaching,
             cacheParam = options.disableCachingParam || me.disableCachingParam,
-            id = ++me.statics().requestCount,
+            id = ++me.requestCount,
             callbackName = options.callbackName || 'callback' + id,
             callbackKey = options.callbackKey || me.callbackKey,
             timeout = Ext.isDefined(options.timeout) ? options.timeout : me.timeout,
             params = Ext.apply({}, options.params),
             url = options.url,
-            name = Ext.isSandboxed ? Ext.getUniqueGlobalNamespace() : 'Ext',
+            name = Ext.name,
             request,
             script;
 
@@ -115,9 +108,9 @@ Ext.define('Ext.data.JsonP', {
             params[cacheParam] = new Date().getTime();
         }
 
-        script = me.createScript(url, params);
+        script = me.createScript(url, params, options);
 
-        me.statics().requests[id] = request = {
+        me.requests[id] = request = {
             url: url,
             params: params,
             script: script,
@@ -126,6 +119,7 @@ Ext.define('Ext.data.JsonP', {
             success: options.success,
             failure: options.failure,
             callback: options.callback,
+            callbackKey: callbackKey,
             callbackName: callbackName
         };
 
@@ -135,7 +129,7 @@ Ext.define('Ext.data.JsonP', {
 
         me.setupErrorHandling(request);
         me[callbackName] = Ext.bind(me.handleResponse, me, [request], true);
-        Ext.getHead().appendChild(script);
+        me.loadScript(request);
         return request;
     },
 
@@ -145,18 +139,19 @@ Ext.define('Ext.data.JsonP', {
      * @param {Object/String} request (Optional) The request to abort
      */
     abort: function(request){
-        var requests = this.statics().requests,
+        var me = this,
+            requests = me.requests,
             key;
 
         if (request) {
             if (!request.id) {
                 request = requests[request];
             }
-            this.abort(request);
+            me.handleAbort(request);
         } else {
             for (key in requests) {
                 if (requests.hasOwnProperty(key)) {
-                    this.abort(requests[key]);
+                    me.abort(requests[key]);
                 }
             }
         }
@@ -224,7 +219,7 @@ Ext.define('Ext.data.JsonP', {
             clearTimeout(request.timeout);
         }
         delete this[request.callbackName];
-        delete this.statics()[request.id];
+        delete this.requests[request.id];
         this.cleanupErrorHandling(request);
         Ext.fly(request.script).remove();
 
@@ -238,17 +233,28 @@ Ext.define('Ext.data.JsonP', {
     },
 
     /**
-     * Create the script tag
+     * Create the script tag given the specified url, params and options. The options
+     * parameter is passed to allow an override to access it.
      * @private
      * @param {String} url The url of the request
      * @param {Object} params Any extra params to be sent
+     * @param {Object} options The object passed to {@link #request}.
      */
-    createScript: function(url, params) {
+    createScript: function(url, params, options) {
         var script = document.createElement('script');
         script.setAttribute("src", Ext.urlAppend(url, Ext.Object.toQueryString(params)));
         script.setAttribute("async", true);
         script.setAttribute("type", "text/javascript");
         return script;
+    },
+
+    /**
+     * Loads the script for the given request by appending it to the HEAD element. This is
+     * its own method so that users can override it (as well as {@link #createScript}).
+     * @private
+     * @param request The request object.
+     */
+    loadScript: function (request) {
+        Ext.getHead().appendChild(request.script);
     }
 });
-

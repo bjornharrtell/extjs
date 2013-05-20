@@ -104,7 +104,7 @@ Organizing the rows in a {@link Ext.grid.Panel Grid Panel} into groups is easy, 
         groupField: 'department'
     });
 
-For more on gouping in {@link Ext.data.Store Store}s please refer to the [Data guide](#/guide/data).  Next we configure a grid with a grouping {@link Ext.grid.feature.Feature Feature} that will handle displaying the rows in groups:
+For more on grouping in {@link Ext.data.Store Store}s please refer to the [Data guide](#/guide/data).  Next we configure a grid with a grouping {@link Ext.grid.feature.Feature Feature} that will handle displaying the rows in groups:
 
 
     Ext.create('Ext.grid.Panel', {

@@ -1,31 +1,25 @@
-/*
+Ext.Loader.setConfig({
+    enabled: true
+});Ext.Loader.setPath('Ext.ux', '../ux');
 
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 Ext.require([
     'Ext.data.*',
     'Ext.grid.*',
-    'Ext.tree.*'
+    'Ext.tree.*',
+    'Ext.ux.CheckColumn'
 ]);
 
 Ext.onReady(function() {
+    Ext.QuickTips.init();
+
     //we want to setup a model and store instead of using dataUrl
     Ext.define('Task', {
         extend: 'Ext.data.Model',
         fields: [
             {name: 'task',     type: 'string'},
             {name: 'user',     type: 'string'},
-            {name: 'duration', type: 'string'}
+            {name: 'duration', type: 'string'},
+            {name: 'done',     type: 'boolean'}
         ]
     });
 
@@ -84,7 +78,23 @@ Ext.onReady(function() {
             flex: 1,
             dataIndex: 'user',
             sortable: true
+        }, {
+            xtype: 'checkcolumn',
+            header: 'Done',
+            dataIndex: 'done',
+            width: 40,
+            stopSelection: false
+        }, {
+            text: 'Edit',
+            width: 40,
+            menuDisabled: true,
+            xtype: 'actioncolumn',
+            tooltip: 'Edit task',
+            align: 'center',
+            icon: '../simple-tasks/resources/images/edit_task.png',
+            handler: function(grid, rowIndex, colIndex, actionItem, event, record, row) {
+                Ext.Msg.alert('Editing' + (record.get('done') ? ' completed task' : '') , record.get('task'));
+            }
         }]
     });
 });
-

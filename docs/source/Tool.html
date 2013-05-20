@@ -56,10 +56,27 @@ Ext.define('Ext.panel.Tool', {
 
     baseCls: Ext.baseCSSPrefix + 'tool',
     disabledCls: Ext.baseCSSPrefix + 'tool-disabled',
+    
+<span id='Ext-panel-Tool-cfg-toolPressedCls'>    /**
+</span>     * @cfg
+     * @private
+     */
     toolPressedCls: Ext.baseCSSPrefix + 'tool-pressed',
+<span id='Ext-panel-Tool-cfg-toolOverCls'>    /**
+</span>     * @cfg
+     * @private
+     */
     toolOverCls: Ext.baseCSSPrefix + 'tool-over',
+
     ariaRole: 'button',
-    renderTpl: ['&lt;img id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-{type}&quot; role=&quot;presentation&quot;/&gt;'],
+
+    childEls: [
+        'toolEl'
+    ],
+
+    renderTpl: [
+        '&lt;img id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-{type}&quot; role=&quot;presentation&quot;/&gt;'
+    ],
 
 <span id='Ext-panel-Tool-cfg-handler'>    /**
 </span>     * @cfg {Function} handler
@@ -122,6 +139,39 @@ Ext.define('Ext.panel.Tool', {
      * Specify as false to allow click event to propagate.
      */
     stopEvent: true,
+    
+    height: 15,
+    width: 15,
+
+    //&lt;debug&gt;
+    _toolTypes: {
+        close:1,
+        collapse:1,
+        down:1,
+        expand:1,
+        gear:1,
+        help:1,
+        left:1,
+        maximize:1,
+        minimize:1,
+        minus:1,
+        //move:1,
+        next:1,
+        pin:1,
+        plus:1,
+        prev:1,
+        print:1,
+        refresh:1,
+        //resize:1,
+        restore:1,
+        right:1,
+        save:1,
+        search:1,
+        toggle:1,
+        unpin:1,
+        up:1
+    },
+    //&lt;/debug&gt;
 
     initComponent: function() {
         var me = this;
@@ -136,35 +186,7 @@ Ext.define('Ext.panel.Tool', {
         );
 
         //&lt;debug&gt;
-        var types = [
-            'close',
-            'collapse',
-            'down',
-            'expand',
-            'gear',
-            'help',
-            'left',
-            'maximize',
-            'minimize',
-            'minus',
-            'move',
-            'next',
-            'pin',
-            'plus',
-            'prev',
-            'print',
-            'refresh',
-            'resize',
-            'restore',
-            'right',
-            'save',
-            'search',
-            'toggle',
-            'unpin',
-            'up'
-        ];
-
-        if (me.id &amp;&amp; Ext.Array.indexOf(types, me.id) &gt; -1 &amp;&amp; Ext.global.console) {
+        if (me.id &amp;&amp; me._toolTypes[me.id] &amp;&amp; Ext.global.console) {
             Ext.global.console.warn('When specifying a tool you should use the type option, the id can conflict now that tool is a Component');
         }
         //&lt;/debug&gt;
@@ -177,11 +199,17 @@ Ext.define('Ext.panel.Tool', {
             type: me.type
         });
 
-        me.addChildEls('toolEl');
-
         // alias qtip, should use tooltip since it's what we have in the docs
         me.tooltip = me.tooltip || me.qtip;
         me.callParent();
+        me.on({
+            element: 'toolEl',
+            click: me.onClick,
+            mousedown: me.onMouseDown,
+            mouseover: me.onMouseOver,
+            mouseout: me.onMouseOut,
+            scope: me
+        });
     },
 
     // inherit docs
@@ -201,14 +229,10 @@ Ext.define('Ext.panel.Tool', {
                 me.toolEl.dom.setAttribute(attr, me.tooltip);
             }
         }
+    },
 
-        me.mon(me.toolEl, {
-            click: me.onClick,
-            mousedown: me.onMouseDown,
-            mouseover: me.onMouseOver,
-            mouseout: me.onMouseOut,
-            scope: me
-        });
+    getFocusEl: function() {
+        return this.el;
     },
 
 <span id='Ext-panel-Tool-method-setType'>    /**
@@ -304,6 +328,7 @@ Ext.define('Ext.panel.Tool', {
     onMouseOut: function() {
         this.el.removeCls(this.toolOverCls);
     }
-});</pre>
+});
+</pre>
 </body>
 </html>
