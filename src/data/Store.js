@@ -1,1756 +1,1212 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
 /**
+ * @author Ed Spencer
  * @class Ext.data.Store
- * @extends Ext.util.Observable
- * <p>The Store class encapsulates a client side cache of {@link Ext.data.Record Record}
- * objects which provide input data for Components such as the {@link Ext.grid.GridPanel GridPanel},
- * the {@link Ext.form.ComboBox ComboBox}, or the {@link Ext.DataView DataView}.</p>
- * <p><u>Retrieving Data</u></p>
- * <p>A Store object may access a data object using:<div class="mdetail-params"><ul>
- * <li>{@link #proxy configured implementation} of {@link Ext.data.DataProxy DataProxy}</li>
- * <li>{@link #data} to automatically pass in data</li>
- * <li>{@link #loadData} to manually pass in data</li>
- * </ul></div></p>
- * <p><u>Reading Data</u></p>
- * <p>A Store object has no inherent knowledge of the format of the data object (it could be
- * an Array, XML, or JSON). A Store object uses an appropriate {@link #reader configured implementation}
- * of a {@link Ext.data.DataReader DataReader} to create {@link Ext.data.Record Record} instances from the data
- * object.</p>
- * <p><u>Store Types</u></p>
- * <p>There are several implementations of Store available which are customized for use with
- * a specific DataReader implementation.  Here is an example using an ArrayStore which implicitly
- * creates a reader commensurate to an Array data object.</p>
- * <pre><code>
-var myStore = new Ext.data.ArrayStore({
-    fields: ['fullname', 'first'],
-    idIndex: 0 // id for each record will be the first element
-});
- * </code></pre>
- * <p>For custom implementations create a basic {@link Ext.data.Store} configured as needed:</p>
- * <pre><code>
-// create a {@link Ext.data.Record Record} constructor:
-var rt = Ext.data.Record.create([
-    {name: 'fullname'},
-    {name: 'first'}
-]);
-var myStore = new Ext.data.Store({
-    // explicitly create reader
-    reader: new Ext.data.ArrayReader(
-        {
-            idIndex: 0  // id for each record will be the first element
-        },
-        rt // recordType
-    )
-});
- * </code></pre>
- * <p>Load some data into store (note the data object is an array which corresponds to the reader):</p>
- * <pre><code>
-var myData = [
-    [1, 'Fred Flintstone', 'Fred'],  // note that id for the record is the first element
-    [2, 'Barney Rubble', 'Barney']
-];
-myStore.loadData(myData);
- * </code></pre>
- * <p>Records are cached and made available through accessor functions.  An example of adding
- * a record to the store:</p>
- * <pre><code>
-var defaultData = {
-    fullname: 'Full Name',
-    first: 'First Name'
-};
-var recId = 100; // provide unique id for the record
-var r = new myStore.recordType(defaultData, ++recId); // create new record
-myStore.{@link #insert}(0, r); // insert a new record into the store (also see {@link #add})
- * </code></pre>
- * <p><u>Writing Data</u></p>
- * <p>And <b>new in Ext version 3</b>, use the new {@link Ext.data.DataWriter DataWriter} to create an automated, <a href="http://extjs.com/deploy/dev/examples/writer/writer.html">Writable Store</a>
- * along with <a href="http://extjs.com/deploy/dev/examples/restful/restful.html">RESTful features.</a>
- * @constructor
- * Creates a new Store.
- * @param {Object} config A config object containing the objects needed for the Store to access data,
- * and read the data into Records.
- * @xtype store
- */
-Ext.data.Store = Ext.extend(Ext.util.Observable, {
-    /**
-     * @cfg {String} storeId If passed, the id to use to register with the <b>{@link Ext.StoreMgr StoreMgr}</b>.
-     * <p><b>Note</b>: if a (deprecated) <tt>{@link #id}</tt> is specified it will supersede the <tt>storeId</tt>
-     * assignment.</p>
-     */
-    /**
-     * @cfg {String} url If a <tt>{@link #proxy}</tt> is not specified the <tt>url</tt> will be used to
-     * implicitly configure a {@link Ext.data.HttpProxy HttpProxy} if an <tt>url</tt> is specified.
-     * Typically this option, or the <code>{@link #data}</code> option will be specified.
-     */
-    /**
-     * @cfg {Boolean/Object} autoLoad If <tt>{@link #data}</tt> is not specified, and if <tt>autoLoad</tt>
-     * is <tt>true</tt> or an <tt>Object</tt>, this store's {@link #load} method is automatically called
-     * after creation. If the value of <tt>autoLoad</tt> is an <tt>Object</tt>, this <tt>Object</tt> will
-     * be passed to the store's {@link #load} method.
-     */
-    /**
-     * @cfg {Ext.data.DataProxy} proxy The {@link Ext.data.DataProxy DataProxy} object which provides
-     * access to a data object.  See <code>{@link #url}</code>.
-     */
-    /**
-     * @cfg {Array} data An inline data object readable by the <code>{@link #reader}</code>.
-     * Typically this option, or the <code>{@link #url}</code> option will be specified.
-     */
-    /**
-     * @cfg {Ext.data.DataReader} reader The {@link Ext.data.DataReader Reader} object which processes the
-     * data object and returns an Array of {@link Ext.data.Record} objects which are cached keyed by their
-     * <b><tt>{@link Ext.data.Record#id id}</tt></b> property.
-     */
-    /**
-     * @cfg {Ext.data.DataWriter} writer
-     * <p>The {@link Ext.data.DataWriter Writer} object which processes a record object for being written
-     * to the server-side database.</p>
-     * <br><p>When a writer is installed into a Store the {@link #add}, {@link #remove}, and {@link #update}
-     * events on the store are monitored in order to remotely {@link #createRecords create records},
-     * {@link #destroyRecord destroy records}, or {@link #updateRecord update records}.</p>
-     * <br><p>The proxy for this store will relay any {@link #writexception} events to this store.</p>
-     * <br><p>Sample implementation:
-     * <pre><code>
-var writer = new {@link Ext.data.JsonWriter}({
-    encode: true,
-    writeAllFields: true // write all fields, not just those that changed
+ * @extends Ext.data.AbstractStore
+ *
+ * <p>The Store class encapsulates a client side cache of {@link Ext.data.Model Model} objects. Stores load
+ * data via a {@link Ext.data.proxy.Proxy Proxy}, and also provide functions for {@link #sort sorting},
+ * {@link #filter filtering} and querying the {@link Ext.data.Model model} instances contained within it.</p>
+ *
+ * <p>Creating a Store is easy - we just tell it the Model and the Proxy to use to load and save its data:</p>
+ *
+<pre><code>
+// Set up a {@link Ext.data.Model model} to use in our Store
+Ext.define('User', {
+    extend: 'Ext.data.Model',
+    fields: [
+        {name: 'firstName', type: 'string'},
+        {name: 'lastName',  type: 'string'},
+        {name: 'age',       type: 'int'},
+        {name: 'eyeColor',  type: 'string'}
+    ]
 });
 
-// Typical Store collecting the Proxy, Reader and Writer together.
-var store = new Ext.data.Store({
-    storeId: 'user',
-    root: 'records',
-    proxy: proxy,
-    reader: reader,
-    writer: writer,     // <-- plug a DataWriter into the store just as you would a Reader
-    paramsAsHash: true,
-    autoSave: false    // <-- false to delay executing create, update, destroy requests
-                        //     until specifically told to do so.
+var myStore = Ext.create('Ext.data.Store', {
+    model: 'User',
+    proxy: {
+        type: 'ajax',
+        url : '/users.json',
+        reader: {
+            type: 'json',
+            root: 'users'
+        }
+    },
+    autoLoad: true
 });
-     * </code></pre></p>
-     */
-    writer : undefined,
-    /**
-     * @cfg {Object} baseParams
-     * <p>An object containing properties which are to be sent as parameters
-     * for <i>every</i> HTTP request.</p>
-     * <p>Parameters are encoded as standard HTTP parameters using {@link Ext#urlEncode}.</p>
-     * <p><b>Note</b>: <code>baseParams</code> may be superseded by any <code>params</code>
-     * specified in a <code>{@link #load}</code> request, see <code>{@link #load}</code>
-     * for more details.</p>
-     * This property may be modified after creation using the <code>{@link #setBaseParam}</code>
-     * method.
-     */
-    /**
-     * @cfg {Object} sortInfo A config object to specify the sort order in the request of a Store's
-     * {@link #load} operation.  Note that for local sorting, the <tt>direction</tt> property is
-     * case-sensitive. See also {@link #remoteSort} and {@link #paramNames}.
-     * For example:<pre><code>
-sortInfo: {
-    field: 'fieldName',
-    direction: 'ASC' // or 'DESC' (case sensitive for local sorting)
-}
 </code></pre>
-     */
-    /**
-     * @cfg {boolean} remoteSort <tt>true</tt> if sorting is to be handled by requesting the <tt>{@link #proxy Proxy}</tt>
-     * to provide a refreshed version of the data object in sorted order, as opposed to sorting the Record cache
-     * in place (defaults to <tt>false</tt>).
-     * <p>If <tt>remoteSort</tt> is <tt>true</tt>, then clicking on a {@link Ext.grid.Column Grid Column}'s
-     * {@link Ext.grid.Column#header header} causes the current page to be requested from the server appending
-     * the following two parameters to the <b><tt>{@link #load params}</tt></b>:<div class="mdetail-params"><ul>
-     * <li><b><tt>sort</tt></b> : String<p class="sub-desc">The <tt>name</tt> (as specified in the Record's
-     * {@link Ext.data.Field Field definition}) of the field to sort on.</p></li>
-     * <li><b><tt>dir</tt></b> : String<p class="sub-desc">The direction of the sort, 'ASC' or 'DESC' (case-sensitive).</p></li>
-     * </ul></div></p>
-     */
-    remoteSort : false,
 
-    /**
-     * @cfg {Boolean} autoDestroy <tt>true</tt> to destroy the store when the component the store is bound
-     * to is destroyed (defaults to <tt>false</tt>).
-     * <p><b>Note</b>: this should be set to true when using stores that are bound to only 1 component.</p>
-     */
-    autoDestroy : false,
-
-    /**
-     * @cfg {Boolean} pruneModifiedRecords <tt>true</tt> to clear all modified record information each time
-     * the store is loaded or when a record is removed (defaults to <tt>false</tt>). See {@link #getModifiedRecords}
-     * for the accessor method to retrieve the modified records.
-     */
-    pruneModifiedRecords : false,
-
-    /**
-     * Contains the last options object used as the parameter to the {@link #load} method. See {@link #load}
-     * for the details of what this may contain. This may be useful for accessing any params which were used
-     * to load the current Record cache.
-     * @property
-     */
-    lastOptions : null,
-
-    /**
-     * @cfg {Boolean} autoSave
-     * <p>Defaults to <tt>true</tt> causing the store to automatically {@link #save} records to
-     * the server when a record is modified (ie: becomes 'dirty'). Specify <tt>false</tt> to manually call {@link #save}
-     * to send all modifiedRecords to the server.</p>
-     * <br><p><b>Note</b>: each CRUD action will be sent as a separate request.</p>
-     */
-    autoSave : true,
-
-    /**
-     * @cfg {Boolean} batch
-     * <p>Defaults to <tt>true</tt> (unless <code>{@link #restful}:true</code>). Multiple
-     * requests for each CRUD action (CREATE, READ, UPDATE and DESTROY) will be combined
-     * and sent as one transaction. Only applies when <code>{@link #autoSave}</code> is set
-     * to <tt>false</tt>.</p>
-     * <br><p>If Store is RESTful, the DataProxy is also RESTful, and a unique transaction is
-     * generated for each record.</p>
-     */
-    batch : true,
-
-    /**
-     * @cfg {Boolean} restful
-     * Defaults to <tt>false</tt>.  Set to <tt>true</tt> to have the Store and the set
-     * Proxy operate in a RESTful manner. The store will automatically generate GET, POST,
-     * PUT and DELETE requests to the server. The HTTP method used for any given CRUD
-     * action is described in {@link Ext.data.Api#restActions}.  For additional information
-     * see {@link Ext.data.DataProxy#restful}.
-     * <p><b>Note</b>: if <code>{@link #restful}:true</code> <code>batch</code> will
-     * internally be set to <tt>false</tt>.</p>
-     */
-    restful: false,
-
-    /**
-     * @cfg {Object} paramNames
-     * <p>An object containing properties which specify the names of the paging and
-     * sorting parameters passed to remote servers when loading blocks of data. By default, this
-     * object takes the following form:</p><pre><code>
+ * <p>In the example above we configured an AJAX proxy to load data from the url '/users.json'. We told our Proxy
+ * to use a {@link Ext.data.reader.Json JsonReader} to parse the response from the server into Model object -
+ * {@link Ext.data.reader.Json see the docs on JsonReader} for details.</p>
+ *
+ * <p><u>Inline data</u></p>
+ *
+ * <p>Stores can also load data inline. Internally, Store converts each of the objects we pass in as {@link #data}
+ * into Model instances:</p>
+ *
+<pre><code>
+Ext.create('Ext.data.Store', {
+    model: 'User',
+    data : [
+        {firstName: 'Ed',    lastName: 'Spencer'},
+        {firstName: 'Tommy', lastName: 'Maintz'},
+        {firstName: 'Aaron', lastName: 'Conran'},
+        {firstName: 'Jamie', lastName: 'Avins'}
+    ]
+});
+</code></pre>
+ *
+ * <p>Loading inline data using the method above is great if the data is in the correct format already (e.g. it doesn't need
+ * to be processed by a {@link Ext.data.reader.Reader reader}). If your inline data requires processing to decode the data structure,
+ * use a {@link Ext.data.proxy.Memory MemoryProxy} instead (see the {@link Ext.data.proxy.Memory MemoryProxy} docs for an example).</p>
+ *
+ * <p>Additional data can also be loaded locally using {@link #add}.</p>
+ *
+ * <p><u>Loading Nested Data</u></p>
+ *
+ * <p>Applications often need to load sets of associated data - for example a CRM system might load a User and her Orders.
+ * Instead of issuing an AJAX request for the User and a series of additional AJAX requests for each Order, we can load a nested dataset
+ * and allow the Reader to automatically populate the associated models. Below is a brief example, see the {@link Ext.data.reader.Reader} intro
+ * docs for a full explanation:</p>
+ *
+<pre><code>
+var store = Ext.create('Ext.data.Store', {
+    autoLoad: true,
+    model: "User",
+    proxy: {
+        type: 'ajax',
+        url : 'users.json',
+        reader: {
+            type: 'json',
+            root: 'users'
+        }
+    }
+});
+</code></pre>
+ *
+ * <p>Which would consume a response like this:</p>
+ *
+<pre><code>
 {
-    start : 'start',  // The parameter name which specifies the start row
-    limit : 'limit',  // The parameter name which specifies number of rows to return
-    sort : 'sort',    // The parameter name which specifies the column to sort on
-    dir : 'dir'       // The parameter name which specifies the sort direction
+    "users": [
+        {
+            "id": 1,
+            "name": "Ed",
+            "orders": [
+                {
+                    "id": 10,
+                    "total": 10.76,
+                    "status": "invoiced"
+                },
+                {
+                    "id": 11,
+                    "total": 13.45,
+                    "status": "shipped"
+                }
+            ]
+        }
+    ]
 }
 </code></pre>
-     * <p>The server must produce the requested data block upon receipt of these parameter names.
-     * If different parameter names are required, this property can be overriden using a configuration
-     * property.</p>
-     * <p>A {@link Ext.PagingToolbar PagingToolbar} bound to this Store uses this property to determine
-     * the parameter names to use in its {@link #load requests}.
-     */
-    paramNames : undefined,
+ *
+ * <p>See the {@link Ext.data.reader.Reader} intro docs for a full explanation.</p>
+ *
+ * <p><u>Filtering and Sorting</u></p>
+ *
+ * <p>Stores can be sorted and filtered - in both cases either remotely or locally. The {@link #sorters} and {@link #filters} are
+ * held inside {@link Ext.util.MixedCollection MixedCollection} instances to make them easy to manage. Usually it is sufficient to
+ * either just specify sorters and filters in the Store configuration or call {@link #sort} or {@link #filter}:
+ *
+<pre><code>
+var store = Ext.create('Ext.data.Store', {
+    model: 'User',
+    sorters: [
+        {
+            property : 'age',
+            direction: 'DESC'
+        },
+        {
+            property : 'firstName',
+            direction: 'ASC'
+        }
+    ],
+
+    filters: [
+        {
+            property: 'firstName',
+            value   : /Ed/
+        }
+    ]
+});
+</code></pre>
+ *
+ * <p>The new Store will keep the configured sorters and filters in the MixedCollection instances mentioned above. By default, sorting
+ * and filtering are both performed locally by the Store - see {@link #remoteSort} and {@link #remoteFilter} to allow the server to
+ * perform these operations instead.</p>
+ *
+ * <p>Filtering and sorting after the Store has been instantiated is also easy. Calling {@link #filter} adds another filter to the Store
+ * and automatically filters the dataset (calling {@link #filter} with no arguments simply re-applies all existing filters). Note that by
+ * default {@link #sortOnFilter} is set to true, which means that your sorters are automatically reapplied if using local sorting.</p>
+ *
+<pre><code>
+store.filter('eyeColor', 'Brown');
+</code></pre>
+ *
+ * <p>Change the sorting at any time by calling {@link #sort}:</p>
+ *
+<pre><code>
+store.sort('height', 'ASC');
+</code></pre>
+ *
+ * <p>Note that all existing sorters will be removed in favor of the new sorter data (if {@link #sort} is called with no arguments,
+ * the existing sorters are just reapplied instead of being removed). To keep existing sorters and add new ones, just add them
+ * to the MixedCollection:</p>
+ *
+<pre><code>
+store.sorters.add(new Ext.util.Sorter({
+    property : 'shoeSize',
+    direction: 'ASC'
+}));
+
+store.sort();
+</code></pre>
+ *
+ * <p><u>Registering with StoreManager</u></p>
+ *
+ * <p>Any Store that is instantiated with a {@link #storeId} will automatically be registed with the {@link Ext.data.StoreManager StoreManager}.
+ * This makes it easy to reuse the same store in multiple views:</p>
+ *
+ <pre><code>
+//this store can be used several times
+Ext.create('Ext.data.Store', {
+    model: 'User',
+    storeId: 'usersStore'
+});
+
+new Ext.List({
+    store: 'usersStore',
+
+    //other config goes here
+});
+
+new Ext.view.View({
+    store: 'usersStore',
+
+    //other config goes here
+});
+</code></pre>
+ *
+ * <p><u>Further Reading</u></p>
+ *
+ * <p>Stores are backed up by an ecosystem of classes that enables their operation. To gain a full understanding of these
+ * pieces and how they fit together, see:</p>
+ *
+ * <ul style="list-style-type: disc; padding-left: 25px">
+ * <li>{@link Ext.data.proxy.Proxy Proxy} - overview of what Proxies are and how they are used</li>
+ * <li>{@link Ext.data.Model Model} - the core class in the data package</li>
+ * <li>{@link Ext.data.reader.Reader Reader} - used by any subclass of {@link Ext.data.proxy.Server ServerProxy} to read a response</li>
+ * </ul>
+ *
+ */
+Ext.define('Ext.data.Store', {
+    extend: 'Ext.data.AbstractStore',
+
+    alias: 'store.store',
+
+    requires: ['Ext.data.StoreManager', 'Ext.ModelManager', 'Ext.data.Model', 'Ext.util.Grouper'],
+    uses: ['Ext.data.proxy.Memory'],
 
     /**
-     * @cfg {Object} defaultParamNames
-     * Provides the default values for the {@link #paramNames} property. To globally modify the parameters
-     * for all stores, this object should be changed on the store prototype.
+     * @cfg {Boolean} remoteSort
+     * True to defer any sorting operation to the server. If false, sorting is done locally on the client. Defaults to <tt>false</tt>.
      */
-    defaultParamNames : {
-        start : 'start',
-        limit : 'limit',
-        sort : 'sort',
-        dir : 'dir'
+    remoteSort: false,
+
+    /**
+     * @cfg {Boolean} remoteFilter
+     * True to defer any filtering operation to the server. If false, filtering is done locally on the client. Defaults to <tt>false</tt>.
+     */
+    remoteFilter: false,
+
+    /**
+     * @cfg {Boolean} remoteGroup
+     * True if the grouping should apply on the server side, false if it is local only.  If the
+     * grouping is local, it can be applied immediately to the data.  If it is remote, then it will simply act as a
+     * helper, automatically sending the grouping information to the server.
+     */
+    remoteGroup : false,
+
+    /**
+     * @cfg {String/Ext.data.proxy.Proxy/Object} proxy The Proxy to use for this Store. This can be either a string, a config
+     * object or a Proxy instance - see {@link #setProxy} for details.
+     */
+
+    /**
+     * @cfg {Object[]/Ext.data.Model[]} data Optional array of Model instances or data objects to load locally. See "Inline data" above for details.
+     */
+
+    /**
+     * @property {String} groupField
+     * The field by which to group data in the store. Internally, grouping is very similar to sorting - the
+     * groupField and {@link #groupDir} are injected as the first sorter (see {@link #sort}). Stores support a single
+     * level of grouping, and groups can be fetched via the {@link #getGroups} method.
+     */
+    groupField: undefined,
+
+    /**
+     * The direction in which sorting should be applied when grouping. Defaults to "ASC" - the other supported value is "DESC"
+     * @property groupDir
+     * @type String
+     */
+    groupDir: "ASC",
+
+    /**
+     * @cfg {Number} pageSize
+     * The number of records considered to form a 'page'. This is used to power the built-in
+     * paging using the nextPage and previousPage functions. Defaults to 25.
+     */
+    pageSize: 25,
+
+    /**
+     * The page that the Store has most recently loaded (see {@link #loadPage})
+     * @property currentPage
+     * @type Number
+     */
+    currentPage: 1,
+
+    /**
+     * @cfg {Boolean} clearOnPageLoad True to empty the store when loading another page via {@link #loadPage},
+     * {@link #nextPage} or {@link #previousPage}. Setting to false keeps existing records, allowing
+     * large data sets to be loaded one page at a time but rendered all together.
+     */
+    clearOnPageLoad: true,
+
+    /**
+     * @property {Boolean} loading
+     * True if the Store is currently loading via its Proxy
+     * @private
+     */
+    loading: false,
+
+    /**
+     * @cfg {Boolean} sortOnFilter For local filtering only, causes {@link #sort} to be called whenever {@link #filter} is called,
+     * causing the sorters to be reapplied after filtering. Defaults to true
+     */
+    sortOnFilter: true,
+
+    /**
+     * @cfg {Boolean} buffered
+     * Allow the store to buffer and pre-fetch pages of records. This is to be used in conjunction with a view will
+     * tell the store to pre-fetch records ahead of a time.
+     */
+    buffered: false,
+
+    /**
+     * @cfg {Number} purgePageCount
+     * The number of pages to keep in the cache before purging additional records. A value of 0 indicates to never purge the prefetched data.
+     * This option is only relevant when the {@link #buffered} option is set to true.
+     */
+    purgePageCount: 5,
+
+    isStore: true,
+
+    onClassExtended: function(cls, data) {
+        var model = data.model;
+
+        if (typeof model == 'string') {
+            var onBeforeClassCreated = data.onBeforeClassCreated;
+
+            data.onBeforeClassCreated = function(cls, data) {
+                var me = this;
+
+                Ext.require(model, function() {
+                    onBeforeClassCreated.call(me, cls, data);
+                });
+            };
+        }
     },
 
-    isDestroyed: false,
-    hasMultiSort: false,
+    /**
+     * Creates the store.
+     * @param {Object} config (optional) Config object
+     */
+    constructor: function(config) {
+        // Clone the config so we don't modify the original config object
+        config = Ext.Object.merge({}, config);
 
-    // private
-    batchKey : '_ext_batch_',
+        var me = this,
+            groupers = config.groupers || me.groupers,
+            groupField = config.groupField || me.groupField,
+            proxy,
+            data;
 
-    constructor : function(config){
+        if (config.buffered || me.buffered) {
+            me.prefetchData = Ext.create('Ext.util.MixedCollection', false, function(record) {
+                return record.index;
+            });
+            me.pendingRequests = [];
+            me.pagesRequested = [];
+
+            me.sortOnLoad = false;
+            me.filterOnLoad = false;
+        }
+
+        me.addEvents(
+            /**
+             * @event beforeprefetch
+             * Fires before a prefetch occurs. Return false to cancel.
+             * @param {Ext.data.Store} this
+             * @param {Ext.data.Operation} operation The associated operation
+             */
+            'beforeprefetch',
+            /**
+             * @event groupchange
+             * Fired whenever the grouping in the grid changes
+             * @param {Ext.data.Store} store The store
+             * @param {Ext.util.Grouper[]} groupers The array of grouper objects
+             */
+            'groupchange',
+            /**
+             * @event load
+             * Fires whenever records have been prefetched
+             * @param {Ext.data.Store} this
+             * @param {Ext.util.Grouper[]} records An array of records
+             * @param {Boolean} successful True if the operation was successful.
+             * @param {Ext.data.Operation} operation The associated operation
+             */
+            'prefetch'
+        );
+        data = config.data || me.data;
+
         /**
-         * @property hasMultiSort
-         * @type Boolean
-         * True if this store is currently sorted by more than one field/direction combination.
+         * The MixedCollection that holds this store's local cache of records
+         * @property data
+         * @type Ext.util.MixedCollection
          */
+        me.data = Ext.create('Ext.util.MixedCollection', false, function(record) {
+            return record.internalId;
+        });
 
-        /**
-         * @property isDestroyed
-         * @type Boolean
-         * True if the store has been destroyed already. Read only
-         */
-
-        this.data = new Ext.util.MixedCollection(false);
-        this.data.getKey = function(o){
-            return o.id;
-        };
-
-
-        // temporary removed-records cache
-        this.removed = [];
-
-        if(config && config.data){
-            this.inlineData = config.data;
+        if (data) {
+            me.inlineData = data;
             delete config.data;
         }
 
-        Ext.apply(this, config);
+        if (!groupers && groupField) {
+            groupers = [{
+                property : groupField,
+                direction: config.groupDir || me.groupDir
+            }];
+        }
+        delete config.groupers;
 
         /**
-         * See the <code>{@link #baseParams corresponding configuration option}</code>
-         * for a description of this property.
-         * To modify this property see <code>{@link #setBaseParam}</code>.
-         * @property
+         * The collection of {@link Ext.util.Grouper Groupers} currently applied to this Store
+         * @property groupers
+         * @type Ext.util.MixedCollection
          */
-        this.baseParams = Ext.isObject(this.baseParams) ? this.baseParams : {};
+        me.groupers = Ext.create('Ext.util.MixedCollection');
+        me.groupers.addAll(me.decodeGroupers(groupers));
 
-        this.paramNames = Ext.applyIf(this.paramNames || {}, this.defaultParamNames);
+        this.callParent([config]);
+        // don't use *config* anymore from here on... use *me* instead...
 
-        if((this.url || this.api) && !this.proxy){
-            this.proxy = new Ext.data.HttpProxy({url: this.url, api: this.api});
-        }
-        // If Store is RESTful, so too is the DataProxy
-        if (this.restful === true && this.proxy) {
-            // When operating RESTfully, a unique transaction is generated for each record.
-            // TODO might want to allow implemention of faux REST where batch is possible using RESTful routes only.
-            this.batch = false;
-            Ext.data.Api.restify(this.proxy);
+        if (me.groupers.items.length) {
+            me.sort(me.groupers.items, 'prepend', false);
         }
 
-        if(this.reader){ // reader passed
-            if(!this.recordType){
-                this.recordType = this.reader.recordType;
+        proxy = me.proxy;
+        data = me.inlineData;
+
+        if (data) {
+            if (proxy instanceof Ext.data.proxy.Memory) {
+                proxy.data = data;
+                me.read();
+            } else {
+                me.add.apply(me, data);
             }
-            if(this.reader.onMetaChange){
-                this.reader.onMetaChange = this.reader.onMetaChange.createSequence(this.onMetaChange, this);
+
+            me.sort();
+            delete me.inlineData;
+        } else if (me.autoLoad) {
+            Ext.defer(me.load, 10, me, [typeof me.autoLoad === 'object' ? me.autoLoad: undefined]);
+            // Remove the defer call, we may need reinstate this at some point, but currently it's not obvious why it's here.
+            // this.load(typeof this.autoLoad == 'object' ? this.autoLoad : undefined);
+        }
+    },
+
+    onBeforeSort: function() {
+        var groupers = this.groupers;
+        if (groupers.getCount() > 0) {
+            this.sort(groupers.items, 'prepend', false);
+        }
+    },
+
+    /**
+     * @private
+     * Normalizes an array of grouper objects, ensuring that they are all Ext.util.Grouper instances
+     * @param {Object[]} groupers The groupers array
+     * @return {Ext.util.Grouper[]} Array of Ext.util.Grouper objects
+     */
+    decodeGroupers: function(groupers) {
+        if (!Ext.isArray(groupers)) {
+            if (groupers === undefined) {
+                groupers = [];
+            } else {
+                groupers = [groupers];
             }
-            if (this.writer) { // writer passed
-                if (this.writer instanceof(Ext.data.DataWriter) === false) {    // <-- config-object instead of instance.
-                    this.writer = this.buildWriter(this.writer);
+        }
+
+        var length  = groupers.length,
+            Grouper = Ext.util.Grouper,
+            config, i;
+
+        for (i = 0; i < length; i++) {
+            config = groupers[i];
+
+            if (!(config instanceof Grouper)) {
+                if (Ext.isString(config)) {
+                    config = {
+                        property: config
+                    };
                 }
-                this.writer.meta = this.reader.meta;
-                this.pruneModifiedRecords = true;
+
+                Ext.applyIf(config, {
+                    root     : 'data',
+                    direction: "ASC"
+                });
+
+                //support for 3.x style sorters where a function can be defined as 'fn'
+                if (config.fn) {
+                    config.sorterFn = config.fn;
+                }
+
+                //support a function to be passed as a sorter definition
+                if (typeof config == 'function') {
+                    config = {
+                        sorterFn: config
+                    };
+                }
+
+                groupers[i] = new Grouper(config);
             }
         }
 
-        /**
-         * The {@link Ext.data.Record Record} constructor as supplied to (or created by) the
-         * {@link Ext.data.DataReader Reader}. Read-only.
-         * <p>If the Reader was constructed by passing in an Array of {@link Ext.data.Field} definition objects,
-         * instead of a Record constructor, it will implicitly create a Record constructor from that Array (see
-         * {@link Ext.data.Record}.{@link Ext.data.Record#create create} for additional details).</p>
-         * <p>This property may be used to create new Records of the type held in this Store, for example:</p><pre><code>
-    // create the data store
-    var store = new Ext.data.ArrayStore({
-        autoDestroy: true,
-        fields: [
-           {name: 'company'},
-           {name: 'price', type: 'float'},
-           {name: 'change', type: 'float'},
-           {name: 'pctChange', type: 'float'},
-           {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
-        ]
-    });
-    store.loadData(myData);
+        return groupers;
+    },
 
-    // create the Grid
-    var grid = new Ext.grid.EditorGridPanel({
-        store: store,
-        colModel: new Ext.grid.ColumnModel({
-            columns: [
-                {id:'company', header: 'Company', width: 160, dataIndex: 'company'},
-                {header: 'Price', renderer: 'usMoney', dataIndex: 'price'},
-                {header: 'Change', renderer: change, dataIndex: 'change'},
-                {header: '% Change', renderer: pctChange, dataIndex: 'pctChange'},
-                {header: 'Last Updated', width: 85,
-                    renderer: Ext.util.Format.dateRenderer('m/d/Y'),
-                    dataIndex: 'lastChange'}
-            ],
-            defaults: {
-                sortable: true,
-                width: 75
-            }
-        }),
-        autoExpandColumn: 'company', // match the id specified in the column model
-        height:350,
-        width:600,
-        title:'Array Grid',
-        tbar: [{
-            text: 'Add Record',
-            handler : function(){
-                var defaultData = {
-                    change: 0,
-                    company: 'New Company',
-                    lastChange: (new Date()).clearTime(),
-                    pctChange: 0,
-                    price: 10
+    /**
+     * Group data in the store
+     * @param {String/Object[]} groupers Either a string name of one of the fields in this Store's configured {@link Ext.data.Model Model},
+     * or an Array of grouper configurations.
+     * @param {String} direction The overall direction to group the data by. Defaults to "ASC".
+     */
+    group: function(groupers, direction) {
+        var me = this,
+            hasNew = false,
+            grouper,
+            newGroupers;
+
+        if (Ext.isArray(groupers)) {
+            newGroupers = groupers;
+        } else if (Ext.isObject(groupers)) {
+            newGroupers = [groupers];
+        } else if (Ext.isString(groupers)) {
+            grouper = me.groupers.get(groupers);
+
+            if (!grouper) {
+                grouper = {
+                    property : groupers,
+                    direction: direction
                 };
-                var recId = 3; // provide unique id
-                var p = new store.recordType(defaultData, recId); // create new record
-                grid.stopEditing();
-                store.{@link #insert}(0, p); // insert a new record into the store (also see {@link #add})
-                grid.startEditing(0, 0);
+                newGroupers = [grouper];
+            } else if (direction === undefined) {
+                grouper.toggle();
+            } else {
+                grouper.setDirection(direction);
             }
-        }]
-    });
-         * </code></pre>
-         * @property recordType
-         * @type Function
-         */
-
-        if(this.recordType){
-            /**
-             * A {@link Ext.util.MixedCollection MixedCollection} containing the defined {@link Ext.data.Field Field}s
-             * for the {@link Ext.data.Record Records} stored in this Store. Read-only.
-             * @property fields
-             * @type Ext.util.MixedCollection
-             */
-            this.fields = this.recordType.prototype.fields;
         }
-        this.modified = [];
 
-        this.addEvents(
-            /**
-             * @event datachanged
-             * Fires when the data cache has changed in a bulk manner (e.g., it has been sorted, filtered, etc.) and a
-             * widget that is using this Store as a Record cache should refresh its view.
-             * @param {Store} this
-             */
-            'datachanged',
-            /**
-             * @event metachange
-             * Fires when this store's reader provides new metadata (fields). This is currently only supported for JsonReaders.
-             * @param {Store} this
-             * @param {Object} meta The JSON metadata
-             */
-            'metachange',
-            /**
-             * @event add
-             * Fires when Records have been {@link #add}ed to the Store
-             * @param {Store} this
-             * @param {Ext.data.Record[]} records The array of Records added
-             * @param {Number} index The index at which the record(s) were added
-             */
-            'add',
-            /**
-             * @event remove
-             * Fires when a Record has been {@link #remove}d from the Store
-             * @param {Store} this
-             * @param {Ext.data.Record} record The Record that was removed
-             * @param {Number} index The index at which the record was removed
-             */
-            'remove',
-            /**
-             * @event update
-             * Fires when a Record has been updated
-             * @param {Store} this
-             * @param {Ext.data.Record} record The Record that was updated
-             * @param {String} operation The update operation being performed.  Value may be one of:
-             * <pre><code>
-     Ext.data.Record.EDIT
-     Ext.data.Record.REJECT
-     Ext.data.Record.COMMIT
-             * </code></pre>
-             */
-            'update',
-            /**
-             * @event clear
-             * Fires when the data cache has been cleared.
-             * @param {Store} this
-             * @param {Record[]} records The records that were cleared.
-             */
-            'clear',
-            /**
-             * @event exception
-             * <p>Fires if an exception occurs in the Proxy during a remote request.
-             * This event is relayed through the corresponding {@link Ext.data.DataProxy}.
-             * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
-             * for additional details.
-             * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#exception exception}
-             * for description.
-             */
-            'exception',
-            /**
-             * @event beforeload
-             * Fires before a request is made for a new data object.  If the beforeload handler returns
-             * <tt>false</tt> the {@link #load} action will be canceled.
-             * @param {Store} this
-             * @param {Object} options The loading options that were specified (see {@link #load} for details)
-             */
-            'beforeload',
-            /**
-             * @event load
-             * Fires after a new set of Records has been loaded.
-             * @param {Store} this
-             * @param {Ext.data.Record[]} records The Records that were loaded
-             * @param {Object} options The loading options that were specified (see {@link #load} for details)
-             */
-            'load',
-            /**
-             * @event loadexception
-             * <p>This event is <b>deprecated</b> in favor of the catch-all <b><code>{@link #exception}</code></b>
-             * event instead.</p>
-             * <p>This event is relayed through the corresponding {@link Ext.data.DataProxy}.
-             * See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
-             * for additional details.
-             * @param {misc} misc See {@link Ext.data.DataProxy}.{@link Ext.data.DataProxy#loadexception loadexception}
-             * for description.
-             */
-            'loadexception',
-            /**
-             * @event beforewrite
-             * @param {Ext.data.Store} store
-             * @param {String} action [Ext.data.Api.actions.create|update|destroy]
-             * @param {Record/Record[]} rs The Record(s) being written.
-             * @param {Object} options The loading options that were specified. Edit <code>options.params</code> to add Http parameters to the request.  (see {@link #save} for details)
-             * @param {Object} arg The callback's arg object passed to the {@link #request} function
-             */
-            'beforewrite',
-            /**
-             * @event write
-             * Fires if the server returns 200 after an Ext.data.Api.actions CRUD action.
-             * Success of the action is determined in the <code>result['successProperty']</code>property (<b>NOTE</b> for RESTful stores,
-             * a simple 20x response is sufficient for the actions "destroy" and "update".  The "create" action should should return 200 along with a database pk).
-             * @param {Ext.data.Store} store
-             * @param {String} action [Ext.data.Api.actions.create|update|destroy]
-             * @param {Object} result The 'data' picked-out out of the response for convenience.
-             * @param {Ext.Direct.Transaction} res
-             * @param {Record/Record[]} rs Store's records, the subject(s) of the write-action
-             */
-            'write',
-            /**
-             * @event beforesave
-             * Fires before a save action is called. A save encompasses destroying records, updating records and creating records.
-             * @param {Ext.data.Store} store
-             * @param {Object} data An object containing the data that is to be saved. The object will contain a key for each appropriate action,
-             * with an array of records for each action.
-             */
-            'beforesave',
-            /**
-             * @event save
-             * Fires after a save is completed. A save encompasses destroying records, updating records and creating records.
-             * @param {Ext.data.Store} store
-             * @param {Number} batch The identifier for the batch that was saved.
-             * @param {Object} data An object containing the data that is to be saved. The object will contain a key for each appropriate action,
-             * with an array of records for each action.
-             */
-            'save'
-
-        );
-
-        if(this.proxy){
-            // TODO remove deprecated loadexception with ext-3.0.1
-            this.relayEvents(this.proxy,  ['loadexception', 'exception']);
+        if (newGroupers && newGroupers.length) {
+            hasNew = true;
+            newGroupers = me.decodeGroupers(newGroupers);
+            me.groupers.clear();
+            me.groupers.addAll(newGroupers);
         }
-        // With a writer set for the Store, we want to listen to add/remove events to remotely create/destroy records.
-        if (this.writer) {
-            this.on({
-                scope: this,
-                add: this.createRecords,
-                remove: this.destroyRecord,
-                update: this.updateRecord,
-                clear: this.onClear
+
+        if (me.remoteGroup) {
+            me.load({
+                scope: me,
+                callback: me.fireGroupChange
             });
-        }
-
-        this.sortToggle = {};
-        if(this.sortField){
-            this.setDefaultSort(this.sortField, this.sortDir);
-        }else if(this.sortInfo){
-            this.setDefaultSort(this.sortInfo.field, this.sortInfo.direction);
-        }
-
-        Ext.data.Store.superclass.constructor.call(this);
-
-        if(this.id){
-            this.storeId = this.id;
-            delete this.id;
-        }
-        if(this.storeId){
-            Ext.StoreMgr.register(this);
-        }
-        if(this.inlineData){
-            this.loadData(this.inlineData);
-            delete this.inlineData;
-        }else if(this.autoLoad){
-            this.load.defer(10, this, [
-                typeof this.autoLoad == 'object' ?
-                    this.autoLoad : undefined]);
-        }
-        // used internally to uniquely identify a batch
-        this.batchCounter = 0;
-        this.batches = {};
-    },
-
-    /**
-     * builds a DataWriter instance when Store constructor is provided with a writer config-object instead of an instace.
-     * @param {Object} config Writer configuration
-     * @return {Ext.data.DataWriter}
-     * @private
-     */
-    buildWriter : function(config) {
-        var klass = undefined,
-            type = (config.format || 'json').toLowerCase();
-        switch (type) {
-            case 'json':
-                klass = Ext.data.JsonWriter;
-                break;
-            case 'xml':
-                klass = Ext.data.XmlWriter;
-                break;
-            default:
-                klass = Ext.data.JsonWriter;
-        }
-        return new klass(config);
-    },
-
-    /**
-     * Destroys the store.
-     */
-    destroy : function(){
-        if(!this.isDestroyed){
-            if(this.storeId){
-                Ext.StoreMgr.unregister(this);
-            }
-            this.clearData();
-            this.data = null;
-            Ext.destroy(this.proxy);
-            this.reader = this.writer = null;
-            this.purgeListeners();
-            this.isDestroyed = true;
+        } else {
+            // need to explicitly force a sort if we have groupers
+            me.sort(null, null, null, hasNew);
+            me.fireGroupChange();
         }
     },
 
     /**
-     * Add Records to the Store and fires the {@link #add} event.  To add Records
-     * to the store from a remote source use <code>{@link #load}({add:true})</code>.
-     * See also <code>{@link #recordType}</code> and <code>{@link #insert}</code>.
-     * @param {Ext.data.Record[]} records An Array of Ext.data.Record objects
-     * to add to the cache. See {@link #recordType}.
+     * Clear any groupers in the store
      */
-    add : function(records) {
-        var i, len, record, index;
-
-        records = [].concat(records);
-        if (records.length < 1) {
-            return;
-        }
-
-        for (i = 0, len = records.length; i < len; i++) {
-            record = records[i];
-
-            record.join(this);
-
-            if (record.dirty || record.phantom) {
-                this.modified.push(record);
-            }
-        }
-
-        index = this.data.length;
-        this.data.addAll(records);
-
-        if (this.snapshot) {
-            this.snapshot.addAll(records);
-        }
-
-        this.fireEvent('add', this, records, index);
-    },
-
-    /**
-     * (Local sort only) Inserts the passed Record into the Store at the index where it
-     * should go based on the current sort information.
-     * @param {Ext.data.Record} record
-     */
-    addSorted : function(record){
-        var index = this.findInsertIndex(record);
-        this.insert(index, record);
-    },
-
-    /**
-     * @private
-     * Update a record within the store with a new reference
-     */
-    doUpdate: function(rec){
-        var id = rec.id;
-        // unjoin the old record
-        this.getById(id).join(null);
-
-        this.data.replace(id, rec);
-        if (this.snapshot) {
-            this.snapshot.replace(id, rec);
-        }
-        rec.join(this);
-        this.fireEvent('update', this, rec, Ext.data.Record.COMMIT);
-    },
-
-    /**
-     * Remove Records from the Store and fires the {@link #remove} event.
-     * @param {Ext.data.Record/Ext.data.Record[]} record The record object or array of records to remove from the cache.
-     */
-    remove : function(record){
-        if(Ext.isArray(record)){
-            Ext.each(record, function(r){
-                this.remove(r);
-            }, this);
-            return;
-        }
-        var index = this.data.indexOf(record);
-        if(index > -1){
-            record.join(null);
-            this.data.removeAt(index);
-        }
-        if(this.pruneModifiedRecords){
-            this.modified.remove(record);
-        }
-        if(this.snapshot){
-            this.snapshot.remove(record);
-        }
-        if(index > -1){
-            this.fireEvent('remove', this, record, index);
-        }
-    },
-
-    /**
-     * Remove a Record from the Store at the specified index. Fires the {@link #remove} event.
-     * @param {Number} index The index of the record to remove.
-     */
-    removeAt : function(index){
-        this.remove(this.getAt(index));
-    },
-
-    /**
-     * Remove all Records from the Store and fires the {@link #clear} event.
-     * @param {Boolean} silent [false] Defaults to <tt>false</tt>.  Set <tt>true</tt> to not fire clear event.
-     */
-    removeAll : function(silent){
-        var items = [];
-        this.each(function(rec){
-            items.push(rec);
+    clearGrouping: function(){
+        var me = this;
+        // Clear any groupers we pushed on to the sorters
+        me.groupers.each(function(grouper){
+            me.sorters.remove(grouper);
         });
-        this.clearData();
-        if(this.snapshot){
-            this.snapshot.clear();
-        }
-        if(this.pruneModifiedRecords){
-            this.modified = [];
-        }
-        if (silent !== true) {  // <-- prevents write-actions when we just want to clear a store.
-            this.fireEvent('clear', this, items);
-        }
-    },
-
-    // private
-    onClear: function(store, records){
-        Ext.each(records, function(rec, index){
-            this.destroyRecord(this, rec, index);
-        }, this);
-    },
-
-    /**
-     * Inserts Records into the Store at the given index and fires the {@link #add} event.
-     * See also <code>{@link #add}</code> and <code>{@link #addSorted}</code>.
-     * @param {Number} index The start index at which to insert the passed Records.
-     * @param {Ext.data.Record[]} records An Array of Ext.data.Record objects to add to the cache.
-     */
-    insert : function(index, records) {
-        var i, len, record;
-
-        records = [].concat(records);
-        for (i = 0, len = records.length; i < len; i++) {
-            record = records[i];
-
-            this.data.insert(index + i, record);
-            record.join(this);
-
-            if (record.dirty || record.phantom) {
-                this.modified.push(record);
-            }
-        }
-
-        if (this.snapshot) {
-            this.snapshot.addAll(records);
-        }
-
-        this.fireEvent('add', this, records, index);
-    },
-
-    /**
-     * Get the index within the cache of the passed Record.
-     * @param {Ext.data.Record} record The Ext.data.Record object to find.
-     * @return {Number} The index of the passed Record. Returns -1 if not found.
-     */
-    indexOf : function(record){
-        return this.data.indexOf(record);
-    },
-
-    /**
-     * Get the index within the cache of the Record with the passed id.
-     * @param {String} id The id of the Record to find.
-     * @return {Number} The index of the Record. Returns -1 if not found.
-     */
-    indexOfId : function(id){
-        return this.data.indexOfKey(id);
-    },
-
-    /**
-     * Get the Record with the specified id.
-     * @param {String} id The id of the Record to find.
-     * @return {Ext.data.Record} The Record with the passed id. Returns undefined if not found.
-     */
-    getById : function(id){
-        return (this.snapshot || this.data).key(id);
-    },
-
-    /**
-     * Get the Record at the specified index.
-     * @param {Number} index The index of the Record to find.
-     * @return {Ext.data.Record} The Record at the passed index. Returns undefined if not found.
-     */
-    getAt : function(index){
-        return this.data.itemAt(index);
-    },
-
-    /**
-     * Returns a range of Records between specified indices.
-     * @param {Number} startIndex (optional) The starting index (defaults to 0)
-     * @param {Number} endIndex (optional) The ending index (defaults to the last Record in the Store)
-     * @return {Ext.data.Record[]} An array of Records
-     */
-    getRange : function(start, end){
-        return this.data.getRange(start, end);
-    },
-
-    // private
-    storeOptions : function(o){
-        o = Ext.apply({}, o);
-        delete o.callback;
-        delete o.scope;
-        this.lastOptions = o;
-    },
-
-    // private
-    clearData: function(){
-        this.data.each(function(rec) {
-            rec.join(null);
-        });
-        this.data.clear();
-    },
-
-    /**
-     * <p>Loads the Record cache from the configured <tt>{@link #proxy}</tt> using the configured <tt>{@link #reader}</tt>.</p>
-     * <br><p>Notes:</p><div class="mdetail-params"><ul>
-     * <li><b><u>Important</u></b>: loading is asynchronous! This call will return before the new data has been
-     * loaded. To perform any post-processing where information from the load call is required, specify
-     * the <tt>callback</tt> function to be called, or use a {@link Ext.util.Observable#listeners a 'load' event handler}.</li>
-     * <li>If using {@link Ext.PagingToolbar remote paging}, the first load call must specify the <tt>start</tt> and <tt>limit</tt>
-     * properties in the <code>options.params</code> property to establish the initial position within the
-     * dataset, and the number of Records to cache on each read from the Proxy.</li>
-     * <li>If using {@link #remoteSort remote sorting}, the configured <code>{@link #sortInfo}</code>
-     * will be automatically included with the posted parameters according to the specified
-     * <code>{@link #paramNames}</code>.</li>
-     * </ul></div>
-     * @param {Object} options An object containing properties which control loading options:<ul>
-     * <li><b><tt>params</tt></b> :Object<div class="sub-desc"><p>An object containing properties to pass as HTTP
-     * parameters to a remote data source. <b>Note</b>: <code>params</code> will override any
-     * <code>{@link #baseParams}</code> of the same name.</p>
-     * <p>Parameters are encoded as standard HTTP parameters using {@link Ext#urlEncode}.</p></div></li>
-     * <li><b>callback</b> : Function<div class="sub-desc"><p>A function to be called after the Records
-     * have been loaded. The callback is called after the load event is fired, and is passed the following arguments:<ul>
-     * <li>r : Ext.data.Record[] An Array of Records loaded.</li>
-     * <li>options : Options object from the load call.</li>
-     * <li>success : Boolean success indicator.</li></ul></p></div></li>
-     * <li><b>scope</b> : Object<div class="sub-desc"><p>Scope with which to call the callback (defaults
-     * to the Store object)</p></div></li>
-     * <li><b>add</b> : Boolean<div class="sub-desc"><p>Indicator to append loaded records rather than
-     * replace the current cache.  <b>Note</b>: see note for <tt>{@link #loadData}</tt></p></div></li>
-     * </ul>
-     * @return {Boolean} If the <i>developer</i> provided <tt>{@link #beforeload}</tt> event handler returns
-     * <tt>false</tt>, the load call will abort and will return <tt>false</tt>; otherwise will return <tt>true</tt>.
-     */
-    load : function(options) {
-        options = Ext.apply({}, options);
-        this.storeOptions(options);
-        if(this.sortInfo && this.remoteSort){
-            var pn = this.paramNames;
-            options.params = Ext.apply({}, options.params);
-            options.params[pn.sort] = this.sortInfo.field;
-            options.params[pn.dir] = this.sortInfo.direction;
-        }
-        try {
-            return this.execute('read', null, options); // <-- null represents rs.  No rs for load actions.
-        } catch(e) {
-            this.handleException(e);
-            return false;
+        me.groupers.clear();
+        if (me.remoteGroup) {
+            me.load({
+                scope: me,
+                callback: me.fireGroupChange
+            });
+        } else {
+            me.sort();
+            me.fireEvent('groupchange', me, me.groupers);
         }
     },
 
     /**
-     * updateRecord  Should not be used directly.  This method will be called automatically if a Writer is set.
-     * Listens to 'update' event.
-     * @param {Object} store
-     * @param {Object} record
-     * @param {Object} action
+     * Checks if the store is currently grouped
+     * @return {Boolean} True if the store is grouped.
+     */
+    isGrouped: function() {
+        return this.groupers.getCount() > 0;
+    },
+
+    /**
+     * Fires the groupchange event. Abstracted out so we can use it
+     * as a callback
      * @private
      */
-    updateRecord : function(store, record, action) {
-        if (action == Ext.data.Record.EDIT && this.autoSave === true && (!record.phantom || (record.phantom && record.isValid()))) {
-            this.save();
-        }
+    fireGroupChange: function(){
+        this.fireEvent('groupchange', this, this.groupers);
     },
 
     /**
-     * @private
-     * Should not be used directly.  Store#add will call this automatically if a Writer is set
-     * @param {Object} store
-     * @param {Object} records
-     * @param {Object} index
+     * Returns an array containing the result of applying grouping to the records in this store. See {@link #groupField},
+     * {@link #groupDir} and {@link #getGroupString}. Example for a store containing records with a color field:
+<pre><code>
+var myStore = Ext.create('Ext.data.Store', {
+    groupField: 'color',
+    groupDir  : 'DESC'
+});
+
+myStore.getGroups(); //returns:
+[
+    {
+        name: 'yellow',
+        children: [
+            //all records where the color field is 'yellow'
+        ]
+    },
+    {
+        name: 'red',
+        children: [
+            //all records where the color field is 'red'
+        ]
+    }
+]
+</code></pre>
+     * @param {String} groupName (Optional) Pass in an optional groupName argument to access a specific group as defined by {@link #getGroupString}
+     * @return {Object/Object[]} The grouped data
      */
-    createRecords : function(store, records, index) {
-        var modified = this.modified,
-            length   = records.length,
-            record, i;
+    getGroups: function(requestGroupString) {
+        var records = this.data.items,
+            length = records.length,
+            groups = [],
+            pointers = {},
+            record,
+            groupStr,
+            group,
+            i;
 
         for (i = 0; i < length; i++) {
             record = records[i];
+            groupStr = this.getGroupString(record);
+            group = pointers[groupStr];
 
-            if (record.phantom && record.isValid()) {
-                record.markDirty();  // <-- Mark new records dirty (Ed: why?)
+            if (group === undefined) {
+                group = {
+                    name: groupStr,
+                    children: []
+                };
 
-                if (modified.indexOf(record) == -1) {
-                    modified.push(record);
-                }
+                groups.push(group);
+                pointers[groupStr] = group;
             }
+
+            group.children.push(record);
         }
-        if (this.autoSave === true) {
-            this.save();
-        }
+
+        return requestGroupString ? pointers[requestGroupString] : groups;
     },
 
     /**
-     * Destroys a Record.  Should not be used directly.  It's called by Store#remove if a Writer is set.
-     * @param {Store} store this
-     * @param {Ext.data.Record} record
-     * @param {Number} index
      * @private
+     * For a given set of records and a Grouper, returns an array of arrays - each of which is the set of records
+     * matching a certain group.
      */
-    destroyRecord : function(store, record, index) {
-        if (this.modified.indexOf(record) != -1) {  // <-- handled already if @cfg pruneModifiedRecords == true
-            this.modified.remove(record);
-        }
-        if (!record.phantom) {
-            this.removed.push(record);
-
-            // since the record has already been removed from the store but the server request has not yet been executed,
-            // must keep track of the last known index this record existed.  If a server error occurs, the record can be
-            // put back into the store.  @see Store#createCallback where the record is returned when response status === false
-            record.lastIndex = index;
-
-            if (this.autoSave === true) {
-                this.save();
-            }
-        }
-    },
-
-    /**
-     * This method should generally not be used directly.  This method is called internally
-     * by {@link #load}, or if a Writer is set will be called automatically when {@link #add},
-     * {@link #remove}, or {@link #update} events fire.
-     * @param {String} action Action name ('read', 'create', 'update', or 'destroy')
-     * @param {Record/Record[]} rs
-     * @param {Object} options
-     * @throws Error
-     * @private
-     */
-    execute : function(action, rs, options, /* private */ batch) {
-        // blow up if action not Ext.data.CREATE, READ, UPDATE, DESTROY
-        if (!Ext.data.Api.isAction(action)) {
-            throw new Ext.data.Api.Error('execute', action);
-        }
-        // make sure options has a fresh, new params hash
-        options = Ext.applyIf(options||{}, {
-            params: {}
-        });
-        if(batch !== undefined){
-            this.addToBatch(batch);
-        }
-        // have to separate before-events since load has a different signature than create,destroy and save events since load does not
-        // include the rs (record resultset) parameter.  Capture return values from the beforeaction into doRequest flag.
-        var doRequest = true;
-
-        if (action === 'read') {
-            doRequest = this.fireEvent('beforeload', this, options);
-            Ext.applyIf(options.params, this.baseParams);
-        }
-        else {
-            // if Writer is configured as listful, force single-record rs to be [{}] instead of {}
-            // TODO Move listful rendering into DataWriter where the @cfg is defined.  Should be easy now.
-            if (this.writer.listful === true && this.restful !== true) {
-                rs = (Ext.isArray(rs)) ? rs : [rs];
-            }
-            // if rs has just a single record, shift it off so that Writer writes data as '{}' rather than '[{}]'
-            else if (Ext.isArray(rs) && rs.length == 1) {
-                rs = rs.shift();
-            }
-            // Write the action to options.params
-            if ((doRequest = this.fireEvent('beforewrite', this, action, rs, options)) !== false) {
-                this.writer.apply(options.params, this.baseParams, action, rs);
-            }
-        }
-        if (doRequest !== false) {
-            // Send request to proxy.
-            if (this.writer && this.proxy.url && !this.proxy.restful && !Ext.data.Api.hasUniqueUrl(this.proxy, action)) {
-                options.params.xaction = action;    // <-- really old, probaby unecessary.
-            }
-            // Note:  Up until this point we've been dealing with 'action' as a key from Ext.data.Api.actions.
-            // We'll flip it now and send the value into DataProxy#request, since it's the value which maps to
-            // the user's configured DataProxy#api
-            // TODO Refactor all Proxies to accept an instance of Ext.data.Request (not yet defined) instead of this looooooong list
-            // of params.  This method is an artifact from Ext2.
-            this.proxy.request(Ext.data.Api.actions[action], rs, options.params, this.reader, this.createCallback(action, rs, batch), this, options);
-        }
-        return doRequest;
-    },
-
-    /**
-     * Saves all pending changes to the store.  If the commensurate Ext.data.Api.actions action is not configured, then
-     * the configured <code>{@link #url}</code> will be used.
-     * <pre>
-     * change            url
-     * ---------------   --------------------
-     * removed records   Ext.data.Api.actions.destroy
-     * phantom records   Ext.data.Api.actions.create
-     * {@link #getModifiedRecords modified records}  Ext.data.Api.actions.update
-     * </pre>
-     * @TODO:  Create extensions of Error class and send associated Record with thrown exceptions.
-     * e.g.:  Ext.data.DataReader.Error or Ext.data.Error or Ext.data.DataProxy.Error, etc.
-     * @return {Number} batch Returns a number to uniquely identify the "batch" of saves occurring. -1 will be returned
-     * if there are no items to save or the save was cancelled.
-     */
-    save : function() {
-        if (!this.writer) {
-            throw new Ext.data.Store.Error('writer-undefined');
-        }
-
-        var queue = [],
-            len,
-            trans,
-            batch,
-            data = {},
+    getGroupsForGrouper: function(records, grouper) {
+        var length = records.length,
+            groups = [],
+            oldValue,
+            newValue,
+            record,
+            group,
             i;
-        // DESTROY:  First check for removed records.  Records in this.removed are guaranteed non-phantoms.  @see Store#remove
-        if(this.removed.length){
-            queue.push(['destroy', this.removed]);
+
+        for (i = 0; i < length; i++) {
+            record = records[i];
+            newValue = grouper.getGroupString(record);
+
+            if (newValue !== oldValue) {
+                group = {
+                    name: newValue,
+                    grouper: grouper,
+                    records: []
+                };
+                groups.push(group);
+            }
+
+            group.records.push(record);
+
+            oldValue = newValue;
         }
 
-        // Check for modified records. Use a copy so Store#rejectChanges will work if server returns error.
-        var rs = [].concat(this.getModifiedRecords());
-        if(rs.length){
-            // CREATE:  Next check for phantoms within rs.  splice-off and execute create.
-            var phantoms = [];
-            for(i = rs.length-1; i >= 0; i--){
-                if(rs[i].phantom === true){
-                    var rec = rs.splice(i, 1).shift();
-                    if(rec.isValid()){
-                        phantoms.push(rec);
-                    }
-                }else if(!rs[i].isValid()){ // <-- while we're here, splice-off any !isValid real records
-                    rs.splice(i,1);
-                }
-            }
-            // If we have valid phantoms, create them...
-            if(phantoms.length){
-                queue.push(['create', phantoms]);
-            }
-
-            // UPDATE:  And finally, if we're still here after splicing-off phantoms and !isValid real records, update the rest...
-            if(rs.length){
-                queue.push(['update', rs]);
-            }
-        }
-        len = queue.length;
-        if(len){
-            batch = ++this.batchCounter;
-            for(i = 0; i < len; ++i){
-                trans = queue[i];
-                data[trans[0]] = trans[1];
-            }
-            if(this.fireEvent('beforesave', this, data) !== false){
-                for(i = 0; i < len; ++i){
-                    trans = queue[i];
-                    this.doTransaction(trans[0], trans[1], batch);
-                }
-                return batch;
-            }
-        }
-        return -1;
-    },
-
-    // private.  Simply wraps call to Store#execute in try/catch.  Defers to Store#handleException on error.  Loops if batch: false
-    doTransaction : function(action, rs, batch) {
-        function transaction(records) {
-            try{
-                this.execute(action, records, undefined, batch);
-            }catch (e){
-                this.handleException(e);
-            }
-        }
-        if(this.batch === false){
-            for(var i = 0, len = rs.length; i < len; i++){
-                transaction.call(this, rs[i]);
-            }
-        }else{
-            transaction.call(this, rs);
-        }
-    },
-
-    // private
-    addToBatch : function(batch){
-        var b = this.batches,
-            key = this.batchKey + batch,
-            o = b[key];
-
-        if(!o){
-            b[key] = o = {
-                id: batch,
-                count: 0,
-                data: {}
-            };
-        }
-        ++o.count;
-    },
-
-    removeFromBatch : function(batch, action, data){
-        var b = this.batches,
-            key = this.batchKey + batch,
-            o = b[key],
-            arr;
-
-
-        if(o){
-            arr = o.data[action] || [];
-            o.data[action] = arr.concat(data);
-            if(o.count === 1){
-                data = o.data;
-                delete b[key];
-                this.fireEvent('save', this, batch, data);
-            }else{
-                --o.count;
-            }
-        }
-    },
-
-    // @private callback-handler for remote CRUD actions
-    // Do not override -- override loadRecords, onCreateRecords, onDestroyRecords and onUpdateRecords instead.
-    createCallback : function(action, rs, batch) {
-        var actions = Ext.data.Api.actions;
-        return (action == 'read') ? this.loadRecords : function(data, response, success) {
-            // calls: onCreateRecords | onUpdateRecords | onDestroyRecords
-            this['on' + Ext.util.Format.capitalize(action) + 'Records'](success, rs, [].concat(data));
-            // If success === false here, exception will have been called in DataProxy
-            if (success === true) {
-                this.fireEvent('write', this, action, data, response, rs);
-            }
-            this.removeFromBatch(batch, action, data);
-        };
-    },
-
-    // Clears records from modified array after an exception event.
-    // NOTE:  records are left marked dirty.  Do we want to commit them even though they were not updated/realized?
-    // TODO remove this method?
-    clearModified : function(rs) {
-        if (Ext.isArray(rs)) {
-            for (var n=rs.length-1;n>=0;n--) {
-                this.modified.splice(this.modified.indexOf(rs[n]), 1);
-            }
-        } else {
-            this.modified.splice(this.modified.indexOf(rs), 1);
-        }
-    },
-
-    // remap record ids in MixedCollection after records have been realized.  @see Store#onCreateRecords, @see DataReader#realize
-    reMap : function(record) {
-        if (Ext.isArray(record)) {
-            for (var i = 0, len = record.length; i < len; i++) {
-                this.reMap(record[i]);
-            }
-        } else {
-            delete this.data.map[record._phid];
-            this.data.map[record.id] = record;
-            var index = this.data.keys.indexOf(record._phid);
-            this.data.keys.splice(index, 1, record.id);
-            delete record._phid;
-        }
-    },
-
-    // @protected onCreateRecord proxy callback for create action
-    onCreateRecords : function(success, rs, data) {
-        if (success === true) {
-            try {
-                this.reader.realize(rs, data);
-            }
-            catch (e) {
-                this.handleException(e);
-                if (Ext.isArray(rs)) {
-                    // Recurse to run back into the try {}.  DataReader#realize splices-off the rs until empty.
-                    this.onCreateRecords(success, rs, data);
-                }
-            }
-        }
-    },
-
-    // @protected, onUpdateRecords proxy callback for update action
-    onUpdateRecords : function(success, rs, data) {
-        if (success === true) {
-            try {
-                this.reader.update(rs, data);
-            } catch (e) {
-                this.handleException(e);
-                if (Ext.isArray(rs)) {
-                    // Recurse to run back into the try {}.  DataReader#update splices-off the rs until empty.
-                    this.onUpdateRecords(success, rs, data);
-                }
-            }
-        }
-    },
-
-    // @protected onDestroyRecords proxy callback for destroy action
-    onDestroyRecords : function(success, rs, data) {
-        // splice each rec out of this.removed
-        rs = (rs instanceof Ext.data.Record) ? [rs] : [].concat(rs);
-        for (var i=0,len=rs.length;i<len;i++) {
-            this.removed.splice(this.removed.indexOf(rs[i]), 1);
-        }
-        if (success === false) {
-            // put records back into store if remote destroy fails.
-            // @TODO: Might want to let developer decide.
-            for (i=rs.length-1;i>=0;i--) {
-                this.insert(rs[i].lastIndex, rs[i]);    // <-- lastIndex set in Store#destroyRecord
-            }
-        }
-    },
-
-    // protected handleException.  Possibly temporary until Ext framework has an exception-handler.
-    handleException : function(e) {
-        // @see core/Error.js
-        Ext.handleError(e);
+        return groups;
     },
 
     /**
-     * <p>Reloads the Record cache from the configured Proxy using the configured
-     * {@link Ext.data.Reader Reader} and the options from the last load operation
-     * performed.</p>
-     * <p><b>Note</b>: see the Important note in {@link #load}.</p>
-     * @param {Object} options <p>(optional) An <tt>Object</tt> containing
-     * {@link #load loading options} which may override the {@link #lastOptions options}
-     * used in the last {@link #load} operation. See {@link #load} for details
-     * (defaults to <tt>null</tt>, in which case the {@link #lastOptions} are
-     * used).</p>
-     * <br><p>To add new params to the existing params:</p><pre><code>
-lastOptions = myStore.lastOptions;
-Ext.apply(lastOptions.params, {
-    myNewParam: true
+     * @private
+     * This is used recursively to gather the records into the configured Groupers. The data MUST have been sorted for
+     * this to work properly (see {@link #getGroupData} and {@link #getGroupsForGrouper}) Most of the work is done by
+     * {@link #getGroupsForGrouper} - this function largely just handles the recursion.
+     * @param {Ext.data.Model[]} records The set or subset of records to group
+     * @param {Number} grouperIndex The grouper index to retrieve
+     * @return {Object[]} The grouped records
+     */
+    getGroupsForGrouperIndex: function(records, grouperIndex) {
+        var me = this,
+            groupers = me.groupers,
+            grouper = groupers.getAt(grouperIndex),
+            groups = me.getGroupsForGrouper(records, grouper),
+            length = groups.length,
+            i;
+
+        if (grouperIndex + 1 < groupers.length) {
+            for (i = 0; i < length; i++) {
+                groups[i].children = me.getGroupsForGrouperIndex(groups[i].records, grouperIndex + 1);
+            }
+        }
+
+        for (i = 0; i < length; i++) {
+            groups[i].depth = grouperIndex;
+        }
+
+        return groups;
+    },
+
+    /**
+     * @private
+     * <p>Returns records grouped by the configured {@link #groupers grouper} configuration. Sample return value (in
+     * this case grouping by genre and then author in a fictional books dataset):</p>
+<pre><code>
+[
+    {
+        name: 'Fantasy',
+        depth: 0,
+        records: [
+            //book1, book2, book3, book4
+        ],
+        children: [
+            {
+                name: 'Rowling',
+                depth: 1,
+                records: [
+                    //book1, book2
+                ]
+            },
+            {
+                name: 'Tolkein',
+                depth: 1,
+                records: [
+                    //book3, book4
+                ]
+            }
+        ]
+    }
+]
+</code></pre>
+     * @param {Boolean} sort True to call {@link #sort} before finding groups. Sorting is required to make grouping
+     * function correctly so this should only be set to false if the Store is known to already be sorted correctly
+     * (defaults to true)
+     * @return {Object[]} The group data
+     */
+    getGroupData: function(sort) {
+        var me = this;
+        if (sort !== false) {
+            me.sort();
+        }
+
+        return me.getGroupsForGrouperIndex(me.data.items, 0);
+    },
+
+    /**
+     * <p>Returns the string to group on for a given model instance. The default implementation of this method returns
+     * the model's {@link #groupField}, but this can be overridden to group by an arbitrary string. For example, to
+     * group by the first letter of a model's 'name' field, use the following code:</p>
+<pre><code>
+Ext.create('Ext.data.Store', {
+    groupDir: 'ASC',
+    getGroupString: function(instance) {
+        return instance.get('name')[0];
+    }
 });
-myStore.reload(lastOptions);
-     * </code></pre>
+</code></pre>
+     * @param {Ext.data.Model} instance The model instance
+     * @return {String} The string to compare when forming groups
      */
-    reload : function(options){
-        this.load(Ext.applyIf(options||{}, this.lastOptions));
+    getGroupString: function(instance) {
+        var group = this.groupers.first();
+        if (group) {
+            return instance.get(group.property);
+        }
+        return '';
     },
+    /**
+     * Inserts Model instances into the Store at the given index and fires the {@link #add} event.
+     * See also <code>{@link #add}</code>.
+     * @param {Number} index The start index at which to insert the passed Records.
+     * @param {Ext.data.Model[]} records An Array of Ext.data.Model objects to add to the cache.
+     */
+    insert: function(index, records) {
+        var me = this,
+            sync = false,
+            i,
+            record,
+            len;
 
-    // private
-    // Called as a callback by the Reader during a load operation.
-    loadRecords : function(o, options, success){
-        var i, len;
+        records = [].concat(records);
+        for (i = 0, len = records.length; i < len; i++) {
+            record = me.createModel(records[i]);
+            record.set(me.modelDefaults);
+            // reassign the model in the array in case it wasn't created yet
+            records[i] = record;
 
-        if (this.isDestroyed === true) {
-            return;
+            me.data.insert(index + i, record);
+            record.join(me);
+
+            sync = sync || record.phantom === true;
         }
-        if(!o || success === false){
-            if(success !== false){
-                this.fireEvent('load', this, [], options);
-            }
-            if(options.callback){
-                options.callback.call(options.scope || this, [], options, false, o);
-            }
-            return;
+
+        if (me.snapshot) {
+            me.snapshot.addAll(records);
         }
-        var r = o.records, t = o.totalRecords || r.length;
-        if(!options || options.add !== true){
-            if(this.pruneModifiedRecords){
-                this.modified = [];
-            }
-            for(i = 0, len = r.length; i < len; i++){
-                r[i].join(this);
-            }
-            if(this.snapshot){
-                this.data = this.snapshot;
-                delete this.snapshot;
-            }
-            this.clearData();
-            this.data.addAll(r);
-            this.totalLength = t;
-            this.applySort();
-            this.fireEvent('datachanged', this);
-        }else{
-            var toAdd = [],
-                rec,
-                cnt = 0;
-            for(i = 0, len = r.length; i < len; ++i){
-                rec = r[i];
-                if(this.indexOfId(rec.id) > -1){
-                    this.doUpdate(rec);
-                }else{
-                    toAdd.push(rec);
-                    ++cnt;
-                }
-            }
-            this.totalLength = Math.max(t, this.data.length + cnt);
-            this.add(toAdd);
-        }
-        this.fireEvent('load', this, r, options);
-        if(options.callback){
-            options.callback.call(options.scope || this, r, options, true);
+
+        me.fireEvent('add', me, records, index);
+        me.fireEvent('datachanged', me);
+        if (me.autoSync && sync) {
+            me.sync();
         }
     },
 
     /**
-     * Loads data from a passed data block and fires the {@link #load} event. A {@link Ext.data.Reader Reader}
-     * which understands the format of the data must have been configured in the constructor.
-     * @param {Object} data The data block from which to read the Records.  The format of the data expected
-     * is dependent on the type of {@link Ext.data.Reader Reader} that is configured and should correspond to
-     * that {@link Ext.data.Reader Reader}'s <tt>{@link Ext.data.Reader#readRecords}</tt> parameter.
-     * @param {Boolean} append (Optional) <tt>true</tt> to append the new Records rather the default to replace
-     * the existing cache.
-     * <b>Note</b>: that Records in a Store are keyed by their {@link Ext.data.Record#id id}, so added Records
-     * with ids which are already present in the Store will <i>replace</i> existing Records. Only Records with
-     * new, unique ids will be added.
+     * Adds Model instance to the Store. This method accepts either:
+     *
+     * - An array of Model instances or Model configuration objects.
+     * - Any number of Model instance or Model configuration object arguments.
+     *
+     * The new Model instances will be added at the end of the existing collection.
+     *
+     * Sample usage:
+     *
+     *     myStore.add({some: 'data'}, {some: 'other data'});
+     *
+     * @param {Ext.data.Model[]/Ext.data.Model...} model An array of Model instances
+     * or Model configuration objects, or variable number of Model instance or config arguments.
+     * @return {Ext.data.Model[]} The model instances that were added
      */
-    loadData : function(o, append){
-        var r = this.reader.readRecords(o);
-        this.loadRecords(r, {add: append}, true);
+    add: function(records) {
+        //accept both a single-argument array of records, or any number of record arguments
+        if (!Ext.isArray(records)) {
+            records = Array.prototype.slice.apply(arguments);
+        }
+
+        var me = this,
+            i = 0,
+            length = records.length,
+            record;
+
+        for (; i < length; i++) {
+            record = me.createModel(records[i]);
+            // reassign the model in the array in case it wasn't created yet
+            records[i] = record;
+        }
+
+        me.insert(me.data.length, records);
+
+        return records;
     },
 
     /**
-     * Gets the number of cached records.
-     * <p>If using paging, this may not be the total size of the dataset. If the data object
-     * used by the Reader contains the dataset size, then the {@link #getTotalCount} function returns
-     * the dataset size.  <b>Note</b>: see the Important note in {@link #load}.</p>
-     * @return {Number} The number of Records in the Store's cache.
-     */
-    getCount : function(){
-        return this.data.length || 0;
-    },
-
-    /**
-     * Gets the total number of records in the dataset as returned by the server.
-     * <p>If using paging, for this to be accurate, the data object used by the {@link #reader Reader}
-     * must contain the dataset size. For remote data sources, the value for this property
-     * (<tt>totalProperty</tt> for {@link Ext.data.JsonReader JsonReader},
-     * <tt>totalRecords</tt> for {@link Ext.data.XmlReader XmlReader}) shall be returned by a query on the server.
-     * <b>Note</b>: see the Important note in {@link #load}.</p>
-     * @return {Number} The number of Records as specified in the data object passed to the Reader
-     * by the Proxy.
-     * <p><b>Note</b>: this value is not updated when changing the contents of the Store locally.</p>
-     */
-    getTotalCount : function(){
-        return this.totalLength || 0;
-    },
-
-    /**
-     * Returns an object describing the current sort state of this Store.
-     * @return {Object} The sort state of the Store. An object with two properties:<ul>
-     * <li><b>field : String</b><p class="sub-desc">The name of the field by which the Records are sorted.</p></li>
-     * <li><b>direction : String</b><p class="sub-desc">The sort order, 'ASC' or 'DESC' (case-sensitive).</p></li>
-     * </ul>
-     * See <tt>{@link #sortInfo}</tt> for additional details.
-     */
-    getSortState : function(){
-        return this.sortInfo;
-    },
-
-    /**
+     * Converts a literal to a model, if it's not a model already
      * @private
-     * Invokes sortData if we have sortInfo to sort on and are not sorting remotely
+     * @param record {Ext.data.Model/Object} The record to create
+     * @return {Ext.data.Model}
      */
-    applySort : function(){
-        if ((this.sortInfo || this.multiSortInfo) && !this.remoteSort) {
-            this.sortData();
+    createModel: function(record) {
+        if (!record.isModel) {
+            record = Ext.ModelManager.create(record, this.model);
         }
+
+        return record;
     },
 
     /**
-     * @private
-     * Performs the actual sorting of data. This checks to see if we currently have a multi sort or not. It applies
-     * each sorter field/direction pair in turn by building an OR'ed master sorting function and running it against
-     * the full dataset
-     */
-    sortData : function() {
-        var sortInfo  = this.hasMultiSort ? this.multiSortInfo : this.sortInfo,
-            direction = sortInfo.direction || "ASC",
-            sorters   = sortInfo.sorters,
-            sortFns   = [];
-
-        //if we just have a single sorter, pretend it's the first in an array
-        if (!this.hasMultiSort) {
-            sorters = [{direction: direction, field: sortInfo.field}];
-        }
-
-        //create a sorter function for each sorter field/direction combo
-        for (var i=0, j = sorters.length; i < j; i++) {
-            sortFns.push(this.createSortFunction(sorters[i].field, sorters[i].direction));
-        }
-
-        if (sortFns.length == 0) {
-            return;
-        }
-
-        //the direction modifier is multiplied with the result of the sorting functions to provide overall sort direction
-        //(as opposed to direction per field)
-        var directionModifier = direction.toUpperCase() == "DESC" ? -1 : 1;
-
-        //create a function which ORs each sorter together to enable multi-sort
-        var fn = function(r1, r2) {
-          var result = sortFns[0].call(this, r1, r2);
-
-          //if we have more than one sorter, OR any additional sorter functions together
-          if (sortFns.length > 1) {
-              for (var i=1, j = sortFns.length; i < j; i++) {
-                  result = result || sortFns[i].call(this, r1, r2);
-              }
-          }
-
-          return directionModifier * result;
-        };
-
-        //sort the data
-        this.data.sort(direction, fn);
-        if (this.snapshot && this.snapshot != this.data) {
-            this.snapshot.sort(direction, fn);
-        }
-    },
-
-    /**
-     * @private
-     * Creates and returns a function which sorts an array by the given field and direction
-     * @param {String} field The field to create the sorter for
-     * @param {String} direction The direction to sort by (defaults to "ASC")
-     * @return {Function} A function which sorts by the field/direction combination provided
-     */
-    createSortFunction: function(field, direction) {
-        direction = direction || "ASC";
-        var directionModifier = direction.toUpperCase() == "DESC" ? -1 : 1;
-
-        var sortType = this.fields.get(field).sortType;
-
-        //create a comparison function. Takes 2 records, returns 1 if record 1 is greater,
-        //-1 if record 2 is greater or 0 if they are equal
-        return function(r1, r2) {
-            var v1 = sortType(r1.data[field]),
-                v2 = sortType(r2.data[field]);
-
-            return directionModifier * (v1 > v2 ? 1 : (v1 < v2 ? -1 : 0));
-        };
-    },
-
-    /**
-     * Sets the default sort column and order to be used by the next {@link #load} operation.
-     * @param {String} fieldName The name of the field to sort by.
-     * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
-     */
-    setDefaultSort : function(field, dir) {
-        dir = dir ? dir.toUpperCase() : 'ASC';
-        this.sortInfo = {field: field, direction: dir};
-        this.sortToggle[field] = dir;
-    },
-
-    /**
-     * Sort the Records.
-     * If remote sorting is used, the sort is performed on the server, and the cache is reloaded. If local
-     * sorting is used, the cache is sorted internally. See also {@link #remoteSort} and {@link #paramNames}.
-     * This function accepts two call signatures - pass in a field name as the first argument to sort on a single
-     * field, or pass in an array of sort configuration objects to sort by multiple fields.
-     * Single sort example:
-     * store.sort('name', 'ASC');
-     * Multi sort example:
-     * store.sort([
-     *   {
-     *     field    : 'name',
-     *     direction: 'ASC'
-     *   },
-     *   {
-     *     field    : 'salary',
-     *     direction: 'DESC'
-     *   }
-     * ], 'ASC');
-     * In this second form, the sort configs are applied in order, with later sorters sorting within earlier sorters' results.
-     * For example, if two records with the same name are present they will also be sorted by salary if given the sort configs
-     * above. Any number of sort configs can be added.
-     * @param {String/Array} fieldName The name of the field to sort by, or an array of ordered sort configs
-     * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
-     */
-    sort : function(fieldName, dir) {
-        if (Ext.isArray(arguments[0])) {
-            return this.multiSort.call(this, fieldName, dir);
-        } else {
-            return this.singleSort(fieldName, dir);
-        }
-    },
-
-    /**
-     * Sorts the store contents by a single field and direction. This is called internally by {@link sort} and would
-     * not usually be called manually
-     * @param {String} fieldName The name of the field to sort by.
-     * @param {String} dir (optional) The sort order, 'ASC' or 'DESC' (case-sensitive, defaults to <tt>'ASC'</tt>)
-     */
-    singleSort: function(fieldName, dir) {
-        var field = this.fields.get(fieldName);
-        if (!field) {
-            return false;
-        }
-
-        var name       = field.name,
-            sortInfo   = this.sortInfo || null,
-            sortToggle = this.sortToggle ? this.sortToggle[name] : null;
-
-        if (!dir) {
-            if (sortInfo && sortInfo.field == name) { // toggle sort dir
-                dir = (this.sortToggle[name] || 'ASC').toggle('ASC', 'DESC');
-            } else {
-                dir = field.sortDir;
-            }
-        }
-
-        this.sortToggle[name] = dir;
-        this.sortInfo = {field: name, direction: dir};
-        this.hasMultiSort = false;
-
-        if (this.remoteSort) {
-            if (!this.load(this.lastOptions)) {
-                if (sortToggle) {
-                    this.sortToggle[name] = sortToggle;
-                }
-                if (sortInfo) {
-                    this.sortInfo = sortInfo;
-                }
-            }
-        } else {
-            this.applySort();
-            this.fireEvent('datachanged', this);
-        }
-        return true;
-    },
-
-    /**
-     * Sorts the contents of this store by multiple field/direction sorters. This is called internally by {@link sort}
-     * and would not usually be called manually.
-     * Multi sorting only currently applies to local datasets - multiple sort data is not currently sent to a proxy
-     * if remoteSort is used.
-     * @param {Array} sorters Array of sorter objects (field and direction)
-     * @param {String} direction Overall direction to sort the ordered results by (defaults to "ASC")
-     */
-    multiSort: function(sorters, direction) {
-        this.hasMultiSort = true;
-        direction = direction || "ASC";
-
-        //toggle sort direction
-        if (this.multiSortInfo && direction == this.multiSortInfo.direction) {
-            direction = direction.toggle("ASC", "DESC");
-        }
-
-        /**
-         * Object containing overall sort direction and an ordered array of sorter configs used when sorting on multiple fields
-         * @property multiSortInfo
-         * @type Object
-         */
-        this.multiSortInfo = {
-            sorters  : sorters,
-            direction: direction
-        };
-
-        if (this.remoteSort) {
-            this.singleSort(sorters[0].field, sorters[0].direction);
-
-        } else {
-            this.applySort();
-            this.fireEvent('datachanged', this);
-        }
-    },
-
-    /**
-     * Calls the specified function for each of the {@link Ext.data.Record Records} in the cache.
-     * @param {Function} fn The function to call. The {@link Ext.data.Record Record} is passed as the first parameter.
+     * Calls the specified function for each of the {@link Ext.data.Model Records} in the cache.
+     * @param {Function} fn The function to call. The {@link Ext.data.Model Record} is passed as the first parameter.
      * Returning <tt>false</tt> aborts and exits the iteration.
      * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed.
-     * Defaults to the current {@link Ext.data.Record Record} in the iteration.
+     * Defaults to the current {@link Ext.data.Model Record} in the iteration.
      */
-    each : function(fn, scope){
+    each: function(fn, scope) {
         this.data.each(fn, scope);
     },
 
     /**
-     * Gets all {@link Ext.data.Record records} modified since the last commit.  Modified records are
-     * persisted across load operations (e.g., during paging). <b>Note</b>: deleted records are not
-     * included.  See also <tt>{@link #pruneModifiedRecords}</tt> and
-     * {@link Ext.data.Record}<tt>{@link Ext.data.Record#markDirty markDirty}.</tt>.
-     * @return {Ext.data.Record[]} An array of {@link Ext.data.Record Records} containing outstanding
-     * modifications.  To obtain modified fields within a modified record see
-     *{@link Ext.data.Record}<tt>{@link Ext.data.Record#modified modified}.</tt>.
+     * Removes the given record from the Store, firing the 'remove' event for each instance that is removed, plus a single
+     * 'datachanged' event after removal.
+     * @param {Ext.data.Model/Ext.data.Model[]} records The Ext.data.Model instance or array of instances to remove
      */
-    getModifiedRecords : function(){
-        return this.modified;
-    },
-
-    /**
-     * Sums the value of <tt>property</tt> for each {@link Ext.data.Record record} between <tt>start</tt>
-     * and <tt>end</tt> and returns the result.
-     * @param {String} property A field in each record
-     * @param {Number} start (optional) The record index to start at (defaults to <tt>0</tt>)
-     * @param {Number} end (optional) The last record index to include (defaults to length - 1)
-     * @return {Number} The sum
-     */
-    sum : function(property, start, end){
-        var rs = this.data.items, v = 0;
-        start = start || 0;
-        end = (end || end === 0) ? end : rs.length-1;
-
-        for(var i = start; i <= end; i++){
-            v += (rs[i].data[property] || 0);
+    remove: function(records, /* private */ isMove) {
+        if (!Ext.isArray(records)) {
+            records = [records];
         }
-        return v;
-    },
 
-    /**
-     * @private
-     * Returns a filter function used to test a the given property's value. Defers most of the work to
-     * Ext.util.MixedCollection's createValueMatcher function
-     * @param {String} property The property to create the filter function for
-     * @param {String/RegExp} value The string/regex to compare the property value to
-     * @param {Boolean} anyMatch True if we don't care if the filter value is not the full value (defaults to false)
-     * @param {Boolean} caseSensitive True to create a case-sensitive regex (defaults to false)
-     * @param {Boolean} exactMatch True to force exact match (^ and $ characters added to the regex). Defaults to false. Ignored if anyMatch is true.
-     */
-    createFilterFn : function(property, value, anyMatch, caseSensitive, exactMatch){
-        if(Ext.isEmpty(value, false)){
-            return false;
-        }
-        value = this.data.createValueMatcher(value, anyMatch, caseSensitive, exactMatch);
-        return function(r) {
-            return value.test(r.data[property]);
-        };
-    },
+        /*
+         * Pass the isMove parameter if we know we're going to be re-inserting this record
+         */
+        isMove = isMove === true;
+        var me = this,
+            sync = false,
+            i = 0,
+            length = records.length,
+            isPhantom,
+            index,
+            record;
 
-    /**
-     * @private
-     * Given an array of filter functions (each with optional scope), constructs and returns a single function that returns
-     * the result of all of the filters ANDed together
-     * @param {Array} filters The array of filter objects (each object should contain an 'fn' and optional scope)
-     * @return {Function} The multiple filter function
-     */
-    createMultipleFilterFn: function(filters) {
-        return function(record) {
-            var isMatch = true;
+        for (; i < length; i++) {
+            record = records[i];
+            index = me.data.indexOf(record);
 
-            for (var i=0, j = filters.length; i < j; i++) {
-                var filter = filters[i],
-                    fn     = filter.fn,
-                    scope  = filter.scope;
-
-                isMatch = isMatch && fn.call(scope, record);
+            if (me.snapshot) {
+                me.snapshot.remove(record);
             }
 
-            return isMatch;
-        };
-    },
-
-    /**
-     * Filter the {@link Ext.data.Record records} by a specified property. Alternatively, pass an array of filter
-     * options to filter by more than one property.
-     * Single filter example:
-     * store.filter('name', 'Ed', true, true); //finds all records containing the substring 'Ed'
-     * Multiple filter example:
-     * <pre><code>
-     * store.filter([
-     *   {
-     *     property     : 'name',
-     *     value        : 'Ed',
-     *     anyMatch     : true, //optional, defaults to true
-     *     caseSensitive: true  //optional, defaults to true
-     *   },
-     *
-     *   //filter functions can also be passed
-     *   {
-     *     fn   : function(record) {
-     *       return record.get('age') == 24
-     *     },
-     *     scope: this
-     *   }
-     * ]);
-     * </code></pre>
-     * @param {String|Array} field A field on your records, or an array containing multiple filter options
-     * @param {String/RegExp} value Either a string that the field should begin with, or a RegExp to test
-     * against the field.
-     * @param {Boolean} anyMatch (optional) <tt>true</tt> to match any part not just the beginning
-     * @param {Boolean} caseSensitive (optional) <tt>true</tt> for case sensitive comparison
-     * @param {Boolean} exactMatch (optional) True to force exact match (^ and $ characters added to the regex). Defaults to false. Ignored if anyMatch is true.
-     */
-    filter : function(property, value, anyMatch, caseSensitive, exactMatch){
-        var fn;
-        //we can accept an array of filter objects, or a single filter object - normalize them here
-        if (Ext.isObject(property)) {
-            property = [property];
-        }
-
-        if (Ext.isArray(property)) {
-            var filters = [];
-
-            //normalize the filters passed into an array of filter functions
-            for (var i=0, j = property.length; i < j; i++) {
-                var filter = property[i],
-                    func   = filter.fn,
-                    scope  = filter.scope || this;
-
-                //if we weren't given a filter function, construct one now
-                if (!Ext.isFunction(func)) {
-                    func = this.createFilterFn(filter.property, filter.value, filter.anyMatch, filter.caseSensitive, filter.exactMatch);
+            if (index > -1) {
+                isPhantom = record.phantom === true;
+                if (!isMove && !isPhantom) {
+                    // don't push phantom records onto removed
+                    me.removed.push(record);
                 }
 
-                filters.push({fn: func, scope: scope});
-            }
+                record.unjoin(me);
+                me.data.remove(record);
+                sync = sync || !isPhantom;
 
-            fn = this.createMultipleFilterFn(filters);
-        } else {
-            //classic single property filter
-            fn = this.createFilterFn(property, value, anyMatch, caseSensitive, exactMatch);
+                me.fireEvent('remove', me, record, index);
+            }
         }
 
-        return fn ? this.filterBy(fn) : this.clearFilter();
+        me.fireEvent('datachanged', me);
+        if (!isMove && me.autoSync && sync) {
+            me.sync();
+        }
     },
 
     /**
-     * Filter by a function. The specified function will be called for each
-     * Record in this Store. If the function returns <tt>true</tt> the Record is included,
-     * otherwise it is filtered out.
-     * @param {Function} fn The function to be called. It will be passed the following parameters:<ul>
-     * <li><b>record</b> : Ext.data.Record<p class="sub-desc">The {@link Ext.data.Record record}
-     * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
-     * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
-     * </ul>
-     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
+     * Removes the model instance at the given index
+     * @param {Number} index The record index
      */
-    filterBy : function(fn, scope){
-        this.snapshot = this.snapshot || this.data;
-        this.data = this.queryBy(fn, scope || this);
-        this.fireEvent('datachanged', this);
+    removeAt: function(index) {
+        var record = this.getAt(index);
+
+        if (record) {
+            this.remove(record);
+        }
+    },
+
+    /**
+     * <p>Loads data into the Store via the configured {@link #proxy}. This uses the Proxy to make an
+     * asynchronous call to whatever storage backend the Proxy uses, automatically adding the retrieved
+     * instances into the Store and calling an optional callback if required. Example usage:</p>
+     *
+<pre><code>
+store.load({
+    scope   : this,
+    callback: function(records, operation, success) {
+        //the {@link Ext.data.Operation operation} object contains all of the details of the load operation
+        console.log(records);
+    }
+});
+</code></pre>
+     *
+     * <p>If the callback scope does not need to be set, a function can simply be passed:</p>
+     *
+<pre><code>
+store.load(function(records, operation, success) {
+    console.log('loaded records');
+});
+</code></pre>
+     *
+     * @param {Object/Function} options (Optional) config object, passed into the Ext.data.Operation object before loading.
+     */
+    load: function(options) {
+        var me = this;
+
+        options = options || {};
+
+        if (Ext.isFunction(options)) {
+            options = {
+                callback: options
+            };
+        }
+
+        Ext.applyIf(options, {
+            groupers: me.groupers.items,
+            page: me.currentPage,
+            start: (me.currentPage - 1) * me.pageSize,
+            limit: me.pageSize,
+            addRecords: false
+        });
+
+        return me.callParent([options]);
+    },
+
+    /**
+     * @private
+     * Called internally when a Proxy has completed a load request
+     */
+    onProxyLoad: function(operation) {
+        var me = this,
+            resultSet = operation.getResultSet(),
+            records = operation.getRecords(),
+            successful = operation.wasSuccessful();
+
+        if (resultSet) {
+            me.totalCount = resultSet.total;
+        }
+
+        if (successful) {
+            me.loadRecords(records, operation);
+        }
+
+        me.loading = false;
+        me.fireEvent('load', me, records, successful);
+
+        //TODO: deprecate this event, it should always have been 'load' instead. 'load' is now documented, 'read' is not.
+        //People are definitely using this so can't deprecate safely until 2.x
+        me.fireEvent('read', me, records, operation.wasSuccessful());
+
+        //this is a callback that would have been passed to the 'read' function and is optional
+        Ext.callback(operation.callback, operation.scope || me, [records, operation, successful]);
+    },
+
+    /**
+     * Create any new records when a write is returned from the server.
+     * @private
+     * @param {Ext.data.Model[]} records The array of new records
+     * @param {Ext.data.Operation} operation The operation that just completed
+     * @param {Boolean} success True if the operation was successful
+     */
+    onCreateRecords: function(records, operation, success) {
+        if (success) {
+            var i = 0,
+                data = this.data,
+                snapshot = this.snapshot,
+                length = records.length,
+                originalRecords = operation.records,
+                record,
+                original,
+                index;
+
+            /*
+             * Loop over each record returned from the server. Assume they are
+             * returned in order of how they were sent. If we find a matching
+             * record, replace it with the newly created one.
+             */
+            for (; i < length; ++i) {
+                record = records[i];
+                original = originalRecords[i];
+                if (original) {
+                    index = data.indexOf(original);
+                    if (index > -1) {
+                        data.removeAt(index);
+                        data.insert(index, record);
+                    }
+                    if (snapshot) {
+                        index = snapshot.indexOf(original);
+                        if (index > -1) {
+                            snapshot.removeAt(index);
+                            snapshot.insert(index, record);
+                        }
+                    }
+                    record.phantom = false;
+                    record.join(this);
+                }
+            }
+        }
+    },
+
+    /**
+     * Update any records when a write is returned from the server.
+     * @private
+     * @param {Ext.data.Model[]} records The array of updated records
+     * @param {Ext.data.Operation} operation The operation that just completed
+     * @param {Boolean} success True if the operation was successful
+     */
+    onUpdateRecords: function(records, operation, success){
+        if (success) {
+            var i = 0,
+                length = records.length,
+                data = this.data,
+                snapshot = this.snapshot,
+                record;
+
+            for (; i < length; ++i) {
+                record = records[i];
+                data.replace(record);
+                if (snapshot) {
+                    snapshot.replace(record);
+                }
+                record.join(this);
+            }
+        }
+    },
+
+    /**
+     * Remove any records when a write is returned from the server.
+     * @private
+     * @param {Ext.data.Model[]} records The array of removed records
+     * @param {Ext.data.Operation} operation The operation that just completed
+     * @param {Boolean} success True if the operation was successful
+     */
+    onDestroyRecords: function(records, operation, success){
+        if (success) {
+            var me = this,
+                i = 0,
+                length = records.length,
+                data = me.data,
+                snapshot = me.snapshot,
+                record;
+
+            for (; i < length; ++i) {
+                record = records[i];
+                record.unjoin(me);
+                data.remove(record);
+                if (snapshot) {
+                    snapshot.remove(record);
+                }
+            }
+            me.removed = [];
+        }
+    },
+
+    //inherit docs
+    getNewRecords: function() {
+        return this.data.filterBy(this.filterNew).items;
+    },
+
+    //inherit docs
+    getUpdatedRecords: function() {
+        return this.data.filterBy(this.filterUpdated).items;
+    },
+
+    /**
+     * Filters the loaded set of records by a given set of filters.
+     *
+     * Filtering by single field:
+     *
+     *     store.filter("email", /\.com$/);
+     *
+     * Using multiple filters:
+     *
+     *     store.filter([
+     *         {property: "email", value: /\.com$/},
+     *         {filterFn: function(item) { return item.get("age") > 10; }}
+     *     ]);
+     *
+     * Using Ext.util.Filter instances instead of config objects
+     * (note that we need to specify the {@link Ext.util.Filter#root root} config option in this case):
+     *
+     *     store.filter([
+     *         Ext.create('Ext.util.Filter', {property: "email", value: /\.com$/, root: 'data'}),
+     *         Ext.create('Ext.util.Filter', {filterFn: function(item) { return item.get("age") > 10; }, root: 'data'})
+     *     ]);
+     *
+     * @param {Object[]/Ext.util.Filter[]/String} filters The set of filters to apply to the data. These are stored internally on the store,
+     * but the filtering itself is done on the Store's {@link Ext.util.MixedCollection MixedCollection}. See
+     * MixedCollection's {@link Ext.util.MixedCollection#filter filter} method for filter syntax. Alternatively,
+     * pass in a property string
+     * @param {String} value (optional) value to filter by (only if using a property string as the first argument)
+     */
+    filter: function(filters, value) {
+        if (Ext.isString(filters)) {
+            filters = {
+                property: filters,
+                value: value
+            };
+        }
+
+        var me = this,
+            decoded = me.decodeFilters(filters),
+            i = 0,
+            doLocalSort = me.sortOnFilter && !me.remoteSort,
+            length = decoded.length;
+
+        for (; i < length; i++) {
+            me.filters.replace(decoded[i]);
+        }
+
+        if (me.remoteFilter) {
+            //the load function will pick up the new filters and request the filtered data from the proxy
+            me.load();
+        } else {
+            /**
+             * A pristine (unfiltered) collection of the records in this store. This is used to reinstate
+             * records when a filter is removed or changed
+             * @property snapshot
+             * @type Ext.util.MixedCollection
+             */
+            if (me.filters.getCount()) {
+                me.snapshot = me.snapshot || me.data.clone();
+                me.data = me.data.filter(me.filters.items);
+
+                if (doLocalSort) {
+                    me.sort();
+                }
+                // fire datachanged event if it hasn't already been fired by doSort
+                if (!doLocalSort || me.sorters.length < 1) {
+                    me.fireEvent('datachanged', me);
+                }
+            }
+        }
     },
 
     /**
@@ -1758,12 +1214,19 @@ myStore.reload(lastOptions);
      * @param {Boolean} suppressEvent If <tt>true</tt> the filter is cleared silently without firing the
      * {@link #datachanged} event.
      */
-    clearFilter : function(suppressEvent){
-        if(this.isFiltered()){
-            this.data = this.snapshot;
-            delete this.snapshot;
-            if(suppressEvent !== true){
-                this.fireEvent('datachanged', this);
+    clearFilter: function(suppressEvent) {
+        var me = this;
+
+        me.filters.clear();
+
+        if (me.remoteFilter) {
+            me.load();
+        } else if (me.isFiltered()) {
+            me.data = me.snapshot.clone();
+            delete me.snapshot;
+
+            if (suppressEvent !== true) {
+                me.fireEvent('datachanged', me);
             }
         }
     },
@@ -1772,22 +1235,28 @@ myStore.reload(lastOptions);
      * Returns true if this store is currently filtered
      * @return {Boolean}
      */
-    isFiltered : function(){
-        return !!this.snapshot && this.snapshot != this.data;
+    isFiltered: function() {
+        var snapshot = this.snapshot;
+        return !! snapshot && snapshot !== this.data;
     },
 
     /**
-     * Query the records by a specified property.
-     * @param {String} field A field on your records
-     * @param {String/RegExp} value Either a string that the field
-     * should begin with, or a RegExp to test against the field.
-     * @param {Boolean} anyMatch (optional) True to match any part not just the beginning
-     * @param {Boolean} caseSensitive (optional) True for case sensitive comparison
-     * @return {MixedCollection} Returns an Ext.util.MixedCollection of the matched records
+     * Filter by a function. The specified function will be called for each
+     * Record in this Store. If the function returns <tt>true</tt> the Record is included,
+     * otherwise it is filtered out.
+     * @param {Function} fn The function to be called. It will be passed the following parameters:<ul>
+     * <li><b>record</b> : Ext.data.Model<p class="sub-desc">The {@link Ext.data.Model record}
+     * to test for filtering. Access field values using {@link Ext.data.Model#get}.</p></li>
+     * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
+     * </ul>
+     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
      */
-    query : function(property, value, anyMatch, caseSensitive){
-        var fn = this.createFilterFn(property, value, anyMatch, caseSensitive);
-        return fn ? this.queryBy(fn) : this.data.clone();
+    filterBy: function(fn, scope) {
+        var me = this;
+
+        me.snapshot = me.snapshot || me.data.clone();
+        me.data = me.queryBy(fn, scope || me);
+        me.fireEvent('datachanged', me);
     },
 
     /**
@@ -1795,16 +1264,558 @@ myStore.reload(lastOptions);
      * will be called with each record in this Store. If the function returns <tt>true</tt> the record is
      * included in the results.
      * @param {Function} fn The function to be called. It will be passed the following parameters:<ul>
-     * <li><b>record</b> : Ext.data.Record<p class="sub-desc">The {@link Ext.data.Record record}
-     * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
+     * <li><b>record</b> : Ext.data.Model<p class="sub-desc">The {@link Ext.data.Model record}
+     * to test for filtering. Access field values using {@link Ext.data.Model#get}.</p></li>
      * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
      * </ul>
      * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
-     * @return {MixedCollection} Returns an Ext.util.MixedCollection of the matched records
+     * @return {Ext.util.MixedCollection} Returns an Ext.util.MixedCollection of the matched records
      **/
-    queryBy : function(fn, scope){
-        var data = this.snapshot || this.data;
-        return data.filterBy(fn, scope||this);
+    queryBy: function(fn, scope) {
+        var me = this,
+        data = me.snapshot || me.data;
+        return data.filterBy(fn, scope || me);
+    },
+
+    /**
+     * Loads an array of data straight into the Store.
+     * 
+     * Using this method is great if the data is in the correct format already (e.g. it doesn't need to be
+     * processed by a reader). If your data requires processing to decode the data structure, use a
+     * {@link Ext.data.proxy.Memory MemoryProxy} instead.
+     * 
+     * @param {Ext.data.Model[]/Object[]} data Array of data to load. Any non-model instances will be cast
+     * into model instances.
+     * @param {Boolean} [append=false] True to add the records to the existing records in the store, false
+     * to remove the old ones first.
+     */
+    loadData: function(data, append) {
+        var model = this.model,
+            length = data.length,
+            newData = [],
+            i,
+            record;
+
+        //make sure each data element is an Ext.data.Model instance
+        for (i = 0; i < length; i++) {
+            record = data[i];
+
+            if (!(record instanceof Ext.data.Model)) {
+                record = Ext.ModelManager.create(record, model);
+            }
+            newData.push(record);
+        }
+
+        this.loadRecords(newData, {addRecords: append});
+    },
+
+
+    /**
+     * Loads data via the bound Proxy's reader
+     *
+     * Use this method if you are attempting to load data and want to utilize the configured data reader.
+     *
+     * @param {Object[]} data The full JSON object you'd like to load into the Data store.
+     * @param {Boolean} [append=false] True to add the records to the existing records in the store, false
+     * to remove the old ones first.
+     */
+    loadRawData : function(data, append) {
+         var me      = this,
+             result  = me.proxy.reader.read(data),
+             records = result.records;
+
+         if (result.success) {
+             me.loadRecords(records, { addRecords: append });
+             me.fireEvent('load', me, records, true);
+         }
+     },
+
+
+    /**
+     * Loads an array of {@link Ext.data.Model model} instances into the store, fires the datachanged event. This should only usually
+     * be called internally when loading from the {@link Ext.data.proxy.Proxy Proxy}, when adding records manually use {@link #add} instead
+     * @param {Ext.data.Model[]} records The array of records to load
+     * @param {Object} options {addRecords: true} to add these records to the existing records, false to remove the Store's existing records first
+     */
+    loadRecords: function(records, options) {
+        var me     = this,
+            i      = 0,
+            length = records.length;
+
+        options = options || {};
+
+
+        if (!options.addRecords) {
+            delete me.snapshot;
+            me.clearData();
+        }
+
+        me.data.addAll(records);
+
+        //FIXME: this is not a good solution. Ed Spencer is totally responsible for this and should be forced to fix it immediately.
+        for (; i < length; i++) {
+            if (options.start !== undefined) {
+                records[i].index = options.start + i;
+
+            }
+            records[i].join(me);
+        }
+
+        /*
+         * this rather inelegant suspension and resumption of events is required because both the filter and sort functions
+         * fire an additional datachanged event, which is not wanted. Ideally we would do this a different way. The first
+         * datachanged event is fired by the call to this.add, above.
+         */
+        me.suspendEvents();
+
+        if (me.filterOnLoad && !me.remoteFilter) {
+            me.filter();
+        }
+
+        if (me.sortOnLoad && !me.remoteSort) {
+            me.sort();
+        }
+
+        me.resumeEvents();
+        me.fireEvent('datachanged', me, records);
+    },
+
+    // PAGING METHODS
+    /**
+     * Loads a given 'page' of data by setting the start and limit values appropriately. Internally this just causes a normal
+     * load operation, passing in calculated 'start' and 'limit' params
+     * @param {Number} page The number of the page to load
+     * @param {Object} options See options for {@link #load}
+     */
+    loadPage: function(page, options) {
+        var me = this;
+        options = Ext.apply({}, options);
+
+        me.currentPage = page;
+
+        me.read(Ext.applyIf(options, {
+            page: page,
+            start: (page - 1) * me.pageSize,
+            limit: me.pageSize,
+            addRecords: !me.clearOnPageLoad
+        }));
+    },
+
+    /**
+     * Loads the next 'page' in the current data set
+     * @param {Object} options See options for {@link #load}
+     */
+    nextPage: function(options) {
+        this.loadPage(this.currentPage + 1, options);
+    },
+
+    /**
+     * Loads the previous 'page' in the current data set
+     * @param {Object} options See options for {@link #load}
+     */
+    previousPage: function(options) {
+        this.loadPage(this.currentPage - 1, options);
+    },
+
+    // private
+    clearData: function() {
+        var me = this;
+        me.data.each(function(record) {
+            record.unjoin(me);
+        });
+
+        me.data.clear();
+    },
+
+    // Buffering
+    /**
+     * Prefetches data into the store using its configured {@link #proxy}.
+     * @param {Object} options (Optional) config object, passed into the Ext.data.Operation object before loading.
+     * See {@link #load}
+     */
+    prefetch: function(options) {
+        var me = this,
+            operation,
+            requestId = me.getRequestId();
+
+        options = options || {};
+
+        Ext.applyIf(options, {
+            action : 'read',
+            filters: me.filters.items,
+            sorters: me.sorters.items,
+            requestId: requestId
+        });
+        me.pendingRequests.push(requestId);
+
+        operation = Ext.create('Ext.data.Operation', options);
+
+        // HACK to implement loadMask support.
+        //if (operation.blocking) {
+        //    me.fireEvent('beforeload', me, operation);
+        //}
+        if (me.fireEvent('beforeprefetch', me, operation) !== false) {
+            me.loading = true;
+            me.proxy.read(operation, me.onProxyPrefetch, me);
+        }
+
+        return me;
+    },
+
+    /**
+     * Prefetches a page of data.
+     * @param {Number} page The page to prefetch
+     * @param {Object} options (Optional) config object, passed into the Ext.data.Operation object before loading.
+     * See {@link #load}
+     */
+    prefetchPage: function(page, options) {
+        var me = this,
+            pageSize = me.pageSize,
+            start = (page - 1) * me.pageSize,
+            end = start + pageSize;
+
+        // Currently not requesting this page and range isn't already satisified
+        if (Ext.Array.indexOf(me.pagesRequested, page) === -1 && !me.rangeSatisfied(start, end)) {
+            options = options || {};
+            me.pagesRequested.push(page);
+            Ext.applyIf(options, {
+                page : page,
+                start: start,
+                limit: pageSize,
+                callback: me.onWaitForGuarantee,
+                scope: me
+            });
+
+            me.prefetch(options);
+        }
+
+    },
+
+    /**
+     * Returns a unique requestId to track requests.
+     * @private
+     */
+    getRequestId: function() {
+        this.requestSeed = this.requestSeed || 1;
+        return this.requestSeed++;
+    },
+
+    /**
+     * Called after the configured proxy completes a prefetch operation.
+     * @private
+     * @param {Ext.data.Operation} operation The operation that completed
+     */
+    onProxyPrefetch: function(operation) {
+        var me         = this,
+            resultSet  = operation.getResultSet(),
+            records    = operation.getRecords(),
+
+            successful = operation.wasSuccessful();
+
+        if (resultSet) {
+            me.totalCount = resultSet.total;
+            me.fireEvent('totalcountchange', me.totalCount);
+        }
+
+        if (successful) {
+            me.cacheRecords(records, operation);
+        }
+        Ext.Array.remove(me.pendingRequests, operation.requestId);
+        if (operation.page) {
+            Ext.Array.remove(me.pagesRequested, operation.page);
+        }
+
+        me.loading = false;
+        me.fireEvent('prefetch', me, records, successful, operation);
+
+        // HACK to support loadMask
+        if (operation.blocking) {
+            me.fireEvent('load', me, records, successful);
+        }
+
+        //this is a callback that would have been passed to the 'read' function and is optional
+        Ext.callback(operation.callback, operation.scope || me, [records, operation, successful]);
+    },
+
+    /**
+     * Caches the records in the prefetch and stripes them with their server-side
+     * index.
+     * @private
+     * @param {Ext.data.Model[]} records The records to cache
+     * @param {Ext.data.Operation} The associated operation
+     */
+    cacheRecords: function(records, operation) {
+        var me     = this,
+            i      = 0,
+            length = records.length,
+            start  = operation ? operation.start : 0;
+
+        if (!Ext.isDefined(me.totalCount)) {
+            me.totalCount = records.length;
+            me.fireEvent('totalcountchange', me.totalCount);
+        }
+
+        for (; i < length; i++) {
+            // this is the true index, not the viewIndex
+            records[i].index = start + i;
+        }
+
+        me.prefetchData.addAll(records);
+        if (me.purgePageCount) {
+            me.purgeRecords();
+        }
+
+    },
+
+
+    /**
+     * Purge the least recently used records in the prefetch if the purgeCount
+     * has been exceeded.
+     */
+    purgeRecords: function() {
+        var me = this,
+            prefetchCount = me.prefetchData.getCount(),
+            purgeCount = me.purgePageCount * me.pageSize,
+            numRecordsToPurge = prefetchCount - purgeCount - 1,
+            i = 0;
+
+        for (; i <= numRecordsToPurge; i++) {
+            me.prefetchData.removeAt(0);
+        }
+    },
+
+    /**
+     * Determines if the range has already been satisfied in the prefetchData.
+     * @private
+     * @param {Number} start The start index
+     * @param {Number} end The end index in the range
+     */
+    rangeSatisfied: function(start, end) {
+        var me = this,
+            i = start,
+            satisfied = true;
+
+        for (; i < end; i++) {
+            if (!me.prefetchData.getByKey(i)) {
+                satisfied = false;
+                //<debug>
+                if (end - i > me.pageSize) {
+                    Ext.Error.raise("A single page prefetch could never satisfy this request.");
+                }
+                //</debug>
+                break;
+            }
+        }
+        return satisfied;
+    },
+
+    /**
+     * Determines the page from a record index
+     * @param {Number} index The record index
+     * @return {Number} The page the record belongs to
+     */
+    getPageFromRecordIndex: function(index) {
+        return Math.floor(index / this.pageSize) + 1;
+    },
+
+    /**
+     * Handles a guaranteed range being loaded
+     * @private
+     */
+    onGuaranteedRange: function() {
+        var me = this,
+            totalCount = me.getTotalCount(),
+            start = me.requestStart,
+            end = ((totalCount - 1) < me.requestEnd) ? totalCount - 1 : me.requestEnd,
+            range = [],
+            record,
+            i = start;
+
+        end = Math.max(0, end);
+
+        //<debug>
+        if (start > end) {
+            Ext.log({
+                level: 'warn',
+                msg: 'Start (' + start + ') was greater than end (' + end +
+                    ') for the range of records requested (' + me.requestStart + '-' +
+                    me.requestEnd + ')' + (this.storeId ? ' from store "' + this.storeId + '"' : '')
+            });
+        }
+        //</debug>
+
+        if (start !== me.guaranteedStart && end !== me.guaranteedEnd) {
+            me.guaranteedStart = start;
+            me.guaranteedEnd = end;
+
+            for (; i <= end; i++) {
+                record = me.prefetchData.getByKey(i);
+                //<debug>
+//                if (!record) {
+//                    Ext.log('Record with key "' + i + '" was not found and store said it was guaranteed');
+//                }
+                //</debug>
+                if (record) {
+                    range.push(record);
+                }
+            }
+            me.fireEvent('guaranteedrange', range, start, end);
+            if (me.cb) {
+                me.cb.call(me.scope || me, range);
+            }
+        }
+
+        me.unmask();
+    },
+
+    // hack to support loadmask
+    mask: function() {
+        this.masked = true;
+        this.fireEvent('beforeload');
+    },
+
+    // hack to support loadmask
+    unmask: function() {
+        if (this.masked) {
+            this.fireEvent('load');
+        }
+    },
+
+    /**
+     * Returns the number of pending requests out.
+     */
+    hasPendingRequests: function() {
+        return this.pendingRequests.length;
+    },
+
+
+    // wait until all requests finish, until guaranteeing the range.
+    onWaitForGuarantee: function() {
+        if (!this.hasPendingRequests()) {
+            this.onGuaranteedRange();
+        }
+    },
+
+    /**
+     * Guarantee a specific range, this will load the store with a range (that
+     * must be the pageSize or smaller) and take care of any loading that may
+     * be necessary.
+     */
+    guaranteeRange: function(start, end, cb, scope) {
+        //<debug>
+        if (start && end) {
+            if (end - start > this.pageSize) {
+                Ext.Error.raise({
+                    start: start,
+                    end: end,
+                    pageSize: this.pageSize,
+                    msg: "Requested a bigger range than the specified pageSize"
+                });
+            }
+        }
+        //</debug>
+
+        end = (end > this.totalCount) ? this.totalCount - 1 : end;
+
+        var me = this,
+            i = start,
+            prefetchData = me.prefetchData,
+            range = [],
+            startLoaded = !!prefetchData.getByKey(start),
+            endLoaded = !!prefetchData.getByKey(end),
+            startPage = me.getPageFromRecordIndex(start),
+            endPage = me.getPageFromRecordIndex(end);
+
+        me.cb = cb;
+        me.scope = scope;
+
+        me.requestStart = start;
+        me.requestEnd = end;
+        // neither beginning or end are loaded
+        if (!startLoaded || !endLoaded) {
+            // same page, lets load it
+            if (startPage === endPage) {
+                me.mask();
+                me.prefetchPage(startPage, {
+                    //blocking: true,
+                    callback: me.onWaitForGuarantee,
+                    scope: me
+                });
+            // need to load two pages
+            } else {
+                me.mask();
+                me.prefetchPage(startPage, {
+                    //blocking: true,
+                    callback: me.onWaitForGuarantee,
+                    scope: me
+                });
+                me.prefetchPage(endPage, {
+                    //blocking: true,
+                    callback: me.onWaitForGuarantee,
+                    scope: me
+                });
+            }
+        // Request was already satisfied via the prefetch
+        } else {
+            me.onGuaranteedRange();
+        }
+    },
+
+    // because prefetchData is stored by index
+    // this invalidates all of the prefetchedData
+    sort: function() {
+        var me = this,
+            prefetchData = me.prefetchData,
+            sorters,
+            start,
+            end,
+            range;
+
+        if (me.buffered) {
+            if (me.remoteSort) {
+                prefetchData.clear();
+                me.callParent(arguments);
+            } else {
+                sorters = me.getSorters();
+                start = me.guaranteedStart;
+                end = me.guaranteedEnd;
+
+                if (sorters.length) {
+                    prefetchData.sort(sorters);
+                    range = prefetchData.getRange();
+                    prefetchData.clear();
+                    me.cacheRecords(range);
+                    delete me.guaranteedStart;
+                    delete me.guaranteedEnd;
+                    me.guaranteeRange(start, end);
+                }
+                me.callParent(arguments);
+            }
+        } else {
+            me.callParent(arguments);
+        }
+    },
+
+    // overriden to provide striping of the indexes as sorting occurs.
+    // this cannot be done inside of sort because datachanged has already
+    // fired and will trigger a repaint of the bound view.
+    doSort: function(sorterFn) {
+        var me = this;
+        if (me.remoteSort) {
+            //the load function will pick up the new sorters and request the sorted data from the proxy
+            me.load();
+        } else {
+            me.data.sortBy(sorterFn);
+            if (!me.buffered) {
+                var range = me.getRange(),
+                    ln = range.length,
+                    i  = 0;
+                for (; i < ln; i++) {
+                    range[i].index = i;
+                }
+            }
+            me.fireEvent('datachanged', me);
+        }
     },
 
     /**
@@ -1815,39 +1826,79 @@ myStore.reload(lastOptions);
      * @param {Number} startIndex (optional) The index to start searching at
      * @param {Boolean} anyMatch (optional) True to match any part of the string, not just the beginning
      * @param {Boolean} caseSensitive (optional) True for case sensitive comparison
+     * @param {Boolean} exactMatch (optional) True to force exact match (^ and $ characters added to the regex). Defaults to false.
      * @return {Number} The matched index or -1
      */
-    find : function(property, value, start, anyMatch, caseSensitive){
-        var fn = this.createFilterFn(property, value, anyMatch, caseSensitive);
+    find: function(property, value, start, anyMatch, caseSensitive, exactMatch) {
+        var fn = this.createFilterFn(property, value, anyMatch, caseSensitive, exactMatch);
         return fn ? this.data.findIndexBy(fn, null, start) : -1;
+    },
+
+    /**
+     * Finds the first matching Record in this store by a specific field value.
+     * @param {String} fieldName The name of the Record field to test.
+     * @param {String/RegExp} value Either a string that the field value
+     * should begin with, or a RegExp to test against the field.
+     * @param {Number} startIndex (optional) The index to start searching at
+     * @param {Boolean} anyMatch (optional) True to match any part of the string, not just the beginning
+     * @param {Boolean} caseSensitive (optional) True for case sensitive comparison
+     * @param {Boolean} exactMatch (optional) True to force exact match (^ and $ characters added to the regex). Defaults to false.
+     * @return {Ext.data.Model} The matched record or null
+     */
+    findRecord: function() {
+        var me = this,
+            index = me.find.apply(me, arguments);
+        return index !== -1 ? me.getAt(index) : null;
+    },
+
+    /**
+     * @private
+     * Returns a filter function used to test a the given property's value. Defers most of the work to
+     * Ext.util.MixedCollection's createValueMatcher function
+     * @param {String} property The property to create the filter function for
+     * @param {String/RegExp} value The string/regex to compare the property value to
+     * @param {Boolean} [anyMatch=false] True if we don't care if the filter value is not the full value.
+     * @param {Boolean} [caseSensitive=false] True to create a case-sensitive regex.
+     * @param {Boolean} [exactMatch=false] True to force exact match (^ and $ characters added to the regex).
+     * Ignored if anyMatch is true.
+     */
+    createFilterFn: function(property, value, anyMatch, caseSensitive, exactMatch) {
+        if (Ext.isEmpty(value)) {
+            return false;
+        }
+        value = this.data.createValueMatcher(value, anyMatch, caseSensitive, exactMatch);
+        return function(r) {
+            return value.test(r.data[property]);
+        };
     },
 
     /**
      * Finds the index of the first matching Record in this store by a specific field value.
      * @param {String} fieldName The name of the Record field to test.
-     * @param {Mixed} value The value to match the field against.
+     * @param {Object} value The value to match the field against.
      * @param {Number} startIndex (optional) The index to start searching at
      * @return {Number} The matched index or -1
      */
-    findExact: function(property, value, start){
-        return this.data.findIndexBy(function(rec){
-            return rec.get(property) === value;
-        }, this, start);
+    findExact: function(property, value, start) {
+        return this.data.findIndexBy(function(rec) {
+            return rec.get(property) == value;
+        },
+        this, start);
     },
 
     /**
      * Find the index of the first matching Record in this Store by a function.
      * If the function returns <tt>true</tt> it is considered a match.
      * @param {Function} fn The function to be called. It will be passed the following parameters:<ul>
-     * <li><b>record</b> : Ext.data.Record<p class="sub-desc">The {@link Ext.data.Record record}
-     * to test for filtering. Access field values using {@link Ext.data.Record#get}.</p></li>
+     * <li><b>record</b> : Ext.data.Model<p class="sub-desc">The {@link Ext.data.Model record}
+     * to test for filtering. Access field values using {@link Ext.data.Model#get}.</p></li>
      * <li><b>id</b> : Object<p class="sub-desc">The ID of the Record passed.</p></li>
      * </ul>
      * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this Store.
      * @param {Number} startIndex (optional) The index to start searching at
      * @return {Number} The matched index or -1
      */
-    findBy : function(fn, scope, start){
+    findBy: function(fn, scope, start) {
         return this.data.findIndexBy(fn, scope, start);
     },
 
@@ -1856,139 +1907,357 @@ myStore.reload(lastOptions);
      * @param {String} dataIndex The property to collect
      * @param {Boolean} allowNull (optional) Pass true to allow null, undefined or empty string values
      * @param {Boolean} bypassFilter (optional) Pass true to collect from all records, even ones which are filtered
-     * @return {Array} An array of the unique values
+     * @return {Object[]} An array of the unique values
      **/
-    collect : function(dataIndex, allowNull, bypassFilter){
-        var d = (bypassFilter === true && this.snapshot) ?
-                this.snapshot.items : this.data.items;
-        var v, sv, r = [], l = {};
-        for(var i = 0, len = d.length; i < len; i++){
-            v = d[i].data[dataIndex];
-            sv = String(v);
-            if((allowNull || !Ext.isEmpty(v)) && !l[sv]){
-                l[sv] = true;
-                r[r.length] = v;
+    collect: function(dataIndex, allowNull, bypassFilter) {
+        var me = this,
+            data = (bypassFilter === true && me.snapshot) ? me.snapshot: me.data;
+
+        return data.collect(dataIndex, 'data', allowNull);
+    },
+
+    /**
+     * Gets the number of cached records.
+     * <p>If using paging, this may not be the total size of the dataset. If the data object
+     * used by the Reader contains the dataset size, then the {@link #getTotalCount} function returns
+     * the dataset size.  <b>Note</b>: see the Important note in {@link #load}.</p>
+     * @return {Number} The number of Records in the Store's cache.
+     */
+    getCount: function() {
+        return this.data.length || 0;
+    },
+
+    /**
+     * Returns the total number of {@link Ext.data.Model Model} instances that the {@link Ext.data.proxy.Proxy Proxy}
+     * indicates exist. This will usually differ from {@link #getCount} when using paging - getCount returns the
+     * number of records loaded into the Store at the moment, getTotalCount returns the number of records that
+     * could be loaded into the Store if the Store contained all data
+     * @return {Number} The total number of Model instances available via the Proxy
+     */
+    getTotalCount: function() {
+        return this.totalCount;
+    },
+
+    /**
+     * Get the Record at the specified index.
+     * @param {Number} index The index of the Record to find.
+     * @return {Ext.data.Model} The Record at the passed index. Returns undefined if not found.
+     */
+    getAt: function(index) {
+        return this.data.getAt(index);
+    },
+
+    /**
+     * Returns a range of Records between specified indices.
+     * @param {Number} [startIndex=0] The starting index
+     * @param {Number} [endIndex] The ending index. Defaults to the last Record in the Store.
+     * @return {Ext.data.Model[]} An array of Records
+     */
+    getRange: function(start, end) {
+        return this.data.getRange(start, end);
+    },
+
+    /**
+     * Get the Record with the specified id.
+     * @param {String} id The id of the Record to find.
+     * @return {Ext.data.Model} The Record with the passed id. Returns null if not found.
+     */
+    getById: function(id) {
+        return (this.snapshot || this.data).findBy(function(record) {
+            return record.getId() === id;
+        });
+    },
+
+    /**
+     * Get the index within the cache of the passed Record.
+     * @param {Ext.data.Model} record The Ext.data.Model object to find.
+     * @return {Number} The index of the passed Record. Returns -1 if not found.
+     */
+    indexOf: function(record) {
+        return this.data.indexOf(record);
+    },
+
+
+    /**
+     * Get the index within the entire dataset. From 0 to the totalCount.
+     * @param {Ext.data.Model} record The Ext.data.Model object to find.
+     * @return {Number} The index of the passed Record. Returns -1 if not found.
+     */
+    indexOfTotal: function(record) {
+        var index = record.index;
+        if (index || index === 0) {
+            return index;
+        }
+        return this.indexOf(record);
+    },
+
+    /**
+     * Get the index within the cache of the Record with the passed id.
+     * @param {String} id The id of the Record to find.
+     * @return {Number} The index of the Record. Returns -1 if not found.
+     */
+    indexOfId: function(id) {
+        return this.indexOf(this.getById(id));
+    },
+
+    /**
+     * Remove all items from the store.
+     * @param {Boolean} silent Prevent the `clear` event from being fired.
+     */
+    removeAll: function(silent) {
+        var me = this;
+
+        me.clearData();
+        if (me.snapshot) {
+            me.snapshot.clear();
+        }
+        if (silent !== true) {
+            me.fireEvent('clear', me);
+        }
+    },
+
+    /*
+     * Aggregation methods
+     */
+
+    /**
+     * Convenience function for getting the first model instance in the store
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the first record being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Ext.data.Model/undefined} The first model instance in the store, or undefined
+     */
+    first: function(grouped) {
+        var me = this;
+
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(function(records) {
+                return records.length ? records[0] : undefined;
+            }, me, true);
+        } else {
+            return me.data.first();
+        }
+    },
+
+    /**
+     * Convenience function for getting the last model instance in the store
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the last record being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Ext.data.Model/undefined} The last model instance in the store, or undefined
+     */
+    last: function(grouped) {
+        var me = this;
+
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(function(records) {
+                var len = records.length;
+                return len ? records[len - 1] : undefined;
+            }, me, true);
+        } else {
+            return me.data.last();
+        }
+    },
+
+    /**
+     * Sums the value of <tt>property</tt> for each {@link Ext.data.Model record} between <tt>start</tt>
+     * and <tt>end</tt> and returns the result.
+     * @param {String} field A field in each record
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the sum for that group being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Number} The sum
+     */
+    sum: function(field, grouped) {
+        var me = this;
+
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(me.getSum, me, true, [field]);
+        } else {
+            return me.getSum(me.data.items, field);
+        }
+    },
+
+    // @private, see sum
+    getSum: function(records, field) {
+        var total = 0,
+            i = 0,
+            len = records.length;
+
+        for (; i < len; ++i) {
+            total += records[i].get(field);
+        }
+
+        return total;
+    },
+
+    /**
+     * Gets the count of items in the store.
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the count for each group being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Number} the count
+     */
+    count: function(grouped) {
+        var me = this;
+
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(function(records) {
+                return records.length;
+            }, me, true);
+        } else {
+            return me.getCount();
+        }
+    },
+
+    /**
+     * Gets the minimum value in the store.
+     * @param {String} field The field in each record
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the minimum in the group being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Object} The minimum value, if no items exist, undefined.
+     */
+    min: function(field, grouped) {
+        var me = this;
+
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(me.getMin, me, true, [field]);
+        } else {
+            return me.getMin(me.data.items, field);
+        }
+    },
+
+    // @private, see min
+    getMin: function(records, field){
+        var i = 1,
+            len = records.length,
+            value, min;
+
+        if (len > 0) {
+            min = records[0].get(field);
+        }
+
+        for (; i < len; ++i) {
+            value = records[i].get(field);
+            if (value < min) {
+                min = value;
             }
         }
-        return r;
-    },
-
-    // private
-    afterEdit : function(record){
-        if(this.modified.indexOf(record) == -1){
-            this.modified.push(record);
-        }
-        this.fireEvent('update', this, record, Ext.data.Record.EDIT);
-    },
-
-    // private
-    afterReject : function(record){
-        this.modified.remove(record);
-        this.fireEvent('update', this, record, Ext.data.Record.REJECT);
-    },
-
-    // private
-    afterCommit : function(record){
-        this.modified.remove(record);
-        this.fireEvent('update', this, record, Ext.data.Record.COMMIT);
+        return min;
     },
 
     /**
-     * Commit all Records with {@link #getModifiedRecords outstanding changes}. To handle updates for changes,
-     * subscribe to the Store's {@link #update update event}, and perform updating when the third parameter is
-     * Ext.data.Record.COMMIT.
+     * Gets the maximum value in the store.
+     * @param {String} field The field in each record
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the maximum in the group being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Object} The maximum value, if no items exist, undefined.
      */
-    commitChanges : function(){
-        var modified = this.modified.slice(0),
-            length   = modified.length,
-            i;
+    max: function(field, grouped) {
+        var me = this;
 
-        for (i = 0; i < length; i++){
-            modified[i].commit();
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(me.getMax, me, true, [field]);
+        } else {
+            return me.getMax(me.data.items, field);
+        }
+    },
+
+    // @private, see max
+    getMax: function(records, field) {
+        var i = 1,
+            len = records.length,
+            value,
+            max;
+
+        if (len > 0) {
+            max = records[0].get(field);
         }
 
-        this.modified = [];
-        this.removed  = [];
+        for (; i < len; ++i) {
+            value = records[i].get(field);
+            if (value > max) {
+                max = value;
+            }
+        }
+        return max;
     },
 
     /**
-     * {@link Ext.data.Record#reject Reject} outstanding changes on all {@link #getModifiedRecords modified records}.
+     * Gets the average value in the store.
+     * @param {String} field The field in each record
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the group average being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @return {Object} The average value, if no items exist, 0.
      */
-    rejectChanges : function() {
-        var modified = this.modified.slice(0),
-            removed  = this.removed.slice(0).reverse(),
-            mLength  = modified.length,
-            rLength  = removed.length,
-            i;
-
-        for (i = 0; i < mLength; i++) {
-            modified[i].reject();
+    average: function(field, grouped) {
+        var me = this;
+        if (grouped && me.isGrouped()) {
+            return me.aggregate(me.getAverage, me, true, [field]);
+        } else {
+            return me.getAverage(me.data.items, field);
         }
-
-        for (i = 0; i < rLength; i++) {
-            this.insert(removed[i].lastIndex || 0, removed[i]);
-            removed[i].reject();
-        }
-
-        this.modified = [];
-        this.removed  = [];
     },
 
-    // private
-    onMetaChange : function(meta){
-        this.recordType = this.reader.recordType;
-        this.fields = this.recordType.prototype.fields;
-        delete this.snapshot;
-        if(this.reader.meta.sortInfo){
-            this.sortInfo = this.reader.meta.sortInfo;
-        }else if(this.sortInfo  && !this.fields.get(this.sortInfo.field)){
-            delete this.sortInfo;
-        }
-        if(this.writer){
-            this.writer.meta = this.reader.meta;
-        }
-        this.modified = [];
-        this.fireEvent('metachange', this, this.reader.meta);
-    },
+    // @private, see average
+    getAverage: function(records, field) {
+        var i = 0,
+            len = records.length,
+            sum = 0;
 
-    // private
-    findInsertIndex : function(record){
-        this.suspendEvents();
-        var data = this.data.clone();
-        this.data.add(record);
-        this.applySort();
-        var index = this.data.indexOf(record);
-        this.data = data;
-        this.resumeEvents();
-        return index;
+        if (records.length > 0) {
+            for (; i < len; ++i) {
+                sum += records[i].get(field);
+            }
+            return sum / len;
+        }
+        return 0;
     },
 
     /**
-     * Set the value for a property name in this store's {@link #baseParams}.  Usage:</p><pre><code>
-myStore.setBaseParam('foo', {bar:3});
-</code></pre>
-     * @param {String} name Name of the property to assign
-     * @param {Mixed} value Value to assign the <tt>name</tt>d property
-     **/
-    setBaseParam : function (name, value){
-        this.baseParams = this.baseParams || {};
-        this.baseParams[name] = value;
+     * Runs the aggregate function for all the records in the store.
+     * @param {Function} fn The function to execute. The function is called with a single parameter,
+     * an array of records for that group.
+     * @param {Object} scope (optional) The scope to execute the function in. Defaults to the store.
+     * @param {Boolean} grouped (Optional) True to perform the operation for each group
+     * in the store. The value returned will be an object literal with the key being the group
+     * name and the group average being the value. The grouped parameter is only honored if
+     * the store has a groupField.
+     * @param {Array} args (optional) Any arguments to append to the function call
+     * @return {Object} An object literal with the group names and their appropriate values.
+     */
+    aggregate: function(fn, scope, grouped, args) {
+        args = args || [];
+        if (grouped && this.isGrouped()) {
+            var groups = this.getGroups(),
+                i = 0,
+                len = groups.length,
+                out = {},
+                group;
+
+            for (; i < len; ++i) {
+                group = groups[i];
+                out[group.name] = fn.apply(scope || this, [group.children].concat(args));
+            }
+            return out;
+        } else {
+            return fn.apply(scope || this, [this.data.items].concat(args));
+        }
     }
+}, function() {
+    // A dummy empty store with a fieldless Model defined in it.
+    // Just for binding to Views which are instantiated with no Store defined.
+    // They will be able to run and render fine, and be bound to a generated Store later.
+    Ext.regStore('ext-empty-store', {fields: [], proxy: 'proxy'});
 });
 
-Ext.reg('store', Ext.data.Store);
-
-/**
- * @class Ext.data.Store.Error
- * @extends Ext.Error
- * Store Error extension.
- * @param {String} name
- */
-Ext.data.Store.Error = Ext.extend(Ext.Error, {
-    name: 'Ext.data.Store'
-});
-Ext.apply(Ext.data.Store.Error.prototype, {
-    lang: {
-        'writer-undefined' : 'Attempted to execute a write-action without a DataWriter installed.'
-    }
-});

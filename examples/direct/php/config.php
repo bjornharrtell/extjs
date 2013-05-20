@@ -9,7 +9,17 @@ $API = array(
                 'len'=>1
             ),
             'getTree'=>array(
-                    'len'=>1
+                'len'=>1
+            ),
+            'getGrid'=>array(
+                'len'=>1
+            ),
+            'showDetails'=>array(
+                'params'=>array(
+                    'firstName',
+                    'lastName',
+                    'age'
+                )
             )
         )
     ),
@@ -26,7 +36,7 @@ $API = array(
                 'len'=>1
             ),
             'updateBasicInfo'=>array(
-                'len'=>2,
+                'len'=>0,
                 'formHandler'=>true
             )
         )

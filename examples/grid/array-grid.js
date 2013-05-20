@@ -1,31 +1,29 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-Ext.onReady(function(){
-    Ext.QuickTips.init();
+Ext.require([
+    'Ext.grid.*',
+    'Ext.data.*',
+    'Ext.util.*',
+    'Ext.state.*'
+]);
 
-    // NOTE: This is an example showing simple state management. During development,
-    // it is generally best to disable state management as dynamically-generated ids
-    // can change across page loads, leading to unpredictable results.  The developer
-    // should ensure that stable state ids are set for stateful components in real apps.    
-    Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+Ext.onReady(function() {
+    Ext.QuickTips.init();
+    
+    // setup the state provider, all state information will be saved to a cookie
+    Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
 
     // sample static data for the store
     var myData = [
@@ -56,7 +54,7 @@ Ext.onReady(function(){
         ['The Home Depot, Inc.',                34.64, 0.35,  1.02,  '9/1 12:00am'],
         ['The Procter & Gamble Company',        61.91, 0.01,  0.02,  '9/1 12:00am'],
         ['United Technologies Corporation',     63.26, 0.55,  0.88,  '9/1 12:00am'],
-        ['Verizon Communications',              35.57, 0.39,  1.11,  '9/1 12:00am'],            
+        ['Verizon Communications',              35.57, 0.39,  1.11,  '9/1 12:00am'],
         ['Wal-Mart Stores, Inc.',               45.45, 0.73,  1.63,  '9/1 12:00am']
     ];
 
@@ -87,56 +85,55 @@ Ext.onReady(function(){
     }
 
     // create the data store
-    var store = new Ext.data.ArrayStore({
+    var store = Ext.create('Ext.data.ArrayStore', {
         fields: [
            {name: 'company'},
            {name: 'price',      type: 'float'},
            {name: 'change',     type: 'float'},
            {name: 'pctChange',  type: 'float'},
            {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
-        ]
+        ],
+        data: myData
     });
 
-    // manually load local data
-    store.loadData(myData);
-
     // create the Grid
-    var grid = new Ext.grid.GridPanel({
+    var grid = Ext.create('Ext.grid.Panel', {
         store: store,
+        stateful: true,
+        stateId: 'stateGrid',
         columns: [
             {
-                id       :'company',
-                header   : 'Company', 
-                width    : 160, 
-                sortable : true, 
+                text     : 'Company',
+                flex     : 1,
+                sortable : false,
                 dataIndex: 'company'
             },
             {
-                header   : 'Price', 
-                width    : 75, 
-                sortable : true, 
-                renderer : 'usMoney', 
+                text     : 'Price',
+                width    : 75,
+                sortable : true,
+                renderer : 'usMoney',
                 dataIndex: 'price'
             },
             {
-                header   : 'Change', 
-                width    : 75, 
-                sortable : true, 
-                renderer : change, 
+                text     : 'Change',
+                width    : 75,
+                sortable : true,
+                renderer : change,
                 dataIndex: 'change'
             },
             {
-                header   : '% Change', 
-                width    : 75, 
-                sortable : true, 
-                renderer : pctChange, 
+                text     : '% Change',
+                width    : 75,
+                sortable : true,
+                renderer : pctChange,
                 dataIndex: 'pctChange'
             },
             {
-                header   : 'Last Updated', 
-                width    : 85, 
-                sortable : true, 
-                renderer : Ext.util.Format.dateRenderer('m/d/Y'), 
+                text     : 'Last Updated',
+                width    : 85,
+                sortable : true,
+                renderer : Ext.util.Format.dateRenderer('m/d/Y'),
                 dataIndex: 'lastChange'
             },
             {
@@ -152,7 +149,7 @@ Ext.onReady(function(){
                 }, {
                     getClass: function(v, meta, rec) {          // Or return a class from a function
                         if (rec.get('change') < 0) {
-                            this.items[1].tooltip = 'Do not buy!';
+                            this.items[1].tooltip = 'Hold stock';
                             return 'alert-col';
                         } else {
                             this.items[1].tooltip = 'Buy stock';
@@ -161,21 +158,18 @@ Ext.onReady(function(){
                     },
                     handler: function(grid, rowIndex, colIndex) {
                         var rec = store.getAt(rowIndex);
-                        alert("Buy " + rec.get('company'));
+                        alert((rec.get('change') < 0 ? "Hold " : "Buy ") + rec.get('company'));
                     }
                 }]
             }
         ],
-        stripeRows: true,
-        autoExpandColumn: 'company',
         height: 350,
         width: 600,
         title: 'Array Grid',
-        // config options for stateful behavior
-        stateful: true,
-        stateId: 'grid'
+        renderTo: 'grid-example',
+        viewConfig: {
+            stripeRows: true
+        }
     });
-
-    // render the grid to the specified div in the page
-    grid.render('grid-example');
 });
+

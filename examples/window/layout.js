@@ -1,75 +1,72 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.tab.*',
+    'Ext.window.*',
+    'Ext.tip.*',
+    'Ext.layout.container.Border'
+]);
 Ext.onReady(function(){
-    
-    Ext.state.Manager.setProvider(
-            new Ext.state.SessionProvider({state: Ext.appState}));
-
-    var button = Ext.get('show-btn');
+    var win,
+        button = Ext.get('show-btn');
 
     button.on('click', function(){
 
-        // tabs for the center
-        var tabs = new Ext.TabPanel({
-            region: 'center',
-            margins:'3 3 3 0', 
-            activeTab: 0,
-            defaults:{autoScroll:true},
-
-            items:[{
-                title: 'Bogus Tab',
-                html: Ext.example.bogusMarkup
-            },{
-                title: 'Another Tab',
-                html: Ext.example.bogusMarkup
-            },{
-                title: 'Closable Tab',
-                html: Ext.example.bogusMarkup,
-                closable:true
-            }]
-        });
-
-        // Panel for the west
-        var nav = new Ext.Panel({
-            title: 'Navigation',
-            region: 'west',
-            split: true,
-            width: 200,
-            collapsible: true,
-            margins:'3 0 3 3',
-            cmargins:'3 3 3 3'
-        });
-
-        var win = new Ext.Window({
-            title: 'Layout Window',
-            closable:true,
-            width:600,
-            height:350,
-            //border:false,
-            plain:true,
-            layout: 'border',
-
-            items: [nav, tabs]
-        });
-
-        win.show(this);
+        if (!win) {
+            win = Ext.create('widget.window', {
+                title: 'Layout Window',
+                closable: true,
+                closeAction: 'hide',
+                width: 600,
+                minWidth: 350,
+                height: 350,
+                layout: 'border',
+                bodyStyle: 'padding: 5px;',
+                items: [{
+                    region: 'west',
+                    title: 'Navigation',
+                    width: 200,
+                    split: true,
+                    collapsible: true,
+                    floatable: false
+                }, {
+                    region: 'center',
+                    xtype: 'tabpanel',
+                    items: [{
+                        title: 'Bogus Tab',
+                        html: 'Hello world 1'
+                    }, {
+                        title: 'Another Tab',
+                        html: 'Hello world 2'
+                    }, {
+                        title: 'Closable Tab',
+                        html: 'Hello world 3',
+                        closable: true
+                    }]
+                }]
+            });
+        }
+        button.dom.disabled = true;
+        if (win.isVisible()) {
+            win.hide(this, function() {
+                button.dom.disabled = false;
+            });
+        } else {
+            win.show(this, function() {
+                button.dom.disabled = false;
+            });
+        }
     });
 });

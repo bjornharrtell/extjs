@@ -4,29 +4,38 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>Paging Grid Example</title>
 
-<link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-
-    <!-- GC -->
- 	<!-- LIBS -->
- 	<script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
- 	<!-- ENDLIBS -->
-
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="../shared/example.css" />
     
-<script type="text/javascript" src="paging.js"></script>
-<link rel="stylesheet" type="text/css" href="grid-examples.css" />
-
-<!-- Common Styles for the examples -->
-<link rel="stylesheet" type="text/css" href="../shared/examples.css" />
+    <script type="text/javascript" src="../../bootstrap.js"></script>
+    <script type="text/javascript" src="paging.js"></script>
+    <style>
+        .x-grid-cell-topic b {
+            display: block;
+        }
+        .x-grid-cell-topic .x-grid-cell-inner {
+            white-space: normal;
+        }
+        .x-grid-cell-topic a {
+            color: #385F95;
+            text-decoration: none;
+        }
+        .x-grid-cell-topic a:hover {
+            text-decoration:underline;
+        }
+		.x-grid-cell-topic .x-grid-cell-innerf {
+			padding: 5px;
+		}
+		.x-grid-rowbody {
+	        padding: 0 5px 5px 5px; 
+		}
+    </style>
 </head>
 <body>
-<script type="text/javascript" src="../shared/examples.js"></script><!-- EXAMPLES -->
-<h1>Paging Grid Example</h1>
-<p>This example shows how to create a grid with paging. This grid uses a ScriptTagProxy to fetch cross-domain
-    remote data (from the Ext forums).</p>
-<p>Note that the js is not minified so it is readable. See <a href="paging.js">paging.js</a>.</p>
-
-<div id="topic-grid"></div>
-
+    <h1>Paging Grid Example</h1>
+    <p>This example shows how to create a grid with paging. This grid uses a Ext.data.proxy.JsonP proxy
+       to fetch cross-domain remote data (from the Ext forums).</p>
+    <p>Note that the js is not minified so it is readable. See <a href="paging.js">paging.js</a>.</p>
+    <div id="topic-grid"></div>
 </body>
 </html>

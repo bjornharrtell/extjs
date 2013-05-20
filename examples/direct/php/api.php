@@ -7,10 +7,17 @@ $actions = array();
 foreach($API as $aname=>&$a){
 	$methods = array();
 	foreach($a['methods'] as $mname=>&$m){
-		$md = array(
-			'name'=>$mname,
-			'len'=>$m['len']
-		);
+	    if (isset($m['len'])) {
+		    $md = array(
+			    'name'=>$mname,
+			    'len'=>$m['len']
+		    );
+		} else {
+		    $md = array(
+		        'name'=>$mname,
+		        'params'=>$m['params']
+		    );
+		}
 		if(isset($m['formHandler']) && $m['formHandler']){
 			$md['formHandler'] = true;
 		}
@@ -25,7 +32,7 @@ $cfg = array(
 	'actions'=>$actions
 );
 
-echo 'Ext.app.REMOTING_API = ';
+echo 'Ext.ns("Ext.app"); Ext.app.REMOTING_API = ';
 
 echo json_encode($cfg);
 echo ';';

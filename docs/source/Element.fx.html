@@ -47,7 +47,7 @@ Ext.Element.ASCLASS = 4;
  * @static
  * @type String
  */
-Ext.Element.visibilityCls = 'x-hide-nosize';
+Ext.Element.visibilityCls = Ext.baseCSSPrefix + 'hide-nosize';
 
 Ext.Element.addMethods(function(){
     var El = Ext.Element,
@@ -80,8 +80,8 @@ Ext.Element.addMethods(function(){
 
     return {
 <span id='Ext-Element-property-originalDisplay'>        /**
-</span>         * The element's default display mode  (defaults to &quot;&quot;)
-         * @type String
+</span>         * @property {String} originalDisplay
+         * The element's default display mode
          */
         originalDisplay : &quot;&quot;,
         visibilityMode : 1,
@@ -95,160 +95,6 @@ Ext.Element.addMethods(function(){
         setVisibilityMode : function(visMode){
             data(this.dom, VISMODE, visMode);
             return this;
-        },
-
-<span id='Ext-Element-method-animate'>        /**
-</span>         * Perform custom animation on this element.
-         * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
-         * &lt;li&gt;&lt;u&gt;Animation Properties&lt;/u&gt;&lt;/li&gt;
-         *
-         * &lt;p&gt;The Animation Control Object enables gradual transitions for any member of an
-         * element's style object that takes a numeric value including but not limited to
-         * these properties:&lt;/p&gt;&lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
-         * &lt;li&gt;&lt;tt&gt;bottom, top, left, right&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;height, width&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;margin, padding&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;borderWidth&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;opacity&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;fontSize&lt;/tt&gt;&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;lineHeight&lt;/tt&gt;&lt;/li&gt;
-         * &lt;/ul&gt;&lt;/div&gt;
-         *
-         *
-         * &lt;li&gt;&lt;u&gt;Animation Property Attributes&lt;/u&gt;&lt;/li&gt;
-         *
-         * &lt;p&gt;Each Animation Property is a config object with optional properties:&lt;/p&gt;
-         * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
-         * &lt;li&gt;&lt;tt&gt;by&lt;/tt&gt;*  : relative change - start at current value, change by this value&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;from&lt;/tt&gt; : ignore current value, start from this value&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;to&lt;/tt&gt;*  : start at current value, go to this value&lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;unit&lt;/tt&gt; : any allowable unit specification&lt;/li&gt;
-         * &lt;p&gt;* do not specify both &lt;tt&gt;to&lt;/tt&gt; and &lt;tt&gt;by&lt;/tt&gt; for an animation property&lt;/p&gt;
-         * &lt;/ul&gt;&lt;/div&gt;
-         *
-         * &lt;li&gt;&lt;u&gt;Animation Types&lt;/u&gt;&lt;/li&gt;
-         *
-         * &lt;p&gt;The supported animation types:&lt;/p&gt;&lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
-         * &lt;li&gt;&lt;tt&gt;'run'&lt;/tt&gt; : Default
-         * &lt;pre&gt;&lt;code&gt;
-var el = Ext.get('complexEl');
-el.animate(
-    // animation control object
-    {
-        borderWidth: {to: 3, from: 0},
-        opacity: {to: .3, from: 1},
-        height: {to: 50, from: el.getHeight()},
-        width: {to: 300, from: el.getWidth()},
-        top  : {by: - 100, unit: 'px'},
-    },
-    0.35,      // animation duration
-    null,      // callback
-    'easeOut', // easing method
-    'run'      // animation type ('run','color','motion','scroll')
-);
-         * &lt;/code&gt;&lt;/pre&gt;
-         * &lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;'color'&lt;/tt&gt;
-         * &lt;p&gt;Animates transition of background, text, or border colors.&lt;/p&gt;
-         * &lt;pre&gt;&lt;code&gt;
-el.animate(
-    // animation control object
-    {
-        color: { to: '#06e' },
-        backgroundColor: { to: '#e06' }
-    },
-    0.35,      // animation duration
-    null,      // callback
-    'easeOut', // easing method
-    'color'    // animation type ('run','color','motion','scroll')
-);
-         * &lt;/code&gt;&lt;/pre&gt;
-         * &lt;/li&gt;
-         *
-         * &lt;li&gt;&lt;tt&gt;'motion'&lt;/tt&gt;
-         * &lt;p&gt;Animates the motion of an element to/from specific points using optional bezier
-         * way points during transit.&lt;/p&gt;
-         * &lt;pre&gt;&lt;code&gt;
-el.animate(
-    // animation control object
-    {
-        borderWidth: {to: 3, from: 0},
-        opacity: {to: .3, from: 1},
-        height: {to: 50, from: el.getHeight()},
-        width: {to: 300, from: el.getWidth()},
-        top  : {by: - 100, unit: 'px'},
-        points: {
-            to: [50, 100],  // go to this point
-            control: [      // optional bezier way points
-                [ 600, 800],
-                [-100, 200]
-            ]
-        }
-    },
-    3000,      // animation duration (milliseconds!)
-    null,      // callback
-    'easeOut', // easing method
-    'motion'   // animation type ('run','color','motion','scroll')
-);
-         * &lt;/code&gt;&lt;/pre&gt;
-         * &lt;/li&gt;
-         * &lt;li&gt;&lt;tt&gt;'scroll'&lt;/tt&gt;
-         * &lt;p&gt;Animate horizontal or vertical scrolling of an overflowing page element.&lt;/p&gt;
-         * &lt;pre&gt;&lt;code&gt;
-el.animate(
-    // animation control object
-    {
-        scroll: {to: [400, 300]}
-    },
-    0.35,      // animation duration
-    null,      // callback
-    'easeOut', // easing method
-    'scroll'   // animation type ('run','color','motion','scroll')
-);
-         * &lt;/code&gt;&lt;/pre&gt;
-         * &lt;/li&gt;
-         * &lt;/ul&gt;&lt;/div&gt;
-         *
-         * &lt;/ul&gt;&lt;/div&gt;
-         *
-         * @param {Object} args The animation control args
-         * @param {Float} duration (optional) How long the animation lasts in seconds (defaults to &lt;tt&gt;.35&lt;/tt&gt;)
-         * @param {Function} onComplete (optional) Function to call when animation completes
-         * @param {String} easing (optional) {@link Ext.Fx#easing} method to use (defaults to &lt;tt&gt;'easeOut'&lt;/tt&gt;)
-         * @param {String} animType (optional) &lt;tt&gt;'run'&lt;/tt&gt; is the default. Can also be &lt;tt&gt;'color'&lt;/tt&gt;,
-         * &lt;tt&gt;'motion'&lt;/tt&gt;, or &lt;tt&gt;'scroll'&lt;/tt&gt;
-         * @return {Ext.Element} this
-         */
-        animate : function(args, duration, onComplete, easing, animType){
-            this.anim(args, {duration: duration, callback: onComplete, easing: easing}, animType);
-            return this;
-        },
-
-        /*
-         * @private Internal animation call
-         */
-        anim : function(args, opt, animType, defaultDur, defaultEase, cb){
-            animType = animType || 'run';
-            opt = opt || {};
-            var me = this,
-                anim = Ext.lib.Anim[animType](
-                    me.dom,
-                    args,
-                    (opt.duration || defaultDur) || .35,
-                    (opt.easing || defaultEase) || 'easeOut',
-                    function(){
-                        if(cb) cb.call(me);
-                        if(opt.callback) opt.callback.call(opt.scope || me, me, opt);
-                    },
-                    me
-                );
-            opt.anim = anim;
-            return anim;
-        },
-
-        // private legacy anim prep
-        preanim : function(a, i){
-            return !a[i] ? false : (typeof a[i] == 'object' ? a[i]: {duration: a[i+1], callback: a[i+2], easing: a[i+3]});
         },
 
 <span id='Ext-Element-method-isVisible'>        /**
@@ -266,7 +112,7 @@ el.animate(
             //Determine the current state based on display states
             visible = !me.isStyle(VISIBILITY, HIDDEN) &amp;&amp;
                       !me.isStyle(DISPLAY, NONE) &amp;&amp;
-                      !((getVisMode(dom) == El.ASCLASS) &amp;&amp; me.hasClass(me.visibilityCls || El.visibilityCls));
+                      !((getVisMode(dom) == El.ASCLASS) &amp;&amp; me.hasCls(me.visibilityCls || El.visibilityCls));
 
             data(dom, ISVISIBLE, visible);
             return visible;
@@ -309,7 +155,7 @@ el.animate(
             if (!animate || !me.anim) {
                 if(visMode == El.ASCLASS ){
 
-                    me[visible?'removeClass':'addClass'](me.visibilityCls || El.visibilityCls);
+                    me[visible?'removeCls':'addCls'](me.visibilityCls || El.visibilityCls);
 
                 } else if (visMode == El.DISPLAY){
 
@@ -318,35 +164,49 @@ el.animate(
                 } else if (visMode == El.OFFSETS){
 
                     if (!visible){
-                        me.hideModeStyles = {
-                            position: me.getStyle('position'),
-                            top: me.getStyle('top'),
-                            left: me.getStyle('left')
-                        };
+                        // Remember position for restoring, if we are not already hidden by offsets.
+                        if (!me.hideModeStyles) {
+                            me.hideModeStyles = {
+                                position: me.getStyle('position'),
+                                top: me.getStyle('top'),
+                                left: me.getStyle('left')
+                            };
+                        }
                         me.applyStyles({position: 'absolute', top: '-10000px', left: '-10000px'});
-                    } else {
+                    }
+
+                    // Only &quot;restore&quot; as position if we have actually been hidden using offsets.
+                    // Calling setVisible(true) on a positioned element should not reposition it.
+                    else if (me.hideModeStyles) {
                         me.applyStyles(me.hideModeStyles || {position: '', top: '', left: ''});
                         delete me.hideModeStyles;
                     }
 
                 }else{
                     me.fixDisplay();
-                    dom.style.visibility = visible ? &quot;visible&quot; : HIDDEN;
+                    // Show by clearing visibility style. Explicitly setting to &quot;visible&quot; overrides parent visibility setting.
+                    dom.style.visibility = visible ? '' : HIDDEN;
                 }
             }else{
                 // closure for composites
                 if(visible){
-                    me.setOpacity(.01);
+                    me.setOpacity(0.01);
                     me.setVisible(true);
                 }
-                me.anim({opacity: { to: (visible?1:0) }},
-                        me.preanim(arguments, 1),
-                        null,
-                        .35,
-                        'easeIn',
-                        function(){
-                            visible || me.setVisible(false).setOpacity(1);
-                        });
+                if (!Ext.isObject(animate)) {
+                    animate = {
+                        duration: 350,
+                        easing: 'ease-in'
+                    };
+                }
+                me.animate(Ext.applyIf({
+                    callback: function() {
+                        visible || me.setVisible(false).setOpacity(1);
+                    },
+                    to: {
+                        opacity: (visible) ? 1 : 0
+                    }
+                }, animate));
             }
             data(dom, ISVISIBLE, visible);  //set logical visibility state
             return me;
@@ -360,7 +220,7 @@ el.animate(
          */
         hasMetrics  : function(){
             var dom = this.dom;
-            return this.isVisible() || (getVisMode(dom) == El.VISIBILITY);
+            return this.isVisible() || (getVisMode(dom) == El.OFFSETS) || (getVisMode(dom) == El.VISIBILITY);
         },
 
 <span id='Ext-Element-method-toggle'>        /**
@@ -370,13 +230,13 @@ el.animate(
          */
         toggle : function(animate){
             var me = this;
-            me.setVisible(!me.isVisible(), me.preanim(arguments, 0));
+            me.setVisible(!me.isVisible(), me.anim(animate));
             return me;
         },
 
 <span id='Ext-Element-method-setDisplayed'>        /**
 </span>         * Sets the CSS display property. Uses originalDisplay if the specified value is a boolean true.
-         * @param {Mixed} value Boolean value to display the element using its default display, or a string to set the display directly.
+         * @param {Boolean/String} value Boolean value to display the element using its default display, or a string to set the display directly.
          * @return {Ext.Element} this
          */
         setDisplayed : function(value) {
@@ -390,10 +250,10 @@ el.animate(
         // private
         fixDisplay : function(){
             var me = this;
-            if(me.isStyle(DISPLAY, NONE)){
+            if (me.isStyle(DISPLAY, NONE)) {
                 me.setStyle(VISIBILITY, HIDDEN);
                 me.setStyle(DISPLAY, getDisplay(this.dom)); // first try reverting to default
-                if(me.isStyle(DISPLAY, NONE)){ // if that fails, default to block
+                if (me.isStyle(DISPLAY, NONE)) { // if that fails, default to block
                     me.setStyle(DISPLAY, &quot;block&quot;);
                 }
             }
@@ -410,7 +270,7 @@ el.animate(
                 this.setVisible(false, animate);
                 return this;
             }
-            this.setVisible(false, this.preanim(arguments, 0));
+            this.setVisible(false, this.anim(animate));
             return this;
         },
 
@@ -425,7 +285,7 @@ el.animate(
                 this.setVisible(true, animate);
                 return this;
             }
-            this.setVisible(true, this.preanim(arguments, 0));
+            this.setVisible(true, this.anim(animate));
             return this;
         }
     };

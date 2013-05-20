@@ -15,128 +15,240 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-LoadMask-method-constructor'><span id='Ext-LoadMask'>/**
-</span></span> * @class Ext.LoadMask
- * A simple utility class for generically masking elements while loading data.  If the {@link #store}
- * config option is specified, the masking will be automatically synchronized with the store's loading
- * process and the mask element will be cached for reuse.  For all other elements, this mask will replace the
- * element's Updater load indicator and will be destroyed after the initial load.
+  <pre class="prettyprint lang-js"><span id='Ext-LoadMask'>/**
+</span> * @class Ext.LoadMask
+ * &lt;p&gt;A modal, floating Component which may be shown above a specified {@link Ext.core.Element Element}, or a specified
+ * {@link Ext.Component Component} while loading data. When shown, the configured owning Element or Component will
+ * be covered with a modality mask, and the LoadMask's {@link #msg} will be displayed centered, accompanied by a spinner image.&lt;/p&gt;
+ * &lt;p&gt;If the {@link #store} config option is specified, the masking will be automatically shown and then hidden synchronized with
+ * the Store's loading process.&lt;/p&gt;
+ * &lt;p&gt;Because this is a floating Component, its z-index will be managed by the global {@link Ext.WindowManager ZIndexManager}
+ * object, and upon show, it will place itsef at the top of the hierarchy.&lt;/p&gt;
  * &lt;p&gt;Example usage:&lt;/p&gt;
- *&lt;pre&gt;&lt;code&gt;
+ * &lt;pre&gt;&lt;code&gt;
 // Basic mask:
 var myMask = new Ext.LoadMask(Ext.getBody(), {msg:&quot;Please wait...&quot;});
 myMask.show();
 &lt;/code&gt;&lt;/pre&gt;
- * @constructor
- * Create a new LoadMask
- * @param {Mixed} el The element or DOM node, or its id
- * @param {Object} config The config object
- */
-Ext.LoadMask = function(el, config){
-    this.el = Ext.get(el);
-    Ext.apply(this, config);
-    if(this.store){
-        this.store.on({
-            scope: this,
-            beforeload: this.onBeforeLoad,
-            load: this.onLoad,
-            exception: this.onLoad
-        });
-        this.removeMask = Ext.value(this.removeMask, false);
-    }else{
-        var um = this.el.getUpdater();
-        um.showLoadIndicator = false; // disable the default indicator
-        um.on({
-            scope: this,
-            beforeupdate: this.onBeforeLoad,
-            update: this.onLoad,
-            failure: this.onLoad
-        });
-        this.removeMask = Ext.value(this.removeMask, true);
-    }
-};
 
-Ext.LoadMask.prototype = {
+ */
+
+Ext.define('Ext.LoadMask', {
+
+    extend: 'Ext.Component',
+
+    alias: 'widget.loadmask',
+
+    /* Begin Definitions */
+
+    mixins: {
+        floating: 'Ext.util.Floating'
+    },
+
+    uses: ['Ext.data.StoreManager'],
+
+    /* End Definitions */
+
 <span id='Ext-LoadMask-cfg-store'>    /**
 </span>     * @cfg {Ext.data.Store} store
      * Optional Store to which the mask is bound. The mask is displayed when a load request is issued, and
-     * hidden on either load sucess, or load fail.
+     * hidden on either load success, or load fail.
      */
-<span id='Ext-LoadMask-cfg-removeMask'>    /**
-</span>     * @cfg {Boolean} removeMask
-     * True to create a single-use mask that is automatically destroyed after loading (useful for page loads),
-     * False to persist the mask element reference for multiple uses (e.g., for paged data widgets).  Defaults to false.
-     */
+
 <span id='Ext-LoadMask-cfg-msg'>    /**
 </span>     * @cfg {String} msg
-     * The text to display in a centered loading message box (defaults to 'Loading...')
+     * The text to display in a centered loading message box.
      */
     msg : 'Loading...',
 <span id='Ext-LoadMask-cfg-msgCls'>    /**
-</span>     * @cfg {String} msgCls
-     * The CSS class to apply to the loading message element (defaults to &quot;x-mask-loading&quot;)
+</span>     * @cfg {String} [msgCls=&quot;x-mask-loading&quot;]
+     * The CSS class to apply to the loading message element.
      */
-    msgCls : 'x-mask-loading',
+    msgCls : Ext.baseCSSPrefix + 'mask-loading',
+    
+<span id='Ext-LoadMask-cfg-useMsg'>    /**
+</span>     * @cfg {Boolean} useMsg
+     * Whether or not to use a loading message class or simply mask the bound element.
+     */
+    useMsg: true,
 
 <span id='Ext-LoadMask-property-disabled'>    /**
-</span>     * Read-only. True if the mask is currently disabled so that it will not be displayed (defaults to false)
+</span>     * Read-only. True if the mask is currently disabled so that it will not be displayed
      * @type Boolean
      */
     disabled: false,
 
-<span id='Ext-LoadMask-method-disable'>    /**
-</span>     * Disables the mask to prevent it from being displayed
+    baseCls: Ext.baseCSSPrefix + 'mask-msg',
+
+    renderTpl: '&lt;div style=&quot;position:relative&quot; class=&quot;{msgCls}&quot;&gt;&lt;/div&gt;',
+
+    // Private. The whole point is that there's a mask.
+    modal: true,
+
+    // Private. Obviously, it's floating.
+    floating: {
+        shadow: 'frame'
+    },
+
+    // Private. Masks are not focusable
+    focusOnToFront: false,
+
+<span id='Ext-LoadMask-method-constructor'>    /**
+</span>     * Creates new LoadMask.
+     * @param {String/HTMLElement/Ext.Element} el The element, element ID, or DOM node you wish to mask.
+     * &lt;p&gt;Also, may be a {@link Ext.Component Component} who's element you wish to mask. If a Component is specified, then
+     * the mask will be automatically sized upon Component resize, the message box will be kept centered,
+     * and the mask only be visible when the Component is.&lt;/p&gt;
+     * @param {Object} [config] The config object
      */
-    disable : function(){
-       this.disabled = true;
+    constructor : function(el, config) {
+        var me = this;
+
+        // If a Component passed, bind to it.
+        if (el.isComponent) {
+            me.ownerCt = el;
+            me.bindComponent(el);
+        }
+        // Create a dumy Component encapsulating the specified Element
+        else {
+            me.ownerCt = new Ext.Component({
+                el: Ext.get(el),
+                rendered: true,
+                componentLayoutCounter: 1
+            });
+            me.container = el;
+        }
+        me.callParent([config]);
+
+        if (me.store) {
+            me.bindStore(me.store, true);
+        }
+        me.renderData = {
+            msgCls: me.msgCls
+        };
+        me.renderSelectors = {
+            msgEl: 'div'
+        };
     },
 
-<span id='Ext-LoadMask-method-enable'>    /**
-</span>     * Enables the mask so that it can be displayed
+    bindComponent: function(comp) {
+        this.mon(comp, {
+            resize: this.onComponentResize,
+            scope: this
+        });
+    },
+
+    afterRender: function() {
+        this.callParent(arguments);
+        this.container = this.floatParent.getContentTarget();
+    },
+
+<span id='Ext-LoadMask-method-onComponentResize'>    /**
+</span>     * @private
+     * Called when this LoadMask's Component is resized. The toFront method rebases and resizes the modal mask.
      */
-    enable : function(){
-        this.disabled = false;
-    },
-
-    // private
-    onLoad : function(){
-        this.el.unmask(this.removeMask);
-    },
-
-    // private
-    onBeforeLoad : function(){
-        if(!this.disabled){
-            this.el.mask(this.msg, this.msgCls);
+    onComponentResize: function() {
+        var me = this;
+        if (me.rendered &amp;&amp; me.isVisible()) {
+            me.toFront();
+            me.center();
         }
     },
 
-<span id='Ext-LoadMask-method-show'>    /**
-</span>     * Show this LoadMask over the configured Element.
+<span id='Ext-LoadMask-method-bindStore'>    /**
+</span>     * Changes the data store bound to this LoadMask.
+     * @param {Ext.data.Store} store The store to bind to this LoadMask
      */
-    show: function(){
-        this.onBeforeLoad();
+    bindStore : function(store, initial) {
+        var me = this;
+
+        if (!initial &amp;&amp; me.store) {
+            me.mun(me.store, {
+                scope: me,
+                beforeload: me.onBeforeLoad,
+                load: me.onLoad,
+                exception: me.onLoad
+            });
+            if (!store) {
+                me.store = null;
+            }
+        }
+        if (store) {
+            store = Ext.data.StoreManager.lookup(store);
+            me.mon(store, {
+                scope: me,
+                beforeload: me.onBeforeLoad,
+                load: me.onLoad,
+                exception: me.onLoad
+            });
+
+        }
+        me.store = store;
+        if (store &amp;&amp; store.isLoading()) {
+            me.onBeforeLoad();
+        }
     },
 
-<span id='Ext-LoadMask-method-hide'>    /**
-</span>     * Hide this LoadMask.
-     */
-    hide: function(){
-        this.onLoad();
+    onDisable : function() {
+        this.callParent(arguments);
+        if (this.loading) {
+            this.onLoad();
+        }
     },
 
     // private
-    destroy : function(){
-        if(this.store){
-            this.store.un('beforeload', this.onBeforeLoad, this);
-            this.store.un('load', this.onLoad, this);
-            this.store.un('exception', this.onLoad, this);
-        }else{
-            var um = this.el.getUpdater();
-            um.un('beforeupdate', this.onBeforeLoad, this);
-            um.un('update', this.onLoad, this);
-            um.un('failure', this.onLoad, this);
+    onBeforeLoad : function() {
+        var me = this,
+            owner = me.ownerCt || me.floatParent,
+            origin;
+        if (!this.disabled) {
+            // If the owning Component has not been layed out, defer so that the ZIndexManager
+            // gets to read its layed out size when sizing the modal mask
+            if (owner.componentLayoutCounter) {
+                Ext.Component.prototype.show.call(me);
+            } else {
+                // The code below is a 'run-once' interceptor.
+                origin = owner.afterComponentLayout;
+                owner.afterComponentLayout = function() {
+                    owner.afterComponentLayout = origin;
+                    origin.apply(owner, arguments);
+                    if(me.loading) {
+                        Ext.Component.prototype.show.call(me);
+                    }
+                };
+            }
         }
+    },
+
+    onHide: function(){
+        var me = this;
+        me.callParent(arguments);
+        me.showOnParentShow = true;
+    },
+
+    onShow: function() {
+        var me = this,
+            msgEl = me.msgEl;
+            
+        me.callParent(arguments);
+        me.loading = true;
+        if (me.useMsg) {
+            msgEl.show().update(me.msg);
+        } else {
+            msgEl.parent().hide();
+        }
+    },
+
+    afterShow: function() {
+        this.callParent(arguments);
+        this.center();
+    },
+
+    // private
+    onLoad : function() {
+        this.loading = false;
+        Ext.Component.prototype.hide.call(this);
     }
-};</pre>
+});</pre>
 </body>
 </html>

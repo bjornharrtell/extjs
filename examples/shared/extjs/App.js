@@ -1,45 +1,24 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
 /**
  * Ext.App
  * @extends Ext.util.Observable
  * @author Chris Scott
  */
-Ext.App = function(config) {
-    this.views = [];
-    
-    this.initStateProvider();
-    
-    Ext.apply(this, config);
-    
-    if (!this.api.actions) {
-        this.api.actions = {};
-    }
-    
-    Ext.onReady(this.onReady, this);
-    
-    Ext.App.superclass.constructor.apply(this, arguments);
-};
-
-Ext.extend(Ext.App, Ext.util.Observable, {
+Ext.define('Ext.App', {
+    extend: 'Ext.util.Observable',
 
     /***
      * response status codes.
@@ -64,6 +43,22 @@ Ext.extend(Ext.App, Ext.util.Observable, {
     // private, ref to message-box Element.
     msgCt : null,
 
+    constructor: function(config) {
+        this.views = [];
+
+        this.initStateProvider();
+
+        Ext.apply(this, config);
+
+        if (!this.api.actions) {
+            this.api.actions = {};
+        }
+
+        Ext.onReady(this.onReady, this);
+
+        Ext.App.superclass.constructor.apply(this, arguments);
+    },
+
     // @protected, onReady, executes when Ext.onReady fires.
     onReady : function() {
         // create the msgBox container.  used for App.setAlert
@@ -87,7 +82,7 @@ Ext.extend(Ext.App, Ext.util.Observable, {
         }
 
         // register provider with state manager.
-        Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider', {
             path: '/',
             expires: exptime,
             domain: null,
@@ -188,7 +183,7 @@ Ext.extend(Ext.App, Ext.util.Observable, {
      * @param {Object} status
      */
     decodeStatusIcon : function(status) {
-        iconCls = '';
+        var iconCls = '';
         switch (status) {
             case true:
             case this.STATUS_OK:
@@ -248,3 +243,4 @@ Ext.extend(Ext.App, Ext.util.Observable, {
         Ext.MessageBox.alert(res.type.toUpperCase(), res.message);
     }
 });
+

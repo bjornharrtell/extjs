@@ -1,5 +1,5 @@
-Ext JS 3.4 - JavaScript Library
-Copyright (c) 2006-2013, Sencha Inc.
+Ext JS - JavaScript Library
+Copyright (c) 2006-2011, Sencha Inc.
 All rights reserved.
 licensing@sencha.com
 

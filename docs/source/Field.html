@@ -15,750 +15,436 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-form-Field-method-constructor'><span id='Ext-form-Field'>/**
-</span></span> * @class Ext.form.Field
- * @extends Ext.BoxComponent
- * Base class for form fields that provides default event handling, sizing, value handling and other functionality.
- * @constructor
- * Creates a new Field
- * @param {Object} config Configuration options
- * @xtype field
+  <pre class="prettyprint lang-js"><span id='Ext-form-field-Field'>/**
+</span> * @docauthor Jason Johnston &lt;jason@sencha.com&gt;
+ *
+ * This mixin provides a common interface for the logical behavior and state of form fields, including:
+ *
+ * - Getter and setter methods for field values
+ * - Events and methods for tracking value and validity changes
+ * - Methods for triggering validation
+ *
+ * **NOTE**: When implementing custom fields, it is most likely that you will want to extend the {@link Ext.form.field.Base}
+ * component class rather than using this mixin directly, as BaseField contains additional logic for generating an
+ * actual DOM complete with {@link Ext.form.Labelable label and error message} display and a form input field,
+ * plus methods that bind the Field value getters and setters to the input field's value.
+ *
+ * If you do want to implement this mixin directly and don't want to extend {@link Ext.form.field.Base}, then
+ * you will most likely want to override the following methods with custom implementations: {@link #getValue},
+ * {@link #setValue}, and {@link #getErrors}. Other methods may be overridden as needed but their base
+ * implementations should be sufficient for common cases. You will also need to make sure that {@link #initField}
+ * is called during the component's initialization.
  */
-Ext.form.Field = Ext.extend(Ext.BoxComponent,  {
-<span id='Ext-form-Field-property-label'>    /**
-</span>     * &lt;p&gt;The label Element associated with this Field. &lt;b&gt;Only available after this Field has been rendered by a
-     * {@link form Ext.layout.FormLayout} layout manager.&lt;/b&gt;&lt;/p&gt;
-     * @type Ext.Element
-     * @property label
+Ext.define('Ext.form.field.Field', {
+<span id='Ext-form-field-Field-property-isFormField'>    /**
+</span>     * @property {Boolean} isFormField
+     * Flag denoting that this component is a Field. Always true.
      */
-<span id='Ext-form-Field-cfg-inputType'>    /**
-</span>     * @cfg {String} inputType The type attribute for input fields -- e.g. radio, text, password, file (defaults
-     * to 'text'). The types 'file' and 'password' must be used to render those field types currently -- there are
-     * no separate Ext components for those. Note that if you use &lt;tt&gt;inputType:'file'&lt;/tt&gt;, {@link #emptyText}
-     * is not supported and should be avoided.
-     */
-<span id='Ext-form-Field-cfg-tabIndex'>    /**
-</span>     * @cfg {Number} tabIndex The tabIndex for this field. Note this only applies to fields that are rendered,
-     * not those which are built via applyTo (defaults to undefined).
-     */
-<span id='Ext-form-Field-cfg-value'>    /**
-</span>     * @cfg {Mixed} value A value to initialize this field with (defaults to undefined).
-     */
-<span id='Ext-form-Field-cfg-name'>    /**
-</span>     * @cfg {String} name The field's HTML name attribute (defaults to '').
-     * &lt;b&gt;Note&lt;/b&gt;: this property must be set if this field is to be automatically included with
-     * {@link Ext.form.BasicForm#submit form submit()}.
-     */
-<span id='Ext-form-Field-cfg-cls'>    /**
-</span>     * @cfg {String} cls A custom CSS class to apply to the field's underlying element (defaults to '').
+    isFormField : true,
+
+<span id='Ext-form-field-Field-cfg-value'>    /**
+</span>     * @cfg {Object} value
+     * A value to initialize this field with.
      */
 
-<span id='Ext-form-Field-cfg-invalidClass'>    /**
-</span>     * @cfg {String} invalidClass The CSS class to use when marking a field invalid (defaults to 'x-form-invalid')
+<span id='Ext-form-field-Field-cfg-name'>    /**
+</span>     * @cfg {String} name
+     * The name of the field. By default this is used as the parameter name when including the
+     * {@link #getSubmitData field value} in a {@link Ext.form.Basic#submit form submit()}. To prevent the field from
+     * being included in the form submit, set {@link #submitValue} to false.
      */
-    invalidClass : 'x-form-invalid',
-<span id='Ext-form-Field-cfg-invalidText'>    /**
-</span>     * @cfg {String} invalidText The error text to use when marking a field invalid and no message is provided
-     * (defaults to 'The value in this field is invalid')
-     */
-    invalidText : 'The value in this field is invalid',
-<span id='Ext-form-Field-cfg-focusClass'>    /**
-</span>     * @cfg {String} focusClass The CSS class to use when the field receives focus (defaults to 'x-form-focus')
-     */
-    focusClass : 'x-form-focus',
-<span id='Ext-form-Field-cfg-preventMark'>    /**
-</span>     * @cfg {Boolean} preventMark
-     * &lt;tt&gt;true&lt;/tt&gt; to disable {@link #markInvalid marking the field invalid}.
-     * Defaults to &lt;tt&gt;false&lt;/tt&gt;.
-     */
-<span id='Ext-form-Field-cfg-validationEvent'>    /**
-</span>     * @cfg {String/Boolean} validationEvent The event that should initiate field validation. Set to false to disable
-      automatic validation (defaults to 'keyup').
-     */
-    validationEvent : 'keyup',
-<span id='Ext-form-Field-cfg-validateOnBlur'>    /**
-</span>     * @cfg {Boolean} validateOnBlur Whether the field should validate when it loses focus (defaults to true).
-     */
-    validateOnBlur : true,
-<span id='Ext-form-Field-cfg-validationDelay'>    /**
-</span>     * @cfg {Number} validationDelay The length of time in milliseconds after user input begins until validation
-     * is initiated (defaults to 250)
-     */
-    validationDelay : 250,
-<span id='Ext-form-Field-cfg-autoCreate'>    /**
-</span>     * @cfg {String/Object} autoCreate &lt;p&gt;A {@link Ext.DomHelper DomHelper} element spec, or true for a default
-     * element spec. Used to create the {@link Ext.Component#getEl Element} which will encapsulate this Component.
-     * See &lt;tt&gt;{@link Ext.Component#autoEl autoEl}&lt;/tt&gt; for details.  Defaults to:&lt;/p&gt;
-     * &lt;pre&gt;&lt;code&gt;{tag: 'input', type: 'text', size: '20', autocomplete: 'off'}&lt;/code&gt;&lt;/pre&gt;
-     */
-    defaultAutoCreate : {tag: 'input', type: 'text', size: '20', autocomplete: 'off'},
-<span id='Ext-form-Field-cfg-fieldClass'>    /**
-</span>     * @cfg {String} fieldClass The default CSS class for the field (defaults to 'x-form-field')
-     */
-    fieldClass : 'x-form-field',
-<span id='Ext-form-Field-cfg-msgTarget'>    /**
-</span>     * @cfg {String} msgTarget &lt;p&gt;The location where the message text set through {@link #markInvalid} should display.
-     * Must be one of the following values:&lt;/p&gt;
-     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
-     * &lt;li&gt;&lt;code&gt;qtip&lt;/code&gt; Display a quick tip containing the message when the user hovers over the field. This is the default.
-     * &lt;div class=&quot;subdesc&quot;&gt;&lt;b&gt;{@link Ext.QuickTips#init Ext.QuickTips.init} must have been called for this setting to work.&lt;/b&gt;&lt;/div&lt;/li&gt;
-     * &lt;li&gt;&lt;code&gt;title&lt;/code&gt; Display the message in a default browser title attribute popup.&lt;/li&gt;
-     * &lt;li&gt;&lt;code&gt;under&lt;/code&gt; Add a block div beneath the field containing the error message.&lt;/li&gt;
-     * &lt;li&gt;&lt;code&gt;side&lt;/code&gt; Add an error icon to the right of the field, displaying the message in a popup on hover.&lt;/li&gt;
-     * &lt;li&gt;&lt;code&gt;[element id]&lt;/code&gt; Add the error message directly to the innerHTML of the specified element.&lt;/li&gt;
-     * &lt;/ul&gt;&lt;/div&gt;
-     */
-    msgTarget : 'qtip',
-<span id='Ext-form-Field-cfg-msgFx'>    /**
-</span>     * @cfg {String} msgFx &lt;b&gt;Experimental&lt;/b&gt; The effect used when displaying a validation message under the field
-     * (defaults to 'normal').
-     */
-    msgFx : 'normal',
-<span id='Ext-form-Field-cfg-readOnly'>    /**
-</span>     * @cfg {Boolean} readOnly &lt;tt&gt;true&lt;/tt&gt; to mark the field as readOnly in HTML
-     * (defaults to &lt;tt&gt;false&lt;/tt&gt;).
-     * &lt;br&gt;&lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: this only sets the element's readOnly DOM attribute.
-     * Setting &lt;code&gt;readOnly=true&lt;/code&gt;, for example, will not disable triggering a
-     * ComboBox or DateField; it gives you the option of forcing the user to choose
-     * via the trigger without typing in the text box. To hide the trigger use
-     * &lt;code&gt;{@link Ext.form.TriggerField#hideTrigger hideTrigger}&lt;/code&gt;.&lt;/p&gt;
-     */
-    readOnly : false,
-<span id='Ext-form-Field-cfg-disabled'>    /**
-</span>     * @cfg {Boolean} disabled True to disable the field (defaults to false).
-     * &lt;p&gt;Be aware that conformant with the &lt;a href=&quot;http://www.w3.org/TR/html401/interact/forms.html#h-17.12.1&quot;&gt;HTML specification&lt;/a&gt;,
-     * disabled Fields will not be {@link Ext.form.BasicForm#submit submitted}.&lt;/p&gt;
+
+<span id='Ext-form-field-Field-cfg-disabled'>    /**
+</span>     * @cfg {Boolean} disabled
+     * True to disable the field. Disabled Fields will not be {@link Ext.form.Basic#submit submitted}.
      */
     disabled : false,
-<span id='Ext-form-Field-cfg-submitValue'>    /**
-</span>     * @cfg {Boolean} submitValue False to clear the name attribute on the field so that it is not submitted during a form post.
-     * Defaults to &lt;tt&gt;true&lt;/tt&gt;.
+
+<span id='Ext-form-field-Field-cfg-submitValue'>    /**
+</span>     * @cfg {Boolean} submitValue
+     * Setting this to false will prevent the field from being {@link Ext.form.Basic#submit submitted} even when it is
+     * not disabled.
      */
     submitValue: true,
 
-<span id='Ext-form-Field-property-isFormField'>    // private
-</span>    isFormField : true,
+<span id='Ext-form-field-Field-cfg-validateOnChange'>    /**
+</span>     * @cfg {Boolean} validateOnChange
+     * Specifies whether this field should be validated immediately whenever a change in its value is detected.
+     * If the validation results in a change in the field's validity, a {@link #validitychange} event will be
+     * fired. This allows the field to show feedback about the validity of its contents immediately as the user is
+     * typing.
+     *
+     * When set to false, feedback will not be immediate. However the form will still be validated before submitting if
+     * the clientValidation option to {@link Ext.form.Basic#doAction} is enabled, or if the field or form are validated
+     * manually.
+     *
+     * See also {@link Ext.form.field.Base#checkChangeEvents} for controlling how changes to the field's value are
+     * detected.
+     */
+    validateOnChange: true,
 
-<span id='Ext-form-Field-property-msgDisplay'>    // private
-</span>    msgDisplay: '',
+<span id='Ext-form-field-Field-property-suspendCheckChange'>    /**
+</span>     * @private
+     */
+    suspendCheckChange: 0,
 
-<span id='Ext-form-Field-property-hasFocus'>    // private
-</span>    hasFocus : false,
-
-<span id='Ext-form-Field-method-initComponent'>    // private
-</span>    initComponent : function(){
-        Ext.form.Field.superclass.initComponent.call(this);
+<span id='Ext-form-field-Field-method-initField'>    /**
+</span>     * Initializes this Field mixin on the current instance. Components using this mixin should call this method during
+     * their own initialization process.
+     */
+    initField: function() {
         this.addEvents(
-<span id='Ext-form-Field-event-focus'>            /**
-</span>             * @event focus
-             * Fires when this field receives input focus.
-             * @param {Ext.form.Field} this
-             */
-            'focus',
-<span id='Ext-form-Field-event-blur'>            /**
-</span>             * @event blur
-             * Fires when this field loses input focus.
-             * @param {Ext.form.Field} this
-             */
-            'blur',
-<span id='Ext-form-Field-event-specialkey'>            /**
-</span>             * @event specialkey
-             * Fires when any key related to navigation (arrows, tab, enter, esc, etc.) is pressed.
-             * To handle other keys see {@link Ext.Panel#keys} or {@link Ext.KeyMap}.
-             * You can check {@link Ext.EventObject#getKey} to determine which key was pressed.
-             * For example: &lt;pre&gt;&lt;code&gt;
-var form = new Ext.form.FormPanel({
-    ...
-    items: [{
-            fieldLabel: 'Field 1',
-            name: 'field1',
-            allowBlank: false
-        },{
-            fieldLabel: 'Field 2',
-            name: 'field2',
-            listeners: {
-                specialkey: function(field, e){
-                    // e.HOME, e.END, e.PAGE_UP, e.PAGE_DOWN,
-                    // e.TAB, e.ESC, arrow keys: e.LEFT, e.RIGHT, e.UP, e.DOWN
-                    if (e.{@link Ext.EventObject#getKey getKey()} == e.ENTER) {
-                        var form = field.ownerCt.getForm();
-                        form.submit();
-                    }
-                }
-            }
-        }
-    ],
-    ...
-});
-             * &lt;/code&gt;&lt;/pre&gt;
-             * @param {Ext.form.Field} this
-             * @param {Ext.EventObject} e The event object
-             */
-            'specialkey',
-<span id='Ext-form-Field-event-change'>            /**
+<span id='Ext-form-field-Field-event-change'>            /**
 </span>             * @event change
-             * Fires just before the field blurs if the field value has changed.
-             * @param {Ext.form.Field} this
-             * @param {Mixed} newValue The new value
-             * @param {Mixed} oldValue The original value
+             * Fires when a user-initiated change is detected in the value of the field.
+             * @param {Ext.form.field.Field} this
+             * @param {Object} newValue The new value
+             * @param {Object} oldValue The original value
              */
             'change',
-<span id='Ext-form-Field-event-invalid'>            /**
-</span>             * @event invalid
-             * Fires after the field has been marked as invalid.
-             * @param {Ext.form.Field} this
-             * @param {String} msg The validation message
+<span id='Ext-form-field-Field-event-validitychange'>            /**
+</span>             * @event validitychange
+             * Fires when a change in the field's validity is detected.
+             * @param {Ext.form.field.Field} this
+             * @param {Boolean} isValid Whether or not the field is now valid
              */
-            'invalid',
-<span id='Ext-form-Field-event-valid'>            /**
-</span>             * @event valid
-             * Fires after the field has been validated with no errors.
-             * @param {Ext.form.Field} this
+            'validitychange',
+<span id='Ext-form-field-Field-event-dirtychange'>            /**
+</span>             * @event dirtychange
+             * Fires when a change in the field's {@link #isDirty} state is detected.
+             * @param {Ext.form.field.Field} this
+             * @param {Boolean} isDirty Whether or not the field is now dirty
              */
-            'valid'
+            'dirtychange'
         );
-    },
 
-<span id='Ext-form-Field-method-getName'>    /**
-</span>     * Returns the {@link Ext.form.Field#name name} or {@link Ext.form.ComboBox#hiddenName hiddenName}
-     * attribute of the field if available.
-     * @return {String} name The field {@link Ext.form.Field#name name} or {@link Ext.form.ComboBox#hiddenName hiddenName}
-     */
-    getName : function(){
-        return this.rendered &amp;&amp; this.el.dom.name ? this.el.dom.name : this.name || this.id || '';
-    },
-
-<span id='Ext-form-Field-method-onRender'>    // private
-</span>    onRender : function(ct, position){
-        if(!this.el){
-            var cfg = this.getAutoCreate();
-
-            if(!cfg.name){
-                cfg.name = this.name || this.id;
-            }
-            if(this.inputType){
-                cfg.type = this.inputType;
-            }
-            this.autoEl = cfg;
-        }
-        Ext.form.Field.superclass.onRender.call(this, ct, position);
-        if(this.submitValue === false){
-            this.el.dom.removeAttribute('name');
-        }
-        var type = this.el.dom.type;
-        if(type){
-            if(type == 'password'){
-                type = 'text';
-            }
-            this.el.addClass('x-form-'+type);
-        }
-        if(this.readOnly){
-            this.setReadOnly(true);
-        }
-        if(this.tabIndex !== undefined){
-            this.el.dom.setAttribute('tabIndex', this.tabIndex);
-        }
-
-        this.el.addClass([this.fieldClass, this.cls]);
-    },
-
-<span id='Ext-form-Field-method-getItemCt'>    // private
-</span>    getItemCt : function(){
-        return this.itemCt;
-    },
-
-<span id='Ext-form-Field-method-initValue'>    // private
-</span>    initValue : function(){
-        if(this.value !== undefined){
-            this.setValue(this.value);
-        }else if(!Ext.isEmpty(this.el.dom.value) &amp;&amp; this.el.dom.value != this.emptyText){
-            this.setValue(this.el.dom.value);
-        }
-<span id='Ext-form-Field-property-originalValue'>        /**
-</span>         * The original value of the field as configured in the {@link #value} configuration, or
-         * as loaded by the last form load operation if the form's {@link Ext.form.BasicForm#trackResetOnLoad trackResetOnLoad}
-         * setting is &lt;code&gt;true&lt;/code&gt;.
-         * @type mixed
-         * @property originalValue
-         */
-        this.originalValue = this.getValue();
-    },
-
-<span id='Ext-form-Field-method-isDirty'>    /**
-</span>     * &lt;p&gt;Returns true if the value of this Field has been changed from its original value.
-     * Will return false if the field is disabled or has not been rendered yet.&lt;/p&gt;
-     * &lt;p&gt;Note that if the owning {@link Ext.form.BasicForm form} was configured with
-     * {@link Ext.form.BasicForm}.{@link Ext.form.BasicForm#trackResetOnLoad trackResetOnLoad}
-     * then the &lt;i&gt;original value&lt;/i&gt; is updated when the values are loaded by
-     * {@link Ext.form.BasicForm}.{@link Ext.form.BasicForm#setValues setValues}.&lt;/p&gt;
-     * @return {Boolean} True if this field has been changed from its original value (and
-     * is not disabled), false otherwise.
-     */
-    isDirty : function() {
-        if(this.disabled || !this.rendered) {
-            return false;
-        }
-        return String(this.getValue()) !== String(this.originalValue);
-    },
-
-<span id='Ext-form-Field-method-setReadOnly'>    /**
-</span>     * Sets the read only state of this field.
-     * @param {Boolean} readOnly Whether the field should be read only.
-     */
-    setReadOnly : function(readOnly){
-        if(this.rendered){
-            this.el.dom.readOnly = readOnly;
-        }
-        this.readOnly = readOnly;
-    },
-
-<span id='Ext-form-Field-method-afterRender'>    // private
-</span>    afterRender : function(){
-        Ext.form.Field.superclass.afterRender.call(this);
-        this.initEvents();
         this.initValue();
     },
 
-<span id='Ext-form-Field-method-fireKey'>    // private
-</span>    fireKey : function(e){
-        if(e.isSpecialKey()){
-            this.fireEvent('specialkey', this, e);
-        }
+<span id='Ext-form-field-Field-method-initValue'>    /**
+</span>     * Initializes the field's value based on the initial config.
+     */
+    initValue: function() {
+        var me = this;
+
+<span id='Ext-form-field-Field-property-originalValue'>        /**
+</span>         * @property {Object} originalValue
+         * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
+         * form load operation if the form's {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} setting is `true`.
+         */
+        me.originalValue = me.lastValue = me.value;
+
+        // Set the initial value - prevent validation on initial set
+        me.suspendCheckChange++;
+        me.setValue(me.value);
+        me.suspendCheckChange--;
     },
 
-<span id='Ext-form-Field-method-reset'>    /**
-</span>     * Resets the current field value to the originally loaded value and clears any validation messages.
-     * See {@link Ext.form.BasicForm}.{@link Ext.form.BasicForm#trackResetOnLoad trackResetOnLoad}
+<span id='Ext-form-field-Field-method-getName'>    /**
+</span>     * Returns the {@link Ext.form.field.Field#name name} attribute of the field. This is used as the parameter name
+     * when including the field value in a {@link Ext.form.Basic#submit form submit()}.
+     * @return {String} name The field {@link Ext.form.field.Field#name name}
+     */
+    getName: function() {
+        return this.name;
+    },
+
+<span id='Ext-form-field-Field-method-getValue'>    /**
+</span>     * Returns the current data value of the field. The type of value returned is particular to the type of the
+     * particular field (e.g. a Date object for {@link Ext.form.field.Date}).
+     * @return {Object} value The field value
+     */
+    getValue: function() {
+        return this.value;
+    },
+
+<span id='Ext-form-field-Field-method-setValue'>    /**
+</span>     * Sets a data value into the field and runs the change detection and validation.
+     * @param {Object} value The value to set
+     * @return {Ext.form.field.Field} this
+     */
+    setValue: function(value) {
+        var me = this;
+        me.value = value;
+        me.checkChange();
+        return me;
+    },
+
+<span id='Ext-form-field-Field-method-isEqual'>    /**
+</span>     * Returns whether two field {@link #getValue values} are logically equal. Field implementations may override this
+     * to provide custom comparison logic appropriate for the particular field's data type.
+     * @param {Object} value1 The first value to compare
+     * @param {Object} value2 The second value to compare
+     * @return {Boolean} True if the values are equal, false if inequal.
+     */
+    isEqual: function(value1, value2) {
+        return String(value1) === String(value2);
+    },
+    
+<span id='Ext-form-field-Field-method-isEqualAsString'>    /**
+</span>     * Returns whether two values are logically equal.
+     * Similar to {@link #isEqual}, however null or undefined values will be treated as empty strings.
+     * @private
+     * @param {Object} value1 The first value to compare
+     * @param {Object} value2 The second value to compare
+     * @return {Boolean} True if the values are equal, false if inequal.
+     */
+    isEqualAsString: function(value1, value2){
+        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));    
+    },
+
+<span id='Ext-form-field-Field-method-getSubmitData'>    /**
+</span>     * Returns the parameter(s) that would be included in a standard form submit for this field. Typically this will be
+     * an object with a single name-value pair, the name being this field's {@link #getName name} and the value being
+     * its current stringified value. More advanced field implementations may return more than one name-value pair.
+     *
+     * Note that the values returned from this method are not guaranteed to have been successfully {@link #validate
+     * validated}.
+     *
+     * @return {Object} A mapping of submit parameter names to values; each value should be a string, or an array of
+     * strings if that particular name has multiple values. It can also return null if there are no parameters to be
+     * submitted.
+     */
+    getSubmitData: function() {
+        var me = this,
+            data = null;
+        if (!me.disabled &amp;&amp; me.submitValue &amp;&amp; !me.isFileUpload()) {
+            data = {};
+            data[me.getName()] = '' + me.getValue();
+        }
+        return data;
+    },
+
+<span id='Ext-form-field-Field-method-getModelData'>    /**
+</span>     * Returns the value(s) that should be saved to the {@link Ext.data.Model} instance for this field, when {@link
+     * Ext.form.Basic#updateRecord} is called. Typically this will be an object with a single name-value pair, the name
+     * being this field's {@link #getName name} and the value being its current data value. More advanced field
+     * implementations may return more than one name-value pair. The returned values will be saved to the corresponding
+     * field names in the Model.
+     *
+     * Note that the values returned from this method are not guaranteed to have been successfully {@link #validate
+     * validated}.
+     *
+     * @return {Object} A mapping of submit parameter names to values; each value should be a string, or an array of
+     * strings if that particular name has multiple values. It can also return null if there are no parameters to be
+     * submitted.
+     */
+    getModelData: function() {
+        var me = this,
+            data = null;
+        if (!me.disabled &amp;&amp; !me.isFileUpload()) {
+            data = {};
+            data[me.getName()] = me.getValue();
+        }
+        return data;
+    },
+
+<span id='Ext-form-field-Field-method-reset'>    /**
+</span>     * Resets the current field value to the originally loaded value and clears any validation messages. See {@link
+     * Ext.form.Basic}.{@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad}
      */
     reset : function(){
-        this.setValue(this.originalValue);
-        this.clearInvalid();
+        var me = this;
+
+        me.setValue(me.originalValue);
+        me.clearInvalid();
+        // delete here so we reset back to the original state
+        delete me.wasValid;
     },
 
-<span id='Ext-form-Field-method-initEvents'>    // private
-</span>    initEvents : function(){
-        this.mon(this.el, Ext.EventManager.getKeyEvent(), this.fireKey,  this);
-        this.mon(this.el, 'focus', this.onFocus, this);
-
-        // standardise buffer across all browsers + OS-es for consistent event order.
-        // (the 10ms buffer for Editors fixes a weird FF/Win editor issue when changing OS window focus)
-        this.mon(this.el, 'blur', this.onBlur, this, this.inEditor ? {buffer:10} : null);
+<span id='Ext-form-field-Field-method-resetOriginalValue'>    /**
+</span>     * Resets the field's {@link #originalValue} property so it matches the current {@link #getValue value}. This is
+     * called by {@link Ext.form.Basic}.{@link Ext.form.Basic#setValues setValues} if the form's
+     * {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} property is set to true.
+     */
+    resetOriginalValue: function() {
+        this.originalValue = this.getValue();
+        this.checkDirty();
     },
 
-<span id='Ext-form-Field-method-preFocus'>    // private
-</span>    preFocus: Ext.emptyFn,
-
-<span id='Ext-form-Field-method-onFocus'>    // private
-</span>    onFocus : function(){
-        this.preFocus();
-        if(this.focusClass){
-            this.el.addClass(this.focusClass);
-        }
-        if(!this.hasFocus){
-            this.hasFocus = true;
-<span id='Ext-form-Field-property-startValue'>            /**
-</span>             * &lt;p&gt;The value that the Field had at the time it was last focused. This is the value that is passed
-             * to the {@link #change} event which is fired if the value has been changed when the Field is blurred.&lt;/p&gt;
-             * &lt;p&gt;&lt;b&gt;This will be undefined until the Field has been visited.&lt;/b&gt; Compare {@link #originalValue}.&lt;/p&gt;
-             * @type mixed
-             * @property startValue
-             */
-            this.startValue = this.getValue();
-            this.fireEvent('focus', this);
+<span id='Ext-form-field-Field-method-checkChange'>    /**
+</span>     * Checks whether the value of the field has changed since the last time it was checked.
+     * If the value has changed, it:
+     *
+     * 1. Fires the {@link #change change event},
+     * 2. Performs validation if the {@link #validateOnChange} config is enabled, firing the
+     *    {@link #validitychange validitychange event} if the validity has changed, and
+     * 3. Checks the {@link #isDirty dirty state} of the field and fires the {@link #dirtychange dirtychange event}
+     *    if it has changed.
+     */
+    checkChange: function() {
+        if (!this.suspendCheckChange) {
+            var me = this,
+                newVal = me.getValue(),
+                oldVal = me.lastValue;
+            if (!me.isEqual(newVal, oldVal) &amp;&amp; !me.isDestroyed) {
+                me.lastValue = newVal;
+                me.fireEvent('change', me, newVal, oldVal);
+                me.onChange(newVal, oldVal);
+            }
         }
     },
 
-<span id='Ext-form-Field-method-beforeBlur'>    // private
-</span>    beforeBlur : Ext.emptyFn,
-
-<span id='Ext-form-Field-method-onBlur'>    // private
-</span>    onBlur : function(){
-        this.beforeBlur();
-        if(this.focusClass){
-            this.el.removeClass(this.focusClass);
-        }
-        this.hasFocus = false;
-        if(this.validationEvent !== false &amp;&amp; (this.validateOnBlur || this.validationEvent == 'blur')){
+<span id='Ext-form-field-Field-method-onChange'>    /**
+</span>     * @private
+     * Called when the field's value changes. Performs validation if the {@link #validateOnChange}
+     * config is enabled, and invokes the dirty check.
+     */
+    onChange: function(newVal, oldVal) {
+        if (this.validateOnChange) {
             this.validate();
         }
-        var v = this.getValue();
-        if(String(v) !== String(this.startValue)){
-            this.fireEvent('change', this, v, this.startValue);
+        this.checkDirty();
+    },
+
+<span id='Ext-form-field-Field-method-isDirty'>    /**
+</span>     * Returns true if the value of this Field has been changed from its {@link #originalValue}.
+     * Will always return false if the field is disabled.
+     *
+     * Note that if the owning {@link Ext.form.Basic form} was configured with
+     * {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} then the {@link #originalValue} is updated when
+     * the values are loaded by {@link Ext.form.Basic}.{@link Ext.form.Basic#setValues setValues}.
+     * @return {Boolean} True if this field has been changed from its original value (and is not disabled),
+     * false otherwise.
+     */
+    isDirty : function() {
+        var me = this;
+        return !me.disabled &amp;&amp; !me.isEqual(me.getValue(), me.originalValue);
+    },
+
+<span id='Ext-form-field-Field-method-checkDirty'>    /**
+</span>     * Checks the {@link #isDirty} state of the field and if it has changed since the last time it was checked,
+     * fires the {@link #dirtychange} event.
+     */
+    checkDirty: function() {
+        var me = this,
+            isDirty = me.isDirty();
+        if (isDirty !== me.wasDirty) {
+            me.fireEvent('dirtychange', me, isDirty);
+            me.onDirtyChange(isDirty);
+            me.wasDirty = isDirty;
         }
-        this.fireEvent('blur', this);
-        this.postBlur();
     },
 
-<span id='Ext-form-Field-method-postBlur'>    // private
-</span>    postBlur : Ext.emptyFn,
-
-<span id='Ext-form-Field-method-isValid'>    /**
-</span>     * Returns whether or not the field value is currently valid by
-     * {@link #validateValue validating} the {@link #processValue processed value}
-     * of the field. &lt;b&gt;Note&lt;/b&gt;: {@link #disabled} fields are ignored.
-     * @param {Boolean} preventMark True to disable marking the field invalid
-     * @return {Boolean} True if the value is valid, else false
+<span id='Ext-form-field-Field-property-onDirtyChange'>    /**
+</span>     * @private Called when the field's dirty state changes.
+     * @param {Boolean} isDirty
      */
-    isValid : function(preventMark){
-        if(this.disabled){
-            return true;
-        }
-        var restore = this.preventMark;
-        this.preventMark = preventMark === true;
-        var v = this.validateValue(this.processValue(this.getRawValue()), preventMark);
-        this.preventMark = restore;
-        return v;
-    },
+    onDirtyChange: Ext.emptyFn,
 
-<span id='Ext-form-Field-method-validate'>    /**
-</span>     * Validates the field value
-     * @return {Boolean} True if the value is valid, else false
+<span id='Ext-form-field-Field-method-getErrors'>    /**
+</span>     * Runs this field's validators and returns an array of error messages for any validation failures. This is called
+     * internally during validation and would not usually need to be used manually.
+     *
+     * Each subclass should override or augment the return value to provide their own errors.
+     *
+     * @param {Object} value The value to get errors for (defaults to the current field value)
+     * @return {String[]} All error messages for this field; an empty Array if none.
      */
-    validate : function(){
-        if(this.disabled || this.validateValue(this.processValue(this.getRawValue()))){
-            this.clearInvalid();
-            return true;
-        }
-        return false;
-    },
-
-<span id='Ext-form-Field-method-processValue'>    /**
-</span>     * This method should only be overridden if necessary to prepare raw values
-     * for validation (see {@link #validate} and {@link #isValid}).  This method
-     * is expected to return the processed value for the field which will
-     * be used for validation (see validateValue method).
-     * @param {Mixed} value
-     */
-    processValue : function(value){
-        return value;
-    },
-
-<span id='Ext-form-Field-method-validateValue'>    /**
-</span>     * Uses getErrors to build an array of validation errors. If any errors are found, markInvalid is called
-     * with the first and false is returned, otherwise true is returned. Previously, subclasses were invited
-     * to provide an implementation of this to process validations - from 3.2 onwards getErrors should be
-     * overridden instead.
-     * @param {Mixed} The current value of the field
-     * @return {Boolean} True if all validations passed, false if one or more failed
-     */
-     validateValue : function(value) {
-         //currently, we only show 1 error at a time for a field, so just use the first one
-         var error = this.getErrors(value)[0];
-
-         if (error == undefined) {
-             return true;
-         } else {
-             this.markInvalid(error);
-             return false;
-         }
-     },
-    
-<span id='Ext-form-Field-method-getErrors'>    /**
-</span>     * Runs this field's validators and returns an array of error messages for any validation failures.
-     * This is called internally during validation and would not usually need to be used manually.
-     * Each subclass should override or augment the return value to provide their own errors
-     * @return {Array} All error messages for this field
-     */
-    getErrors: function() {
+    getErrors: function(value) {
         return [];
     },
 
-<span id='Ext-form-Field-method-getActiveError'>    /**
-</span>     * Gets the active error message for this field.
-     * @return {String} Returns the active error message on the field, if there is no error, an empty string is returned.
+<span id='Ext-form-field-Field-method-isValid'>    /**
+</span>     * Returns whether or not the field value is currently valid by {@link #getErrors validating} the field's current
+     * value. The {@link #validitychange} event will not be fired; use {@link #validate} instead if you want the event
+     * to fire. **Note**: {@link #disabled} fields are always treated as valid.
+     *
+     * Implementations are encouraged to ensure that this method does not have side-effects such as triggering error
+     * message display.
+     *
+     * @return {Boolean} True if the value is valid, else false
      */
-    getActiveError : function(){
-        return this.activeError || '';
+    isValid : function() {
+        var me = this;
+        return me.disabled || Ext.isEmpty(me.getErrors());
     },
 
-<span id='Ext-form-Field-method-markInvalid'>    /**
-</span>     * &lt;p&gt;Display an error message associated with this field, using {@link #msgTarget} to determine how to
-     * display the message and applying {@link #invalidClass} to the field's UI element.&lt;/p&gt;
-     * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: this method does not cause the Field's {@link #validate} method to return &lt;code&gt;false&lt;/code&gt;
-     * if the value does &lt;i&gt;pass&lt;/i&gt; validation. So simply marking a Field as invalid will not prevent
-     * submission of forms submitted with the {@link Ext.form.Action.Submit#clientValidation} option set.&lt;/p&gt;
-     * {@link #isValid invalid}.
-     * @param {String} msg (optional) The validation message (defaults to {@link #invalidText})
+<span id='Ext-form-field-Field-method-validate'>    /**
+</span>     * Returns whether or not the field value is currently valid by {@link #getErrors validating} the field's current
+     * value, and fires the {@link #validitychange} event if the field's validity has changed since the last validation.
+     * **Note**: {@link #disabled} fields are always treated as valid.
+     *
+     * Custom implementations of this method are allowed to have side-effects such as triggering error message display.
+     * To validate without side-effects, use {@link #isValid}.
+     *
+     * @return {Boolean} True if the value is valid, else false
      */
-    markInvalid : function(msg){
-        //don't set the error icon if we're not rendered or marking is prevented
-        if (this.rendered &amp;&amp; !this.preventMark) {
-            msg = msg || this.invalidText;
-
-            var mt = this.getMessageHandler();
-            if(mt){
-                mt.mark(this, msg);
-            }else if(this.msgTarget){
-                this.el.addClass(this.invalidClass);
-                var t = Ext.getDom(this.msgTarget);
-                if(t){
-                    t.innerHTML = msg;
-                    t.style.display = this.msgDisplay;
-                }
-            }
+    validate : function() {
+        var me = this,
+            isValid = me.isValid();
+        if (isValid !== me.wasValid) {
+            me.wasValid = isValid;
+            me.fireEvent('validitychange', me, isValid);
         }
-        
-        this.setActiveError(msg);
+        return isValid;
     },
-    
-<span id='Ext-form-Field-method-clearInvalid'>    /**
-</span>     * Clear any invalid styles/messages for this field
+
+<span id='Ext-form-field-Field-method-batchChanges'>    /**
+</span>     * A utility for grouping a set of modifications which may trigger value changes into a single transaction, to
+     * prevent excessive firing of {@link #change} events. This is useful for instance if the field has sub-fields which
+     * are being updated as a group; you don't want the container field to check its own changed state for each subfield
+     * change.
+     * @param {Object} fn A function containing the transaction code
      */
-    clearInvalid : function(){
-        //don't remove the error icon if we're not rendered or marking is prevented
-        if (this.rendered &amp;&amp; !this.preventMark) {
-            this.el.removeClass(this.invalidClass);
-            var mt = this.getMessageHandler();
-            if(mt){
-                mt.clear(this);
-            }else if(this.msgTarget){
-                this.el.removeClass(this.invalidClass);
-                var t = Ext.getDom(this.msgTarget);
-                if(t){
-                    t.innerHTML = '';
-                    t.style.display = 'none';
-                }
-            }
+    batchChanges: function(fn) {
+        try {
+            this.suspendCheckChange++;
+            fn();
+        } catch(e){
+            throw e;
+        } finally {
+            this.suspendCheckChange--;
         }
-        
-        this.unsetActiveError();
+        this.checkChange();
     },
 
-<span id='Ext-form-Field-method-setActiveError'>    /**
-</span>     * Sets the current activeError to the given string. Fires the 'invalid' event.
-     * This does not set up the error icon, only sets the message and fires the event. To show the error icon,
-     * use markInvalid instead, which calls this method internally
-     * @param {String} msg The error message
-     * @param {Boolean} suppressEvent True to suppress the 'invalid' event from being fired
+<span id='Ext-form-field-Field-method-isFileUpload'>    /**
+</span>     * Returns whether this Field is a file upload field; if it returns true, forms will use special techniques for
+     * {@link Ext.form.Basic#submit submitting the form} via AJAX. See {@link Ext.form.Basic#hasUpload} for details. If
+     * this returns true, the {@link #extractFileInput} method must also be implemented to return the corresponding file
+     * input element.
+     * @return {Boolean}
      */
-    setActiveError: function(msg, suppressEvent) {
-        this.activeError = msg;
-        if (suppressEvent !== true) this.fireEvent('invalid', this, msg);
+    isFileUpload: function() {
+        return false;
     },
-    
-<span id='Ext-form-Field-method-unsetActiveError'>    /**
-</span>     * Clears the activeError and fires the 'valid' event. This is called internally by clearInvalid and would not
-     * usually need to be called manually
-     * @param {Boolean} suppressEvent True to suppress the 'invalid' event from being fired
+
+<span id='Ext-form-field-Field-method-extractFileInput'>    /**
+</span>     * Only relevant if the instance's {@link #isFileUpload} method returns true. Returns a reference to the file input
+     * DOM element holding the user's selected file. The input will be appended into the submission form and will not be
+     * returned, so this method should also create a replacement.
+     * @return {HTMLElement}
      */
-    unsetActiveError: function(suppressEvent) {
-        delete this.activeError;
-        if (suppressEvent !== true) this.fireEvent('valid', this);
+    extractFileInput: function() {
+        return null;
     },
 
-<span id='Ext-form-Field-method-getMessageHandler'>    // private
-</span>    getMessageHandler : function(){
-        return Ext.form.MessageTargets[this.msgTarget];
-    },
-
-<span id='Ext-form-Field-method-getErrorCt'>    // private
-</span>    getErrorCt : function(){
-        return this.el.findParent('.x-form-element', 5, true) || // use form element wrap if available
-            this.el.findParent('.x-form-field-wrap', 5, true);   // else direct field wrap
-    },
-
-<span id='Ext-form-Field-method-alignErrorEl'>    // Alignment for 'under' target
-</span>    alignErrorEl : function(){
-        this.errorEl.setWidth(this.getErrorCt().getWidth(true) - 20);
-    },
-
-<span id='Ext-form-Field-method-alignErrorIcon'>    // Alignment for 'side' target
-</span>    alignErrorIcon : function(){
-        this.errorIcon.alignTo(this.el, 'tl-tr', [2, 0]);
-    },
-
-<span id='Ext-form-Field-method-getRawValue'>    /**
-</span>     * Returns the raw data value which may or may not be a valid, defined value.  To return a normalized value see {@link #getValue}.
-     * @return {Mixed} value The field value
+<span id='Ext-form-field-Field-method-markInvalid'>    /**
+</span>     * @method markInvalid
+     * Associate one or more error messages with this field. Components using this mixin should implement this method to
+     * update the component's rendering to display the messages.
+     *
+     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `false`
+     * if the value does _pass_ validation. So simply marking a Field as invalid will not prevent submission of forms
+     * submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     *
+     * @param {String/String[]} errors The error message(s) for the field.
      */
-    getRawValue : function(){
-        var v = this.rendered ? this.el.getValue() : Ext.value(this.value, '');
-        if(v === this.emptyText){
-            v = '';
-        }
-        return v;
-    },
+    markInvalid: Ext.emptyFn,
 
-<span id='Ext-form-Field-method-getValue'>    /**
-</span>     * Returns the normalized data value (undefined or emptyText will be returned as '').  To return the raw value see {@link #getRawValue}.
-     * @return {Mixed} value The field value
+<span id='Ext-form-field-Field-method-clearInvalid'>    /**
+</span>     * @method clearInvalid
+     * Clear any invalid styles/messages for this field. Components using this mixin should implement this method to
+     * update the components rendering to clear any existing messages.
+     *
+     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
+     * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
+     * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
      */
-    getValue : function(){
-        if(!this.rendered) {
-            return this.value;
-        }
-        var v = this.el.getValue();
-        if(v === this.emptyText || v === undefined){
-            v = '';
-        }
-        return v;
-    },
+    clearInvalid: Ext.emptyFn
 
-<span id='Ext-form-Field-method-setRawValue'>    /**
-</span>     * Sets the underlying DOM field's value directly, bypassing validation.  To set the value with validation see {@link #setValue}.
-     * @param {Mixed} value The value to set
-     * @return {Mixed} value The field value that is set
-     */
-    setRawValue : function(v){
-        return this.rendered ? (this.el.dom.value = (Ext.isEmpty(v) ? '' : v)) : '';
-    },
-
-<span id='Ext-form-Field-method-setValue'>    /**
-</span>     * Sets a data value into the field and validates it.  To set the value directly without validation see {@link #setRawValue}.
-     * @param {Mixed} value The value to set
-     * @return {Ext.form.Field} this
-     */
-    setValue : function(v){
-        this.value = v;
-        if(this.rendered){
-            this.el.dom.value = (Ext.isEmpty(v) ? '' : v);
-            this.validate();
-        }
-        return this;
-    },
-
-<span id='Ext-form-Field-method-append'>    // private, does not work for all fields
-</span>    append : function(v){
-         this.setValue([this.getValue(), v].join(''));
-    }
-
-<span id='Ext-form-Field-cfg-autoWidth'>    /**
-</span>     * @cfg {Boolean} autoWidth @hide
-     */
-<span id='Ext-form-Field-cfg-autoHeight'>    /**
-</span>     * @cfg {Boolean} autoHeight @hide
-     */
-
-<span id='Ext-form-Field-cfg-autoEl'>    /**
-</span>     * @cfg {String} autoEl @hide
-     */
 });
-
-
-Ext.form.MessageTargets = {
-    'qtip' : {
-        mark: function(field, msg){
-            field.el.addClass(field.invalidClass);
-            field.el.dom.qtip = msg;
-            field.el.dom.qclass = 'x-form-invalid-tip';
-            if(Ext.QuickTips){ // fix for floating editors interacting with DND
-                Ext.QuickTips.enable();
-            }
-        },
-        clear: function(field){
-            field.el.removeClass(field.invalidClass);
-            field.el.dom.qtip = '';
-        }
-    },
-    'title' : {
-        mark: function(field, msg){
-            field.el.addClass(field.invalidClass);
-            field.el.dom.title = msg;
-        },
-        clear: function(field){
-            field.el.dom.title = '';
-        }
-    },
-    'under' : {
-        mark: function(field, msg){
-            field.el.addClass(field.invalidClass);
-            if(!field.errorEl){
-                var elp = field.getErrorCt();
-                if(!elp){ // field has no container el
-                    field.el.dom.title = msg;
-                    return;
-                }
-                field.errorEl = elp.createChild({cls:'x-form-invalid-msg'});
-                field.on('resize', field.alignErrorEl, field);
-                field.on('destroy', function(){
-                    Ext.destroy(this.errorEl);
-                }, field);
-            }
-            field.alignErrorEl();
-            field.errorEl.update(msg);
-            Ext.form.Field.msgFx[field.msgFx].show(field.errorEl, field);
-        },
-        clear: function(field){
-            field.el.removeClass(field.invalidClass);
-            if(field.errorEl){
-                Ext.form.Field.msgFx[field.msgFx].hide(field.errorEl, field);
-            }else{
-                field.el.dom.title = '';
-            }
-        }
-    },
-    'side' : {
-        mark: function(field, msg){
-            field.el.addClass(field.invalidClass);
-            if(!field.errorIcon){
-                var elp = field.getErrorCt();
-                // field has no container el
-                if(!elp){
-                    field.el.dom.title = msg;
-                    return;
-                }
-                field.errorIcon = elp.createChild({cls:'x-form-invalid-icon'});
-                if (field.ownerCt) {
-                    field.ownerCt.on('afterlayout', field.alignErrorIcon, field);
-                    field.ownerCt.on('expand', field.alignErrorIcon, field);
-                }
-                field.on('resize', field.alignErrorIcon, field);
-                field.on('destroy', function(){
-                    Ext.destroy(this.errorIcon);
-                }, field);
-            }
-            field.alignErrorIcon();
-            field.errorIcon.dom.qtip = msg;
-            field.errorIcon.dom.qclass = 'x-form-invalid-tip';
-            field.errorIcon.show();
-        },
-        clear: function(field){
-            field.el.removeClass(field.invalidClass);
-            if(field.errorIcon){
-                field.errorIcon.dom.qtip = '';
-                field.errorIcon.hide();
-            }else{
-                field.el.dom.title = '';
-            }
-        }
-    }
-};
-
-// anything other than normal should be considered experimental
-Ext.form.Field.msgFx = {
-    normal : {
-        show: function(msgEl, f){
-            msgEl.setDisplayed('block');
-        },
-
-        hide : function(msgEl, f){
-            msgEl.setDisplayed(false).update('');
-        }
-    },
-
-    slide : {
-        show: function(msgEl, f){
-            msgEl.slideIn('t', {stopFx:true});
-        },
-
-        hide : function(msgEl, f){
-            msgEl.slideOut('t', {stopFx:true,useDisplay:true});
-        }
-    },
-
-    slideRight : {
-        show: function(msgEl, f){
-            msgEl.fixDisplay();
-            msgEl.alignTo(f.el, 'tl-tr');
-            msgEl.slideIn('l', {stopFx:true});
-        },
-
-        hide : function(msgEl, f){
-            msgEl.slideOut('l', {stopFx:true,useDisplay:true});
-        }
-    }
-};
-Ext.reg('field', Ext.form.Field);
 </pre>
 </body>
 </html>

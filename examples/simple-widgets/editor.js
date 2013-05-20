@@ -1,40 +1,49 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.Editor',
+    'Ext.form.Panel',
+    'Ext.form.field.ComboBox',
+    'Ext.form.field.Date',
+    'Ext.data.Store',
+    'Ext.data.proxy.Ajax',
+    'Ext.data.reader.Json',
+    'Ext.data.writer.Json'
+]);
+
 Ext.onReady(function(){
-    var ct = new Ext.form.FormPanel({
+    Ext.create('Ext.form.Panel', {
         renderTo: 'container',
         width: 700,
         height: 400,
         title: 'User Details',
         defaultType: 'textfield',
-        padding: 10,
+        bodyStyle: 'padding: 10px;',
         labelWidth: 90,
         items: [{
-            fieldLabel: 'First Name'
+            fieldLabel: 'First Name',
+            name: 'firstname'
         }, {
-            fieldLabel: 'Middle Name'
+            fieldLabel: 'Middle Name',
+            name: 'middlename'
         }, {
-            fieldLabel: 'Last Name'
+            fieldLabel: 'Last Name',
+            name: 'lastname'
         }, {
             xtype: 'datefield',
+            name: 'dob',
             fieldLabel: 'D.O.B'
         }],
         listeners: {
@@ -45,22 +54,23 @@ Ext.onReady(function(){
                     cancelOnEsc: true,
                     updateEl: true,
                     ignoreNoChange: true
-                };
+                }, height = form.child('textfield').getHeight();
 
-                var labelEditor = new Ext.Editor(Ext.apply({
+                var labelEditor = Ext.create('Ext.Editor', Ext.apply({
+                    width: 100,
+                    height: height,
+                    offsets: [0, 2],
                     alignment: 'l-l',
                     listeners: {
                         beforecomplete: function(ed, value){
-                            if(value.charAt(value.length - 1) != ':'){
+                            if (value.charAt(value.length - 1) != ':') {
                                 ed.setValue(ed.getValue() + ':');
                             }
                             return true;
-                        },
-                        complete: function(ed, value, oldValue){
-                            Ext.example.msg('Label Changed', '"{0}" changed to "{1}"', oldValue, value);
                         }
                     },
                     field: {
+                        name: 'labelfield',
                         allowBlank: false,
                         xtype: 'textfield',
                         width: 90,
@@ -69,33 +79,41 @@ Ext.onReady(function(){
                 }, cfg));
                 form.body.on('dblclick', function(e, t){
                     labelEditor.startEdit(t);
+                    // Manually focus, since clicking on the label will focus the text field
+                    labelEditor.field.focus(50, true);
                 }, null, {
                     delegate: 'label.x-form-item-label'
                 });
 
-                var titleEditor = new Ext.Editor(Ext.apply({
-                    cls: 'x-small-editor',
+                var titleEditor = Ext.create('Ext.Editor', Ext.apply({
                     alignment: 'bl-bl?',
-                    offsets: [0, 3],
-                    listeners: {
-                        complete: function(ed, value, oldValue){
-                            Ext.example.msg('Title Changed', '"{0}" changed to "{1}"', oldValue, value);
-                        }
-                    },
+                    offsets: [0, 10],
                     field: {
-                        width: 110,
-                        triggerAction: 'all',
+                        width: 130,
                         xtype: 'combo',
                         editable: false,
                         forceSelection: true,
-                        store: ['User Details', 'Developer Details', 'Manager Details']
+                        queryMode: 'local',
+                        displayField: 'text',
+                        valueField: 'text',
+                        store: {
+                            fields: ['text'],
+                            data: [{
+                                text: 'User Details'
+                            },{
+                                text: 'Developer Detail'
+                            },{
+                                text: 'Manager Details'
+                            }]
+                        }
                     }
                 }, cfg));
 
-                form.header.child('.x-panel-header-text').on('dblclick', function(e, t){
+                form.header.titleCmp.textEl.on('dblclick', function(e, t){
                     titleEditor.startEdit(t);
                 });
             }
         }
     });
 });
+

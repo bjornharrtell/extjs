@@ -1,23 +1,35 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.Loader.setConfig({
+    enabled: true
+});
+
+Ext.Loader.setPath('Ext.ux', '../ux/');
+
+Ext.require([
+  'Ext.panel.Panel',
+  'Ext.button.Button',
+  'Ext.window.Window',
+  'Ext.ux.statusbar.StatusBar',
+  'Ext.toolbar.TextItem',
+  'Ext.menu.Menu',
+  'Ext.toolbar.Spacer',
+  'Ext.button.Split',
+  'Ext.form.field.TextArea'
+]);
+
 Ext.onReady(function(){
 
     // This is a shared function that simulates a load action on a StatusBar.
@@ -29,16 +41,16 @@ Ext.onReady(function(){
         btn.disable();
         statusBar.showBusy();
 
-        (function(){
+         Ext.defer(function(){
             statusBar.clearStatus({useDefaults:true});
             btn.enable();
-        }).defer(2000);
+        }, 2000);
     };
 
 /*
  * ================  Basic StatusBar example  =======================
  */
-    new Ext.Panel({
+    Ext.create('Ext.Panel', {
         title: 'Basic StatusBar',
         renderTo: 'basic',
         width: 550,
@@ -48,9 +60,9 @@ Ext.onReady(function(){
             xtype: 'button',
             id: 'basic-button',
             text: 'Do Loading',
-            handler: loadFn.createCallback('basic-button', 'basic-statusbar')
+            handler: Ext.Function.pass(loadFn, ['basic-button', 'basic-statusbar'])
         }],
-        bbar: new Ext.ux.StatusBar({
+        bbar: Ext.create('Ext.ux.StatusBar', {
             id: 'basic-statusbar',
 
             // defaults to use when the status is cleared:
@@ -64,6 +76,7 @@ Ext.onReady(function(){
             // any standard Toolbar items:
             items: [
                 {
+                    xtype: 'button',
                     text: 'Show Warning & Clear',
                     handler: function (){
                         var sb = Ext.getCmp('basic-statusbar');
@@ -75,6 +88,7 @@ Ext.onReady(function(){
                     }
                 },
                 {
+                    xtype: 'button',
                     text: 'Show Busy',
                     handler: function (){
                         var sb = Ext.getCmp('basic-statusbar');
@@ -83,6 +97,7 @@ Ext.onReady(function(){
                     }
                 },
                 {
+                    xtype: 'button',
                     text: 'Clear status',
                     handler: function (){
                         var sb = Ext.getCmp('basic-statusbar');
@@ -99,7 +114,7 @@ Ext.onReady(function(){
 /*
  * ================  Right-aligned StatusBar example  =======================
  */
-    new Ext.Panel({
+    Ext.create('Ext.Panel', {
         title: 'Right-aligned StatusBar',
         renderTo: 'right-aligned',
         width: 550,
@@ -109,9 +124,9 @@ Ext.onReady(function(){
             xtype: 'button',
             id: 'right-button',
             text: 'Do Loading',
-            handler: loadFn.createCallback('right-button', 'right-statusbar')
+            handler: Ext.Function.pass(loadFn, ['right-button', 'right-statusbar'])
         }],
-        bbar: new Ext.ux.StatusBar({
+        bbar: Ext.create('Ext.ux.StatusBar', {
             defaultText: 'Default status',
             id: 'right-statusbar',
             statusAlign: 'right', // the magic config
@@ -124,7 +139,7 @@ Ext.onReady(function(){
 /*
  * ================  StatusBar Window example  =======================
  */
-    var win = new Ext.Window({
+    var win = Ext.create('Ext.Window', {
         title: 'StatusBar Window',
         width: 400,
         minWidth: 350,
@@ -136,26 +151,27 @@ Ext.onReady(function(){
             xtype: 'button',
             id: 'win-button',
             text: 'Do Loading',
-            handler: loadFn.createCallback('win-button', 'win-statusbar')
+            handler: Ext.Function.pass(loadFn, ['win-button', 'win-statusbar'])
         }],
-        bbar: new Ext.ux.StatusBar({
+        bbar: Ext.create('Ext.ux.StatusBar', {
             id: 'win-statusbar',
             defaultText: 'Ready',
             items: [{
+                xtype: 'button',
                 text: 'A Button'
             }, '-',
-            new Date().format('n/d/Y'), ' ', ' ', '-', {
-                xtype:'tbsplit',
+            Ext.Date.format(new Date(), 'n/d/Y'), ' ', ' ', '-', {
+                xtype:'splitbutton',
                 text:'Status Menu',
                 menuAlign: 'br-tr?',
-                menu: new Ext.menu.Menu({
+                menu: Ext.create('Ext.menu.Menu', {
                     items: [{text: 'Item 1'}, {text: 'Item 2'}]
                 })
             }]
         })
     });
 
-    new Ext.Button({
+    Ext.create('Ext.Button', {
         text: 'Show Window',
         renderTo: 'window',
         handler: function(){
@@ -172,18 +188,19 @@ Ext.onReady(function(){
  *
  */
     // Create these explicitly so we can manipulate them later
-    var wordCount = new Ext.Toolbar.TextItem('Words: 0');
-    var charCount = new Ext.Toolbar.TextItem('Chars: 0');
-    var clock = new Ext.Toolbar.TextItem('');
+    var wordCount = Ext.create('Ext.toolbar.TextItem', {text: 'Words: 0'}),
+        charCount = Ext.create('Ext.toolbar.TextItem', {text: 'Chars: 0'}), 
+        clock = Ext.create('Ext.toolbar.TextItem', {text: Ext.Date.format(new Date(), 'g:i:s A')}),
+        event = Ext.isOpera ? 'keypress' : 'keydown'; // opera behaves a little weird with keydown
 
-    new Ext.Panel({
+    Ext.create('Ext.Panel', {
         title: 'Ext Word Processor',
         renderTo: 'word-proc',
         width: 500,
         autoHeight: true,
         bodyStyle: 'padding:5px;',
         layout: 'fit',
-        bbar: new Ext.ux.StatusBar({
+        bbar: Ext.create('Ext.ux.StatusBar', {
             id: 'word-status',
             // These are just the standard toolbar TextItems we created above.  They get
             // custom classes below in the render handler which is what gives them their
@@ -194,26 +211,10 @@ Ext.onReady(function(){
             xtype: 'textarea',
             id: 'word-textarea',
             enableKeyEvents: true,
+            hideLabel: true,
             grow: true,
             growMin: 100,
-            growMax: 200,
-            listeners: {
-                // After each keypress update the word and character count text items
-                'keypress': {
-                    fn: function(t){
-                        var v = t.getValue(),
-                            wc = 0, cc = v.length ? v.length : 0;
-
-                        if(cc > 0){
-                            wc = v.match(/\b/g);
-                            wc = wc ? wc.length / 2 : 0;
-                        }
-	                    Ext.fly(wordCount.getEl()).update('Words: '+wc);
-                        Ext.fly(charCount.getEl()).update('Chars: '+cc);
-	                },
-                    buffer: 1 // buffer to allow the value to update first
-                }
-            }
+            growMax: 200
         },
         listeners: {
             render: {
@@ -222,17 +223,17 @@ Ext.onReady(function(){
                     // styling. Also, since we are using a greedy spacer, we have to add a block level element
                     // into each text TD in order to give them a fixed width (TextItems are spans).  Insert a
                     // spacer div into each TD using createChild() so that we can give it a width in CSS.
-                    Ext.fly(wordCount.getEl().parent()).addClass('x-status-text-panel').createChild({cls:'spacer'});
-                    Ext.fly(charCount.getEl().parent()).addClass('x-status-text-panel').createChild({cls:'spacer'});
-                    Ext.fly(clock.getEl().parent()).addClass('x-status-text-panel').createChild({cls:'spacer'});
+                    Ext.fly(wordCount.getEl().parent()).addCls('x-status-text-panel').createChild({cls:'spacer'});
+                    Ext.fly(charCount.getEl().parent()).addCls('x-status-text-panel').createChild({cls:'spacer'});
+                    Ext.fly(clock.getEl().parent()).addCls('x-status-text-panel').createChild({cls:'spacer'});
 
                     // Kick off the clock timer that updates the clock el every second:
-				    Ext.TaskMgr.start({
-				        run: function(){
-				            Ext.fly(clock.getEl()).update(new Date().format('g:i:s A'));
-				        },
-				        interval: 1000
-				    });
+                 Ext.TaskManager.start({
+                     run: function(){
+                         Ext.fly(clock.getEl()).update(Ext.Date.format(new Date(), 'g:i:s A'));
+                     },
+                     interval: 1000
+                 });
                 },
                 delay: 100
             }
@@ -243,15 +244,30 @@ Ext.onReady(function(){
     // has occurred for 1.5 seconds, it updates the status message to indicate that it's saving.
     // After a fake delay so that you can see the save activity it will update again to indicate
     // that the action succeeded.
-    Ext.fly('word-textarea').on('keypress', function(){
+    Ext.getCmp('word-textarea').on(event, function(){
         var sb = Ext.getCmp('word-status');
         sb.showBusy('Saving draft...');
-        (function(){
+        Ext.defer(function(){
             sb.setStatus({
                 iconCls: 'x-status-saved',
-                text: 'Draft auto-saved at ' + new Date().format('g:i:s A')
+                text: 'Draft auto-saved at ' + Ext.Date.format(new Date(), 'g:i:s A')
             });
-        }).defer(4000);
-    }, this, {buffer:1500});
+        }, 4000);
+    }, null, {buffer:1500});
+    
+    // Set up our event for updating the word/char count
+    Ext.getCmp('word-textarea').on(event, function(comp){
+        var v = comp.getValue(),
+            wc = 0, 
+            cc = v.length ? v.length : 0;
+
+        if (cc > 0) {
+            wc = v.match(/\b/g);
+            wc = wc ? wc.length / 2 : 0;
+        }
+        wordCount.update('Words: ' + wc);
+        charCount.update('Chars: ' + cc);
+    }, null, {buffer: 1});
 
 });
+

@@ -1,57 +1,64 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.data.*',
+    'Ext.grid.*'
+]);
+
 Ext.onReady(function(){
+    Ext.define('Book',{
+        extend: 'Ext.data.Model',
+        fields: [
+            // set up the fields mapping into the xml doc
+            // The first needs mapping, the others are very basic
+            {name: 'Author', mapping: 'ItemAttributes > Author'},
+            'Title', 'Manufacturer', 'ProductGroup'
+        ]
+    });
 
     // create the Data Store
-    var store = new Ext.data.Store({
-        // load using HTTP
-        url: 'sheldon.xml',
-
-        // the return will be XML, so lets set up a reader
-        reader: new Ext.data.XmlReader({
-               // records will have an "Item" tag
-               record: 'Item',
-               id: 'ASIN',
-               totalRecords: '@total'
-           }, [
-               // set up the fields mapping into the xml doc
-               // The first needs mapping, the others are very basic
-               {name: 'Author', mapping: 'ItemAttributes > Author'},
-               'Title', 'Manufacturer', 'ProductGroup'
-           ])
+    var store = Ext.create('Ext.data.Store', {
+        model: 'Book',
+        autoLoad: true,
+        proxy: {
+            // load using HTTP
+            type: 'ajax',
+            url: 'sheldon.xml',
+            // the return will be XML, so lets set up a reader
+            reader: {
+                type: 'xml',
+                // records will have an "Item" tag
+                record: 'Item',
+                idProperty: 'ASIN',
+                totalRecords: '@total'
+            }
+        }
     });
 
     // create the grid
-    var grid = new Ext.grid.GridPanel({
+    var grid = Ext.create('Ext.grid.Panel', {
         store: store,
         columns: [
-            {header: "Author", width: 120, dataIndex: 'Author', sortable: true},
-            {header: "Title", width: 180, dataIndex: 'Title', sortable: true},
-            {header: "Manufacturer", width: 115, dataIndex: 'Manufacturer', sortable: true},
-            {header: "Product Group", width: 100, dataIndex: 'ProductGroup', sortable: true}
+            {text: "Author", flex: 1, dataIndex: 'Author', sortable: true},
+            {text: "Title", width: 180, dataIndex: 'Title', sortable: true},
+            {text: "Manufacturer", width: 115, dataIndex: 'Manufacturer', sortable: true},
+            {text: "Product Group", width: 100, dataIndex: 'ProductGroup', sortable: true}
         ],
         renderTo:'example-grid',
-        width:540,
-        height:200
+        width: 540,
+        height: 200
     });
-
-    store.load();
 });
+

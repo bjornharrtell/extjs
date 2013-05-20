@@ -1,46 +1,69 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-Ext.onReady(function(){
-    // shorthand
-    var Tree = Ext.tree;
+Ext.require([
+    'Ext.tree.*',
+    'Ext.data.*',
+    'Ext.tip.*'
+]);
 
-    var tree = new Tree.TreePanel({
-        useArrows: true,
-        autoScroll: true,
-        animate: true,
-        enableDD: true,
-        containerScroll: true,
-        border: false,
-        // auto create TreeLoader
-        dataUrl: 'get-nodes.php',
-
+Ext.onReady(function() {
+    Ext.QuickTips.init();
+    
+    var store = Ext.create('Ext.data.TreeStore', {
+        proxy: {
+            type: 'ajax',
+            url: 'get-nodes.php'
+        },
         root: {
-            nodeType: 'async',
             text: 'Ext JS',
-            draggable: false,
-            id: 'src'
-        }
+            id: 'src',
+            expanded: true
+        },
+        folderSort: true,
+        sorters: [{
+            property: 'text',
+            direction: 'ASC'
+        }]
     });
 
-    // render the tree
-    tree.render('tree-div');
-    tree.getRootNode().expand();
+    var tree = Ext.create('Ext.tree.Panel', {
+        store: store,
+        viewConfig: {
+            plugins: {
+                ptype: 'treeviewdragdrop'
+            }
+        },
+        renderTo: 'tree-div',
+        height: 300,
+        width: 250,
+        title: 'Files',
+        useArrows: true,
+        dockedItems: [{
+            xtype: 'toolbar',
+            items: [{
+                text: 'Expand All',
+                handler: function(){
+                    tree.expandAll();
+                }
+            }, {
+                text: 'Collapse All',
+                handler: function(){
+                    tree.collapseAll();
+                }
+            }]
+        }]
+    });
 });
+

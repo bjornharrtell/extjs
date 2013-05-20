@@ -1,41 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Custom Layouts and Containers - Portal Example</title>
+    <title>Portal Layout Sample</title>
 
-    <!-- ** CSS ** -->
-    <!-- base library -->
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="portal.css" />
 
-    <!-- overrides to base library -->
-    <link rel="stylesheet" type="text/css" href="../ux/css/Portal.css" />
+    <script type="text/javascript" src="../../builds/ext-core.js"></script>
 
-    <!-- page specific -->
-    <link rel="stylesheet" type="text/css" href="sample.css" />
-    <style type="text/css">
-
-    </style>
-
-    <!-- ** Javascript ** -->
-    <!-- ExtJS library: base/adapter -->
-    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-
-    <!-- ExtJS library: all widgets -->
-    <script type="text/javascript" src="../../ext-all.js"></script>
-
-    <!-- overrides to base library -->
-
-    <!-- extensions -->
-    <script type="text/javascript" src="../ux/Portal.js"></script>
-    <script type="text/javascript" src="../ux/PortalColumn.js"></script>
-    <script type="text/javascript" src="../ux/Portlet.js"></script>
-
-    <!-- page specific -->
-	<script type="text/javascript" src="sample-grid.js"></script>
+    <!-- shared example code -->
     <script type="text/javascript" src="../shared/examples.js"></script>
+    <script type="text/javascript" src="classes.js"></script>
 
-	<script type="text/javascript" src="portal.js"></script>
+    <script type="text/javascript" src="portal.js"></script>
+    <script type="text/javascript">
+        Ext.Loader.setPath('Ext.app', 'classes');
 
+        Ext.require([
+            'Ext.layout.container.*',
+            'Ext.resizer.Splitter',
+            'Ext.fx.target.Element',
+            'Ext.fx.target.Component',
+            'Ext.window.Window',
+            'Ext.app.Portlet',
+            'Ext.app.PortalColumn',
+            'Ext.app.PortalPanel',
+            'Ext.app.Portlet',
+            'Ext.app.PortalDropZone',
+            'Ext.app.GridPortlet',
+            'Ext.app.ChartPortlet'
+        ]);
+
+        Ext.onReady(function(){
+            Ext.create('Ext.app.Portal');
+        });
+    </script>
 </head>
-<body></body>
+<body>
+    <span id="app-msg" style="display:none;"></span>
+</body>
 </html>

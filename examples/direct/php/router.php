@@ -53,8 +53,11 @@ function doRpc($cdata){
 
 		require_once("classes/$action.php");
 		$o = new $action();
-
-		$params = isset($cdata->data) && is_array($cdata->data) ? $cdata->data : array();
+        if (isset($mdef['len'])) {
+		    $params = isset($cdata->data) && is_array($cdata->data) ? $cdata->data : array();
+		} else {
+		    $params = array($cdata->data);
+		}
 
 		$r['result'] = call_user_func_array(array($o, $method), $params);
 

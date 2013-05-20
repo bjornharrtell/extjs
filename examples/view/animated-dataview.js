@@ -1,34 +1,34 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.Loader.setConfig({enabled: true});
+Ext.Loader.setPath('Ext.ux.DataView', '../ux/DataView/');
+
+Ext.require([
+    'Ext.data.*',
+    'Ext.util.*',
+    'Ext.view.View',
+    'Ext.ux.DataView.Animated',
+    'Ext.XTemplate',
+    'Ext.panel.Panel',
+    'Ext.toolbar.*',
+    'Ext.slider.Multi'
+]);
+
 Ext.onReady(function() {
-    var store = new Ext.data.ArrayStore({
-        proxy   : new Ext.data.MemoryProxy(),
-        fields  : ['hasEmail', 'hasCamera', 'id', 'name', 'price', 'screen', 'camera', 'color', 'type', 'reviews', 'screen-size'],
-        sortInfo: {
-            field    : 'name',
-            direction: 'ASC'
-        }
-    });
-    
-    store.loadData([
+    //data to be loaded into the ArrayStore
+    var data = [
         [true,  false, 1,  "LG KS360", 54, "240 x 320 pixels", "2 Megapixel", "Pink", "Slider", 359, 2.400000],
         [true,  true,  2,  "Sony Ericsson C510a Cyber-shot", 180, "320 x 240 pixels", "3.2 Megapixel", "Future black", "Candy bar", 11, 0.000000],
         [true,  true,  3,  "LG PRADA KE850", 155, "240 x 400 pixels", "2 Megapixel", "Black", "Candy bar", 113, 0.000000],
@@ -49,52 +49,69 @@ Ext.onReady(function() {
         [true,  true,  18, "LG Xenon GR500", 1, "240 x 400 pixels", "2 Megapixel", "Red", "Slider", 658, 2.800000],
         [true,  false, 19, "BlackBerry Curve 8900 BlackBerry", 349, "480 x 360 pixels", "3.2 Megapixel", "", "Candy bar", 21, 2.440000],
         [true,  false, 20, "Samsung SGH U600 Ultra Edition 10.9", 135, "240 x 320 pixels", "3.2 Megapixel", "", "Slider", 169, 2.200000]
-    ]);
-    
-    var dataview = new Ext.DataView({
+    ];
+
+    Ext.define('Mobile', {
+        extend: 'Ext.data.Model',
+        fields: [
+            {name: 'hasEmail', type: 'bool'},
+            {name: 'hasCamera', type: 'bool'},
+            {name: 'id', type: 'int'},
+            'name',
+            {name: 'price', type: 'int'},
+            'screen',
+            'camera',
+            'color',
+            'type',
+            {name: 'reviews', type: 'int'},
+            {name: 'screen-size', type: 'int'}
+        ]
+    });
+
+    var store = Ext.create('Ext.data.ArrayStore', {
+        model: 'Mobile',
+        sortInfo: {
+            field    : 'name',
+            direction: 'ASC'
+        },
+        data: data
+    });
+
+    var dataview = Ext.create('Ext.view.View', {
+        deferInitialRefresh: false,
         store: store,
-        tpl  : new Ext.XTemplate(
-            '<ul>',
-                '<tpl for=".">',
-                    '<li class="phone">',
-                        '<img width="64" height="64" src="images/phones/{[values.name.replace(/ /g, "-")]}.png" />',
-                        '<strong>{name}</strong>',
-                        '<span>{price:usMoney} ({reviews} Review{[values.reviews == 1 ? "" : "s"]})</span>',
-                    '</li>',
-                '</tpl>',
-            '</ul>'
+        tpl  : Ext.create('Ext.XTemplate',
+            '<tpl for=".">',
+                '<div class="phone">',
+                    (!Ext.isIE6? '<img width="64" height="64" src="images/phones/{[values.name.replace(/ /g, "-")]}.png" />' :
+                     '<div style="width:74px;height:74px;filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'images/phones/{[values.name.replace(/ /g, "-")]}.png\',sizingMethod=\'scale\')"></div>'),
+                    '<strong>{name}</strong>',
+                    '<span>{price:usMoney} ({reviews} Review{[values.reviews == 1 ? "" : "s"]})</span>',
+                '</div>',
+            '</tpl>'
         ),
-        
+
         plugins : [
-            new Ext.ux.DataViewTransition({
+            Ext.create('Ext.ux.DataView.Animated', {
                 duration  : 550,
                 idProperty: 'id'
             })
         ],
         id: 'phones',
-        
-        itemSelector: 'li.phone',
-        overClass   : 'phone-hover',
-        singleSelect: true,
+
+        itemSelector: 'div.phone',
+        overItemCls : 'phone-hover',
         multiSelect : true,
         autoScroll  : true
     });
-    
-    var phoneSlider = new Ext.Slider({
-        width   : 300,
-        minValue: 0,
-        maxValue: 500,
-        values  : [80, 320],
-        plugins : [
-            new Ext.slider.Tip({
-                getText: function(thumb) {
-                    var largest = Ext.max(store.collect('price', false, true));
-                    
-                    return String.format('<b>${0}</b>', thumb.value);
-                }
-            })
-        ],
-        
+
+    var phoneSlider = Ext.create('Ext.slider.Multi', {
+        hideLabel: true,
+        width    : 300,
+        minValue : 0,
+        maxValue : 500,
+        values   : [80, 320],
+
         listeners: {
             change: {
                 buffer: 70,
@@ -102,33 +119,41 @@ Ext.onReady(function() {
             }
         }
     });
-    
-    new Ext.Panel({
+
+    Ext.create('Ext.panel.Panel', {
         title: 'Animated DataView',
         layout: 'fit',
         items : dataview,
-        height: 615,
-        width : 800,
+        height: 555,
+        width : 650,
         tbar  : [
-            'Filter phone price:', ' ',
+            'Filter phone price:',
+            ' ',
             phoneSlider
         ],
         renderTo: 'docbody'
     });
-    
+
     //filters the store based on the current slider values
     function filterData(slider) {
         var values  = slider.getValues();
-        
+
+        var test = [];
+
+        //TODO: the suspend/resume hack can be removed once Filtering has been updated
+        store.suspendEvents();
+        store.clearFilter();
+        store.resumeEvents();
         store.filter([{
             fn: function(record) {
                 return record.get('price') >= values[0] && record.get('price') <= values[1];
             }
         }]);
-        
+
         store.sort('name', 'ASC');
-    };
-    
+    }
+
     //perform initial filter
     filterData(phoneSlider);
 });
+

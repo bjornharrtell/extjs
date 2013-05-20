@@ -1,14 +1,9 @@
 <html>
 <head>
     <title>VBox Layout</title>
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
-
-    <!-- GC -->
-    <!-- LIBS -->
-    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-    <!-- ENDLIBS -->
-
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="../shared/example.css" />
+    <script type="text/javascript" src="../../bootstrap.js"></script>
 
     <style type="text/css">
         html, body {
@@ -23,23 +18,14 @@
             var currentName;
             var replace = function(config, name) {
                 var btns = Ext.getCmp('btns');
-                
                 if (name && name != currentName) {
                     currentName = name;
-                    
                     btns.remove(0);
-                
-                    btns.add(config);
-                };
-                
-                // console.profile();
-                
-                btns.doLayout();
-                // console.profileEnd();
-            }
+                    btns.add(Ext.apply(config));
+                }
+            };
 
-
-            var viewport = new Ext.Viewport({
+            var viewport = Ext.create('Ext.Viewport', {
                 layout:'border',
 
                 items: [{
@@ -88,7 +74,7 @@
                                         xtype:'button',
                                         text: 'Button 1'
                                     },{
-                                        xtype:'spacer',
+                                        xtype:'tbspacer',
                                         flex:1
                                     },{
                                         xtype:'button',
@@ -118,19 +104,19 @@
                                         xtype:'button',
                                         text: 'Button 1'
                                     },{
-                                        xtype:'spacer',
+                                        xtype:'tbspacer',
                                         flex:1
                                     },{
                                         xtype:'button',
                                         text: 'Button 2'
                                     },{
-                                        xtype:'spacer',
+                                        xtype:'tbspacer',
                                         flex:1
                                     },{
                                         xtype:'button',
                                         text: 'Button 3'
                                     },{
-                                        xtype:'spacer',
+                                        xtype:'tbspacer',
                                         flex:1
                                     },{
                                         xtype:'button',
@@ -230,16 +216,16 @@
                                     defaults:{margins:'0 0 5 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Jamie'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        text: 'Aaron'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
+                                        text: 'Tommy'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 4'
+                                        text: 'Ed '
                                     }]
                                 }, 'align stretchmax');
                             }

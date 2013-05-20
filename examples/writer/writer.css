@@ -1,20 +1,27 @@
-/*
-This file is part of Ext JS 3.4
+.icon-user {
+    background-image: url(images/user.png) !important;
+}
 
-Copyright (c) 2011-2013 Sencha Inc
+.icon-user-add {
+    background-image: url(images/user_add.gif) !important;
+}
 
-Contact:  http://www.sencha.com/contact
+.icon-save {
+    background-image: url(images/save.gif) !important;
+}
 
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+.icon-reset {
+    background-image: url(images/stop.png) !important;
+}
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+.icon-grid {
+    background-image: url(images/grid.png) !important;
+}
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
+.icon-add {
+    background-image: url(images/add.png) !important;
+}
 
-Build date: 2013-04-03 15:07:25
-*/
+.icon-delete {
+    background-image: url(images/delete.png) !important;
+}

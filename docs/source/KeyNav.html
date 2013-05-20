@@ -15,169 +15,139 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-KeyNav-method-constructor'><span id='Ext-KeyNav'>/**
-</span></span> * @class Ext.KeyNav
- * &lt;p&gt;Provides a convenient wrapper for normalized keyboard navigation.  KeyNav allows you to bind
- * navigation keys to function calls that will get called when the keys are pressed, providing an easy
- * way to implement custom navigation schemes for any UI component.&lt;/p&gt;
- * &lt;p&gt;The following are all of the possible keys that can be implemented: enter, left, right, up, down, tab, esc,
- * pageUp, pageDown, del, home, end.  Usage:&lt;/p&gt;
- &lt;pre&gt;&lt;code&gt;
-var nav = new Ext.KeyNav(&quot;my-element&quot;, {
-    &quot;left&quot; : function(e){
-        this.moveLeft(e.ctrlKey);
-    },
-    &quot;right&quot; : function(e){
-        this.moveRight(e.ctrlKey);
-    },
-    &quot;enter&quot; : function(e){
-        this.save();
-    },
-    scope : this
-});
-&lt;/code&gt;&lt;/pre&gt;
- * @constructor
- * @param {Mixed} el The element to bind to
- * @param {Object} config The config
+  <pre class="prettyprint lang-js"><span id='Ext-menu-KeyNav'>/**
+</span> * @class Ext.menu.KeyNav
+ * @private
  */
-Ext.KeyNav = function(el, config){
-    this.el = Ext.get(el);
-    Ext.apply(this, config);
-    if(!this.disabled){
-        this.disabled = true;
-        this.enable();
+Ext.define('Ext.menu.KeyNav', {
+    extend: 'Ext.util.KeyNav',
+
+    requires: ['Ext.FocusManager'],
+    
+    constructor: function(menu) {
+        var me = this;
+
+        me.menu = menu;
+        me.callParent([menu.el, {
+            down: me.down,
+            enter: me.enter,
+            esc: me.escape,
+            left: me.left,
+            right: me.right,
+            space: me.enter,
+            tab: me.tab,
+            up: me.up
+        }]);
+    },
+
+    down: function(e) {
+        var me = this,
+            fi = me.menu.focusedItem;
+
+        if (fi &amp;&amp; e.getKey() == Ext.EventObject.DOWN &amp;&amp; me.isWhitelisted(fi)) {
+            return true;
+        }
+        me.focusNextItem(1);
+    },
+
+    enter: function(e) {
+        var menu = this.menu,
+            focused = menu.focusedItem;
+ 
+        if (menu.activeItem) {
+            menu.onClick(e);
+        } else if (focused &amp;&amp; focused.isFormField) {
+            // prevent stopEvent being called
+            return true;
+        }
+    },
+
+    escape: function(e) {
+        Ext.menu.Manager.hideAll();
+    },
+
+    focusNextItem: function(step) {
+        var menu = this.menu,
+            items = menu.items,
+            focusedItem = menu.focusedItem,
+            startIdx = focusedItem ? items.indexOf(focusedItem) : -1,
+            idx = startIdx + step;
+
+        while (idx != startIdx) {
+            if (idx &lt; 0) {
+                idx = items.length - 1;
+            } else if (idx &gt;= items.length) {
+                idx = 0;
+            }
+
+            var item = items.getAt(idx);
+            if (menu.canActivateItem(item)) {
+                menu.setActiveItem(item);
+                break;
+            }
+            idx += step;
+        }
+    },
+
+    isWhitelisted: function(item) {
+        return Ext.FocusManager.isWhitelisted(item);
+    },
+
+    left: function(e) {
+        var menu = this.menu,
+            fi = menu.focusedItem,
+            ai = menu.activeItem;
+
+        if (fi &amp;&amp; this.isWhitelisted(fi)) {
+            return true;
+        }
+
+        menu.hide();
+        if (menu.parentMenu) {
+            menu.parentMenu.focus();
+        }
+    },
+
+    right: function(e) {
+        var menu = this.menu,
+            fi = menu.focusedItem,
+            ai = menu.activeItem,
+            am;
+
+        if (fi &amp;&amp; this.isWhitelisted(fi)) {
+            return true;
+        }
+
+        if (ai) {
+            am = menu.activeItem.menu;
+            if (am) {
+                ai.expandMenu(0);
+                Ext.defer(function() {
+                    am.setActiveItem(am.items.getAt(0));
+                }, 25);
+            }
+        }
+    },
+
+    tab: function(e) {
+        var me = this;
+
+        if (e.shiftKey) {
+            me.up(e);
+        } else {
+            me.down(e);
+        }
+    },
+
+    up: function(e) {
+        var me = this,
+            fi = me.menu.focusedItem;
+
+        if (fi &amp;&amp; e.getKey() == Ext.EventObject.UP &amp;&amp; me.isWhitelisted(fi)) {
+            return true;
+        }
+        me.focusNextItem(-1);
     }
-};
-
-Ext.KeyNav.prototype = {
-<span id='Ext-KeyNav-cfg-disabled'>    /**
-</span>     * @cfg {Boolean} disabled
-     * True to disable this KeyNav instance (defaults to false)
-     */
-    disabled : false,
-<span id='Ext-KeyNav-cfg-defaultEventAction'>    /**
-</span>     * @cfg {String} defaultEventAction
-     * The method to call on the {@link Ext.EventObject} after this KeyNav intercepts a key.  Valid values are
-     * {@link Ext.EventObject#stopEvent}, {@link Ext.EventObject#preventDefault} and
-     * {@link Ext.EventObject#stopPropagation} (defaults to 'stopEvent')
-     */
-    defaultEventAction: &quot;stopEvent&quot;,
-<span id='Ext-KeyNav-cfg-forceKeyDown'>    /**
-</span>     * @cfg {Boolean} forceKeyDown
-     * Handle the keydown event instead of keypress (defaults to false).  KeyNav automatically does this for IE since
-     * IE does not propagate special keys on keypress, but setting this to true will force other browsers to also
-     * handle keydown instead of keypress.
-     */
-    forceKeyDown : false,
-
-    // private
-    relay : function(e){
-        var k = e.getKey(),
-            h = this.keyToHandler[k];
-        if(h &amp;&amp; this[h]){
-            if(this.doRelay(e, this[h], h) !== true){
-                e[this.defaultEventAction]();
-            }
-        }
-    },
-
-    // private
-    doRelay : function(e, h, hname){
-        return h.call(this.scope || this, e, hname);
-    },
-
-    // possible handlers
-    enter : false,
-    left : false,
-    right : false,
-    up : false,
-    down : false,
-    tab : false,
-    esc : false,
-    pageUp : false,
-    pageDown : false,
-    del : false,
-    home : false,
-    end : false,
-    space : false,
-
-    // quick lookup hash
-    keyToHandler : {
-        37 : &quot;left&quot;,
-        39 : &quot;right&quot;,
-        38 : &quot;up&quot;,
-        40 : &quot;down&quot;,
-        33 : &quot;pageUp&quot;,
-        34 : &quot;pageDown&quot;,
-        46 : &quot;del&quot;,
-        36 : &quot;home&quot;,
-        35 : &quot;end&quot;,
-        13 : &quot;enter&quot;,
-        27 : &quot;esc&quot;,
-        9  : &quot;tab&quot;,
-        32 : &quot;space&quot;
-    },
-    
-    stopKeyUp: function(e) {
-        var k = e.getKey();
-
-        if (k &gt;= 37 &amp;&amp; k &lt;= 40) {
-            // *** bugfix - safari 2.x fires 2 keyup events on cursor keys
-            // *** (note: this bugfix sacrifices the &quot;keyup&quot; event originating from keyNav elements in Safari 2)
-            e.stopEvent();
-        }
-    },
-    
-<span id='Ext-KeyNav-method-destroy'>    /**
-</span>     * Destroy this KeyNav (this is the same as calling disable).
-     */
-    destroy: function(){
-        this.disable();    
-    },
-
-<span id='Ext-KeyNav-method-enable'>	/**
-</span>	 * Enable this KeyNav
-	 */
-	enable: function() {
-        if (this.disabled) {
-            if (Ext.isSafari2) {
-                // call stopKeyUp() on &quot;keyup&quot; event
-                this.el.on('keyup', this.stopKeyUp, this);
-            }
-
-            this.el.on(this.isKeydown()? 'keydown' : 'keypress', this.relay, this);
-            this.disabled = false;
-        }
-    },
-
-<span id='Ext-KeyNav-method-disable'>	/**
-</span>	 * Disable this KeyNav
-	 */
-	disable: function() {
-        if (!this.disabled) {
-            if (Ext.isSafari2) {
-                // remove &quot;keyup&quot; event handler
-                this.el.un('keyup', this.stopKeyUp, this);
-            }
-
-            this.el.un(this.isKeydown()? 'keydown' : 'keypress', this.relay, this);
-            this.disabled = true;
-        }
-    },
-    
-<span id='Ext-KeyNav-method-setDisabled'>    /**
-</span>     * Convenience function for setting disabled/enabled by boolean.
-     * @param {Boolean} disabled
-     */
-    setDisabled : function(disabled){
-        this[disabled ? &quot;disable&quot; : &quot;enable&quot;]();
-    },
-    
-    // private
-    isKeydown: function(){
-        return this.forceKeyDown || Ext.EventManager.useKeydown;
-    }
-};
-</pre>
+});</pre>
 </body>
 </html>

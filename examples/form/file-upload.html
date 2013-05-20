@@ -1,19 +1,19 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>File Upload Field Example</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <title>File Uploads</title>
 
-    <!-- ** CSS ** -->
-    <!-- base library -->
+    <!-- ExtJS -->
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <script type="text/javascript" src="../../bootstrap.js"></script>
 
-    <!-- overrides to base library -->
+    <!-- Shared -->
+    <link rel="stylesheet" type="text/css" href="../shared/example.css" />
 
-    <!-- page specific -->
-    <link rel="stylesheet" type="text/css" href="../shared/examples.css" />
-    <link rel="stylesheet" type="text/css" href="../ux/fileuploadfield/css/fileuploadfield.css"/>
-
-    <style type=text/css>
+    <!-- Example -->
+    <script type="text/javascript" src="file-upload.js"></script>
+    <style type="text/css">
         .upload-icon {
             background: url('../shared/icons/fam/image_add.png') no-repeat 0 0 !important;
         }
@@ -26,49 +26,37 @@
         }
     </style>
 
-    <!-- ** Javascript ** -->
-    <!-- ExtJS library: base/adapter -->
-    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-
-    <!-- ExtJS library: all widgets -->
-    <script type="text/javascript" src="../../ext-all.js"></script>
-
-    <!-- overrides to base library -->
-    <script type="text/javascript" src="../ux/fileuploadfield/FileUploadField.js"></script>
-
-    <!-- page specific -->
-    <script type="text/javascript" src="file-upload.js"></script>
-
 </head>
 <body>
     <h1>File Upload Field</h1>
-    <p>This example utilizes a custom extension to implement a file upload field.
-    The js is not minified so it is readable. See <a href="file-upload.js">file-input.js</a> and
-    <a href="../ux/fileuploadfield/FileUploadField.js">FileUploadField.js</a>.</p>
 
+    <p>This example demonstrates use of Ext.form.field.File, a file upload field with custom rendering.</p>
+    <p>The js is not minified so it is readable. See <a href="file-upload.js">file-upload.js</a>.</p>
+
+    <h2>Basic File Field</h2>
     <p>
-        <b>Basic FileUpload</b><br />
-        A typical file upload field with Ext style.  Direct editing of the text field cannot be done in a
-        consistent, cross-browser way, so it is always read-only in this implementation.
-        <div id="fi-basic"></div>
-        <div id="fi-basic-btn"></div>
+        A typical file upload field with Ext style. Direct editing of the text field cannot be done in a
+        consistent, cross-browser way, so it is always read-only. The file path reported by the <code>getValue</code>
+        method will 
     </p>
+    <div id="fi-basic"></div>
+    <div id="fi-basic-btn"></div>
 
+    <h2>Button Only</h2>
     <p>
-        <b>Basic FileUpload (Button-only)</b><br />
         You can also render the file input as a button without the text field, with access to the field's value via the
-        standard <tt>Ext.form.TextField</tt> interface or by handling the <tt>fileselected</tt> event (as in this example).
-        <div id="fi-button"></div>
-        <div id="fi-button-msg" style="display:none;"></div>
-        <div class="x-clear"></div>
+        standard <tt>Ext.form.field.Field</tt> interface or by handling the <tt>fileselected</tt> event (as in this example).
     </p>
+    <div id="fi-button"></div>
+    <div id="fi-button-msg" style="display:none;"></div>
+    <div class="x-clear"></div>
 
+    <h2>Form Example</h2>
     <p>
-        <b>Form Example</b><br />
-        The FileUploadField can also be used in standard form layouts, with support for anchoring, validation (the
-        field is required in this example), empty text, etc.  This example also demonstrates using the
-        <tt>buttonCfg</tt> option to provide a customized icon upload button.
-        <div id="fi-form"></div>
+        The File field can also be used in form layouts just like any other field, with support for labeling,
+        validation (the field is required in this example), empty text, etc.  This example also demonstrates
+        using the <tt>buttonConfig</tt> option to provide a customized icon upload button.
     </p>
+    <div id="fi-form"></div>
 </body>
 </html>

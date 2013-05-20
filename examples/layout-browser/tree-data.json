@@ -1,4 +1,6 @@
-[{
+{ 
+text: '.',
+children: [{
     text:'Basic Ext Layouts',
     expanded: true,
     children:[{
@@ -34,10 +36,6 @@
         id:'fit',
         leaf:true
     },{
-        text:'Form',
-        id:'form',
-        leaf:true
-    },{
         text:'Table',
         id:'table',
         leaf:true
@@ -53,10 +51,6 @@
 },{
     text:'Custom Layouts',
     children:[{
-        text:'Row',
-        id:'row',
-        leaf:true
-    },{
         text:'Center',
         id:'center',
         leaf:true
@@ -73,3 +67,4 @@
         leaf:true
     }]
 }]
+}

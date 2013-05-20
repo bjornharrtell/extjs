@@ -1,69 +1,65 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.form.*',
+    'Ext.layout.container.Absolute',
+    'Ext.window.Window'
+]);
+
 Ext.onReady(function() {
-    var form = new Ext.form.FormPanel({
-        baseCls: 'x-plain',
-        layout:'absolute',
-        url:'save-form.php',
+    var form = Ext.create('Ext.form.Panel', {
+        layout: 'absolute',
+        url: 'save-form.php',
         defaultType: 'textfield',
+        border: false,
 
         items: [{
-            x: 0,
+            fieldLabel: 'Send To',
+            fieldWidth: 60,
+            msgTarget: 'side',
+            allowBlank: false,
+            x: 5,
             y: 5,
-            xtype:'label',
-            text: 'Send To:'
-        },{
-            x: 60,
-            y: 0,
             name: 'to',
-            anchor:'100%'  // anchor width by percentage
-        },{
-            x: 0,
+            anchor: '-5'  // anchor width by percentage
+        }, {
+            fieldLabel: 'Subject',
+            fieldWidth: 60,
+            x: 5,
             y: 35,
-            xtype:'label',
-            text: 'Subject:'
-        },{
-            x: 60,
-            y: 30,
             name: 'subject',
-            anchor: '100%'  // anchor width by percentage
-        },{
-            x:0,
-            y: 60,
+            anchor: '-5'  // anchor width by percentage
+        }, {
+            x:5,
+            y: 65,
             xtype: 'textarea',
+            style: 'margin:0',
+            hideLabel: true,
             name: 'msg',
-            anchor: '100% 100%'  // anchor width and height
+            anchor: '-5 -5'  // anchor width and height
         }]
     });
 
-    var window = new Ext.Window({
+    var win = Ext.create('Ext.window.Window', {
         title: 'Resize Me',
         width: 500,
-        height:300,
+        height: 300,
         minWidth: 300,
         minHeight: 200,
         layout: 'fit',
         plain:true,
-        bodyStyle:'padding:5px;',
-        buttonAlign:'center',
         items: form,
 
         buttons: [{
@@ -73,5 +69,5 @@ Ext.onReady(function() {
         }]
     });
 
-    window.show();
+    win.show();
 });

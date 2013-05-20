@@ -15,11 +15,14 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-data-XmlStore-method-constructor'><span id='Ext-data-XmlStore'>/**
-</span></span> * @class Ext.data.XmlStore
+  <pre class="prettyprint lang-js"><span id='Ext-data-XmlStore'>/**
+</span> * @author Ed Spencer
+ * @class Ext.data.XmlStore
  * @extends Ext.data.Store
+ * @private
+ * @ignore
  * &lt;p&gt;Small helper class to make creating {@link Ext.data.Store}s from XML data easier.
- * A XmlStore will be automatically configured with a {@link Ext.data.XmlReader}.&lt;/p&gt;
+ * A XmlStore will be automatically configured with a {@link Ext.data.reader.Xml}.&lt;/p&gt;
  * &lt;p&gt;A store configuration would be something like:&lt;pre&gt;&lt;code&gt;
 var store = new Ext.data.XmlStore({
     // store configs
@@ -67,22 +70,33 @@ var store = new Ext.data.XmlStore({
 &amp;#60/ItemSearchResponse&gt;
  * &lt;/code&gt;&lt;/pre&gt;
  * An object literal of this form could also be used as the {@link #data} config option.&lt;/p&gt;
- * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; Although not listed here, this class accepts all of the configuration options of 
- * &lt;b&gt;{@link Ext.data.XmlReader XmlReader}&lt;/b&gt;.&lt;/p&gt;
- * @constructor
- * @param {Object} config
+ * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; This class accepts all of the configuration options of
+ * &lt;b&gt;{@link Ext.data.reader.Xml XmlReader}&lt;/b&gt;.&lt;/p&gt;
  * @xtype xmlstore
  */
-Ext.data.XmlStore = Ext.extend(Ext.data.Store, {
+Ext.define('Ext.data.XmlStore', {
+    extend: 'Ext.data.Store',
+    alternateClassName: 'Ext.data.XmlStore',
+    alias: 'store.xml',
+
 <span id='Ext-data-XmlStore-cfg-reader'>    /**
 </span>     * @cfg {Ext.data.DataReader} reader @hide
      */
     constructor: function(config){
-        Ext.data.XmlStore.superclass.constructor.call(this, Ext.apply(config, {
-            reader: new Ext.data.XmlReader(config)
-        }));
+        config = config || {};
+        config = config || {};
+
+        Ext.applyIf(config, {
+            proxy: {
+                type: 'ajax',
+                reader: 'xml',
+                writer: 'xml'
+            }
+        });
+
+        this.callParent([config]);
     }
 });
-Ext.reg('xmlstore', Ext.data.XmlStore);</pre>
+</pre>
 </body>
 </html>

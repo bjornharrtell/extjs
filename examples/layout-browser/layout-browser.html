@@ -1,30 +1,16 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>ExtJS Layout Examples</title>
-
-    <!-- ** CSS ** -->
-    <!-- base library -->
+    <!-- Ext -->
     <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <script type="text/javascript" src="../../bootstrap.js"></script>
 
-    <!-- overrides to base library -->
+    <!-- example code -->
+
     <link rel="stylesheet" type="text/css" href="../ux/css/CenterLayout.css" />
-
-    <!-- page specific -->
     <link rel="stylesheet" type="text/css" href="layout-browser.css">
-
-    <!-- ** Javascript ** -->
-    <!-- ExtJS library: base/adapter -->
-    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-
-    <!-- ExtJS library: all widgets -->
-    <script type="text/javascript" src="../../ext-all.js"></script>
-
-    <!-- overrides to base library -->
-
-    <!-- extensions -->
-    <script type="text/javascript" src="../ux/CenterLayout.js"></script>
-    <script type="text/javascript" src="../ux/RowLayout.js"></script>
 
     <!-- page specific -->
     <script type="text/javascript" src="layouts/basic.js"></script>
@@ -34,7 +20,6 @@
 
 </head>
 <body>
-    <div id="header"><h1>Ext Layout Browser</h1></div>
     <div style="display:none;">
 
         <!-- Start page content -->
@@ -51,7 +36,7 @@
 
         <!-- Basic layouts -->
         <div id="absolute-details">
-            <h2>Ext.layout.AbsoluteLayout</h2>
+            <h2>Ext.layout.container.Absolute</h2>
             <p>This is a simple layout style that allows you to position items within a container using
             CSS-style absolute positioning via XY coordinates.</p>
             <p><b>Sample Config:</b></p>
@@ -64,10 +49,10 @@ items:[{
     html: 'Positioned at x:50, y:50'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.AbsoluteLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Absolute" target="_blank">API Reference</a></p>
         </div>
         <div id="accordion-details">
-            <h2>Ext.layout.Accordion</h2>
+            <h2>Ext.layout.container.Accordion</h2>
             <p>Displays one panel at a time in a stacked layout.  No special config properties are required other
             than the layout &mdash; all panels added to the container will be converted to accordion panels.</p>
             <p><b>Sample Config:</b></p>
@@ -93,10 +78,10 @@ items:[{
     color:#555;
 }
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.Accordion" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Accordion" target="_blank">API Reference</a></p>
         </div>
         <div id="anchor-details">
-            <h2>Ext.layout.AnchorLayout</h2>
+            <h2>Ext.layout.container.Anchor</h2>
             <p>Provides anchoring of contained items to the container's edges.  This type of layout is most commonly
             seen within FormPanels (or any container with a FormLayout) where fields are sized relative to the
             container without hard-coding their dimensions.</p>
@@ -119,10 +104,10 @@ items: [{
     anchor: '-10, -262'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.AnchorLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Anchor" target="_blank">API Reference</a></p>
         </div>
         <div id="border-details">
-            <h2>Ext.layout.BorderLayout</h2>
+            <h2>Ext.layout.container.Border</h2>
             <p>This Layout Browser page is already a border layout, and this example shows a separate border layout
             nested within a region of the page's border layout.  Border layouts can be nested with just about any
             level of complexity that you might need.</p>
@@ -157,10 +142,10 @@ items: [{
     margins: '5 0 0 0'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.BorderLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Border" target="_blank">API Reference</a></p>
         </div>
         <div id="card-tabs-details">
-            <h2>Ext.layout.CardLayout (TabPanel)</h2>
+            <h2>Ext.layout.container.Card (TabPanel)</h2>
             <p>The TabPanel component is an excellent example of a sophisticated card layout.  Each tab is just
             a panel managed by the card layout such that only one is visible at a time.  In this case, configuration
             is simple since we aren't actually building a card layout from scratch.  Don't forget to set the
@@ -180,12 +165,12 @@ items:[{
     html: 'This is tab 3 content.'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.CardLayout" target="_blank">CardLayout API Reference</a></p>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.TabPanel" target="_blank">TabPanel API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Card" target="_blank">Card layout API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.tab.Panel" target="_blank">TabPanel API Reference</a></p>
         </div>
         <div id="card-wizard-details">
-            <h2>Ext.layout.CardLayout (Wizard)</h2>
-            <p>You can use a CardLayout to create your own custom wizard-style screen.  The layout is a standard
+            <h2>Ext.layout.container.Card (Wizard)</h2>
+            <p>You can use a Card layout to create your own custom wizard-style screen.  The layout is a standard
             CardLayout with a Toolbar at the bottom, and the developer must supply the navigation function
             that implements the wizard's business logic (see the code in basic.js for details).</p>
             <p><b>Sample Config:</b></p>
@@ -210,10 +195,10 @@ items: [{
     html: 'Step 3'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.CardLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Card" target="_blank">API Reference</a></p>
         </div>
         <div id="column-details">
-            <h2>Ext.layout.ColumnLayout</h2>
+            <h2>Ext.layout.container.Column</h2>
             <p>This is a useful layout style when you need multiple columns that can have varying content height.
             Any fixed-width column widths are calculated first, then any percentage-width columns specified using
             the <tt>columnWidth</tt> config will be calculated based on remaining container width.  Percentages
@@ -235,10 +220,10 @@ items: [{
     html: 'Content'
 }]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.ColumnLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Column" target="_blank">API Reference</a></p>
         </div>
         <div id="fit-details">
-            <h2>Ext.layout.FitLayout</h2>
+            <h2>Ext.layout.container.Fit</h2>
             <p>A very simple layout that simply fills the container with a single panel.  This is usually the best default
             layout choice when you have no other specific layout requirements.</p>
             <p><b>Sample Config:</b></p>
@@ -250,53 +235,18 @@ items: {
     border: false
 }
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.FitLayout" target="_blank">API Reference</a></p>
-        </div>
-        <div id="form-details">
-            <h2>Ext.layout.FormLayout</h2>
-            <p>FormLayout has specific logic to deal with form fields, labels, etc.  While you can use a FormLayout in
-            a standard panel, you will normally want to use a FormPanel directly in order to get form-specific functionality
-            like validation, submission, etc.  FormPanels use a FormLayout internally so the layout config is not needed
-            (and the layout may not render correctly if overridden).</p>
-            <p><b>Sample Config:</b></p>
-            <pre><code>
-xtype: 'form', // FormPanel
-labelWidth: 75,
-width: 350,
-defaultType: 'textfield',
-items: [{
-        fieldLabel: 'First Name',
-        name: 'first',
-        allowBlank:false
-    },{
-        fieldLabel: 'Last Name',
-        name: 'last'
-    },{
-        fieldLabel: 'Company',
-        name: 'company'
-    },{
-        fieldLabel: 'Email',
-        name: 'email',
-        vtype:'email'
-    }
-],
-buttons: [
-    {text: 'Save'},
-    {text: 'Cancel'}
-]
-            </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.FormLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Fit" target="_blank">API Reference</a></p>
         </div>
         <div id="table-details">
-            <h2>Ext.layout.TableLayout</h2>
+            <h2>Ext.layout.container.Table</h2>
             <p>Outputs a standard HTML table as the layout container.  This is sometimes useful for complex layouts
             where cell spanning is required, or when you want to allow the contents to flow naturally based on standard
             browser table layout rules.</p>
             <p><b>Sample Config:</b></p>
             <pre><code>
-layout:'table',
-layoutConfig: {
-    columns: 3
+layout: {
+    type: 'table',
+    columns: 4
 },
 items: [
     {html:'1,1',rowspan:3},
@@ -307,17 +257,17 @@ items: [
     {html:'3,3'}
 ]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.TableLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Table" target="_blank">API Reference</a></p>
         </div>
 
         <div id="vbox-details">
-            <h2>Ext.layout.VBoxLayout</h2>
+            <h2>Ext.layout.container.VBox</h2>
             <p>A layout that allows for the vertical and horizontal stretching of child items, much like the container
             layout with size management.</p>
             <p><b>Sample Config:</b></p>
             <pre><code>
-layout:'vbox',
-layoutConfig: {
+layout: {
+    type: 'vbox'
     align : 'stretch',
     pack  : 'start',
 },
@@ -327,19 +277,19 @@ items: [
     {html:'panel 3', flex:2}
 ]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.VBoxLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.VBox" target="_blank">API Reference</a></p>
         </div>
 
         <div id="hbox-details">
-            <h2>Ext.layout.HBoxLayout</h2>
+            <h2>Ext.layout.container.HBox</h2>
             <p>A layout that allows for the vertical and horizontal stretching of child items, much like the column
             layout but can stretch items vertically.</p>
             <p><b>Sample Config:</b></p>
             <pre><code>
-layout:'hbox',
-layoutConfig: {
-    align : 'stretch',
-    pack  : 'start',
+layout: {
+    type: 'hbox',
+    pack: 'start',
+    align: 'stretch'
 },
 items: [
     {html:'panel 1', flex:1},
@@ -347,39 +297,15 @@ items: [
     {html:'panel 3', flex:2}
 ]
             </code></pre>
-            <p><a href="http://extjs.com/deploy/dev/docs/?class=Ext.layout.HBoxLayout" target="_blank">API Reference</a></p>
+            <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.HBox" target="_blank">API Reference</a></p>
         </div>
 
 
         <!-- Custom layouts -->
-        <div id="row-details">
-            <h2>Ext.ux.layout.RowLayout</h2>
-            <p>This is a custom layout that is useful when you need a layout style with multiple rows of content.
-            Any fixed-height rows are calculated first, then any percentage-height rows specified using the
-            <tt>rowHeight</tt> config will be calculated based on remaining container height.  Percentages
-            should add up to 1 (100%) in order to fill the container. Standard panel widths (fixed or
-            percentage) are also supported.</p>
-            <p><b>Sample Config:</b></p>
-            <pre><code>
-layout:'ux.row',
-items: [{
-    title: 'Height = 25%',
-    rowHeight: .25,
-    width: '50%'
-},{
-    title: 'Height = 100px',
-    height: 100,
-    width: 300
-},{
-    title: 'Height = 75%',
-    rowHeight: .75
-}]
-            </code></pre>
-        </div>
         <div id="center-details">
-            <h2>Ext.ux.layout.CenterLayout</h2>
+            <h2>Ext.ux.layout.Center</h2>
             <p>This is a custom layout for centering contents within a container.  The only requirement is
-            that the container have a single child panel with a width specified (fixed or percentage).
+            that the container have a single child panel with a fixed width or a percentage ratio specified.
             The child panel can then contain  any content, including other components, that will display
             centered within the main container. To make the centered panel non-visual, remove the title
             and add <tt>border:false</tt> to the child config.</p>
@@ -388,7 +314,7 @@ items: [{
 layout:'ux.center',
 items: {
     title: 'Centered Panel',
-    width: '75%',
+    widthRatio: 0.75,
     html: 'Some content'
 }
             </code></pre>

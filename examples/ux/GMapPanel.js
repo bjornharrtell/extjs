@@ -1,29 +1,29 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
 /**
  * @class Ext.ux.GMapPanel
  * @extends Ext.Panel
  * @author Shea Frederick
  */
-Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
+Ext.define('Ext.ux.GMapPanel', {
+    extend: 'Ext.Panel',
+    
+    alias: 'widget.gmappanel',
+    
+    requires: ['Ext.window.MessageBox'],
+    
     initComponent : function(){
         
         var defConfig = {
@@ -38,15 +38,17 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
         
         Ext.applyIf(this,defConfig);
         
-        Ext.ux.GMapPanel.superclass.initComponent.call(this);        
-
+        this.callParent();        
     },
+    
     afterRender : function(){
         
-        var wh = this.ownerCt.getSize();
+        var wh = this.ownerCt.getSize(),
+            point;
+            
         Ext.applyIf(this, wh);
         
-        Ext.ux.GMapPanel.superclass.afterRender.call(this);    
+        this.callParent();     
         
         if (this.gmapType === 'map'){
             this.gmap = new GMap2(this.body.dom);
@@ -65,7 +67,7 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
                 this.geoCodeLookup(this.setCenter.geoCodeAddr);
             }else{
                 if (this.gmapType === 'map'){
-                    var point = new GLatLng(this.setCenter.lat,this.setCenter.lng);
+                    point = new GLatLng(this.setCenter.lat,this.setCenter.lng);
                     this.gmap.setCenter(point, this.zoomLevel);    
                 }
                 if (typeof this.setCenter.marker === 'object' && typeof point === 'object'){
@@ -87,13 +89,13 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
         this.addMapControls();
         this.addOptions();  
     },
-    onResize : function(w, h){
+    afterComponentLayout : function(w, h){
 
         if (typeof this.getMap() == 'object') {
             this.gmap.checkResize();
         }
         
-        Ext.ux.GMapPanel.superclass.onResize.call(this, w, h);
+        this.callParent(arguments);
 
     },
     setSize : function(width, height, animate){
@@ -102,7 +104,7 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
             this.gmap.checkResize();
         }
         
-        Ext.ux.GMapPanel.superclass.setSize.call(this, width, height, animate);
+        this.callParent(arguments);
         
     },
     getMap : function(){
@@ -132,7 +134,7 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
         
     },
     addMarker : function(point, marker, clear, center, listeners){
-        
+        var evt;
         Ext.applyIf(marker,G_DEFAULT_ICON);
 
         if (clear === true){
@@ -145,6 +147,9 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
         var mark = new GMarker(point,marker);
         if (typeof listeners === 'object'){
             for (evt in listeners) {
+                if (!listeners.hasOwnProperty(evt)) {
+                    continue;
+                }
                 GEvent.bind(mark, evt, this, listeners[evt]);
             }
         }
@@ -155,7 +160,7 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
         
         if (this.gmapType === 'map') {
             if (Ext.isArray(this.mapControls)) {
-                for(i=0;i<this.mapControls.length;i++){
+                for(var i=0;i<this.mapControls.length;i++){
                     this.addMapControl(this.mapControls[i]);
                 }
             }else if(typeof this.mapControls === 'string'){
@@ -177,8 +182,7 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
     addOptions : function(){
         
         if (Ext.isArray(this.mapConfOpts)) {
-            var mc;
-            for(i=0;i<this.mapConfOpts.length;i++){
+            for(var i=0;i<this.mapConfOpts.length;i++){
                 this.addOption(this.mapConfOpts[i]);
             }
         }else if(typeof this.mapConfOpts === 'string'){
@@ -197,11 +201,11 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
     geoCodeLookup : function(addr) {
         
         this.geocoder = new GClientGeocoder();
-        this.geocoder.getLocations(addr, this.addAddressToMap.createDelegate(this));
+        this.geocoder.getLocations(addr, Ext.Function.bind(this.addAddressToMap, this));
         
     },
     addAddressToMap : function(response) {
-        
+        var place, addressinfo, accuracy, point;
         if (!response || response.Status.code != 200) {
             Ext.MessageBox.alert('Error', 'Code '+response.Status.code+' Error Returned');
         }else{
@@ -226,4 +230,3 @@ Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
  
 });
 
-Ext.reg('gmappanel', Ext.ux.GMapPanel); 

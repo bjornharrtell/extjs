@@ -1,5 +1,5 @@
 <?php
-$dir = "images/thumbs/";
+$dir = "images/";
 $images = array();
 $d = dir($dir);
 while($name = $d->read()){

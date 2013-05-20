@@ -1,29 +1,31 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.form.*',
+    'Ext.window.Window'
+]);
+
 Ext.onReady(function() {
-    var form = new Ext.form.FormPanel({
-        baseCls: 'x-plain',
-        labelWidth: 55,
-        url:'save-form.php',
+    var form = Ext.create('Ext.form.Panel', {
+        border: false,
+        fieldDefaults: {
+            labelWidth: 55
+        },
+        url: 'save-form.php',
         defaultType: 'textfield',
+        bodyPadding: 5,
 
         items: [{
             fieldLabel: 'Send To',
@@ -37,20 +39,18 @@ Ext.onReady(function() {
             xtype: 'textarea',
             hideLabel: true,
             name: 'msg',
-            anchor: '100% -53'  // anchor width by percentage and height by raw adjustment
+            anchor: '100% -47'  // anchor width by percentage and height by raw adjustment
         }]
     });
 
-    var window = new Ext.Window({
+    var win = Ext.create('Ext.window.Window', {
         title: 'Resize Me',
         width: 500,
         height:300,
         minWidth: 300,
         minHeight: 200,
         layout: 'fit',
-        plain:true,
-        bodyStyle:'padding:5px;',
-        buttonAlign:'center',
+        plain: true,
         items: form,
 
         buttons: [{
@@ -60,5 +60,5 @@ Ext.onReady(function() {
         }]
     });
 
-    window.show();
+    win.show();
 });

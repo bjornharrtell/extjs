@@ -1,27 +1,21 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
 /**
  * @class Ext.ux.DataViewTransition
  * @extends Object
- * @author Ed Spencer (http://extjs.com)
+ * @author Ed Spencer (http://sencha.com)
  * Transition plugin for DataViews
  */
 Ext.ux.DataViewTransition = Ext.extend(Object, {
@@ -47,21 +41,21 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
 
     /**
      * Initializes the transition plugin. Overrides the dataview's default refresh function
-     * @param {Ext.DataView} dataview The dataview
+     * @param {Ext.view.View} dataview The dataview
      */
     init: function(dataview) {
         /**
          * @property dataview
-         * @type Ext.DataView
+         * @type Ext.view.View
          * Reference to the DataView this instance is bound to
          */
         this.dataview = dataview;
         
         var idProperty = this.idProperty;
         dataview.blockRefresh = true;
-        dataview.updateIndexes = dataview.updateIndexes.createSequence(function() {
-            this.getTemplateTarget().select(this.itemSelector).each(function(element, composite, index) {
-                element.id = element.dom.id = String.format("{0}-{1}", dataview.id, store.getAt(index).get(idProperty));
+        dataview.updateIndexes = Ext.Function.createSequence(dataview.updateIndexes, function() {
+            this.getTargetEl().select(this.itemSelector).each(function(element, composite, index) {
+                element.id = element.dom.id = Ext.util.Format.format("{0}-{1}", dataview.id, dataview.store.getAt(index).get(idProperty));
             }, this);
         }, dataview);
         
@@ -80,14 +74,13 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
          */
         this.cachedStoreData = {};
         
-        var store = dataview.store;
+        //var store = dataview.store;
         
-        //cache the data immediately, and again on any load operation
-        this.cacheStoreData(store);
-        store.on('load', this.cacheStoreData, this);
+        //catch the store data with the snapshot immediately
+        this.cacheStoreData(dataview.store.snapshot);
         
-        store.on('datachanged', function(store) {
-            var parentEl = dataview.getTemplateTarget(),
+        dataview.store.on('datachanged', function(store) {
+            var parentEl = dataview.getTargetEl(),
                 calcItem = store.getAt(0),
                 added    = this.getAdded(store),
                 removed  = this.getRemoved(store),
@@ -96,9 +89,10 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
             
             //hide old items
             Ext.each(removed, function(item) {
-                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).fadeOut({
+                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
                     remove  : false,
-                    duration: duration / 1000,
+                    duration: duration,
+                    opacity : 0,
                     useDisplay: true
                 });
             }, this);
@@ -109,12 +103,12 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
                 return;
             }
             
-            var el = parentEl.child("#" + this.dataviewID + "-" + calcItem.get(this.idProperty));
+            var el = Ext.get(this.dataviewID + "-" + calcItem.get(this.idProperty));
             
             //calculate the number of rows and columns we have
             var itemCount   = store.getCount(),
-                itemWidth   = el.getMargins('lr') + el.getWidth(),
-                itemHeight  = el.getMargins('bt') + el.getHeight(),
+                itemWidth   = el.getMargin('lr') + el.getWidth(),
+                itemHeight  = el.getMargin('bt') + el.getHeight(),
                 dvWidth     = parentEl.getWidth(),
                 columns     = Math.floor(dvWidth / itemWidth),
                 rows        = Math.ceil(itemCount / columns),
@@ -124,9 +118,6 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
             parentEl.applyStyles({
                 display : 'block',
                 position: 'relative'
-                // ,
-                // height  : Ext.max([rows, currentRows]) * itemHeight,
-                // width   : columns * itemWidth
             });
             
             //stores the current top and left values for each element (discovered below)
@@ -137,11 +128,11 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
             //find current positions of each element and save a reference in the elCache
             Ext.iterate(previous, function(id, item) {
                 var id = item.get(this.idProperty),
-                    el = elCache[id] = parentEl.child('#' + this.dataviewID + '-' + id);
+                    el = elCache[id] = Ext.get(this.dataviewID + '-' + id);
                 
                 oldPositions[id] = {
-                    top : el.getTop()  - parentEl.getTop()  - el.getMargins('t') - parentEl.getPadding('t'),
-                    left: el.getLeft() - parentEl.getLeft() - el.getMargins('l') - parentEl.getPadding('l')
+                    top : el.getTop()  - parentEl.getTop()  - el.getMargin('t') - parentEl.getPadding('t'),
+                    left: el.getLeft() - parentEl.getLeft() - el.getMargin('l') - parentEl.getPadding('l')
                 };
             }, this);
             
@@ -200,7 +191,7 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
                         });
                     }
                     
-                    Ext.TaskMgr.stop(task);
+                    Ext.TaskManager.stop(task);
                 } else {
                     //move each item
                     for (var id in newPositions) {
@@ -231,16 +222,29 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
                 scope   : this
             };
             
-            Ext.TaskMgr.start(task);
+            Ext.TaskManager.start(task);
+            
+            //<debug>
+            var count = 0;
+            for (var k in added) {
+                count++;
+            }
+            if (Ext.global.console && Ext.global.console.log) {
+                Ext.global.console.log('added:', count);
+            }
+            //</debug>
             
             //show new items
             Ext.iterate(added, function(id, item) {
                 Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).applyStyles({
-                    top : newPositions[id].top + "px",
-                    left: newPositions[id].left + "px"
-                }).fadeIn({
+                    top    : newPositions[item.get(this.idProperty)].top + "px",
+                    left   : newPositions[item.get(this.idProperty)].left + "px"
+                });
+                
+                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
                     remove  : false,
-                    duration: duration / 1000
+                    duration: duration,
+                    opacity : 1
                 });
             }, this);
             
@@ -307,7 +311,9 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
         var removed = [];
         
         for (var id in this.cachedStoreData) {
-            if (store.findExact(this.idProperty, Number(id)) == -1) removed.push(this.cachedStoreData[id]);
+            if (store.findExact(this.idProperty, Number(id)) == -1) {
+                removed.push(this.cachedStoreData[id]);
+            }
         }
         
         return removed;
@@ -319,14 +325,15 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
      * @return {Object} Object of records that are still present from last time in format {id: record}
      */
     getRemaining: function(store) {
-      var remaining = {};
-      
-      store.each(function(record) {
-          if (this.cachedStoreData[record.get(this.idProperty)] != undefined) {
-              remaining[record.get(this.idProperty)] = record;
-          }
-      }, this);
-      
-      return remaining;
+        var remaining = {};
+
+        store.each(function(record) {
+            if (this.cachedStoreData[record.get(this.idProperty)] != undefined) {
+                remaining[record.get(this.idProperty)] = record;
+            }
+        }, this);
+
+        return remaining;
     }
 });
+

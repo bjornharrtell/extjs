@@ -1,318 +1,330 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-Ext.ns('Ext.ux');
+/**
+ * @author Nicolas Ferrero
+ * @class Ext.ux.GroupTabPanel
+ * @extends Ext.Container
+ * A TabPanel with grouping support.
+ */
+Ext.define('Ext.ux.GroupTabPanel', {
+    extend: 'Ext.Container',
 
-Ext.ux.GroupTabPanel = Ext.extend(Ext.TabPanel, {
-    tabPosition: 'left',
+    alias: 'widget.grouptabpanel',
 
-    alternateColor: false,
+    requires:[
+        'Ext.data.*',
+        'Ext.tree.*',
+        'Ext.layout.*'
+    ],
 
-    alternateCls: 'x-grouptabs-panel-alt',
+    baseCls : Ext.baseCSSPrefix + 'grouptabpanel',
 
-    defaultType: 'grouptab',
+    initComponent: function(config) {
+        var me = this,
+            items = [];
 
-    deferredRender: false,
+        Ext.apply(me, config);
 
-    activeGroup : null,
+        me.store = me.createItemsStore();
+        me.layout = {
+            type: 'hbox',
+            pack: 'start',
+            align: 'stretch'
+        };
+        me.defaults = {
+            border: false
+        };
 
-    initComponent: function(){
-        Ext.ux.GroupTabPanel.superclass.initComponent.call(this);
-        
-        this.addEvents(
+        me.items = Ext.each(me.items, function(item) {
+            items.push(item.items);
+        });
+
+        me.items = [{
+            xtype: 'treepanel',
+            cls: 'x-tree-panel x-grouptabbar',
+            width: 150,
+            rootVisible: false,
+            height: 400,
+            store: me.store,
+            hideHeaders: true,
+            useArrows: true,
+            animate: false,
+            viewConfig: {
+                overItemCls: ''
+            },
+            columns: [{
+                xtype: 'treecolumn',
+                sortable: false,
+                dataIndex: 'text',
+                flex: 1,
+                renderer: function (value, cell, node, idx1, idx2, store, tree) {
+                    var cls = '';
+
+                    if (!node.data.activeGroup) {
+                        cls += ' x-inactive-group';
+                    } else if (node.parentNode && node.parentNode.parentNode === null) {
+                        cls += ' x-grouptab-first';
+                        if (node.previousSibling) {
+                            cls += ' x-grouptab-prev';
+                        }
+                    } else if (node.nextSibling === null) {
+                        cls += ' x-grouptab-last';
+                    } else {
+                        cls += ' x-grouptab-center';
+                    }
+                    if (node.data.activeTab) {
+                            cls += ' x-active-tab';
+                    }
+                    cell.tdCls= 'x-grouptab'+ cls;
+
+                    return value;
+                }
+             }]
+        },{
+            xtype: 'container',
+            flex: 1,
+            layout: 'card',
+            activeItem: me.mainItem,
+            baseCls: Ext.baseCSSPrefix + 'grouptabcontainer',
+            items: items
+        }];
+
+        me.addEvents(
+            /**
+             * @event beforetabchange
+             * Fires before a tab change (activated by {@link #setActiveTab}). Return false in any listener to cancel
+             * the tabchange
+             * @param {Ext.ux.GroupTabPanel} grouptabPanel The GroupTabPanel
+             * @param {Ext.Component} newCard The card that is about to be activated
+             * @param {Ext.Component} oldCard The card that is currently active
+             */
+            'beforetabchange',
+
+            /**
+             * @event tabchange
+             * Fires when a new tab has been activated (activated by {@link #setActiveTab}).
+             * @param {Ext.ux.GroupTabPanel} grouptabPanel The GroupTabPanel
+             * @param {Ext.Component} newCard The newly activated item
+             * @param {Ext.Component} oldCard The previously active item
+             */
+            'tabchange',
+
+            /**
+             * @event beforegroupchange
+             * Fires before a group change (activated by {@link #setActiveGroup}). Return false in any listener to cancel
+             * the groupchange
+             * @param {Ext.ux.GroupTabPanel} grouptabPanel The GroupTabPanel
+             * @param {Ext.Component} newGroup The root group card that is about to be activated
+             * @param {Ext.Component} oldGroup The root group card that is currently active
+             */
             'beforegroupchange',
+
+            /**
+             * @event groupchange
+             * Fires when a new group has been activated (activated by {@link #setActiveGroup}).
+             * @param {Ext.ux.GroupTabPanel} grouptabPanel The GroupTabPanel
+             * @param {Ext.Component} newGroup The newly activated root group item
+             * @param {Ext.Component} oldGroup The previously active root group item
+             */
             'groupchange'
         );
-        this.elements = 'body,header';
-        this.stripTarget = 'header';
 
-        this.tabPosition = this.tabPosition == 'right' ? 'right' : 'left';
-
-        this.addClass('x-grouptabs-panel');
-
-        if (this.tabStyle && this.tabStyle != '') {
-            this.addClass('x-grouptabs-panel-' + this.tabStyle);
-        }
-
-        if (this.alternateColor) {
-            this.addClass(this.alternateCls);
-        }
-
-        this.on('beforeadd', function(gtp, item, index){
-            this.initGroup(item, index);
-        });
-        this.items.each(function(item){
-            item.on('tabchange',function(item){
-                this.fireEvent('tabchange', this, item.activeTab);
-            }, this);
-        },this);
+        me.callParent(arguments);
+        me.setActiveTab(me.activeTab);
+        me.setActiveGroup(me.activeGroup);
+        me.mon(me.down('treepanel').getSelectionModel(), 'select', me.onNodeSelect, me);
     },
 
-    initEvents : function() {
-        this.mon(this.strip, 'mousedown', this.onStripMouseDown, this);
-    },
+    /**
+     * @private
+     * Node selection listener.
+     */
+    onNodeSelect: function (selModel, node) {
+        var me = this,
+            currentNode = me.store.getRootNode(),
+            parent;
 
-    onRender: function(ct, position){
-        Ext.TabPanel.superclass.onRender.call(this, ct, position);
-        if(this.plain){
-            var pos = this.tabPosition == 'top' ? 'header' : 'footer';
-            this[pos].addClass('x-tab-panel-'+pos+'-plain');
+        if (node.parentNode && node.parentNode.parentNode === null) {
+            parent = node;
+        } else {
+            parent = node.parentNode;
         }
 
-        var st = this[this.stripTarget];
-
-        this.stripWrap = st.createChild({cls:'x-tab-strip-wrap ', cn:{
-            tag:'ul', cls:'x-grouptabs-strip x-grouptabs-tab-strip-'+this.tabPosition}});
-
-        var beforeEl = (this.tabPosition=='bottom' ? this.stripWrap : null);
-        this.strip = new Ext.Element(this.stripWrap.dom.firstChild);
-
-        this.header.addClass('x-grouptabs-panel-header');
-        this.bwrap.addClass('x-grouptabs-bwrap');
-        this.body.addClass('x-tab-panel-body-'+this.tabPosition + ' x-grouptabs-panel-body');
-
-        if (!this.groupTpl) {
-            var tt = new Ext.Template(
-                '<li class="{cls}" id="{id}">',
-                '<a class="x-grouptabs-expand" onclick="return false;"></a>',
-                '<a class="x-grouptabs-text {iconCls}" href="#" onclick="return false;">',
-                '<span>{text}</span></a>',
-                '</li>'
-            );
-            tt.disableFormats = true;
-            tt.compile();
-            Ext.ux.GroupTabPanel.prototype.groupTpl = tt;
-        }
-        this.items.each(this.initGroup, this);
-    },
-
-    afterRender: function(){
-        Ext.ux.GroupTabPanel.superclass.afterRender.call(this);
-
-        this.tabJoint = Ext.fly(this.body.dom.parentNode).createChild({
-            cls: 'x-tab-joint'
-        });
-
-        this.addClass('x-tab-panel-' + this.tabPosition);
-        this.header.setWidth(this.tabWidth);
-
-        if (this.activeGroup !== undefined) {
-            var group = (typeof this.activeGroup == 'object') ? this.activeGroup : this.items.get(this.activeGroup);
-            delete this.activeGroup;
-            this.setActiveGroup(group);
-            group.setActiveTab(group.getMainItem());
-        }
-    },
-
-    getGroupEl : Ext.TabPanel.prototype.getTabEl,
-
-    // private
-    findTargets: function(e){
-        var item = null,
-            itemEl = e.getTarget('li', this.strip);
-        if (itemEl) {
-            item = this.findById(itemEl.id.split(this.idDelimiter)[1]);
-            if (item.disabled) {
-                return {
-                    expand: null,
-                    item: null,
-                    el: null
-                };
-            }
-        }
-        return {
-            expand: e.getTarget('.x-grouptabs-expand', this.strip),
-            isGroup: !e.getTarget('ul.x-grouptabs-sub', this.strip),
-            item: item,
-            el: itemEl
-        };
-    },
-
-    // private
-    onStripMouseDown: function(e){
-        if (e.button != 0) {
-            return;
-        }
-        e.preventDefault();
-        var t = this.findTargets(e);
-        if (t.expand) {
-            this.toggleGroup(t.el);
-        }
-        else if (t.item) {
-            if(t.isGroup) {
-                t.item.setActiveTab(t.item.getMainItem());
-            }
-            else {
-                t.item.ownerCt.setActiveTab(t.item);
-            }
-        }
-    },
-
-    expandGroup: function(groupEl){
-        if(groupEl.isXType) {
-            groupEl = this.getGroupEl(groupEl);
-        }
-        Ext.fly(groupEl).addClass('x-grouptabs-expanded');
-        this.syncTabJoint();
-    },
-
-    toggleGroup: function(groupEl){
-        if(groupEl.isXType) {
-            groupEl = this.getGroupEl(groupEl);
-        }
-        Ext.fly(groupEl).toggleClass('x-grouptabs-expanded');
-        this.syncTabJoint();
-    },
-
-    collapseGroup: function(groupEl){
-        if(groupEl.isXType) {
-            groupEl = this.getGroupEl(groupEl);
-        }
-        Ext.fly(groupEl).removeClass('x-grouptabs-expanded');
-        this.syncTabJoint();
-    },
-
-    syncTabJoint: function(groupEl){
-        if (!this.tabJoint) {
-            return;
-        }
-
-        groupEl = groupEl || this.getGroupEl(this.activeGroup);
-        if(groupEl) {
-            this.tabJoint.setHeight(Ext.fly(groupEl).getHeight() - 2);
-
-            var y = Ext.isGecko2 ? 0 : 1;
-            if (this.tabPosition == 'left'){
-                this.tabJoint.alignTo(groupEl, 'tl-tr', [-2,y]);
-            }
-            else {
-                this.tabJoint.alignTo(groupEl, 'tr-tl', [1,y]);
-            }
-        }
-        else {
-            this.tabJoint.hide();
-        }
-    },
-
-    getActiveTab : function() {
-        if(!this.activeGroup) return null;
-        return this.activeGroup.getTabEl(this.activeGroup.activeTab) || null;
-    },
-
-    onResize: function(){
-        Ext.ux.GroupTabPanel.superclass.onResize.apply(this, arguments);
-        this.syncTabJoint();
-    },
-
-    createCorner: function(el, pos){
-        return Ext.fly(el).createChild({
-            cls: 'x-grouptabs-corner x-grouptabs-corner-' + pos
-        });
-    },
-
-    initGroup: function(group, index){
-        var before = this.strip.dom.childNodes[index],
-            p = this.getTemplateArgs(group);
-        if (index === 0) {
-            p.cls += ' x-tab-first';
-        }
-        p.cls += ' x-grouptabs-main';
-        p.text = group.getMainItem().title;
-
-        var el = before ? this.groupTpl.insertBefore(before, p) : this.groupTpl.append(this.strip, p),
-            tl = this.createCorner(el, 'top-' + this.tabPosition),
-            bl = this.createCorner(el, 'bottom-' + this.tabPosition);
-
-        group.tabEl = el;
-        if (group.expanded) {
-            this.expandGroup(el);
-        }
-
-        if (Ext.isIE6 || (Ext.isIE && !Ext.isStrict)){
-            bl.setLeft('-10px');
-            bl.setBottom('-5px');
-            tl.setLeft('-10px');
-            tl.setTop('-5px');
-        }
-
-        this.mon(group, {
-            scope: this,
-            changemainitem: this.onGroupChangeMainItem,
-            beforetabchange: this.onGroupBeforeTabChange
-        });
-    },
-
-    setActiveGroup : function(group) {
-        group = this.getComponent(group);
-        if(!group){
+        if (me.setActiveGroup(parent.get('id')) === false || me.setActiveTab(node.get('id')) === false) {
             return false;
         }
-        if(!this.rendered){
-            this.activeGroup = group;
+
+        while(currentNode) {
+            currentNode.set('activeTab', false);
+            currentNode.set('activeGroup', false);
+            currentNode = currentNode.firstChild || currentNode.nextSibling || currentNode.parentNode.nextSibling;
+        }
+
+        parent.set('activeGroup', true);
+
+        parent.eachChild(function(child) {
+
+            child.set('activeGroup', true);
+        });
+        node.set('activeTab', true);
+        selModel.view.refresh();
+    },
+
+    /**
+     * Makes the given component active (makes it the visible card in the GroupTabPanel's CardLayout)
+     * @param {Ext.Component} cmp The component to make active
+     */
+    setActiveTab: function(cmp) {
+        var me = this,
+            newTab = cmp,
+            oldTab;
+
+        if(Ext.isString(cmp)) {
+            newTab = Ext.getCmp(newTab);
+        }
+
+        if (newTab === me.activeTab) {
+            return false;
+        }
+
+        oldTab = me.activeTab;
+        if (me.fireEvent('beforetabchange', me, newTab, oldTab) !== false) {
+             me.activeTab = newTab;
+             if (me.rendered) {
+                 me.down('container[baseCls=' + Ext.baseCSSPrefix + 'grouptabcontainer' + ']').getLayout().setActiveItem(newTab);
+             }
+             me.fireEvent('tabchange', me, newTab, oldTab);
+         }
+         return true;
+    },
+
+    /**
+     * Makes the given group active
+     * @param {Ext.Component} cmp The root component to make active.
+     */
+    setActiveGroup: function(cmp) {
+        var me = this,
+            newGroup = cmp,
+            oldGroup;
+
+        if(Ext.isString(cmp)) {
+            newGroup = Ext.getCmp(newGroup);
+        }
+
+        if (newGroup === me.activeGroup) {
             return true;
         }
-        if(this.activeGroup != group && this.fireEvent('beforegroupchange', this, group, this.activeGroup) !== false){
-            if(this.activeGroup){
-                this.activeGroup.activeTab = null;
-                var oldEl = this.getGroupEl(this.activeGroup);
-                if(oldEl){
-                    Ext.fly(oldEl).removeClass('x-grouptabs-strip-active');
-                }
+
+        oldGroup = me.activeGroup;
+        if (me.fireEvent('beforegroupchange', me, newGroup, oldGroup) !== false) {
+             me.activeGroup = newGroup;
+             me.fireEvent('groupchange', me, newGroup, oldGroup);
+         } else {
+             return false;
+         }
+         return true;
+    },
+
+    /**
+     * @private
+     * Creates the TreeStore used by the GroupTabBar.
+     */
+    createItemsStore: function() {
+        var me = this,
+            data = {
+            text:'.',
+            children: []
+        };
+        me.activeGroup = me.activeGroup || 0;
+
+        Ext.each(me.items, function(item, idx){
+            var items = item.items,
+                rootItem = (items[item.mainItem] || items[0]),
+                root = {
+                    children: []
+                };
+
+            if (!rootItem.id) {
+                rootItem.id = Ext.id();
             }
 
-            var groupEl = this.getGroupEl(group);
-            Ext.fly(groupEl).addClass('x-grouptabs-strip-active');
+            root.id = rootItem.id;
+            root.text = rootItem.title;
+            root.iconCls = rootItem.iconCls;
+            delete rootItem.iconCls;
+            delete rootItem.title;
+            root.expanded = true;
+            root.activeGroup = (me.activeGroup === idx);
+            root.activeTab = root.activeGroup ? true : false;
+            if (root.activeTab) {
+                me.activeTab = root.id;
+            }
 
-            this.activeGroup = group;
-            this.stack.add(group);
+            if (root.activeGroup) {
+                me.mainItem = item.mainItem || 0;
+                me.activeGroup = root.id;
+            }
 
-            this.layout.setActiveItem(group);
-            this.syncTabJoint(groupEl);
+            Ext.each(item.items, function(childItem) {
+                if (!childItem.id) {
+                    childItem.id = Ext.id();
+                }
+                if(childItem.id !== root.id) {
+                    var child = {
+                        id: childItem.id,
+                        leaf: true,
+                        text: childItem.title,
+                        iconCls: childItem.iconCls,
+                        activeTab: false
+                    };
+                    delete childItem.title;
+                    delete childItem.iconCls;
 
-            this.fireEvent('groupchange', this, group);
-            return true;
-        }
-        return false;
+                    child.activeGroup = root.activeGroup;
+                    root.children.push(child);
+                }
+            }, me);
+
+            data.children.push(root);
+
+      }, me);
+
+       return Ext.create('Ext.data.TreeStore', {
+            fields: ['id', 'text', 'activeGroup', 'activeTab'],
+            root: {expanded: true},
+            proxy: {
+                type: 'memory',
+                data: data
+            }
+        });
     },
 
-    onGroupBeforeTabChange: function(group, newTab, oldTab){
-        if(group !== this.activeGroup || newTab !== oldTab) {
-            this.strip.select('.x-grouptabs-sub > li.x-grouptabs-strip-active', true).removeClass('x-grouptabs-strip-active');
-        }
-        this.expandGroup(this.getGroupEl(group));
-        if(group !== this.activeGroup) {
-            return this.setActiveGroup(group);
-        }
+    /**
+     * Returns the item that is currently active inside this GroupTabPanel.
+     * @return {Ext.Component/Integer} The currently active item
+     */
+    getActiveTab: function() {
+        return this.activeTab;
     },
 
-    getFrameHeight: function(){
-        var h = this.el.getFrameWidth('tb');
-        h += (this.tbar ? this.tbar.getHeight() : 0) +
-        (this.bbar ? this.bbar.getHeight() : 0);
-
-        return h;
-    },
-
-    adjustBodyWidth: function(w){
-        return w - this.tabWidth;
+    /**
+     * Returns the root group item that is currently active inside this GroupTabPanel.
+     * @return {Ext.Component/Integer} The currently active root group item
+     */
+    getActiveGroup: function() {
+        return this.activeGroup;
     }
 });
 
-Ext.reg('grouptabpanel', Ext.ux.GroupTabPanel);

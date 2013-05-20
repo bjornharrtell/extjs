@@ -1,39 +1,38 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.Loader.setConfig({enabled: true});
+Ext.Loader.setPath('Ext.ux', '../ux');
+Ext.require([
+    'Ext.window.*',
+    'Ext.ux.GMapPanel'
+]);
 
 Ext.onReady(function(){
-
     var mapwin;
-    var button = Ext.get('show-btn');
-
-    button.on('click', function(){
+    
+    Ext.get('show-btn').on('click', function() {
         // create the window on the first click and reuse on subsequent clicks
         if(!mapwin){
 
-            mapwin = new Ext.Window({
+            mapwin = Ext.create('Ext.Window', {
                 layout: 'fit',
                 title: 'GMap Window',
                 closeAction: 'hide',
-                width:400,
-                height:400,
+                width:450,
+                height:450,
+                border: false,
                 x: 40,
                 y: 60,
                 items: {
@@ -52,7 +51,7 @@ Ext.onReady(function(){
                         marker: {title: 'Boston Museum of Fine Arts'},
                         listeners: {
                             click: function(e){
-                                Ext.Msg.alert('Its fine', 'and its art.');
+                                Ext.Msg.alert({title: 'Its fine', text: 'and its art.'});
                             }
                         }
                     },{

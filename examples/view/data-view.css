@@ -1,67 +1,72 @@
-/*
-This file is part of Ext JS 3.4
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
-*/
 #images-view .x-panel-body{
-	background: white;
-	font: 11px Arial, Helvetica, sans-serif;
+    background: white;
+    font: 11px Arial, Helvetica, sans-serif;
 }
 #images-view .thumb{
-	background: #dddddd;
-	padding: 3px;
+    background: #dddddd;
+    padding: 3px;
+    padding-bottom: 0;
 }
+
+.x-quirks #images-view .thumb {
+    padding-bottom: 3px;
+}
+
 #images-view .thumb img{
-	height: 60px;
-	width: 80px;
+    height: 60px;
+    width: 80px;
 }
 #images-view .thumb-wrap{
-	float: left;
-	margin: 4px;
-	margin-right: 0;
-	padding: 5px;
+    float: left;
+    margin: 4px;
+    margin-right: 0;
+    padding: 5px;
 }
-#images-view .thumb-wrap span{
-	display: block;
-	overflow: hidden;
-	text-align: center;
+#images-view .thumb-wrap span {
+    
+    display: block;
+    overflow: hidden;
+    text-align: center;
+    width: 86px; // for ie to ensure that the text is centered
 }
 
-#images-view .x-view-over{
+#images-view .x-item-over{
     border:1px solid #dddddd;
-    background: #efefef url(../../resources/images/default/grid/row-over.gif) repeat-x left top;
-	padding: 4px;
+    background: #efefef url(over.gif) repeat-x left top;
+    padding: 4px;
 }
 
-#images-view .x-view-selected{
-	background: #eff5fb url(images/selected.gif) no-repeat right bottom;
-	border:1px solid #99bbe8;
-	padding: 4px;
+#images-view .x-item-selected{
+    background: #eff5fb url(selected.gif) no-repeat right bottom;
+    border:1px solid #99bbe8;
+    padding: 4px;
 }
-#images-view .x-view-selected .thumb{
-	background:transparent;
+#images-view .x-item-selected .thumb{
+    background:transparent;
 }
 
 #images-view .loading-indicator {
-	font-size:11px;
-	background-image:url('../../resources/images/default/grid/loading.gif');
-	background-repeat: no-repeat;
-	background-position: left;
-	padding-left:20px;
-	margin:10px;
+    font-size:11px;
+    background-image:url('../../resources/themes/images/default/grid/loading.gif');
+    background-repeat: no-repeat;
+    background-position: left;
+    padding-left:20px;
+    margin:10px;
+}
+
+.x-view-selector {
+    position:absolute;
+    left:0;
+    top:0;
+    width:0;
+    border:1px dotted;
+    opacity: .5;
+    -moz-opacity: .5;
+    filter:alpha(opacity=50);
+    zoom:1;
+    background-color:#c3daf9;
+    border-color:#3399bb;
+}.ext-strict .ext-ie .x-tree .x-panel-bwrap{
+    position:relative;
+    overflow:hidden;
 }

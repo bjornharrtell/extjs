@@ -44,7 +44,9 @@ class Request {
                     $raw .= $kb;
                 }
                 $params = json_decode(stripslashes($raw));
-                $this->params = $params->data;
+                if ($params) {
+                    $this->params = $params->data;
+                }
             }
 
         }

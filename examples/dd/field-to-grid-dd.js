@@ -1,39 +1,43 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require(['*']);
+
 // A DropZone which cooperates with DragZones whose dragData contains
 // a "field" property representing a form Field. Fields may be dropped onto
 // grid data cells containing a matching data type.
-Ext.ux.CellFieldDropZone = Ext.extend(Ext.dd.DropZone, {
+Ext.define('Ext.ux.CellFieldDropZone', {
+    extend: 'Ext.dd.DropZone',
+
     constructor: function(){},
 
 //  Call the DropZone constructor using the View's scrolling element
 //  only after the grid has been rendered.
     init: function(grid) {
+        var me = this;
+
         if (grid.rendered) {
-            this.grid = grid;
-            this.view = grid.getView();
-            this.store = grid.getStore();
-            Ext.ux.CellFieldDropZone.superclass.constructor.call(this, this.view.scroller);
+            me.grid = grid;
+            grid.getView().on({
+                render: function(v) {
+                    me.view = v;
+                    Ext.ux.CellFieldDropZone.superclass.constructor.call(me, me.view.el);
+                },
+                single: true
+            });
         } else {
-            grid.on('render', this.init, this);
+            grid.on('render', me.init, me, {single: true});
         }
     },
 
@@ -41,22 +45,26 @@ Ext.ux.CellFieldDropZone = Ext.extend(Ext.dd.DropZone, {
     containerScroll: true,
 
     getTargetFromEvent: function(e) {
+        var me = this,
+            v = me.view;
+
 //      Ascertain whether the mousemove is within a grid cell
-        var t = e.getTarget(this.view.cellSelector);
-        if (t) {
+        var cell = e.getTarget(v.cellSelector);
+        if (cell) {
 
 //          We *are* within a grid cell, so ask the View exactly which one,
 //          Extract data from the Model to create a target object for
 //          processing in subsequent onNodeXXXX methods. Note that the target does
 //          not have to be a DOM element. It can be whatever the noNodeXXX methods are
 //          programmed to expect.
-            var rowIndex = this.view.findRowIndex(t);
-            var columnIndex = this.view.findCellIndex(t);
-            if ((rowIndex !== false) && (columnIndex !== false)) {
+            var row = v.findItemByChild(cell),
+                columnIndex = cell.cellIndex;
+
+            if (row && Ext.isDefined(columnIndex)) {
                 return {
-                    node: t,
-                    record: this.store.getAt(rowIndex),
-                    fieldName: this.grid.getColumnModel().getDataIndex(columnIndex)
+                    node: cell,
+                    record: v.getRecord(row),
+                    fieldName: me.grid.columns[columnIndex].dataIndex
                 };
             }
         }
@@ -97,7 +105,7 @@ Ext.ux.CellFieldDropZone = Ext.extend(Ext.dd.DropZone, {
                 }
         }
         this.dropOK = true;
-        Ext.fly(target.node).addClass('x-drop-target-active');
+        Ext.fly(target.node).addCls('x-drop-target-active');
     },
 
 //  Return the class name to add to the drag proxy. This provides a visual indication
@@ -106,9 +114,9 @@ Ext.ux.CellFieldDropZone = Ext.extend(Ext.dd.DropZone, {
         return this.dropOK ? this.dropAllowed : this.dropNotAllowed;
     },
 
-//   nhighlight the target node.
+//  highlight the target node.
     onNodeOut: function(target, dd, e, dragData) {
-        Ext.fly(target.node).removeClass('x-drop-target-active');
+        Ext.fly(target.node).removeCls('x-drop-target-active');
     },
 
 //  Process the drop event if we have previously ascertained that a drop is OK.
@@ -121,9 +129,12 @@ Ext.ux.CellFieldDropZone = Ext.extend(Ext.dd.DropZone, {
 });
 
 //  A class which makes Fields within a Panel draggable.
-//  the dragData delivered to a coooperating DropZone's methods contains
+//  the dragData delivered to a cooperating DropZone's methods contains
 //  the dragged Field in the property "field".
-Ext.ux.PanelFieldDragZone = Ext.extend(Ext.dd.DragZone, {
+Ext.define('Ext.ux.PanelFieldDragZone', {
+
+    extend: 'Ext.dd.DragZone',
+
     constructor: function(){},
 
 //  Call the DRagZone's constructor. The Panel must have been rendered.
@@ -158,15 +169,15 @@ Ext.ux.PanelFieldDragZone = Ext.extend(Ext.dd.DragZone, {
             if (Ext.isOpera) {
                 Ext.fly(t).on('mousemove', function(e1){
                     t.style.visibility = 'hidden';
-                    (function(){
+                    Ext.defer(function(){
                         t.style.visibility = '';
-                    }).defer(1);
+                    }, 1);
                 }, null, {single:true});
             }
 
 //          Get the data we are dragging: the Field
 //          create a ddel for the drag proxy to display
-            var f = Ext.getCmp(t.id);
+            var f = Ext.ComponentQuery.query('field[inputEl]{inputEl.id=="' + t.id + '"}')[0];
             var d = document.createElement('div');
             d.className = 'x-form-text';
             d.appendChild(document.createTextNode(t.value));
@@ -239,34 +250,34 @@ Ext.onReady(function(){
     }
 
     // create the data store
-    var store = new Ext.data.ArrayStore({
+    var store = Ext.create('Ext.data.ArrayStore', {
         fields: [
            {name: 'company'},
            {name: 'price', type: 'float'},
            {name: 'change', type: 'float'},
            {name: 'pctChange', type: 'float'},
            {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
-        ]
+        ],
+        data: myData
     });
-    store.loadData(myData);
-    
-    var helpWindow = new Ext.Window({
+
+    var helpWindow = Ext.create('Ext.Window', {
         title: 'Source code',
         width: 920,
         height: 500,
         closeAction: 'hide',
-        bodyCfg: {tag: 'textarea', readonly: true},
-        bodyStyle: {
-            backgroundColor: 'white',
-            margin: '0px',
-            border: '0px none'
+        layout: 'fit',
+        items: {
+            hideLabel: true,
+            xtype: 'textarea',
+            readOnly: true
         },
         listeners: {
             render: function(w) {
                 Ext.Ajax.request({
                     url: 'field-to-grid-dd.js',
                     success: function(r) {
-                        w.body.dom.value = r.responseText;
+                        w.items.first().setValue(r.responseText);
                     }
                 });
             }
@@ -274,7 +285,7 @@ Ext.onReady(function(){
     });
 
     // create the Grid
-    var grid = new Ext.grid.GridPanel({
+    var grid = Ext.create('Ext.grid.Panel', {
         store: store,
         columns: [
             {id:'company',header: "Company", width: 160, sortable: true, dataIndex: 'company'},
@@ -283,37 +294,30 @@ Ext.onReady(function(){
             {header: "% Change", width: 75, sortable: true, renderer: pctChange, dataIndex: 'pctChange'},
             {header: "Last Updated", width: 85, sortable: true, renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
         ],
-        plugins: new Ext.ux.CellFieldDropZone(),
+        plugins: Ext.create('Ext.ux.CellFieldDropZone'),
         stripeRows: true,
         autoExpandColumn: 'company',
         height:350,
         width:600,
         title:'Array Grid',
-        bbar: new Ext.PagingToolbar({
-            buttons: [{
+        dockedItems: [{
+            dock: 'bottom',
+            xtype: 'toolbar',
+            items: {
                 text: 'View Source',
                 handler: function() {
                     helpWindow.show();
                 }
-            }],
-            store: store,
-            pageSize: 25
-        })
+            }
+        }]
     });
 
     grid.render('grid-example');
-    grid.getView().on('viewready', function() {
-        grid.getSelectionModel().selectFirstRow();
-    });
 
-    var f = new Ext.Panel({
+    var f = Ext.create('Ext.Panel', {
         frame: true,
-        layout: 'form',
         width: 600,
-        plugins: new Ext.ux.PanelFieldDragZone(),
-        style: {
-            'margin-top': '10px'
-        },
+        plugins: Ext.create('Ext.ux.PanelFieldDragZone'),
         labelWidth: 150,
         items: [{
             xtype: 'textfield',
@@ -331,3 +335,4 @@ Ext.onReady(function(){
         renderTo: Ext.getBody()
     });
 });
+

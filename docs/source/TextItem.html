@@ -15,47 +15,58 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-menu-TextItem-method-constructor'><span id='Ext-menu-TextItem'>/**
-</span></span> * @class Ext.menu.TextItem
- * @extends Ext.menu.BaseItem
- * Adds a static text string to a menu, usually used as either a heading or group separator.
+  <pre class="prettyprint lang-js"><span id='Ext-toolbar-TextItem-method-constructor'><span id='Ext-toolbar-TextItem'>/**
+</span></span> * A simple class that renders text directly into a toolbar.
+ *
+ *     @example
+ *     Ext.create('Ext.panel.Panel', {
+ *         title: 'Panel with TextItem',
+ *         width: 300,
+ *         height: 200,
+ *         tbar: [
+ *             { xtype: 'tbtext', text: 'Sample Text Item' }
+ *         ],
+ *         renderTo: Ext.getBody()
+ *     });
+ *
  * @constructor
  * Creates a new TextItem
- * @param {Object/String} config If config is a string, it is used as the text to display, otherwise it
- * is applied as a config object (and should contain a &lt;tt&gt;text&lt;/tt&gt; property).
- * @xtype menutextitem
+ * @param {Object} text A text string, or a config object containing a &lt;tt&gt;text&lt;/tt&gt; property
  */
-Ext.menu.TextItem = Ext.extend(Ext.menu.BaseItem, {
-<span id='Ext-menu-TextItem-cfg-text'>    /**
-</span>     * @cfg {String} text The text to display for this item (defaults to '')
+Ext.define('Ext.toolbar.TextItem', {
+    extend: 'Ext.toolbar.Item',
+    requires: ['Ext.XTemplate'],
+    alias: 'widget.tbtext',
+    alternateClassName: 'Ext.Toolbar.TextItem',
+
+<span id='Ext-toolbar-TextItem-cfg-text'>    /**
+</span>     * @cfg {String} text The text to be used as innerHTML (html tags are accepted)
      */
-<span id='Ext-menu-TextItem-cfg-hideOnClick'>    /**
-</span>     * @cfg {Boolean} hideOnClick True to hide the containing menu after this item is clicked (defaults to false)
-     */
-    hideOnClick : false,
-<span id='Ext-menu-TextItem-cfg-itemCls'>    /**
-</span>     * @cfg {String} itemCls The default CSS class to use for text items (defaults to &quot;x-menu-text&quot;)
-     */
-    itemCls : &quot;x-menu-text&quot;,
-    
-    constructor : function(config) {
-        if (typeof config == 'string') {
-            config = {
-                text: config
-            };
-        }
-        Ext.menu.TextItem.superclass.constructor.call(this, config);
+    text: '',
+
+    renderTpl: '{text}',
+    //
+    baseCls: Ext.baseCSSPrefix + 'toolbar-text',
+
+    onRender : function() {
+        Ext.apply(this.renderData, {
+            text: this.text
+        });
+        this.callParent(arguments);
     },
 
-<span id='Ext-menu-TextItem-method-onRender'>    // private
-</span>    onRender : function() {
-        var s = document.createElement(&quot;span&quot;);
-        s.className = this.itemCls;
-        s.innerHTML = this.text;
-        this.el = s;
-        Ext.menu.TextItem.superclass.onRender.apply(this, arguments);
+<span id='Ext-toolbar-TextItem-method-setText'>    /**
+</span>     * Updates this item's text, setting the text to be used as innerHTML.
+     * @param {String} t The text to display (html accepted).
+     */
+    setText : function(t) {
+        if (this.rendered) {
+            this.el.update(t);
+            this.ownerCt.doLayout(); // In case an empty text item (centered at zero height) receives new text.
+        } else {
+            this.text = t;
+        }
     }
-});
-Ext.reg('menutextitem', Ext.menu.TextItem);</pre>
+});</pre>
 </body>
 </html>

@@ -24,6 +24,7 @@ function formatBytes($val, $digits = 3, $mode = 'SI', $bB = 'B'){ //$mode == 'SI
 $path = isset($_REQUEST['path'])&&$_REQUEST['path'] == 'extjs' ? '../../../' : '../../';
 
 $node = isset($_REQUEST['node']) ? $_REQUEST['node'] : '';
+$isXml = isset($_REQUEST['isXml']);
 
 if(strpos($node, '..') !== false){
     die('Nice try buddy.');
@@ -37,6 +38,7 @@ if (is_dir($directory)){
         if($f == '.' || $f == '..' || substr($f, 0, 1) == '.') continue;
 
         $filename = $directory . '/' . $f;
+        date_default_timezone_set('America/Los_Angeles');
         $lastmod = date('M j, Y, g:i a', filemtime($filename));
 
         if(is_dir($directory.'/'.$f)){
@@ -44,7 +46,6 @@ if (is_dir($directory)){
             $nodes[] = array(
                 'text' => $f,
                 'id'   => $node.'/'.$f,
-                //'qtip' => $qtip,
                 'cls'  => 'folder'
             );
         } else {
@@ -54,8 +55,6 @@ if (is_dir($directory)){
                 'text' => $f,
                 'id'   => $node.'/'.$f,
                 'leaf' => true,
-                //'qtip' => $qtip,
-                //'qtipTitle' => $f,
                 'cls'  => 'file'
             );
         }
@@ -63,4 +62,19 @@ if (is_dir($directory)){
     $d->close();
 }
 
-echo json_encode($nodes);
+if ($isXml) {
+    $xmlDoc = new DOMDocument();
+    $root = $xmlDoc->appendChild($xmlDoc->createElement("nodes"));
+    foreach ($nodes as $node) {
+        $xmlNode = $root->appendChild($xmlDoc->createElement("node"));
+        $xmlNode->appendChild($xmlDoc->createElement("text", $node['text']));
+        $xmlNode->appendChild($xmlDoc->createElement("id", $node['id']));
+        $xmlNode->appendChild($xmlDoc->createElement("cls", $node['cls']));
+        $xmlNode->appendChild($xmlDoc->createElement("leaf", isset($node['leaf'])));
+    }
+    header("Content-Type: text/xml");
+    $xmlDoc->formatOutput = true;
+    echo $xmlDoc->saveXml();
+} else {
+    echo json_encode($nodes);
+}

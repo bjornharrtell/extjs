@@ -1,46 +1,48 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-Ext.onReady(function(){
+Ext.require([
+    'Ext.form.*',
+    'Ext.layout.container.Column',
+    'Ext.window.MessageBox',
+    'Ext.fx.target.Element'
+]);
 
-    Ext.QuickTips.init();
-    
-    // turn on validation errors beside the field globally
-    Ext.form.Field.prototype.msgTarget = 'side';
+Ext.onReady(function(){
 
 
     /*====================================================================
      * Individual checkbox/radio examples
      *====================================================================*/
-    
-    // Using checkbox/radio groups will generally be easier and more flexible than
+
+    // Using checkbox/radio groups will generally be more convenient and flexible than
     // using individual checkbox and radio controls, but this shows that you can
-    // certainly do so if you only need a single control, or if you want to control  
-    // exactly where each check/radio goes within your layout.
-    var individual = [{
-        bodyStyle: 'padding-right:5px;',
-        items: {
+    // certainly do so if you only have a single control at a time.
+    var individual = {
+        xtype: 'container',
+        layout: 'hbox',
+        margin: '0 0 10',
+        items: [{
             xtype: 'fieldset',
+            flex: 1,
             title: 'Individual Checkboxes',
-            autoHeight: true,
             defaultType: 'checkbox', // each item will be a checkbox
+            layout: 'anchor',
+            defaults: {
+                anchor: '100%',
+                hideEmptyLabel: false
+            },
             items: [{
                 xtype: 'textfield',
                 name: 'txt-test1',
@@ -48,27 +50,31 @@ Ext.onReady(function(){
             }, {
                 fieldLabel: 'Favorite Animals',
                 boxLabel: 'Dog',
-                name: 'fav-animal-dog'
+                name: 'fav-animal-dog',
+                inputValue: 'dog'
             }, {
-                fieldLabel: '',
-                labelSeparator: '',
                 boxLabel: 'Cat',
-                name: 'fav-animal-cat'
+                name: 'fav-animal-cat',
+                inputValue: 'cat'
             }, {
                 checked: true,
-                fieldLabel: '',
-                labelSeparator: '',
                 boxLabel: 'Monkey',
-                name: 'fav-animal-monkey'
+                name: 'fav-animal-monkey',
+                inputValue: 'monkey'
             }]
-        }
-    }, {
-        bodyStyle: 'padding-left:5px;',
-        items: {
+        }, {
+            xtype: 'component',
+            width: 10
+        }, {
             xtype: 'fieldset',
+            flex: 1,
             title: 'Individual Radios',
-            autoHeight: true,
             defaultType: 'radio', // each item will be a radio button
+            layout: 'anchor',
+            defaults: {
+                anchor: '100%',
+                hideEmptyLabel: false
+            },
             items: [{
                 xtype: 'textfield',
                 name: 'txt-test2',
@@ -80,41 +86,43 @@ Ext.onReady(function(){
                 name: 'fav-color',
                 inputValue: 'red'
             }, {
-                fieldLabel: '',
-                labelSeparator: '',
                 boxLabel: 'Blue',
                 name: 'fav-color',
                 inputValue: 'blue'
             }, {
-                fieldLabel: '',
-                labelSeparator: '',
                 boxLabel: 'Green',
                 name: 'fav-color',
                 inputValue: 'green'
             }]
-        }
-    }];
-    
+        }]
+    };
+
+
+
+
     /*====================================================================
      * CheckGroup example
      *====================================================================*/
     var checkGroup = {
         xtype: 'fieldset',
         title: 'Checkbox Groups (initially collapsed)',
-        autoHeight: true,
-        layout: 'form',
-        collapsed: true,   // initially collapse the group
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%',
+            labelStyle: 'padding-left:4px;'
+        },
         collapsible: true,
+        collapsed: true,
         items: [{
             xtype: 'textfield',
             name: 'txt-test3',
-            fieldLabel: 'Alignment Test',
-            anchor: '95%'
+            fieldLabel: 'Alignment Test'
         },{
             // Use the default, automatic layout to distribute the controls evenly
             // across a single row
             xtype: 'checkboxgroup',
             fieldLabel: 'Auto Layout',
+            cls: 'x-check-group-alt',
             items: [
                 {boxLabel: 'Item 1', name: 'cb-auto-1'},
                 {boxLabel: 'Item 2', name: 'cb-auto-2', checked: true},
@@ -125,7 +133,6 @@ Ext.onReady(function(){
         },{
             xtype: 'checkboxgroup',
             fieldLabel: 'Single Column',
-            itemCls: 'x-check-group-alt',
             // Put all controls in a single column with width 100%
             columns: 1,
             items: [
@@ -136,6 +143,7 @@ Ext.onReady(function(){
         },{
             xtype: 'checkboxgroup',
             fieldLabel: 'Multi-Column (horizontal)',
+            cls: 'x-check-group-alt',
             // Distribute controls across 3 even columns, filling each row
             // from left to right before starting the next row
             columns: 3,
@@ -149,7 +157,6 @@ Ext.onReady(function(){
         },{
             xtype: 'checkboxgroup',
             fieldLabel: 'Multi-Column (vertical)',
-            itemCls: 'x-check-group-alt',
             // Distribute controls across 3 even columns, filling each column
             // from top to bottom before starting the next column
             columns: 3,
@@ -164,6 +171,7 @@ Ext.onReady(function(){
         },{
             xtype: 'checkboxgroup',
             fieldLabel: 'Multi-Column<br />(custom widths)',
+            cls: 'x-check-group-alt',
             // Specify exact column widths (could also include float values for %)
             columns: [100, 100],
             vertical: true,
@@ -176,59 +184,66 @@ Ext.onReady(function(){
             ]
         },{
             xtype: 'checkboxgroup',
-            itemCls: 'x-check-group-alt',
             fieldLabel: 'Custom Layout<br />(w/ validation)',
             allowBlank: false,
-            anchor: '95%',
+            msgTarget: 'side',
+            autoFitErrors: false,
+            anchor: '-18',
+            // You can change the 'layout' to anything you want, and include any nested
+            // container structure, for complete layout control. In this example we only
+            // want one item in the middle column, which would not be possible using the
+            // default 'checkboxgroup' layout's columns config.  We also want to put
+            // headings at the top of each column.
+            layout: 'column',
+            defaultType: 'container',
             items: [{
-                // You can pass sub-item arrays along with width/columnWidth configs 
-                // ColumnLayout-style for complete layout control.  In this example we
-                // only want one item in the middle column, which would not be possible
-                // using the columns config.  We also want to make sure that our headings
-                // end up at the top of each column as expected.
-                columnWidth: '.25',
+                columnWidth: .25,
                 items: [
-                    {xtype: 'label', text: 'Heading 1', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'Item 1', name: 'cb-cust-1'},
-                    {boxLabel: 'Item 2', name: 'cb-cust-2'}
+                    {xtype: 'component', html: 'Heading 1', cls:'x-form-check-group-label'},
+                    {xtype: 'checkboxfield', boxLabel: 'Item 1', name: 'cb-cust-1'},
+                    {xtype: 'checkboxfield', boxLabel: 'Item 2', name: 'cb-cust-2'}
                 ]
             },{
-                columnWidth: '.5',
+                columnWidth: .5,
                 items: [
-                    {xtype: 'label', text: 'Heading 2', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'A long item just for fun', name: 'cb-cust-3'}
+                    {xtype: 'component', html: 'Heading 2', cls:'x-form-check-group-label'},
+                    {xtype: 'checkboxfield', boxLabel: 'A long item just for fun', name: 'cb-cust-3'}
                 ]
             },{
-                columnWidth: '.25',
+                columnWidth: .25,
                 items: [
-                    {xtype: 'label', text: 'Heading 3', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'Item 4', name: 'cb-cust-4'},
-                    {boxLabel: 'Item 5', name: 'cb-cust-5'}
+                    {xtype: 'component', html: 'Heading 3', cls:'x-form-check-group-label'},
+                    {xtype: 'checkboxfield', boxLabel: 'Item 4', name: 'cb-cust-4'},
+                    {xtype: 'checkboxfield', boxLabel: 'Item 5', name: 'cb-cust-5'}
                 ]
             }]
         }]
     };
-    
+
     /*====================================================================
      * RadioGroup examples
      *====================================================================*/
     // NOTE: These radio examples use the exact same options as the checkbox ones
     // above, so the comments will not be repeated.  Please see comments above for
     // additional explanation on some config options.
-    
+
     var radioGroup = {
-        
         xtype: 'fieldset',
         title: 'Radio Groups',
-        autoHeight: true,
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%',
+            labelStyle: 'padding-left:4px;'
+        },
+        collapsible: true,
         items: [{
             xtype: 'textfield',
             name: 'txt-test4',
-            fieldLabel: 'Alignment Test',
-            anchor: '95%'
+            fieldLabel: 'Alignment Test'
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Auto Layout',
+            cls: 'x-check-group-alt',
             items: [
                 {boxLabel: 'Item 1', name: 'rb-auto', inputValue: 1},
                 {boxLabel: 'Item 2', name: 'rb-auto', inputValue: 2, checked: true},
@@ -239,7 +254,6 @@ Ext.onReady(function(){
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Single Column',
-            itemCls: 'x-check-group-alt',
             columns: 1,
             items: [
                 {boxLabel: 'Item 1', name: 'rb-col', inputValue: 1},
@@ -248,19 +262,19 @@ Ext.onReady(function(){
             ]
         },{
             xtype: 'radiogroup',
-            fieldLabel: 'Multi-Column<br />(horiz. auto-width)',
+            fieldLabel: 'Multi-Column (horizontal)',
+            cls: 'x-check-group-alt',
             columns: 3,
             items: [
-                {boxLabel: 'Item 1', name: 'rb-horiz', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-horiz', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-horiz', inputValue: 3},
-                {boxLabel: 'Item 4', name: 'rb-horiz', inputValue: 4},
-                {boxLabel: 'Item 5', name: 'rb-horiz', inputValue: 5}
+                {boxLabel: 'Item 1', name: 'rb-horiz-1', inputValue: 1},
+                {boxLabel: 'Item 2', name: 'rb-horiz-1', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', name: 'rb-horiz-1', inputValue: 3},
+                {boxLabel: 'Item 1', name: 'rb-horiz-2', inputValue: 1, checked: true},
+                {boxLabel: 'Item 2', name: 'rb-horiz-2', inputValue: 2}
             ]
         },{
             xtype: 'radiogroup',
-            fieldLabel: 'Multi-Column<br />(vert. auto-width)',
-            itemCls: 'x-check-group-alt',
+            fieldLabel: 'Multi-Column (vertical)',
             columns: 3,
             vertical: true,
             items: [
@@ -273,6 +287,7 @@ Ext.onReady(function(){
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Multi-Column<br />(custom widths)',
+            cls: 'x-check-group-alt',
             columns: [100, 100],
             vertical: true,
             items: [
@@ -284,53 +299,50 @@ Ext.onReady(function(){
             ]
         },{
             xtype: 'radiogroup',
-            itemCls: 'x-check-group-alt',
             fieldLabel: 'Custom Layout<br />(w/ validation)',
             allowBlank: false,
-            anchor: '95%',
+            msgTarget: 'side',
+            autoFitErrors: false,
+            anchor: '-18',
+            layout: 'column',
+            defaultType: 'container',
             items: [{
-                columnWidth: '.25',
+                columnWidth: .25,
                 items: [
-                    {xtype: 'label', text: 'Heading 1', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'Item 1', name: 'rb-cust', inputValue: 1},
-                    {boxLabel: 'Item 2', name: 'rb-cust', inputValue: 2}
+                    {xtype: 'component', html: 'Heading 1', cls:'x-form-check-group-label'},
+                    {xtype: 'radiofield', boxLabel: 'Item 1', name: 'rb-cust', inputValue: 1},
+                    {xtype: 'radiofield', boxLabel: 'Item 2', name: 'rb-cust', inputValue: 2}
                 ]
             },{
-                columnWidth: '.5',
+                columnWidth: .5,
                 items: [
-                    {xtype: 'label', text: 'Heading 2', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'A long item just for fun', name: 'rb-cust', inputValue: 3}
+                    {xtype: 'component', html: 'Heading 2', cls:'x-form-check-group-label'},
+                    {xtype: 'radiofield', boxLabel: 'A long item just for fun', name: 'rb-cust', inputValue: 3}
                 ]
             },{
-                columnWidth: '.25',
+                columnWidth: .25,
                 items: [
-                    {xtype: 'label', text: 'Heading 3', cls:'x-form-check-group-label', anchor:'-15'},
-                    {boxLabel: 'Item 4', name: 'rb-cust', inputValue: 4},
-                    {boxLabel: 'Item 5', name: 'rb-cust', inputValue: 5}
+                    {xtype: 'component', html: 'Heading 3', cls:'x-form-check-group-label'},
+                    {xtype: 'radiofield', boxLabel: 'Item 4', name: 'rb-cust', inputValue: 4},
+                    {xtype: 'radiofield', boxLabel: 'Item 5', name: 'rb-cust', inputValue: 5}
                 ]
             }]
         }]
     };
-    
+
+
     // combine all that into one huge form
-    var fp = new Ext.FormPanel({
+    var fp = Ext.create('Ext.FormPanel', {
         title: 'Check/Radio Groups Example',
         frame: true,
-        labelWidth: 110,
+        fieldDefaults: {
+            labelWidth: 110
+        },
         width: 600,
         renderTo:'form-ct',
-        bodyStyle: 'padding:0 10px 0;',
+        bodyPadding: 10,
         items: [
-            {
-                layout: 'column',
-                border: false,
-                // defaults are applied to all child items unless otherwise specified by child item
-                defaults: {
-                    columnWidth: '.5',
-                    border: false
-                },            
-                items: individual
-            },
+            individual,
             checkGroup,
             radioGroup
         ],
@@ -338,7 +350,7 @@ Ext.onReady(function(){
             text: 'Save',
             handler: function(){
                if(fp.getForm().isValid()){
-                    Ext.Msg.alert('Submitted Values', 'The following will be sent to the server: <br />'+ 
+                    Ext.Msg.alert('Submitted Values', 'The following will be sent to the server: <br />'+
                         fp.getForm().getValues(true).replace(/&/g,', '));
                 }
             }
@@ -350,3 +362,4 @@ Ext.onReady(function(){
         }]
     });
 });
+

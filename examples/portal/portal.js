@@ -1,129 +1,165 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-Ext.onReady(function(){
+/**
+ * @class Ext.app.Portal
+ * @extends Object
+ * A sample portal layout application class.
+ */
+// TODO: Fill in the content panel -- no AccordionLayout at the moment
+// TODO: Fix container drag/scroll support (waiting on Ext.lib.Anim)
+// TODO: Fix Ext.Tool scope being set to the panel header
+// TODO: Drag/drop does not cause a refresh of scroll overflow when needed
+// TODO: Grid portlet throws errors on destroy (grid bug)
+// TODO: Z-index issues during drag
 
-    // NOTE: This is an example showing simple state management. During development,
-    // it is generally best to disable state management as dynamically-generated ids
-    // can change across page loads, leading to unpredictable results.  The developer
-    // should ensure that stable state ids are set for stateful components in real apps.
-    Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+Ext.define('Ext.app.Portal', {
 
-    // create some portlet tools using built in Ext tool ids
-    var tools = [{
-        id:'gear',
-        handler: function(){
-            Ext.Msg.alert('Message', 'The Settings tool was clicked.');
-        }
-    },{
-        id:'close',
-        handler: function(e, target, panel){
-            panel.ownerCt.remove(panel, true);
-        }
-    }];
+    extend: 'Ext.container.Viewport',
 
-    var viewport = new Ext.Viewport({
-        layout:'border',
-        items:[{
-            region:'west',
-            id:'west-panel',
-            title:'West',
-            split:true,
-            width: 200,
-            minSize: 175,
-            maxSize: 400,
-            collapsible: true,
-            margins:'35 0 5 5',
-            cmargins:'35 5 5 5',
-            layout:'accordion',
-            layoutConfig:{
-                animate:true
+    uses: ['Ext.app.PortalPanel', 'Ext.app.PortalColumn', 'Ext.app.GridPortlet', 'Ext.app.ChartPortlet'],
+
+    getTools: function(){
+        return [{
+            xtype: 'tool',
+            type: 'gear',
+            handler: function(e, target, panelHeader, tool){
+                var portlet = panelHeader.ownerCt;
+                portlet.setLoading('Working...');
+                Ext.defer(function() {
+                    portlet.setLoading(false);
+                }, 2000);
+            }
+        }];
+    },
+
+    initComponent: function(){
+        var content = '<div class="portlet-content">'+Ext.example.shortBogusMarkup+'</div>';
+
+        Ext.apply(this, {
+            id: 'app-viewport',
+            layout: {
+                type: 'border',
+                padding: '0 5 5 5' // pad the layout from the window edges
             },
             items: [{
-                html: Ext.example.shortBogusMarkup,
-                title:'Navigation',
-                autoScroll:true,
-                border:false,
-                iconCls:'nav'
+                id: 'app-header',
+                xtype: 'box',
+                region: 'north',
+                height: 40,
+                html: 'Ext Portal'
             },{
-                title:'Settings',
-                html: Ext.example.shortBogusMarkup,
-                border:false,
-                autoScroll:true,
-                iconCls:'settings'
+                xtype: 'container',
+                region: 'center',
+                layout: 'border',
+                items: [{
+                    id: 'app-options',
+                    title: 'Options',
+                    region: 'west',
+                    animCollapse: true,
+                    width: 200,
+                    minWidth: 150,
+                    maxWidth: 400,
+                    split: true,
+                    collapsible: true,
+                    layout: 'accordion',
+                    layoutConfig:{
+                        animate: true
+                    },
+                    items: [{
+                        html: content,
+                        title:'Navigation',
+                        autoScroll: true,
+                        border: false,
+                        iconCls: 'nav'
+                    },{
+                        title:'Settings',
+                        html: content,
+                        border: false,
+                        autoScroll: true,
+                        iconCls: 'settings'
+                    }]
+                },{
+                    id: 'app-portal',
+                    xtype: 'portalpanel',
+                    region: 'center',
+                    items: [{
+                        id: 'col-1',
+                        items: [{
+                            id: 'portlet-1',
+                            title: 'Grid Portlet',
+                            tools: this.getTools(),
+                            items: Ext.create('Ext.app.GridPortlet'),
+                            listeners: {
+                                'close': Ext.bind(this.onPortletClose, this)
+                            }
+                        },{
+                            id: 'portlet-2',
+                            title: 'Portlet 2',
+                            tools: this.getTools(),
+                            html: content,
+                            listeners: {
+                                'close': Ext.bind(this.onPortletClose, this)
+                            }
+                        }]
+                    },{
+                        id: 'col-2',
+                        items: [{
+                            id: 'portlet-3',
+                            title: 'Portlet 3',
+                            tools: this.getTools(),
+                            html: '<div class="portlet-content">'+Ext.example.bogusMarkup+'</div>',
+                            listeners: {
+                                'close': Ext.bind(this.onPortletClose, this)
+                            }
+                        }]
+                    },{
+                        id: 'col-3',
+                        items: [{
+                            id: 'portlet-4',
+                            title: 'Stock Portlet',
+                            tools: this.getTools(),
+                            items: Ext.create('Ext.app.ChartPortlet'),
+                            listeners: {
+                                'close': Ext.bind(this.onPortletClose, this)
+                            }
+                        }]
+                    }]
+                }]
             }]
-        },{
-            xtype:'portal',
-            region:'center',
-            margins:'35 5 5 0',
-            items:[{
-                columnWidth:.33,
-                style:'padding:10px 0 10px 10px',
-                items:[{
-                    title: 'Grid in a Portlet',
-                    layout:'fit',
-                    tools: tools,
-                    items: new SampleGrid([0, 2, 3])
-                },{
-                    title: 'Another Panel 1',
-                    tools: tools,
-                    html: Ext.example.shortBogusMarkup
-                }]
-            },{
-                columnWidth:.33,
-                style:'padding:10px 0 10px 10px',
-                items:[{
-                    title: 'Panel 2',
-                    tools: tools,
-                    html: Ext.example.shortBogusMarkup
-                },{
-                    title: 'Another Panel 2',
-                    tools: tools,
-                    html: Ext.example.shortBogusMarkup
-                }]
-            },{
-                columnWidth:.33,
-                style:'padding:10px',
-                items:[{
-                    title: 'Panel 3',
-                    tools: tools,
-                    html: Ext.example.shortBogusMarkup
-                },{
-                    title: 'Another Panel 3',
-                    tools: tools,
-                    html: Ext.example.shortBogusMarkup
-                }]
-            }]
-            
-            /*
-             * Uncomment this block to test handling of the drop event. You could use this
-             * to save portlet position state for example. The event arg e is the custom 
-             * event defined in Ext.ux.Portal.DropZone.
-             */
-//            ,listeners: {
-//                'drop': function(e){
-//                    Ext.Msg.alert('Portlet Dropped', e.panel.title + '<br />Column: ' + 
-//                        e.columnIndex + '<br />Position: ' + e.position);
-//                }
-//            }
-        }]
-    });
+        });
+        this.callParent(arguments);
+    },
+
+    onPortletClose: function(portlet) {
+        this.showMsg('"' + portlet.title + '" was removed');
+    },
+
+    showMsg: function(msg) {
+        var el = Ext.get('app-msg'),
+            msgId = Ext.id();
+
+        this.msgId = msgId;
+        el.update(msg).show();
+
+        Ext.defer(this.clearMsg, 3000, this, [msgId]);
+    },
+
+    clearMsg: function(msgId) {
+        if (msgId === this.msgId) {
+            Ext.get('app-msg').hide();
+        }
+    }
 });
 

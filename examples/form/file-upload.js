@@ -1,29 +1,26 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.form.field.File',
+    'Ext.form.Panel',
+    'Ext.window.MessageBox'
+]);
 
 Ext.onReady(function(){
 
-    Ext.QuickTips.init();
-
-    var msg = function(title, msg){
+    var msg = function(title, msg) {
         Ext.Msg.show({
             title: title,
             msg: msg,
@@ -34,12 +31,13 @@ Ext.onReady(function(){
         });
     };
 
-    var fibasic = new Ext.ux.form.FileUploadField({
+    var fibasic = Ext.create('Ext.form.field.File', {
         renderTo: 'fi-basic',
-        width: 400
+        width: 400,
+        hideLabel: true
     });
 
-    new Ext.Button({
+    Ext.create('Ext.button.Button', {
         text: 'Get File Path',
         renderTo: 'fi-basic-btn',
         handler: function(){
@@ -48,19 +46,23 @@ Ext.onReady(function(){
         }
     });
 
-    var fbutton = new Ext.ux.form.FileUploadField({
+    Ext.create('Ext.form.field.File', {
         renderTo: 'fi-button',
         buttonOnly: true,
+        hideLabel: true,
         listeners: {
-            'fileselected': function(fb, v){
-                var el = Ext.fly('fi-button-msg');
+            'change': function(fb, v){
+                var el = Ext.get('fi-button-msg');
                 el.update('<b>Selected:</b> '+v);
                 if(!el.isVisible()){
                     el.slideIn('t', {
-                        duration: .2,
+                        duration: 200,
                         easing: 'easeIn',
-                        callback: function(){
-                            el.highlight();
+                        listeners: {
+                            afteranimate: function() {
+                                el.highlight();
+                                el.setWidth(null);
+                            }
                         }
                     });
                 }else{
@@ -70,51 +72,53 @@ Ext.onReady(function(){
         }
     });
 
-    var fp = new Ext.FormPanel({
+    Ext.create('Ext.form.Panel', {
         renderTo: 'fi-form',
-        fileUpload: true,
         width: 500,
         frame: true,
         title: 'File Upload Form',
-        autoHeight: true,
-        bodyStyle: 'padding: 10px 10px 0 10px;',
-        labelWidth: 50,
+        bodyPadding: '10 10 0',
+
         defaults: {
-            anchor: '95%',
+            anchor: '100%',
             allowBlank: false,
-            msgTarget: 'side'
+            msgTarget: 'side',
+            labelWidth: 50
         },
+
         items: [{
             xtype: 'textfield',
             fieldLabel: 'Name'
         },{
-            xtype: 'fileuploadfield',
+            xtype: 'filefield',
             id: 'form-file',
             emptyText: 'Select an image',
             fieldLabel: 'Photo',
             name: 'photo-path',
             buttonText: '',
-            buttonCfg: {
+            buttonConfig: {
                 iconCls: 'upload-icon'
             }
         }],
+
         buttons: [{
             text: 'Save',
             handler: function(){
-                if(fp.getForm().isValid()){
-	                fp.getForm().submit({
-	                    url: 'file-upload.php',
-	                    waitMsg: 'Uploading your photo...',
-	                    success: function(fp, o){
-	                        msg('Success', 'Processed file "'+o.result.file+'" on the server');
-	                    }
-	                });
+                var form = this.up('form').getForm();
+                if(form.isValid()){
+                    form.submit({
+                        url: 'file-upload.php',
+                        waitMsg: 'Uploading your photo...',
+                        success: function(fp, o) {
+                            msg('Success', 'Processed file "' + o.result.file + '" on the server');
+                        }
+                    });
                 }
             }
         },{
             text: 'Reset',
-            handler: function(){
-                fp.getForm().reset();
+            handler: function() {
+                this.up('form').getForm().reset();
             }
         }]
     });

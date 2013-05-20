@@ -1,140 +1,133 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.form.*',
+    'Ext.data.*'
+]);
+
 Ext.onReady(function(){
 
-    Ext.QuickTips.init();
-
-    // turn on validation errors beside the field globally
-    Ext.form.Field.prototype.msgTarget = 'side';
-
-    var fs = new Ext.FormPanel({
-        frame: true,
-        title:'XML Form',
-        labelAlign: 'right',
-        labelWidth: 85,
-        width:340,
-        waitMsgTarget: true,
-
-        // configure how to read the XML Data
-        reader : new Ext.data.XmlReader({
-            record : 'contact',
-            success: '@success'
-        }, [
-            {name: 'first', mapping:'name/first'}, // custom mapping
-            {name: 'last', mapping:'name/last'},
+    Ext.define('example.contact', {
+        extend: 'Ext.data.Model',
+        fields: [
+            {name: 'first', mapping: 'name > first'},
+            {name: 'last', mapping: 'name > last'},
             'company', 'email', 'state',
-            {name: 'dob', type:'date', dateFormat:'m/d/Y'} // custom data types
-        ]),
-
-        // reusable eror reader class defined at the end of this file
-        errorReader: new Ext.form.XmlErrorReader(),
-
-        items: [
-            new Ext.form.FieldSet({
-                title: 'Contact Information',
-                autoHeight: true,
-                defaultType: 'textfield',
-                items: [{
-                        fieldLabel: 'First Name',
-                        emptyText: 'First Name',
-                        name: 'first',
-                        width:190
-                    }, {
-                        fieldLabel: 'Last Name',
-                        emptyText: 'Last Name',
-                        name: 'last',
-                        width:190
-                    }, {
-                        fieldLabel: 'Company',
-                        name: 'company',
-                        width:190
-                    }, {
-                        fieldLabel: 'Email',
-                        name: 'email',
-                        vtype:'email',
-                        width:190
-                    },
-
-                    new Ext.form.ComboBox({
-                        fieldLabel: 'State',
-                        hiddenName:'state',
-                        store: new Ext.data.ArrayStore({
-                            fields: ['abbr', 'state'],
-                            data : Ext.exampledata.states // from states.js
-                        }),
-                        valueField:'abbr',
-                        displayField:'state',
-                        typeAhead: true,
-                        mode: 'local',
-                        triggerAction: 'all',
-                        emptyText:'Select a state...',
-                        selectOnFocus:true,
-                        width:190
-                    }),
-
-                    new Ext.form.DateField({
-                        fieldLabel: 'Date of Birth',
-                        name: 'dob',
-                        width:190,
-                        allowBlank:false
-                    })
-                ]
-            })
+            {name: 'dob', type: 'date', dateFormat: 'm/d/Y'}
         ]
     });
 
-    // simple button add
-    fs.addButton('Load', function(){
-        fs.getForm().load({url:'xml-form.xml', waitMsg:'Loading'});
+    Ext.define('example.fielderror', {
+        extend: 'Ext.data.Model',
+        fields: ['id', 'msg']
     });
 
-    // explicit add
-    var submit = fs.addButton({
-        text: 'Submit',
-        disabled:true,
-        handler: function(){
-            fs.getForm().submit({url:'xml-errors.xml', waitMsg:'Saving Data...', submitEmptyText: false});
-        }
-    });
+    var formPanel = Ext.create('Ext.form.Panel', {
+        renderTo: 'form-ct',
+        frame: true,
+        title:'XML Form',
+        width: 340,
+        bodyPadding: 5,
+        waitMsgTarget: true,
 
-    fs.render('form-ct');
+        fieldDefaults: {
+            labelAlign: 'right',
+            labelWidth: 85,
+            msgTarget: 'side'
+        },
 
-    fs.on({
-        actioncomplete: function(form, action){
-            if(action.type == 'load'){
-                submit.enable();
+        // configure how to read the XML data
+        reader : Ext.create('Ext.data.reader.Xml', {
+            model: 'example.contact',
+            record : 'contact',
+            successProperty: '@success'
+        }),
+
+        // configure how to read the XML errors
+        errorReader: Ext.create('Ext.data.reader.Xml', {
+            model: 'example.fielderror',
+            record : 'field',
+            successProperty: '@success'
+        }),
+
+        items: [{
+            xtype: 'fieldset',
+            title: 'Contact Information',
+            defaultType: 'textfield',
+            defaults: {
+                width: 280
+            },
+            items: [{
+                    fieldLabel: 'First Name',
+                    emptyText: 'First Name',
+                    name: 'first'
+                }, {
+                    fieldLabel: 'Last Name',
+                    emptyText: 'Last Name',
+                    name: 'last'
+                }, {
+                    fieldLabel: 'Company',
+                    name: 'company'
+                }, {
+                    fieldLabel: 'Email',
+                    name: 'email',
+                    vtype:'email'
+                }, {
+                    xtype: 'combobox',
+                    fieldLabel: 'State',
+                    name: 'state',
+                    store: Ext.create('Ext.data.ArrayStore', {
+                        fields: ['abbr', 'state'],
+                        data : Ext.example.states // from states.js
+                    }),
+                    valueField: 'abbr',
+                    displayField: 'state',
+                    typeAhead: true,
+                    queryMode: 'local',
+                    emptyText: 'Select a state...'
+                }, {
+                    xtype: 'datefield',
+                    fieldLabel: 'Date of Birth',
+                    name: 'dob',
+                    allowBlank: false,
+                    maxValue: new Date()
+                }
+            ]
+        }],
+
+        buttons: [{
+            text: 'Load',
+            handler: function(){
+                formPanel.getForm().load({
+                    url: 'xml-form-data.xml',
+                    waitMsg: 'Loading...'
+                });
             }
-        }
+        }, {
+            text: 'Submit',
+            disabled: true,
+            formBind: true,
+            handler: function(){
+                this.up('form').getForm().submit({
+                    url: 'xml-form-errors.xml',
+                    submitEmptyText: false,
+                    waitMsg: 'Saving Data...'
+                });
+            }
+        }]
     });
 
 });
 
-// A reusable error reader class for XML forms
-Ext.form.XmlErrorReader = function(){
-    Ext.form.XmlErrorReader.superclass.constructor.call(this, {
-            record : 'field',
-            success: '@success'
-        }, [
-            'id', 'msg'
-        ]
-    );
-};
-Ext.extend(Ext.form.XmlErrorReader, Ext.data.XmlReader);

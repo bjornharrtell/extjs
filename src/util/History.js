@@ -1,60 +1,82 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
 /**
- * @class Ext.History
- * @extends Ext.util.Observable
+ * @class Ext.util.History
+ *
  * History management component that allows you to register arbitrary tokens that signify application
  * history state on navigation actions.  You can then handle the history {@link #change} event in order
  * to reset your application UI to the appropriate state when the user navigates forward or backward through
  * the browser history stack.
+ *
+ * ## Initializing
+ * The {@link #init} method of the History object must be called before using History. This sets up the internal
+ * state and must be the first thing called before using History.
+ *
+ * ## Setup
+ * The History objects requires elements on the page to keep track of the browser history. For older versions of IE,
+ * an IFrame is required to do the tracking. For other browsers, a hidden field can be used. The history objects expects
+ * these to be on the page before the {@link #init} method is called. The following markup is suggested in order
+ * to support all browsers:
+ *
+ *     <form id="history-form" class="x-hide-display">
+ *         <input type="hidden" id="x-history-field" />
+ *         <iframe id="x-history-frame"></iframe>
+ *     </form>
+ *
  * @singleton
  */
-Ext.History = (function () {
-    var iframe, hiddenField;
-    var ready = false;
-    var currentToken;
+Ext.define('Ext.util.History', {
+    singleton: true,
+    alternateClassName: 'Ext.History',
+    mixins: {
+        observable: 'Ext.util.Observable'
+    },
 
-    function getHash() {
-        var href = location.href, i = href.indexOf("#"),
-            hash = i >= 0 ? href.substr(i + 1) : null;
-             
-        if (Ext.isGecko) {
-            hash = decodeURIComponent(hash);
-        }
-        return hash;
-    }
+    constructor: function() {
+        var me = this;
+        me.oldIEMode = Ext.isIE6 || Ext.isIE7 || !Ext.isStrict && Ext.isIE8;
+        me.iframe = null;
+        me.hiddenField = null;
+        me.ready = false;
+        me.currentToken = null;
+    },
 
-    function doSave() {
-        hiddenField.value = currentToken;
-    }
+    getHash: function() {
+        var href = window.location.href,
+            i = href.indexOf("#");
 
-    function handleStateChange(token) {
-        currentToken = token;
-        Ext.History.fireEvent('change', token);
-    }
+        return i >= 0 ? href.substr(i + 1) : null;
+    },
 
-    function updateIFrame (token) {
-        var html = ['<html><body><div id="state">',Ext.util.Format.htmlEncode(token),'</div></body></html>'].join('');
+    doSave: function() {
+        this.hiddenField.value = this.currentToken;
+    },
+
+
+    handleStateChange: function(token) {
+        this.currentToken = token;
+        this.fireEvent('change', token);
+    },
+
+    updateIFrame: function(token) {
+        var html = '<html><body><div id="state">' +
+                    Ext.util.Format.htmlEncode(token) +
+                    '</div></body></html>';
+
         try {
-            var doc = iframe.contentWindow.document;
+            var doc = this.iframe.contentWindow.document;
             doc.open();
             doc.write(html);
             doc.close();
@@ -62,174 +84,186 @@ Ext.History = (function () {
         } catch (e) {
             return false;
         }
-    }
+    },
 
-    function checkIFrame() {
-        if (!iframe.contentWindow || !iframe.contentWindow.document) {
-            setTimeout(checkIFrame, 10);
+    checkIFrame: function () {
+        var me = this,
+            contentWindow = me.iframe.contentWindow;
+
+        if (!contentWindow || !contentWindow.document) {
+            Ext.Function.defer(this.checkIFrame, 10, this);
             return;
         }
 
-        var doc = iframe.contentWindow.document;
-        var elem = doc.getElementById("state");
-        var token = elem ? elem.innerText : null;
+        var doc = contentWindow.document,
+            elem = doc.getElementById("state"),
+            oldToken = elem ? elem.innerText : null,
+            oldHash = me.getHash();
 
-        var hash = getHash();
+        Ext.TaskManager.start({
+            run: function () {
+                var doc = contentWindow.document,
+                    elem = doc.getElementById("state"),
+                    newToken = elem ? elem.innerText : null,
+                    newHash = me.getHash();
 
-        setInterval(function () {
+                if (newToken !== oldToken) {
+                    oldToken = newToken;
+                    me.handleStateChange(newToken);
+                    window.top.location.hash = newToken;
+                    oldHash = newToken;
+                    me.doSave();
+                } else if (newHash !== oldHash) {
+                    oldHash = newHash;
+                    me.updateIFrame(newHash);
+                }
+            },
+            interval: 50,
+            scope: me
+        });
+        me.ready = true;
+        me.fireEvent('ready', me);
+    },
 
-            doc = iframe.contentWindow.document;
-            elem = doc.getElementById("state");
+    startUp: function () {
+        var me = this;
 
-            var newtoken = elem ? elem.innerText : null;
+        me.currentToken = me.hiddenField.value || this.getHash();
 
-            var newHash = getHash();
-
-            if (newtoken !== token) {
-                token = newtoken;
-                handleStateChange(token);
-                location.hash = token;
-                hash = token;
-                doSave();
-            } else if (newHash !== hash) {
-                hash = newHash;
-                updateIFrame(newHash);
-            }
-
-        }, 50);
-
-        ready = true;
-
-        Ext.History.fireEvent('ready', Ext.History);
-    }
-
-    function startUp() {
-        currentToken = hiddenField.value ? hiddenField.value : getHash();
-
-        if (Ext.isIE) {
-            checkIFrame();
+        if (me.oldIEMode) {
+            me.checkIFrame();
         } else {
-            var hash = getHash();
-            setInterval(function () {
-                var newHash = getHash();
-                if (newHash !== hash) {
-                    hash = newHash;
-                    handleStateChange(hash);
-                    doSave();
-                }
-            }, 50);
-            ready = true;
-            Ext.History.fireEvent('ready', Ext.History);
+            var hash = me.getHash();
+            Ext.TaskManager.start({
+                run: function () {
+                    var newHash = me.getHash();
+                    if (newHash !== hash) {
+                        hash = newHash;
+                        me.handleStateChange(hash);
+                        me.doSave();
+                    }
+                },
+                interval: 50,
+                scope: me
+            });
+            me.ready = true;
+            me.fireEvent('ready', me);
         }
-    }
 
-    return {
-        /**
-         * The id of the hidden field required for storing the current history token.
-         * @type String
-         * @property
-         */
-        fieldId: 'x-history-field',
-        /**
-         * The id of the iframe required by IE to manage the history stack.
-         * @type String
-         * @property
-         */
-        iframeId: 'x-history-frame',
+    },
 
-        events:{},
+    /**
+     * The id of the hidden field required for storing the current history token.
+     * @type String
+     * @property
+     */
+    fieldId: Ext.baseCSSPrefix + 'history-field',
+    /**
+     * The id of the iframe required by IE to manage the history stack.
+     * @type String
+     * @property
+     */
+    iframeId: Ext.baseCSSPrefix + 'history-frame',
 
-        /**
-         * Initialize the global History instance.
-         * @param {Boolean} onReady (optional) A callback function that will be called once the history
-         * component is fully initialized.
-         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to the browser window.
-         */
-        init: function (onReady, scope) {
-            if(ready) {
-                Ext.callback(onReady, scope, [this]);
-                return;
-            }
-            if(!Ext.isReady){
-                Ext.onReady(function(){
-                    Ext.History.init(onReady, scope);
-                });
-                return;
-            }
-            hiddenField = Ext.getDom(Ext.History.fieldId);
-            if (Ext.isIE) {
-                iframe = Ext.getDom(Ext.History.iframeId);
-            }
-            this.addEvents(
-                /**
-                 * @event ready
-                 * Fires when the Ext.History singleton has been initialized and is ready for use.
-                 * @param {Ext.History} The Ext.History singleton.
-                 */
-                'ready',
-                /**
-                 * @event change
-                 * Fires when navigation back or forwards within the local page's history occurs.
-                 * @param {String} token An identifier associated with the page state at that point in its history.
-                 */
-                'change'
-            );
-            if(onReady){
-                this.on('ready', onReady, scope, {single:true});
-            }
-            startUp();
-        },
+    /**
+     * Initialize the global History instance.
+     * @param {Boolean} onReady (optional) A callback function that will be called once the history
+     * component is fully initialized.
+     * @param {Object} scope (optional) The scope (`this` reference) in which the callback is executed. Defaults to the browser window.
+     */
+    init: function (onReady, scope) {
+        var me = this;
 
-        /**
-         * Add a new token to the history stack. This can be any arbitrary value, although it would
-         * commonly be the concatenation of a component id and another id marking the specifc history
-         * state of that component.  Example usage:
-         * <pre><code>
-// Handle tab changes on a TabPanel
-tabPanel.on('tabchange', function(tabPanel, tab){
-    Ext.History.add(tabPanel.id + ':' + tab.id);
-});
-</code></pre>
-         * @param {String} token The value that defines a particular application-specific history state
-         * @param {Boolean} preventDuplicates When true, if the passed token matches the current token
-         * it will not save a new history step. Set to false if the same state can be saved more than once
-         * at the same history stack location (defaults to true).
-         */
-        add: function (token, preventDup) {
-            if(preventDup !== false){
-                if(this.getToken() == token){
-                    return true;
-                }
-            }
-            if (Ext.isIE) {
-                return updateIFrame(token);
-            } else {
-                location.hash = token;
+        if (me.ready) {
+            Ext.callback(onReady, scope, [me]);
+            return;
+        }
+
+        if (!Ext.isReady) {
+            Ext.onReady(function() {
+                me.init(onReady, scope);
+            });
+            return;
+        }
+
+        me.hiddenField = Ext.getDom(me.fieldId);
+
+        if (me.oldIEMode) {
+            me.iframe = Ext.getDom(me.iframeId);
+        }
+
+        me.addEvents(
+            /**
+             * @event ready
+             * Fires when the Ext.util.History singleton has been initialized and is ready for use.
+             * @param {Ext.util.History} The Ext.util.History singleton.
+             */
+            'ready',
+            /**
+             * @event change
+             * Fires when navigation back or forwards within the local page's history occurs.
+             * @param {String} token An identifier associated with the page state at that point in its history.
+             */
+            'change'
+        );
+
+        if (onReady) {
+            me.on('ready', onReady, scope, {single: true});
+        }
+        me.startUp();
+    },
+
+    /**
+     * Add a new token to the history stack. This can be any arbitrary value, although it would
+     * commonly be the concatenation of a component id and another id marking the specific history
+     * state of that component. Example usage:
+     *
+     *     // Handle tab changes on a TabPanel
+     *     tabPanel.on('tabchange', function(tabPanel, tab){
+     *          Ext.History.add(tabPanel.id + ':' + tab.id);
+     *     });
+     *
+     * @param {String} token The value that defines a particular application-specific history state
+     * @param {Boolean} [preventDuplicates=true] When true, if the passed token matches the current token
+     * it will not save a new history step. Set to false if the same state can be saved more than once
+     * at the same history stack location.
+     */
+    add: function (token, preventDup) {
+        var me = this;
+
+        if (preventDup !== false) {
+            if (me.getToken() === token) {
                 return true;
             }
-        },
-
-        /**
-         * Programmatically steps back one step in browser history (equivalent to the user pressing the Back button).
-         */
-        back: function(){
-            history.go(-1);
-        },
-
-        /**
-         * Programmatically steps forward one step in browser history (equivalent to the user pressing the Forward button).
-         */
-        forward: function(){
-            history.go(1);
-        },
-
-        /**
-         * Retrieves the currently-active history token.
-         * @return {String} The token
-         */
-        getToken: function() {
-            return ready ? currentToken : getHash();
         }
-    };
-})();
-Ext.apply(Ext.History, new Ext.util.Observable());
+
+        if (me.oldIEMode) {
+            return me.updateIFrame(token);
+        } else {
+            window.top.location.hash = token;
+            return true;
+        }
+    },
+
+    /**
+     * Programmatically steps back one step in browser history (equivalent to the user pressing the Back button).
+     */
+    back: function() {
+        window.history.go(-1);
+    },
+
+    /**
+     * Programmatically steps forward one step in browser history (equivalent to the user pressing the Forward button).
+     */
+    forward: function(){
+        window.history.go(1);
+    },
+
+    /**
+     * Retrieves the currently-active history token.
+     * @return {String} The token
+     */
+    getToken: function() {
+        return this.ready ? this.currentToken : this.getHash();
+    }
+});

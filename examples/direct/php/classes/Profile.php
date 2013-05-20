@@ -9,7 +9,7 @@ class Profile {
     function updateBasicInfo($formPacket){
         $response = array();
         $email = $formPacket['email'];
-        if ($email == 'aaron@extjs.com') {
+        if ($email == 'aaron@sencha.com') {
             $success = false;
             $response['errors'] = array(
                 'email'=>'already taken'
@@ -37,8 +37,8 @@ class Profile {
             'data'=>array(
                 'foo'=>$foo,
                 'name'=>'Aaron Conran',
-                'company'=>'Ext JS, LLC',
-                'email'=>'aaron@extjs.com'
+                'company'=>'Sencha Inc.',
+                'email'=>'aaron@sencha.com'
              )
         );
     }

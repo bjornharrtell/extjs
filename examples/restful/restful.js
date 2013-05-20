@@ -1,150 +1,144 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
-// Application instance for showing user-feedback messages.
-var App = new Ext.App({});
+Ext.require(['Ext.data.*', 'Ext.grid.*']);
 
-// Create a standard HttpProxy instance.
-var proxy = new Ext.data.HttpProxy({
-    url: 'app.php/users'
+Ext.define('Person', {
+    extend: 'Ext.data.Model',
+    fields: [{
+        name: 'id',
+        type: 'int',
+        useNull: true
+    }, 'email', 'first', 'last'],
+    validations: [{
+        type: 'length',
+        field: 'email',
+        min: 1
+    }, {
+        type: 'length',
+        field: 'first',
+        min: 1
+    }, {
+        type: 'length',
+        field: 'last',
+        min: 1
+    }]
 });
 
-// Typical JsonReader.  Notice additional meta-data params for defining the core attributes of your json-response
-var reader = new Ext.data.JsonReader({
-    totalProperty: 'total',
-    successProperty: 'success',
-    idProperty: 'id',
-    root: 'data',
-    messageProperty: 'message'  // <-- New "messageProperty" meta-data
-}, [
-    {name: 'id'},
-    {name: 'email', allowBlank: false},
-    {name: 'first', allowBlank: false},
-    {name: 'last', allowBlank: false}
-]);
+Ext.onReady(function(){
 
-// The new DataWriter component.
-var writer = new Ext.data.JsonWriter({
-    encode: false   // <-- don't return encoded JSON -- causes Ext.Ajax#request to send data using jsonData config rather than HTTP params
-});
-
-// Typical Store collecting the Proxy, Reader and Writer together.
-var store = new Ext.data.Store({
-    id: 'user',
-    restful: true,     // <-- This Store is RESTful
-    proxy: proxy,
-    reader: reader,
-    writer: writer    // <-- plug a DataWriter into the store just as you would a Reader
-});
-
-// load the store immeditately
-store.load();
-
-////
-// ***New*** centralized listening of DataProxy events "beforewrite", "write" and "writeexception"
-// upon Ext.data.DataProxy class.  This is handy for centralizing user-feedback messaging into one place rather than
-// attaching listenrs to EACH Store.
-//
-// Listen to all DataProxy beforewrite events
-//
-Ext.data.DataProxy.addListener('beforewrite', function(proxy, action) {
-    App.setAlert(App.STATUS_NOTICE, "Before " + action);
-});
-
-////
-// all write events
-//
-Ext.data.DataProxy.addListener('write', function(proxy, action, result, res, rs) {
-    App.setAlert(true, action + ':' + res.message);
-});
-
-////
-// all exception events
-//
-Ext.data.DataProxy.addListener('exception', function(proxy, type, action, options, res) {
-    App.setAlert(false, "Something bad happend while executing " + action);
-});
-
-// Let's pretend we rendered our grid-columns with meta-data from our ORM framework.
-var userColumns =  [
-    {header: "ID", width: 40, sortable: true, dataIndex: 'id'},
-    {header: "Email", width: 100, sortable: true, dataIndex: 'email', editor: new Ext.form.TextField({})},
-    {header: "First", width: 50, sortable: true, dataIndex: 'first', editor: new Ext.form.TextField({})},
-    {header: "Last", width: 50, sortable: true, dataIndex: 'last', editor: new Ext.form.TextField({})}
-];
-
-
-Ext.onReady(function() {
-    Ext.QuickTips.init();
-
-    // use RowEditor for editing
-    var editor = new Ext.ux.grid.RowEditor({
-        saveText: 'Update'
+    var store = Ext.create('Ext.data.Store', {
+        autoLoad: true,
+        autoSync: true,
+        model: 'Person',
+        proxy: {
+            type: 'rest',
+            url: 'app.php/users',
+            reader: {
+                type: 'json',
+                root: 'data'
+            },
+            writer: {
+                type: 'json'
+            }
+        },
+        listeners: {
+            write: function(store, operation){
+                var record = operation.getRecords()[0],
+                    name = Ext.String.capitalize(operation.action),
+                    verb;
+                    
+                    
+                if (name == 'Destroy') {
+                    record = operation.records[0];
+                    verb = 'Destroyed';
+                } else {
+                    verb = name + 'd';
+                }
+                Ext.example.msg(name, Ext.String.format("{0} user: {1}", verb, record.getId()));
+                
+            }
+        }
     });
-
-    // Create a typical GridPanel with RowEditor plugin
-    var userGrid = new Ext.grid.GridPanel({
-        renderTo: 'user-grid',
-        iconCls: 'icon-grid',
+    
+    var rowEditing = Ext.create('Ext.grid.plugin.RowEditing');
+    
+    var grid = Ext.create('Ext.grid.Panel', {
+        renderTo: document.body,
+        plugins: [rowEditing],
+        width: 400,
+        height: 300,
         frame: true,
         title: 'Users',
-        height: 300,
         store: store,
-        plugins: [editor],
-        columns : userColumns,
-        tbar: [{
-            text: 'Add',
-            iconCls: 'silk-add',
-            handler: onAdd
-        }, '-', {
-            text: 'Delete',
-            iconCls: 'silk-delete',
-            handler: onDelete
-        }, '-'],
-        viewConfig: {
-            forceFit: true
-        }
+        iconCls: 'icon-user',
+        columns: [{
+            text: 'ID',
+            width: 40,
+            sortable: true,
+            dataIndex: 'id'
+        }, {
+            text: 'Email',
+            flex: 1,
+            sortable: true,
+            dataIndex: 'email',
+            field: {
+                xtype: 'textfield'
+            }
+        }, {
+            header: 'First',
+            width: 80,
+            sortable: true,
+            dataIndex: 'first',
+            field: {
+                xtype: 'textfield'
+            }
+        }, {
+            text: 'Last',
+            width: 80,
+            sortable: true,
+            dataIndex: 'last',
+            field: {
+                xtype: 'textfield'
+            }
+        }],
+        dockedItems: [{
+            xtype: 'toolbar',
+            items: [{
+                text: 'Add',
+                iconCls: 'icon-add',
+                handler: function(){
+                    // empty record
+                    store.insert(0, new Person());
+                    rowEditing.startEdit(0, 0);
+                }
+            }, '-', {
+                itemId: 'delete',
+                text: 'Delete',
+                iconCls: 'icon-delete',
+                disabled: true,
+                handler: function(){
+                    var selection = grid.getView().getSelectionModel().getSelection()[0];
+                    if (selection) {
+                        store.remove(selection);
+                    }
+                }
+            }]
+        }]
     });
-
-    /**
-     * onAdd
-     */
-    function onAdd(btn, ev) {
-        var u = new userGrid.store.recordType({
-            first : '',
-            last: '',
-            email : ''
-        });
-        editor.stopEditing();
-        userGrid.store.insert(0, u);
-        editor.startEditing(0);
-    }
-    /**
-     * onDelete
-     */
-    function onDelete() {
-        var rec = userGrid.getSelectionModel().getSelected();
-        if (!rec) {
-            return false;
-        }
-        userGrid.store.remove(rec);
-    }
-
+    grid.getSelectionModel().on('selectionchange', function(selModel, selections){
+        grid.down('#delete').setDisabled(selections.length === 0);
+    });
 });
+

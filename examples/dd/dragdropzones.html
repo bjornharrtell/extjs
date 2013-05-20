@@ -1,9 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-<script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-<script type="text/javascript" src="../../ext-all-debug.js"></script>
-<script type="text/javascript" src="../shared/code-display.js"></script>
+<script type="text/javascript" src="../../bootstrap.js"></script>
 <script type="text/javascript" src="dragdropzones.js"></script>
 <style type="text/css">
 .app-header .x-panel-body {
@@ -19,10 +17,10 @@
 
 .hospital-target {
     border: 1px solid red;
-    width: 400ps;
-    height: 16px;
     margin: 5px;
     padding: 5px;
+    font-size: small;
+    cursor: default;
 }
 
 .hospital-target.hospital-target-hover {
@@ -31,6 +29,11 @@
 
 .patient-source {
     cursor: pointer;
+}
+
+.patient-view table {
+    border-collapse: separate;
+    border-spacing: 2px;
 }
 
 .patient-view td {

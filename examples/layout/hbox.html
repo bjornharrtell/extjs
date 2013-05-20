@@ -1,14 +1,9 @@
 <html>
 <head>
     <title>HBox Layout</title>
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css"/>
-
-    <!-- GC -->
-    <!-- LIBS -->
-    <script type="text/javascript" src="../../adapter/ext/ext-base.js"></script>
-    <!-- ENDLIBS -->
-
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="../shared/example.css" />
+    <script type="text/javascript" src="../../bootstrap.js"></script>
 
     <style type="text/css">
         html, body {
@@ -21,37 +16,28 @@
     <script type="text/javascript">
 
         Ext.onReady(function() {
-          
-            var currentName;
-
+            var currentName,
+                viewport;
             var replace = function(config, name) {
-              var btns = Ext.getCmp('btns');
-              
-              if (name && name != currentName) {
-                  currentName = name;
-                  
-                  btns.remove(0);
+                var btns = Ext.getCmp('btns');
+                if (name && name != currentName) {
+                    currentName = name;
+                    btns.remove(0);
+                    btns.add(Ext.apply(config));
+                }
+            };
 
-                  btns.add(Ext.apply(config, {
-                      layout:'hbox'
-                  }));
-              };
-              
-              btns.doLayout();
-            }
-
-
-            var viewport = new Ext.Viewport({
+            viewport = Ext.create('Ext.Viewport', {
                 layout:'border',
 
                 items: [{
                     id:'btns',
                     region:'north',
                     baseCls:'x-plain',
-                    split:true,
-                    height:50,
-                    minHeight: 40,
-                    maxHeight: 85,
+                    split: true,
+                    height: 100,
+                    minHeight: 75,
+                    maxHeight: 150,
                     layout:'fit',
                     margins: '5 5 0 5',
                     items: {
@@ -66,8 +52,8 @@
                     items:[{
                         anchor:'100%',
                         baseCls:'x-plain',
-                        layout:'hbox',
-                        layoutConfig: {
+                        layout: {
+                            type: 'hbox',
                             padding: 10
                         },
                         defaults:{
@@ -81,26 +67,29 @@
                             text: 'Spaced',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'top'
                                     },
                                     defaults:{margins:'0 5 0 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Small Size'
                                     },{
-                                        xtype:'spacer',
+                                        xtype:'tbspacer',
                                         flex:1
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        scale: 'medium',
+                                        text: 'Medium Size'
+                                    },{
+                                        xtype:'tbspacer',
+                                        flex:1
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
-                                    },{
-                                        xtype:'button',
-                                        text: 'Button 4',
+                                        scale: 'large',
+                                        text: 'Large Size',
                                         margins:'0'
                                     }]
                                 }, 'spaced');
@@ -110,23 +99,23 @@
                             text: 'Align: top',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'top'
                                     },
                                     defaults:{margins:'0 5 0 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Small Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        scale: 'medium',
+                                        text: 'Medium Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
-                                    },{
-                                        xtype:'button',
-                                        text: 'Button 4'
+                                        scale: 'large',
+                                        text: 'Large Size'
                                     }]
                                 }, 'align top');
                             }
@@ -135,23 +124,23 @@
                             text: 'Align: middle',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'middle'
                                     },
                                     defaults:{margins:'0 5 0 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Small Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        scale: 'medium',
+                                        text: 'Medium Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
-                                    },{
-                                        xtype:'button',
-                                        text: 'Button 4'
+                                        scale: 'large',
+                                        text: 'Large Size'
                                     }]
                                 }, 'align middle');
                             }
@@ -160,23 +149,23 @@
                             text: 'Align: stretch',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'stretch'
                                     },
                                     defaults:{margins:'0 5 0 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Small Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        scale: 'medium',
+                                        text: 'Medium Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
-                                    },{
-                                        xtype:'button',
-                                        text: 'Button 4'
+                                        scale: 'large',
+                                        text: 'Large Size'
                                     }]
                                 }, 'align stretch');
                             }
@@ -185,23 +174,23 @@
                             text: 'Align: stretchmax',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'stretchmax'
                                     },
                                     defaults:{margins:'0 5 0 0'},
                                     items:[{
                                         xtype:'button',
-                                        text: 'Button 1'
+                                        text: 'Small Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 2'
+                                        scale: 'medium',
+                                        text: 'Medium Size'
                                     },{
                                         xtype:'button',
-                                        text: 'Button 3'
-                                    },{
-                                        xtype:'button',
-                                        text: 'Button 4'
+                                        scale: 'large',
+                                        text: 'Large Size'
                                     }]
                                 }, 'align stretchmax');
                             }
@@ -209,8 +198,8 @@
                     },{
                         anchor:'100%',
                         baseCls:'x-plain',
-                        layout:'hbox',
-                        layoutConfig: {
+                        layout: {
+                            type: 'hbox',
                             padding: '0 10 10'
                         },
                         defaults:{
@@ -224,28 +213,31 @@
                             text: 'Flex: All even / Align: middle',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
-                                        padding:'5',
-                                        align:'middle'
+                                    layout: {
+                                        type: 'hbox',
+                                        padding: '5',
+                                        align: 'middle'
                                     },
-                                    defaults:{margins:'0 5 0 0'},
+                                    defaults:{
+                                        margins: '0 5 0 0'
+                                    },
                                     items:[{
-                                        xtype:'button',
+                                        xtype: 'button',
                                         text: 'Button 1',
-                                        flex:1
+                                        flex: 1
                                     },{
-                                        xtype:'button',
+                                        xtype: 'button',
                                         text: 'Button 2',
-                                        flex:1
+                                        flex: 1
                                     },{
-                                        xtype:'button',
+                                        xtype: 'button',
                                         text: 'Button 3',
-                                        flex:1
+                                        flex: 1
                                     },{
-                                        xtype:'button',
+                                        xtype: 'button',
                                         text: 'Button 4',
-                                        flex:1,
-                                        margins:'0'
+                                        flex: 1,
+                                        margins: '0'
                                     }]
                                 }, 'flex all even');
                             }
@@ -254,7 +246,8 @@
                             text: 'Flex: Ratio / Align: top',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         align:'top'
                                     },
@@ -284,7 +277,8 @@
                             text: 'Pack: start / Align: middle',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         pack:'start',
                                         align:'middle'
@@ -310,7 +304,8 @@
                             text: 'Pack: center / Align: middle',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         pack:'center',
                                         align:'middle'
@@ -337,7 +332,8 @@
                             text: 'Pack: end / Align: middle',
                             handler: function(){
                                 replace({
-                                    layoutConfig: {
+                                    layout: {
+                                        type: 'hbox',
                                         padding:'5',
                                         pack:'end',
                                         align:'middle'

@@ -15,21 +15,36 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Direct-Transaction-method-constructor'><span id='Ext-Direct-Transaction'>/**
-</span></span> * @class Ext.Direct.Transaction
- * @extends Object
- * &lt;p&gt;Supporting Class for Ext.Direct (not intended to be used directly).&lt;/p&gt;
- * @constructor
- * @param {Object} config
+  <pre class="prettyprint lang-js"><span id='Ext-direct-Transaction'>/**
+</span> * Supporting Class for Ext.Direct (not intended to be used directly).
  */
-Ext.Direct.Transaction = function(config){
-    Ext.apply(this, config);
-    this.tid = ++Ext.Direct.TID;
-    this.retryCount = 0;
-};
-Ext.Direct.Transaction.prototype = {
+Ext.define('Ext.direct.Transaction', {
+    
+    /* Begin Definitions */
+   
+    alias: 'direct.transaction',
+    alternateClassName: 'Ext.Direct.Transaction',
+   
+    statics: {
+        TRANSACTION_ID: 0
+    },
+   
+    /* End Definitions */
+
+<span id='Ext-direct-Transaction-method-constructor'>    /**
+</span>     * Creates new Transaction.
+     * @param {Object} [config] Config object.
+     */
+    constructor: function(config){
+        var me = this;
+        
+        Ext.apply(me, config);
+        me.id = ++me.self.TRANSACTION_ID;
+        me.retryCount = 0;
+    },
+   
     send: function(){
-        this.provider.queueTransaction(this);
+         this.provider.queueTransaction(this);
     },
 
     retry: function(){
@@ -40,6 +55,7 @@ Ext.Direct.Transaction.prototype = {
     getProvider: function(){
         return this.provider;
     }
-};</pre>
+});
+</pre>
 </body>
 </html>

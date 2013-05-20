@@ -1,26 +1,31 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.Loader.setConfig({enabled: true});
+
+Ext.Loader.setPath('Ext.ux', '../ux/');
+
+Ext.require([
+    'Ext.data.*',
+    'Ext.grid.*',
+    'Ext.util.*',
+    'Ext.ux.data.PagingMemoryProxy',
+    'Ext.ux.ProgressBarPager'
+]);
 
 Ext.onReady(function(){
-
+    
     var myData = [
         ['3m Co',71.72,0.02,0.03,'9/1 12:00am'],
         ['Alcoa Inc',29.01,0.42,1.47,'9/1 12:00am'],
@@ -73,53 +78,85 @@ Ext.onReady(function(){
         return val;
     }
 
-    // create the data store
-    var store = new Ext.data.Store({
-        proxy: new Ext.ux.data.PagingMemoryProxy(myData),
-        remoteSort:true,
-        sortInfo: {field:'price', direction:'ASC'},
-        reader: new Ext.data.ArrayReader({
-            fields: [
-               {name: 'company'},
-               {name: 'price', type: 'float'},
-               {name: 'change', type: 'float'},
-               {name: 'pctChange', type: 'float'},
-               {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
-            ]
-        })
+    // register model
+    Ext.define('Company', {
+        extend: 'Ext.data.Model',
+        idProperty: 'company',
+        fields: [
+           {name: 'company'},
+           {name: 'price', type: 'float'},
+           {name: 'change', type: 'float'},
+           {name: 'pctChange', type: 'float'},
+           {name: 'lastChange', type: 'date', dateFormat: 'n/j h:ia'}
+        ]        
     });
+    
 
+    // create the data store
+    var store = Ext.create('Ext.data.Store', {
+        model: 'Company',
+        remoteSort: true,
+        pageSize: 10,
+        proxy: {
+            type: 'pagingmemory',
+            data: myData,
+            reader: {
+                type: 'array'
+            }
+        }
+    });
+    
     // create the Grid
-    var grid = new Ext.grid.GridPanel({
+    var grid = Ext.create('Ext.grid.Panel', {
+        title:'Progress Bar Pager',
         store: store,
-        columns: [
-            {id:'company',header: "Company", width: 160, sortable: true, dataIndex: 'company'},
-            {header: "Price", width: 75, sortable: true, renderer: 'usMoney', dataIndex: 'price'},
-            {header: "Change", width: 75, sortable: true, renderer: change, dataIndex: 'change'},
-            {header: "% Change", width: 75, sortable: true, renderer: pctChange, dataIndex: 'pctChange'},
-            {header: "Last Updated", width: 85, sortable: true, renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
-        ],
+        columns: [{
+                id:'company',
+                text: 'Company',
+                sortable: true,
+                dataIndex: 'company',
+                flex: 1
+            },{
+                text: 'Price',
+                sortable: true,
+                renderer: Ext.util.Format.usMoney,
+                dataIndex: 'price',
+                width: 75
+            },{
+                text: 'Change',
+                sortable: true,
+                renderer: change,
+                dataIndex: 'change',
+                width: 75
+            },{
+                text: '% Change',
+                sortable: true,
+                renderer: pctChange,
+                dataIndex: 'pctChange',
+                width: 75
+            },{
+                text: 'Last Updated',
+                sortable: true,
+                dataIndex: 'lastChange',
+                width: 75
+        }],
         stripeRows: true,
-        autoExpandColumn: 'company',
         height:320,
         width:600,
         frame:true,
-        title:'Sliding Pager',
-
-        plugins: new Ext.ux.PanelResizer({
-            minHeight: 100
-        }),
-
-        bbar: new Ext.PagingToolbar({
+        //resizable: {
+        //   handles: 's',
+        //   minHeight: 100
+        //},
+        bbar: Ext.create('Ext.PagingToolbar', {
             pageSize: 10,
             store: store,
             displayInfo: true,
-
-            plugins: new Ext.ux.ProgressBarPager()
+            plugins: Ext.create('Ext.ux.ProgressBarPager', {})
         })
     });
 
     grid.render('grid-example');
 
-    store.load({params:{start:0, limit:10}});
+    store.load();
 });

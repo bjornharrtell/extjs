@@ -15,116 +15,157 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-menu-CheckItem-method-constructor'><span id='Ext-menu-CheckItem'>/**
-</span></span> * @class Ext.menu.CheckItem
- * @extends Ext.menu.Item
- * Adds a menu item that contains a checkbox by default, but can also be part of a radio group.
- * @constructor
- * Creates a new CheckItem
- * @param {Object} config Configuration options
- * @xtype menucheckitem
+  <pre class="prettyprint lang-js"><span id='Ext-menu-CheckItem'>/**
+</span> * A menu item that contains a togglable checkbox by default, but that can also be a part of a radio group.
+ *
+ *     @example
+ *     Ext.create('Ext.menu.Menu', {
+ *         width: 100,
+ *         height: 110,
+ *         floating: false,  // usually you want this set to True (default)
+ *         renderTo: Ext.getBody(),  // usually rendered by it's containing component
+ *         items: [{
+ *             xtype: 'menucheckitem',
+ *             text: 'select all'
+ *         },{
+ *             xtype: 'menucheckitem',
+ *             text: 'select specific',
+ *         },{
+ *             iconCls: 'add16',
+ *             text: 'icon item'
+ *         },{
+ *             text: 'regular item'
+ *         }]
+ *     });
  */
-Ext.menu.CheckItem = Ext.extend(Ext.menu.Item, {
-<span id='Ext-menu-CheckItem-cfg-group'>    /**
-</span>     * @cfg {String} group
-     * All check items with the same group name will automatically be grouped into a single-select
-     * radio button group (defaults to '')
-     */
-<span id='Ext-menu-CheckItem-cfg-itemCls'>    /**
-</span>     * @cfg {String} itemCls The default CSS class to use for check items (defaults to &quot;x-menu-item x-menu-check-item&quot;)
-     */
-    itemCls : &quot;x-menu-item x-menu-check-item&quot;,
-<span id='Ext-menu-CheckItem-cfg-groupClass'>    /**
-</span>     * @cfg {String} groupClass The default CSS class to use for radio group check items (defaults to &quot;x-menu-group-item&quot;)
-     */
-    groupClass : &quot;x-menu-group-item&quot;,
+Ext.define('Ext.menu.CheckItem', {
+    extend: 'Ext.menu.Item',
+    alias: 'widget.menucheckitem',
 
-<span id='Ext-menu-CheckItem-cfg-checked'>    /**
-</span>     * @cfg {Boolean} checked True to initialize this checkbox as checked (defaults to false).  Note that
-     * if this checkbox is part of a radio group (group = true) only the first item in the group that is
-     * initialized with checked = true will be rendered as checked.
+<span id='Ext-menu-CheckItem-cfg-checkedCls'>    /**
+</span>     * @cfg {String} checkedCls
+     * The CSS class used by {@link #cls} to show the checked state.
+     * Defaults to `Ext.baseCSSPrefix + 'menu-item-checked'`.
      */
-    checked: false,
+    checkedCls: Ext.baseCSSPrefix + 'menu-item-checked',
+<span id='Ext-menu-CheckItem-cfg-uncheckedCls'>    /**
+</span>     * @cfg {String} uncheckedCls
+     * The CSS class used by {@link #cls} to show the unchecked state.
+     * Defaults to `Ext.baseCSSPrefix + 'menu-item-unchecked'`.
+     */
+    uncheckedCls: Ext.baseCSSPrefix + 'menu-item-unchecked',
+<span id='Ext-menu-CheckItem-cfg-groupCls'>    /**
+</span>     * @cfg {String} groupCls
+     * The CSS class applied to this item's icon image to denote being a part of a radio group.
+     * Defaults to `Ext.baseCSSClass + 'menu-group-icon'`.
+     * Any specified {@link #iconCls} overrides this.
+     */
+    groupCls: Ext.baseCSSPrefix + 'menu-group-icon',
 
-<span id='Ext-menu-CheckItem-property-ctype'>    // private
-</span>    ctype: &quot;Ext.menu.CheckItem&quot;,
-    
-<span id='Ext-menu-CheckItem-method-initComponent'>    initComponent : function(){
-</span>        Ext.menu.CheckItem.superclass.initComponent.call(this);
-	    this.addEvents(
-<span id='Ext-menu-CheckItem-event-beforecheckchange'>	        /**
-</span>	         * @event beforecheckchange
-	         * Fires before the checked value is set, providing an opportunity to cancel if needed
-	         * @param {Ext.menu.CheckItem} this
-	         * @param {Boolean} checked The new checked value that will be set
-	         */
-	        &quot;beforecheckchange&quot; ,
-<span id='Ext-menu-CheckItem-event-checkchange'>	        /**
-</span>	         * @event checkchange
-	         * Fires after the checked value has been set
-	         * @param {Ext.menu.CheckItem} this
-	         * @param {Boolean} checked The checked value that was set
-	         */
-	        &quot;checkchange&quot;
-	    );
-<span id='Ext-menu-CheckItem-method-checkHandler'>	    /**
-</span>	     * A function that handles the checkchange event.  The function is undefined by default, but if an implementation
-	     * is provided, it will be called automatically when the checkchange event fires.
-	     * @param {Ext.menu.CheckItem} this
-	     * @param {Boolean} checked The checked value that was set
-	     * @method checkHandler
-	     */
-	    if(this.checkHandler){
-	        this.on('checkchange', this.checkHandler, this.scope);
-	    }
-	    Ext.menu.MenuMgr.registerCheckable(this);
+<span id='Ext-menu-CheckItem-cfg-hideOnClick'>    /**
+</span>     * @cfg {Boolean} hideOnClick
+     * Whether to not to hide the owning menu when this item is clicked.
+     * Defaults to `false` for checkbox items, and to `true` for radio group items.
+     */
+    hideOnClick: false,
+
+    afterRender: function() {
+        var me = this;
+        this.callParent();
+        me.checked = !me.checked;
+        me.setChecked(!me.checked, true);
     },
 
-<span id='Ext-menu-CheckItem-method-onRender'>    // private
-</span>    onRender : function(c){
-        Ext.menu.CheckItem.superclass.onRender.apply(this, arguments);
-        if(this.group){
-            this.el.addClass(this.groupClass);
-        }
-        if(this.checked){
-            this.checked = false;
-            this.setChecked(true, true);
+    initComponent: function() {
+        var me = this;
+        me.addEvents(
+<span id='Ext-menu-CheckItem-event-beforecheckchange'>            /**
+</span>             * @event beforecheckchange
+             * Fires before a change event. Return false to cancel.
+             * @param {Ext.menu.CheckItem} this
+             * @param {Boolean} checked
+             */
+            'beforecheckchange',
+
+<span id='Ext-menu-CheckItem-event-checkchange'>            /**
+</span>             * @event checkchange
+             * Fires after a change event.
+             * @param {Ext.menu.CheckItem} this
+             * @param {Boolean} checked
+             */
+            'checkchange'
+        );
+
+        me.callParent(arguments);
+
+        Ext.menu.Manager.registerCheckable(me);
+
+        if (me.group) {
+            if (!me.iconCls) {
+                me.iconCls = me.groupCls;
+            }
+            if (me.initialConfig.hideOnClick !== false) {
+                me.hideOnClick = true;
+            }
         }
     },
 
-<span id='Ext-menu-CheckItem-method-destroy'>    // private
-</span>    destroy : function(){
-        Ext.menu.MenuMgr.unregisterCheckable(this);
-        Ext.menu.CheckItem.superclass.destroy.apply(this, arguments);
+<span id='Ext-menu-CheckItem-method-disableCheckChange'>    /**
+</span>     * Disables just the checkbox functionality of this menu Item. If this menu item has a submenu, that submenu
+     * will still be accessible
+     */
+    disableCheckChange: function() {
+        var me = this;
+
+        if (me.iconEl) {
+            me.iconEl.addCls(me.disabledCls);
+        }
+        me.checkChangeDisabled = true;
+    },
+
+<span id='Ext-menu-CheckItem-method-enableCheckChange'>    /**
+</span>     * Reenables the checkbox functionality of this menu item after having been disabled by {@link #disableCheckChange}
+     */
+    enableCheckChange: function() {
+        var me = this;
+
+        me.iconEl.removeCls(me.disabledCls);
+        me.checkChangeDisabled = false;
+    },
+
+    onClick: function(e) {
+        var me = this;
+        if(!me.disabled &amp;&amp; !me.checkChangeDisabled &amp;&amp; !(me.checked &amp;&amp; me.group)) {
+            me.setChecked(!me.checked);
+        }
+        this.callParent([e]);
+    },
+
+    onDestroy: function() {
+        Ext.menu.Manager.unregisterCheckable(this);
+        this.callParent(arguments);
     },
 
 <span id='Ext-menu-CheckItem-method-setChecked'>    /**
-</span>     * Set the checked state of this item
-     * @param {Boolean} checked The new checked value
-     * @param {Boolean} suppressEvent (optional) True to prevent the checkchange event from firing (defaults to false)
+</span>     * Sets the checked state of the item
+     * @param {Boolean} checked True to check, false to uncheck
+     * @param {Boolean} suppressEvents (optional) True to prevent firing the checkchange events. Defaults to `false`.
      */
-    setChecked : function(state, suppressEvent){
-        var suppress = suppressEvent === true;
-        if(this.checked != state &amp;&amp; (suppress || this.fireEvent(&quot;beforecheckchange&quot;, this, state) !== false)){
-            Ext.menu.MenuMgr.onCheckChange(this, state);
-            if(this.container){
-                this.container[state ? &quot;addClass&quot; : &quot;removeClass&quot;](&quot;x-menu-item-checked&quot;);
+    setChecked: function(checked, suppressEvents) {
+        var me = this;
+        if (me.checked !== checked &amp;&amp; (suppressEvents || me.fireEvent('beforecheckchange', me, checked) !== false)) {
+            if (me.el) {
+                me.el[checked  ? 'addCls' : 'removeCls'](me.checkedCls)[!checked ? 'addCls' : 'removeCls'](me.uncheckedCls);
             }
-            this.checked = state;
-            if(!suppress){
-                this.fireEvent(&quot;checkchange&quot;, this, state);
+            me.checked = checked;
+            Ext.menu.Manager.onCheckChange(me, checked);
+            if (!suppressEvents) {
+                Ext.callback(me.checkHandler, me.scope, [me, checked]);
+                me.fireEvent('checkchange', me, checked);
             }
         }
-    },
-
-<span id='Ext-menu-CheckItem-method-handleClick'>    // private
-</span>    handleClick : function(e){
-       if(!this.disabled &amp;&amp; !(this.checked &amp;&amp; this.group)){// disable unselect on radio item
-           this.setChecked(!this.checked);
-       }
-       Ext.menu.CheckItem.superclass.handleClick.apply(this, arguments);
     }
 });
-Ext.reg('menucheckitem', Ext.menu.CheckItem);</pre>
+</pre>
 </body>
 </html>

@@ -1,23 +1,22 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.window.MessageBox',
+    'Ext.tip.*'
+]);
+
 Ext.onReady(function(){
     Ext.get('mb1').on('click', function(e){
         Ext.MessageBox.confirm('Confirm', 'Are you sure you want to do that?', showResult);
@@ -35,7 +34,7 @@ Ext.onReady(function(){
            buttons: Ext.MessageBox.OKCANCEL,
            multiline: true,
            fn: showResultText,
-           animEl: 'mb3'
+           animateTarget: 'mb3'
        });
     });
 
@@ -45,7 +44,7 @@ Ext.onReady(function(){
            msg: 'You are closing a tab that has unsaved changes. <br />Would you like to save your changes?',
            buttons: Ext.MessageBox.YESNOCANCEL,
            fn: showResult,
-           animEl: 'mb4',
+           animateTarget: 'mb4',
            icon: Ext.MessageBox.QUESTION
        });
     });
@@ -58,7 +57,7 @@ Ext.onReady(function(){
            width:300,
            progress:true,
            closable:false,
-           animEl: 'mb6'
+           animateTarget: 'mb6'
        });
 
        // this hideous block creates the bogus progress
@@ -86,7 +85,7 @@ Ext.onReady(function(){
            wait:true,
            waitConfig: {interval:200},
            icon:'ext-mb-download', //custom class in msg-box.html
-           animEl: 'mb7'
+           animateTarget: 'mb7'
        });
         setTimeout(function(){
             //This simulates a long-running operation like a database save or XHR call.
@@ -111,7 +110,7 @@ Ext.onReady(function(){
            title: 'Icon Support',
            msg: 'Here is a message with an icon!',
            buttons: Ext.MessageBox.OK,
-           animEl: 'mb9',
+           animateTarget: 'mb9',
            fn: showResult,
            icon: Ext.get('icons').dom.value
        });

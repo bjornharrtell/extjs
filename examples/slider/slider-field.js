@@ -1,34 +1,31 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.slider.*', 
+    'Ext.form.*',
+    'Ext.window.MessageBox'
+]);
+
 Ext.onReady(function(){
-    var form = new Ext.form.FormPanel({
-        width : 400,
+    Ext.create('Ext.form.Panel', {
+        width: 400,
         height: 160,
-        title : 'Sound Settings',
-        
-        bodyStyle  : 'padding: 10px;',
-        renderTo   : 'container',
+        title: 'Sound Settings',
+        bodyPadding: 10,
+        renderTo: 'container',
         defaultType: 'sliderfield',
-        buttonAlign: 'left',
-        
         defaults: {
             anchor: '95%',
             tipText: function(thumb){
@@ -48,31 +45,39 @@ Ext.onReady(function(){
             value: 25,
             name: 'iface'
         }],
-        fbar: {
+        dockedItems: {
             xtype: 'toolbar',
+            dock: 'bottom',
+            ui: 'footer',
             items: [{
                 text: 'Max All',
                 handler: function(){
-                    form.items.each(function(c){
+                    this.up('form').items.each(function(c){
                         c.setValue(100);
                     });
                 }
             }, '->', {
                 text: 'Save',
                 handler: function(){
-                    var values = form.getForm().getValues(),
+                    var values = this.up('form').getForm().getValues(),
                         s = ['Sounds Effects: <b>{0}%</b>',
                             'Ambient Sounds: <b>{1}%</b>',
                             'Interface Sounds: <b>{2}%</b>'];
-                            
-                    Ext.example.msg('Settings Saved', s.join('<br />'), values.fx, values.ambient, values.iface);
+                    
+                    Ext.Msg.alert({
+                        title: 'Settings Saved',
+                        msg: Ext.String.format(s.join('<br />'), values.fx, values.ambient, values.iface),
+                        icon: Ext.Msg.INFO,
+                        buttons: Ext.Msg.OK
+                    }); 
                 }
             },{
                 text: 'Reset',
                 handler: function(){
-                    form.getForm().reset();
+                    this.up('form').getForm().reset();
                 }
             }]
         }
     });
 });
+

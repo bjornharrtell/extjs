@@ -1,102 +1,124 @@
 /*
-This file is part of Ext JS 3.4
 
-Copyright (c) 2011-2013 Sencha Inc
+This file is part of Ext JS 4
+
+Copyright (c) 2011 Sencha Inc
 
 Contact:  http://www.sencha.com/contact
 
 GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
+This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
 
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-04-03 15:07:25
 */
+Ext.require([
+    'Ext.direct.*',
+    'Ext.panel.Panel',
+    'Ext.form.field.Text',
+    'Ext.toolbar.TextItem'
+]);
+
 Ext.onReady(function(){
-    Ext.Direct.addProvider(
-        Ext.app.REMOTING_API,
-        {
-            type:'polling',
-            url: 'php/poll.php'
-        }
-    );
-
-    var out = new Ext.form.DisplayField({
-        cls: 'x-form-text',
-        id: 'out'
-    });
-
-    var text = new Ext.form.TextField({
-        width: 300,
-        emptyText: 'Echo input'
-    });
-
-    var call = new Ext.Button({
-        text: 'Echo',
-        handler: function(){
-            TestAction.doEcho(text.getValue(), function(result, e){
-                var t = e.getTransaction();
-                out.append(String.format('<p><b>Successful call to {0}.{1} with response:</b><xmp>{2}</xmp></p>',
-                       t.action, t.method, Ext.encode(result)));
-                out.el.scroll('b', 100000, true);
-            });
-        }
-    });
-
-    var num = new Ext.form.TextField({
-        width: 80,
-        emptyText: 'Multiply x 8',
-        style:  'text-align:left;'
-    });
-
-    var multiply = new Ext.Button({
-        text: 'Multiply',
-        handler: function(){
-            TestAction.multiply(num.getValue(), function(result, e){
-                var t = e.getTransaction();
-                if(e.status){
-                    out.append(String.format('<p><b>Successful call to {0}.{1} with response:</b><xmp>{2}</xmp></p>',
-                        t.action, t.method, Ext.encode(result)));
-                }else{
-                    out.append(String.format('<p><b>Call to {0}.{1} failed with message:</b><xmp>{2}</xmp></p>',
-                        t.action, t.method, e.message));
-                }
-                out.el.scroll('b', 100000, true);
-            });
+    
+    function doEcho(field){
+        TestAction.doEcho(field.getValue(), function(result, event){
+            var transaction = event.getTransaction(),
+                content = Ext.String.format('<b>Successful call to {0}.{1} with response:</b><pre>{2}</pre>',
+                    transaction.action, transaction.method, Ext.encode(result));
+            
+            updateMain(content);
+            field.reset();
+        });
+    }
+    
+    function doMultiply(field){
+        TestAction.multiply(field.getValue(), function(result, event){
+            var transaction = event.getTransaction(),
+                content;
+                
+            if (event.status) {
+                content = Ext.String.format('<b>Successful call to {0}.{1} with response:</b><pre>{2}</pre>',
+                    transaction.action, transaction.method, Ext.encode(result));
+            } else {
+                content = Ext.String.format('<b>Call to {0}.{1} failed with message:</b><pre>{2}</pre>',
+                    transaction.action, transaction.method, event.message);
+            }
+            updateMain(content);
+            field.reset();
+        });
+    }
+    
+    function updateMain(content){
+        main.update({
+            data: content
+        });
+        main.body.scroll('b', 100000, true);
+    }
+    
+    Ext.direct.Manager.addProvider(Ext.app.REMOTING_API, {
+        type:'polling',
+        url: 'php/poll.php',
+        listeners: {
+            data: function(provider, event){
+                updateMain('<i>' + event.data + '</i>');
+            }
         }
     });
-
-    text.on('specialkey', function(t, e){
-        if(e.getKey() == e.ENTER){
-            call.handler();
-        }
-    });
-
-	num.on('specialkey', function(t, e){
-        if(e.getKey() == e.ENTER){
-            multiply.handler();
-        }
-    });
-
-	var p = new Ext.Panel({
+    
+    var main = Ext.create('Ext.panel.Panel', {
+        id: 'logger',
         title: 'Remote Call Log',
-        //frame:true,
+        renderTo: document.body,
 		width: 600,
 		height: 300,
-		layout:'fit',
-		
-		items: [out],
-        bbar: [text, call, '-', num, multiply]
-	}).render(Ext.getBody());
-
-    Ext.Direct.on('message', function(e){
-        out.append(String.format('<p><i>{0}</i></p>', e.data));
-                out.el.scroll('b', 100000, true);
-    });
+        tpl: '<p>{data}</p>',
+        tplWriteMode: 'append',
+        autoScroll: true,
+        bodyStyle: 'padding: 5px;',
+        dockedItems: [{
+            dock: 'bottom',
+            xtype: 'toolbar',
+            items: [{
+                hideLabel: true,
+                itemId: 'echoText',
+                xtype: 'textfield',
+                width: 300,
+                emptyText: 'Echo input',
+                listeners: {
+                    specialkey: function(field, event){
+                        if (event.getKey() === event.ENTER) {
+                            doEcho(field);
+                        }
+                    }
+                }
+            }, {
+                itemId: 'echo',
+                text: 'Echo',
+                handler: function(){
+                    doEcho(main.down('#echoText'));
+                }
+            }, '-', {
+                hideLabel: true,
+                itemId: 'multiplyText',
+                xtype: 'textfield',
+                width: 80,
+                emptyText: 'Multiply x 8',
+                listeners: {
+                    specialkey: function(field, event){
+                        if (event.getKey() === event.ENTER) {
+                            doMultiply(field);
+                        }
+                    }
+                }
+            }, {
+                itemId: 'multiply',
+                text: 'Multiply',
+                handler: function(){
+                    doMultiply(main.down('#multiplyText'));
+                }
+            }]
+        }]
+	});
 });
+

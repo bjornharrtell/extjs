@@ -47,7 +47,7 @@ class Users extends ApplicationController {
     public function update() {
         $res = new Response();
 
-        if (!get_class($this->params)) {
+        if (is_array($this->params)) {
             $res->data = array();
             foreach ($this->params as $data) {
                 if ($rec = User::update($data->id, $data)) {
@@ -82,18 +82,17 @@ class Users extends ApplicationController {
      */
     public function destroy() {
         $res = new Response();
-
         if (is_array($this->params)) {
             $destroyed = array();
-            foreach ($this->params as $id) {
-                if ($rec = User::destroy($id)) {
+            foreach ($this->params as $rec) {
+                if ($rec = User::destroy($rec->id)) {
                     array_push($destroyed, $rec);
                 }
             }
             $res->success = true;
             $res->message = 'Destroyed ' . count($destroyed) . ' records';
         } else {
-            if ($rec = User::destroy($this->params)) {
+            if ($rec = User::destroy($this->params->id)) {
                 $res->message = "Destroyed User";
                 $res->success = true;
             } else {

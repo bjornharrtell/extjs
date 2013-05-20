@@ -15,15 +15,15 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-dd-DragZone-method-constructor'><span id='Ext-dd-DragZone'>/**
-</span></span> * @class Ext.dd.DragZone
+  <pre class="prettyprint lang-js"><span id='Ext-dd-DragZone'>/**
+</span> * @class Ext.dd.DragZone
  * @extends Ext.dd.DragSource
  * &lt;p&gt;This class provides a container DD instance that allows dragging of multiple child source nodes.&lt;/p&gt;
  * &lt;p&gt;This class does not move the drag target nodes, but a proxy element which may contain
  * any DOM structure you wish. The DOM element to show in the proxy is provided by either a
  * provided implementation of {@link #getDragData}, or by registered draggables registered with {@link Ext.dd.Registry}&lt;/p&gt;
  * &lt;p&gt;If you wish to provide draggability for an arbitrary number of DOM nodes, each of which represent some
- * application object (For example nodes in a {@link Ext.DataView DataView}) then use of this class
+ * application object (For example nodes in a {@link Ext.view.View DataView}) then use of this class
  * is the most efficient way to &quot;activate&quot; those nodes.&lt;/p&gt;
  * &lt;p&gt;By default, this class requires that draggable child nodes are registered with {@link Ext.dd.Registry}.
  * However a simpler way to allow a DragZone to manage any number of draggable elements is to configure
@@ -54,7 +54,7 @@ myDataView.on('render', function(v) {
                     sourceEl: sourceEl,
                     repairXY: Ext.fly(sourceEl).getXY(),
                     sourceStore: v.store,
-                    draggedRecord: v.{@link Ext.DataView#getRecord getRecord}(sourceEl)
+                    draggedRecord: v.{@link Ext.view.View#getRecord getRecord}(sourceEl)
                 }
             }
         },
@@ -69,19 +69,23 @@ myDataView.on('render', function(v) {
 });&lt;/code&gt;&lt;/pre&gt;
  * See the {@link Ext.dd.DropZone DropZone} documentation for details about building a DropZone which
  * cooperates with this DragZone.
- * @constructor
- * @param {Mixed} el The container element
- * @param {Object} config
  */
-Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
-    
+Ext.define('Ext.dd.DragZone', {
+
+    extend: 'Ext.dd.DragSource',
+
+<span id='Ext-dd-DragZone-method-constructor'>    /**
+</span>     * Creates new DragZone.
+     * @param {String/HTMLElement/Ext.Element} el The container element or ID of it.
+     * @param {Object} config
+     */
     constructor : function(el, config){
-        Ext.dd.DragZone.superclass.constructor.call(this, el, config);
-        if(this.containerScroll){
+        this.callParent([el, config]);
+        if (this.containerScroll) {
             Ext.dd.ScrollManager.register(this.el);
         }
     },
-    
+
 <span id='Ext-dd-DragZone-property-dragData'>    /**
 </span>     * This property contains the data representing the dragged object. This data is set up by the implementation
      * of the {@link #getDragData} method. It must contain a &lt;tt&gt;ddel&lt;/tt&gt; property, but can contain
@@ -89,13 +93,10 @@ Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
      * @type Object
      * @property dragData
      */
+
 <span id='Ext-dd-DragZone-cfg-containerScroll'>    /**
 </span>     * @cfg {Boolean} containerScroll True to register this container with the Scrollmanager
      * for auto scrolling during drag operations.
-     */
-<span id='Ext-dd-DragZone-cfg-hlColor'>    /**
-</span>     * @cfg {String} hlColor The color to use when visually highlighting the drag source in the afterRepair
-     * method after a failed drop (defaults to &quot;c3daf9&quot; - light blue)
      */
 
 <span id='Ext-dd-DragZone-method-getDragData'>    /**
@@ -103,13 +104,13 @@ Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
      * for a valid target to drag based on the mouse down. Override this method
      * to provide your own lookup logic (e.g. finding a child by class name). Make sure your returned
      * object has a &quot;ddel&quot; attribute (with an HTML Element) for other functions to work.
-     * @param {EventObject} e The mouse down event
+     * @param {Event} e The mouse down event
      * @return {Object} The dragData
      */
     getDragData : function(e){
         return Ext.dd.Registry.getHandleFromEvent(e);
     },
-    
+
 <span id='Ext-dd-DragZone-method-onInitDrag'>    /**
 </span>     * Called once drag threshold has been reached to initialize the proxy element. By default, it clones the
      * this.dragData.ddel
@@ -122,33 +123,35 @@ Ext.dd.DragZone = Ext.extend(Ext.dd.DragSource, {
         this.onStartDrag(x, y);
         return true;
     },
-    
+
 <span id='Ext-dd-DragZone-method-afterRepair'>    /**
-</span>     * Called after a repair of an invalid drop. By default, highlights this.dragData.ddel 
+</span>     * Called after a repair of an invalid drop. By default, highlights this.dragData.ddel
      */
     afterRepair : function(){
-        if(Ext.enableFx){
-            Ext.Element.fly(this.dragData.ddel).highlight(this.hlColor || &quot;c3daf9&quot;);
+        var me = this;
+        if (Ext.enableFx) {
+            Ext.fly(me.dragData.ddel).highlight(me.repairHighlightColor);
         }
-        this.dragging = false;
+        me.dragging = false;
     },
 
 <span id='Ext-dd-DragZone-method-getRepairXY'>    /**
 </span>     * Called before a repair of an invalid drop to get the XY to animate to. By default returns
      * the XY of this.dragData.ddel
-     * @param {EventObject} e The mouse up event
-     * @return {Array} The xy location (e.g. [100, 200])
+     * @param {Event} e The mouse up event
+     * @return {Number[]} The xy location (e.g. [100, 200])
      */
     getRepairXY : function(e){
-        return Ext.Element.fly(this.dragData.ddel).getXY();  
+        return Ext.Element.fly(this.dragData.ddel).getXY();
     },
-    
-<span id='Ext-dd-DragZone-method-destroy'>    destroy : function(){
-</span>        Ext.dd.DragZone.superclass.destroy.call(this);
-        if(this.containerScroll){
+
+    destroy : function(){
+        this.callParent();
+        if (this.containerScroll) {
             Ext.dd.ScrollManager.unregister(this.el);
         }
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

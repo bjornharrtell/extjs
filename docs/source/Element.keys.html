@@ -21,11 +21,11 @@
 Ext.Element.addMethods({
 <span id='Ext-Element-method-addKeyListener'>    /**
 </span>     * Convenience method for constructing a KeyMap
-     * @param {Number/Array/Object/String} key Either a string with the keys to listen for, the numeric key code, array of key codes or an object with the following options:
+     * @param {String/Number/Number[]/Object} key Either a string with the keys to listen for, the numeric key code, array of key codes or an object with the following options:
      * &lt;code&gt;{key: (number or array), shift: (true/false), ctrl: (true/false), alt: (true/false)}&lt;/code&gt;
      * @param {Function} fn The function to call
      * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the specified function is executed. Defaults to this Element.
-     * @return {Ext.KeyMap} The KeyMap created
+     * @return {Ext.util.KeyMap} The KeyMap created
      */
     addKeyListener : function(key, fn, scope){
         var config;
@@ -45,21 +45,22 @@ Ext.Element.addMethods({
                 scope: scope
             };
         }
-        return new Ext.KeyMap(this, config);
+        return Ext.create('Ext.util.KeyMap', this, config);
     },
 
 <span id='Ext-Element-method-addKeyMap'>    /**
 </span>     * Creates a KeyMap for this element
-     * @param {Object} config The KeyMap config. See {@link Ext.KeyMap} for more details
-     * @return {Ext.KeyMap} The KeyMap created
+     * @param {Object} config The KeyMap config. See {@link Ext.util.KeyMap} for more details
+     * @return {Ext.util.KeyMap} The KeyMap created
      */
     addKeyMap : function(config){
-        return new Ext.KeyMap(this, config);
+        return Ext.create('Ext.util.KeyMap', this, config);
     }
 });
 
 //Import the newly-added Ext.Element functions into CompositeElementLite. We call this here because
 //Element.keys.js is the last extra Ext.Element include in the ext-all.js build
-Ext.CompositeElementLite.importElementMethods();</pre>
+Ext.CompositeElementLite.importElementMethods();
+</pre>
 </body>
 </html>
