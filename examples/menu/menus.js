@@ -10,7 +10,7 @@ Ext.onReady(function(){
     
     // functions to display feedback
     function onButtonClick(btn){
-        Ext.example.msg('Button Click','You clicked the "{0}" button.', btn.text);
+        Ext.example.msg('Button Click','You clicked the "{0}" button.', btn.displayText || btn.text);
     }
 
     function onItemClick(item){
@@ -55,7 +55,7 @@ Ext.onReady(function(){
         emptyText: 'Select a state...',
         selectOnFocus: true,
         width: 135,
-        iconCls: 'no-icon'
+        indent: true
     });
 
     var menu = Ext.create('Ext.menu.Menu', {
@@ -108,6 +108,8 @@ Ext.onReady(function(){
            }
         ]
     });
+    
+    Ext.get('container').setWidth(Ext.themeName === 'neptune' ? 860 : 750);
 
     var tb = Ext.create('Ext.toolbar.Toolbar');
     tb.render('toolbar');
@@ -130,26 +132,31 @@ Ext.onReady(function(){
                     defaults: {
                         xtype: 'button',
                         scale: 'large',
-                        iconAlign: 'left'
+                        iconAlign: 'left',
+                        handler: onButtonClick
                     },
                     items: [{
                         text: 'User<br/>manager',
                         iconCls: 'edit',
-                        width: 90
+                        width: Ext.themeName === 'neptune' ? 130 : 100,
+                        displayText: 'User manager'
                     },{
                         iconCls: 'add',
                         tooltip: 'Add user',
-                        width: 40
+                        width: 40,
+                        displayText: 'Add user'
                     },{
                         colspan: 2,
+                        width: '100%',
                         text: 'Import',
                         scale: 'small',
-                        width: 130
+                        width: Ext.themeName === 'neptune' ? 175 : 140
                     },{
                         colspan: 2,
+                        width: '100%',
                         text: 'Who is online?',
                         scale: 'small',
-                        width: 130
+                        width: Ext.themeName === 'neptune' ? 175 : 140
                     }]
                 }
             }
@@ -198,7 +205,7 @@ Ext.onReady(function(){
         pressed: true
     });
 
-    menu.add(' ');
+    menu.add('&#160;');
 
     // Menus have a rich api for
     // adding and removing elements dynamically

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-Menu'>/**
+</span> * @class Ext.menu.Menu
+ */
+
+//backgrounds
+$menu-background-color: #fff !default;
+//border
+$menu-item-active-border-color: adjust-color($base-color, $saturation: 23%, $lightness: -3%) !default;
+$menu-separator-border-color: $neutral-color !default;
+$menu-separator-background-color: #FFF !default;
+$menu-separator-size: 2px !default;
+$menu-border-color: $neutral-color !default;
+$menu-border-style: solid !default;
+$menu-border-width: null !default;
+
+//sizes
+$menu-item-font-size: $font-size !default;
+$menu-item-margin: 1px !default;
+$menu-item-height: 24px !default;
+$menu-item-border-width: 1px !default;
+$menu-item-cursor: pointer !default;
+$menu-item-active-background-color: $base-color !default;
+$menu-item-background-gradient: null !default;
+$menu-item-active-border-radius: 0 !default;
+$menu-item-icon-size: 16px !default;
+$menu-item-icon-horizontal-spacing: 3px !default;
+$menu-item-icon-background-position: center center !default;
+$menu-item-icon-top: round(($menu-item-height - vertical($menu-item-border-width) - $menu-item-icon-size) / 2) + 1 !default;
+$menu-item-text-horizontal-spacing: 4px !default;
+$menu-item-separator-margin: 2px 0 !default;
+$menu-check-item-padding: 22px !default;
+
+// Right (or left in RTL mode) padding on menu items
+$menu-item-trailing-padding: 0 !default;
+
+$menu-item-arrow-height: 9px !default;
+$menu-item-arrow-width: 12px !default;
+$menu-item-arrow-horizontal-spacing: 0 !default;
+$menu-item-arrow-top: round(($menu-item-height - vertical($menu-item-border-width) - $menu-item-arrow-height) / 2) !default;
+$menu-item-disabled-opacity: .5 !default;
+$menu-scroller-height: 8px !default;
+
+$menu-scroller-opacity: 1 !default;
+$menu-scroller-opacity-over: 1 !default;
+$menu-scroller-opacity-pressed: 1 !default;
+
+$menu-padding: 2px !default;
+
+//text
+$menu-text-color: #000 !default;
+
+// Margins for non-MenuItem components in menus
+$menu-component-margin: null !default;
+<span id='Ext-menu-Menu-css_var-S-menu-glyph-color'>/**
+</span> * @var {color} $menu-glyph-color
+ * The color to use for menu icons configured using {@link Ext.menu.Item#glyph glyph}
+ */
+$menu-glyph-color: $menu-text-color !default;
+
+$menu-glyph-opacity: .5 !default;</pre>
+</body>
+</html>

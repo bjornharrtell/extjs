@@ -20,7 +20,8 @@ Ext.define('Ext.calendar.CalendarPanel', {
         'Ext.calendar.view.Day',
         'Ext.calendar.view.Week',
         'Ext.calendar.view.Month',
-        'Ext.calendar.form.EventDetails'
+        'Ext.calendar.form.EventDetails',
+        'Ext.calendar.data.EventMappings'
     ],
     
     /**
@@ -473,7 +474,7 @@ Ext.define('Ext.calendar.CalendarPanel', {
         if (this.layout && this.layout.getActiveItem) {
             var view = this.layout.getActiveItem();
             if (view && view.getViewBounds) {
-                vb = view.getViewBounds();
+                var vb = view.getViewBounds();
                 var info = {
                     activeDate: view.getStartDate(),
                     viewStart: vb.start,

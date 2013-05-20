@@ -92,9 +92,9 @@ Ext.onReady(function() {
                         },
                         items: [
                             {xtype: 'displayfield', value: '('},
-                            {xtype: 'textfield',    fieldLabel: 'Phone 1', name: 'phone-1', width: 29, allowBlank: false},
+                            {xtype: 'textfield',    fieldLabel: 'Phone 1', name: 'phone-1', width: 35, allowBlank: false},
                             {xtype: 'displayfield', value: ')'},
-                            {xtype: 'textfield',    fieldLabel: 'Phone 2', name: 'phone-2', width: 29, allowBlank: false, margins: '0 5 0 0'},
+                            {xtype: 'textfield',    fieldLabel: 'Phone 2', name: 'phone-2', width: 35, allowBlank: false, margins: '0 5 0 0'},
                             {xtype: 'displayfield', value: '-'},
                             {xtype: 'textfield',    fieldLabel: 'Phone 3', name: 'phone-3', width: 48, allowBlank: false}
                         ]
@@ -110,7 +110,7 @@ Ext.onReady(function() {
                            {
                                name : 'hours',
                                xtype: 'numberfield',
-                               width: 48,
+                               width: 50,
                                allowBlank: false
                            },
                            {
@@ -120,7 +120,7 @@ Ext.onReady(function() {
                            {
                                name : 'minutes',
                                xtype: 'numberfield',
-                               width: 48,
+                               width: 50,
                                allowBlank: false
                            },
                            {
@@ -141,7 +141,7 @@ Ext.onReady(function() {
                             {
                                 //the width of this field in the HBox layout is set directly
                                 //the other 2 items are given flex: 1, so will share the rest of the space
-                                width:          50,
+                                width:          65,
 
                                 xtype:          'combo',
                                 mode:           'local',
@@ -205,10 +205,14 @@ Ext.onReady(function() {
             {
                 text   : 'Save',
                 handler: function() {
-                    var form = this.up('form').getForm(),
-                        s = '';
+                    var form   = this.up('form').getForm(),
+                        encode = Ext.String.htmlEncode,
+                        s      = '';
+
                     if (form.isValid()) {
                         Ext.iterate(form.getValues(), function(key, value) {
+                            value = encode(value);
+                            
                             s += Ext.util.Format.format("{0} = {1}<br />", key, value);
                         }, this);
 

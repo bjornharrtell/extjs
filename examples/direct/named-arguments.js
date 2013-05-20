@@ -18,13 +18,17 @@ Ext.onReady(function(){
             fieldLabel: 'First Name',
             name: 'firstName',
             value: 'Evan',
-            allowBlank: false
+            allowBlank: false,
+            maxLength: 30,
+            enforceMaxLength: true
         }, {
             xtype: 'textfield',
             fieldLabel: 'Last Name',
             name: 'lastName',
             value: 'Trimboli',
-            allowBlank: false
+            allowBlank: false,
+            maxLength: 30,
+            enforceMaxLength: true
         }, {
             xtype: 'numberfield',
             fieldLabel: 'Age',

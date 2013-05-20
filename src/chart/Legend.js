@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.chart.Legend
  *
@@ -43,7 +63,6 @@
  *         axes: [
  *             {
  *                 type: 'Numeric',
- *                 grid: true,
  *                 position: 'left',
  *                 fields: ['data1', 'data2', 'data3', 'data4', 'data5'],
  *                 title: 'Sample Values',
@@ -221,12 +240,19 @@ Ext.define('Ext.chart.Legend', {
             // Listen for changes to series titles to trigger regeneration of the legend
             for (i = 0, ln = seriesItems.length; i < ln; i++) {
                 series = seriesItems[i];
-                series.on('titlechange', function() {
-                    me.create();
-                    me.updatePosition();
-                });
+                series.on('titlechange', me.redraw, me);
             }
         }
+    },
+
+    /**
+     * @private Redraws the Legend
+     */
+    redraw: function() {
+        var me = this;
+        
+        me.create();
+        me.updatePosition();
     },
 
     /**
@@ -242,86 +268,149 @@ Ext.define('Ext.chart.Legend', {
      */
     createItems: function() {
         var me = this,
-            chart = me.chart,
-            seriesItems = chart.series.items,
-            ln, series,
-            surface = chart.surface,
+            seriesItems = me.chart.series.items,
+            items = me.items,
+            fields, i, li, j, lj, series, item;
+
+        //remove all legend items
+        me.removeItems();
+        
+        // Create all the item labels
+        for (i = 0, li = seriesItems.length; i < li; i++) {
+            series = seriesItems[i];
+            
+            if (series.showInLegend) {
+                fields = [].concat(series.yField);
+                
+                for (j = 0, lj = fields.length; j < lj; j++) {
+                    item = me.createLegendItem(series, j);
+                    items.push(item);
+                };
+            }
+        };
+        
+        me.alignItems();
+    },
+    
+    /**
+     * @private Removes all legend items.
+     */
+    removeItems: function() {
+        var me = this,
+            items = me.items,
+            len = items ? items.length : 0,
+            i;
+
+        if (len) {
+            for (i = 0; i < len; i++) {
+                items[i].destroy();
+            }
+        };
+        
+        //empty array
+        items.length = [];
+    },
+    
+    /**
+     * @private
+     * Positions all items within Legend box.
+     */
+    alignItems: function() {
+        var me = this,
+            items = me.items,
+            padding = me.padding,
+            spacingOffset = 2,
+            vertical = me.isVertical,
+            mfloor = Math.floor,
+            mmax = Math.max,
+            dim, maxWidth, maxHeight, totalWidth, totalHeight, spacing;
+        
+        dim = me.updateItemDimensions();
+
+        maxWidth    = dim.maxWidth,
+        maxHeight   = dim.maxHeight,
+        totalWidth  = dim.totalWidth,
+        totalHeight = dim.totalHeight,
+        spacing     = dim.spacing;
+
+        // Store the collected dimensions for later
+        me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2);
+        
+        if (vertical && items.length === 1) {
+            spacingOffset = 1;
+        }
+        
+        me.height = mfloor((vertical ? totalHeight - spacingOffset * spacing : maxHeight) + (padding * 2));
+        me.itemHeight = maxHeight;
+    },
+    
+    updateItemDimensions: function() {
+        var me = this,
             items = me.items,
             padding = me.padding,
             itemSpacing = me.itemSpacing,
-            spacingOffset = 2,
             maxWidth = 0,
             maxHeight = 0,
             totalWidth = 0,
             totalHeight = 0,
             vertical = me.isVertical,
-            math = Math,
-            mfloor = math.floor,
-            mmax = math.max,
-            index = 0,
-            i = 0,
-            len = items ? items.length : 0,
-            x, y, spacing, item, bbox, height, width,
-            fields, field, nFields, j;
+            mfloor = Math.floor,
+            mmax = Math.max,
+            spacing = 0,
+            i, l, item, bbox, width, height;
 
-        //remove all legend items
-        if (len) {
-            for (; i < len; i++) {
-                items[i].destroy();
-            }
-        }
-        //empty array
-        items.length = [];
-        // Create all the item labels, collecting their dimensions and positioning each one
+        // Collect item dimensions and position each one
         // properly in relation to the previous item
-        for (i = 0, ln = seriesItems.length; i < ln; i++) {
-            series = seriesItems[i];
-            if (series.showInLegend) {
-                fields = [].concat(series.yField);
-                for (j = 0, nFields = fields.length; j < nFields; j++) {
-                    field = fields[j];
-                    item = new Ext.chart.LegendItem({
-                        legend: this,
-                        series: series,
-                        surface: chart.surface,
-                        yFieldIndex: j
-                    });
-                    bbox = item.getBBox();
+        for (i = 0, l = items.length; i < l; i++) {
+            item = items[i];
+                
+            bbox = item.getBBox();
 
-                    //always measure from x=0, since not all markers go all the way to the left
-                    width = bbox.width;
-                    height = bbox.height;
+            //always measure from x=0, since not all markers go all the way to the left
+            width  = bbox.width;
+            height = bbox.height;
 
-                    if (i + j === 0) {
-                        spacing = vertical ? padding + height / 2 : padding;
-                    }
-                    else {
-                        spacing = itemSpacing / (vertical ? 2 : 1);
-                    }
-                    // Set the item's position relative to the legend box
-                    item.x = mfloor(vertical ? padding : totalWidth + spacing);
-                    item.y = mfloor(vertical ? totalHeight + spacing : padding + height / 2);
-
-                    // Collect cumulative dimensions
-                    totalWidth += width + spacing;
-                    totalHeight += height + spacing;
-                    maxWidth = mmax(maxWidth, width);
-                    maxHeight = mmax(maxHeight, height);
-
-                    items.push(item);
-                }
+            if (i === 0) {
+                spacing = vertical ? padding + height / 2 : padding;
             }
-        }
+            else {
+                spacing = itemSpacing / (vertical ? 2 : 1);
+            }
+            
+            // Set the item's position relative to the legend box
+            item.x = mfloor(vertical ? padding : totalWidth + spacing);
+            item.y = mfloor(vertical ? totalHeight + spacing : padding + height / 2);
 
-        // Store the collected dimensions for later
-        me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2);
-        if (vertical && items.length === 1) {
-            spacingOffset = 1;
-        }
-        me.height = mfloor((vertical ? totalHeight - spacingOffset * spacing : maxHeight) + (padding * 2));
-        me.itemHeight = maxHeight;
+            // Collect cumulative dimensions
+            totalWidth  += width + spacing;
+            totalHeight += height + spacing;
+            maxWidth     = mmax(maxWidth, width);
+            maxHeight    = mmax(maxHeight, height);
+        };
+
+        return {
+            totalWidth:  totalWidth,
+            totalHeight: totalHeight,
+            maxWidth:    maxWidth,
+            maxHeight:   maxHeight,
+            spacing:     spacing
+        };
     },
-
+    
+    /**
+     * @private Creates single Legend Item
+     */
+    createLegendItem: function(series, yFieldIndex) {
+        var me = this;
+        
+        return new Ext.chart.LegendItem({
+            legend: me,
+            series: series,
+            surface: me.chart.surface,
+            yFieldIndex: yFieldIndex
+        });
+    },
+    
     /**
      * @private Get the bounds for the legend's outer box
      */
@@ -369,15 +458,13 @@ Ext.define('Ext.chart.Legend', {
     },
 
     /**
-     * @private Update the position of all the legend's sprites to match its current x/y values
+     * @private Calculates Legend position with respect to other Chart elements.
      */
-    updatePosition: function() {
+    calcPosition: function() {
         var me = this,
-            items = me.items,
-            i, ln,
             x, y,
-            legendWidth = me.width || 0,
-            legendHeight = me.height || 0,
+            legendWidth = me.width,
+            legendHeight = me.height,
             padding = me.padding,
             chart = me.chart,
             chartBBox = chart.chartBBox,
@@ -387,39 +474,53 @@ Ext.define('Ext.chart.Legend', {
             chartX = chartBBox.x + insets,
             chartY = chartBBox.y + insets,
             surface = chart.surface,
-            mfloor = Math.floor,
-            bbox;
+            mfloor = Math.floor;
+
+        // Find the position based on the dimensions
+        switch(me.position) {
+            case "left":
+                x = insets;
+                y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
+                break;
+            case "right":
+                x = mfloor(surface.width - legendWidth) - insets;
+                y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
+                break;
+            case "top":
+                x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
+                y = insets;
+                break;
+            case "bottom":
+                x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
+                y = mfloor(surface.height - legendHeight) - insets;
+                break;
+            default:
+                x = mfloor(me.origX) + insets;
+                y = mfloor(me.origY) + insets;
+        }
+        
+        return { x: x, y: y };
+    },
+    
+    /**
+     * @private Update the position of all the legend's sprites to match its current x/y values
+     */
+    updatePosition: function() {
+        var me = this,
+            items = me.items,
+            pos, i, l, bbox;
 
         if (me.isDisplayed()) {
             // Find the position based on the dimensions
-            switch(me.position) {
-                case "left":
-                    x = insets;
-                    y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
-                    break;
-                case "right":
-                    x = mfloor(surface.width - legendWidth) - insets;
-                    y = mfloor(chartY + chartHeight / 2 - legendHeight / 2);
-                    break;
-                case "top":
-                    x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
-                    y = insets;
-                    break;
-                case "bottom":
-                    x = mfloor(chartX + chartWidth / 2 - legendWidth / 2);
-                    y = mfloor(surface.height - legendHeight) - insets;
-                    break;
-                default:
-                    x = mfloor(me.origX) + insets;
-                    y = mfloor(me.origY) + insets;
-            }
-            me.x = x;
-            me.y = y;
+            pos = me.calcPosition();
+            
+            me.x = pos.x;
+            me.y = pos.y;
 
             // Update the position of each item
-            for (i = 0, ln = items.length; i < ln; i++) {
+            for (i = 0, l = items.length; i < l; i++) {
                 items[i].updatePosition();
-            }
+            };
 
             bbox = me.getBBox();
 
@@ -432,10 +533,12 @@ Ext.define('Ext.chart.Legend', {
                 if (me.boxSprite) {
                     me.boxSprite.hide(true);
                 }
-            } else {
+            }
+            else {
                 if (!me.boxSprite) {
                     me.createBox();
                 }
+                
                 // Update the position of the outer box
                 me.boxSprite.setAttributes(bbox, true);
                 me.boxSprite.show(true);
@@ -444,7 +547,7 @@ Ext.define('Ext.chart.Legend', {
     },
     
     /** toggle
-     * @param {Boolean} Whether to show or hide the legend.
+     * @param {Boolean} show Whether to show or hide the legend.
      *
      */
     toggle: function(show) {

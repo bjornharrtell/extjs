@@ -35,7 +35,7 @@ Ext.define('Ext.util.Region', {
          * @returns {Ext.util.Region} region
          */
         getRegion: function(el) {
-            return Ext.fly(el).getPageBox(true);
+            return Ext.fly(el).getRegion();
         },
 
 <span id='Ext-util-Region-static-method-from'>        /**
@@ -351,8 +351,8 @@ Ext.define('Ext.util.Region', {
         return this;
     },
 
-    /*
-     * Dump this to an eye-friendly string, great for debugging
+<span id='Ext-util-Region-method-toString'>    /*
+</span>     * Dump this to an eye-friendly string, great for debugging
      * @return {String}
      */
     toString: function() {

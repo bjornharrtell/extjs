@@ -10,7 +10,9 @@
  * @extends Ext.toolbar.Toolbar
  */
 Ext.define('Ext.ux.desktop.TaskBar', {
-    extend: 'Ext.toolbar.Toolbar', // TODO - make this a basic hbox panel...
+    // This must be a toolbar. we rely on acquired toolbar classes and inherited toolbar methods for our
+    // child items to instantiate and render correctly.
+    extend: 'Ext.toolbar.Toolbar',
 
     requires: [
         'Ext.button.Button',
@@ -32,7 +34,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
 
     initComponent: function () {
         var me = this;
-
+        
         me.startMenu = new Ext.ux.desktop.StartMenu(me.startConfig);
 
         me.quickStart = new Ext.toolbar.Toolbar(me.getQuickStart());
@@ -56,7 +58,6 @@ Ext.define('Ext.ux.desktop.TaskBar', {
                 height: 14, width: 2, // TODO - there should be a CSS way here
                 cls: 'x-toolbar-separator x-toolbar-separator-horizontal'
             },
-            //'-',
             me.windowBar,
             '-',
             me.tray
@@ -79,7 +80,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
     getQuickStart: function () {
         var me = this, ret = {
             minWidth: 20,
-            width: 60,
+            width: Ext.themeName === 'neptune' ? 70 : 60,
             items: [],
             enableOverflow: true
         };
@@ -106,7 +107,6 @@ Ext.define('Ext.ux.desktop.TaskBar', {
      */
     getTrayConfig: function () {
         var ret = {
-            width: 80,
             items: this.trayItems
         };
         delete this.trayItems;
@@ -150,8 +150,15 @@ Ext.define('Ext.ux.desktop.TaskBar', {
         var win = btn.win;
 
         if (win.minimized || win.hidden) {
-            win.show();
+            btn.disable();
+            win.show(null, function() {
+                btn.enable();
+            });
         } else if (win.active) {
+            btn.disable();
+            win.on('hide', function() {
+                btn.enable();
+            }, null, {single: true});
             win.minimize();
         } else {
             win.toFront();

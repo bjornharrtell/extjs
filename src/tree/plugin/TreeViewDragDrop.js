@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This plugin provides drag and/or drop functionality for a TreeView.
  *
@@ -53,16 +73,29 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * **This event is fired through the TreeView. Add listeners to the TreeView object**
      *
      * Fired when a drop gesture has been triggered by a mouseup event in a valid drop position in the TreeView.
-     *
-     * @param {HTMLElement} node The TreeView node **if any** over which the mouse was positioned.
-     *
+     * 
      * Returning `false` to this event signals that the drop gesture was invalid, and if the drag proxy will animate
      * back to the point from which the drag began.
      *
-     * Returning `0` To this event signals that the data transfer operation should not take place, but that the gesture
-     * was valid, and that the repair operation should not take place.
+     * The dropHandlers parameter can be used to defer the processing of this event. For example to wait for the result of 
+     * a message box confirmation or an asynchronous server call. See the details of this property for more information.
+     *  
+     *     @example
+     *     view.on('beforedrop', function(node, data, overModel, dropPosition, dropHandlers) {
+     *         // Defer the handling
+     *         dropHandlers.wait = true;
+     *         Ext.MessageBox.confirm('Drop', 'Are you sure', function(btn){
+     *             if (btn === 'yes') {
+     *                 dropHandlers.processDrop();
+     *             } else {
+     *                 dropHandlers.cancelDrop();
+     *             }
+     *         });
+     *     });
      *
-     * Any other return value continues with the data transfer operation.
+     * Any other return value continues with the data transfer operation, unless the wait property is set.
+     *
+     * @param {HTMLElement} node The TreeView node **if any** over which the mouse was positioned.
      *
      * @param {Object} data The data object gathered at mousedown time by the cooperating
      * {@link Ext.dd.DragZone DragZone}'s {@link Ext.dd.DragZone#getDragData getDragData} method it contains the following
@@ -80,14 +113,13 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * @param {String} dropPosition `"before"`, `"after"` or `"append"` depending on whether the mouse is above or below
      * the midline of the node, or the node is a branch node which accepts new child nodes.
      *
-     * @param {Object} dropHandler An object containing methods to complete/cancel the data transfer operation and either
-     * move or copy Model instances from the source View's Store to the destination View's Store.
-     *
-     * This is useful when you want to perform some kind of asynchronous processing before confirming/cancelling
-     * the drop, such as an {@link Ext.window.MessageBox#confirm confirm} call, or an Ajax request.
-     *
-     * Set dropHandler.wait = true in this event handler to delay processing. When you want to complete the event, call
-     * dropHandler.processDrop(). To cancel the drop, call dropHandler.cancelDrop.
+     * @param {Object} dropHandlers
+     * This parameter allows the developer to control when the drop action takes place. It is useful if any asynchronous
+     * processing needs to be completed before performing the drop. This object has the following properties:
+     * 
+     * @param {Boolean} dropHandlers.wait Indicates whether the drop should be deferred. Set this property to true to defer the drop.
+     * @param {Function} dropHandlers.processDrop A function to be called to complete the drop operation.
+     * @param {Function} dropHandlers.cancelDrop A function to be called to cancel the drop operation.
      */
 
     /**
@@ -153,6 +185,13 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * DropZone used by this plugin will only interact with other drag drop objects in the same group.
      */
     ddGroup : "TreeDD",
+    
+    /**
+     * True to register this container with the Scrollmanager for auto scrolling during drag operations.
+     * A {@link Ext.dd.ScrollManager} configuration may also be passed.
+     * @cfg {Object/Boolean} containerScroll
+     */
+    containerScroll: false,
 
     /**
      * @cfg {String} dragGroup
@@ -168,6 +207,11 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      *
      * This defines which other DragZones the DropZone will interact with. Drag/DropZones only interact with other
      * Drag/DropZones which are members of the same ddGroup.
+     */
+
+    /**
+     * @cfg {Boolean} [sortOnDrop=false]
+     * Configure as `true` to sort the target node into the current tree sort order after the dropped node is added.
      */
 
     /**
@@ -212,6 +256,12 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * See also {@link #nodeHighlightColor} and {@link #nodeHighlightOnDrop}.
      */
     nodeHighlightOnRepair: Ext.enableFx,
+    
+    /**
+     * @cfg {String} displayField
+     * The name of the model field that is used to display the text for the nodes
+     */
+    displayField: 'text',
 
     init : function(view) {
         view.on('render', this.onViewRender, this, {single: true});
@@ -226,15 +276,21 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
     },
 
     onViewRender : function(view) {
-        var me = this;
+        var me = this,
+            scrollEl;
 
         if (me.enableDrag) {
+            if (me.containerScroll) {
+                scrollEl = view.getEl();
+            }
             me.dragZone = new Ext.tree.ViewDragZone({
                 view: view,
                 ddGroup: me.dragGroup || me.ddGroup,
                 dragText: me.dragText,
+                displayField: me.displayField,
                 repairHighlightColor: me.nodeHighlightColor,
-                repairHighlight: me.nodeHighlightOnRepair
+                repairHighlight: me.nodeHighlightOnRepair,
+                scrollEl: scrollEl
             });
         }
 
@@ -247,8 +303,13 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
                 allowParentInserts: me.allowParentInserts,
                 expandDelay: me.expandDelay,
                 dropHighlightColor: me.nodeHighlightColor,
-                dropHighlight: me.nodeHighlightOnDrop
+                dropHighlight: me.nodeHighlightOnDrop,
+                sortOnDrop: me.sortOnDrop,
+                containerScroll: me.containerScroll
             });
         }
     }
+}, function(){
+    var proto = this.prototype;
+    proto.nodeHighlightOnDrop = proto.nodeHighlightOnRepair = Ext.enableFx;
 });

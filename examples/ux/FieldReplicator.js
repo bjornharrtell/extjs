@@ -1,5 +1,4 @@
 /**
- * @class Ext.ux.FieldReplicator
  * <p>A plugin for Field Components which creates clones of the Field for as
  * long as the user keeps filling them. Leaving the final one blank ends the repeating series.</p>
  * <p>Usage:</p>

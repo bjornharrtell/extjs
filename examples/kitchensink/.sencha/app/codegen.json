@@ -1,0 +1,110 @@
+{
+  "sources": {
+    "theme.html.tpl.merge": {
+      "350c4d6793902b81dd7023596505db2bf8d8f474": "eJy9VLFu2zAQ3f0VF03tQNFJOhSOpMVN0RYFGtTu0JGmziZjSlTJs2wjyL+XlFTHSQ008FBCECDevffu3onMLj58m85/3t2CosoUo+yCsREATG2zd3qlCN7It3A1vrxi4XWdwgxrqQR8rmU6YiwABpxCURYRCRlpMljc7gi+zGCusEL4JFyN3me8j/V5FZIIstQw/LXRbZ5MbU1YE5vvG0xA9l95QrgjHmVuIEg7j5T/mH9k75Ni1BMNNcNXK0oQxoCLhA5LMLpeexB1CV463ZDv8mLdHTCGQ7LJE097g14hUgIU5AdV6X0CyuEyT3AnqsZg2m3xgaBnPUbci1b0uwl4J/MkTXl4HpZOVLi1bn0nSD3ykMpKbNN7nxQZ7wGv51xYS56caF7gT9hBCmFmtEQXDHV42ofXt9EIuRYr9N/RPDVCccZsITxyL7zng1XcYV2i+3eNcWSVqPUSPQ3TUtaR3PynOv9onzmNcyQPDZ6pKTeebHXS2u5X7pniSmMZK6zRCbIOHg6BuLa6JDWB6/F43OxuDqHH0RM8pKyQWDyNQgeWFwyVcCtdT+DyGcER97vxX5HGek3aBlQ4e4J0i8/jtkW3NHY7gVZ7vTB4XFnXIx+azPjRvbOw5R6kCTbH03rUdPQoBrv87rr6DX1Jir8\u003d"
+    },
+    "build.properties.merge": {
+      "310407eedab4e50d1411a225e07c20c8cdd63d6b": "eJylVsFu2zAMvecriHXANqBW7wV8GLCdd+kxF8VmHAWyZEhym2DIv4+0ZFtOnGLdggJxpMcniu+R7gOUf//ZPMAPC8YGwFoFCAflYa80CgDaor+XcQVq3CuDHjpnO3RB0WPvsYbdmXG7Xum6UG2nxanVj/B2UNUBKDYcEHbSI/AeAe0epAHZdVpVMihrfIxl3gq9J8h3raG1tdqPCFrzB9sTaIfQyhoh2BjFhxFfDU9gHeehbSW1yHJUZkghO/CLZ6CzdOlaOayCdWdBKx8p2+aD+Ad4lU7Z3sPRU66VbTuqqcuK+dEEpGu8QPOqnDUtmlASVd1XfMFNLA1drvz8my4upt+XJ1q4CrxsEp6TcqQAMYiZrCzOvVpBBPRBmSaW4uWApHBW9Yo0Zq0GFckkpFd1kKZBaNCgkzqJbrtJ4J78Ij3gqdJ9TcyD68h7zraDgh4DuZJOgr11rSTHnjoSz4PBN83OJBLaAZRM5JqeL/cYl06SzIfPhMg+w694Mc47Wi2/+XbCx6Rwa2BeK4xs0XeywvLnKWzHqq9T3W7O9Ru3boKKGnd9sy33Unu8gk3hcZlUsb2j/kmqZ4pPWwmqWtlc4RbRl6eI2Izdn2Q9vyMq66NM14ehF20f+LEjljg6iGkYFakXk/v5uyW8gK/YPNNmjSchfXd6TM9H34EQAr5t2MRMJ7jmZdw9hFZzjvPZ04Eznn+lJhjtn1NdUjxnbBcMsTA5x7KJliwZDbEcfc5Raek9lXZIXWpdjAtHf4VYO+iWY+5Xz27BNDdz4wTX4zpotM1dhHVssTXvruOubcyocUy8k9IEGeOjx/95qnqqD89V7/9npJKoJKHg11UyzVDwglRbbIqhMRNkXLzMBJ7yWHPMMv4y4KYg1+/Oy6DKmr1qhNvNzFw7h7qcOvYOc078TjKJ7rLgH7XB+s4guToznrbhMFJBsBQ3U2jarVY2sxE1weLVs/YdS5RRxTEyjsSyKIKjaQxFsbOOXyBFQcO/wli99A7I3orD0ZztU9pb4G5MsAa6J0dOMouRRa0JckV6WcTcs9TypMFQZPtfsSQ8oblU/M3z6ZNHQxMb9tQw9N8QfppGcGrNYXUq6OYPN8yNtw\u003d\u003d"
+    },
+    "app.js.tpl.merge": {
+      "c504d9f97c12ba1cc0b34ae0d4d9cc8009b2a46b": "eJzdlctqwkAUhvd5ikNBMsEQu46mFaTLXqDQjbgY4lGHJjPpZMYKIe/euWgaW10Irjyb5Fz+k8n/QdIMWFkJqd5o/knXSHJRJjXyfEMTrVgRDdpgNJpK/NJMIkwrP/a6RSnZEusgeNqphFZVwXKqmOCkCQIwwWmJKYSNab2Y2zaMg4mqCmCr7K4USyzquwc/6bN03gxcamNLC4114juQAVlpntvtQHwtgqYbtrESEsiWSpCozPx8EUNFpbJaL0hqc0JFwjiMYmCmfD82l4mfSgrka7UZw3DI/m62wVbEzc3Z4lTbhnluUul6Qxr74pDCQdBG43+CNjifmUVacnv51bUR2Tti3Hz2pgwhDPerB61z1njQs/agDd2B2rCZA9kxvsQdZBnscqG5iuDRbDGHNbbAop2MzBqvXBhaPuugbRl+d8xcksIJZq5zjMyVLiDm5m8H2Idz5Ayvg6tXx1UrIbHj5bOTwHzrmJivXYDMC26H2bs35Qy0zturU8sFV1IUBcoOXa90kl+vfwyx17iAZE91OzhnPY/OMD12/lpgXUq1EjOJVKH9FNifbQpKagzse/4Ak/wIzA\u003d\u003d"
+    },
+    "app.json.tpl.merge": {
+      "e5f71b1bb6813850ab3a32f5d235c01c12678423": "eJyr5lIAAqW8xNxUJSsFpWoQo1aJqxYAS3MGqQ\u003d\u003d"
+    }
+  },
+  "targets": {
+    "sass/example/theme.html": {
+      "source": "theme.html.tpl.merge",
+      "version": "350c4d6793902b81dd7023596505db2bf8d8f474",
+      "parameters": {
+        "frameworkName": "ext",
+        "frameworkPath": "../../..",
+        "senchadir": ".sencha",
+        "controllerFileName": "Main",
+        "appModels": "",
+        "viewFileName": "Main",
+        "appControllers": "",
+        "appViews": "",
+        "uniqueId": "0f13f113-48a0-4a62-b0d7-06caa3a1b8e2",
+        "appName": "KitchenSink",
+        "controllerName": "Main",
+        "viewName": "Main",
+        "themeName": "default",
+        "packagesRelPath": "../../../packages",
+        "name": "KitchenSink",
+        "library": "all",
+        "appStores": ""
+      }
+    },
+    "app/app.js": {
+      "source": "app.js.tpl.merge",
+      "version": "c504d9f97c12ba1cc0b34ae0d4d9cc8009b2a46b",
+      "parameters": {
+        "frameworkName": "ext",
+        "frameworkPath": "../../..",
+        "senchadir": ".sencha",
+        "controllerFileName": "Main",
+        "appModels": "",
+        "viewFileName": "Main",
+        "appControllers": "",
+        "appViews": "",
+        "uniqueId": "0f13f113-48a0-4a62-b0d7-06caa3a1b8e2",
+        "appName": "KitchenSink",
+        "controllerName": "Main",
+        "viewName": "Main",
+        "themeName": "default",
+        "packagesRelPath": "../../../packages",
+        "name": "KitchenSink",
+        "library": "all",
+        "appStores": ""
+      }
+    },
+    ".sencha/app/build.properties": {
+      "source": "build.properties.merge",
+      "version": "310407eedab4e50d1411a225e07c20c8cdd63d6b",
+      "parameters": {
+        "frameworkName": "ext",
+        "frameworkPath": "../../..",
+        "senchadir": ".sencha",
+        "controllerFileName": "Main",
+        "appModels": "",
+        "viewFileName": "Main",
+        "appControllers": "",
+        "appViews": "",
+        "uniqueId": "0f13f113-48a0-4a62-b0d7-06caa3a1b8e2",
+        "appName": "KitchenSink",
+        "controllerName": "Main",
+        "viewName": "Main",
+        "themeName": "default",
+        "packagesRelPath": "../../../packages",
+        "name": "KitchenSink",
+        "library": "all",
+        "appStores": ""
+      }
+    },
+    "app.json": {
+      "source": "app.json.tpl.merge",
+      "version": "e5f71b1bb6813850ab3a32f5d235c01c12678423",
+      "parameters": {
+        "frameworkName": "ext",
+        "frameworkPath": "../../..",
+        "senchadir": ".sencha",
+        "controllerFileName": "Main",
+        "appModels": "",
+        "viewFileName": "Main",
+        "appControllers": "",
+        "appViews": "",
+        "uniqueId": "0f13f113-48a0-4a62-b0d7-06caa3a1b8e2",
+        "appName": "KitchenSink",
+        "controllerName": "Main",
+        "viewName": "Main",
+        "themeName": "default",
+        "packagesRelPath": "../../../packages",
+        "name": "KitchenSink",
+        "library": "all",
+        "appStores": ""
+      }
+    }
+  }
+}

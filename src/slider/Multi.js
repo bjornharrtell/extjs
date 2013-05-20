@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Slider which supports vertical or horizontal orientation, keyboard adjustments, configurable snapping, axis clicking
  * and animation. Can be added as an item to any container.
@@ -37,7 +57,9 @@ Ext.define('Ext.slider.Multi', {
 
     // note: {id} here is really {inputId}, but {cmpId} is available
     fieldSubTpl: [
-        '<div id="{id}" class="' + Ext.baseCSSPrefix + 'slider {fieldCls} {vertical}" aria-valuemin="{minValue}" aria-valuemax="{maxValue}" aria-valuenow="{value}" aria-valuetext="{value}">',
+        '<div id="{id}" class="' + Ext.baseCSSPrefix + 'slider {fieldCls} {vertical}',
+        '{childElCls}',
+        '" aria-valuemin="{minValue}" aria-valuemax="{maxValue}" aria-valuenow="{value}" aria-valuetext="{value}">',
             '<div id="{cmpId}-endEl" class="' + Ext.baseCSSPrefix + 'slider-end" role="presentation">',
                 '<div id="{cmpId}-innerEl" class="' + Ext.baseCSSPrefix + 'slider-inner" role="presentation">',
                     '{%this.renderThumbs(out, values)%}',
@@ -63,6 +85,8 @@ Ext.define('Ext.slider.Multi', {
             disableFormats: true
         }
     ],
+    
+    horizontalProp: 'left',
 
     /**
      * @cfg {Number} value
@@ -358,7 +382,8 @@ Ext.define('Ext.slider.Multi', {
             vertical: me.vertical ? Ext.baseCSSPrefix + 'slider-vert' : Ext.baseCSSPrefix + 'slider-horz',
             minValue: me.minValue,
             maxValue: me.maxValue,
-            value: me.value
+            value: me.value,
+            childElCls: ''
         });
     },
 
@@ -390,6 +415,9 @@ Ext.define('Ext.slider.Multi', {
             keydown  : me.onKeyDown
         });
     },
+    
+    onDragStart: Ext.emptyFn,
+    onDragEnd: Ext.emptyFn,
 
     /**
      * @private
@@ -401,21 +429,24 @@ Ext.define('Ext.slider.Multi', {
      */
     getTrackpoint : function(xy) {
         var me = this,
-            result,
-            positionProperty,
+            vertical = me.vertical,
             sliderTrack = me.innerEl,
-            trackLength;
+            trackLength, result,
+            positionProperty;
 
-        if (me.vertical) {
+        if (vertical) {
             positionProperty = 'top';
             trackLength = sliderTrack.getHeight();
         } else {
-            positionProperty = 'left';
+            positionProperty = me.horizontalProp;
             trackLength = sliderTrack.getWidth();
         }
-        result = Ext.Number.constrain(sliderTrack.translatePoints(xy)[positionProperty], 0, trackLength);
-        return me.vertical ? trackLength - result : result;
+        xy = me.transformTrackPoints(sliderTrack.translatePoints(xy));
+        result = Ext.Number.constrain(xy[positionProperty], 0, trackLength);
+        return vertical ? trackLength - result : result;
     },
+    
+    transformTrackPoints: Ext.identityFn,
 
     /**
      * @private
@@ -479,7 +510,7 @@ Ext.define('Ext.slider.Multi', {
     getNearest: function(trackPoint) {
         var me = this,
             clickValue = me.reversePixelValue(trackPoint),
-            nearestDistance = (me.maxValue - me.minValue) + 5, //add a small fudge for the end of the slider
+            nearestDistance = me.getRange() + 5, //add a small fudge for the end of the slider
             nearest = null,
             thumbs = me.thumbs,
             i = 0,
@@ -609,14 +640,40 @@ Ext.define('Ext.slider.Multi', {
     /**
      * Programmatically sets the value of the Slider. Ensures that the value is constrained within the minValue and
      * maxValue.
-     * @param {Number} index Index of the thumb to move
+     * 
+     * Setting a single value:
+     *     // Set the second slider value, don't animate
+     *     mySlider.setValue(1, 50, false);
+     * 
+     * Setting multiple values at once
+     *     // Set 3 thumb values, animate
+     *     mySlider.setValue([20, 40, 60], true);
+     * 
+     * @param {Number/Number[]} index Index of the thumb to move. Alternatively, it can be an array of values to set
+     * for each thumb in the slider.
      * @param {Number} value The value to set the slider to. (This will be constrained within minValue and maxValue)
      * @param {Boolean} [animate=true] Turn on or off animation
+     * @return {Ext.slider.Multi} this
      */
     setValue : function(index, value, animate, changeComplete) {
         var me = this,
-            thumb = me.thumbs[index];
+            thumbs = me.thumbs,
+            thumb, len, i, values;
+            
+        if (Ext.isArray(index)) {
+            values = index;
+            animate = value;
+            
+            for (i = 0, len = values.length; i < len; ++i) {
+                thumb = thumbs[i];
+                if (thumb) {
+                    me.setValue(i, values[i], animate);
+                }    
+            }
+            return me;
+        }
 
+        thumb = me.thumbs[index];
         // ensures value is contstrained and snapped
         value = me.normalizeValue(value);
 
@@ -639,6 +696,7 @@ Ext.define('Ext.slider.Multi', {
                 }
             }
         }
+        return me;
     },
 
     /**
@@ -646,7 +704,16 @@ Ext.define('Ext.slider.Multi', {
      * Given a value within this Slider's range, calculates a Thumb's percentage CSS position to map that value.
      */
     calculateThumbPosition : function(v) {
-        return (v - this.minValue) / (this.maxValue - this.minValue) * 100;
+        var me = this,
+            minValue = me.minValue,
+            pos = (v - minValue) / me.getRange() * 100;
+
+        // If the total number of records is <= pageSize then return minValue.
+        if (isNaN(pos)) {
+            pos = minValue;
+        }
+
+        return pos;
     },
 
     /**
@@ -657,9 +724,15 @@ Ext.define('Ext.slider.Multi', {
      */
     getRatio : function() {
         var me = this,
-            trackLength = this.vertical ? this.innerEl.getHeight() : this.innerEl.getWidth(),
-            valueRange = this.maxValue - this.minValue;
+            innerEl = me.innerEl,
+            trackLength = me.vertical ? innerEl.getHeight() : innerEl.getWidth(),
+            valueRange = me.getRange();
+            
         return valueRange === 0 ? trackLength : (trackLength / valueRange);
+    },
+    
+    getRange: function(){
+        return this.maxValue - this.minValue;
     },
 
     /**
@@ -683,7 +756,7 @@ Ext.define('Ext.slider.Multi', {
      * @return {Number} The mapped value for the given position
      */
     reversePercentageValue : function(pos) {
-        return this.minValue + (this.maxValue - this.minValue) * (pos / 100);
+        return this.minValue + this.getRange() * (pos / 100);
     },
 
     //private

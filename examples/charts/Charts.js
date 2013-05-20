@@ -14,7 +14,6 @@ Ext.onReady(function() {
     };
 
     var chart1 = Ext.create('Ext.chart.Chart',{
-            xtype: 'chart',
             animate: false,
             store: store1,
             insetPadding: 30,
@@ -91,7 +90,6 @@ Ext.onReady(function() {
     });
     
     var chart2 = Ext.create('Ext.chart.Chart',{
-            xtype: 'chart',
             animate: false,
             store: store1,
             insetPadding: 30,
@@ -162,7 +160,6 @@ Ext.onReady(function() {
     });
     
     var chart3 = Ext.create('Ext.chart.Chart', {
-            xtype: 'chart',
             animate: false,
             store: store1,
             insetPadding: 30,

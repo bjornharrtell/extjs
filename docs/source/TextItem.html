@@ -45,12 +45,12 @@ Ext.define('Ext.toolbar.TextItem', {
      */
     text: '',
 
-    renderTpl: '{text}',
-    //
-    baseCls: Ext.baseCSSPrefix + 'toolbar-text',
+<span id='Ext-toolbar-TextItem-cfg-renderTpl'>    renderTpl: '{text}',
+</span><span id='Ext-toolbar-TextItem-cfg-baseCls'>    //
+</span>    baseCls: Ext.baseCSSPrefix + 'toolbar-text',
 
-    beforeRender : function() {
-        var me = this;
+<span id='Ext-toolbar-TextItem-method-beforeRender'>    beforeRender : function() {
+</span>        var me = this;
 
         me.callParent();
 
@@ -65,11 +65,10 @@ Ext.define('Ext.toolbar.TextItem', {
      */
     setText : function(text) {
         var me = this;
+        me.text = text;
         if (me.rendered) {
             me.el.update(text);
             me.updateLayout();
-        } else {
-            this.text = text;
         }
     }
 });</pre>

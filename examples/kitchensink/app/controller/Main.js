@@ -1,128 +1,270 @@
 Ext.define('KitchenSink.controller.Main', {
     extend: 'Ext.app.Controller',
-    
-    stores: [
-        'Examples',
-        'Companies',
-        'Restaurants',
-        'States',
-        'TreeStore'
+    requires: [
+        'KitchenSink.view.*',
+        'Ext.window.Window'
     ],
 
-    views: [
-        'Viewport',
-        'Header'
+    stores: [
+        'Companies',
+        'Restaurants',
+        'Files',
+        'States'
     ],
 
     refs: [
         {
-            ref: 'examplePanel',
-            selector: '#examplePanel'
+            ref: 'viewport',
+            selector: 'viewport'
         },
         {
-            ref: 'exampleList',
-            selector: 'exampleList'
+            ref: 'navigation',
+            selector: 'navigation'
+        },
+        {
+            ref: 'contentPanel',
+            selector: 'contentPanel'
+        },
+        {
+            ref: 'descriptionPanel',
+            selector: 'descriptionPanel'
+        },
+        {
+            ref: 'codePreview',
+            selector: 'codePreview'
         }
     ],
 
+    exampleRe: /^\s*\/\/\s*(\<\/?example>)\s*$/,
+
     init: function() {
         this.control({
-            'viewport exampleList': {
-                'select': function(me, record, item, index, e) {
-                    if (!record.isLeaf()) {
-                        return;
-                    }
-
-                    this.setActiveExample(this.classNameFromRecord(record), record.get('text'));
-                },
-                afterrender: function(){
-                    var me = this,
-                        className, exampleList, name, record;
-
-                    setTimeout(function(){
-                        className = location.hash.substring(1);
-                        exampleList = me.getExampleList();
-
-                        if (className) {
-                            name = className.replace('-', ' ');
-                            record = exampleList.view.store.find('text', name);     
-                        } else {
-							record = exampleList.view.store.find('text', 'grouped header grid');
-						}
-
-                        exampleList.view.select(record);
-                    }, 0);
-                }
+            'navigation': {
+                selectionchange: 'onNavSelectionChange'
+            },
+            'viewport': {
+                afterlayout: 'afterViewportLayout'
+            },
+            'codePreview tool[type=maximize]': {
+                click: 'onMaximizeClick'
+            },
+            'contentPanel': {
+                resize: 'centerContent'
             }
         });
     },
 
-    setActiveExample: function(className, title) {
-        var examplePanel = this.getExamplePanel(),
-            path, example, className;
-        
-        if (!title) {
-            title = className.split('.').reverse()[0];
-        }
-        
-        //update the title on the panel
-        examplePanel.setTitle(title);
-        
-        //remember the className so we can load up this example next time
-        location.hash = title.toLowerCase().replace(' ', '-');
+    afterViewportLayout: function() {
+        if (!this.navigationSelected) {
+            var id = location.hash.substring(1),
+                navigation = this.getNavigation(),
+                store = navigation.getStore(),
+                node;
 
-        //set the browser window title
-        document.title = document.title.split(' - ')[0] + ' - ' + title;
-        
-        //create the example
-        example = Ext.create(className);
-        
-        //remove all items from the example panel and add new example
-        examplePanel.removeAll();
-        examplePanel.add(example);
+            node = id ? store.getNodeById(id) : store.getRootNode().firstChild.firstChild;
+
+            navigation.getSelectionModel().select(node);
+            navigation.getView().focusNode(node);
+            this.navigationSelected = true;
+        }
+    },
+
+    onNavSelectionChange: function(selModel, records) {
+        var record = records[0],
+            text = record.get('text'),
+            xtype = record.get('id'),
+            alias = 'widget.' + xtype,
+            contentPanel = this.getContentPanel(),
+            cmp;
+
+        if (xtype) { // only leaf nodes have ids
+            contentPanel.removeAll(true);
+
+            var className = Ext.ClassManager.getNameByAlias(alias);
+            var ViewClass = Ext.ClassManager.get(className);
+            var clsProto = ViewClass.prototype;
+            if (clsProto.themes) {
+                clsProto.themeInfo = clsProto.themes[Ext.themeName] || clsProto.themes.classic;
+            }
+
+            cmp = new ViewClass();
+            contentPanel.add(cmp);
+            if (cmp.floating) {
+                cmp.show();
+            } else {
+                this.centerContent();
+            }
+
+            contentPanel.setTitle(text);
+
+            document.title = document.title.split(' - ')[0] + ' - ' + text;
+            location.hash = xtype;
+
+            this.updateDescription(clsProto);
+
+            if (clsProto.exampleCode) {
+                this.updateCodePreview(clsProto.exampleCode);
+            } else {
+                this.updateCodePreviewAsync(clsProto, xtype);
+            }
+        }
     },
     
-    // Will be used for source file code
-    // loadExample: function(path) {
-    //     Ext.Ajax.request({
-    //         url: path,
-    //         success: function() {
-    //             console.log(Ext.htmlEncode(response.responseText));
-    //         }
-    //     });
-    // },
-
-    filePathFromRecord: function(record) {
-        var parentNode = record.parentNode,
-            path = record.get('text');
+    onMaximizeClick: function(){
+        var preview = this.getCodePreview(),
+            code = preview.getEl().down('.prettyprint').dom.innerHTML;
         
-        while (parentNode && parentNode.get('text') != "Root") {
-            path = parentNode.get('text') + '/' + Ext.String.capitalize(path);
-
-            parentNode = parentNode.parentNode;
-        }
-
-        return this.formatPath(path);
+        var w = new Ext.window.Window({
+            autoShow: true,
+            title: 'Code Preview',
+            modal: true,
+            cls: 'preview-container',
+            autoScroll: true,
+            html: '<pre class="prettyprint">' + code + '</pre>'
+        });
+        w.maximize();
     },
 
-    classNameFromRecord: function(record) {
-        var path = this.filePathFromRecord(record);
+    processCodePreview: function (clsProto, text) {
+        var me = this,
+            lines = text.split('\n'),
+            removing = false,
+            keepLines = [],
+            tempLines = [],
+            n = lines.length,
+            i, line;
 
-        path = 'KitchenSink.view.examples.' + path.replace('/', '.');
-
-        return path;
-    },
-
-    formatPath: function(string) {
-        var result = string.split(' ')[0].charAt(0).toLowerCase() + string.split(' ')[0].substr(1),
-            paths = string.split(' '),
-            ln = paths.length,
-            i;
-
-        for (i = 1; i < ln; i++) {
-            result = result + Ext.String.capitalize(paths[i]);
+        // Remove all "example" blocks as they are fluff.
+        //
+        for (i = 0; i < n; ++i) {
+            line = lines[i];
+            if (removing) {
+                if (me.exampleRe.test(line)) {
+                    removing = false;
+                }
+            } else if (me.exampleRe.test(line)) {
+                removing = true;
+            } else {
+                tempLines.push(line);
+            }
         }
 
-        return result;
+        // Inline any themeInfo values to clarify the code.
+        //
+        if (clsProto.themeInfo) {
+            var path = ['this', 'themeInfo'];
+
+            function process (obj) {
+                for (var name in obj) {
+                    var value = obj[name];
+
+                    path.push(name);
+
+                    if (Ext.isPrimitive(value)) {
+                        if (Ext.isString(value)) {
+                            value = "'" + value + "'";
+                        }
+                        me.replaceValues(tempLines, path.join('.'), value);
+                    } else {
+                        process(value);
+                    }
+
+                    path.pop();
+                }
+            }
+
+            process(clsProto.themeInfo);
+        }
+
+        // Remove any lines with remaining (unused) themeInfo. These properties will
+        // be "undefined" for this theme and so are useless to the example.
+        //
+        for (i = 0, n = tempLines.length; i < n; ++i) {
+            line = tempLines[i];
+            if (line.indexOf('themeInfo') < 0) {
+                keepLines.push(line);
+            }
+        }
+
+        var code = keepLines.join('\n');
+        code = Ext.htmlEncode(code);
+        clsProto.exampleCode = code;
+    },
+
+    replaceValues: function (lines, text, value) {
+        var n = lines.length,
+            i, pos, line;
+
+        for (i = 0; i < n; ++i) {
+            line = lines[i];
+            pos = line.indexOf(text);
+            if (pos >= 0) {
+                lines[i] = line.split(text).join(String(value));
+            }
+        }
+    },
+
+    updateCodePreview: function (text) {
+        this.getCodePreview().update(
+            '<pre id="code-preview-container" class="prettyprint">' + text + '</pre>'
+        );
+        prettyPrint();
+    },
+
+    updateCodePreviewAsync: function(clsProto, xtype) {
+        var me = this,
+            className = Ext.ClassManager.getNameByAlias('widget.' + xtype),
+            path = className.replace(/\./g, '/').replace('KitchenSink', 'app') + '.js';
+
+        if (!Ext.repoDevMode) {
+            path = '../../../kitchensink/' + path;
+        }
+
+        Ext.Ajax.request({
+            url: path,
+            success: function(response) {
+                me.processCodePreview(clsProto, response.responseText);
+                me.updateCodePreview(clsProto.exampleCode);
+            }
+        });
+    },
+
+    updateDescription: function (clsProto) {
+        var description = clsProto.exampleDescription,
+            descriptionPanel = this.getDescriptionPanel();
+
+        if (Ext.isArray(description)) {
+            clsProto.exampleDescription = description = description.join('');
+        }
+
+        descriptionPanel.update(description);
+    },
+
+    centerContent: function() {
+        var contentPanel = this.getContentPanel(),
+            body = contentPanel.body,
+            item = contentPanel.items.getAt(0),
+            align = 'c-c',
+            overflowX,
+            overflowY,
+            offsets;
+
+        if (item) {
+            overflowX = (body.getWidth() < (item.getWidth() + 40));
+            overflowY = (body.getHeight() < (item.getHeight() + 40));
+
+            if (overflowX && overflowY) {
+                align = 'tl-tl',
+                offsets = [20, 20];
+            } else if (overflowX) {
+                align = 'l-l';
+                offsets = [20, 0];
+            } else if (overflowY) {
+                align = 't-t';
+                offsets = [0, 20];
+            }
+
+            item.alignTo(contentPanel.body, align, offsets);
+        }
     }
 });

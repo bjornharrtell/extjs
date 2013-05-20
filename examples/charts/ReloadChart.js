@@ -4,7 +4,6 @@ Ext.require(['Ext.layout.container.Fit', 'Ext.window.MessageBox']);
 Ext.onReady(function () {
 
     var chart = Ext.create('Ext.chart.Chart', {
-            xtype: 'chart',
             animate: true,
             shadow: true,
             store: store1,
@@ -69,7 +68,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData());
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData());
+                });
             }
         }],
         items: chart

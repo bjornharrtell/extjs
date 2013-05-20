@@ -51,12 +51,12 @@ Ext.define('Ext.layout.container.Fit', {
 
     alias: 'layout.fit',
 
-    /* End Definitions */
-
+<span id='Ext-layout-container-Fit-cfg-itemCls'>    /* End Definitions */
+</span>
     itemCls: Ext.baseCSSPrefix + 'fit-item',
-    targetCls: Ext.baseCSSPrefix + 'layout-fit',
-    type: 'fit',
-   
+<span id='Ext-layout-container-Fit-property-targetCls'>    targetCls: Ext.baseCSSPrefix + 'layout-fit',
+</span><span id='Ext-layout-container-Fit-property-type'>    type: 'fit',
+</span>   
 <span id='Ext-layout-container-Fit-cfg-defaultMargins'>    /**
 </span>     * @cfg {Object} defaultMargins
      * If the individual contained items do not have a margins property specified or margin specified via CSS, the
@@ -89,17 +89,17 @@ Ext.define('Ext.layout.container.Fit', {
         left: 0
     },
 
-    manageMargins: true,
-
-    sizePolicies: {
-        0: { setsWidth: 0, setsHeight: 0 },
-        1: { setsWidth: 1, setsHeight: 0 },
-        2: { setsWidth: 0, setsHeight: 1 },
-        3: { setsWidth: 1, setsHeight: 1 }
+<span id='Ext-layout-container-Fit-property-manageMargins'>    manageMargins: true,
+</span>
+<span id='Ext-layout-container-Fit-property-sizePolicies'>    sizePolicies: {
+</span>        0: { readsWidth: 1, readsHeight: 1, setsWidth: 0, setsHeight: 0 },
+        1: { readsWidth: 0, readsHeight: 1, setsWidth: 1, setsHeight: 0 },
+        2: { readsWidth: 1, readsHeight: 0, setsWidth: 0, setsHeight: 1 },
+        3: { readsWidth: 0, readsHeight: 0, setsWidth: 1, setsHeight: 1 }
     },
 
-    getItemSizePolicy: function (item, ownerSizeModel) {
-        // this layout's sizePolicy is derived from its owner's sizeModel:
+<span id='Ext-layout-container-Fit-method-getItemSizePolicy'>    getItemSizePolicy: function (item, ownerSizeModel) {
+</span>        // this layout's sizePolicy is derived from its owner's sizeModel:
         var sizeModel = ownerSizeModel || this.owner.getSizeModel(),
             mode = (sizeModel.width.shrinkWrap ? 0 : 1) |
                    (sizeModel.height.shrinkWrap ? 0 : 2);
@@ -107,8 +107,8 @@ Ext.define('Ext.layout.container.Fit', {
        return this.sizePolicies[mode];
     },
 
-    beginLayoutCycle: function (ownerContext, firstCycle) {
-        var me = this,
+<span id='Ext-layout-container-Fit-method-beginLayoutCycle'>    beginLayoutCycle: function (ownerContext, firstCycle) {
+</span>        var me = this,
             // determine these before the lastSizeModels get updated:
             resetHeight = me.lastHeightModel &amp;&amp; me.lastHeightModel.calculated,
             resetWidth = me.lastWidthModel &amp;&amp; me.lastWidthModel.calculated,
@@ -181,15 +181,15 @@ Ext.define('Ext.layout.container.Fit', {
         c = ownerContext.target;
         ownerContext.overflowX = (!ownerContext.widthModel.shrinkWrap &amp;&amp; 
                                    ownerContext.maxChildMinWidth &amp;&amp;
-                                   (c.autoScroll || c.overflowX)) || undef;
+                                   c.scrollFlags.x) || undef;
 
         ownerContext.overflowY = (!ownerContext.heightModel.shrinkWrap &amp;&amp;
                                    ownerContext.maxChildMinHeight &amp;&amp;
-                                   (c.autoScroll || c.overflowY)) || undef;
+                                   c.scrollFlags.y) || undef;
     },
 
-    calculate : function (ownerContext) {
-        var me = this,
+<span id='Ext-layout-container-Fit-method-calculate'>    calculate : function (ownerContext) {
+</span>        var me = this,
             childItems = ownerContext.childItems,
             length = childItems.length,
             containerSize = me.getContainerSize(ownerContext),
@@ -274,8 +274,8 @@ Ext.define('Ext.layout.container.Fit', {
         }
     },
 
-    fitItem: function (itemContext, info) {
-        var me = this;
+<span id='Ext-layout-container-Fit-method-fitItem'>    fitItem: function (itemContext, info) {
+</span>        var me = this;
 
         if (itemContext.invalid) {
             me.done = false;
@@ -294,8 +294,8 @@ Ext.define('Ext.layout.container.Fit', {
         }
     },
 
-    fitItemWidth: function (itemContext, info) {
-        var contentWidth, width;
+<span id='Ext-layout-container-Fit-method-fitItemWidth'>    fitItemWidth: function (itemContext, info) {
+</span>        var contentWidth, width;
         // Attempt to set only dimensions that are being controlled, not shrinkWrap dimensions
         if (info.ownerContext.widthModel.shrinkWrap) {
             // contentWidth must include the margins to be consistent with setItemWidth
@@ -319,8 +319,8 @@ Ext.define('Ext.layout.container.Fit', {
         this.positionItemX(itemContext, info);
     },
 
-    fitItemHeight: function (itemContext, info) {
-        var contentHeight, height;
+<span id='Ext-layout-container-Fit-method-fitItemHeight'>    fitItemHeight: function (itemContext, info) {
+</span>        var contentHeight, height;
         if (info.ownerContext.heightModel.shrinkWrap) {
             // contentHeight must include the margins to be consistent with setItemHeight
             height = itemContext.getProp('height') + info.margins.height;
@@ -343,8 +343,8 @@ Ext.define('Ext.layout.container.Fit', {
         this.positionItemY(itemContext, info);
     },
 
-    positionItemX: function (itemContext, info) {
-        var margins = info.margins;
+<span id='Ext-layout-container-Fit-method-positionItemX'>    positionItemX: function (itemContext, info) {
+</span>        var margins = info.margins;
 
         // Adjust position to account for configured margins or if we have multiple items
         // (all items should overlap):
@@ -358,8 +358,8 @@ Ext.define('Ext.layout.container.Fit', {
         }
     },
 
-    positionItemY: function (itemContext, info) {
-        var margins = info.margins;
+<span id='Ext-layout-container-Fit-method-positionItemY'>    positionItemY: function (itemContext, info) {
+</span>        var margins = info.margins;
 
         if (info.index || margins.top) {
             itemContext.setProp('y', margins.top);
@@ -371,12 +371,12 @@ Ext.define('Ext.layout.container.Fit', {
         }
     },
 
-    setItemHeight: function (itemContext, info) {
-        itemContext.setHeight(info.targetSize.height - info.margins.height);
+<span id='Ext-layout-container-Fit-method-setItemHeight'>    setItemHeight: function (itemContext, info) {
+</span>        itemContext.setHeight(info.targetSize.height - info.margins.height);
     },
 
-    setItemWidth: function (itemContext, info) {
-        itemContext.setWidth(info.targetSize.width - info.margins.width);
+<span id='Ext-layout-container-Fit-method-setItemWidth'>    setItemWidth: function (itemContext, info) {
+</span>        itemContext.setWidth(info.targetSize.width - info.margins.width);
     }
 });
 </pre>

@@ -24,6 +24,11 @@
 Ext.define('Ext.Shadow', {
     requires: ['Ext.ShadowPool'],
 
+<span id='Ext-Shadow-property-localXYNames'>    localXYNames: {
+</span>        get: 'getLocalXY',
+        set: 'setLocalXY'
+    },
+
 <span id='Ext-Shadow-method-constructor'>    /**
 </span>     * Creates new Shadow.
      * @param {Object} config (optional) Config object.
@@ -97,6 +102,24 @@ Ext.define('Ext.Shadow', {
                     };
                 }
                 break;
+            case &quot;bottom&quot;:
+                if (Ext.supports.CSS3BoxShadow) {
+                    adjusts = {
+                        t: offset,
+                        l: 0,
+                        h: -offset,
+                        w: 0
+                    };
+                }
+                else {
+                    adjusts = {
+                        t: offset,
+                        l: 0,
+                        h: 0,
+                        w: 0
+                    };
+                }
+                break;
         }
         me.adjusts = adjusts;
     },
@@ -126,9 +149,9 @@ Ext.define('Ext.Shadow', {
 </span>     * @cfg {String} mode
      * The shadow display mode.  Supports the following options:
      *
-     * - sides : Shadow displays on both sides and bottom only&lt;/li&gt;
-     * - frame : Shadow displays equally on all four sides&lt;/li&gt;
-     * - drop : Traditional bottom-right drop shadow&lt;/li&gt;
+     * - sides : Shadow displays on both sides and bottom only
+     * - frame : Shadow displays equally on all four sides
+     * - drop : Traditional bottom-right drop shadow
      */
 
 <span id='Ext-Shadow-cfg-offset'>    /**
@@ -137,11 +160,11 @@ Ext.define('Ext.Shadow', {
      */
     offset: 4,
 
-    // private
-    defaultMode: &quot;drop&quot;,
+<span id='Ext-Shadow-property-defaultMode'>    // private
+</span>    defaultMode: &quot;drop&quot;,
 
-    // private - CSS property to use to set the box shadow
-    boxShadowProperty: (function() {
+<span id='Ext-Shadow-property-boxShadowProperty'>    // private - CSS property to use to set the box shadow
+</span>    boxShadowProperty: (function() {
         var property = 'boxShadow',
             style = document.documentElement.style;
 
@@ -165,23 +188,34 @@ Ext.define('Ext.Shadow', {
      */
     show: function(target) {
         var me = this,
-            index;
-        
+            index, xy;
+
         target = Ext.get(target);
+        
+        // DOM reads first...
+        index = (parseInt(target.getStyle(&quot;z-index&quot;), 10) - 1) || 0;
+        xy = target[me.localXYNames.get]();
+
+        // DOM writes...
         if (!me.el) {
             me.el = Ext.ShadowPool.pull();
+            // Shadow elements are shared, so fix position to match current owner
+            if (me.fixed) {
+                me.el.dom.style.position = 'fixed';
+            } else {
+                me.el.dom.style.position = '';
+            }
             if (me.el.dom.nextSibling != target.dom) {
                 me.el.insertBefore(target);
             }
         }
-        index = (parseInt(target.getStyle(&quot;z-index&quot;), 10) - 1) || 0;
         me.el.setStyle(&quot;z-index&quot;, me.zIndex || index);
         if (Ext.isIE &amp;&amp; !Ext.supports.CSS3BoxShadow) {
             me.el.dom.style.filter = &quot;progid:DXImageTransform.Microsoft.alpha(opacity=&quot; + me.opacity + &quot;) progid:DXImageTransform.Microsoft.Blur(pixelradius=&quot; + (me.offset) + &quot;)&quot;;
         }
         me.realign(
-            target.getLocalX(),
-            target.getLocalY(),
+            xy[0],
+            xy[1],
             target.dom.offsetWidth,
             target.dom.offsetHeight
         );
@@ -208,15 +242,14 @@ Ext.define('Ext.Shadow', {
             return;
         }
         var adjusts = this.adjusts,
-            d = this.el.dom,
-            targetStyle = d.style,
+            el = this.el,
+            targetStyle = el.dom.style,
             shadowWidth,
             shadowHeight,
             sws,
             shs;
 
-        targetStyle.left = (l + adjusts.l) + &quot;px&quot;;
-        targetStyle.top = (t + adjusts.t) + &quot;px&quot;;
+        el[this.localXYNames.set](l + adjusts.l, t + adjusts.t);
         shadowWidth = Math.max(targetWidth + adjusts.w, 0);
         shadowHeight = Math.max(targetHeight + adjusts.h, 0);
         sws = shadowWidth + &quot;px&quot;;
@@ -226,7 +259,7 @@ Ext.define('Ext.Shadow', {
             targetStyle.height = shs;
 
             if (Ext.supports.CSS3BoxShadow) {
-                targetStyle[this.boxShadowProperty] = '0 0 ' + this.offset + 'px #888';
+                targetStyle[this.boxShadowProperty] = '0 0 ' + (this.offset + 2) + 'px #888';
             }
         }
     },

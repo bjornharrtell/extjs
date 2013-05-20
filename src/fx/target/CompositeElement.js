@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.fx.target.CompositeElement
  * 
@@ -27,7 +47,8 @@ Ext.define('Ext.fx.target.CompositeElement', {
 
     getAttr: function(attr, val) {
         var out      = [],
-            elements = this.target.elements,
+            target = this.target,
+            elements = target.elements,
             length   = elements.length,
             i,
             el;
@@ -36,11 +57,39 @@ Ext.define('Ext.fx.target.CompositeElement', {
             el = elements[i];
 
             if (el) {
-                el = this.target.getElement(el);
+                el = target.getElement(el);
                 out.push([el, this.getElVal(el, attr, val)]);
             }
         }
 
         return out;
+    },
+    
+    setAttr: function(targetData){
+        var target = this.target,
+            ln = targetData.length,
+            elements = target.elements,
+            ln3 = elements.length,
+            value, k,
+            attrs, attr, o, i, j, ln2;
+            
+        for (i = 0; i < ln; i++) {
+            attrs = targetData[i].attrs;
+            for (attr in attrs) {
+                if (attrs.hasOwnProperty(attr)) {
+                    ln2 = attrs[attr].length;
+                    for (j = 0; j < ln2; j++) {
+                        value = attrs[attr][j][1];
+                        for (k = 0; k < ln3; ++k) {
+                            el = elements[k];
+                            if (el) {
+                                el = target.getElement(el);
+                                this.setElVal(el, attr, value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 });

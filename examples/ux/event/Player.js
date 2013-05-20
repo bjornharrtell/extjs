@@ -300,7 +300,7 @@ Ext.define('Ext.ux.event.Player', {
     /**
      * This method is called when a keyframe is reached. This will fire the keyframe event.
      * If the keyframe has been handled, true is returned. Otherwise, false is returned.
-     * @param {Object} The event descriptor of the keyframe.
+     * @param {Object} eventDescriptor The event descriptor of the keyframe.
      * @return {Boolean} True if the keyframe was handled, false if not.
      */
     processKeyFrame: function (eventDescriptor) {
@@ -318,7 +318,7 @@ Ext.define('Ext.ux.event.Player', {
     /**
      * Called to inject the given event on the specified target.
      * @param {HTMLElement} target The target of the event.
-     * @param {Ext.EventObject} The event to inject.
+     * @param {Ext.EventObject} event The event to inject.
      */
     injectEvent: function (target, event) {
         event.injectEvent(target);

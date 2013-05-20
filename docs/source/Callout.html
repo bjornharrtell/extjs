@@ -23,8 +23,8 @@ Ext.define('Ext.chart.Callout', {
 
     /* Begin Definitions */
 
-    /* End Definitions */
-
+<span id='Ext-chart-Callout-method-constructor'>    /* End Definitions */
+</span>
     constructor: function(config) {
         if (config.callouts) {
             config.callouts.styles = Ext.applyIf(config.callouts.styles || {}, {
@@ -36,8 +36,8 @@ Ext.define('Ext.chart.Callout', {
         }
     },
 
-    renderCallouts: function() {
-        if (!this.callouts) {
+<span id='Ext-chart-Callout-method-renderCallouts'>    renderCallouts: function() {
+</span>        if (!this.callouts) {
             return;
         }
 
@@ -47,7 +47,7 @@ Ext.define('Ext.chart.Callout', {
             config = me.callouts,
             styles = config.styles,
             group = me.calloutsArray,
-            store = me.chart.store,
+            store = me.chart.getChartStore(),
             len = store.getCount(),
             ratio = items.length / len,
             previouslyPlacedCallouts = [],
@@ -66,7 +66,7 @@ Ext.define('Ext.chart.Callout', {
                 label = group[count];
                 storeItem = store.getAt(i);
                 
-                display = config.filter(storeItem);
+                display = (!config.filter || config.filter(storeItem));
                 
                 if (!display &amp;&amp; !label) {
                     count++;
@@ -94,7 +94,9 @@ Ext.define('Ext.chart.Callout', {
                         }
                     }
                 }
-                config.renderer(label, storeItem);
+                if (config &amp;&amp; config.renderer) {
+                    config.renderer(label, storeItem);
+                }
                 me.onPlaceCallout(label, storeItem, item, i, display, animate,
                                   j, count, previouslyPlacedCallouts);
                 previouslyPlacedCallouts.push(label);
@@ -104,13 +106,13 @@ Ext.define('Ext.chart.Callout', {
         this.hideCallouts(count);
     },
 
-    onCreateCallout: function(storeItem, item, i, display) {
-        var me = this,
+<span id='Ext-chart-Callout-method-onCreateCallout'>    onCreateCallout: function(storeItem, item, i, display) {
+</span>        var me = this,
             group = me.calloutsGroup,
             config = me.callouts,
-            styles = config.styles,
-            width = styles.width,
-            height = styles.height,
+            styles = (config ? config.styles : undefined),
+            width = (styles ? styles.width : 0),
+            height = (styles ? styles.height : 0),
             chart = me.chart,
             surface = chart.surface,
             calloutObj = {
@@ -140,8 +142,8 @@ Ext.define('Ext.chart.Callout', {
         return calloutObj;
     },
 
-    hideCallouts: function(index) {
-        var calloutsArray = this.calloutsArray,
+<span id='Ext-chart-Callout-method-hideCallouts'>    hideCallouts: function(index) {
+</span>        var calloutsArray = this.calloutsArray,
             len = calloutsArray.length,
             co,
             p;

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This layout manages multiple child Components, each fitted to the Container, where only a single child Component can be
  * visible at any given time.  This layout style is most commonly used for wizards, tab implementations, etc.
@@ -22,6 +42,39 @@
  *     });
  *
  *     p.getLayout().setActiveItem(1);
+ * 
+ * The {@link Ext.Component#beforedeactivate beforedeactivate} and {@link Ext.Component#beforeactivate beforeactivate}
+ * events can be used to prevent a card from activating or deactivating by returning `false`.
+ * 
+ *     @example   
+ *     var active = 0;
+ *     var main = Ext.create('Ext.panel.Panel', {
+ *         renderTo: Ext.getBody(),
+ *         width: 200,
+ *         height: 200,
+ *         layout: 'card',
+ *         tbar: [{
+ *             text: 'Next',
+ *             handler: function(){
+ *                 var layout = main.getLayout();
+ *                 ++active;
+ *                 layout.setActiveItem(active);
+ *                 active = main.items.indexOf(layout.getActiveItem());
+ *             }
+ *         }],
+ *         items: [{
+ *             title: 'P1'
+ *         }, {
+ *             title: 'P2'
+ *         }, {
+ *             title: 'P3',
+ *             listeners: {
+ *                 beforeactivate: function(){
+ *                     return false;
+ *                 }
+ *             }
+ *         }]
+ *     });
  *
  * In the following example, a simplistic wizard setup is demonstrated.  A button bar is added
  * to the footer of the containing panel to provide navigation buttons.  The buttons will be handled by a
@@ -228,8 +281,6 @@ Ext.define('Ext.layout.container.Card', {
      * @returns {Ext.Component} The next component or false.
      */
     getNext: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var wrap = arguments[0],
             items = this.getLayoutItems(),
             index = Ext.Array.indexOf(items, this.activeItem);
@@ -242,8 +293,6 @@ Ext.define('Ext.layout.container.Card', {
      * @return {Ext.Component} the activated component or false when nothing activated.
      */
     next: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var anim = arguments[0], 
             wrap = arguments[1];
         return this.setActiveItem(this.getNext(wrap), anim);
@@ -254,8 +303,6 @@ Ext.define('Ext.layout.container.Card', {
      * @returns {Ext.Component} The previous component or false.
      */
     getPrev: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var wrap = arguments[0],
             items = this.getLayoutItems(),
             index = Ext.Array.indexOf(items, this.activeItem);
@@ -268,8 +315,6 @@ Ext.define('Ext.layout.container.Card', {
      * @return {Ext.Component} the activated component or false when nothing activated.
      */
     prev: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var anim = arguments[0], 
             wrap = arguments[1];
         return this.setActiveItem(this.getPrev(wrap), anim);

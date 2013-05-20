@@ -183,8 +183,8 @@ Ext.define('Ext.chart.Chart', {
 
     /* End Definitions */
 
-    // @private
-    viewBox: false,
+<span id='Ext-chart-Chart-cfg-viewBox'>    // @private
+</span>    viewBox: false,
 
 <span id='Ext-chart-Chart-cfg-theme'>    /**
 </span>     * @cfg {String} theme
@@ -212,13 +212,6 @@ Ext.define('Ext.chart.Chart', {
      * The amount of inset padding in pixels for the chart. Defaults to 10.
      */
     insetPadding: 10,
-
-<span id='Ext-chart-Chart-cfg-enginePriority'>    /**
-</span>     * @cfg {String[]} enginePriority
-     * Defines the priority order for which Surface implementation to use. The first one supported by the current
-     * environment will be used. Defaults to `['Svg', 'Vml']`.
-     */
-    enginePriority: ['Svg', 'Vml'],
 
 <span id='Ext-chart-Chart-cfg-background'>    /**
 </span>     * @cfg {Object/Boolean} background
@@ -375,12 +368,12 @@ Ext.define('Ext.chart.Chart', {
         me.callParent([config]);
     },
     
-    getChartStore: function(){
-        return this.substore || this.store;
+<span id='Ext-chart-Chart-method-getChartStore'>    getChartStore: function(){
+</span>        return this.substore || this.store;
     },
 
-    initComponent: function() {
-        var me = this,
+<span id='Ext-chart-Chart-method-initComponent'>    initComponent: function() {
+</span>        var me = this,
             axes,
             series;
         me.callParent();
@@ -416,7 +409,7 @@ Ext.define('Ext.chart.Chart', {
                 y: 0
             }
         });
-        me.maxGutter = [0, 0];
+        me.maxGutters = { left: 0, right: 0, bottom: 0, top: 0 };
         me.store = Ext.data.StoreManager.lookup(me.store);
         axes = me.axes;
         me.axes = new Ext.util.MixedCollection(false, function(a) { return a.position; });
@@ -443,17 +436,18 @@ Ext.define('Ext.chart.Chart', {
         });
     },
 
-    // @private overrides the component method to set the correct dimensions to the chart.
-    afterComponentLayout: function(width, height) {
+<span id='Ext-chart-Chart-method-afterComponentLayout'>    // @private overrides the component method to set the correct dimensions to the chart.
+</span>    afterComponentLayout: function(width, height, oldWidth, oldHeight) {
         var me = this;
         if (Ext.isNumber(width) &amp;&amp; Ext.isNumber(height)) {
-            if (width !== me.curWidth || height !== me.curHeight) {
+            if (width !== oldWidth || height !== oldHeight) {
                 me.curWidth = width;
                 me.curHeight = height;
                 me.redraw(true);
+                me.needsRedraw = false;
             } else if (me.needsRedraw) {
-                delete me.needsRedraw;
                 me.redraw();
+                me.needsRedraw = false;
             }
         }
         this.callParent(arguments);
@@ -469,21 +463,42 @@ Ext.define('Ext.chart.Chart', {
             seriesLen = seriesItems.length,
             axesItems = me.axes.items,
             axesLen = axesItems.length,
-            i,
+            themeIndex = 0,
+            i, item,
             chartBBox = me.chartBBox = {
                 x: 0,
                 y: 0,
                 height: me.curHeight,
                 width: me.curWidth
             },
-            legend = me.legend;
+            legend = me.legend, 
+            series;
+            
         me.surface.setSize(chartBBox.width, chartBBox.height);
         // Instantiate Series and Axes
         for (i = 0; i &lt; seriesLen; i++) {
-            me.initializeSeries(seriesItems[i],i);
+            item = seriesItems[i];
+            if (!item.initialized) {
+                series = me.initializeSeries(item, i, themeIndex);
+            } else {
+                series = item;
+            }
+            // Allow the series to react to a redraw, for example, a pie series
+            // backed by a remote data set needs to build legend labels correctly
+            series.onRedraw();
+            // For things like stacked bar charts, a single series can consume
+            // multiple colors from the index, so we compensate for it here
+            if (Ext.isArray(item.yField)) {
+                themeIndex += item.yField.length;
+            } else {
+                ++themeIndex;
+            }
         }
         for (i = 0; i &lt; axesLen; i++) {
-            me.initializeAxis(axesItems[i]);
+            item = axesItems[i];
+            if (!item.initialized) {
+                me.initializeAxis(item);
+            }
         }
         //process all views (aggregated data etc) on stores
         //before rendering.
@@ -497,7 +512,7 @@ Ext.define('Ext.chart.Chart', {
         // Create legend if not already created
         if (legend !== false &amp;&amp; legend.visible) {
             if (legend.update || !legend.created) {
-              legend.create();
+                legend.create();
             }
         }
 
@@ -509,8 +524,8 @@ Ext.define('Ext.chart.Chart', {
             legend.updatePosition();
         }
 
-        // Find the max gutter
-        me.getMaxGutter();
+        // Find the max gutters
+        me.getMaxGutters();
 
         // Draw axes and series
         me.resizing = !!resize;
@@ -524,31 +539,27 @@ Ext.define('Ext.chart.Chart', {
         me.resizing = false;
     },
 
-    // @private set the store after rendering the chart.
-    afterRender: function() {
-        var ref,
-            me = this;
-        this.callParent();
+<span id='Ext-chart-Chart-method-afterRender'>    // @private set the store after rendering the chart.
+</span>    afterRender: function() {
+        var me = this;
+        
+        me.callParent(arguments);
 
         if (me.categoryNames) {
             me.setCategoryNames(me.categoryNames);
         }
 
-        if (me.tipRenderer) {
-            ref = me.getFunctionRef(me.tipRenderer);
-            me.setTipRenderer(ref.fn, ref.scope);
-        }
         me.bindStore(me.store, true);
         me.refresh();
 
         if (me.surface.engine === 'Vml') {
             me.on('added', me.onAddedVml, me);
-            me.mon(Ext.container.Container.hierarchyEventSource, 'added', me.onContainerAddedVml, me);
+            me.mon(me.hierarchyEventSource, 'added', me.onContainerAddedVml, me);
         }
     },
 
-    // When using a vml surface we need to redraw when this chart or one of its ancestors
-    // is moved to a new container after render, because moving the vml chart causes the
+<span id='Ext-chart-Chart-method-onAddedVml'>    // When using a vml surface we need to redraw when this chart or one of its ancestors
+</span>    // is moved to a new container after render, because moving the vml chart causes the
     // vml elements to go haywire, some displaing incorrectly or not displaying at all.
     // This appears to be caused by the component being moved to the detached body element
     // before being added to the new container.
@@ -556,14 +567,14 @@ Ext.define('Ext.chart.Chart', {
         this.needsRedraw = true; // redraw after component layout
     },
 
-    onContainerAddedVml: function(container) {
-        if (this.isDescendantOf(container)) {
+<span id='Ext-chart-Chart-method-onContainerAddedVml'>    onContainerAddedVml: function(container) {
+</span>        if (this.isDescendantOf(container)) {
             this.needsRedraw = true; // redraw after component layout
         }
     },
 
-    // @private get x and y position of the mouse cursor.
-    getEventXY: function(e) {
+<span id='Ext-chart-Chart-method-getEventXY'>    // @private get x and y position of the mouse cursor.
+</span>    getEventXY: function(e) {
         var me = this,
             box = this.surface.getRegion(),
             pageXY = e.getXY(),
@@ -572,16 +583,16 @@ Ext.define('Ext.chart.Chart', {
         return [x, y];
     },
     
-    onClick: function(e) {
-        this.handleClick('itemclick', e);
+<span id='Ext-chart-Chart-method-onClick'>    onClick: function(e) {
+</span>        this.handleClick('itemclick', e);
     },
     
-    onDblClick: function(e) {
-        this.handleClick('itemdblclick', e);
+<span id='Ext-chart-Chart-method-onDblClick'>    onDblClick: function(e) {
+</span>        this.handleClick('itemdblclick', e);
     },
 
-    // @private wrap the mouse down position to delegate the event to the series.
-    handleClick: function(name, e) {
+<span id='Ext-chart-Chart-method-handleClick'>    // @private wrap the mouse down position to delegate the event to the series.
+</span>    handleClick: function(name, e) {
         var me = this,
             position = me.getEventXY(e),
             seriesItems = me.series.items,
@@ -603,8 +614,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
 
-    // @private wrap the mouse down position to delegate the event to the series.
-    onMouseDown: function(e) {
+<span id='Ext-chart-Chart-method-onMouseDown'>    // @private wrap the mouse down position to delegate the event to the series.
+</span>    onMouseDown: function(e) {
         var me = this,
             position = me.getEventXY(e),
             seriesItems = me.series.items,
@@ -629,8 +640,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
 
-    // @private wrap the mouse up event to delegate it to the series.
-    onMouseUp: function(e) {
+<span id='Ext-chart-Chart-method-onMouseUp'>    // @private wrap the mouse up event to delegate it to the series.
+</span>    onMouseUp: function(e) {
         var me = this,
             position = me.getEventXY(e),
             seriesItems = me.series.items,
@@ -655,8 +666,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
 
-    // @private wrap the mouse move event so it can be delegated to the series.
-    onMouseMove: function(e) {
+<span id='Ext-chart-Chart-method-onMouseMove'>    // @private wrap the mouse move event so it can be delegated to the series.
+</span>    onMouseMove: function(e) {
         var me = this,
             position = me.getEventXY(e),
             seriesItems = me.series.items,
@@ -706,8 +717,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
 
-    // @private handle mouse leave event.
-    onMouseLeave: function(e) {
+<span id='Ext-chart-Chart-method-onMouseLeave'>    // @private handle mouse leave event.
+</span>    onMouseLeave: function(e) {
         var me = this,
             seriesItems = me.series.items,
             i, ln, series;
@@ -721,8 +732,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
 
-    // @private buffered refresh for when we update the store
-    delayRefresh: function() {
+<span id='Ext-chart-Chart-method-delayRefresh'>    // @private buffered refresh for when we update the store
+</span>    delayRefresh: function() {
         var me = this;
         if (!me.refreshTask) {
             me.refreshTask = new Ext.util.DelayedTask(me.refresh, me);
@@ -730,14 +741,16 @@ Ext.define('Ext.chart.Chart', {
         me.refreshTask.delay(me.refreshBuffer);
     },
 
-    // @private
-    refresh: function() {
+<span id='Ext-chart-Chart-method-refresh'>    // @private
+</span>    refresh: function() {
         var me = this;
             
         if (me.rendered &amp;&amp; me.curWidth !== undefined &amp;&amp; me.curHeight !== undefined) {
-            if (!me.isVisible(true) &amp;&amp; !me.refreshPending) {
-                me.setShowListeners('mon');
-                me.refreshPending = true;
+            if (!me.isVisible(true)) {
+                if (!me.refreshPending) {
+                    me.setShowListeners('mon');
+                    me.refreshPending = true;
+                }
                 return;
             }
             if (me.fireEvent('beforerefresh', me) !== false) {
@@ -747,8 +760,8 @@ Ext.define('Ext.chart.Chart', {
         }
     },
     
-    onShow: function(){
-        var me = this;
+<span id='Ext-chart-Chart-method-onShow'>    onShow: function(){
+</span>        var me = this;
         me.callParent(arguments);
         if (me.refreshPending) {
             me.delayRefresh();
@@ -757,9 +770,9 @@ Ext.define('Ext.chart.Chart', {
         delete me.refreshPending;
     },
     
-    setShowListeners: function(method){
-        var me = this;
-        me[method](Ext.container.Container.hierarchyEventSource, {
+<span id='Ext-chart-Chart-method-setShowListeners'>    setShowListeners: function(method){
+</span>        var me = this;
+        me[method](me.hierarchyEventSource, {
             scope: me,
             single: true,
             show: me.forceRefresh,
@@ -767,8 +780,14 @@ Ext.define('Ext.chart.Chart', {
         });
     },
     
-    forceRefresh: function(container) {
-        var me = this;
+<span id='Ext-chart-Chart-method-doRefresh'>    doRefresh: function(){
+</span>        // Data in the main store has changed, clear the sub store
+        this.setSubStore(null);
+        this.refresh();    
+    },
+    
+<span id='Ext-chart-Chart-method-forceRefresh'>    forceRefresh: function(container) {
+</span>        var me = this;
         if (me.isDescendantOf(container) &amp;&amp; me.refreshPending) {
             // Add unbind here, because either expand/show could be fired,
             // so be sure to unbind the listener that didn't
@@ -778,29 +797,33 @@ Ext.define('Ext.chart.Chart', {
         delete me.refreshPending;
     },
 
-    bindStore: function(store, initial) {
-        var me = this;
+<span id='Ext-chart-Chart-method-bindStore'>    bindStore: function(store, initial) {
+</span>        var me = this;
         me.mixins.bindable.bindStore.apply(me, arguments);
         if (me.store &amp;&amp; !initial) {
             me.refresh();
         }
     },
     
-    getStoreListeners: function() {
-        var refresh = this.refresh,
+<span id='Ext-chart-Chart-method-getStoreListeners'>    getStoreListeners: function() {
+</span>        var refresh = this.doRefresh,
             delayRefresh = this.delayRefresh;
             
         return {
             refresh: refresh,
             add: delayRefresh,
-            remove: delayRefresh,
+            bulkremove: delayRefresh,
             update: delayRefresh,
             clear: refresh
         };
     },
+    
+<span id='Ext-chart-Chart-method-setSubStore'>    setSubStore: function(subStore){
+</span>        this.substore = subStore;    
+    },
 
-    // @private Create Axis
-    initializeAxis: function(axis) {
+<span id='Ext-chart-Chart-method-initializeAxis'>    // @private Create Axis
+</span>    initializeAxis: function(axis) {
         var me = this,
             chartBBox = me.chartBBox,
             w = chartBBox.width,
@@ -859,44 +882,49 @@ Ext.define('Ext.chart.Chart', {
         if (!axis.chart) {
             Ext.apply(config, axis);
             axis = me.axes.replace(Ext.createByAlias('axis.' + axis.type.toLowerCase(), config));
-        }
-        else {
+        } else {
             Ext.apply(axis, config);
         }
+        axis.initialized = true;
     },
 
 
-<span id='Ext-chart-Chart-method-alignAxes'>    /**
-</span>     * @private Adjust the dimensions and positions of each axis and the chart body area after accounting
-     * for the space taken up on each side by the axes and legend.
+<span id='Ext-chart-Chart-method-getInsets'>    /**
+</span>     * @private Get initial insets; override to provide different defaults.
      */
-    alignAxes: function() {
+    getInsets: function() {
         var me = this,
-            axes = me.axes,
-            axesItems = axes.items,
-            axis,
+            insetPadding = me.insetPadding;
+
+        return {
+            top: insetPadding,
+            right: insetPadding,
+            bottom: insetPadding,
+            left: insetPadding
+        };
+    },
+
+<span id='Ext-chart-Chart-method-calculateInsets'>    /**
+</span>     * @private Calculate insets for the Chart.
+     */
+    calculateInsets: function() {
+        var me = this,
             legend = me.legend,
+            axes = me.axes,
             edges = ['top', 'right', 'bottom', 'left'],
-            edge,
-            i, ln,
-            chartBBox,
-            insetPadding = me.insetPadding,
-            insets = {
-                top: insetPadding,
-                right: insetPadding,
-                bottom: insetPadding,
-                left: insetPadding
-            },
-            isVertical, bbox, pos;
+            insets, i, l, edge, isVertical, axis, bbox;
 
         function getAxis(edge) {
             var i = axes.findIndex('position', edge);
             return (i &lt; 0) ? null : axes.getAt(i);
         }
+        
+        insets = me.getInsets();
 
         // Find the space needed by axes and legend as a positive inset from each edge
-        for (i = 0, ln = edges.length; i &lt; ln; i++) {
+        for (i = 0, l = edges.length; i &lt; l; i++) {
             edge = edges[i];
+            
             isVertical = (edge === 'left' || edge === 'right');
             axis = getAxis(edge);
 
@@ -904,7 +932,7 @@ Ext.define('Ext.chart.Chart', {
             if (legend !== false) {
                 if (legend.position === edge) {
                     bbox = legend.getBBox();
-                    insets[edge] += (isVertical ? bbox.width : bbox.height) + insets[edge];
+                    insets[edge] += (isVertical ? bbox.width : bbox.height) + me.insetPadding;
                 }
             }
 
@@ -914,7 +942,23 @@ Ext.define('Ext.chart.Chart', {
                 bbox = axis.bbox;
                 insets[edge] += (isVertical ? bbox.width : bbox.height);
             }
-        }
+        };
+        
+        return insets;
+    },
+
+<span id='Ext-chart-Chart-method-alignAxes'>    /**
+</span>     * @private Adjust the dimensions and positions of each axis and the chart body area after accounting
+     * for the space taken up on each side by the axes and legend.
+     * This code is taken from Ext.chart.Chart and refactored to provide better flexibility.
+     */
+    alignAxes: function() {
+        var me = this,
+            axesItems = me.axes.items,
+            insets, chartBBox, i, l, axis, pos, isVertical;
+        
+        insets = me.calculateInsets();
+
         // Build the chart bbox based on the collected inset values
         chartBBox = {
             x: insets.left,
@@ -926,87 +970,103 @@ Ext.define('Ext.chart.Chart', {
 
         // Go back through each axis and set its length and position based on the
         // corresponding edge of the chartBBox
-        for (i = 0, ln = axesItems.length; i &lt; ln; i++) {
+        for (i = 0, l = axesItems.length; i &lt; l; i++) {
             axis = axesItems[i];
             pos = axis.position;
-            isVertical = (pos === 'left' || pos === 'right');
+            isVertical = pos === 'left' || pos === 'right';
 
             axis.x = (pos === 'right' ? chartBBox.x + chartBBox.width : chartBBox.x);
             axis.y = (pos === 'top' ? chartBBox.y : chartBBox.y + chartBBox.height);
             axis.width = (isVertical ? chartBBox.width : chartBBox.height);
             axis.length = (isVertical ? chartBBox.height : chartBBox.width);
-        }
+        };
     },
 
-    // @private initialize the series.
-    initializeSeries: function(series, idx) {
+<span id='Ext-chart-Chart-method-initializeSeries'>    // @private initialize the series.
+</span>    initializeSeries: function(series, idx, themeIndex) {
         var me = this,
             themeAttrs = me.themeAttrs,
             seriesObj, markerObj, seriesThemes, st,
             markerThemes, colorArrayStyle = [],
-            i = 0, l,
+            initialized = (series instanceof Ext.chart.series.Series),
+            i = 0, l, config;
+
+        if (!initialized) {
             config = {
                 chart: me,
                 seriesId: series.seriesId
             };
-        if (themeAttrs) {
-            seriesThemes = themeAttrs.seriesThemes;
-            markerThemes = themeAttrs.markerThemes;
-            seriesObj = Ext.apply({}, themeAttrs.series);
-            markerObj = Ext.apply({}, themeAttrs.marker);
-            config.seriesStyle = Ext.apply(seriesObj, seriesThemes[idx % seriesThemes.length]);
-            config.seriesLabelStyle = Ext.apply({}, themeAttrs.seriesLabel);
-            config.markerStyle = Ext.apply(markerObj, markerThemes[idx % markerThemes.length]);
-            if (themeAttrs.colors) {
-                config.colorArrayStyle = themeAttrs.colors;
-            } else {
-                colorArrayStyle = [];
-                for (l = seriesThemes.length; i &lt; l; i++) {
-                    st = seriesThemes[i];
-                    if (st.fill || st.stroke) {
-                        colorArrayStyle.push(st.fill || st.stroke);
+            if (themeAttrs) {
+                seriesThemes = themeAttrs.seriesThemes;
+                markerThemes = themeAttrs.markerThemes;
+                seriesObj = Ext.apply({}, themeAttrs.series);
+                markerObj = Ext.apply({}, themeAttrs.marker);
+                config.seriesStyle = Ext.apply(seriesObj, seriesThemes[themeIndex % seriesThemes.length]);
+                config.seriesLabelStyle = Ext.apply({}, themeAttrs.seriesLabel);
+                config.markerStyle = Ext.apply(markerObj, markerThemes[themeIndex % markerThemes.length]);
+                if (themeAttrs.colors) {
+                    config.colorArrayStyle = themeAttrs.colors;
+                } else {
+                    colorArrayStyle = [];
+                    for (l = seriesThemes.length; i &lt; l; i++) {
+                        st = seriesThemes[i];
+                        if (st.fill || st.stroke) {
+                            colorArrayStyle.push(st.fill || st.stroke);
+                        }
+                    }
+                    if (colorArrayStyle.length) {
+                        config.colorArrayStyle = colorArrayStyle;
                     }
                 }
-                if (colorArrayStyle.length) {
-                    config.colorArrayStyle = colorArrayStyle;
-                }
+                config.seriesIdx = idx;
+                config.themeIdx = themeIndex;
             }
-            config.seriesIdx = idx;
-        }
-        if (series instanceof Ext.chart.series.Series) {
-            Ext.apply(series, config);
-        } else {
             Ext.applyIf(config, series);
             series = me.series.replace(Ext.createByAlias('series.' + series.type.toLowerCase(), config));
         }
+
         if (series.initialize) {
             series.initialize();
         }
+        series.initialized = true;
+        return series;
     },
 
-    // @private
-    getMaxGutter: function() {
+<span id='Ext-chart-Chart-method-getMaxGutters'>    // @private
+</span>    getMaxGutters: function() {
         var me = this,
             seriesItems = me.series.items,
-            i, ln, series,
-            maxGutter = [0, 0],
-            gutter;
+            i, ln, series, gutters,
+            lowerH = 0, upperH = 0, lowerV = 0, upperV = 0;
+
         for (i = 0, ln = seriesItems.length; i &lt; ln; i++) {
-            series = seriesItems[i];
-            gutter = series.getGutters &amp;&amp; series.getGutters() || [0, 0];
-            maxGutter[0] = Math.max(maxGutter[0], gutter[0]);
-            maxGutter[1] = Math.max(maxGutter[1], gutter[1]);
+            gutters = seriesItems[i].getGutters();
+            if (gutters) {
+                if (gutters.verticalAxis) {
+                    lowerV = Math.max(lowerV, gutters.lower);
+                    upperV = Math.max(upperV, gutters.upper);
+                }
+                else {
+                    lowerH = Math.max(lowerH, gutters.lower);
+                    upperH = Math.max(upperH, gutters.upper);
+                }
+            }
         }
-        me.maxGutter = maxGutter;
+        me.maxGutters = {
+            left: lowerH,
+            right: upperH,
+            bottom: lowerV,
+            top: upperV
+        };
     },
 
-    // @private draw axis.
-    drawAxis: function(axis) {
+<span id='Ext-chart-Chart-method-drawAxis'>    // @private draw axis.
+</span>    drawAxis: function(axis) {
         axis.drawAxis();
     },
 
-    // @private draw series.
-    drawCharts: function(series) {
+<span id='Ext-chart-Chart-method-drawCharts'>    // @private draw series.
+</span>    drawCharts: function(series) {
         series.triggerafterrender = false;
         series.drawSeries();
         if (!this.animate) {
@@ -1036,6 +1096,11 @@ Ext.define('Ext.chart.Chart', {
      *          type: 'image/png'
      *     });
      *
+     * **Important**: By default, chart data is sent to a server operated
+     * by Sencha to do data processing. You may change this default by
+     * setting the {@link Ext.draw.engine.ImageExporter#defaultUrl defaultUrl} of the {@link Ext.draw.engine.ImageExporter} class.
+     * In addition, please note that this service only creates PNG images.
+     *
      * @param {Object} [config] The configuration to be passed to the exporter.
      * See the export method for the appropriate exporter for the relevant
      * configuration options
@@ -1044,8 +1109,8 @@ Ext.define('Ext.chart.Chart', {
     save: function(config){
         return Ext.draw.Surface.save(this.surface, config);
     },
-    // @private remove gently.
-    destroy: function() {
+<span id='Ext-chart-Chart-method-destroy'>    // @private remove gently.
+</span>    destroy: function() {
         Ext.destroy(this.surface);
         this.bindStore(null);
         this.callParent(arguments);

@@ -29,12 +29,16 @@ Ext.define('Ext.layout.component.Draw', {
 
     extend: 'Ext.layout.component.Auto',
 
-    /* End Definitions */
-
+<span id='Ext-layout-component-Draw-cfg-setHeightInDom'>    setHeightInDom: true,
+</span>
+<span id='Ext-layout-component-Draw-cfg-setWidthInDom'>    setWidthInDom: true,
+</span>
+<span id='Ext-layout-component-Draw-property-type'>    /* End Definitions */
+</span>
     type: 'draw',
     
-    measureContentWidth : function (ownerContext) {
-        var target = ownerContext.target,
+<span id='Ext-layout-component-Draw-method-measureContentWidth'>    measureContentWidth : function (ownerContext) {
+</span>        var target = ownerContext.target,
             paddingInfo = ownerContext.getPaddingInfo(),
             bbox = this.getBBox(ownerContext);
             
@@ -53,8 +57,8 @@ Ext.define('Ext.layout.component.Draw', {
         }
     },
     
-    measureContentHeight : function (ownerContext) {
-        var target = ownerContext.target,
+<span id='Ext-layout-component-Draw-method-measureContentHeight'>    measureContentHeight : function (ownerContext) {
+</span>        var target = ownerContext.target,
             paddingInfo = ownerContext.getPaddingInfo(),
             bbox = this.getBBox(ownerContext);
             
@@ -73,8 +77,8 @@ Ext.define('Ext.layout.component.Draw', {
         }
     },
     
-    getBBox: function(ownerContext) {
-        var bbox = ownerContext.surfaceBBox;
+<span id='Ext-layout-component-Draw-method-getBBox'>    getBBox: function(ownerContext) {
+</span>        var bbox = ownerContext.surfaceBBox;
         if (!bbox) {
             bbox = ownerContext.target.surface.items.getBBox();
             // If the surface is empty, we'll get these values, normalize them
@@ -86,16 +90,16 @@ Ext.define('Ext.layout.component.Draw', {
         return bbox;
     },
 
-    publishInnerWidth: function (ownerContext, width) {
-        ownerContext.setContentWidth(width - ownerContext.getFrameInfo().width, true);
+<span id='Ext-layout-component-Draw-method-publishInnerWidth'>    publishInnerWidth: function (ownerContext, width) {
+</span>        ownerContext.setContentWidth(width - ownerContext.getFrameInfo().width, true);
     },
     
-    publishInnerHeight: function (ownerContext, height) {
-        ownerContext.setContentHeight(height - ownerContext.getFrameInfo().height, true);
+<span id='Ext-layout-component-Draw-method-publishInnerHeight'>    publishInnerHeight: function (ownerContext, height) {
+</span>        ownerContext.setContentHeight(height - ownerContext.getFrameInfo().height, true);
     },
     
-    finishedLayout: function (ownerContext) {
-        // TODO: Is there a better way doing this?
+<span id='Ext-layout-component-Draw-method-finishedLayout'>    finishedLayout: function (ownerContext) {
+</span>        // TODO: Is there a better way doing this?
         var props = ownerContext.props,
             paddingInfo = ownerContext.getPaddingInfo();
 

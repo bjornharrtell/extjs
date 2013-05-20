@@ -243,6 +243,14 @@ Ext.define('PageAnalyzer.hook.Context', function () {
                 before = beforeRunLayout(me);
             me.callParent(arguments);
             afterRunLayout(me, layout, before);
+        },
+        
+        handleFailure: function() {
+            var me = this;
+            
+            me.pageAnalyzerMode = true;
+            
+            return me.callParent();
         }
 
     };

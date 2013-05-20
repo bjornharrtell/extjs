@@ -21,16 +21,16 @@
  */
 Ext.define('Ext.resizer.ResizeTracker', {
     extend: 'Ext.dd.DragTracker',
-    dynamic: true,
-    preserveRatio: false,
-
-    // Default to no constraint
-    constrainTo: null,
+<span id='Ext-resizer-ResizeTracker-property-dynamic'>    dynamic: true,
+</span><span id='Ext-resizer-ResizeTracker-property-preserveRatio'>    preserveRatio: false,
+</span>
+<span id='Ext-resizer-ResizeTracker-cfg-constrainTo'>    // Default to no constraint
+</span>    constrainTo: null,
     
-    proxyCls:  Ext.baseCSSPrefix + 'resizable-proxy',
-
-    constructor: function(config) {
-        var me = this,
+<span id='Ext-resizer-ResizeTracker-property-proxyCls'>    proxyCls:  Ext.baseCSSPrefix + 'resizable-proxy',
+</span>
+<span id='Ext-resizer-ResizeTracker-method-constructor'>    constructor: function(config) {
+</span>        var me = this,
             widthRatio, heightRatio,
             throttledResizeFn;
 
@@ -75,9 +75,9 @@ Ext.define('Ext.resizer.ResizeTracker', {
         }
     },
 
-    onBeforeStart: function(e) {
-        // record the startBox
-        this.startBox = this.el.getBox();
+<span id='Ext-resizer-ResizeTracker-method-onBeforeStart'>    onBeforeStart: function(e) {
+</span>        // record the startBox
+        this.startBox = this.target.getBox();
     },
 
 <span id='Ext-resizer-ResizeTracker-method-getDynamicTarget'>    /**
@@ -97,7 +97,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
         me.proxy.show();
         return me.proxy;
     },
-    
+
 <span id='Ext-resizer-ResizeTracker-method-createProxy'>    /**
 </span>     * Create a proxy for this resizer
      * @param {Ext.Component/Ext.Element} target The target
@@ -105,30 +105,23 @@ Ext.define('Ext.resizer.ResizeTracker', {
      */
     createProxy: function(target){
         var proxy,
-            cls = this.proxyCls,
-            renderTo;
-            
+            cls = this.proxyCls;
+
         if (target.isComponent) {
             proxy = target.getProxy().addCls(cls);
         } else {
-            renderTo = Ext.getBody();
-            if (Ext.scopeResetCSS) {
-                renderTo = Ext.getBody().createChild({
-                    cls: Ext.resetCls
-                });
-            }
             proxy = target.createProxy({
                 tag: 'div',
                 cls: cls,
                 id: target.id + '-rzproxy'
-            }, renderTo);
+            }, Ext.getBody());
         }
         proxy.removeCls(Ext.baseCSSPrefix + 'proxy-el');
         return proxy;
     },
 
-    onStart: function(e) {
-        // returns the Ext.ResizeHandle that the user started dragging
+<span id='Ext-resizer-ResizeTracker-method-onStart'>    onStart: function(e) {
+</span>        // returns the Ext.ResizeHandle that the user started dragging
         this.activeResizeHandle = Ext.get(this.getDragTarget().id);
 
         // If we are using a proxy, ensure it is sized.
@@ -140,15 +133,15 @@ Ext.define('Ext.resizer.ResizeTracker', {
         }
     },
 
-    onDrag: function(e) {
-        // dynamic resizing, update dimensions during resize
+<span id='Ext-resizer-ResizeTracker-method-onDrag'>    onDrag: function(e) {
+</span>        // dynamic resizing, update dimensions during resize
         if (this.dynamic || this.proxy) {
             this.updateDimensions(e);
         }
     },
 
-    updateDimensions: function(e, atEnd) {
-        var me = this,
+<span id='Ext-resizer-ResizeTracker-method-updateDimensions'>    updateDimensions: function(e, atEnd) {
+</span>        var me = this,
             region = me.activeResizeHandle.region,
             offset = me.getOffset(me.constrainTo ? 'dragTarget' : null),
             box = me.startBox,
@@ -166,6 +159,8 @@ Ext.define('Ext.resizer.ResizeTracker', {
             axis, // 1 = x, 2 = y, 3 = x and y.
             newBox,
             newHeight, newWidth;
+
+        region = me.convertRegionName(region);
 
         switch (region) {
             case 'south':
@@ -325,40 +320,31 @@ Ext.define('Ext.resizer.ResizeTracker', {
         }, atEnd);
     },
 
-    getResizeTarget: function(atEnd) {
-        return atEnd ? this.target : this.getDynamicTarget();
+<span id='Ext-resizer-ResizeTracker-method-getResizeTarget'>    getResizeTarget: function(atEnd) {
+</span>        return atEnd ? this.target : this.getDynamicTarget();
     },
 
-    resize: function(box, direction, atEnd) {
-        var target = this.getResizeTarget(atEnd);
-        if (target.isComponent) {
-            target.setSize(box.width, box.height);
-            if (target.floating) {
-                target.setPagePosition(box.x, box.y);
-            }
-        } else {
-            target.setBox(box);
-        }
+<span id='Ext-resizer-ResizeTracker-method-resize'>    resize: function(box, direction, atEnd) {
+</span>        var me = this,
+            target = me.getResizeTarget(atEnd);
+
+        target.setBox(box);
 
         // update the originalTarget if it was wrapped, and the target passed in was the wrap el.
-        target = this.originalTarget;
-        if (target &amp;&amp; (this.dynamic || atEnd)) {
-            if (target.isComponent) {
-                target.setSize(box.width, box.height);
-                if (target.floating) {
-                    target.setPagePosition(box.x, box.y);
-                }
-            } else {
-                target.setBox(box);
-            }
+        if (me.originalTarget &amp;&amp; (me.dynamic || atEnd)) {
+            me.originalTarget.setBox(box);
         }
     },
 
-    onEnd: function(e) {
-        this.updateDimensions(e, true);
+<span id='Ext-resizer-ResizeTracker-method-onEnd'>    onEnd: function(e) {
+</span>        this.updateDimensions(e, true);
         if (this.proxy) {
             this.proxy.hide();
         }
+    },
+
+<span id='Ext-resizer-ResizeTracker-method-convertRegionName'>    convertRegionName: function(name) {
+</span>        return name;
     }
 });
 </pre>

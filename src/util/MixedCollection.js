@@ -1,35 +1,50 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
- * @class Ext.util.MixedCollection
- * <p>
  * Represents a collection of a set of key and value pairs. Each key in the MixedCollection
  * must be unique, the same key cannot exist twice. This collection is ordered, items in the
  * collection can be accessed by index  or via the key. Newly added items are added to
  * the end of the collection. This class is similar to {@link Ext.util.HashMap} however it
  * is heavier and provides more functionality. Sample usage:
- * <pre><code>
-var coll = new Ext.util.MixedCollection();
-coll.add('key1', 'val1');
-coll.add('key2', 'val2');
-coll.add('key3', 'val3');
-
-console.log(coll.get('key1')); // prints 'val1'
-console.log(coll.indexOfKey('key3')); // prints 2
- * </code></pre>
  *
- * <p>
+ *     var coll = new Ext.util.MixedCollection();
+ *     coll.add('key1', 'val1');
+ *     coll.add('key2', 'val2');
+ *     coll.add('key3', 'val3');
+ *
+ *     console.log(coll.get('key1')); // prints 'val1'
+ *     console.log(coll.indexOfKey('key3')); // prints 2
+ *
  * The MixedCollection also has support for sorting and filtering of the values in the collection.
- * <pre><code>
-var coll = new Ext.util.MixedCollection();
-coll.add('key1', 100);
-coll.add('key2', -100);
-coll.add('key3', 17);
-coll.add('key4', 0);
-var biggerThanZero = coll.filterBy(function(value){
-    return value > 0;
-});
-console.log(biggerThanZero.getCount()); // prints 2
- * </code></pre>
- * </p>
+ *
+ *     var coll = new Ext.util.MixedCollection();
+ *     coll.add('key1', 100);
+ *     coll.add('key2', -100);
+ *     coll.add('key3', 17);
+ *     coll.add('key4', 0);
+ *     var biggerThanZero = coll.filterBy(function(value){
+ *         return value > 0;
+ *     });
+ *     console.log(biggerThanZero.getCount()); // prints 2
+ *
  */
 Ext.define('Ext.util.MixedCollection', {
     extend: 'Ext.util.AbstractMixedCollection',
@@ -38,14 +53,19 @@ Ext.define('Ext.util.MixedCollection', {
     },
 
     /**
+     * @cfg {Boolean} allowFunctions
+     * Configure as `true` if the {@link #addAll} function should add function references to the collection.
+     */
+
+    /**
      * Creates new MixedCollection.
-     * @param {Boolean} allowFunctions Specify <tt>true</tt> if the {@link #addAll}
-     * function should add function references to the collection. Defaults to
-     * <tt>false</tt>.
-     * @param {Function} keyFn A function that can accept an item of the type(s) stored in this MixedCollection
+     * @param {Object} config A configuration object.
+     *  @param {Boolean} [config.allowFunctions=false] Specify `true` if the {@link #addAll}
+     * function should add function references to the collection.
+     *  @param {Function} [config.getKey] A function that can accept an item of the type(s) stored in this MixedCollection
      * and return the key value for that item.  This is used when available to look up the key on items that
      * were passed without an explicit key parameter to a MixedCollection method.  Passing this parameter is
-     * equivalent to providing an implementation for the {@link #getKey} method.
+     * equivalent to overriding the {@link #method-getKey} method.
      */
     constructor: function() {
         var me = this;
@@ -68,7 +88,7 @@ Ext.define('Ext.util.MixedCollection', {
      * @param {Function} fn (optional) Comparison function that defines the sort order.
      * Defaults to sorting by numeric value.
      */
-    _sort : function(property, dir, fn){
+    _sort : function(property, dir, fn) {
         var me = this,
             i, len,
             dsc   = String(dir).toUpperCase() == 'DESC' ? -1 : 1,
@@ -76,7 +96,8 @@ Ext.define('Ext.util.MixedCollection', {
             //this is a temporary array used to apply the sorting function
             c     = [],
             keys  = me.keys,
-            items = me.items;
+            items = me.items,
+            o;
 
         //default to a simple sorter function if one is not provided
         fn = fn || function(a, b) {
@@ -84,7 +105,7 @@ Ext.define('Ext.util.MixedCollection', {
         };
 
         //copy all the items into a temporary array, which we will sort
-        for(i = 0, len = items.length; i < len; i++){
+        for (i = 0, len = items.length; i < len; i++) {
             c[c.length] = {
                 key  : keys[i],
                 value: items[i],
@@ -93,20 +114,22 @@ Ext.define('Ext.util.MixedCollection', {
         }
 
         //sort the temporary array
-        Ext.Array.sort(c, function(a, b){
-            var v = fn(a[property], b[property]) * dsc;
-            if(v === 0){
-                v = (a.index < b.index ? -1 : 1);
-            }
-            return v;
+        Ext.Array.sort(items, function(a, b) {
+            return fn(a[property], b[property]) * dsc ||
+                // In case of equality, ensure stable sort by comparing collection index
+                (a.index < b.index ? -1 : 1);
         });
 
-        //copy the temporary array back into the main this.items and this.keys objects
-        for(i = 0, len = c.length; i < len; i++){
-            items[i] = c[i].value;
-            keys[i]  = c[i].key;
+        // Copy the temporary array back into the main this.items and this.keys objects
+        // Repopulate the indexMap hash if configured to do so.
+        for (i = 0, len = c.length; i < len; i++) {
+            o = c[i];
+            items[i] = o.value;
+            keys[i]  = o.key;
+            me.indexMap[o.key] = i;
         }
-
+        me.generation++;
+        me.indexGeneration = me.generation;
         me.fireEvent('sort', me);
     },
 
@@ -117,35 +140,33 @@ Ext.define('Ext.util.MixedCollection', {
     sortBy: function(sorterFn) {
         var me     = this,
             items  = me.items,
+            item,
             keys   = me.keys,
+            key,
             length = items.length,
-            temp   = [],
             i;
 
-        //first we create a copy of the items array so that we can sort it
+        // Stamp the collection index into each item so that we can implement stable sort
         for (i = 0; i < length; i++) {
-            temp[i] = {
-                key  : keys[i],
-                value: items[i],
-                index: i
-            };
+            items[i].$extCollectionIndex = i;
         }
 
-        Ext.Array.sort(temp, function(a, b) {
-            var v = sorterFn(a.value, b.value);
-            if (v === 0) {
-                v = (a.index < b.index ? -1 : 1);
-            }
-
-            return v;
+        Ext.Array.sort(items, function(a, b) {
+            return sorterFn(a, b) ||
+                // In case of equality, ensure stable sort by comparing collection index
+                (a.$extCollectionIndex < b.$extCollectionIndex ? -1 : 1);
         });
 
-        //copy the temporary array back into the main this.items and this.keys objects
+        // Update the keys array, and remove the index
         for (i = 0; i < length; i++) {
-            items[i] = temp[i].value;
-            keys[i]  = temp[i].key;
+            item = items[i];
+            key = me.getKey(item);
+            keys[i] = key;
+            me.indexMap[key] = i;
+            delete items.$extCollectionIndex;
         }
-
+        me.generation++;
+        me.indexGeneration = me.generation;
         me.fireEvent('sort', me, items, keys);
     },
 
@@ -157,7 +178,7 @@ Ext.define('Ext.util.MixedCollection', {
      * depending on the relative sort positions of the 2 compared items.
      *
      * If omitted, a function {@link #generateComparator generated} from the currently defined set of
-     * {@link #sorters} will be used.
+     * {@link #cfg-sorters} will be used.
      *
      * @return {Number} The insertion point to add the new item into this MixedCollection at using {@link #insert}
      */

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides input field management, validation, submission, and form loading services for the collection
  * of {@link Ext.form.field.Field Field} instances within a {@link Ext.container.Container}. It is recommended
@@ -77,7 +97,7 @@ Ext.define('Ext.form.Basic', {
      */
     constructor: function(owner, config) {
         var me = this,
-            onItemAddOrRemove = me.onItemAddOrRemove,
+            reader,
             api,
             fn;
 
@@ -86,13 +106,20 @@ Ext.define('Ext.form.Basic', {
          * The container component to which this BasicForm is attached.
          */
         me.owner = owner;
-
-        // Listen for addition/removal of fields in the owner container
-        me.mon(owner, {
-            add: onItemAddOrRemove,
-            remove: onItemAddOrRemove,
-            scope: me
+        
+        me.checkValidityTask = new Ext.util.DelayedTask(me.checkValidity, me);
+        me.checkDirtyTask = new Ext.util.DelayedTask(me.checkDirty, me);
+        
+        // We use the monitor here as opposed to event bubbling. The problem with bubbling is it doesn't
+        // let us react to items being added/remove at different places in the hierarchy which may have an
+        // impact on the dirty/valid state.
+        me.monitor = new Ext.container.Monitor({
+            selector: '[isFormField]',
+            scope: me,
+            addHandler: me.onFieldAdd,
+            removeHandler: me.onFieldRemove
         });
+        me.monitor.bind(owner);
 
         Ext.apply(me, config);
 
@@ -109,8 +136,26 @@ Ext.define('Ext.form.Basic', {
                 }
             }
         }
-
-        me.checkValidityTask = new Ext.util.DelayedTask(me.checkValidity, me);
+        
+        reader = me.reader;
+        if (reader && !reader.isReader) {
+            if (typeof reader === 'string') {
+                reader = {
+                    type: reader
+                };
+            }
+            me.reader = Ext.createByAlias('reader.' + reader.type, reader);
+        }
+        
+        reader = me.errorReader;
+        if (reader && !reader.isReader) {
+            if (typeof reader === 'string') {
+                reader = {
+                    type: reader
+                };
+            }
+            me.errorReader = Ext.createByAlias('reader.' + reader.type, reader);
+        }
 
         me.addEvents(
             /**
@@ -157,9 +202,8 @@ Ext.define('Ext.form.Basic', {
      * @private
      */
     initialize : function() {
-        var me = this;
-        me.initialized = true;
-        me.onValidityChange(!me.hasInvalidField());
+        this.initialized = true;
+        this.onValidityChange(!this.hasInvalidField());
     },
 
 
@@ -169,17 +213,17 @@ Ext.define('Ext.form.Basic', {
      */
 
     /**
-     * @cfg {Ext.data.reader.Reader} reader
-     * An Ext.data.DataReader (e.g. {@link Ext.data.reader.Xml}) to be used to read
-     * data when executing 'load' actions. This is optional as there is built-in
-     * support for processing JSON responses.
+     * @cfg {Object/Ext.data.reader.Reader} reader
+     * An Ext.data.reader.Reader (e.g. {@link Ext.data.reader.Xml}) instance or
+     * configuration to be used to read data when executing 'load' actions. This 
+     * is optional as there is built-in support for processing JSON responses.
      */
 
     /**
-     * @cfg {Ext.data.reader.Reader} errorReader
-     * An Ext.data.DataReader (e.g. {@link Ext.data.reader.Xml}) to be used to
-     * read field error messages returned from 'submit' actions. This is optional
-     * as there is built-in support for processing JSON responses.
+     * @cfg {Object/Ext.data.reader.Reader} errorReader
+     * An Ext.data.reader.Reader (e.g. {@link Ext.data.reader.Xml}) instance or
+     * configuration to be used to read field error messages returned from 'submit' actions. 
+     * This is optional as there is built-in support for processing JSON responses.
      *
      * The Records which provide messages for the invalid Fields must use the
      * Field name (or id) as the Record ID, and must contain a field called 'msg'
@@ -279,6 +323,13 @@ Ext.define('Ext.form.Basic', {
      */
 
     /**
+     * @cfg {Boolean} jsonSubmit
+     * If set to true, the field values are sent as JSON in the request body.
+     * All of the field values, plus any additional params configured via {@link #baseParams}
+     * and/or the `options` to {@link #submit}, will be included in the values POSTed in the body of the request.
+     */
+
+    /**
      * @cfg {String/HTMLElement/Ext.Element} waitMsgTarget
      * By default wait messages are displayed with Ext.MessageBox.wait. You can target a specific
      * element by passing it or its id or mask the form itself by passing in true.
@@ -293,67 +344,44 @@ Ext.define('Ext.form.Basic', {
      * Destroys this object.
      */
     destroy: function() {
-        this.clearListeners();
-        this.checkValidityTask.cancel();
-    },
-
-    /**
-     * @private
-     * Handle addition or removal of descendant items. Invalidates the cached list of fields
-     * so that {@link #getFields} will do a fresh query next time it is called. Also adds listeners
-     * for state change events on added fields, and tracks components with formBind=true.
-     */
-    onItemAddOrRemove: function(parent, child) {
         var me = this,
-            isAdding = !!child.ownerCt,
-            isContainer = child.isContainer;
-
-        function handleField(field) {
-            // Listen for state change events on fields
-            me[isAdding ? 'mon' : 'mun'](field, {
-                validitychange: me.checkValidity,
-                dirtychange: me.checkDirty,
-                scope: me,
-                buffer: 100 //batch up sequential calls to avoid excessive full-form validation
-            });
-            // Flush the cached list of fields
-            delete me._fields;
+            mon = me.monitor;
+        
+        if (mon) {
+            mon.unbind();
+            me.monitor = null;
         }
-
-        if (child.isFormField) {
-            handleField(child);
-        } else if (isContainer) {
-            // Walk down
-            if (child.isDestroyed || child.destroying) {
-                // the container is destroyed, this means we may have child fields, so here
-                // we just invalidate all the fields to be sure.
-                delete me._fields;
-            } else {
-                Ext.Array.forEach(child.query('[isFormField]'), handleField);
-            }
-        }
-
-        // Flush the cached list of formBind components
-        delete this._boundItems;
-
-        // Check form bind, but only after initial add. Batch it to prevent excessive validation
-        // calls when many fields are being added at once.
+        me.clearListeners();
+        me.checkValidityTask.cancel();
+        me.checkDirtyTask.cancel();
+    },
+    
+    onFieldAdd: function(field){
+        var me = this;
+        
+        me.mon(field, 'validitychange', me.checkValidityDelay, me);
+        me.mon(field, 'dirtychange', me.checkDirtyDelay, me);
         if (me.initialized) {
-            me.checkValidityTask.delay(10);
+            me.checkValidityDelay();
         }
     },
-
+    
+    onFieldRemove: function(field){
+        var me = this;
+        
+        me.mun(field, 'validitychange', me.checkValidityDelay, me);
+        me.mun(field, 'dirtychange', me.checkDirtyDelay, me);
+        if (me.initialized) {
+            me.checkValidityDelay();
+        }
+    },
+    
     /**
      * Return all the {@link Ext.form.field.Field} components in the owner container.
      * @return {Ext.util.MixedCollection} Collection of the Field objects
      */
     getFields: function() {
-        var fields = this._fields;
-        if (!fields) {
-            fields = this._fields = new Ext.util.MixedCollection();
-            fields.addAll(this.owner.query('[isFormField]'));
-        }
-        return fields;
+        return this.monitor.getItems();
     },
 
     /**
@@ -391,7 +419,7 @@ Ext.define('Ext.form.Basic', {
      * Returns true if client-side validation on the form is successful. Any invalid fields will be
      * marked as invalid. If you only want to determine overall form validity without marking anything,
      * use {@link #hasInvalidField} instead.
-     * @return Boolean
+     * @return {Boolean}
      */
     isValid: function() {
         var me = this,
@@ -418,11 +446,15 @@ Ext.define('Ext.form.Basic', {
             me.wasValid = valid;
         }
     },
+    
+    checkValidityDelay: function(){
+        this.checkValidityTask.delay(10);
+    },
 
     /**
      * @private
      * Handle changes in the form's validity. If there are any sub components with
-     * formBind=true then they are enabled/disabled based on the new validity.
+     * `formBind=true` then they are enabled/disabled based on the new validity.
      * @param {Boolean} valid
      */
     onValidityChange: function(valid) {
@@ -444,24 +476,28 @@ Ext.define('Ext.form.Basic', {
     },
 
     /**
-     * Returns true if any fields in this form have changed from their original values.
+     * Returns `true` if any fields in this form have changed from their original values.
      *
-     * Note that if this BasicForm was configured with {@link #trackResetOnLoad} then the
-     * Fields' *original values* are updated when the values are loaded by {@link #setValues}
-     * or {@link #loadRecord}.
+     * Note that if this BasicForm was configured with {@link Ext.form.Basic#trackResetOnLoad
+     * trackResetOnLoad} then the Fields' *original values* are updated when the values are
+     * loaded by {@link Ext.form.Basic#setValues setValues} or {@link #loadRecord}.
      *
-     * @return Boolean
+     * @return {Boolean}
      */
     isDirty: function() {
         return !!this.getFields().findBy(function(f) {
             return f.isDirty();
         });
     },
+    
+    checkDirtyDelay: function(){
+        this.checkDirtyTask.delay(10);
+    },
 
     /**
      * Check whether the dirty state of the entire form has changed since it was last checked, and
      * if so fire the {@link #dirtychange dirtychange} event. This is automatically invoked
-     * when an individual field's dirty state changes.
+     * when an individual field's `dirty` state changes.
      */
     checkDirty: function() {
         var dirty = this.isDirty();
@@ -472,7 +508,7 @@ Ext.define('Ext.form.Basic', {
     },
 
     /**
-     * Returns true if the form contains a file upload field. This is used to determine the method for submitting the
+     * Returns `true` if the form contains a file upload field. This is used to determine the method for submitting the
      * form: File uploads are not performed using normal 'Ajax' techniques, that is they are **not** performed using
      * XMLHttpRequests. Instead a hidden `<form>` element containing all the fields is created temporarily and submitted
      * with its [target][1] set to refer to a dynamically generated, hidden `<iframe>` which is inserted into the document
@@ -496,7 +532,7 @@ Ext.define('Ext.form.Basic', {
      * [2]: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.17
      * [3]: http://www.faqs.org/rfcs/rfc2388.html
      *
-     * @return Boolean
+     * @return {Boolean}
      */
     hasUpload: function() {
         return !!this.getFields().findBy(function(f) {
@@ -654,11 +690,13 @@ Ext.define('Ext.form.Basic', {
      */
     updateRecord: function(record) {
         record = record || this._record;
-        //<debug>
         if (!record) {
+            //<debug>
             Ext.Error.raise("A record is required.");
+            //</debug>
+            return this;
         }
-        //</debug>
+        
         var fields = record.fields.items,
             values = this.getFieldValues(),
             obj = {},
@@ -690,7 +728,7 @@ Ext.define('Ext.form.Basic', {
      */
     loadRecord: function(record) {
         this._record = record;
-        return this.setValues(record.data);
+        return this.setValues(record.getData());
     },
 
     /**
@@ -707,9 +745,10 @@ Ext.define('Ext.form.Basic', {
      * @param {Ext.form.action.Action} action The Action instance that was invoked
      */
     beforeAction: function(action) {
-        var waitMsg = action.waitMsg,
+        var me = this,
+            waitMsg = action.waitMsg,
             maskCls = Ext.baseCSSPrefix + 'mask-loading',
-            fields  = this.getFields().items,
+            fields  = me.getFields().items,
             f,
             fLen    = fields.length,
             field, waitMsgTarget;
@@ -724,14 +763,27 @@ Ext.define('Ext.form.Basic', {
         }
 
         if (waitMsg) {
-            waitMsgTarget = this.waitMsgTarget;
+            waitMsgTarget = me.waitMsgTarget;
             if (waitMsgTarget === true) {
-                this.owner.el.mask(waitMsg, maskCls);
+                me.owner.el.mask(waitMsg, maskCls);
             } else if (waitMsgTarget) {
-                waitMsgTarget = this.waitMsgTarget = Ext.get(waitMsgTarget);
+                waitMsgTarget = me.waitMsgTarget = Ext.get(waitMsgTarget);
                 waitMsgTarget.mask(waitMsg, maskCls);
             } else {
-                Ext.MessageBox.wait(waitMsg, action.waitTitle || this.waitTitle);
+                me.floatingAncestor = me.owner.up('[floating]');
+
+                // https://sencha.jira.com/browse/EXTJSIV-6397
+                // When the "wait" MessageBox is hidden, the ZIndexManager activates the previous
+                // topmost floating item which would be any Window housing this form.
+                // That kicks off a delayed focus call on that Window.
+                // So if any form post submit processing displayed a MessageBox, that gets
+                // stomped on.
+                // The solution is to not move focus at all during this process.
+                if (me.floatingAncestor) {
+                    me.savePreventFocusOnActivate = me.floatingAncestor.preventFocusOnActivate;
+                    me.floatingAncestor.preventFocusOnActivate = true;
+                }
+                Ext.MessageBox.wait(waitMsg, action.waitTitle || me.waitTitle);
             }
         }
     },
@@ -743,30 +795,31 @@ Ext.define('Ext.form.Basic', {
      * @param {Boolean} success True if the action completed successfully, false, otherwise.
      */
     afterAction: function(action, success) {
+        var me = this;
         if (action.waitMsg) {
             var messageBox = Ext.MessageBox,
-                waitMsgTarget = this.waitMsgTarget;
+                waitMsgTarget = me.waitMsgTarget;
             if (waitMsgTarget === true) {
-                this.owner.el.unmask();
+                me.owner.el.unmask();
             } else if (waitMsgTarget) {
                 waitMsgTarget.unmask();
             } else {
-                // Do not fire the hide event because that triggers complex processing
-                // which is not necessary just for the wait window, and which may interfere with the app.
-                messageBox.suspendEvents();
                 messageBox.hide();
-                messageBox.resumeEvents();
             }
+        }
+        // Restore setting of any floating ancestor which was manipulated in beforeAction
+        if (me.floatingAncestor) {
+            me.floatingAncestor.preventFocusOnActivate = me.savePreventFocusOnActivate;
         }
         if (success) {
             if (action.reset) {
-                this.reset();
+                me.reset();
             }
-            Ext.callback(action.success, action.scope || action, [this, action]);
-            this.fireEvent('actioncomplete', this, action);
+            Ext.callback(action.success, action.scope || action, [me, action]);
+            me.fireEvent('actioncomplete', me, action);
         } else {
-            Ext.callback(action.failure, action.scope || action, [this, action]);
-            this.fireEvent('actionfailed', this, action);
+            Ext.callback(action.failure, action.scope || action, [me, action]);
+            me.fireEvent('actionfailed', me, action);
         }
     },
 
@@ -861,6 +914,9 @@ Ext.define('Ext.form.Basic', {
             }
         }
 
+        // Suspend here because setting the value on a field could trigger
+        // a layout, for example if an error gets set, or it's a display field
+        Ext.suspendLayouts();
         if (Ext.isArray(values)) {
             // array of objects
             vLen = values.length;
@@ -874,6 +930,7 @@ Ext.define('Ext.form.Basic', {
             // object hash
             Ext.iterate(values, setVal);
         }
+        Ext.resumeLayouts(true);
         return this;
     },
 
@@ -925,7 +982,7 @@ Ext.define('Ext.form.Basic', {
                                 }
 
                                 if (isArray(val)) {
-                                    values[name] = values[name] = bucket.concat(val);
+                                    values[name] = bucket.concat(val);
                                 } else {
                                     bucket.push(val);
                                 }
@@ -979,10 +1036,13 @@ Ext.define('Ext.form.Basic', {
     },
 
     /**
-     * Resets all fields in this form.
+     * Resets all fields in this form. By default, any record bound by {@link #loadRecord}
+     * will be retained.
+     * @param {Boolean} [resetRecord=false] True to unbind any record set
+     * by {@link #loadRecord}
      * @return {Ext.form.Basic} this
      */
-    reset: function() {
+    reset: function(resetRecord) {
         Ext.suspendLayouts();
 
         var me     = this,
@@ -995,6 +1055,10 @@ Ext.define('Ext.form.Basic', {
         }
 
         Ext.resumeLayouts(true);
+        
+        if (resetRecord === true) {
+            delete me._record;
+        }
         return me;
     },
 

@@ -1,0 +1,7 @@
+.#{$prefix}form-textarea {
+    line-height: $form-textarea-line-height;
+    height: auto; // override height inherited from .x-form-text
+    @if $form-field-background-image != null {
+        background-image: theme-background-image($form-field-background-image);
+    }
+}

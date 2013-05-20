@@ -10,6 +10,12 @@ Ext.onReady(function(){
             Ext.example.msg('Color Selected', '<span style="color:#' + color + ';">You choose {0}.</span>', color);
         }
     });
+    
+    var showDate = function(d, value) {
+        Ext.example.msg('<b>Action date</b>', 'You picked ' + Ext.Date.format(value, d.format));
+    };
+    
+    var fromPicker = false;
 
     Ext.create('Ext.window.Window', {
         title: 'Standard',
@@ -49,22 +55,41 @@ Ext.onReady(function(){
                 handler: Ext.Function.pass(handleAction, 'Format')
             },'->', {
                 fieldLabel: 'Action',
-                labelAlign: 'right',
                 labelWidth: 70,
                 width: 180,
                 xtype: 'datefield',
+                labelSeparator: '',
+                enableKeyEvents: true,
                 listeners: {
+                    expand: function(){
+                        fromPicker = true;
+                    },
+                    collapse: function(){
+                        fromPicker = false;  
+                    },
                     change: function(d, newVal, oldVal) {
-                        Ext.example.msg('<b>Action date</b>', 'You picked ' + Ext.Date.format(newVal, d.format));
+                        if (fromPicker || !d.isVisible()) {
+                            showDate(d, newVal);
+                        }
+                    },
+                    keypress: {
+                        buffer: 500,
+                        fn: function(field){
+                            var value = field.getValue();
+                            if (value !== null && field.isValid()) {
+                                showDate(field, value);
+                            }
+                        }
                     }
                 }
             }, {
-                text: 'Released',
-                iconCls: 'add16',
+                text: 'Sell',
+                iconCls: 'money-down',
                 enableToggle: true,
                 toggleHandler: function(button, pressed) {
-                    Ext.example.msg('<b>Action</b>', 'Right ToggleButton ' + (pressed ? 'Pressed' : 'Released'));
-                    button.setText(pressed ? 'Pressed' : 'Released')
+                    Ext.example.msg('<b>Action</b>', 'Right ToggleButton ' + (pressed ? 'Buy' : 'Sell'));
+                    button.setText(pressed ? 'Buy' : 'Sell')
+                    button.setIconCls(pressed ? 'money-up' : 'money-down')
                 }
             }, {
                 text: 'Choose a Color',

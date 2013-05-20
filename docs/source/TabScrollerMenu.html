@@ -16,13 +16,8 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">Ext.ns('Ext.ux');
-<span id='Ext-ux-TabScrollerMenu-method-constructor'><span id='Ext-ux-TabScrollerMenu'>/**
-</span></span> * @class Ext.ux.TabScrollerMenu
- * @extends Object
- * Plugin (ptype = 'tabscrollermenu') for adding a tab menu to a TabBar is the Tabs overflow.
- * @constructor
- * @param {Object} config Configuration options
- * @ptype tabscrollermenu
+<span id='Ext-ux-TabScrollerMenu'>/**
+</span> * Plugin for adding a tab menu to a TabBar is the Tabs overflow.
  */
 Ext.define('Ext.ux.TabScrollerMenu', {
     alias: 'plugin.tabscrollermenu',
@@ -41,12 +36,17 @@ Ext.define('Ext.ux.TabScrollerMenu', {
 </span>     * @cfg {String} menuPrefixText Text to prefix the submenus.
      */
     menuPrefixText: 'Items',
+
+<span id='Ext-ux-TabScrollerMenu-method-constructor'>    /**
+</span>     * Creates new TabScrollerMenu.
+     * @param {Object} config Configuration options
+     */
     constructor: function(config) {
         Ext.apply(this, config);
     },
     
-    //private
-    init: function(tabPanel) {
+<span id='Ext-ux-TabScrollerMenu-method-init'>    //private
+</span>    init: function(tabPanel) {
         var me = this;
 
         me.tabPanel = tabPanel;
@@ -58,28 +58,36 @@ Ext.define('Ext.ux.TabScrollerMenu', {
                 me.layout.overflowHandler.handleOverflow = Ext.Function.bind(me.showButton, me);
                 me.layout.overflowHandler.clearOverflow = Ext.Function.createSequence(me.layout.overflowHandler.clearOverflow, me.hideButton, me);
             },
+            destroy: me.destroy,
+            scope: me,
             single: true
         });
     },
 
-    showButton: function() {
-        var me = this,
-            result = Ext.getClass(me.layout.overflowHandler).prototype.handleOverflow.apply(me.layout.overflowHandler, arguments);
+<span id='Ext-ux-TabScrollerMenu-method-showButton'>    showButton: function() {
+</span>        var me = this,
+            result = Ext.getClass(me.layout.overflowHandler).prototype.handleOverflow.apply(me.layout.overflowHandler, arguments),
+            button = me.menuButton;
 
-        if (!me.menuButton) {
-            me.menuButton = me.tabBar.body.createChild({
-                cls: Ext.baseCSSPrefix + 'tab-tabmenu-right'
-            }, me.tabBar.body.child('.' + Ext.baseCSSPrefix + 'box-scroller-right'));
-            me.menuButton.addClsOnOver(Ext.baseCSSPrefix + 'tab-tabmenu-over');
-            me.menuButton.on('click', me.showTabsMenu, me);
+        if (me.tabPanel.items.getCount() &gt; 1) {
+            if (!button) {
+                button = me.menuButton = me.tabBar.body.createChild({
+                    cls: Ext.baseCSSPrefix + 'tab-tabmenu-right'
+                }, me.tabBar.body.child('.' + Ext.baseCSSPrefix + 'box-scroller-right'));
+                button.addClsOnOver(Ext.baseCSSPrefix + 'tab-tabmenu-over');
+                button.on('click', me.showTabsMenu, me);
+            }
+            button.setVisibilityMode(Ext.dom.Element.DISPLAY);
+            button.show();
+            result.reservedSpace += button.getWidth();
+        } else {
+            me.hideButton();
         }
-        me.menuButton.show();
-        result.reservedSpace += me.menuButton.getWidth();
         return result;
     },
 
-    hideButton: function() {
-        var me = this;
+<span id='Ext-ux-TabScrollerMenu-method-hideButton'>    hideButton: function() {
+</span>        var me = this;
         if (me.menuButton) {
             me.menuButton.hide();
         }
@@ -128,14 +136,13 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         this.menuPrefixText = t;
     },
 
-    showTabsMenu: function(e) {
-        var me = this;
+<span id='Ext-ux-TabScrollerMenu-method-showTabsMenu'>    showTabsMenu: function(e) {
+</span>        var me = this;
 
         if (me.tabsMenu) {
             me.tabsMenu.removeAll();
         } else {
             me.tabsMenu = new Ext.menu.Menu();
-            me.tabPanel.on('destroy', me.tabsMenu.destroy, me.tabsMenu);
         }
 
         me.generateTabMenuItems();
@@ -149,8 +156,8 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         me.tabsMenu.showAt(xy);
     },
 
-    // private
-    generateTabMenuItems: function() {
+<span id='Ext-ux-TabScrollerMenu-method-generateTabMenuItems'>    // private
+</span>    generateTabMenuItems: function() {
         var me = this,
             tabPanel = me.tabPanel,
             curActive = tabPanel.getActiveTab(),
@@ -212,8 +219,8 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         tabsMenu.resumeLayouts(true);
     },
 
-    // private
-    autoGenMenuItem: function(item) {
+<span id='Ext-ux-TabScrollerMenu-method-autoGenMenuItem'>    // private
+</span>    autoGenMenuItem: function(item) {
         var maxText = this.getMaxText(),
             text = Ext.util.Format.ellipsis(item.title, maxText);
 
@@ -227,9 +234,13 @@ Ext.define('Ext.ux.TabScrollerMenu', {
         };
     },
 
-    // private
-    showTabFromMenu: function(menuItem) {
+<span id='Ext-ux-TabScrollerMenu-method-showTabFromMenu'>    // private
+</span>    showTabFromMenu: function(menuItem) {
         this.tabPanel.setActiveTab(menuItem.tabToShow);
+    },
+    
+<span id='Ext-ux-TabScrollerMenu-method-destroy'>    destroy: function(){
+</span>        Ext.destroy(this.tabsMenu, this.menuButton);       
     }
 });
 </pre>

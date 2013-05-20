@@ -20,7 +20,11 @@ Ext.define('FV.controller.Feeds', {
         }
     ],
     
-    requires: ['FV.lib.FeedValidator'],
+    requires: [
+        'FV.lib.FeedValidator',
+        'FV.store.Articles',
+        'FV.store.Feeds'
+    ],
 
     // At this point things haven't rendered yet since init gets called on controllers before the launch function
     // is executed on the Application
@@ -109,7 +113,7 @@ Ext.define('FV.controller.Feeds', {
             success: function() {
                 store.add(feed);
                 form.setLoading(false);
-                win.hide();
+                win.close();
             },
             failure: function() {
                 form.setLoading(false);

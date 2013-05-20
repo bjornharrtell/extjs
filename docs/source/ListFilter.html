@@ -16,27 +16,25 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-grid-filter-ListFilter'>/**
-</span> * @class Ext.ux.grid.filter.ListFilter
- * @extends Ext.ux.grid.filter.Filter
- * &lt;p&gt;List filters are able to be preloaded/backed by an Ext.data.Store to load
+</span> * List filters are able to be preloaded/backed by an Ext.data.Store to load
  * their options the first time they are shown. ListFilter utilizes the
- * {@link Ext.ux.grid.menu.ListMenu} component.&lt;/p&gt;
- * &lt;p&gt;Although not shown here, this class accepts all configuration options
- * for {@link Ext.ux.grid.menu.ListMenu}.&lt;/p&gt;
+ * {@link Ext.ux.grid.menu.ListMenu} component.
  *
- * &lt;p&gt;&lt;b&gt;&lt;u&gt;Example Usage:&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
- * &lt;pre&gt;&lt;code&gt;
-var filters = Ext.create('Ext.ux.grid.GridFilters', {
-    ...
-    filters: [{
-        type: 'list',
-        dataIndex: 'size',
-        phpMode: true,
-        // options will be used as data to implicitly creates an ArrayStore
-        options: ['extra small', 'small', 'medium', 'large', 'extra large']
-    }]
-});
- * &lt;/code&gt;&lt;/pre&gt;
+ * Although not shown here, this class accepts all configuration options
+ * for {@link Ext.ux.grid.menu.ListMenu}.
+ *
+ * Example Usage:
+ *
+ *     var filters = Ext.create('Ext.ux.grid.GridFilters', {
+ *         ...
+ *         filters: [{
+ *             type: 'list',
+ *             dataIndex: 'size',
+ *             phpMode: true,
+ *             // options will be used as data to implicitly creates an ArrayStore
+ *             options: ['extra small', 'small', 'medium', 'large', 'extra large']
+ *         }]
+ *     });
  *
  */
 Ext.define('Ext.ux.grid.filter.ListFilter', {
@@ -45,73 +43,72 @@ Ext.define('Ext.ux.grid.filter.ListFilter', {
 
 <span id='Ext-ux-grid-filter-ListFilter-cfg-options'>    /**
 </span>     * @cfg {Array} options
-     * &lt;p&gt;&lt;code&gt;data&lt;/code&gt; to be used to implicitly create a data store
-     * to back this list when the data source is &lt;b&gt;local&lt;/b&gt;. If the
-     * data for the list is remote, use the &lt;code&gt;{@link #store}&lt;/code&gt;
-     * config instead.&lt;/p&gt;
-     * &lt;br&gt;&lt;p&gt;Each item within the provided array may be in one of the
-     * following formats:&lt;/p&gt;
-     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
-     * &lt;li&gt;&lt;b&gt;Array&lt;/b&gt; :
-     * &lt;pre&gt;&lt;code&gt;
-options: [
-    [11, 'extra small'],
-    [18, 'small'],
-    [22, 'medium'],
-    [35, 'large'],
-    [44, 'extra large']
-]
-     * &lt;/code&gt;&lt;/pre&gt;
-     * &lt;/li&gt;
-     * &lt;li&gt;&lt;b&gt;Object&lt;/b&gt; :
-     * &lt;pre&gt;&lt;code&gt;
-labelField: 'name', // override default of 'text'
-options: [
-    {id: 11, name:'extra small'},
-    {id: 18, name:'small'},
-    {id: 22, name:'medium'},
-    {id: 35, name:'large'},
-    {id: 44, name:'extra large'}
-]
-     * &lt;/code&gt;&lt;/pre&gt;
-     * &lt;/li&gt;
-     * &lt;li&gt;&lt;b&gt;String&lt;/b&gt; :
-     * &lt;pre&gt;&lt;code&gt;
-     * options: ['extra small', 'small', 'medium', 'large', 'extra large']
-     * &lt;/code&gt;&lt;/pre&gt;
-     * &lt;/li&gt;
+     * `data` to be used to implicitly create a data store
+     * to back this list when the data source is **local**. If the
+     * data for the list is remote, use the {@link #store}
+     * config instead.
+     *
+     * Each item within the provided array may be in one of the
+     * following formats:
+     *
+     *   - **Array** :
+     *
+     *         options: [
+     *             [11, 'extra small'],
+     *             [18, 'small'],
+     *             [22, 'medium'],
+     *             [35, 'large'],
+     *             [44, 'extra large']
+     *         ]
+     *
+     *   - **Object** :
+     *
+     *         labelField: 'name', // override default of 'text'
+     *         options: [
+     *             {id: 11, name:'extra small'},
+     *             {id: 18, name:'small'},
+     *             {id: 22, name:'medium'},
+     *             {id: 35, name:'large'},
+     *             {id: 44, name:'extra large'}
+     *         ]
+     * 
+     *   - **String** :
+     *
+     *         options: ['extra small', 'small', 'medium', 'large', 'extra large']
+     *
      */
 <span id='Ext-ux-grid-filter-ListFilter-cfg-phpMode'>    /**
 </span>     * @cfg {Boolean} phpMode
-     * &lt;p&gt;Adjust the format of this filter. Defaults to false.&lt;/p&gt;
-     * &lt;br&gt;&lt;p&gt;When GridFilters &lt;code&gt;@cfg encode = false&lt;/code&gt; (default):&lt;/p&gt;
-     * &lt;pre&gt;&lt;code&gt;
-// phpMode == false (default):
-filter[0][data][type] list
-filter[0][data][value] value1
-filter[0][data][value] value2
-filter[0][field] prod
-
-// phpMode == true:
-filter[0][data][type] list
-filter[0][data][value] value1, value2
-filter[0][field] prod
-     * &lt;/code&gt;&lt;/pre&gt;
-     * When GridFilters &lt;code&gt;@cfg encode = true&lt;/code&gt;:
-     * &lt;pre&gt;&lt;code&gt;
-// phpMode == false (default):
-filter : [{&quot;type&quot;:&quot;list&quot;,&quot;value&quot;:[&quot;small&quot;,&quot;medium&quot;],&quot;field&quot;:&quot;size&quot;}]
-
-// phpMode == true:
-filter : [{&quot;type&quot;:&quot;list&quot;,&quot;value&quot;:&quot;small,medium&quot;,&quot;field&quot;:&quot;size&quot;}]
-     * &lt;/code&gt;&lt;/pre&gt;
+     * Adjust the format of this filter. Defaults to false.
+     *
+     * When GridFilters `@cfg encode = false` (default):
+     *
+     *     // phpMode == false (default):
+     *     filter[0][data][type] list
+     *     filter[0][data][value] value1
+     *     filter[0][data][value] value2
+     *     filter[0][field] prod
+     *
+     *     // phpMode == true:
+     *     filter[0][data][type] list
+     *     filter[0][data][value] value1, value2
+     *     filter[0][field] prod
+     *
+     * When GridFilters `@cfg encode = true`:
+     *
+     *     // phpMode == false (default):
+     *     filter : [{&quot;type&quot;:&quot;list&quot;,&quot;value&quot;:[&quot;small&quot;,&quot;medium&quot;],&quot;field&quot;:&quot;size&quot;}]
+     *
+     *     // phpMode == true:
+     *     filter : [{&quot;type&quot;:&quot;list&quot;,&quot;value&quot;:&quot;small,medium&quot;,&quot;field&quot;:&quot;size&quot;}]
+     *
      */
     phpMode : false,
 <span id='Ext-ux-grid-filter-ListFilter-cfg-store'>    /**
 </span>     * @cfg {Ext.data.Store} store
      * The {@link Ext.data.Store} this list should use as its data source
-     * when the data source is &lt;b&gt;remote&lt;/b&gt;. If the data for the list
-     * is local, use the &lt;code&gt;{@link #options}&lt;/code&gt; config instead.
+     * when the data source is **remote**. If the data for the list
+     * is local, use the {@link #options} config instead.
      */
 
 <span id='Ext-ux-grid-filter-ListFilter-method-init'>    /**
@@ -154,8 +151,7 @@ filter : [{&quot;type&quot;:&quot;list&quot;,&quot;value&quot;:&quot;small,mediu
     },
 
 <span id='Ext-ux-grid-filter-ListFilter-method-isActivatable'>    /**
-</span>     * @private
-     * Template method that is to return &lt;tt&gt;true&lt;/tt&gt; if the filter
+</span>     * Template method that is to return true if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}
      */

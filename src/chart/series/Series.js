@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.chart.series.Series
  *
@@ -9,6 +29,7 @@
  *
  * The series class supports listeners via the Observable syntax. Some of these listeners are:
  *
+ *  - `itemclick` When the user interacts with a marker.
  *  - `itemmouseup` When the user interacts with a marker.
  *  - `itemmousedown` When the user interacts with a marker.
  *  - `itemmousemove` When the user iteracts with a marker.
@@ -101,10 +122,17 @@ Ext.define('Ext.chart.series.Series', {
     // @private animating flag
     animating: false,
 
+    // @private default gutters
+    nullGutters: { lower: 0, upper: 0, verticalAxis: undefined },
+
+    // @private default padding
+    nullPadding: { left:0, right:0, width:0, bottom:0, top:0, height:0 },
+
     /**
      * @cfg {Object} listeners
      * An (optional) object with event callbacks. All event callbacks get the target *item* as first parameter. The callback functions are:
      *
+     *  - itemclick
      *  - itemmouseover
      *  - itemmouseout
      *  - itemmousedown
@@ -126,6 +154,7 @@ Ext.define('Ext.chart.series.Series', {
 
         me.addEvents({
             scope: me,
+            itemclick: true,
             itemmouseover: true,
             itemmouseout: true,
             itemmousedown: true,
@@ -156,6 +185,8 @@ Ext.define('Ext.chart.series.Series', {
         }
     },
     
+    onRedraw: Ext.emptyFn,
+    
     /**
      * Iterate over each of the records for this series. The default implementation simply iterates
      * through the entire data store, but individual series implementations can override this to
@@ -165,7 +196,7 @@ Ext.define('Ext.chart.series.Series', {
      */
     eachRecord: function(fn, scope) {
         var chart = this.chart;
-        (chart.substore || chart.store).each(fn, scope);
+        chart.getChartStore().each(fn, scope);
     },
 
     /**
@@ -174,7 +205,7 @@ Ext.define('Ext.chart.series.Series', {
      */
     getRecordCount: function() {
         var chart = this.chart,
-            store = chart.substore || chart.store;
+            store = chart.getChartStore();
         return store ? store.getCount() : 0;
     },
 
@@ -192,8 +223,7 @@ Ext.define('Ext.chart.series.Series', {
         var me = this,
             chart = me.chart,
             chartBBox = chart.chartBBox,
-            gutterX = noGutter ? 0 : chart.maxGutter[0],
-            gutterY = noGutter ? 0 : chart.maxGutter[1],
+            maxGutters = noGutter ? { left: 0, right: 0, bottom: 0, top: 0 } : chart.maxGutters,
             clipBox, bbox;
 
         clipBox = {
@@ -205,10 +235,10 @@ Ext.define('Ext.chart.series.Series', {
         me.clipBox = clipBox;
 
         bbox = {
-            x: (clipBox.x + gutterX) - (chart.zoom.x * chart.zoom.width),
-            y: (clipBox.y + gutterY) - (chart.zoom.y * chart.zoom.height),
-            width: (clipBox.width - (gutterX * 2)) * chart.zoom.width,
-            height: (clipBox.height - (gutterY * 2)) * chart.zoom.height
+            x: (clipBox.x + maxGutters.left) - (chart.zoom.x * chart.zoom.width),
+            y: (clipBox.y + maxGutters.bottom) - (chart.zoom.y * chart.zoom.height),
+            width: (clipBox.width - (maxGutters.left + maxGutters.right)) * chart.zoom.width,
+            height: (clipBox.height - (maxGutters.bottom + maxGutters.top)) * chart.zoom.height
         };
         me.bbox = bbox;
     },
@@ -222,19 +252,23 @@ Ext.define('Ext.chart.series.Series', {
         } else {
             me.animating = true;
             return sprite.animate(Ext.apply(Ext.applyIf(attr, me.chart.animate), {
-                listeners: {
-                    'afteranimate': function() {
-                        me.animating = false;
-                        me.fireEvent('afterrender');
-                    }
+                // use callback, don't overwrite listeners
+                callback: function() {
+                    me.animating = false;
+                    me.fireEvent('afterrender');
                 }
             }));
         }
     },
 
-    // @private return the gutter.
+    // @private return the gutters.
     getGutters: function() {
-        return [0, 0];
+        return this.nullGutters;
+    },
+
+    // @private return the gutters.
+    getPadding: function() {
+        return this.nullPadding;
     },
 
     // @private wrapper for the itemmouseover event.
@@ -396,7 +430,7 @@ Ext.define('Ext.chart.series.Series', {
                 return stroke;
             }
         }
-        return (me.colorArrayStyle)?me.colorArrayStyle[me.seriesIdx % me.colorArrayStyle.length]:'#000';
+        return (me.colorArrayStyle)?me.colorArrayStyle[me.themeIdx % me.colorArrayStyle.length]:'#000';
     },
 
     /**

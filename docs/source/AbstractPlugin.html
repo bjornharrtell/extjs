@@ -35,19 +35,29 @@
  *   - `disable` : The base implementation just sets the plugin's `disabled` flag to `true`
  */
 Ext.define('Ext.AbstractPlugin', {
-    disabled: false,
+<span id='Ext-AbstractPlugin-property-disabled'>    disabled: false,
+</span>
+<span id='Ext-AbstractPlugin-property-isPlugin'>    /**
+</span>     * @property {Boolean} isPlugin
+     * `true` in this class to identify an object as an instantiated Plugin, or subclass thereof.
+     */
+    isPlugin: true,
 
-    constructor: function(config) {
-        this.initialConfig = config;
+<span id='Ext-AbstractPlugin-method-constructor'>    constructor: function(config) {
+</span>        this.pluginConfig = config;
         Ext.apply(this, config);
     },
 
-    clone: function() {
-        return new this.self(this.initialConfig);
+<span id='Ext-AbstractPlugin-method-clonePlugin'>    clonePlugin: function(overrideCfg) {
+</span>        return new this.self(Ext.apply({}, overrideCfg, this.pluginConfig));
+    },
+    
+<span id='Ext-AbstractPlugin-method-setCmp'>    setCmp: function(cmp) {
+</span>        this.cmp = cmp;
     },
 
-    getCmp: function() {
-        return this.cmp;
+<span id='Ext-AbstractPlugin-method-getCmp'>    getCmp: function() {
+</span>        return this.cmp;
     },
 
 <span id='Ext-AbstractPlugin-cfg-pluginId'>    /**

@@ -1,0 +1,11 @@
+{
+    "name": "ext-theme-neptune",
+    "type": "THEME",
+    "version": "4.2.0.663",
+    "compatVersion": "4.2.0",
+	"extend": "ext-theme-neutral",
+    "requires": [{
+		"name": "ext-theme-neutral",
+		"version": "4.2.0.663"
+	}]
+}

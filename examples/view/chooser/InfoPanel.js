@@ -49,5 +49,9 @@ Ext.define('Ext.chooser.InfoPanel', {
         this.body.slideIn('l', {
             duration: 250
         });
+    },
+    
+    clear: function(){
+        this.body.update('');
     }
 });

@@ -1,0 +1,57 @@
+.#{$prefix}grid-editor {
+
+    // Smaller 
+    .#{$prefix}form-trigger {
+        height: $grid-row-height - $form-field-border-width;
+    }
+
+    // Smaller spinners needed in classic theme
+    .#{$prefix}form-trigger-wrap {
+        .#{$prefix}form-spinner-up, .#{$prefix}form-spinner-down {
+            background-image: theme-background-image('form/spinner-small');
+            height: 10px !important;
+        }
+    }
+    @if $include-rtl {
+        .#{$prefix}rtl.#{$prefix}form-trigger-wrap {
+            .#{$prefix}form-spinner-up, .#{$prefix}form-spinner-down {
+                background-image: theme-background-image('form/spinner-small-rtl');
+            }
+        }
+    }
+
+    .#{$prefix}border-box & {
+        .#{$prefix}form-trigger {
+            height: $grid-row-height;
+        }
+        .#{$prefix}form-text {
+            height: $grid-row-height;
+            padding-bottom: 1px; // fix for firefox/opera since they ignore line-height on inputs
+        }
+    }
+
+    // Smaller height in classic theme
+    .#{$prefix}form-text {
+        height: $grid-row-height - 2;
+    }
+
+}
+
+// Height constriction to fit in thin rows in classic theme
+@if $include-ie {
+    .#{$prefix}grid-editor .#{$prefix}form-text {
+        .#{$prefix}ie8m & {
+            padding-top: 1px;
+        }
+
+
+        .#{$prefix}strict .#{$prefix}ie6 &,
+        .#{$prefix}strict .#{$prefix}ie7 & {
+            height: $grid-row-height - ($form-field-border-width * 3);
+        }
+
+        .#{$prefix}quirks .#{$prefix}ie9 {
+            line-height: $grid-editor-line-height + 2;
+        }
+    }
+}

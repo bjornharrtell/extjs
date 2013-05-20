@@ -18,7 +18,7 @@ var Renderers = {};
 
            v = maxVal;
 
-           if (delta == 0) {
+           if (delta === 0) {
              return [0, 0, v];
            } else {
              s = delta / maxVal;
@@ -56,7 +56,7 @@ var Renderers = {};
                v = hsv[2] / 100,
                r, g, b, rd = Math.round;
 
-           if (s == 0) {
+           if (s === 0) {
              v *= 255;
              return [v, v, v];
            } else {
@@ -174,13 +174,12 @@ Ext.onReady(function () {
     };
     //update the visualization with the new renderer configuration
     function refresh() {
-        var chart = Ext.getCmp('chartCmp'),
-            series = chart.series.items,
+        var series = chart.series.items,
             len = series.length,
             rc = rendererConfiguration,
-            color, grayscale, radius, s;
+            color, grayscale, radius, s, i;
 
-        for(var i = 0; i < len; i++) {
+        for(i = 0; i < len; i++) {
             s = series[i];
             s.xField = rc.xField;
             s.yField = rc.yField;
@@ -257,51 +256,44 @@ Ext.onReady(function () {
     };
 
     var xAxisMenu = Ext.create('Ext.menu.Menu', {
-        id: 'xAxisMenu',
-        items: [ {
-             text: 'data1',
-             handler: xAxisHandler,
-             checked: true,
-             group: 'x'
-           },
-           {
-             text: 'data2',
-             handler: xAxisHandler,
-               checked: false,
-               group: 'x'
-           },
-           {
-             text: 'data3',
-             handler: xAxisHandler,
-             checked: false,
-             group: 'x'
-           } ]
+        items: [{
+            text: 'data1',
+            handler: xAxisHandler,
+            checked: true,
+            group: 'x'
+        }, {
+            text: 'data2',
+            handler: xAxisHandler,
+            checked: false,
+            group: 'x'
+        }, {
+            text: 'data3',
+            handler: xAxisHandler,
+            checked: false,
+            group: 'x'
+        }]
     });
 
     var yAxisMenu = Ext.create('Ext.menu.Menu', {
-        id: 'yAxisMenu',
-        items: [ {
+        items: [{
             text: 'data1',
             handler: yAxisHandler,
             checked: false,
             group: 'y'
-          },
-          {
-        text: 'data2',
+        }, {
+            text: 'data2',
             handler: yAxisHandler,
             checked: true,
             group: 'y'
-          },
-          {
+        }, {
             text: 'data3',
             handler: yAxisHandler,
             checked: false,
             group: 'y'
-          } ]
+        }]
     });
 
     var colorMenu = Ext.create('Ext.menu.Menu', {
-        id: 'colorMenu',
         items: [ { text: 'data1', handler: colorVariableHandler, checked: false, group: 'color' },
                  { text: 'data2', handler: colorVariableHandler, checked: false, group: 'color' },
                  { text: 'data3', handler: colorVariableHandler, checked: false, group: 'color' },
@@ -335,7 +327,6 @@ Ext.onReady(function () {
     });
 
     var grayscaleMenu = Ext.create('Ext.menu.Menu', {
-        id: 'grayscaleMenu',
         items: [ { text: 'data1', handler: grayscaleVariableHandler, checked: false, group: 'gs' },
                  { text: 'data2', handler: grayscaleVariableHandler, checked: false, group: 'gs' },
                  { text: 'data3', handler: grayscaleVariableHandler, checked: false, group: 'gs' },
@@ -363,7 +354,6 @@ Ext.onReady(function () {
     });
 
     var radiusMenu = Ext.create('Ext.menu.Menu', {
-        id: 'radiusMenu',
         style: {
             overflow: 'visible'     // For the Combo popup
         },
@@ -383,8 +373,6 @@ Ext.onReady(function () {
     });
 
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             style: 'background:#fff',
             animate: true,
             store: store1,
@@ -405,7 +393,7 @@ Ext.onReady(function () {
         });
 
     
-     var win = Ext.create('Ext.Window', {
+     var win = Ext.create('Ext.window.Window', {
         width: 800,
         height: 600,
         minHeight: 400,
@@ -430,7 +418,10 @@ Ext.onReady(function () {
         {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData());
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData());
+                });
             }
         },
         {

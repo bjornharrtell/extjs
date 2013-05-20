@@ -13,7 +13,7 @@ Ext.onReady(function() {
         },
         proxy: {
             type: 'direct',
-            directFn: TestAction.getTree,
+            directFn: 'TestAction.getTree',
             paramOrder: ['node']
         }
     });

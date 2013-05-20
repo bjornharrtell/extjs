@@ -237,6 +237,13 @@ Ext.define('Ext.data.proxy.Ajax', {
         update : 'POST',
         destroy: 'POST'
     },
+
+<span id='Ext-data-proxy-Ajax-cfg-binary'>    /**
+</span>     * @cfg {Boolean} binary
+     * True to request binary data from the server.  This feature requires
+     * the use of a binary reader such as {@link Ext.data.amf.Reader AMF Reader}
+     */
+    binary: false,
     
 <span id='Ext-data-proxy-Ajax-cfg-headers'>    /**
 </span>     * @cfg {Object} headers
@@ -245,13 +252,14 @@ Ext.define('Ext.data.proxy.Ajax', {
     
     doRequest: function(operation, callback, scope) {
         var writer  = this.getWriter(),
-            request = this.buildRequest(operation, callback, scope);
+            request = this.buildRequest(operation);
             
         if (operation.allowWrite()) {
             request = writer.write(request);
         }
         
         Ext.apply(request, {
+            binary        : this.binary,
             headers       : this.headers,
             timeout       : this.timeout,
             scope         : this,

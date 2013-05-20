@@ -5,7 +5,7 @@ Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
-    'Ext.grid.PagingScroller'
+    'Ext.grid.plugin.BufferedRenderer'
 ]);
 
 Ext.define('Employee', {
@@ -41,6 +41,7 @@ Ext.onReady(function(){
                 name        = Ext.String.format("{0} {1}", firstNames[firstNameId], lastNames[lastNameId]);
 
             data.push({
+                id: 'rec-' + i,
                 rating: rating,
                 salary: salary,
                 name: name
@@ -54,16 +55,19 @@ Ext.onReady(function(){
     // through the prefetch mechanism, and be read through the page cache
     var store = Ext.create('Ext.data.Store', {
         id: 'store',
-        // allow the grid to interact with the paging scroller by buffering
-        buffered: true,
-        // Configure the store with a single page of records which will be cached
-        pageSize: 5000,
         data: createFakeData(5000),
         model: 'Employee',
         proxy: {
             type: 'memory'
         }
     });
+    
+    var jumpToRow = function(){
+        var fld = grid.down('#gotoLine');
+        if (fld.isValid()) {
+            grid.view.bufferedRenderer.scrollTo(fld.getValue() - 1, true);
+        }    
+    };
 
     var grid = Ext.create('Ext.grid.Panel', {
         width: 700,
@@ -71,12 +75,18 @@ Ext.onReady(function(){
         title: 'Bufffered Grid of 5,000 random records',
         store: store,
         loadMask: true,
+        plugins: 'bufferedrenderer',
         selModel: {
             pruneRemoved: false
         },
         viewConfig: {
             trackOver: false
         },
+        features: [{
+            ftype: 'groupingsummary',
+            groupHeaderTpl: 'All staff on {name:usMoney}',
+            showSummaryRow: false
+        }],
         // grid columns
         columns:[{
             xtype: 'rownumberer',
@@ -86,12 +96,14 @@ Ext.onReady(function(){
             text: 'Name',
             flex:1 ,
             sortable: true,
-            dataIndex: 'name'
+            dataIndex: 'name',
+            groupable: false
         },{
             text: 'Rating',
             width: 125,
             sortable: true,
-            dataIndex: 'rating'
+            dataIndex: 'rating',
+            groupable: false
         },{
             text: 'Salary',
             width: 125,
@@ -99,6 +111,26 @@ Ext.onReady(function(){
             dataIndex: 'salary',
             align: 'right',
             renderer: Ext.util.Format.usMoney
+        }],
+        bbar: [{
+            labelWidth: 70,
+            fieldLabel: 'Jump to row',
+            xtype: 'numberfield',
+            minValue: 1,
+            maxValue: store.getTotalCount(),
+            allowDecimals: false,
+            itemId: 'gotoLine',
+            enableKeyEvents: true,
+            listeners: {
+                specialkey: function(field, e){
+                    if (e.getKey() === e.ENTER) {
+                        jumpToRow();
+                    }
+                }
+            }
+        }, {
+            text: 'Go',
+            handler: jumpToRow
         }],
         renderTo: Ext.getBody()
     });

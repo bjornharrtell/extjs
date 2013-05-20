@@ -37,14 +37,15 @@ Ext.define('Ext.fx.target.CompositeElement', {
      */
     isComposite: true,
     
-    constructor: function(target) {
-        target.id = target.id || Ext.id(null, 'ext-composite-');
+<span id='Ext-fx-target-CompositeElement-method-constructor'>    constructor: function(target) {
+</span>        target.id = target.id || Ext.id(null, 'ext-composite-');
         this.callParent([target]);
     },
 
-    getAttr: function(attr, val) {
-        var out      = [],
-            elements = this.target.elements,
+<span id='Ext-fx-target-CompositeElement-method-getAttr'>    getAttr: function(attr, val) {
+</span>        var out      = [],
+            target = this.target,
+            elements = target.elements,
             length   = elements.length,
             i,
             el;
@@ -53,12 +54,40 @@ Ext.define('Ext.fx.target.CompositeElement', {
             el = elements[i];
 
             if (el) {
-                el = this.target.getElement(el);
+                el = target.getElement(el);
                 out.push([el, this.getElVal(el, attr, val)]);
             }
         }
 
         return out;
+    },
+    
+<span id='Ext-fx-target-CompositeElement-method-setAttr'>    setAttr: function(targetData){
+</span>        var target = this.target,
+            ln = targetData.length,
+            elements = target.elements,
+            ln3 = elements.length,
+            value, k,
+            attrs, attr, o, i, j, ln2;
+            
+        for (i = 0; i &lt; ln; i++) {
+            attrs = targetData[i].attrs;
+            for (attr in attrs) {
+                if (attrs.hasOwnProperty(attr)) {
+                    ln2 = attrs[attr].length;
+                    for (j = 0; j &lt; ln2; j++) {
+                        value = attrs[attr][j][1];
+                        for (k = 0; k &lt; ln3; ++k) {
+                            el = elements[k];
+                            if (el) {
+                                el = target.getElement(el);
+                                this.setElVal(el, attr, value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 });
 </pre>

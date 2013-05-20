@@ -166,9 +166,10 @@ Ext.define('FeedViewer.FeedDetail', {
      * @return {Ext.panel.Panel} south
      */
     createSouth: function(){
-        this.south =  Ext.create('Ext.container.Container', {
+        this.south =  Ext.create('Ext.panel.Panel', {
             layout: 'fit',
             region: 'south',
+            border: false,
             split: true,
             flex: 2,
             minHeight: 150,

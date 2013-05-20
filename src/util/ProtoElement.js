@@ -1,4 +1,24 @@
 /*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
+/*
  * The dirty implementation in this class is quite naive. The reasoning for this is that the dirty state
  * will only be used in very specific circumstances, specifically, after the render process has begun but
  * the component is not yet rendered to the DOM. As such, we want it to perform as quickly as possible
@@ -70,6 +90,7 @@ Ext.define('Ext.util.ProtoElement', (function () {
             this.removedClasses = {};
             // clear the style, it will be recreated if we add anything new
             delete this.style;
+            delete this.unselectableAttr;
         },
 
         /**
@@ -79,7 +100,7 @@ Ext.define('Ext.util.ProtoElement', (function () {
          */
         addCls: function (cls) {
             var me = this,
-                add = splitWords(cls),
+                add = (typeof cls === 'string') ? splitWords(cls) : cls,
                 length = add.length,
                 list = me.classList,
                 map = me.classMap,
@@ -167,6 +188,15 @@ Ext.define('Ext.util.ProtoElement', (function () {
             return me;
         },
 
+        unselectable: function() {
+            // See Ext.dom.Element.unselectable for an explanation of what is required to make an element unselectable
+            this.addCls(Ext.dom.Element.unselectableCls);
+
+            if (Ext.isOpera) {
+                this.unselectableAttr = true;
+            }
+        },
+
         /**
          * Writes style and class properties to given object.
          * Styles will be written to {@link #styleProp} and class names to {@link #clsProp}.
@@ -197,6 +227,10 @@ Ext.define('Ext.util.ProtoElement', (function () {
                 if (removedClasses.length) {
                     to[me.removedProp] = removedClasses.join(' ');
                 }
+            }
+
+            if (me.unselectableAttr) {
+                to.unselectable = 'on';
             }
 
             return to;

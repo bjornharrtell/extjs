@@ -8,6 +8,7 @@ function getCustomLayouts() {
             layout: 'ux.center',
             items: {
                 title: 'Centered Panel: 75% of container width and 95% height',
+                border: true,
                 layout: 'ux.center',
                 autoScroll: true,
                 width: '75%',

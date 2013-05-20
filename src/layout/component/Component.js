@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This class is intended to be extended or created via the {@link Ext.Component#componentLayout layout}
  * configuration property.  See {@link Ext.Component#componentLayout} for additional details.
@@ -131,28 +151,16 @@ Ext.define('Ext.layout.component.Component', {
 
         // Cache the currently layed out size
         me.lastComponentSize = owner.el.lastBox = props = ownerContext.props;
-
+        
         // lastBox is a copy of the defined props to allow save/restore of these (panel
         // collapse needs this)
-        owner.lastBox = lastBox = {};
-
-        v = props.x;
-        if (v !== undefined) {
-            lastBox.x = v;
-        }
-        v = props.y;
-        if (v !== undefined) {
-            lastBox.y = v;
-        }
-        v = props.width;
-        if (v !== undefined) {
-            lastBox.width = v;
-        }
-        v = props.height;
-        if (v !== undefined) {
-            lastBox.height = v;
-        }
-
+        lastBox = owner.lastBox || (owner.lastBox = {});
+        lastBox.x = props.x;
+        lastBox.y = props.y;
+        lastBox.width = props.width;
+        lastBox.height = props.height;
+        lastBox.invalid = false;
+        
         me.callParent(arguments);
     },
     
@@ -263,7 +271,7 @@ Ext.define('Ext.layout.component.Component', {
                 } else {
                     if (zeroWidth) {
                         ready = true;
-                    } else if (!ownerContext.hasDomProp('containerChildrenDone')) {
+                    } else if (!ownerContext.hasDomProp('containerChildrenSizeDone')) {
                         ready = false;
                     } else if (isBoxParent || !boxParent || boxParent.widthModel.shrinkWrap) {
                         // if we have no boxParent, we are ready, but a shrinkWrap boxParent
@@ -352,7 +360,7 @@ Ext.define('Ext.layout.component.Component', {
                 } else {
                     if (zeroHeight) {
                         ready = true;
-                    } else if (!ownerContext.hasDomProp('containerChildrenDone')) {
+                    } else if (!ownerContext.hasDomProp('containerChildrenSizeDone')) {
                         ready = false;
                     } else if (owner.noWrap) {
                         ready = true;

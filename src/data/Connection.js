@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * The Connection class encapsulates a connection to the page's originating domain, allowing requests to be made either
  * to a configured URL, or to a URL specified at request time.
@@ -28,11 +48,27 @@
  * packet content.
  *
  * Also note that it's not possible to check the response code of the hidden iframe, so the success handler will ALWAYS fire.
+ * 
+ * # Binary Posts
+ * 
+ * The class supports posting binary data to the server by using native browser capabilities, or a flash polyfill plugin in browsers that do not support native binary posting (e.g. Internet Explorer version 9 or less). A number of limitations exist when the polyfill is used:
+ *
+ * - Only asynchronous connections are supported. 
+ * - Only the POST method can be used.
+ * - The return data can only be binary for now. Set the {@link Ext.data.Connection#binary binary} parameter to <tt>true</tt>.
+ * - Only the 0, 1 and 4 (complete) readyState values will be reported to listeners.
+ * - The flash object will be injected at the bottom of the document and should be invisible.
+ * - Important: See note about packaing the flash plugin with the app in the documenetation of {@link Ext.data.flash.BinaryXhr BinaryXhr}.
+ * 
  */
 Ext.define('Ext.data.Connection', {
     mixins: {
         observable: 'Ext.util.Observable'
     },
+    
+    requires: [
+        'Ext.data.flash.BinaryXhr'
+    ],
 
     statics: {
         requestId: 0
@@ -57,11 +93,22 @@ Ext.define('Ext.data.Connection', {
     withCredentials: false,
 
     /**
+     * @cfg {Boolean} binary
+     * True if the response should be treated as binary data.  If true, the binary
+     * data will be accessible as a "responseBytes" property on the response object.
+     */
+    binary: false,
+
+    /**
      * @cfg {Boolean} cors
      * True to enable CORS support on the XHR object. Currently the only effect of this option
      * is to use the XDomainRequest object instead of XMLHttpRequest if the browser is IE8 or above.
      */
     cors: false,
+
+    isXdr: false,
+
+    defaultXdrContentType: 'text/plain',
 
     /**
      * @cfg {String} disableCachingParam
@@ -123,7 +170,8 @@ Ext.define('Ext.data.Connection', {
          */
         /**
          * @event requestexception
-         * Fires if an error HTTP status was returned from the server.
+         * Fires if an error HTTP status was returned from the server. This event may also
+         * be listened to in the event that a request has timed out or has been aborted.
          * See [HTTP Status Code Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
          * for details of HTTP status codes.
          * @param {Ext.data.Connection} conn This Connection object.
@@ -237,9 +285,14 @@ Ext.define('Ext.data.Connection', {
      * @param {Object/String} options.jsonData JSON data to use as the post. Note: This will be used
      * instead of params for the post data. Any params will be appended to the URL.
      *
+     * @param {Array} options.binaryData An array of bytes to submit in binary form. Any params will be appended to the URL. If binaryData is present, you must set {@link Ext.data.Connection#binary binary} to <tt>true</tt> and options.method to <tt>POST</tt>.
+     * 
      * @param {Boolean} options.disableCaching True to add a unique cache-buster param to GET requests.
      *
      * @param {Boolean} options.withCredentials True to add the withCredentials property to the XHR object
+     * 
+     * @param {Boolean} options.binary True if the response should be treated as binary data.  If true, the binary
+     * data will be accessible as a "responseBytes" property on the response object.
      *
      * @return {Object} The request object. This may be used to cancel the request.
      */
@@ -254,7 +307,6 @@ Ext.define('Ext.data.Connection', {
             request,
             headers,
             xhr;
-
         if (me.fireEvent('beforerequest', me, options) !== false) {
 
             requestOptions = me.setOptions(options, scope);
@@ -273,7 +325,10 @@ Ext.define('Ext.data.Connection', {
             async = options.async !== false ? (options.async || me.async) : false;
             xhr = me.openRequest(options, requestOptions, async, username, password);
 
-            headers = me.setupHeaders(xhr, options, requestOptions.data, requestOptions.params);
+            // XDR doesn't support setting any headers
+            if (!me.isXdr) {
+                headers = me.setupHeaders(xhr, options, requestOptions.data, requestOptions.params);
+            }
 
             // create the transaction object
             request = {
@@ -282,16 +337,24 @@ Ext.define('Ext.data.Connection', {
                 headers: headers,
                 options: options,
                 async: async,
+                binary: options.binary || me.binary,
                 timeout: setTimeout(function() {
                     request.timedout = true;
                     me.abort(request);
                 }, options.timeout || me.timeout)
             };
+
             me.requests[request.id] = request;
             me.latestId = request.id;
             // bind our statechange listener
             if (async) {
-                xhr.onreadystatechange = Ext.Function.bind(me.onStateChange, me, [request]);
+                if (!me.isXdr) {
+                    xhr.onreadystatechange = Ext.Function.bind(me.onStateChange, me, [request]);
+                }
+            }
+
+            if (me.isXdr) {
+                me.processXdrRequest(request, xhr);
             }
 
             // start the request!
@@ -304,6 +367,29 @@ Ext.define('Ext.data.Connection', {
             Ext.callback(options.callback, options.scope, [options, undefined, undefined]);
             return null;
         }
+    },
+
+    processXdrRequest: function(request, xhr) {
+        var me = this;
+
+        // Mutate the request object as per XDR spec.
+        delete request.headers;
+
+        request.contentType = request.options.contentType || me.defaultXdrContentType;
+
+        xhr.onload = Ext.Function.bind(me.onStateChange, me, [request, true]);
+        xhr.onerror = xhr.ontimeout = Ext.Function.bind(me.onStateChange, me, [request, false]);
+    },
+
+    processXdrResponse: function(response, xhr) {
+        // Mutate the response object as per XDR spec.
+        response.getAllResponseHeaders = function () {
+            return [];
+        };
+        response.getResponseHeader = function () {
+            return '';
+        };
+        response.contentType = xhr.contentType || this.defaultXdrContentType;
     },
 
     /**
@@ -386,7 +472,7 @@ Ext.define('Ext.data.Connection', {
             }
         }
 
-        Ext.fly(frame).on('load', Ext.Function.bind(this.onUploadComplete, this, [frame, options]), null, {single: true});
+        Ext.fly(frame).on('load', Ext.Function.bind(this.onUploadComplete, this, [frame, options]), null, {single: !Ext.isOpera});
         form.submit();
 
         Ext.fly(form).set(buf);
@@ -410,22 +496,27 @@ Ext.define('Ext.data.Connection', {
             response = {
                 responseText: '',
                 responseXML: null
-            }, doc, contentNode;
+            }, callback, success, doc, contentNode;
 
         try {
             doc = frame.contentWindow.document || frame.contentDocument || window.frames[frame.id].document;
+            // Opera will fire an extraneous load event on about:blank
+            // We want to ignore this since the load event will be fired twice
             if (doc) {
+                 if (Ext.isOpera && doc.location == 'about:blank') {
+                     return;
+                 }
                 if (doc.body) {
 
                     // Response sent as Content-Type: text/json or text/plain. Browser will embed in a <pre> element
                     // Note: The statement below tests the result of an assignment.
                     if ((contentNode = doc.body.firstChild) && /pre/i.test(contentNode.tagName)) {
-                        response.responseText = contentNode.innerText;
+                        response.responseText = contentNode.textContent;
                     }
 
                     // Response sent as Content-Type: text/html. We must still support JSON response wrapped in textarea.
                     // Note: The statement below tests the result of an assignment.
-                    else if (contentNode = doc.getElementsByTagName('textarea')[0]) {
+                    else if ((contentNode = doc.getElementsByTagName('textarea')[0])) {
                         response.responseText = contentNode.value;
                     }
                     // Response sent as Content-Type: text/html with no wrapping. Scrape JSON response out of text
@@ -435,14 +526,20 @@ Ext.define('Ext.data.Connection', {
                 }
                 //in IE the document may still have a body even if returns XML.
                 response.responseXML = doc.XMLDocument || doc;
+                callback = options.success;
+                success = true;
             }
         } catch (e) {
+            // Report any error in the message property
+            response.responseText = '{success:false,message:"' + Ext.String.trim(e.message || e.description) + '"}';
+            callback = options.failure;
+            success = false;
         }
 
         me.fireEvent('requestcomplete', me, response, options);
 
-        Ext.callback(options.success, options.scope, [response, options]);
-        Ext.callback(options.callback, options.scope, [options, true, response]);
+        Ext.callback(callback, options.scope, [response, options]);
+        Ext.callback(options.callback, options.scope, [options, success, response]);
 
         setTimeout(function() {
             Ext.removeNode(frame);
@@ -511,11 +608,25 @@ Ext.define('Ext.data.Connection', {
         //</debug>
 
         // check for xml or json data, and make sure json data is encoded
-        data = options.rawData || options.xmlData || jsonData || null;
+        data = options.rawData || options.binaryData || options.xmlData || jsonData || null;
         if (jsonData && !Ext.isPrimitive(jsonData)) {
             data = Ext.encode(data);
         }
-
+        // Check for binary data. Transform if needed
+        if (options.binaryData) {
+            //<debug>
+            if (!Ext.isArray(options.binaryData)) {
+                Ext.log.warn("Binary submission data must be an array of byte values! Instead got " + typeof(options.binaryData));
+            }
+            //</debug>
+            if (me.nativeBinaryPostSupport()) {
+                data = (new Uint8Array(options.binaryData));
+                if ((Ext.isChrome && Ext.chromeVersion < 22) || Ext.isSafari || Ext.isGecko) {
+                    data = data.buffer; //  send the underlying buffer, not the view, since that's not supported on versions of chrome older than 22
+                }
+            }
+        }
+        
         // make sure params are a url encoded string and include any extraParams if specified
         if (Ext.isObject(params)) {
             params = Ext.Object.toQueryString(params);
@@ -652,7 +763,6 @@ Ext.define('Ext.data.Connection', {
                     header = headers[key];
                     xhr.setRequestHeader(key, header);
                 }
-
             }
         } catch(e) {
             me.fireEvent('exception', key, header);
@@ -666,12 +776,22 @@ Ext.define('Ext.data.Connection', {
      * @private
      */
     newRequest: function (options) {
-        var xhr;
+        var me = this,
+            xhr;
 
-        if ((options.cors || this.cors) && Ext.isIE && Ext.ieVersion >= 8) {
-            xhr = new XDomainRequest();
+        if (options.binaryData) {
+            // This is a binary data request. Handle submission differently for differnet browsers
+            if (me.nativeBinaryPostSupport()) { 
+                xhr = this.getXhrInstance(); // On browsers that support this, use the native XHR object
+            } else {
+                // catch all for all other browser types
+                xhr = new Ext.data.flash.BinaryXhr();
+            }
+        } else  if ((options.cors || me.cors) && Ext.isIE && Ext.ieVersion <= 9) {
+            xhr = me.getXdrInstance();
+            me.isXdr = true;
         } else {
-            xhr = this.getXhrInstance();
+            xhr = me.getXhrInstance();
         }
 
         return xhr;
@@ -684,19 +804,61 @@ Ext.define('Ext.data.Connection', {
      * @private
      */
     openRequest: function (options, requestOptions, async, username, password) {
-        var xhr = this.newRequest(options);
+        var me = this,
+            xhr = me.newRequest(options);
 
         if (username) {
             xhr.open(requestOptions.method, requestOptions.url, async, username, password);
         } else {
-            xhr.open(requestOptions.method, requestOptions.url, async);
+            if (me.isXdr) {
+                xhr.open(requestOptions.method, requestOptions.url);
+            } else {
+                xhr.open(requestOptions.method, requestOptions.url, async);
+            }
         }
 
-        if (options.withCredentials || this.withCredentials) {
+        if (options.binary || me.binary) {
+            if (window.Uint8Array) {
+                xhr.responseType = 'arraybuffer';
+            } else if (xhr.overrideMimeType) {
+                // In some older non-IE browsers, e.g. ff 3.6, that do not
+                // support Uint8Array, a mime type override is required so that
+                // the unprocessed binary data can be read from the responseText
+                // (see createResponse())
+                xhr.overrideMimeType('text\/plain; charset=x-user-defined');  
+            //<debug>
+            } else if (!Ext.isIE) {
+                Ext.log.warn("Your does not support loading binary data using Ajax.");
+            //</debug>
+            }
+        }
+
+        if (options.withCredentials || me.withCredentials) {
             xhr.withCredentials = true;
         }
 
         return xhr;
+    },
+
+    /**
+     * Creates the appropriate XDR transport for this browser.
+     * - IE 7 and below don't support CORS
+     * - IE 8 and 9 support CORS with native XDomainRequest object
+     * - IE 10 (and above?) supports CORS with native XMLHttpRequest object
+     * @private
+     */
+    getXdrInstance: function() {
+        var xdr;
+
+        if (Ext.ieVersion >= 8) {
+            xdr = new XDomainRequest();
+        } else {
+            Ext.Error.raise({
+                msg: 'Your browser does not support CORS'
+            });
+        }
+
+        return xdr;
     },
 
     /**
@@ -739,9 +901,9 @@ Ext.define('Ext.data.Connection', {
         if (!(request && request.xhr)) {
             return false;
         }
-        // if there is a connection and readyState is not 0 or 4
+        // if there is a connection and readyState is not 0 or 4, or in case of BinaryXHR, not 4
         var state = request.xhr.readyState;
-        return !(state === 0 || state == 4);
+        return ((request.xhr instanceof Ext.data.flash.BinaryXhr) && state != 4) || !(state === 0 || state == 4);
     },
 
     /**
@@ -768,7 +930,7 @@ Ext.define('Ext.data.Connection', {
             } catch (e) {
                 // Setting onreadystatechange to null can cause problems in IE, see
                 // http://www.quirksmode.org/blog/archives/2005/09/xmlhttp_notes_a_1.html
-                xhr = Ext.emptyFn;
+                xhr.onreadystatechange = Ext.emptyFn;
             }
             xhr.abort();
             me.clearTimeout(request);
@@ -814,18 +976,22 @@ Ext.define('Ext.data.Connection', {
      * @private
      * @param {Object} request The request
      */
-    onStateChange : function(request) {
-        if (request.xhr.readyState == 4) {
-            this.clearTimeout(request);
-            this.onComplete(request);
-            this.cleanup(request);
+    onStateChange : function(request, xdrResult) {
+        var me = this;
+
+        // Using CORS with IE doesn't support readyState so we fake it
+        if ((request.xhr && request.xhr.readyState == 4) || me.isXdr) {
+            me.clearTimeout(request);
+            me.onComplete(request, xdrResult);
+            me.cleanup(request);
+            Ext.EventManager.idleEvent.fire();
         }
     },
 
     /**
      * Clears the timeout on the request
      * @private
-     * @param {Object} The request
+     * @param {Object} request The request
      */
     clearTimeout: function(request) {
         clearTimeout(request.timeout);
@@ -835,7 +1001,7 @@ Ext.define('Ext.data.Connection', {
     /**
      * Cleans up any left over information from the request
      * @private
-     * @param {Object} The request
+     * @param {Object} request The request
      */
     cleanup: function(request) {
         request.xhr = null;
@@ -848,7 +1014,7 @@ Ext.define('Ext.data.Connection', {
      * @param {Object} request
      * @return {Object} The response
      */
-    onComplete : function(request) {
+    onComplete : function(request, xdrResult) {
         var me = this,
             options = request.options,
             result,
@@ -863,8 +1029,9 @@ Ext.define('Ext.data.Connection', {
                 success : false,
                 isException : false
             };
+
         }
-        success = result.success;
+        success = me.isXdr ? xdrResult : result.success;
 
         if (success) {
             response = me.createResponse(request);
@@ -920,11 +1087,13 @@ Ext.define('Ext.data.Connection', {
      * @param {Object} request
      */
     createResponse : function(request) {
-        var xhr = request.xhr,
+        var me = this,
+            xhr = request.xhr,
+            isXdr = me.isXdr,
             headers = {},
-            lines = xhr.getAllResponseHeaders().replace(/\r\n/g, '\n').split('\n'),
+            lines = isXdr ? [] : xhr.getAllResponseHeaders().replace(/\r\n/g, '\n').split('\n'),
             count = lines.length,
-            line, index, key, value, response;
+            line, index, key, response, byteArray;
 
         while (count--) {
             line = lines[count];
@@ -943,18 +1112,31 @@ Ext.define('Ext.data.Connection', {
 
         response = {
             request: request,
-            requestId : request.id,
-            status : xhr.status,
-            statusText : xhr.statusText,
-            getResponseHeader : function(header) {
+            requestId: request.id,
+            status: xhr.status,
+            statusText: xhr.statusText,
+            getResponseHeader: function(header) {
                 return headers[header.toLowerCase()];
             },
-            getAllResponseHeaders : function() {
+            getAllResponseHeaders: function() {
                 return headers;
-            },
-            responseText : xhr.responseText,
-            responseXML : xhr.responseXML
+            }
         };
+
+        if (isXdr) {
+            me.processXdrResponse(response, xhr);
+        }
+
+        if (request.binary) {
+            response.responseBytes = me.getByteArray(xhr);
+        } else {
+            // an error is thrown when trying to access responseText or responseXML
+            // on an xhr object with responseType of 'arraybuffer', so only attempt
+            // to set these properties in the response if we're not dealing with
+            // binary data
+            response.responseText = xhr.responseText;
+            response.responseXML = xhr.responseXML;
+        }
 
         // If we don't explicitly tear down the xhr reference, IE6/IE7 will hold this in the closure of the
         // functions created with getResponseHeader/getAllResponseHeaders
@@ -976,5 +1158,98 @@ Ext.define('Ext.data.Connection', {
             aborted: request.aborted,
             timedout: request.timedout
         };
+    },
+
+    /**
+     * Gets binary data from the xhr response object and returns it as a byte array
+     * @private
+     * @param {Object} xhr the xhr response object
+     * @return {Uint8Array/Array}
+     */
+    getByteArray: function(xhr) {
+        var response = xhr.response,
+            responseBody = xhr.responseBody,
+            byteArray, responseText, len, i;
+
+        if (xhr instanceof Ext.data.flash.BinaryXhr) {
+            // If this was a BinaryXHR request via flash, we already have the bytes ready
+            byteArray = xhr.responseBytes;
+        } else if (window.Uint8Array) {
+            // Modern browsers (including IE10) have a native byte array
+            // which can be created by passing the ArrayBuffer (returned as
+            // the xhr.response property) to the Uint8Array constructor.
+            byteArray = response ? new Uint8Array(response) : [];
+        } else if (Ext.isIE9p) {
+            // In IE9 and below the responseBody property contains a byte array
+            // but it is not directly accessible using javascript.
+            // In IE9p we can get the bytes by constructing a VBArray
+            // using the responseBody and then converting it to an Array.
+            try {
+                byteArray = new VBArray(responseBody).toArray();
+            } catch(e) {
+                // If the binary response is empty, the VBArray constructor will
+                // choke on the responseBody.  We can't simply do a null check
+                // on responseBody because responseBody is always falsy when it
+                // contains binary data.
+                byteArray = [];
+            }
+        } else if (Ext.isIE) {
+            // IE8 and below also have a VBArray constructor, but throw a
+            // "VBArray Expected" error if you try to pass the responseBody to
+            // the VBArray constructor.
+            // http://msdn.microsoft.com/en-us/library/ye3x9by3%28v=vs.71%29.aspx
+            // so we have to use vbscript injection to access the bytes
+            if (!this.self.vbScriptInjected) {
+                this.injectVBScript();
+            }
+            getIEByteArray(xhr.responseBody, byteArray = []);
+        } else {
+            // in other older browsers make a best-effort attempt to read the
+            // bytes from responseText
+            byteArray = [];
+            responseText = xhr.responseText;
+            len = responseText.length;
+            for (i = 0; i < len; i++) {
+                // Some characters have an extra byte 0xF7 in the high order
+                // position. Throw away the high order byte and then push the
+                // result onto the byteArray.
+                byteArray.push(responseText.charCodeAt(i) & 0xFF);
+            }
+        }
+
+        return byteArray;
+    },
+
+    /**
+     * Injects a vbscript tag containing a 'getIEByteArray' method for reading
+     * binary data from an xhr response in IE8 and below.
+     * @private
+     */
+    injectVBScript: function() {
+        var scriptTag = document.createElement('script');
+        scriptTag.type = 'text/vbscript';
+        scriptTag.text = [
+            'Function getIEByteArray(byteArray, out)',
+                'Dim len, i',
+                'len = LenB(byteArray)',
+                'For i = 1 to len',
+                    'out.push(AscB(MidB(byteArray, i, 1)))',
+                'Next',
+            'End Function'
+        ].join('\n');
+        Ext.getHead().dom.appendChild(scriptTag);
+        this.self.vbScriptInjected = true;
+    },
+    
+    /**
+     * @private
+     * @return {boolean} <tt>true</tt> if the browser can natively post binary data.
+     */
+    nativeBinaryPostSupport: function() {
+        return Ext.isChrome ||
+            (Ext.isSafari && Ext.isDefined(window.Uint8Array)) ||
+            (Ext.isGecko && Ext.isDefined(window.Uint8Array));
     }
+    
+    
 });

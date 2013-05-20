@@ -116,6 +116,7 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
         'Ext.ux.grid.menu.RangeMenu',
         'Ext.ux.grid.filter.BooleanFilter',
         'Ext.ux.grid.filter.DateFilter',
+        'Ext.ux.grid.filter.DateTimeFilter',
         'Ext.ux.grid.filter.ListFilter',
         'Ext.ux.grid.filter.NumericFilter',
         'Ext.ux.grid.filter.StringFilter'
@@ -180,8 +181,8 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
      */
     updateBuffer : 500,
 
-    // doesn't handle grid body events
-    hasFeatureEvent: false,
+<span id='Ext-ux-grid-FiltersFeature-property-hasFeatureEvent'>    // doesn't handle grid body events
+</span>    hasFeatureEvent: false,
 
 
 <span id='Ext-ux-grid-FiltersFeature-method-constructor'>    /** @private */
@@ -198,11 +199,10 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
         me.filterConfigs = config.filters;
     },
 
-    attachEvents: function() {
-        var me = this,
+<span id='Ext-ux-grid-FiltersFeature-method-init'>    init: function(grid) {
+</span>        var me = this,
             view = me.view,
-            headerCt = view.headerCt,
-            grid = me.getGridPanel();
+            headerCt = view.headerCt;
 
         me.bindStore(view.getStore(), true);
 
@@ -222,8 +222,8 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
         grid.addEvents('filterupdate');
     },
 
-    createFiltersCollection: function () {
-        return Ext.create('Ext.util.MixedCollection', false, function (o) {
+<span id='Ext-ux-grid-FiltersFeature-method-createFiltersCollection'>    createFiltersCollection: function () {
+</span>        return Ext.create('Ext.util.MixedCollection', false, function (o) {
             return o ? o.dataIndex : null;
         });
     },
@@ -346,8 +346,8 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
     },
 
 
-    createMenuItem: function(menu) {
-        var me = this;
+<span id='Ext-ux-grid-FiltersFeature-method-createMenuItem'>    createMenuItem: function(menu) {
+</span>        var me = this;
         me.sep  = menu.add('-');
         me.menuItem = menu.add({
             checked: false,
@@ -361,8 +361,8 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
         });
     },
 
-    getGridPanel: function() {
-        return this.view.up('gridpanel');
+<span id='Ext-ux-grid-FiltersFeature-method-getGridPanel'>    getGridPanel: function() {
+</span>        return this.view.up('gridpanel');
     },
 
 <span id='Ext-ux-grid-FiltersFeature-method-applyState'>    /**
@@ -665,24 +665,38 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
         });
     },
 
+<span id='Ext-ux-grid-FiltersFeature-method-getFilterItems'>    getFilterItems: function () {
+</span>        var me = this;
+
+        // If there's a locked grid then we must get the filter items for each grid.
+        if (me.lockingPartner) {
+            return me.filters.items.concat(me.lockingPartner.filters.items);
+        }
+
+        return me.filters.items;
+    },
+
 <span id='Ext-ux-grid-FiltersFeature-method-getFilterData'>    /**
 </span>     * Returns an Array of the currently active filters.
      * @return {Array} filters Array of the currently active filters.
      */
     getFilterData : function () {
-        var filters = [], i, len;
+        var items = this.getFilterItems(),
+            filters = [],
+            n, nlen, item, d, i, len;
 
-        this.filters.each(function (f) {
-            if (f.active) {
-                var d = [].concat(f.serialize());
+        for (n = 0, nlen = items.length; n &lt; nlen; n++) {
+            item = items[n];
+            if (item.active) {
+                d = [].concat(item.serialize());
                 for (i = 0, len = d.length; i &lt; len; i++) {
                     filters.push({
-                        field: f.dataIndex,
+                        field: item.dataIndex,
                         data: d[i]
                     });
                 }
             }
-        });
+        }
         return filters;
     },
 

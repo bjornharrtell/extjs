@@ -38,63 +38,69 @@ Ext.define('Ext.data.proxy.Server', {
      */
 
 <span id='Ext-data-proxy-Server-cfg-pageParam'>    /**
-</span>     * @cfg {String} pageParam
+</span>     * @cfg {String} [pageParam=&quot;page&quot;]
      * The name of the 'page' parameter to send in a request. Defaults to 'page'. Set this to undefined if you don't
      * want to send a page parameter.
      */
     pageParam: 'page',
 
 <span id='Ext-data-proxy-Server-cfg-startParam'>    /**
-</span>     * @cfg {String} startParam
+</span>     * @cfg {String} [startParam=&quot;start&quot;]
      * The name of the 'start' parameter to send in a request. Defaults to 'start'. Set this to undefined if you don't
      * want to send a start parameter.
      */
     startParam: 'start',
 
 <span id='Ext-data-proxy-Server-cfg-limitParam'>    /**
-</span>     * @cfg {String} limitParam
+</span>     * @cfg {String} [limitParam=&quot;limit&quot;]
      * The name of the 'limit' parameter to send in a request. Defaults to 'limit'. Set this to undefined if you don't
      * want to send a limit parameter.
      */
     limitParam: 'limit',
 
 <span id='Ext-data-proxy-Server-cfg-groupParam'>    /**
-</span>     * @cfg {String} groupParam
+</span>     * @cfg {String} [groupParam=&quot;group&quot;]
      * The name of the 'group' parameter to send in a request. Defaults to 'group'. Set this to undefined if you don't
      * want to send a group parameter.
      */
     groupParam: 'group',
 
 <span id='Ext-data-proxy-Server-cfg-groupDirectionParam'>    /**
-</span>     * @cfg {String} groupDirectionParam
+</span>     * @cfg {String} [groupDirectionParam=&quot;groupDir&quot;]
      * The name of the direction parameter to send in a request. **This is only used when simpleGroupMode is set to
-     * true.** Defaults to 'groupDir'.
+     * true.**
      */
     groupDirectionParam: 'groupDir',
 
 <span id='Ext-data-proxy-Server-cfg-sortParam'>    /**
-</span>     * @cfg {String} sortParam
+</span>     * @cfg {String} [sortParam=&quot;sort&quot;]
      * The name of the 'sort' parameter to send in a request. Defaults to 'sort'. Set this to undefined if you don't
      * want to send a sort parameter.
      */
     sortParam: 'sort',
 
 <span id='Ext-data-proxy-Server-cfg-filterParam'>    /**
-</span>     * @cfg {String} filterParam
+</span>     * @cfg {String} [filterParam=&quot;filter&quot;]
      * The name of the 'filter' parameter to send in a request. Defaults to 'filter'. Set this to undefined if you don't
      * want to send a filter parameter.
      */
     filterParam: 'filter',
 
 <span id='Ext-data-proxy-Server-cfg-directionParam'>    /**
-</span>     * @cfg {String} directionParam
+</span>     * @cfg {String} [directionParam=&quot;dir&quot;]
      * The name of the direction parameter to send in a request. **This is only used when simpleSortMode is set to
-     * true.** Defaults to 'dir'.
+     * true.**
      */
     directionParam: 'dir',
 
+<span id='Ext-data-proxy-Server-cfg-idParam'>    /**
+</span>     * @cfg {String} [idParam=&quot;id&quot;]
+     * The name of the parameter which carries the id of the entity being operated upon.
+     */
+    idParam: 'id',
+
 <span id='Ext-data-proxy-Server-cfg-simpleSortMode'>    /**
-</span>     * @cfg {Boolean} simpleSortMode
+</span>     * @cfg {Boolean} [simpleSortMode=false]
      * Enabling simpleSortMode in conjunction with remoteSort will only send one sort property and a direction when a
      * remote sort is requested. The {@link #directionParam} and {@link #sortParam} will be sent with the property name
      * and either 'ASC' or 'DESC'.
@@ -102,7 +108,7 @@ Ext.define('Ext.data.proxy.Server', {
     simpleSortMode: false,
 
 <span id='Ext-data-proxy-Server-cfg-simpleGroupMode'>    /**
-</span>     * @cfg {Boolean} simpleGroupMode
+</span>     * @cfg {Boolean} [simpleGroupMode=false]
      * Enabling simpleGroupMode in conjunction with remoteGroup will only send one group property and a direction when a
      * remote group is requested. The {@link #groupDirectionParam} and {@link #groupParam} will be sent with the property name and either 'ASC'
      * or 'DESC'.
@@ -110,13 +116,13 @@ Ext.define('Ext.data.proxy.Server', {
     simpleGroupMode: false,
 
 <span id='Ext-data-proxy-Server-cfg-noCache'>    /**
-</span>     * @cfg {Boolean} noCache
+</span>     * @cfg {Boolean} [noCache=true]
      * Disable caching by adding a unique parameter name to the request. Set to false to allow caching. Defaults to true.
      */
     noCache : true,
 
 <span id='Ext-data-proxy-Server-cfg-cacheString'>    /**
-</span>     * @cfg {String} cacheString
+</span>     * @cfg {String} [cacheString=&quot;_dc&quot;]
      * The name of the cache param added to the url when using noCache. Defaults to &quot;_dc&quot;.
      */
     cacheString: &quot;_dc&quot;,
@@ -161,7 +167,8 @@ Ext.define('Ext.data.proxy.Server', {
         config = config || {};
 <span id='Ext-data-proxy-Server-event-exception'>        /**
 </span>         * @event exception
-         * Fires when the server returns an exception
+         * Fires when the server returns an exception. This event may also be listened
+         * to in the event that a request has timed out or has been aborted.
          * @param {Ext.data.proxy.Proxy} this
          * @param {Object} response The response from the AJAX request
          * @param {Ext.data.Operation} operation The operation that triggered request
@@ -182,21 +189,21 @@ Ext.define('Ext.data.proxy.Server', {
         me.nocache = me.noCache;
     },
 
-    //in a ServerProxy all four CRUD operations are executed in the same manner, so we delegate to doRequest in each case
-    create: function() {
+<span id='Ext-data-proxy-Server-method-create'>    //in a ServerProxy all four CRUD operations are executed in the same manner, so we delegate to doRequest in each case
+</span>    create: function() {
         return this.doRequest.apply(this, arguments);
     },
 
-    read: function() {
-        return this.doRequest.apply(this, arguments);
+<span id='Ext-data-proxy-Server-method-read'>    read: function() {
+</span>        return this.doRequest.apply(this, arguments);
     },
 
-    update: function() {
-        return this.doRequest.apply(this, arguments);
+<span id='Ext-data-proxy-Server-method-update'>    update: function() {
+</span>        return this.doRequest.apply(this, arguments);
     },
 
-    destroy: function() {
-        return this.doRequest.apply(this, arguments);
+<span id='Ext-data-proxy-Server-method-destroy'>    destroy: function() {
+</span>        return this.doRequest.apply(this, arguments);
     },
 
 <span id='Ext-data-proxy-Server-method-setExtraParam'>    /**
@@ -218,14 +225,18 @@ Ext.define('Ext.data.proxy.Server', {
      */
     buildRequest: function(operation) {
         var me = this,
-            params = Ext.applyIf(operation.params || {}, me.extraParams || {}),
+            // Clone params right now so that they can be mutated at any point further down the call stack
+            params = operation.params = Ext.apply({}, operation.params, me.extraParams),
             request;
 
         //copy any sorters, filters etc into the params so they can be sent over the wire
-        params = Ext.applyIf(params, me.getParams(operation));
+        Ext.applyIf(params, me.getParams(operation));
 
-        if (operation.id !== undefined &amp;&amp; params.id === undefined) {
-            params.id = operation.id;
+        // Set up the entity id parameter according to the configured name.
+        // This defaults to &quot;id&quot;. But TreeStore has a &quot;nodeParam&quot; configuration which
+        // specifies the id parameter name of the node being loaded.
+        if (operation.id !== undefined &amp;&amp; params[me.idParam] === undefined) {
+            params[me.idParam] = operation.id;
         }
 
         request = new Ext.data.Request({
@@ -251,8 +262,8 @@ Ext.define('Ext.data.proxy.Server', {
         return request;
     },
 
-    // Should this be documented as protected method?
-    processResponse: function(success, operation, request, response, callback, scope) {
+<span id='Ext-data-proxy-Server-method-processResponse'>    // Should this be documented as protected method?
+</span>    processResponse: function(success, operation, request, response, callback, scope) {
         var me = this,
             reader,
             result;
@@ -314,14 +325,12 @@ Ext.define('Ext.data.proxy.Server', {
      * @param {Object} response The server response
      * @return {Object} The response data to be used by the reader
      */
-    extractResponseData: function(response) {
-        return response;
-    },
+    extractResponseData: Ext.identityFn,
 
 <span id='Ext-data-proxy-Server-method-applyEncoding'>    /**
 </span>     * Encode any values being sent to the server. Can be overridden in subclasses.
      * @private
-     * @param {Array} An array of sorters/filters.
+     * @param {Array} value An array of sorters/filters.
      * @return {Object} The encoded value
      */
     applyEncoding: function(value) {
@@ -392,7 +401,8 @@ Ext.define('Ext.data.proxy.Server', {
             groupDirectionParam = me.groupDirectionParam,
             sortParam = me.sortParam,
             filterParam = me.filterParam,
-            directionParam = me.directionParam;
+            directionParam = me.directionParam,
+            hasGroups, index;
 
         if (pageParam &amp;&amp; isDef(page)) {
             params[pageParam] = page;
@@ -406,7 +416,8 @@ Ext.define('Ext.data.proxy.Server', {
             params[limitParam] = limit;
         }
 
-        if (groupParam &amp;&amp; groupers &amp;&amp; groupers.length &gt; 0) {
+        hasGroups = groupParam &amp;&amp; groupers &amp;&amp; groupers.length &gt; 0;
+        if (hasGroups) {
             // Grouper is a subclass of sorter, so we can just use the sorter method
             if (simpleGroupMode) {
                 params[groupParam] = groupers[0].property;
@@ -418,8 +429,13 @@ Ext.define('Ext.data.proxy.Server', {
 
         if (sortParam &amp;&amp; sorters &amp;&amp; sorters.length &gt; 0) {
             if (simpleSortMode) {
-                params[sortParam] = sorters[0].property;
-                params[directionParam] = sorters[0].direction;
+                index = 0;
+                // Group will be included in sorters, so grab the next one
+                if (sorters.length &gt; 1 &amp;&amp; hasGroups) {
+                    index = 1;
+                }
+                params[sortParam] = sorters[index].property;
+                params[directionParam] = sorters[index].direction;
             } else {
                 params[sortParam] = me.encodeSorters(sorters);
             }
@@ -495,8 +511,8 @@ Ext.define('Ext.data.proxy.Server', {
      */
     afterRequest: Ext.emptyFn,
 
-    onDestroy: function() {
-        Ext.destroy(this.reader, this.writer);
+<span id='Ext-data-proxy-Server-method-onDestroy'>    onDestroy: function() {
+</span>        Ext.destroy(this.reader, this.writer);
     }
 });
 </pre>

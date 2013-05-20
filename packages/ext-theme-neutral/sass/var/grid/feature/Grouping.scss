@@ -1,0 +1,11 @@
+$grid-grouped-header-background-color: #fff !default;
+$grid-grouped-header-border-width: 0 0 2px 0 !default;
+$grid-grouped-header-border-style: solid !default;
+$grid-grouped-header-border-color: adjust-color($base-color, $hue: 0.844deg, $saturation: 7.644%, $lightness: -8.627%) !default;
+
+$grid-grouped-header-padding: 10px 4px 4px 4px !default;
+
+$grid-grouped-title-color: adjust-color($base-color, $hue: 0.952deg, $saturation: -6.718%, $lightness: -41.961%) !default;
+$grid-grouped-title-font: bold ceil($font-size * .9) $font-family !default;
+
+$grid-grouped-icon-padding: 0 0 0 14px !default; 

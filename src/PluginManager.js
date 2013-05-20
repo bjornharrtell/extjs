@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides a registry of available Plugin classes indexed by a mnemonic code known as the Plugin's ptype.
  *
@@ -32,39 +52,41 @@ Ext.define('Ext.PluginManager', {
      * contain a `ptype`. (Optional if the config contains a `ptype`).
      * @return {Ext.Component} The newly instantiated Plugin.
      */
-    create : function(config, defaultType){
+    create : function(config, defaultType, host) {
+        var result;
+
         if (config.init) {
-            return config;
+            result = config;
         } else {
-            return Ext.createByAlias('plugin.' + (config.ptype || defaultType), config);
+            // Inject the host into the config is we know the host
+            if (host) {
+                config = Ext.apply({}, config); // copy since we are going to modify
+                config.cmp = host;
+            }
+            // Grab the host ref if it was configured in
+            else {
+                host = config.cmp;
+            }
+
+            if (config.xclass) {
+                result = Ext.create(config);
+            } else {
+                // Lookup the class from the ptype and instantiate unless its a singleton
+                result = Ext.ClassManager.getByAlias(('plugin.' + (config.ptype || defaultType)));
+
+                if (typeof result === 'function') {
+                    result = new result(config);
+                }
+            }
         }
 
-        // Prior system supported Singleton plugins.
-        //var PluginCls = this.types[config.ptype || defaultType];
-        //if (PluginCls.init) {
-        //    return PluginCls;
-        //} else {
-        //    return new PluginCls(config);
-        //}
+        // If we come out with a non-null plugin, ensure that any setCmp is called once.
+        if (result && host && result.setCmp && !result.setCmpCalled) {
+            result.setCmp(host);
+            result.setCmpCalled = true;
+        }
+        return result;
     },
-
-    //create: function(plugin, defaultType) {
-    //    if (plugin instanceof this) {
-    //        return plugin;
-    //    } else {
-    //        var type, config = {};
-    //
-    //        if (Ext.isString(plugin)) {
-    //            type = plugin;
-    //        }
-    //        else {
-    //            type = plugin[this.typeName] || defaultType;
-    //            config = plugin;
-    //        }
-    //
-    //        return Ext.createByAlias('plugin.' + type, config);
-    //    }
-    //},
 
     /**
      * Returns all plugins registered with the given type. Here, 'type' refers to the type of plugin, not its ptype.

@@ -35,7 +35,7 @@ Ext.onReady(function() {
                 };
                 
                 // Apply the repair animation
-                this.el.moveTo(this.originalXY[0], this.originalXY[1], animCfgObj);
+                this.el.setXY([this.originalXY[0], this.originalXY[1]], animCfgObj);
                 delete this.invalidDrop;
             }
         },

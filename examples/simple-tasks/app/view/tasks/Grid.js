@@ -8,7 +8,7 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
     xtype: 'taskGrid',
     requires: [
         'SimpleTasks.ux.DragDrop',
-        'SimpleTasks.ux.CheckColumn',
+        'SimpleTasks.ux.StatusColumn',
         'SimpleTasks.ux.ReminderColumn',
         'Ext.grid.plugin.CellEditing',
         'Ext.grid.column.Action',
@@ -74,7 +74,7 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
             },
             items: [
                 {
-                    xtype: 'checkcolumn',
+                    xtype: 'statuscolumn',
                     dataIndex: 'done',
                     cls: 'tasks-icon-column-header tasks-done-column-header',
                     width: 24,
@@ -110,7 +110,7 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
                     xtype: 'datecolumn',
                     text: 'Due Date',
                     dataIndex: 'due',
-                    width: 90,
+                    width: 100,
                     editor: 'datefield',
                     format: 'n/j/Y',
                     emptyCellText: ''
@@ -181,7 +181,7 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
 
             /**
              * @event edit
-             * Fires when a record is edited using the CellEditing plugin or the checkcolumn
+             * Fires when a record is edited using the CellEditing plugin or the statuscolumn
              * @param {SimpleTasks.model.Task} task     The task record that was edited
              */
             'recordedit',
@@ -230,7 +230,7 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
     /**
      * Handles a "checkchange" event on the "done" column
      * @private
-     * @param {SimpleTasks.ux.CheckColumn} column
+     * @param {SimpleTasks.ux.StatusColumn} column
      * @param {Number} rowIndex
      * @param {Boolean} checked
      */

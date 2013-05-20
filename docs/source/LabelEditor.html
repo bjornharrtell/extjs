@@ -16,48 +16,47 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-DataView-LabelEditor'>/**
-</span> * @class Ext.ux.DataView.LabelEditor
- * @extends Ext.Editor
+</span> *
  */
 Ext.define('Ext.ux.DataView.LabelEditor', {
 
     extend: 'Ext.Editor',
 
-    alignment: 'tl-tl',
-
-    completeOnEnter: true,
-
-    cancelOnEsc: true,
-
-    shim: false,
-
-    autoSize: {
-        width: 'boundEl',
+<span id='Ext-ux-DataView-LabelEditor-cfg-alignment'>    alignment: 'tl-tl',
+</span>
+<span id='Ext-ux-DataView-LabelEditor-cfg-completeOnEnter'>    completeOnEnter: true,
+</span>
+<span id='Ext-ux-DataView-LabelEditor-cfg-cancelOnEsc'>    cancelOnEsc: true,
+</span>
+<span id='Ext-ux-DataView-LabelEditor-property-shim'>    shim: false,
+</span>
+<span id='Ext-ux-DataView-LabelEditor-cfg-autoSize'>    autoSize: {
+</span>        width: 'boundEl',
         height: 'field'
     },
 
-    labelSelector: 'x-editable',
-
+<span id='Ext-ux-DataView-LabelEditor-property-labelSelector'>    labelSelector: 'x-editable',
+</span>
     requires: [
         'Ext.form.field.Text'
     ],
 
-    constructor: function(config) {
-        config.field = config.field || Ext.create('Ext.form.field.Text', {
-            allowBlank: false,
+<span id='Ext-ux-DataView-LabelEditor-method-constructor'>    constructor: function(config) {
+</span>        config.field = config.field || Ext.create('Ext.form.field.Text', {
+            allowOnlyWhitespace: false,
             selectOnFocus:true
         });
         this.callParent([config]);
     },
 
-    init: function(view) {
-        this.view = view;
+<span id='Ext-ux-DataView-LabelEditor-method-init'>    init: function(view) {
+</span>        this.view = view;
         this.mon(view, 'render', this.bindEvents, this);
         this.on('complete', this.onSave, this);
     },
 
-    // initialize events
-    bindEvents: function() {
+<span id='Ext-ux-DataView-LabelEditor-method-bindEvents'>    // initialize events
+</span>    bindEvents: function() {
         this.mon(this.view.getEl(), {
             click: {
                 fn: this.onClick,
@@ -66,8 +65,8 @@ Ext.define('Ext.ux.DataView.LabelEditor', {
         });
     },
 
-    // on mousedown show editor
-    onClick: function(e, target) {
+<span id='Ext-ux-DataView-LabelEditor-method-onClick'>    // on mousedown show editor
+</span>    onClick: function(e, target) {
         var me = this,
             item, record;
 
@@ -83,8 +82,8 @@ Ext.define('Ext.ux.DataView.LabelEditor', {
         }
     },
 
-    // update record
-    onSave: function(ed, value) {
+<span id='Ext-ux-DataView-LabelEditor-method-onSave'>    // update record
+</span>    onSave: function(ed, value) {
         this.activeRecord.set(this.dataIndex, value);
     }
 });

@@ -21,14 +21,26 @@ class Users extends ApplicationController {
     public function create() {
         $res = new Response();
 
+        // data=<JSON encoded data>
+        if ($this->params->data) {
+            if ($rec =  User::create(json_decode($this->params->data, true))) {
+                $res->success = true;
+                $res->data = $rec->to_hash();
+                $res->message = "Created record!";
+            } else {
+                $res->success = false;
+                $res->message = "Failed to create record";
+            }
+        }
         // Ugh, php...check if !hash
-        if (is_array($this->params) && !empty($this->params) && preg_match('/^\d+$/', implode('', array_keys($this->params)))) {
+        else if (is_array($this->params) && !empty($this->params) && preg_match('/^\d+$/', implode('', array_keys($this->params)))) {
             foreach ($this->params as $data) {
                 array_push($res->data, User::create($data)->to_hash());
             }
             $res->success = true;
             $res->message = "Created " . count($res->data) . ' records';
-        } else {
+        }
+        else {
             if ($rec =  User::create($this->params)) {
                 $res->success = true;
                 $res->data = $rec->to_hash();
@@ -47,7 +59,19 @@ class Users extends ApplicationController {
     public function update() {
         $res = new Response();
 
-        if (is_array($this->params)) {
+        // data=<JSON encoded data>
+        if ($this->params->data) {
+            $data = json_decode($this->params->data, true);
+            $res->data = array();
+            foreach ($data as $rec_data) {
+                if ($rec = User::update($rec_data->id, $rec_data)) {
+                    array_push($res->data, $rec->to_hash());
+                }
+            }
+            $res->success = true;
+            $res->message = "Updated " . count($res->data) . " records!";
+        }
+        else if (is_array($this->params)) {
             $res->data = array();
             foreach ($this->params as $data) {
                 if ($rec = User::update($data->id, $data)) {
@@ -56,7 +80,8 @@ class Users extends ApplicationController {
             }
             $res->success = true;
             $res->message = "Updated " . count($res->data) . " records";
-        } else {
+        }
+        else {
             if ($rec = User::update($this->params->id, $this->params)) {
                 $res->data = $rec->to_hash();
 
@@ -69,7 +94,7 @@ class Users extends ApplicationController {
                     $res->message = "Updated record";
                 }
             } else {
-                $res->message = "Failed to updated record " . $this->params->id;
+                $res->message = "Failed to update record " . $this->params->id;
                 $res->success = false;
             }
 
@@ -82,7 +107,20 @@ class Users extends ApplicationController {
      */
     public function destroy() {
         $res = new Response();
-        if (is_array($this->params)) {
+
+        // data=<JSON encoded data>
+        if ($this->params->data) {
+            $data = json_decode($this->params->data, true);
+            $destroyed = array();
+            foreach ($data as $rec_data) {
+                if ($rec = User::destroy($rec_data->id)) {
+                    array_push($destroyed, $rec->to_hash());
+                }
+            }
+            $res->success = true;
+            $res->message = "Destroyed " . count($destroyed) . " records!";
+        }
+        else if (is_array($this->params)) {
             $destroyed = array();
             foreach ($this->params as $rec) {
                 if ($rec = User::destroy($rec->id)) {
@@ -91,7 +129,8 @@ class Users extends ApplicationController {
             }
             $res->success = true;
             $res->message = 'Destroyed ' . count($destroyed) . ' records';
-        } else {
+        }
+        else {
             if ($rec = User::destroy($this->params->id)) {
                 $res->message = "Destroyed User";
                 $res->success = true;

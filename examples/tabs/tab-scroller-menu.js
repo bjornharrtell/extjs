@@ -14,6 +14,7 @@ Ext.onReady(function() {
     Ext.tip.QuickTipManager.init();
 
     var win = Ext.widget('window', {
+        constrain: true,
         height: 400,
         width: 600,
         layout: 'fit',

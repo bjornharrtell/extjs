@@ -43,9 +43,9 @@ Ext.define('Ext.form.action.StandardSubmit', {
      * {@link Ext.form.Basic#baseParams baseParams}.
      */
     doSubmit: function() {
-        var form = this.buildForm();
-        form.submit();
-        Ext.removeNode(form);
+        var formInfo = this.buildForm();
+        formInfo.formEl.submit();
+        this.cleanup(formInfo);
     }
 
 });

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Aaron Conran
  * @docauthor Ed Spencer
@@ -163,7 +183,7 @@
  *
  * - {@link Ext.toolbar.Paging Paging toolbar} - paging through large sets of data.
  *
- * - {@link Ext.grid.PagingScroller Infinite scrolling} - another way to handle large sets of data.
+ * - {@link Ext.grid.plugin.BufferedRenderer Infinite scrolling} - another way to handle large sets of data.
  *
  * - {@link Ext.grid.RowNumberer RowNumberer} - automatically numbered rows.
  *
@@ -182,24 +202,6 @@ Ext.define('Ext.grid.Panel', {
 
     lockable: false,
 
-    // Required for the Lockable Mixin. These are the configurations which will be copied to the
-    // normal and locked sub tablepanels
-    bothCfgCopy: [
-        'invalidateScrollerOnRefresh',
-        'hideHeaders',
-        'enableColumnHide',
-        'enableColumnMove',
-        'enableColumnResize',
-        'sortableColumns'
-    ],
-    normalCfgCopy: [ 
-        'verticalScroller', 
-        'verticalScrollDock', 
-        'verticalScrollerType', 
-        'scroll'
-    ],
-    lockedCfgCopy: [],
-
     /**
      * @cfg {Boolean} rowLines False to remove row line styling
      */
@@ -212,11 +214,23 @@ Ext.define('Ext.grid.Panel', {
      */
 
     /**
+     * @event beforereconfigure
+     * Fires before a reconfigure to enable modification of incoming Store and columns.
+     * @param {Ext.grid.Panel} this
+     * @param {Ext.data.Store} store The store that was passed to the {@link #method-reconfigure} method
+     * @param {Object[]} columns The column configs that were passed to the {@link #method-reconfigure} method
+     * @param {Ext.data.Store} oldStore The store that will be replaced
+     * @param {Ext.grid.column.Column[]} The column headers that will be replaced.
+     */
+
+    /**
      * @event reconfigure
      * Fires after a reconfigure.
      * @param {Ext.grid.Panel} this
      * @param {Ext.data.Store} store The store that was passed to the {@link #method-reconfigure} method
      * @param {Object[]} columns The column configs that were passed to the {@link #method-reconfigure} method
+     * @param {Ext.data.Store} oldStore The store that was replaced
+     * @param {Ext.grid.column.Column[]} The column headers that were replaced.
      */
 
     /**

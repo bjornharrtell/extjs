@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This layout allows you to easily render content into an HTML table. The total number of columns can be specified, and
  * rowspan and colspan can be used to create complex layouts within the table. This class is intended to be extended or
@@ -72,8 +92,8 @@ Ext.define('Ext.layout.container.Table', {
     monitorResize:false,
 
     type: 'table',
-
-    clearEl: true, // Base class will not create it if already truthy. Not needed in tables.
+    
+    createsInnerCt: true,
 
     targetCls: Ext.baseCSSPrefix + 'table-layout-ct',
     tableCls: Ext.baseCSSPrefix + 'table-layout',
@@ -111,13 +131,12 @@ Ext.define('Ext.layout.container.Table', {
      * create the layout's `<td>` elements.
      */
 
-    itemSizePolicy: {
-        setsWidth: 0,
-        setsHeight: 0
-    },
-
     getItemSizePolicy: function (item) {
-        return this.itemSizePolicy;
+        return this.autoSizePolicy;
+    },
+    
+    initHierarchyState: function (hierarchyStateInner) {    
+        hierarchyStateInner.inShrinkWrapTable  = true;
     },
 
     getLayoutItems: function() {
@@ -135,6 +154,21 @@ Ext.define('Ext.layout.container.Table', {
         }
         return result;
     },
+    
+    getHiddenItems: function(){
+        var result = [],
+            items = this.owner.items.items,
+            len = items.length,
+            i = 0, item;
+            
+        for (; i < len; ++i) {
+            item = items[i];
+            if (item.rendered && item.hidden) {
+                result.push(item);
+            }
+        }    
+        return result;
+    },
 
     /**
      * @private
@@ -148,7 +182,8 @@ Ext.define('Ext.layout.container.Table', {
             rows = tbody.rows,
             i = 0,
             len = items.length,
-            cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt;
+            hiddenItems = me.getHiddenItems(),
+            cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt, el;
 
         // Calculate the correct cell structure for the current items
         cells = me.calculateCells(items);
@@ -181,8 +216,7 @@ Ext.define('Ext.layout.container.Table', {
             // Render or move the component into the cell
             if (!item.rendered) {
                 me.renderItem(item, itemCt, 0);
-            }
-            else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
+            } else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
                 me.moveItem(item, itemCt, 0);
             }
 
@@ -214,10 +248,28 @@ Ext.define('Ext.layout.container.Table', {
         while (tbody.rows[rowIdx]) {
             tbody.deleteRow(rowIdx);
         }
+        
+        // Check if we've removed any cells that contain a component, we need to move
+        // them so they don't get cleaned up by the gc
+        for (i = 0, len = hiddenItems.length; i < len; ++i) {
+            me.ensureInDocument(hiddenItems[i].getEl());
+        }
+    },
+    
+    ensureInDocument: function(el){
+        var dom = el.dom.parentNode;
+        while (dom) {
+            if (dom.tagName.toUpperCase() == 'BODY') {
+                return;
+            }
+            dom = dom.parentNode;
+        } 
+        
+        Ext.getDetachedBody().appendChild(el);
     },
 
     calculate: function (ownerContext) {
-        if (!ownerContext.hasDomProp('containerChildrenDone')) {
+        if (!ownerContext.hasDomProp('containerChildrenSizeDone')) {
             this.done = false;
         } else {
             var targetContext = ownerContext.targetContext,
@@ -251,7 +303,7 @@ Ext.define('Ext.layout.container.Table', {
                 Ext.fly(item.el.dom.parentNode).setWidth(item.getWidth());
             }
         }
-        if (Ext.isIE6 || (Ext.isIEQuirks)) {
+        if (Ext.isIE6 || Ext.isIEQuirks) {
             // Fixes an issue where the table won't paint
             this.owner.getTargetEl().child('table').repaint();
         }
@@ -324,6 +376,7 @@ Ext.define('Ext.layout.container.Table', {
                 role: 'presentation',
                 cls: me.tableCls,
                 cellspacing: 0,
+                cellpadding: 0,
                 cn: {
                     tag: 'tbody',
                     cn: rows

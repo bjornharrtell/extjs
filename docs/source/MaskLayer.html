@@ -21,15 +21,15 @@
 Ext.define('Ext.chart.MaskLayer', {
     extend: 'Ext.Component',
     
-    constructor: function(config) {
-        config = Ext.apply(config || {}, {
-            style: 'position:absolute;background-color:#888;cursor:move;opacity:0.6;border:1px solid #222;'
+<span id='Ext-chart-MaskLayer-method-constructor'>    constructor: function(config) {
+</span>        config = Ext.apply(config || {}, {
+            style: 'position:absolute;background-color:#ff9;cursor:crosshair;opacity:0.5;border:1px solid #00f;'
         });
         this.callParent([config]);    
     },
     
-    initComponent: function() {
-        var me = this;
+<span id='Ext-chart-MaskLayer-method-initComponent'>    initComponent: function() {
+</span>        var me = this;
         me.callParent(arguments);
         me.addEvents(
             'mousedown',
@@ -40,8 +40,8 @@ Ext.define('Ext.chart.MaskLayer', {
         );
     },
 
-    initDraggable: function() {
-        this.callParent(arguments);
+<span id='Ext-chart-MaskLayer-method-initDraggable'>    initDraggable: function() {
+</span>        this.callParent(arguments);
         this.dd.onStart = function (e) {
             var me = this,
                 comp = me.comp;

@@ -4,8 +4,8 @@
  * box-oriented layout that supports day spanning (MonthView, MultiWeekView, DayHeaderView).
  */
 Ext.define('Ext.calendar.util.WeekEventRenderer', {
-    
-    requires: ['Ext.core.DomHelper'],
+
+    requires: ['Ext.calendar.util.Date'],
     
     statics: {
         // private
@@ -60,7 +60,9 @@ Ext.define('Ext.calendar.util.WeekEventRenderer', {
 
                     for (; d < dayCount; d++) {
                         if (wk[d]) {
-                            var ev = emptyCells = skipped = 0,
+                            var ev = 0,
+                                emptyCells = 0,
+                                skipped = 0,
                                 day = wk[d],
                                 ct = day.length,
                                 evt;

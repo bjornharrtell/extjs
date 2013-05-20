@@ -15,113 +15,100 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-grid-property-HeaderContainer'>/**
-</span> * A custom HeaderContainer for the {@link Ext.grid.property.Grid}.
- * Generally it should not need to be used directly.
+  <pre class="prettyprint lang-js"><span id='Ext-grid-locking-HeaderContainer'>/**
+</span> * Private class which acts as a HeaderContainer for the Lockable which aggregates all columns
+ * from both sides of the Loackable. It is never rendered, it's just used to interrogate the
+ * column collection.
+ * @private
  */
-Ext.define('Ext.grid.property.HeaderContainer', {
-
+Ext.define('Ext.grid.locking.HeaderContainer', {
     extend: 'Ext.grid.header.Container',
 
-    alternateClassName: 'Ext.grid.PropertyColumnModel',
-    
-    nameWidth: 115,
+<span id='Ext-grid-locking-HeaderContainer-method-constructor'>    constructor: function(lockable) {
+</span>        var me = this,
+            events,
+            event,
+            eventNames = [];
 
-    // private - strings used for locale support
-    //&lt;locale&gt;
-    nameText : 'Name',
-    //&lt;/locale&gt;
-    //&lt;locale&gt;
-    valueText : 'Value',
-    //&lt;/locale&gt;
-    //&lt;locale&gt;
-    dateFormat : 'm/j/Y',
-    //&lt;/locale&gt;
-    //&lt;locale&gt;
-    trueText: 'true',
-    //&lt;/locale&gt;
-    //&lt;locale&gt;
-    falseText: 'false',
-    //&lt;/locale&gt;
+        me.lockable = lockable;
+        me.callParent();
 
-    // private
-    nameColumnCls: Ext.baseCSSPrefix + 'grid-property-name',
-
-<span id='Ext-grid-property-HeaderContainer-method-constructor'>    /**
-</span>     * Creates new HeaderContainer.
-     * @param {Ext.grid.property.Grid} grid The grid this store will be bound to
-     * @param {Object} source The source data config object
-     */
-    constructor : function(grid, store) {
-        var me = this;
-        
-        me.grid = grid;
-        me.store = store;
-        me.callParent([{
-            items: [{
-                header: me.nameText,
-                width: grid.nameColumnWidth || me.nameWidth,
-                sortable: grid.sortableColumns,
-                dataIndex: grid.nameField,
-                renderer: Ext.Function.bind(me.renderProp, me),
-                itemId: grid.nameField,
-                menuDisabled :true,
-                tdCls: me.nameColumnCls
-            }, {
-                header: me.valueText,
-                renderer: Ext.Function.bind(me.renderCell, me),
-                getEditor: Ext.Function.bind(me.getCellEditor, me),
-                sortable: grid.sortableColumns,
-                flex: 1,
-                fixed: true,
-                dataIndex: grid.valueField,
-                itemId: grid.valueField,
-                menuDisabled: true
-            }]
-        }]);
-    },
-    
-    getCellEditor: function(record){
-        return this.grid.getCellEditor(record, this);
+        // Relay events from both sides' headerCts
+        events = me.lockable.lockedGrid.headerCt.events;
+        for (event in events) {
+            if (events.hasOwnProperty(event)) {
+                eventNames.push(event);
+            }
+        }
+        me.relayEvents(me.lockable.lockedGrid.headerCt, eventNames);
+        me.relayEvents(me.lockable.normalGrid.headerCt, eventNames);
     },
 
-    // private
-    // Render a property name cell
-    renderProp : function(v) {
-        return this.getPropertyName(v);
+<span id='Ext-grid-locking-HeaderContainer-method-getGridColumns'>    // This is the function which all other column access methods are based upon
+</span>    // Return the full column set for the whole Lockable assembly
+    getGridColumns: function() {
+        return this.lockable.lockedGrid.headerCt.getGridColumns().concat(this.lockable.normalGrid.headerCt.getGridColumns());
     },
 
-    // private
-    // Render a property value cell
-    renderCell : function(val, meta, rec) {
+<span id='Ext-grid-locking-HeaderContainer-method-getColumnsState'>    // Lockable uses its headerCt to gather column state
+</span>    getColumnsState: function () {
         var me = this,
-            renderer = me.grid.customRenderers[rec.get(me.grid.nameField)],
-            result = val;
+            locked = me.lockable.lockedGrid.headerCt.getColumnsState(),
+            normal = me.lockable.normalGrid.headerCt.getColumnsState();
 
-        if (renderer) {
-            return renderer.apply(me, arguments);
-        }
-        if (Ext.isDate(val)) {
-            result = me.renderDate(val);
-        } else if (Ext.isBoolean(val)) {
-            result = me.renderBool(val);
-        }
-        return Ext.util.Format.htmlEncode(result);
+        return locked.concat(normal);
     },
 
-    // private
-    renderDate : Ext.util.Format.date,
+<span id='Ext-grid-locking-HeaderContainer-method-applyColumnsState'>    // Lockable uses its headerCt to apply column state
+</span>    applyColumnsState: function (columns) {
+        var me             = this,
+            lockedGrid     = me.lockable.lockedGrid,
+            lockedHeaderCt = lockedGrid.headerCt,
+            normalHeaderCt = me.lockable.normalGrid.headerCt,
+            lockedCols     = Ext.Array.toValueMap(lockedHeaderCt.items.items, 'headerId'),
+            normalCols     = Ext.Array.toValueMap(normalHeaderCt.items.items, 'headerId'),
+            locked         = [],
+            normal         = [],
+            lockedWidth    = 1,
+            length         = columns.length,
+            i, existing,
+            lockedDefault,
+            col;
 
-    // private
-    renderBool : function(bVal) {
-        return this[bVal ? 'trueText' : 'falseText'];
-    },
+        for (i = 0; i &lt; length; i++) {
+            col = columns[i];
 
-    // private
-    // Renders custom property names instead of raw names if defined in the Grid
-    getPropertyName : function(name) {
-        var pn = this.grid.propertyNames;
-        return pn &amp;&amp; pn[name] ? pn[name] : name;
+            lockedDefault = lockedCols[col.id];
+            existing = lockedDefault || normalCols[col.id];
+
+            if (existing) {
+                if (existing.applyColumnState) {
+                    existing.applyColumnState(col);
+                }
+                if (existing.locked === undefined) {
+                    existing.locked = !!lockedDefault;
+                }
+                if (existing.locked) {
+                    locked.push(existing);
+                    if (!existing.hidden &amp;&amp; typeof existing.width == 'number') {
+                        lockedWidth += existing.width;
+                    }
+                } else {
+                    normal.push(existing);
+                }
+            }
+        }
+
+        // state and config must have the same columns (compare counts for now):
+        if (locked.length + normal.length == lockedHeaderCt.items.getCount() + normalHeaderCt.items.getCount()) {
+            lockedHeaderCt.removeAll(false);
+            normalHeaderCt.removeAll(false);
+
+            lockedHeaderCt.add(locked);
+            normalHeaderCt.add(normal);
+
+            lockedGrid.setWidth(lockedWidth);
+        }
     }
 });</pre>
 </body>

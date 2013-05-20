@@ -1,0 +1,47 @@
+$tab-base-color: mix(#fff, $base-highlight-color, 10%) !default;
+$tab-base-color-over: mix(#fff, $base-highlight-color, 20%) !default;
+$tab-base-color-active: $base-light-color !default;
+
+$tab-color: #fff !default;
+$tab-color-active: $base-color !default;
+
+$tab-background-gradient: null !default;
+$tab-background-gradient-over: null !default;
+$tab-background-gradient-active: null !default;
+$tab-background-gradient-disabled: null !default;
+
+$tab-border-radius: 3px 3px 0 0 !default;
+$tab-border-width: 0 !default;
+$tab-inner-border-width: 0 !default;
+
+$tab-padding: 8px 12px 7px !default;
+
+$tab-line-height: 16px !default;
+$tab-margin: 0 1px 0 0 !default;
+
+$tabbar-background-gradient: null !default;
+$tabbar-strip-height: 5px !default;
+$tabbar-border-width: 0 !default;
+$tabbar-strip-border-width: 0 0 !default;
+$tabbar-strip-plain-border-width: $tabbar-strip-border-width !default;
+$tabbar-strip-border-width: 0 !default;
+
+$tabbar-scroller-width: 24px !default;
+$tabbar-scroller-opacity: .5 !default;
+$tabbar-scroller-opacity-over: .6 !default;
+$tabbar-scroller-opacity-pressed: .7 !default;
+$tabbar-scroller-opacity-disabled: .25 !default;
+$tabbar-scroller-include-hover-background-position: false !default;
+$tabbar-scroller-include-plain-icon: true !default;
+
+$tab-icon-width: 16px !default;
+$tab-icon-height: 16px !default;
+$tab-icon-spacing: 6px !default;
+
+$tab-closable-icon-width: 12px !default;
+$tab-closable-icon-height: 12px !default;
+$tabbar-closable-icon-include-hover-background-position: true !default;
+$tabbar-closable-icon-include-pressed-background-position: true !default;
+
+$tab-text-opacity-disabled: .3 !default;
+$tab-closable-icon-opacity-disabled: $tab-text-opacity-disabled !default;

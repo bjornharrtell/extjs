@@ -1,7 +1,27 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 //@tag dom,core
 //@define Ext.DomHelper
+
 //@define Ext.core.DomHelper
-//@require Ext.dom.AbstractElement-traversal
 
 /**
  * @class Ext.DomHelper
@@ -137,7 +157,7 @@
  *     Ext.DomHelper.useDom = true; // force it to use DOM; reduces performance
  *
  */
-(function() {
+Ext.define('Ext.dom.Helper', (function() {
 
 // kill repeat to save bytes
 var afterbegin = 'afterbegin',
@@ -165,19 +185,23 @@ var afterbegin = 'afterbegin',
     };
 
 /**
+ * @class Ext.dom.Helper
+ * @extends Ext.dom.AbstractHelper
+ * @requires Ext.dom.AbstractElement
+ * 
  * The actual class of which {@link Ext.DomHelper} is instance of.
  * 
  * Use singleton {@link Ext.DomHelper} instead.
  * 
  * @private
  */
-Ext.define('Ext.dom.Helper', {
+return {
     extend: 'Ext.dom.AbstractHelper',
     requires:['Ext.dom.AbstractElement'],
 
-    tableRe: /^table|tbody|tr|td$/i,
+    tableRe: /^(?:table|thead|tbody|tr|td)$/i,
 
-    tableElRe: /td|tr|tbody/i,
+    tableElRe: /td|tr|tbody|thead/i,
 
     /**
      * @property {Boolean} useDom
@@ -251,10 +275,13 @@ Ext.define('Ext.dom.Helper', {
         ns = el.nextSibling;
 
         if (ns) {
+            ns = el;
             el = document.createDocumentFragment();
+            
             while (ns) {
-                el.appendChild(ns);
-                ns = ns.nextSibling;
+                 nx = ns.nextSibling;
+                 el.appendChild(ns);
+                 ns = nx;
             }
         }
         return el;
@@ -285,7 +312,7 @@ Ext.define('Ext.dom.Helper', {
 
         if (tag == 'td' || (tag == 'tr' && (be || ab))) {
             node = this.ieTable(4, trs, html, tre);
-        } else if ((tag == 'tbody' && (be || ab)) ||
+        } else if (((tag == 'tbody' || tag == 'thead') && (be || ab)) ||
                 (tag == 'tr' && (bb || ae))) {
             node = this.ieTable(3, tbs, html, tbe);
         } else {
@@ -316,7 +343,6 @@ Ext.define('Ext.dom.Helper', {
 
     applyStyles: function(el, styles) {
         if (styles) {
-            el = Ext.fly(el);
             if (typeof styles == "function") {
                 styles = styles.call();
             }
@@ -324,7 +350,7 @@ Ext.define('Ext.dom.Helper', {
                 styles = Ext.dom.Element.parseStyles(styles);
             }
             if (typeof styles == "object") {
-                el.setStyle(styles);
+                Ext.fly(el, '_applyStyles').setStyle(styles);
             }
         }
     },
@@ -406,7 +432,16 @@ Ext.define('Ext.dom.Helper', {
             }
 
             if ((hashVal = fullPositionHash[where])) {
-                el.insertAdjacentHTML(hashVal[0], html);
+
+                if (Ext.global.MSApp && Ext.global.MSApp.execUnsafeLocalFunction) {
+                    //ALLOW MS TO EXECUTE THIS CODE FOR NATIVE WINDOWS 8 DESKTOP APPS
+                    MSApp.execUnsafeLocalFunction(function () {
+                        el.insertAdjacentHTML(hashVal[0], html);
+                    });
+                } else {
+                    el.insertAdjacentHTML(hashVal[0], html);
+                }
+
                 return el[hashVal[1]];
             }
             // if (not IE and context element is an HTMLElement) or TextNode
@@ -469,10 +504,8 @@ Ext.define('Ext.dom.Helper', {
         return new Ext.Template(html);
     }
 
-}, function() {
+};
+})(), function() {
     Ext.ns('Ext.core');
     Ext.DomHelper = Ext.core.DomHelper = new this;
 });
-
-
-}());

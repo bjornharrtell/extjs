@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Component layout for buttons
  * @private
@@ -14,258 +34,175 @@ Ext.define('Ext.layout.component.Button', {
 
     type: 'button',
 
-    cellClsRE: /-btn-(tl|br)\b/,
     htmlRE: /<.*>/,
 
-    constructor: function () {
-        this.callParent(arguments);
+    beginLayout: function(ownerContext) {
+        var me = this,
+            owner = me.owner,
+            text = owner.text;
 
-        this.hackWidth = Ext.isIE && (!Ext.isStrict || Ext.isIE6 || Ext.isIE7 || Ext.isIE8);
-        this.heightIncludesPadding = Ext.isIE6 && Ext.isStrict;
-    },
+        me.callParent(arguments);
+        ownerContext.btnWrapContext = ownerContext.getEl('btnWrap');
+        ownerContext.btnElContext = ownerContext.getEl('btnEl');
+        ownerContext.btnInnerElContext = ownerContext.getEl('btnInnerEl');
+        ownerContext.btnIconElContext = ownerContext.getEl('btnIconEl');
 
-    // TODO - use last run results if text has not changed?
-
-    beginLayout: function (ownerContext) {
-        this.callParent(arguments);
-
-        this.cacheTargetInfo(ownerContext);
+        if (text && me.htmlRE.test(text)) {
+            ownerContext.isHtmlText = true;
+            // If the text contains HTML tag(s) we need to account for the possibility
+            // of multi-line-text. We have to remove the default line-height set by the
+            // stylesheet so that we can allow the browser to measure the natural
+            // height of the html content.
+            owner.btnInnerEl.setStyle('line-height', 'normal');
+            owner.btnInnerEl.setStyle('padding-top', '');
+        }
     },
 
     beginLayoutCycle: function(ownerContext) {
+        var owner = this.owner,
+            lastWidthModel = this.lastWidthModel;
+
+        this.callParent(arguments);
+
+        if (lastWidthModel && !this.lastWidthModel.shrinkWrap &&
+            ownerContext.widthModel.shrinkWrap) {
+            // clear any heights we set last time around if needed
+            owner.btnWrap.setStyle('height', '');
+            owner.btnEl.setStyle('height', '');
+            owner.btnInnerEl.setStyle('line-height', '');
+        }
+    },
+
+    calculate: function(ownerContext) {
         var me = this,
-            empty = '',
             owner = me.owner,
-            btnEl = owner.btnEl,
-            btnInnerEl = owner.btnInnerEl,
-            text = owner.text,
-            htmlAutoHeight;
+            btnElContext = ownerContext.btnElContext,
+            btnInnerElContext = ownerContext.btnInnerElContext,
+            btnWrapContext = ownerContext.btnWrapContext,
+            ownerHeight, contentHeight, btnElHeight, innerElHeight;
 
         me.callParent(arguments);
 
-        btnInnerEl.setStyle('overflow', empty);
+        if (ownerContext.heightModel.shrinkWrap) {
+            // Buttons that have a shrink-wrapped height usually do not need any layout
+            // adjustments beause their layout is handled in CSS. An exception is made
+            // for buttons that contain html tags in their "text".  These buttons need
+            // special handling to vertically center the inner element inside the button.
 
-        // Clear all element widths
-        if (!ownerContext.widthModel.natural) {
-            owner.el.setStyle('width', empty);
-        }
-
-        // If the text is HTML we need to let the browser automatically size things to cope with the case where the text
-        // is multi-line. This incurs a cost as we then have to measure those elements to derive other sizes
-        htmlAutoHeight = ownerContext.heightModel.shrinkWrap && text && me.htmlRE.test(text);
-
-        btnEl.setStyle('width', empty);
-        btnEl.setStyle('height', htmlAutoHeight ? 'auto' : empty);
-        btnInnerEl.setStyle('width', empty);
-        btnInnerEl.setStyle('height', htmlAutoHeight ? 'auto' : empty);
-        btnInnerEl.setStyle('line-height', htmlAutoHeight ? 'normal' : empty);
-        btnInnerEl.setStyle('padding-top', empty);
-        owner.btnIconEl.setStyle('width', empty);
-    },
-
-    calculateOwnerHeightFromContentHeight: function (ownerContext, contentHeight) {
-        return contentHeight;
-    },
-
-    calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
-        return contentWidth;
-    },
-
-    measureContentWidth: function (ownerContext) {
-        var me = this,
-            owner = me.owner,
-            btnEl = owner.btnEl,
-            btnInnerEl = owner.btnInnerEl,
-            text = owner.text,
-            btnFrameWidth, metrics, sizeIconEl, width, btnElContext, btnInnerElContext;
-
-        // IE suffers from various sizing problems, usually caused by relying on it to size elements automatically. Even
-        // if an element is sized correctly it can prove necessary to set that size explicitly on the element to get it
-        // to size and position its children correctly. While the exact nature of the problems varies depending on the
-        // browser version, doctype and button configuration there is a common solution: set the sizes manually.
-        if (owner.text && me.hackWidth && btnEl) {
-            btnFrameWidth = me.btnFrameWidth;
-
-            // If the button text is something like '<' or '<<' then we need to escape it or it won't be measured
-            // correctly. The button text is supposed to be HTML and strictly speaking '<' and '<<' aren't valid HTML.
-            // However in practice they are commonly used and have worked 'correctly' in previous versions.
-            if (text.indexOf('>') === -1) {
-                text = text.replace(/</g, '&lt;');
-            }
-
-            metrics = Ext.util.TextMetrics.measure(btnInnerEl, text);
-
-            width = metrics.width + btnFrameWidth + me.adjWidth;
-
-            btnElContext = ownerContext.getEl('btnEl');
-            btnInnerElContext = ownerContext.getEl('btnInnerEl');
-            sizeIconEl = (owner.icon || owner.iconCls) && 
-                    (owner.iconAlign == "top" || owner.iconAlign == "bottom");
-
-            // This cheat works (barely) with publishOwnerWidth which calls setProp also
-            // to publish the width. Since it is the same value we set here, the dirty bit
-            // we set true will not be cleared by publishOwnerWidth.
-            ownerContext.setWidth(width); // not setWidth (no framing)
-
-            btnElContext.setWidth(metrics.width + btnFrameWidth);
-            btnInnerElContext.setWidth(metrics.width + btnFrameWidth);
-
-            if (sizeIconEl) {
-                owner.btnIconEl.setWidth(metrics.width + btnFrameWidth);
+            // measure the btnEl (the anchor element) to determine the available
+            // height for centering the inner element.
+            btnElHeight = owner.btnEl.getHeight();
+            if (ownerContext.isHtmlText) {
+                me.centerInnerEl(
+                    ownerContext,
+                    btnElHeight
+                );
+                me.ieCenterIcon(ownerContext, btnElHeight);
             }
         } else {
-            width = ownerContext.el.getWidth();
-        }
+            // Buttons with configured or calculated heights may need to stretch their
+            // inner elements to fit.
+            ownerHeight = ownerContext.getProp('height');
 
-        return width;
-    },
+            if (ownerHeight) {
+                // contentHeight is the total available height inside the button's padding
+                // and framing
+                contentHeight = ownerHeight - ownerContext.getFrameInfo().height - ownerContext.getPaddingInfo().height;
 
-    measureContentHeight: function (ownerContext) {
-        var me = this,
-            owner = me.owner,
-            btnInnerEl = owner.btnInnerEl,
-            btnItem = ownerContext.getEl('btnEl'),
-            btnInnerItem = ownerContext.getEl('btnInnerEl'),
-            minTextHeight = me.minTextHeight,
-            adjHeight = me.adjHeight,
-            text = owner.getText(),
-            height,
-            textHeight,
-            topPadding;
-
-        if (owner.vertical) {
-            height = Ext.util.TextMetrics.measure(btnInnerEl, owner.text).width;
-            height += me.btnFrameHeight + adjHeight;
-
-            // Vertical buttons need height explicitly set
-            ownerContext.setHeight(height, /*dirty=*/true, /*force=*/true);
-        }
-        else {
-            // If the button text is HTML we have to handle it specially as it could contain multiple lines
-            if (text && me.htmlRE.test(text)) {
-                textHeight = btnInnerEl.getHeight();
-
-                // HTML content doesn't guarantee multiple lines: in the single line case it could now be too short for the icon
-                if (textHeight < minTextHeight) {
-                    topPadding = Math.floor((minTextHeight - textHeight) / 2);
-
-                    // Resize the span and use padding to center the text vertically. The hack to remove the padding
-                    // from the height on IE6 is especially needed for link buttons
-                    btnInnerItem.setHeight(minTextHeight - (me.heightIncludesPadding ? topPadding : 0));
-                    btnInnerItem.setProp('padding-top', topPadding);
-
-                    textHeight = minTextHeight;
+                // The btnElHeight is the total available height to be shared by the button's
+                // icon and text.  For standard buttons this is the same as the contentHeight
+                // but must be adjusted for arrow height if the button has an arrow.
+                btnElHeight = contentHeight;
+                if ((owner.menu || owner.split) && owner.arrowAlign === 'bottom') {
+                    // If the button has an arrow, subtract its size from the btnElHeight
+                    // padding to account for the possibility of an arrow
+                    btnElHeight -= btnWrapContext.getPaddingInfo().bottom;
                 }
 
-                // Calculate the height relative to the text span, auto can't be trusted in IE quirks
-                height = textHeight + adjHeight;
-            }
-            else {
-                height = ownerContext.el.getHeight();
+                // The innerElHeight is the total vertical space available for vertically
+                // centering the button text.  By default this is the same as btnElHeight
+                // but it must be adjusted by the icon size if the button has a top
+                // or bottom icon.
+                innerElHeight = btnElHeight;
+                if ((owner.icon || owner.iconCls || owner.glyph) &&
+                    (owner.iconAlign === 'top' || owner.iconAlign === 'bottom')) {
+                    innerElHeight -= btnInnerElContext.getPaddingInfo().height;
+                }
+
+                btnWrapContext.setProp('height', contentHeight);
+                btnElContext.setProp('height', btnElHeight);
+                // ensure the button's text is vertically centered
+                if (ownerContext.isHtmlText) {
+                    // if the button text contains html it must be vertically centered
+                    // by measuring it and adding top padding.
+                    me.centerInnerEl(ownerContext, btnElHeight);
+                } else {
+                    // if the button text does not contain html we can just center it
+                    // using line-height to avoid the extra measurement that happens
+                    // inside of centerInnerEl() since multi-line text is not a possiblity
+                    btnInnerElContext.setProp('line-height', innerElHeight + 'px');
+                }
+                me.ieCenterIcon(ownerContext, btnElHeight);
+            } else {
+                me.done = false;
             }
         }
-
-        // IE quirks needs the button height setting using style or it won't position the icon correctly (even if the height was already correct)
-        btnItem.setHeight(height - adjHeight);
-
-        return height;
     },
 
-    publishInnerHeight: function(ownerContext, height) {
+    centerInnerEl: function(ownerContext, btnElHeight) {
         var me = this,
-            owner = me.owner,
-            isNum = Ext.isNumber,
-            btnItem = ownerContext.getEl('btnEl'),
-            btnInnerEl = owner.btnInnerEl,
-            btnInnerItem = ownerContext.getEl('btnInnerEl'),
-            btnHeight = isNum(height) ? height - me.adjHeight : height,
-            btnFrameHeight = me.btnFrameHeight,
-            text = owner.getText(),
-            textHeight,
-            paddingTop;
+            btnInnerElContext = ownerContext.btnInnerElContext,
+            innerElHeight = me.owner.btnInnerEl.getHeight();
 
-        btnItem.setHeight(btnHeight);
-        btnInnerItem.setHeight(btnHeight);
-
-        // Only need the line-height setting for regular, horizontal Buttons
-        if (!owner.vertical && btnHeight >= 0) {
-            btnInnerItem.setProp('line-height', btnHeight - btnFrameHeight + 'px');
+        if (ownerContext.heightModel.shrinkWrap && (btnElHeight < innerElHeight)) {
+            // if the natural height of the html content is greater than the height
+            // of the button element (the anchor el), then expand the button element
+            // to fit
+            ownerContext.btnElContext.setHeight(innerElHeight);
+        } else if (btnElHeight > innerElHeight) {
+            // if the natural height of the html content is smaller than the height
+            // of the button element then we need to pad the top of the btnInnerEl
+            // so that it is vertically centered within the btnEl
+            btnInnerElContext.setProp(
+                'padding-top', 
+                Math.round((btnElHeight - innerElHeight) / 2) +
+                    // if the inner element already has top padding, as is the case
+                    // when the button has a top-aligned icon, then add the existing
+                    // padding to the padding adjustment.
+                    btnInnerElContext.getPaddingInfo().top 
+            );
         }
+    },
 
-        // Button text may contain markup that would force it to wrap to more than one line (e.g. 'Button<br>Label').
-        // When this happens, we cannot use the line-height set above for vertical centering; we instead reset the
-        // line-height to normal, measure the rendered text height, and add padding-top to center the text block
-        // vertically within the button's height. This is more expensive than the basic line-height approach so
-        // we only do it if the text contains markup.
-        if (text && me.htmlRE.test(text)) {
-            btnInnerItem.setProp('line-height', 'normal');
-            btnInnerEl.setStyle('line-height', 'normal');
-            textHeight = Ext.util.TextMetrics.measure(btnInnerEl, text).height;
-            paddingTop = Math.floor(Math.max(btnHeight - btnFrameHeight - textHeight, 0) / 2);
-            btnInnerItem.setProp('padding-top', me.btnFrameTop + paddingTop);
-            btnInnerItem.setHeight(btnHeight - (me.heightIncludesPadding ? paddingTop : 0));
+    ieCenterIcon: function(ownerContext, btnElHeight) {
+        var iconAlign = this.owner.iconAlign;
+
+        if ((Ext.isIEQuirks || Ext.isIE6) &&
+            (iconAlign === 'left' || iconAlign === 'right')) {
+            // Normally right/left aligned icon elements are vertically stretched using
+            // top:0, bottom:0, and the icon is vertically centered inside this element
+            // using background-position.  This technique for vertical centering does not
+            // work in IE6 and IE quirks, so the stylesheet sets a fixed height on the
+            // icon element in these browsers.  If the layout changes the height of the
+            // button the height of the icon element must also be modified.
+            ownerContext.btnIconElContext.setHeight(btnElHeight);
         }
     },
 
     publishInnerWidth: function(ownerContext, width) {
-        var me = this,
-            isNum = Ext.isNumber,
-            btnItem = ownerContext.getEl('btnEl'),
-            btnInnerItem = ownerContext.getEl('btnInnerEl'),
-            btnWidth = isNum(width) ? width - me.adjWidth : width;
-
-        btnItem.setWidth(btnWidth);
-        btnInnerItem.setWidth(btnWidth);
-    },
-    
-    clearTargetCache: function(){
-        delete this.adjWidth;    
-    },
-
-    cacheTargetInfo: function(ownerContext) {
-        var me = this,
-            owner = me.owner,
-            scale = owner.scale,
-            padding, frameSize, btnWrapPadding, btnInnerEl, innerFrameSize;
-
-        // The cache is only valid for a particular scale
-        if (!('adjWidth' in me) || me.lastScale !== scale) {
-            // If there has been a previous layout run it could have sullied the line-height
-            if (me.lastScale) {
-                owner.btnInnerEl.setStyle('line-height', '');
-            }
-
-            me.lastScale = scale;
-
-            padding = ownerContext.getPaddingInfo();
-            frameSize = ownerContext.getFrameInfo();
-            btnWrapPadding = ownerContext.getEl('btnWrap').getPaddingInfo();
-            btnInnerEl = ownerContext.getEl('btnInnerEl');
-            innerFrameSize = btnInnerEl.getPaddingInfo();
-
-            Ext.apply(me, {
-                // Width adjustment must take into account the arrow area. The btnWrap is the <em> which has padding to accommodate the arrow.
-                adjWidth       : btnWrapPadding.width + frameSize.width + padding.width,
-                adjHeight      : btnWrapPadding.height + frameSize.height + padding.height,
-                btnFrameWidth  : innerFrameSize.width,
-                btnFrameHeight : innerFrameSize.height,
-                btnFrameTop    : innerFrameSize.top,
-
-                // Use the line-height rather than height because if the text is multi-line then the height will be 'wrong'
-                minTextHeight  : parseInt(btnInnerEl.getStyle('line-height'), 10)
-            });
-        }
-
-        me.callParent(arguments);
-    },
-    
-    finishedLayout: function(){
-        var owner = this.owner;
-        this.callParent(arguments);
-        // Fixes issue EXTJSIV-5989. Looks like a browser repaint bug
-        // This hack can be removed once it is resolved.
-        if (Ext.isWebKit) {
-            owner.el.dom.offsetWidth;
+        if (this.owner.getFrameInfo().table) {
+            // if the framing template uses a table, we need to set the width of the
+            // inner element.  Otherwise long text may stretch the element past its
+            // allowable width in IE.
+            ownerContext.btnInnerElContext.setWidth(
+                width -
+                // the inner el must be sized inside the owner's framing and padding
+                ownerContext.getFrameInfo().width - ownerContext.getPaddingInfo().width -
+                // There may also be padding on the btnWrap el, e.g. tab with close icon
+                // or button with arrow. This reduces the inner el size even further.
+                ownerContext.btnWrapContext.getPaddingInfo().width
+            );
         }
     }
+
 });

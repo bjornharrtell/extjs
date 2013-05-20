@@ -1,0 +1,65 @@
+.#{$prefix}form-text {
+    color: $form-field-color;
+    padding: $form-field-padding;
+    background: $form-field-background-color repeat-x 0 0;
+    border-width: $form-field-border-width; 
+    border-style: $form-field-border-style;
+    border-color: $form-field-border-color;
+    @if $form-field-background-image != null {
+        background-image: theme-background-image($form-field-background-image);
+    }
+    height: $form-field-height;
+    // line-height has to be content-height - 1 in order for text to be vertically centered
+    // in IE8 and below and IE quirks.  Modern browsers just disregard line-height and 
+    // vertically center the text regardless.
+    line-height: $form-field-content-height - 1;
+    @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
+        .#{$prefix}field-default-toolbar & {
+            height: $form-toolbar-field-height;
+            line-height: $form-toolbar-field-content-height - 1;
+        }
+    }
+
+    @if $include-ie {
+        // adjust height for content-box model
+        .#{$prefix}strict .#{$prefix}ie6 &,
+        .#{$prefix}strict .#{$prefix}ie7 & {
+            height: $form-field-content-height;
+        }
+
+        @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
+            .#{$prefix}strict .#{$prefix}ie6 .#{$prefix}field-default-toolbar &,
+            .#{$prefix}strict .#{$prefix}ie7 .#{$prefix}field-default-toolbar & {
+                height: $form-toolbar-field-content-height;
+            }
+        }
+
+    }
+}
+
+.#{$prefix}form-focus {
+    border-color: $form-field-focus-border-color;
+}
+
+.#{$prefix}form-empty-field,
+textarea.#{$prefix}form-empty-field {
+    color: $form-field-empty-color;
+}
+
+@if $include-ie {
+    /*
+    In oldIE, text inputs get a mysterious extra pixel of spacing above and below.
+    This is targeted at IE6-IE7 (all modes) and IE9+ Quirks mode.
+
+    IE8 quirks on Windows 7 requires this fix, but on
+    IE8 quirks on Windows XP, this is breaks the layout.
+    TODO: Check field input heights in IE8 quirks on Windows Vista.
+
+    Since we can't specifically target a specific version of Windows via CSS, we default to fixing it the XP way, for now.
+    */
+    .#{$prefix}quirks .#{$prefix}ie9p .#{$prefix}form-text,
+    .#{$prefix}ie7m .#{$prefix}form-text {
+        margin-top: -1px;
+        margin-bottom: -1px;
+    }
+}

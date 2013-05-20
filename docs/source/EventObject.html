@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-EventObject'>/**
+  <pre class="prettyprint lang-js">//@tag dom,core
+//@require EventManager.js
+//@define Ext.EventObject
+
+<span id='Ext-EventObject'>/**
 </span> * @class Ext.EventObject
 
 Just as {@link Ext.Element} wraps around a native DOM node, Ext.EventObject
@@ -275,8 +279,8 @@ Ext.define('Ext.EventObjectImpl', {
      * @private
      */
     clickRe: /(dbl)?click/,
-    // safari keypress events for special keys return bad keycodes
-    safariKeys: {
+<span id='Ext-EventObject-property-safariKeys'>    // safari keypress events for special keys return bad keycodes
+</span>    safariKeys: {
         3: 13, // enter
         63234: 37, // left
         63235: 39, // right
@@ -288,8 +292,8 @@ Ext.define('Ext.EventObjectImpl', {
         63273: 36, // home
         63275: 35 // end
     },
-    // normalize button clicks, don't see any way to feature detect this.
-    btnMap: Ext.isIE ? {
+<span id='Ext-EventObject-property-btnMap'>    // normalize button clicks, don't see any way to feature detect this.
+</span>    btnMap: Ext.isIE ? {
         1: 0,
         4: 1,
         2: 2
@@ -319,10 +323,10 @@ Ext.define('Ext.EventObjectImpl', {
         }
     },
 
-    setEvent: function(event, freezeEvent){
-        var me = this, button, options;
+<span id='Ext-EventObject-method-setEvent'>    setEvent: function(event, freezeEvent){
+</span>        var me = this, button, options;
 
-        if (event == me || (event &amp;&amp; event.browserEvent)) { // already wrapped
+        if (event === me || (event &amp;&amp; event.browserEvent)) { // already wrapped
             return event;
         }
         me.browserEvent = event;
@@ -490,7 +494,7 @@ Ext.define('Ext.EventObjectImpl', {
      * @return {HTMLElement}
      */
     getRelatedTarget : function(selector, maxDepth, returnEl){
-        if (selector) {
+        if (selector &amp;&amp; this.relatedTarget) {
             return Ext.fly(this.relatedTarget).findParent(selector, maxDepth, returnEl);
         }
         return returnEl ? Ext.get(this.relatedTarget) : this.relatedTarget;
@@ -870,9 +874,7 @@ Ext.getBody().on('click', function(e,t){
             dispatchers = {}; // never mind all those we just built :P
 
             API = {
-                fixTarget: function (t) {
-                    return t;
-                }
+                fixTarget: Ext.identityFn
             };
         }
 

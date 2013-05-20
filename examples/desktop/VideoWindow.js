@@ -52,6 +52,7 @@ Ext.define('MyDesktop.VideoWindow', {
                             { src: 'http://dev.sencha.com/desktopvideo.ogv', type: 'video/ogg' },
                             { src: 'http://dev.sencha.com/desktopvideo.mov', type: 'video/quicktime' }
                         ],
+                        poster: 'http://b.vimeocdn.com/ts/148/397/148397103_640.jpg',
                         autobuffer: true,
                         autoplay : true,
                         controls : true,

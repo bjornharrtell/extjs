@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.GMapPanel
- * @extends Ext.Panel
  * @author Shea Frederick
  */
 Ext.define('Ext.ux.GMapPanel', {
@@ -37,7 +35,8 @@ Ext.define('Ext.ux.GMapPanel', {
     },
     
     createMap: function(center, marker) {
-        options = Ext.apply({}, this.mapOptions);
+        var options = Ext.apply({}, this.mapOptions);
+        
         options = Ext.applyIf(options, {
             zoom: 14,
             center: center,
@@ -51,6 +50,7 @@ Ext.define('Ext.ux.GMapPanel', {
         }
         
         Ext.each(this.markers, this.addMarker, this);
+        this.fireEvent('mapready', this, this.gmap);
     },
     
     addMarker: function(marker) {

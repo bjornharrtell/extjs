@@ -25,9 +25,8 @@ a:hover {
 
 /* main document center */
 #viewport {
-    margin:auto;
     text-align:left;
-    width:960px;
+    overflow: hidden;
 }
 
 #hd {
@@ -44,8 +43,10 @@ a:hover {
 /* body styles */
 
 #bd {
-    margin:5px auto;
-    zoom:1;
+    position: relative;
+    margin: 5px 0;
+    zoom: 1;
+    overflow: hidden;
 }
 
 #bd p {
@@ -59,13 +60,11 @@ a:hover {
 }
 
 #bd .left-column {
-    width:738px;
-    float:left;
+    float: left;
+    margin-right: 220px;
 }
 #bd .right-column {
-    width:200px;
-    float:left;
-    margin-left:20px;
+    position: absolute;
 }
 #bd .right-column p {
     margin:5px;
@@ -90,8 +89,6 @@ h1#pagetitle div {
 
 h1#pagetitle div a {
     font-size: 13px;
-	/*     float: right; */
-    line-height: 30px;
     text-decoration: underline;
 }
 
@@ -129,25 +126,12 @@ h1#pagetitle div a {
 
 /* footer */
 #ft {
-    margin-top:25px;
     text-align:left;
-    padding-top:5px;
-}
-#ft table.nav {
-    margin: 0 auto;
-}
-
-#ft table.nav a, #ft table.nav a:hover, #ft table.nav a:visited {
-    color:#789030;
-    font-size:12px;
-    display:block;
-    padding:5px 15px 0;
 }
 
 #ft div.copy {
-    margin: 0 auto;
-    padding:10px 0 25px;
-    color:gray;
+    padding: 25px 0 25px 0;
+    color: gray;
 }
 
 /* feature list */
@@ -179,23 +163,13 @@ ul.features li,  .content-box ul li, .side-box ul li {
 /* side boxes */
 
 div.side-box {
+    width: 200px;
     background: #f3f3f3;
     border: 1px solid #ddd;
-    width:200px;
-    margin-bottom:20px;
-    zoom:1;
-}
-div.side-box-inner {
-    background: #f3f3f3;
     padding: 15px;
-    font-size:12px;
-    zoom:1;
+    font-size: 12px;
+    zoom: 1;
 }
-#bd div.side-box-inner h5 {
-    background:transparent !important;
-    padding-top:0;
-}
-
 
 div.big-box {
     background: transparent url(../images/big-box.png) no-repeat;

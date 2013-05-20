@@ -82,8 +82,37 @@ Ext.define('Ext.form.field.VTypes', (function(){
     // closure these in so they are only created once.
     var alpha = /^[a-zA-Z_]+$/,
         alphanum = /^[a-zA-Z0-9_]+$/,
-        email = /^(\w+)([\-+.][\w]+)*@(\w[\-\w]*\.){1,5}([A-Za-z]){2,6}$/,
-        url = /(((^https?)|(^ftp)):\/\/([\-\w]+\.)+\w{2,3}(\/[%\-\w]+(\.\w{2,})?)*(([\w\-\.\?\\\/+@&amp;#;`~=%!]*)(\.\w{2,})?)*\/?)/i;
+
+        // http://en.wikipedia.org/wiki/Email_address#Local_part
+        // http://stackoverflow.com/a/2049510
+        // http://isemail.info/
+        // http://blog.stevenlevithan.com/archives/capturing-vs-non-capturing-groups
+        //
+        // 1. Can begin with a double-quote ONLY IF the local part also ends in a double-quote.
+        // 2. Can NOT BEGIN with a period.
+        // 3. Can NOT END with a period.
+        // 4. Can not have MORE THAN ONE period in a row.
+        //
+        // Let's break this down:
+        //
+        // ^(&quot;)?
+        // The local part may begin with double-quotes, but only if it also ends with it.
+        // See the back-reference.  Capturing.
+        //
+        // (?:[^\.&quot;])
+        // Here we've defined that the local part cannot begin with a period or a double-quote.  Non-capturing.
+        //
+        // (?:(?:[\.])?(?:[\w\-!#$%&amp;'*+/=?^_`{|}~]))*
+        // After the first character is matched, the regex ensures that there is not more than one period
+        // in a row.  Then, this nested grouping allows for zero or more of the accepted characters.
+        // NOTE that this also ensures that any character not defined in the character class
+        // is invalid as an ending character for the local part (such as the period).
+        //
+        // \1@
+        // The local part of the address is a backreference to the first (and only) capturing group that allows
+        // for a double-quote to wrap the local part of an email address.
+        email = /^(&quot;)?(?:[^\.&quot;])(?:(?:[\.])?(?:[\w\-!#$%&amp;'*+/=?^_`{|}~]))*\1@(\w[\-\w]*\.){1,5}([A-Za-z]){2,6}$/,
+        url = /(((^https?)|(^ftp)):\/\/((([\-\w]+\.)+\w{2,3}(\/[%\-\w]+(\.\w{2,})?)*(([\w\-\.\?\\\/+@&amp;#;`~=%!]*)(\.\w{2,})?)*)|(localhost|LOCALHOST))\/?)/i;
 
     // All these messages and functions are configurable
     return {
@@ -91,16 +120,22 @@ Ext.define('Ext.form.field.VTypes', (function(){
         alternateClassName: 'Ext.form.VTypes',
 
 <span id='Ext-form-field-VTypes-method-email'>        /**
-</span>         * The function used to validate email addresses. Note that this is a very basic validation - complete
-         * validation per the email RFC specifications is very complex and beyond the scope of this class, although this
-         * function can be overridden if a more comprehensive validation scheme is desired. See the validation section
-         * of the [Wikipedia article on email addresses][1] for additional information. This implementation is intended
-         * to validate the following emails:
+</span>         * The function used to validate email addresses. Note that complete validation per the email RFC
+         * specifications is very complex and beyond the scope of this class, although this function can be
+         * overridden if a more comprehensive validation scheme is desired. See the validation section
+         * of the [Wikipedia article on email addresses][1] for additional information. This implementation is
+         * intended to validate the following types of emails:
          *
          * - `barney@example.de`
          * - `barney.rubble@example.com`
          * - `barney-rubble@example.coop`
          * - `barney+rubble@example.com`
+         * - `barney'rubble@example.com`
+         * - `b.arne.y_r.ubbl.e@example.com`
+         * - `barney4rubble@example.com`
+         * - `barney4rubble!@example.com`
+         * - `_barney+rubble@example.com`
+         * - `&quot;barney+rubble&quot;@example.com`
          *
          * [1]: http://en.wikipedia.org/wiki/E-mail_address
          *
@@ -123,7 +158,7 @@ Ext.define('Ext.form.field.VTypes', (function(){
          * The keystroke filter mask to be applied on email input. See the {@link #email} method for information about
          * more complex email validation. Defaults to: /[a-z0-9_\.\-@]/i
          */
-        'emailMask' : /[a-z0-9_\.\-@\+]/i,
+        'emailMask' : /[\w.\-@'&quot;!#$%&amp;'*+/=?^_`{|}~]/i,
 
 <span id='Ext-form-field-VTypes-method-url'>        /**
 </span>         * The function used to validate URLs

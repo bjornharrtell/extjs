@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-FieldSet'>/**
+</span> * @class Ext.form.FieldSet
+ */
+
+$fieldset-header-font-size: ceil($font-size * .9) !default;
+$fieldset-header-font-weight: bold !default;
+$fieldset-header-font-family: $font-family !default;
+$fieldset-header-line-height: 14px !default;
+$fieldset-header-font: #{$fieldset-header-font-size}/#{$fieldset-header-line-height} $fieldset-header-font-weight $fieldset-header-font-family !default;
+$fieldset-header-color: adjust-color($base-color, $hue: 3.785deg, $saturation: 18.194%, $lightness: -52.745%) !default;
+
+$fieldset-border-width: 1px !default;
+$fieldset-border-style: solid !default;
+$fieldset-border-color: #B5B8C8 !default;
+$fieldset-border: $fieldset-border-width $fieldset-border-style $fieldset-border-color !default;
+
+$fieldset-padding: 0 10px !default;
+$fieldset-margin: 0 0 10px !default;
+$fieldset-header-padding: 0 3px 1px !default;
+
+$fieldset-collapse-tool-margin: 1px 3px 0 0 !default;
+$fieldset-collapse-tool-padding: 0 !default;
+$fieldset-checkbox-margin: $fieldset-collapse-tool-margin !default;
+
+$fieldset-collapse-tool-size: 15px !default;
+<span id='Ext-form-FieldSet-css_var-S-fieldset-collapse-tool-background-image'>/**
+</span> * @var {string} $fieldset-collapse-tool-background-image
+ * The background-image to use for the collapse tool. If null the default tool
+ * sprite will be used.  Defaults to null.
+ */
+$fieldset-collapse-tool-background-image: null !default;
+
+$fieldset-collapse-tool-background-position: 0 ($fieldset-collapse-tool-size * -4) !default;
+$fieldset-collapse-tool-background-position-over: (-$fieldset-collapse-tool-size) ($fieldset-collapse-tool-size * -4) !default;
+$fieldset-collapse-tool-background-position-collapsed: 0 ($fieldset-collapse-tool-size * -5) !default;
+$fieldset-collapse-tool-background-position-collapsed-over: (-$fieldset-collapse-tool-size) ($fieldset-collapse-tool-size * -5) !default;</pre>
+</body>
+</html>

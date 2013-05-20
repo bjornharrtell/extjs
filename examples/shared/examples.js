@@ -1,5 +1,3 @@
-
-
 Ext.example = function(){
     var msgCt;
 

@@ -72,10 +72,14 @@ Ext.define('FeedViewer.FeedWindow', {
                 xtype: 'button',
                 text: 'Cancel',
                 scope: me,
-                handler: me.hide
+                handler: me.doHide
             }]
         });
         me.callParent(arguments);
+    },
+    
+    doHide: function(){
+        this.hide();
     },
     
     /**

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * The subclasses of this class provide actions to perform upon {@link Ext.form.Basic Form}s.
  *
@@ -49,6 +69,8 @@ Ext.define('Ext.form.action.Action', {
      * @cfg {Object} headers
      * Extra headers to be sent in the AJAX request for submit and load actions.
      * See {@link Ext.data.proxy.Ajax#headers}.
+     * 
+     * **Note:** Headers are not sent during file upload.
      */
 
     /**

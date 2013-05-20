@@ -1,53 +1,51 @@
 Ext.define('KitchenSink.view.Viewport', {
     extend: 'Ext.container.Viewport',
-    requires: [
-        'Ext.layout.container.Border',
-        'Ext.layout.container.HBox',
-        'KitchenSink.view.List'
+    requires:[
+        'Ext.tab.Panel',
+        'Ext.layout.container.Border'
     ],
-    
+
     layout: 'border',
-    
-    items: [
-        {
-            region: 'north',
-            xtype : 'pageHeader'
+
+    items: [{
+        region: 'north',
+        xtype: 'appHeader'
+    }, {
+        region: 'west',
+        xtype: 'navigation',
+        width: 250,
+        split: true,
+        stateful: true,
+        stateId: 'mainnav.west',
+        collapsible: true
+    }, {
+        region: 'center',
+        xtype: 'contentPanel'
+    }, {
+        region: 'east',
+        id: 'east-region',
+        title: 'Example Info',
+        stateful: true,
+        stateId: 'mainnav.east',
+        split: true,
+        collapsible: true,
+        layout: {
+            type: 'vbox',
+            align: 'stretch'
         },
-        
-        {
-            region: 'center',
-            
-            layout: {
-                type : 'hbox',
-                align: 'stretch'
-            },
-            
-            items: [
-                {
-                    width: 250,
-                    bodyPadding: 5,
-                    xtype: 'exampleList'
-                },
-                
-                {
-                    cls: 'x-example-panel',
-                    flex: 1,
-                    title: '&nbsp;',
-                    id   : 'examplePanel',
-                    layout: {
-                        type: 'vbox',
-                        align: 'center',
-                        pack: 'center'
-                    },
-                    overflowY: 'auto',
-                    bodyPadding: 0
-                }
-            ]
-        },
-        {
-            xtype: 'pageHeader',
-            region: 'south',
-            height: 13
-        }
-    ]
+        width: 250,
+        items: [{
+            xtype: 'descriptionPanel',
+            stateful: true,
+            stateId: 'mainnav.east.description',
+            height: 200
+        }, {
+            xtype: 'splitter',
+            collapsible: true,
+            collapseTarget: 'prev'
+        }, {
+            xtype: 'codePreview',
+            flex: 1
+        }]
+    }]
 });

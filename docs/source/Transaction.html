@@ -19,41 +19,45 @@
 </span> * Supporting Class for Ext.Direct (not intended to be used directly).
  */
 Ext.define('Ext.direct.Transaction', {
-    
-    /* Begin Definitions */
-   
     alias: 'direct.transaction',
     alternateClassName: 'Ext.Direct.Transaction',
    
     statics: {
-        TRANSACTION_ID: 0
-    },
+<span id='Ext-direct-Transaction-property-TRANSACTION_ID'>        TRANSACTION_ID: 0
+</span>    },
+    
+<span id='Ext-direct-Transaction-cfg-provider'>    /**
+</span>     * @cfg {Ext.direct.Provider} provider Provider to use with this Transaction.
+     */
    
-    /* End Definitions */
-
 <span id='Ext-direct-Transaction-method-constructor'>    /**
 </span>     * Creates new Transaction.
      * @param {Object} [config] Config object.
      */
-    constructor: function(config){
+    constructor: function(config) {
         var me = this;
         
         Ext.apply(me, config);
+
         me.id = me.tid = ++me.self.TRANSACTION_ID;
         me.retryCount = 0;
     },
    
-    send: function(){
-         this.provider.queueTransaction(this);
+<span id='Ext-direct-Transaction-method-send'>    send: function() {
+</span>        var me = this;
+        
+        me.provider.queueTransaction(me);
     },
 
-    retry: function(){
-        this.retryCount++;
-        this.send();
+<span id='Ext-direct-Transaction-method-retry'>    retry: function() {
+</span>        var me = this;
+        
+        me.retryCount++;
+        me.send();
     },
 
-    getProvider: function(){
-        return this.provider;
+<span id='Ext-direct-Transaction-method-getProvider'>    getProvider: function() {
+</span>        return this.provider;
     }
 });
 </pre>

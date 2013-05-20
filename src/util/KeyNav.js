@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides a convenient wrapper for normalized keyboard navigation. KeyNav allows you to bind navigation keys to
  * function calls that will get called when the keys are pressed, providing an easy way to implement custom navigation
@@ -30,9 +50,9 @@
  */
 Ext.define('Ext.util.KeyNav', {
     alternateClassName: 'Ext.KeyNav',
-    
+
     requires: ['Ext.util.KeyMap'],
-    
+
     statics: {
         keyOptions: {
             left: 37,
@@ -76,7 +96,6 @@ Ext.define('Ext.util.KeyNav', {
     /**
      * Sets up a configuration for the KeyNav.
      * @private
-     * @param {String/HTMLElement/Ext.Element} el The element or its ID to bind to
      * @param {Object} config A configuration object as specified in the constructor.
      */
     setConfig: function(config) {
@@ -96,10 +115,19 @@ Ext.define('Ext.util.KeyNav', {
             keymapCfg.processEvent = config.processEvent;
             keymapCfg.processEventScope = config.processEventScope||me;
         }
-        map = me.map = new Ext.util.KeyMap(keymapCfg);
+
+        // If they specified a KeyMap to use, use it
+        if (config.keyMap) {
+            map = me.map = config.keyMap;
+        }
+        // Otherwise, create one, and remember to destroy it on destroy
+        else {
+            map = me.map = new Ext.util.KeyMap(keymapCfg);
+            me.destroyKeyMap = true;
+        }
         keyCodes = Ext.util.KeyNav.keyOptions;
         defaultScope = config.scope || me;
-        
+
         for (keyName in keyCodes) {
             if (keyCodes.hasOwnProperty(keyName)) {
 
@@ -109,24 +137,24 @@ Ext.define('Ext.util.KeyNav', {
                     if (typeof binding === 'function') {
                         binding = {
                             handler: binding,
-                            defaultAction: (config.defaultEventAction !== undefined) ? config.defaultEventAction : me.defaultEventAction
+                            defaultEventAction: (config.defaultEventAction !== undefined) ? config.defaultEventAction : me.defaultEventAction
                         };
                     }
                     map.addBinding({
                         key: keyCodes[keyName],
                         handler: Ext.Function.bind(me.handleEvent, binding.scope||defaultScope, binding.handler||binding.fn, true),
-                        defaultEventAction: (binding.defaultEventAction !== undefined) ? binding.defaultAction : me.defaultEventAction
+                        defaultEventAction: (binding.defaultEventAction !== undefined) ? binding.defaultEventAction : me.defaultEventAction
                     });
                 }
             }
         }
-        
+
         map.disable();
         if (!config.disabled) {
             map.enable();
         }
     },
-    
+
     /**
      * Method for filtering out the map argument
      * @private
@@ -137,13 +165,13 @@ Ext.define('Ext.util.KeyNav', {
     handleEvent: function(keyCode, event, handler){
         return handler.call(this, event);
     },
-    
+
     /**
      * @cfg {Boolean} disabled
      * True to disable this KeyNav instance.
      */
     disabled: false,
-    
+
     /**
      * @cfg {String} defaultEventAction
      * The method to call on the {@link Ext.EventObject} after this KeyNav intercepts a key. Valid values are {@link
@@ -152,7 +180,7 @@ Ext.define('Ext.util.KeyNav', {
      * If a falsy value is specified, no method is called on the key event.
      */
     defaultEventAction: "stopEvent",
-    
+
     /**
      * @cfg {Boolean} forceKeyDown
      * Handle the keydown event instead of keypress. KeyNav automatically does this for IE since IE does not propagate
@@ -193,11 +221,19 @@ Ext.define('Ext.util.KeyNav', {
      */
 
     /**
-     * Destroy this KeyNav (this is the same as calling disable).
-     * @param {Boolean} removeEl True to remove the element associated with this KeyNav.
+     * @cfg {Ext.util.KeyMap} [keyMap]
+     * An optional pre-existing {@link Ext.util.KeyMap KeyMap} to use to listen for key events. If not specified,
+     * one is created.
+     */
+
+    /**
+     * Destroy this KeyNav.
+     * @param {Boolean} removeEl Pass `true` to remove the element associated with this KeyNav.
      */
     destroy: function(removeEl) {
-        this.map.destroy(removeEl);
+        if (this.destroyKeyMap) {
+            this.map.destroy(removeEl);
+        }
         delete this.map;
     },
 
@@ -216,7 +252,7 @@ Ext.define('Ext.util.KeyNav', {
         this.map.disable();
         this.disabled = true;
     },
-    
+
     /**
      * Convenience function for setting disabled/enabled by boolean.
      * @param {Boolean} disabled
@@ -225,7 +261,7 @@ Ext.define('Ext.util.KeyNav', {
         this.map.setDisabled(disabled);
         this.disabled = disabled;
     },
-    
+
     /**
      * @private
      * Determines the event to bind to listen for keys. Defaults to the {@link #eventName} value, but

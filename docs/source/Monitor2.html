@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-container-Monitor'>/**
+</span> * This is a utility class for being able to track all items of a particular type
+ * inside any level at a container. This can be used in favour of bubbling add/remove events
+ * which can add a large perf cost when implemented globally
+ * @private
+ */
+Ext.define('Ext.container.Monitor', {
+<span id='Ext-container-Monitor-property-target'>    target: null,
+</span><span id='Ext-container-Monitor-property-selector'>    selector: '',
+</span>    
+<span id='Ext-container-Monitor-property-scope'>    scope: null,
+</span><span id='Ext-container-Monitor-property-addHandler'>    addHandler: null,
+</span><span id='Ext-container-Monitor-property-removeHandler'>    removeHandler: null,
+</span>    
+<span id='Ext-container-Monitor-property-disabled'>    disabled: 0,
+</span>    
+<span id='Ext-container-Monitor-method-constructor'>    constructor: function(config){
+</span>        Ext.apply(this, config);
+    },
+    
+<span id='Ext-container-Monitor-method-bind'>    bind: function(target){
+</span>        var me = this;
+        
+        me.target = target;
+        target.on('beforedestroy', me.disable, me);
+        me.onContainerAdd(target);
+    },
+    
+<span id='Ext-container-Monitor-method-unbind'>    unbind: function() {
+</span>        var me = this,
+            target = me.target;
+            
+        if (target) {
+            target.un('beforedestroy', me.disable, me);
+        }
+        me.items = null;
+    },
+    
+<span id='Ext-container-Monitor-method-disable'>    disable: function(){
+</span>        ++this.disabled;    
+    },
+    
+<span id='Ext-container-Monitor-method-enable'>    enable: function(){
+</span>        if (this.disabled &gt; 0) {
+            --this.disabled;
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-handleAdd'>    handleAdd: function(ct, comp) {
+</span>        if (!this.disabled) {
+            if (comp.is(this.selector)) {
+                this.onItemAdd(comp.ownerCt, comp);
+            }
+        
+            if (comp.isContainer) {
+                this.onContainerAdd(comp);
+            }
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-onItemAdd'>    onItemAdd: function(ct, comp){
+</span>        var me = this,
+            items = me.items,
+            handler = me.addHandler;
+            
+        if (!me.disabled) {
+            if (handler) {
+                handler.call(me.scope || comp, comp);
+            }
+            if (items) {
+                items.add(comp);
+            }
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-onItemRemove'>    onItemRemove: function(ct, comp){
+</span>        var me = this,
+            items = me.items,
+            handler = me.removeHandler;
+            
+        if (!me.disabled) {
+            if (handler) {
+                handler.call(me.scope || comp, comp);
+            }
+            if (items) {
+                items.remove(comp);
+            }
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-onContainerAdd'>    onContainerAdd: function(ct, preventChildren) {
+</span>        var me = this,
+            items, len,
+            handleAdd = me.handleAdd,
+            handleRemove = me.handleRemove,
+            i, comp;
+        
+        ct.on('add', handleAdd, me);
+        ct.on('dockedadd', handleAdd, me);
+        ct.on('remove', handleRemove, me);
+        ct.on('dockedremove', handleRemove, me);
+        
+        // Means we've been called by a parent container so the selector
+        // matchers have already been processed
+        if (preventChildren !== true) {
+            items = ct.query(me.selector);
+            for (i = 0, len = items.length; i &lt; len; ++i) {
+                comp = items[i];
+                me.onItemAdd(comp.ownerCt, comp);
+            }
+        }
+         
+        items = ct.query('container');
+        for (i = 0, len = items.length; i &lt; len; ++i) {
+            me.onContainerAdd(items[i], true);
+        }
+        
+    },
+    
+<span id='Ext-container-Monitor-method-handleRemove'>    handleRemove: function(ct, comp) {
+</span>        var me = this;
+            
+        // During a destroy we don't want to maintain any of this information,
+        // so typically we'll be disabled here
+        if (!me.disabled) {
+            if (comp.is(me.selector)) {
+                me.onItemRemove(ct, comp);
+            }
+        
+            if (comp.isContainer) {
+                me.onContainerRemove(ct, comp);
+            }
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-onContainerRemove'>    onContainerRemove: function(ct, comp){
+</span>        var me = this,
+            destroying = ct.destroying,
+            items, i, len, item;
+            
+        // only need to unbind the listeners if the ct isn't destroying children
+        if (!destroying) {
+            me.removeCtListeners(comp);
+        }
+            
+        items = comp.query(me.selector);
+        for (i = 0, len = items.length; i &lt; len; ++i) {
+            item = items[i];
+            me.onItemRemove(item.ownerCt, item);
+        }
+         
+        if (!destroying) {   
+            items = comp.query('container');
+            for (i = 0, len = items.length; i &lt; len; ++i) {
+                me.removeCtListeners(items[i]);
+            }
+        }
+    },
+    
+<span id='Ext-container-Monitor-method-removeCtListeners'>    removeCtListeners: function(comp){
+</span>        var me = this;
+        comp.un('add', me.handleAdd, me);
+        comp.un('dockedadd', me.handleAdd, me);
+        comp.un('remove', me.handleRemove, me);
+        comp.un('dockedremove', me.handleRemove, me);
+    },
+    
+<span id='Ext-container-Monitor-method-getItems'>    getItems: function(){
+</span>        var me = this,
+            items = me.items;
+            
+        if (!items) {
+            items = me.items = new Ext.util.MixedCollection();
+            items.addAll(me.target.query(me.selector));
+        }
+        return items;
+    },
+    
+<span id='Ext-container-Monitor-method-invalidateItems'>    invalidateItems: function(){
+</span>        this.items = null;
+    }
+});
+</pre>
+</body>
+</html>

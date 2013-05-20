@@ -5,8 +5,6 @@ Ext.onReady(function () {
     store1.loadData(generateData(5, 20));
 
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             style: 'background:#fff',
             animate: true,
             shadow: true,
@@ -47,10 +45,9 @@ Ext.onReady(function () {
         height: 600,
         minHeight: 400,
         minWidth: 550,
-        hidden: false,
         maximizable: true,
         title: 'Pie Renderer Chart',
-        renderTo: Ext.getBody(),
+        autoShow: true,
         layout: 'fit',
         tbar: [{
             text: 'Save Chart',
@@ -66,7 +63,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(5));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(5));
+                });
             }
         }],
         items: chart

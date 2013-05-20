@@ -15,379 +15,468 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-data-Field'>/**
-</span> * @author Ed Spencer
+  <pre class="prettyprint lang-js"><span id='Ext-form-field-Field'>/**
+</span> * @docauthor Jason Johnston &lt;jason@sencha.com&gt;
  *
- * Fields are used to define what a Model is. They aren't instantiated directly - instead, when we create a class that
- * extends {@link Ext.data.Model}, it will automatically create a Field instance for each field configured in a {@link
- * Ext.data.Model Model}. For example, we might set up a model like this:
+ * This mixin provides a common interface for the logical behavior and state of form fields, including:
  *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             'name', 'email',
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
- *         ]
- *     });
+ * - Getter and setter methods for field values
+ * - Events and methods for tracking value and validity changes
+ * - Methods for triggering validation
  *
- * Four fields will have been created for the User Model - name, email, age and gender. Note that we specified a couple
- * of different formats here; if we only pass in the string name of the field (as with name and email), the field is set
- * up with the 'auto' type. It's as if we'd done this instead:
+ * **NOTE**: When implementing custom fields, it is most likely that you will want to extend the {@link Ext.form.field.Base}
+ * component class rather than using this mixin directly, as BaseField contains additional logic for generating an
+ * actual DOM complete with {@link Ext.form.Labelable label and error message} display and a form input field,
+ * plus methods that bind the Field value getters and setters to the input field's value.
  *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             {name: 'name', type: 'auto'},
- *             {name: 'email', type: 'auto'},
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
- *         ]
- *     });
- *
- * # Types and conversion
- *
- * The {@link #type} is important - it's used to automatically convert data passed to the field into the correct format.
- * In our example above, the name and email fields used the 'auto' type and will just accept anything that is passed
- * into them. The 'age' field had an 'int' type however, so if we passed 25.4 this would be rounded to 25.
- *
- * Sometimes a simple type isn't enough, or we want to perform some processing when we load a Field's data. We can do
- * this using a {@link #convert} function. Here, we're going to create a new field based on another:
- *
- *     Ext.define('User', {
- *         extend: 'Ext.data.Model',
- *         fields: [
- *             {
- *                 name: 'firstName',
- *                 convert: function(value, record) {
- *                     var fullName  = record.get('name'),
- *                         splits    = fullName.split(&quot; &quot;),
- *                         firstName = splits[0];
- *
- *                     return firstName;
- *                 }
- *             },
- *             'name', 'email',
- *             {name: 'age', type: 'int'},
- *             {name: 'gender', type: 'string', defaultValue: 'Unknown'}
- *         ]
- *     });
- *
- * Now when we create a new User, the firstName is populated automatically based on the name:
- *
- *     var ed = Ext.create('User', {name: 'Ed Spencer'});
- *
- *     console.log(ed.get('firstName')); //logs 'Ed', based on our convert function
- *     
- * Fields which are configured with a custom ```convert``` function are read *after* all other fields
- * when constructing and reading records, so that if convert functions rely on other, non-converted fields
- * (as in this example), they can be sure of those fields being present.
- *
- * In fact, if we log out all of the data inside ed, we'll see this:
- *
- *     console.log(ed.data);
- *
- *     //outputs this:
- *     {
- *         age: 0,
- *         email: &quot;&quot;,
- *         firstName: &quot;Ed&quot;,
- *         gender: &quot;Unknown&quot;,
- *         name: &quot;Ed Spencer&quot;
- *     }
- *
- * The age field has been given a default of zero because we made it an int type. As an auto field, email has defaulted
- * to an empty string. When we registered the User model we set gender's {@link #defaultValue} to 'Unknown' so we see
- * that now. Let's correct that and satisfy ourselves that the types work as we expect:
- *
- *     ed.set('gender', 'Male');
- *     ed.get('gender'); //returns 'Male'
- *
- *     ed.set('age', 25.4);
- *     ed.get('age'); //returns 25 - we wanted an int, not a float, so no decimal places allowed
+ * If you do want to implement this mixin directly and don't want to extend {@link Ext.form.field.Base}, then
+ * you will most likely want to override the following methods with custom implementations: {@link #getValue},
+ * {@link #setValue}, and {@link #getErrors}. Other methods may be overridden as needed but their base
+ * implementations should be sufficient for common cases. You will also need to make sure that {@link #initField}
+ * is called during the component's initialization.
  */
-Ext.define('Ext.data.Field', {
-    requires: ['Ext.data.Types', 'Ext.data.SortTypes'],
-    alias: 'data.field',
+Ext.define('Ext.form.field.Field', {
+<span id='Ext-form-field-Field-property-isFormField'>    /**
+</span>     * @property {Boolean} isFormField
+     * Flag denoting that this component is a Field. Always true.
+     */
+    isFormField : true,
 
-    isField: true,
-    
-    constructor : function(config) {
-        var me = this,
-            types = Ext.data.Types,
-            st;
+<span id='Ext-form-field-Field-cfg-value'>    /**
+</span>     * @cfg {Object} value
+     * A value to initialize this field with.
+     */
+
+<span id='Ext-form-field-Field-cfg-name'>    /**
+</span>     * @cfg {String} name
+     * The name of the field. By default this is used as the parameter name when including the
+     * {@link #getSubmitData field value} in a {@link Ext.form.Basic#submit form submit()}. To prevent the field from
+     * being included in the form submit, set {@link #submitValue} to false.
+     */
+
+<span id='Ext-form-field-Field-cfg-disabled'>    /**
+</span>     * @cfg {Boolean} disabled
+     * True to disable the field. Disabled Fields will not be {@link Ext.form.Basic#submit submitted}.
+     */
+    disabled : false,
+
+<span id='Ext-form-field-Field-cfg-submitValue'>    /**
+</span>     * @cfg {Boolean} submitValue
+     * Setting this to false will prevent the field from being {@link Ext.form.Basic#submit submitted} even when it is
+     * not disabled.
+     */
+    submitValue: true,
+
+<span id='Ext-form-field-Field-cfg-validateOnChange'>    /**
+</span>     * @cfg {Boolean} validateOnChange
+     * Specifies whether this field should be validated immediately whenever a change in its value is detected.
+     * If the validation results in a change in the field's validity, a {@link #validitychange} event will be
+     * fired. This allows the field to show feedback about the validity of its contents immediately as the user is
+     * typing.
+     *
+     * When set to false, feedback will not be immediate. However the form will still be validated before submitting if
+     * the clientValidation option to {@link Ext.form.Basic#doAction} is enabled, or if the field or form are validated
+     * manually.
+     *
+     * See also {@link Ext.form.field.Base#checkChangeEvents} for controlling how changes to the field's value are
+     * detected.
+     */
+    validateOnChange: true,
+
+<span id='Ext-form-field-Field-property-suspendCheckChange'>    /**
+</span>     * @private
+     */
+    suspendCheckChange: 0,
+
+<span id='Ext-form-field-Field-method-initField'>    /**
+</span>     * Initializes this Field mixin on the current instance. Components using this mixin should call this method during
+     * their own initialization process.
+     */
+    initField: function() {
+        this.addEvents(
+<span id='Ext-form-field-Field-event-change'>            /**
+</span>             * @event change
+             * Fires when the value of a field is changed via the {@link #setValue} method.
+             * @param {Ext.form.field.Field} this
+             * @param {Object} newValue The new value
+             * @param {Object} oldValue The original value
+             */
+            'change',
+<span id='Ext-form-field-Field-event-validitychange'>            /**
+</span>             * @event validitychange
+             * Fires when a change in the field's validity is detected.
+             * @param {Ext.form.field.Field} this
+             * @param {Boolean} isValid Whether or not the field is now valid
+             */
+            'validitychange',
+<span id='Ext-form-field-Field-event-dirtychange'>            /**
+</span>             * @event dirtychange
+             * Fires when a change in the field's {@link #isDirty} state is detected.
+             * @param {Ext.form.field.Field} this
+             * @param {Boolean} isDirty Whether or not the field is now dirty
+             */
+            'dirtychange'
+        );
+
+        this.initValue();
         
-        if (Ext.isString(config)) {
-            config = {name: config};
+        //&lt;debug&gt;
+        var badNames = [
+            'tagName',
+            'nodeName',
+            'children',
+            'childNodes'
+        ], name = this.name;
+            
+        if (name &amp;&amp; Ext.Array.indexOf(badNames, name) &gt; -1) {
+            Ext.log.warn(
+                ['It is recommended to not use &quot;', name, '&quot; as a field name, because it ',
+                'can cause naming collisions during form submission.'].join('')
+            );
         }
-        Ext.apply(me, config);
+        //&lt;/debug&gt;
+    },
 
-        st = me.sortType;
+<span id='Ext-form-field-Field-method-initValue'>    /**
+</span>     * Initializes the field's value based on the initial config.
+     */
+    initValue: function() {
+        var me = this;
 
-        if (me.type) {
-            if (Ext.isString(me.type)) {
-                me.type = types[me.type.toUpperCase()] || types.AUTO;
-            }
-        } else {
-            me.type = types.AUTO;
-        }
+        me.value = me.transformOriginalValue(me.value);
+<span id='Ext-form-field-Field-property-originalValue'>        /**
+</span>         * @property {Object} originalValue
+         * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
+         * form load operation if the form's {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} setting is `true`.
+         */
+        me.originalValue = me.lastValue = me.value;
 
-        // named sortTypes are supported, here we look them up
-        if (Ext.isString(st)) {
-            me.sortType = Ext.data.SortTypes[st];
-        } else if(Ext.isEmpty(st)) {
-            me.sortType = me.type.sortType;
-        }
-
-        // Reference this type's default converter if we did not recieve one in configuration.
-        if (!config.hasOwnProperty('convert')) {
-            me.convert = me.type.convert; // this may be undefined (e.g., AUTO)
-        } else if (!me.convert &amp;&amp; me.type.convert &amp;&amp; !config.hasOwnProperty('defaultValue')) {
-            // If the converter has been nulled out, and we have not been configured
-            // with a field-specific defaultValue, then coerce the inherited defaultValue into our data type.
-            me.defaultValue = me.type.convert(me.defaultValue);
-        }
-
-        if (config.convert) {
-            me.hasCustomConvert = true;
-        }
+        // Set the initial value - prevent validation on initial set
+        me.suspendCheckChange++;
+        me.setValue(me.value);
+        me.suspendCheckChange--;
     },
     
-<span id='Ext-data-Field-cfg-name'>    /**
-</span>     * @cfg {String} name
-     *
-     * The name by which the field is referenced within the Model. This is referenced by, for example, the `dataIndex`
-     * property in column definition objects passed to {@link Ext.grid.property.HeaderContainer}.
-     *
-     * Note: In the simplest case, if no properties other than `name` are required, a field definition may consist of
-     * just a String for the field name.
+<span id='Ext-form-field-Field-method-transformOriginalValue'>    /**
+</span>     * Allows for any necessary modifications before the original
+     * value is set
+     * @protected
+     * @param {Object} value The initial value
+     * @return {Object} The modified initial value
      */
-    
-<span id='Ext-data-Field-cfg-type'>    /**
-</span>     * @cfg {String/Object} type
-     *
-     * The data type for automatic conversion from received data to the *stored* value if
-     * `{@link Ext.data.Field#convert convert}` has not been specified. This may be specified as a string value.
-     * Possible values are
-     *
-     * - auto (Default, implies no conversion)
-     * - string
-     * - int
-     * - float
-     * - boolean
-     * - date
-     *
-     * This may also be specified by referencing a member of the {@link Ext.data.Types} class.
-     *
-     * Developers may create their own application-specific data types by defining new members of the {@link
-     * Ext.data.Types} class.
-     */
+    transformOriginalValue: Ext.identityFn,
 
-<span id='Ext-data-Field-cfg-convert'>    /**
-</span>     * @cfg {Function} [convert]
-     *
-     * A function which converts the value provided by the Reader into an object that will be stored in the Model.
-     * 
-     * If configured as `null`, then no conversion will be applied to the raw data property when this Field
-     * is read. This will increase performance. but you must ensure that the data is of the correct type and does
-     * not *need* converting.
-     * 
-     * It is passed the following parameters:
-     *
-     * - **v** : Mixed
-     *
-     *   The data value as read by the Reader, if undefined will use the configured `{@link Ext.data.Field#defaultValue
-     *   defaultValue}`.
-     *
-     * - **rec** : Ext.data.Model
-     *
-     *   The data object containing the Model as read so far by the Reader. Note that the Model may not be fully populated
-     *   at this point as the fields are read in the order that they are defined in your
-     *   {@link Ext.data.Model#cfg-fields fields} array.
-     *
-     * Example of convert functions:
-     *
-     *     function fullName(v, record){
-     *         return record.data.last + ', ' + record.data.first;
-     *     }
-     *
-     *     function location(v, record){
-     *         return !record.data.city ? '' : (record.data.city + ', ' + record.data.state);
-     *     }
-     *
-     *     Ext.define('Dude', {
-     *         extend: 'Ext.data.Model',
-     *         fields: [
-     *             {name: 'fullname',  convert: fullName},
-     *             {name: 'firstname', mapping: 'name.first'},
-     *             {name: 'lastname',  mapping: 'name.last'},
-     *             {name: 'city', defaultValue: 'homeless'},
-     *             'state',
-     *             {name: 'location',  convert: location}
-     *         ]
-     *     });
-     *
-     *     // create the data store
-     *     var store = Ext.create('Ext.data.Store', {
-     *         reader: {
-     *             type: 'json',
-     *             model: 'Dude',
-     *             idProperty: 'key',
-     *             root: 'daRoot',
-     *             totalProperty: 'total'
-     *         }
-     *     });
-     *
-     *     var myData = [
-     *         { key: 1,
-     *           name: { first: 'Fat',    last:  'Albert' }
-     *           // notice no city, state provided in data object
-     *         },
-     *         { key: 2,
-     *           name: { first: 'Barney', last:  'Rubble' },
-     *           city: 'Bedrock', state: 'Stoneridge'
-     *         },
-     *         { key: 3,
-     *           name: { first: 'Cliff',  last:  'Claven' },
-     *           city: 'Boston',  state: 'MA'
-     *         }
-     *     ];
+<span id='Ext-form-field-Field-method-getName'>    /**
+</span>     * Returns the {@link Ext.form.field.Field#name name} attribute of the field. This is used as the parameter name
+     * when including the field value in a {@link Ext.form.Basic#submit form submit()}.
+     * @return {String} name The field {@link Ext.form.field.Field#name name}
      */
+    getName: function() {
+        return this.name;
+    },
 
-<span id='Ext-data-Field-cfg-serialize'>    /**
-</span>     * @cfg {Function} [serialize]
-     * A function which converts the Model's value for this Field into a form which can be used by whatever {@link Ext.data.writer.Writer Writer}
-     * is being used to sync data with the server.
-     * 
-     * The function should return a string which represents the Field's value.
-     *
-     * It is passed the following parameters:
-     *
-     * - **v** : Mixed
-     *
-     *   The Field's value - the value to be serialized.
-     *
-     * - **rec** : Ext.data.Model
-     *
-     *   The record being serialized.
-     *
+<span id='Ext-form-field-Field-method-getValue'>    /**
+</span>     * Returns the current data value of the field. The type of value returned is particular to the type of the
+     * particular field (e.g. a Date object for {@link Ext.form.field.Date}).
+     * @return {Object} value The field value
      */
+    getValue: function() {
+        return this.value;
+    },
 
-<span id='Ext-data-Field-cfg-dateFormat'>    /**
-</span>     * @cfg {String} dateFormat
-     *
-     * Used when converting received data into a Date when the {@link #type} is specified as `&quot;date&quot;`.
-     * 
-     * The format dtring is also used when serializing Date fields for use by {@link Ext.data.writer.Writer Writers}.
-     *
-     * A format string for the {@link Ext.Date#parse Ext.Date.parse} function, or &quot;timestamp&quot; if the value provided by
-     * the Reader is a UNIX timestamp, or &quot;time&quot; if the value provided by the Reader is a javascript millisecond
-     * timestamp. See {@link Ext.Date}.
+<span id='Ext-form-field-Field-method-setValue'>    /**
+</span>     * Sets a data value into the field and runs the change detection and validation.
+     * @param {Object} value The value to set
+     * @return {Ext.form.field.Field} this
      */
-    dateFormat: null,
-    
-<span id='Ext-data-Field-cfg-useNull'>    /**
-</span>     * @cfg {Boolean} useNull
-     *
-     * Use when converting received data into a INT, FLOAT, BOOL or STRING type. If the value cannot be
-     * parsed, `null` will be used if useNull is true, otherwise a default value for that type will be used:
-     *
-     * - for INT and FLOAT - `0`.
-     * - for STRING - `&quot;&quot;`.
-     * - for BOOL - `false`.
-     *
-     * Note that when parsing of DATE type fails, the value will be `null` regardless of this setting.
-     */
-    useNull: false,
-    
-<span id='Ext-data-Field-cfg-defaultValue'>    /**
-</span>     * @cfg {Object} [defaultValue=&quot;&quot;]
-     *
-     * The default value used when the creating an instance from a raw data object, and the property referenced by the
-     * `{@link Ext.data.Field#mapping mapping}` does not exist in that data object.
-     * 
-     * May be specified as `undefined` to prevent defaulting in a value.
-     */
-    defaultValue: &quot;&quot;,
+    setValue: function(value) {
+        var me = this;
+        me.value = value;
+        me.checkChange();
+        return me;
+    },
 
-<span id='Ext-data-Field-cfg-mapping'>    /**
-</span>     * @cfg {String/Number} mapping
-     *
-     * (Optional) A path expression for use by the {@link Ext.data.reader.Reader} implementation that is creating the
-     * {@link Ext.data.Model Model} to extract the Field value from the data object. If the path expression is the same
-     * as the field name, the mapping may be omitted.
-     *
-     * The form of the mapping expression depends on the Reader being used.
-     *
-     * - {@link Ext.data.reader.Json}
-     *
-     *   The mapping is a string containing the javascript expression to reference the data from an element of the data
-     *   item's {@link Ext.data.reader.Json#cfg-root root} Array. Defaults to the field name.
-     *
-     * - {@link Ext.data.reader.Xml}
-     *
-     *   The mapping is an {@link Ext.DomQuery} path to the data item relative to the DOM element that represents the
-     *   {@link Ext.data.reader.Xml#record record}. Defaults to the field name.
-     *
-     * - {@link Ext.data.reader.Array}
-     *
-     *   The mapping is a number indicating the Array index of the field's value. Defaults to the field specification's
-     *   Array position.
-     *
-     * If a more complex value extraction strategy is required, then configure the Field with a {@link #convert}
-     * function. This is passed the whole row object, and may interrogate it in whatever way is necessary in order to
-     * return the desired data.
+<span id='Ext-form-field-Field-method-isEqual'>    /**
+</span>     * Returns whether two field {@link #getValue values} are logically equal. Field implementations may override this
+     * to provide custom comparison logic appropriate for the particular field's data type.
+     * @param {Object} value1 The first value to compare
+     * @param {Object} value2 The second value to compare
+     * @return {Boolean} True if the values are equal, false if inequal.
      */
-    mapping: null,
+    isEqual: function(value1, value2) {
+        return String(value1) === String(value2);
+    },
 
-<span id='Ext-data-Field-cfg-sortType'>    /**
-</span>     * @cfg {Function} sortType
-     *
-     * A function which converts a Field's value to a comparable value in order to ensure correct sort ordering.
-     * Predefined functions are provided in {@link Ext.data.SortTypes}. A custom sort example:
-     *
-     *     // current sort     after sort we want
-     *     // +-+------+          +-+------+
-     *     // |1|First |          |1|First |
-     *     // |2|Last  |          |3|Second|
-     *     // |3|Second|          |2|Last  |
-     *     // +-+------+          +-+------+
-     *
-     *     sortType: function(value) {
-     *        switch (value.toLowerCase()) // native toLowerCase():
-     *        {
-     *           case 'first': return 1;
-     *           case 'second': return 2;
-     *           default: return 3;
-     *        }
-     *     }
-     */
-    sortType : null,
-
-<span id='Ext-data-Field-cfg-sortDir'>    /**
-</span>     * @cfg {String} sortDir
-     *
-     * Initial direction to sort (`&quot;ASC&quot;` or `&quot;DESC&quot;`). Defaults to `&quot;ASC&quot;`.
-     */
-    sortDir : &quot;ASC&quot;,
-
-<span id='Ext-data-Field-cfg-allowBlank'>    /**
-</span>     * @cfg {Boolean} allowBlank
+<span id='Ext-form-field-Field-method-isEqualAsString'>    /**
+</span>     * Returns whether two values are logically equal.
+     * Similar to {@link #isEqual}, however null or undefined values will be treated as empty strings.
      * @private
-     *
-     * Used for validating a {@link Ext.data.Model model}. Defaults to true. An empty value here will cause
-     * {@link Ext.data.Model}.{@link Ext.data.Model#isValid isValid} to evaluate to false.
+     * @param {Object} value1 The first value to compare
+     * @param {Object} value2 The second value to compare
+     * @return {Boolean} True if the values are equal, false if inequal.
      */
-    allowBlank : true,
+    isEqualAsString: function(value1, value2){
+        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));
+    },
 
-<span id='Ext-data-Field-cfg-persist'>    /**
-</span>     * @cfg {Boolean} persist
+<span id='Ext-form-field-Field-method-getSubmitData'>    /**
+</span>     * Returns the parameter(s) that would be included in a standard form submit for this field. Typically this will be
+     * an object with a single name-value pair, the name being this field's {@link #getName name} and the value being
+     * its current stringified value. More advanced field implementations may return more than one name-value pair.
      *
-     * False to exclude this field from the {@link Ext.data.Model#modified} fields in a model. This will also exclude
-     * the field from being written using a {@link Ext.data.writer.Writer}. This option is useful when model fields are
-     * used to keep state on the client but do not need to be persisted to the server. Defaults to true.
+     * Note that the values returned from this method are not guaranteed to have been successfully {@link #validate
+     * validated}.
+     *
+     * @return {Object} A mapping of submit parameter names to values; each value should be a string, or an array of
+     * strings if that particular name has multiple values. It can also return null if there are no parameters to be
+     * submitted.
      */
-    persist: true
+    getSubmitData: function() {
+        var me = this,
+            data = null;
+        if (!me.disabled &amp;&amp; me.submitValue &amp;&amp; !me.isFileUpload()) {
+            data = {};
+            data[me.getName()] = '' + me.getValue();
+        }
+        return data;
+    },
+
+<span id='Ext-form-field-Field-method-getModelData'>    /**
+</span>     * Returns the value(s) that should be saved to the {@link Ext.data.Model} instance for this field, when {@link
+     * Ext.form.Basic#updateRecord} is called. Typically this will be an object with a single name-value pair, the name
+     * being this field's {@link #getName name} and the value being its current data value. More advanced field
+     * implementations may return more than one name-value pair. The returned values will be saved to the corresponding
+     * field names in the Model.
+     *
+     * Note that the values returned from this method are not guaranteed to have been successfully {@link #validate
+     * validated}.
+     *
+     * @return {Object} A mapping of submit parameter names to values; each value should be a string, or an array of
+     * strings if that particular name has multiple values. It can also return null if there are no parameters to be
+     * submitted.
+     */
+    getModelData: function() {
+        var me = this,
+            data = null;
+        if (!me.disabled &amp;&amp; !me.isFileUpload()) {
+            data = {};
+            data[me.getName()] = me.getValue();
+        }
+        return data;
+    },
+
+<span id='Ext-form-field-Field-method-reset'>    /**
+</span>     * Resets the current field value to the originally loaded value and clears any validation messages. See {@link
+     * Ext.form.Basic}.{@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad}
+     */
+    reset : function(){
+        var me = this;
+
+        me.beforeReset();
+        me.setValue(me.originalValue);
+        me.clearInvalid();
+        // delete here so we reset back to the original state
+        delete me.wasValid;
+    },
+    
+<span id='Ext-form-field-Field-method-beforeReset'>    /**
+</span>     * Template method before a field is reset.
+     * @protected
+     */
+    beforeReset: Ext.emptyFn,
+
+<span id='Ext-form-field-Field-method-resetOriginalValue'>    /**
+</span>     * Resets the field's {@link #originalValue} property so it matches the current {@link #getValue value}. This is
+     * called by {@link Ext.form.Basic}.{@link Ext.form.Basic#setValues setValues} if the form's
+     * {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} property is set to true.
+     */
+    resetOriginalValue: function() {
+        this.originalValue = this.getValue();
+        this.checkDirty();
+    },
+
+<span id='Ext-form-field-Field-method-checkChange'>    /**
+</span>     * Checks whether the value of the field has changed since the last time it was checked.
+     * If the value has changed, it:
+     *
+     * 1. Fires the {@link #change change event},
+     * 2. Performs validation if the {@link #validateOnChange} config is enabled, firing the
+     *    {@link #validitychange validitychange event} if the validity has changed, and
+     * 3. Checks the {@link #isDirty dirty state} of the field and fires the {@link #dirtychange dirtychange event}
+     *    if it has changed.
+     */
+    checkChange: function() {
+        if (!this.suspendCheckChange) {
+            var me = this,
+                newVal = me.getValue(),
+                oldVal = me.lastValue;
+            if (!me.isEqual(newVal, oldVal) &amp;&amp; !me.isDestroyed) {
+                me.lastValue = newVal;
+                me.fireEvent('change', me, newVal, oldVal);
+                me.onChange(newVal, oldVal);
+            }
+        }
+    },
+
+<span id='Ext-form-field-Field-method-onChange'>    /**
+</span>     * @private
+     * Called when the field's value changes. Performs validation if the {@link #validateOnChange}
+     * config is enabled, and invokes the dirty check.
+     */
+    onChange: function(newVal, oldVal) {
+        if (this.validateOnChange) {
+            this.validate();
+        }
+        this.checkDirty();
+    },
+
+<span id='Ext-form-field-Field-method-isDirty'>    /**
+</span>     * Returns true if the value of this Field has been changed from its {@link #originalValue}.
+     * Will always return false if the field is disabled.
+     *
+     * Note that if the owning {@link Ext.form.Basic form} was configured with
+     * {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} then the {@link #originalValue} is updated when
+     * the values are loaded by {@link Ext.form.Basic}.{@link Ext.form.Basic#setValues setValues}.
+     * @return {Boolean} True if this field has been changed from its original value (and is not disabled),
+     * false otherwise.
+     */
+    isDirty : function() {
+        var me = this;
+        return !me.disabled &amp;&amp; !me.isEqual(me.getValue(), me.originalValue);
+    },
+
+<span id='Ext-form-field-Field-method-checkDirty'>    /**
+</span>     * Checks the {@link #isDirty} state of the field and if it has changed since the last time it was checked,
+     * fires the {@link #dirtychange} event.
+     */
+    checkDirty: function() {
+        var me = this,
+            isDirty = me.isDirty();
+        if (isDirty !== me.wasDirty) {
+            me.fireEvent('dirtychange', me, isDirty);
+            me.onDirtyChange(isDirty);
+            me.wasDirty = isDirty;
+        }
+    },
+
+<span id='Ext-form-field-Field-method-onDirtyChange'>    /**
+</span>     * @private Called when the field's dirty state changes.
+     * @param {Boolean} isDirty
+     */
+    onDirtyChange: Ext.emptyFn,
+
+<span id='Ext-form-field-Field-method-getErrors'>    /**
+</span>     * Runs this field's validators and returns an array of error messages for any validation failures. This is called
+     * internally during validation and would not usually need to be used manually.
+     *
+     * Each subclass should override or augment the return value to provide their own errors.
+     *
+     * @param {Object} value The value to get errors for (defaults to the current field value)
+     * @return {String[]} All error messages for this field; an empty Array if none.
+     */
+    getErrors: function(value) {
+        return [];
+    },
+
+<span id='Ext-form-field-Field-method-isValid'>    /**
+</span>     * Returns whether or not the field value is currently valid by {@link #getErrors validating} the field's current
+     * value. The {@link #validitychange} event will not be fired; use {@link #validate} instead if you want the event
+     * to fire. **Note**: {@link #disabled} fields are always treated as valid.
+     *
+     * Implementations are encouraged to ensure that this method does not have side-effects such as triggering error
+     * message display.
+     *
+     * @return {Boolean} True if the value is valid, else false
+     */
+    isValid : function() {
+        var me = this;
+        return me.disabled || Ext.isEmpty(me.getErrors());
+    },
+
+<span id='Ext-form-field-Field-method-validate'>    /**
+</span>     * Returns whether or not the field value is currently valid by {@link #getErrors validating} the field's current
+     * value, and fires the {@link #validitychange} event if the field's validity has changed since the last validation.
+     * **Note**: {@link #disabled} fields are always treated as valid.
+     *
+     * Custom implementations of this method are allowed to have side-effects such as triggering error message display.
+     * To validate without side-effects, use {@link #isValid}.
+     *
+     * @return {Boolean} True if the value is valid, else false
+     */
+    validate : function() {
+        var me = this,
+            isValid = me.isValid();
+        if (isValid !== me.wasValid) {
+            me.wasValid = isValid;
+            me.fireEvent('validitychange', me, isValid);
+        }
+        return isValid;
+    },
+
+<span id='Ext-form-field-Field-method-batchChanges'>    /**
+</span>     * A utility for grouping a set of modifications which may trigger value changes into a single transaction, to
+     * prevent excessive firing of {@link #change} events. This is useful for instance if the field has sub-fields which
+     * are being updated as a group; you don't want the container field to check its own changed state for each subfield
+     * change.
+     * @param {Object} fn A function containing the transaction code
+     */
+    batchChanges: function(fn) {
+        try {
+            this.suspendCheckChange++;
+            fn();
+        } catch(e){
+            throw e;
+        } finally {
+            this.suspendCheckChange--;
+        }
+        this.checkChange();
+    },
+
+<span id='Ext-form-field-Field-method-isFileUpload'>    /**
+</span>     * Returns whether this Field is a file upload field; if it returns true, forms will use special techniques for
+     * {@link Ext.form.Basic#submit submitting the form} via AJAX. See {@link Ext.form.Basic#hasUpload} for details. If
+     * this returns true, the {@link #extractFileInput} method must also be implemented to return the corresponding file
+     * input element.
+     * @return {Boolean}
+     */
+    isFileUpload: function() {
+        return false;
+    },
+
+<span id='Ext-form-field-Field-method-extractFileInput'>    /**
+</span>     * Only relevant if the instance's {@link #isFileUpload} method returns true. Returns a reference to the file input
+     * DOM element holding the user's selected file. The input will be appended into the submission form and will not be
+     * returned, so this method should also create a replacement.
+     * @return {HTMLElement}
+     */
+    extractFileInput: function() {
+        return null;
+    },
+
+<span id='Ext-form-field-Field-method-markInvalid'>    /**
+</span>     * @method markInvalid
+     * Associate one or more error messages with this field. Components using this mixin should implement this method to
+     * update the component's rendering to display the messages.
+     *
+     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `false`
+     * if the value does _pass_ validation. So simply marking a Field as invalid will not prevent submission of forms
+     * submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     *
+     * @param {String/String[]} errors The error message(s) for the field.
+     */
+    markInvalid: Ext.emptyFn,
+
+<span id='Ext-form-field-Field-method-clearInvalid'>    /**
+</span>     * @method clearInvalid
+     * Clear any invalid styles/messages for this field. Components using this mixin should implement this method to
+     * update the components rendering to clear any existing messages.
+     *
+     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
+     * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
+     * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     */
+    clearInvalid: Ext.emptyFn
+
 });
 </pre>
 </body>

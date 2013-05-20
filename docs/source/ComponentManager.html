@@ -36,8 +36,8 @@ Ext.define('Ext.ComponentManager', {
     
     singleton: true,
     
-    typeName: 'xtype',
-    
+<span id='Ext-ComponentManager-property-typeName'>    typeName: 'xtype',
+</span>    
 <span id='Ext-ComponentManager-method-create'>    /**
 </span>     * Creates a new Component from the specified config object using the
      * config object's xtype to determine the class to instantiate.
@@ -56,11 +56,26 @@ Ext.define('Ext.ComponentManager', {
         return Ext.widget(component.xtype || defaultType, component);
     },
 
-    registerType: function(type, cls) {
-        this.types[type] = cls;
+<span id='Ext-ComponentManager-method-registerType'>    registerType: function(type, cls) {
+</span>        this.types[type] = cls;
         cls[this.typeName] = type;
         cls.prototype[this.typeName] = type;
     }
-});</pre>
+},
+function () {
+<span id='Ext-method-getCmp'>    /**
+</span>     * This is shorthand reference to {@link Ext.ComponentManager#get}.
+     * Looks up an existing {@link Ext.Component Component} by {@link Ext.Component#id id}
+     *
+     * @param {String} id The component {@link Ext.Component#id id}
+     * @return Ext.Component The Component, `undefined` if not found, or `null` if a
+     * Class was found.
+     * @member Ext
+    */
+    Ext.getCmp = function(id) {
+        return Ext.ComponentManager.get(id);
+    };
+});
+</pre>
 </body>
 </html>

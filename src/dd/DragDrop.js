@@ -1,4 +1,24 @@
 /*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
+/*
  * This is a derivative of the similarly named class in the YUI Library.
  * The original license:
  * Copyright (c) 2006, Yahoo! Inc. All rights reserved.
@@ -322,8 +342,8 @@ Ext.define('Ext.dd.DragDrop', {
     /**
      * Abstract method called after a drag/drop object is clicked
      * and the drag or mousedown time thresholds have beeen met.
-     * @param {Number} X click location
-     * @param {Number} Y click location
+     * @param {Number} x X click location
+     * @param {Number} y Y click location
      */
     startDrag: function(x, y) { /* override this */ },
 
@@ -778,26 +798,34 @@ Ext.define('Ext.dd.DragDrop', {
      * @private
      */
     handleMouseDown: function(e, oDD){
-        if (this.primaryButtonOnly && e.button != 0) {
+        var me = this,
+            activeEl;
+
+        if ((me.primaryButtonOnly && e.button != 0) || me.isLocked()) {
             return;
         }
 
-        if (this.isLocked()) {
-            return;
-        }
+        me.DDMInstance.refreshCache(me.groups);
 
-        this.DDMInstance.refreshCache(this.groups);
+        if (me.hasOuterHandles || me.DDMInstance.isOverTarget(e.getPoint(), me))  {
+            if (me.clickValidator(e)) {
+                activeEl = Ext.Element.getActiveElement();
 
-        if (this.hasOuterHandles || this.DDMInstance.isOverTarget(e.getPoint(), this) )  {
-            if (this.clickValidator(e)) {
                 // set the initial element position
-                this.setStartPosition();
-                this.b4MouseDown(e);
-                this.onMouseDown(e);
+                me.setStartPosition();
+                me.b4MouseDown(e);
+                me.onMouseDown(e);
 
-                this.DDMInstance.handleMouseDown(e, this);
+                me.DDMInstance.handleMouseDown(e, me);
 
-                this.DDMInstance.stopEvent(e);
+                // We're going to stop this event.
+                // But we need blurs to proceed so that editors still disappear when you click draggable things.
+                // Like column headers in a cell editing grid: https://sencha.jira.com/browse/EXTJSIV-7802
+                if (activeEl) {
+                    Ext.fly(activeEl).blur();
+                }
+
+                me.DDMInstance.stopEvent(e);
             }
         }
     },

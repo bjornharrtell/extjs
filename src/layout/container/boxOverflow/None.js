@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @private
  * Base class for Box Layout overflow handlers. These specialized classes are invoked when a Box Layout
@@ -18,9 +38,8 @@ Ext.define('Ext.layout.container.boxOverflow.None', {
 
     beginLayout: Ext.emptyFn,
     beginLayoutCycle: Ext.emptyFn,
-    finishedLayout: Ext.emptyFn,
 
-    completeLayout: function (ownerContext) {
+    calculate: function(ownerContext) {
         var me = this,
             plan = ownerContext.state.boxPlan,
             overflow;
@@ -46,6 +65,25 @@ Ext.define('Ext.layout.container.boxOverflow.None', {
             }
         } else {
             me.clearOverflow();
+        }
+    },
+
+    completeLayout: Ext.emptyFn,
+
+    finishedLayout: function (ownerContext) {
+        var me = this,
+            owner = me.layout.owner,
+            hiddens,
+            hiddenCount;
+
+        // Only count hidden children if someone is interested when the overflow state changes
+        if (owner.hasListeners.overflowchange) {
+            hiddens = owner.query('>[hidden]');
+            hiddenCount = hiddens.length;
+            if (hiddenCount !== me.lastHiddenCount) {
+                owner.fireEvent('overflowchange', me.lastHiddenCount, hiddenCount, hiddens);
+                me.lastHiddenCount = hiddenCount;
+            }
         }
     },
 

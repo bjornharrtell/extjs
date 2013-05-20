@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-vn",
+    "type": "locale",
+    "locale": "vn",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

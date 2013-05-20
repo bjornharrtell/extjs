@@ -37,8 +37,7 @@ Ext.define('SimpleTasks.controller.Lists', {
 
     init: function() {
         var me = this,
-            listsStore = me.getListsStore(),
-            tasksStore = me.getTasksStore();
+            listsStore = me.getListsStore();
 
         me.control({
             '[iconCls=tasks-new-list]': {
@@ -56,6 +55,7 @@ Ext.define('SimpleTasks.controller.Lists', {
             'listTree': {
                 afterrender: me.handleAfterListTreeRender,
                 edit: me.updateList,
+                completeedit: me.handleCompleteEdit,
                 canceledit: me.handleCancelEdit,
                 deleteclick: me.handleDeleteIconClick,
                 selectionchange: me.filterTaskGrid,
@@ -72,7 +72,9 @@ Ext.define('SimpleTasks.controller.Lists', {
         } else {
             me.handleListsLoad(listsStore);
         }
-        listsStore.on('write', me.syncListsStores, me);
+        listsStore.on('write', me.syncListsStores, me, {
+            buffer: 1
+        });
     },
 
     /**
@@ -98,7 +100,8 @@ Ext.define('SimpleTasks.controller.Lists', {
      * @param {Boolean} leaf    True if the new node should be a leaf node.
      */
     addList: function(leaf) {
-        var listTree = this.getListTree(),
+        var me = this,
+            listTree = me.getListTree(),
             cellEditingPlugin = listTree.cellEditingPlugin,
             selectionModel = listTree.getSelectionModel(),
             selectedList = selectionModel.getSelection()[0],
@@ -111,11 +114,13 @@ Ext.define('SimpleTasks.controller.Lists', {
             expandAndEdit = function() {
                 if(parentList.isExpanded()) {
                     selectionModel.select(newList);
+                    me.addedNode = newList;
                     cellEditingPlugin.startEdit(newList, 0);
                 } else {
                     listTree.on('afteritemexpand', function startEdit(list) {
                         if(list === parentList) {
                             selectionModel.select(newList);
+                            me.addedNode = newList;
                             cellEditingPlugin.startEdit(newList, 0);
                             // remove the afterexpand event listener
                             listTree.un('afteritemexpand', startEdit);
@@ -124,8 +129,9 @@ Ext.define('SimpleTasks.controller.Lists', {
                     parentList.expand();
                 }
             };
-
+            
         parentList.appendChild(newList);
+        listTree.getStore().sync();
         if(listTree.getView().isVisible(true)) {
             expandAndEdit();
         } else {
@@ -167,19 +173,34 @@ Ext.define('SimpleTasks.controller.Lists', {
             }
         });
     },
+    
+    /**
+     * Handles the list tree's complete edit event
+     * @param {Ext.grid.plugin.CellEditing} editor
+     * @param {Object} e                                an edit event object
+     */
+    handleCompleteEdit: function(editor, e){
+        delete this.addedNode;
+    },
 
     /**
      * Handles the list tree's cancel edit event
-     * removes a newly added node if editing is canceled before the node has been saved to the server
+     * removes a newly added node if editing is cancelled before the node has been saved to the server
      * @param {Ext.grid.plugin.CellEditing} editor
      * @param {Object} e                                an edit event object
      */
     handleCancelEdit: function(editor, e) {
         var list = e.record,
-            parent = list.parentNode;
+            parent = list.parentNode,
+            added = this.addedNode;
 
-        parent.removeChild(list);
-        this.getListTree().getSelectionModel().select([parent]);
+        delete this.addedNode;
+        if (added === list) {
+            // Only remove it if it's been newly added
+            parent.removeChild(list);
+            this.getListTree().getStore().sync();
+            this.getListTree().getSelectionModel().select([parent]);
+        }
     },
 
     /**
@@ -215,7 +236,7 @@ Ext.define('SimpleTasks.controller.Lists', {
             tasksStore = me.getTasksStore(),
             listsStore = me.getListsStore(),
             isLocal = this.getListsStore().getProxy().type === 'localstorage',
-            filters, tasks;
+            filters, tasks, store;
 
         Ext.Msg.show({
             title: 'Delete List?',
@@ -264,8 +285,9 @@ Ext.define('SimpleTasks.controller.Lists', {
                         tasksStore.sync();
                     }
 
-                    if(!listsStore.getNodeById(selModel.getSelection()[0].get('id'))) { //if the selection no longer exists in the store (it was part of the deleted node(s))
-                        // change selection to the "All Tasks" list
+                    // If there is no selection, or the selection no longer exists in the store (it was part of the deleted node(s))
+                    // then select the "All Lists" root
+                    if (!selModel.hasSelection() || !listsStore.getNodeById(selModel.getSelection()[0].getId())) {
                         selModel.select(0);
                     }
                     
@@ -284,6 +306,10 @@ Ext.define('SimpleTasks.controller.Lists', {
      * @param {SimpleTasks.model.List[]} lists
      */
     filterTaskGrid: function(selModel, lists) {
+        if (lists.length === 0) {
+            return;
+        }
+        
         var list = lists[0],
             tasksStore = this.getTasksStore(),
             listIds = [],
@@ -488,16 +514,22 @@ Ext.define('SimpleTasks.controller.Lists', {
                 Ext.getStore('Lists-TaskGrid'),
                 Ext.getStore('Lists-TaskEditWindow'),
                 Ext.getStore('Lists-TaskForm')
-            ], 
-            listToSync;
+            ],
+            storesLen = stores.length,
+            records = operation.getRecords(),
+            recordsLen = records.length, 
+            i, j, listToSync, node, list, store;
             
-        Ext.each(operation.getRecords(), function(list) {
-            Ext.each(stores, function(store) {
-                if(store) {
+        for (i = 0; i < recordsLen; ++i) {
+            list = records[i];
+            for (j = 0; j < storesLen; ++j) {
+                store = stores[j];
+                if (store) {
                     listToSync = store.getNodeById(list.getId());
                     switch(operation.action) {
                         case 'create':
-                            (store.getNodeById(list.parentNode.getId()) || store.getRootNode()).appendChild(list.copy());
+                            node = store.getNodeById(list.parentNode.getId()) || store.getRootNode();
+                            node.appendChild(list.copy(list.getId()));
                             break;
                         case 'update':
                             if(listToSync) {
@@ -511,8 +543,8 @@ Ext.define('SimpleTasks.controller.Lists', {
                             }
                     }
                 }
-            });
-        });
+            }
+        }
     },
 
     /**

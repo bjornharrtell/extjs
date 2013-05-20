@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-feature-GroupStore'>/**
+</span> * Private record store class which takes the place of the view's data store to provide a grouped
+ * view of the data when the Grouping feature is used.
+ * 
+ * Relays granular mutation events from the underlying store as refresh events to the view.
+ * 
+ * On mutation events from the underlying store, updates the summary rows by firing update events on the corresponding
+ * summary records.
+ * @private
+ */
+Ext.define('Ext.grid.feature.GroupStore', {
+    extend: 'Ext.util.Observable',
+
+<span id='Ext-grid-feature-GroupStore-property-isStore'>    isStore: true,
+</span>
+<span id='Ext-grid-feature-GroupStore-method-constructor'>    constructor: function(groupingFeature, store) {
+</span>        var me = this;
+
+        me.superclass.constructor.apply(me, arguments);
+        me.groupingFeature = groupingFeature;
+        me.bindStore(store);
+        me.processStore(store);
+        me.view.dataSource = me;
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-bindStore'>    bindStore: function(store) {
+</span>        var me = this;
+
+        if (me.store) {
+            Ext.destroy(me.storeListeners);
+            me.store = null;
+        }
+        if (store) {
+            me.storeListeners = store.on({
+                bulkremove: me.onBulkRemove,
+                add: me.onAdd,
+                update: me.onUpdate,
+                refresh: me.onRefresh,
+                clear: me.onClear,
+                scope: me,
+                destroyable: true
+            });
+            me.store = store;
+        }
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-processStore'>    processStore: function(store) {
+</span>        var me = this,
+            Model = store.model,
+            groups = store.getGroups(),
+            groupCount = groups.length,
+            i,
+            group,
+            groupPlaceholder,
+            data = me.data,
+            oldGroupCache = this.groupingFeature.groupCache,
+            groupCache = this.groupingFeature.groupCache = {},
+            collapseAll = me.groupingFeature.startCollapsed;
+
+        if (data) {
+            data.clear();
+        } else {
+            data = me.data = new Ext.util.MixedCollection(false, Ext.data.Store.recordIdFn);
+        }
+
+        for (i = 0; i &lt; groupCount; i++) {
+
+            // group contains eg
+            // { children: [childRec0, childRec1...], name: &lt;group field value for group&gt; }
+            group = groups[i];
+
+            // Cache group information by group name
+            groupCache[group.name] = group;
+            group.isCollapsed = collapseAll || (oldGroupCache[group.name] &amp;&amp; oldGroupCache[group.name].isCollapsed);
+
+            // If group is collapsed, then represent it by one dummy row which is never visible, but which acts
+            // as a start and end group trigger.
+            if (group.isCollapsed) {
+                group.placeholder = groupPlaceholder = new Model(null, 'group-' + group.name + '-placeholder');
+                groupPlaceholder.set(me.getGroupField(), group.name);
+                groupPlaceholder.rows = groupPlaceholder.children = group.children;
+                data.add(groupPlaceholder);
+            }
+
+            // Expanded group - add the group's child records.
+            else {
+                data.insert(me.data.length, group.children);
+            }
+        }
+    },
+    
+<span id='Ext-grid-feature-GroupStore-method-isCollapsed'>    isCollapsed: function(name) {
+</span>        return this.groupingFeature.groupCache[name].isCollapsed; 
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-isInCollapsedGroup'>    isInCollapsedGroup: function(record) {
+</span>        var groupData;
+
+        if (this.store.isGrouped() &amp;&amp; (groupData = this.groupingFeature.groupCache[record.get(this.getGroupField())])) {
+            return groupData.isCollapsed || false;
+        }
+        return false;
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-getCount'>    getCount: function() {
+</span>        return this.data.getCount();
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-getTotalCount'>    getTotalCount: function() {
+</span>        return this.data.getCount();
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-rangeCached'>    // This class is only created for fully loaded, non-buffered stores
+</span>    rangeCached: function() {
+        return true;
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-getRange'>    getRange: function(start, end, options) {
+</span>        var result = this.data.getRange(start, end);
+
+        if (options &amp;&amp; options.callback) {
+            options.callback.call(options.scope || this, result, start, end, options);
+        }
+        return result;
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-getAt'>    getAt: function(index) {
+</span>        return this.getRange(index, index)[0];
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-getById'>    getById: function(id) {
+</span>        return this.store.getById(id);
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-indexOf'>    // Find index of record in group store.
+</span>    // If it's in a collapsed group, then it's -1, not present
+    // Otherwise, loop through groups keeping tally of intervening records.
+    indexOf: function(record, viewOnly) {
+        var me = this,
+            groupField,
+            groups,
+            groupCount,
+            i,
+            group,
+            groupIndex,
+            result = 0;
+
+        if (record &amp;&amp; !me.isInCollapsedGroup(record)) {
+            groupField = me.store.groupField;
+            groups = me.store.getGroups();
+            groupCount = groups.length;
+            for (i = 0; i &lt; groupCount; i++) {
+
+                // group contains eg
+                // { children: [childRec0, childRec1...], name: &lt;group field value for group&gt; }
+                group = groups[i];
+                if (group.name === record.get(groupField)) {
+                    groupIndex = Ext.Array.indexOf(group.children, record);
+                    return result + groupIndex;
+                }
+
+                result += (viewOnly &amp;&amp; this.isCollapsed(group.name)) ? 1 : group.children.length;
+            }
+        }
+        return -1;
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-onRefresh'>    onRefresh: function(store) {
+</span>        this.processStore(this.store);
+        this.fireEvent('refresh', this);
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-onBulkRemove'>    onBulkRemove: function(store, records, indices) {
+</span>        this.processStore(this.store);
+        this.fireEvent('refresh', this);
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-onClear'>    onClear: function(store, records, startIndex) {
+</span>        this.processStore(this.store);
+        this.fireEvent('clear', this);
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-onAdd'>    onAdd: function(store, records, startIndex) {
+</span>        this.processStore(this.store);
+        this.fireEvent('refresh', this);
+    },
+
+<span id='Ext-grid-feature-GroupStore-method-onUpdate'>    onUpdate: function(store, record, operation, modifiedFieldNames) {
+</span>        var me = this,
+            groupInfo = me.groupingFeature.getRecordGroup(record),
+            firstRec, lastRec;
+
+        // The grouping field value has been modified.
+        // This could either move a record from one group to another, or introduce a new group.
+        // Either way, we have to refresh the grid
+        if (store.isGrouped()) {
+            if (modifiedFieldNames &amp;&amp; Ext.Array.contains(modifiedFieldNames, me.groupingFeature.getGroupField())) {
+                return me.onRefresh(me.store);
+            }
+
+            // Fire an update event on the collapsed group placeholder record
+            if (groupInfo.isCollapsed) {
+                me.fireEvent('update', me, groupInfo.placeholder);
+            }
+
+            // Not in a collapsed group, fire update event on the modified record
+            // and, if in a grouped store, on the first and last records in the group.
+            else {
+                Ext.suspendLayouts();
+
+                // Propagate the record's update event
+                me.fireEvent('update', me, record, operation, modifiedFieldNames);
+
+                // Fire update event on first and last record in group (only once if a single row group)
+                // So that custom header TPL is applied, and the summary row is updated
+                firstRec = groupInfo.children[0];
+                lastRec = groupInfo.children[groupInfo.children.length - 1];
+
+                // Do not pass modifiedFieldNames so that the TableView's shouldUpdateCell call always returns true.
+                if (firstRec !== record) {
+                    me.fireEvent('update', me, firstRec, 'edit');
+                }
+                if (lastRec !== record &amp;&amp; lastRec !== firstRec) {
+                    me.fireEvent('update', me, lastRec, 'edit');
+                }
+                Ext.resumeLayouts(true);
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -215,9 +215,15 @@
  *     }
  */
 Ext.define('Ext.util.Animate', {
-
-    uses: ['Ext.fx.Manager', 'Ext.fx.Anim'],
-
+    requires: [
+        'Ext.Element', 
+        'Ext.CompositeElementLite',
+        'Ext.fx.Manager', 
+        'Ext.fx.Anim'
+    ],
+    
+<span id='Ext-util-Animate-property-isAnimate'>    isAnimate: true,
+</span>
 <span id='Ext-util-Animate-method-animate'>    /**
 </span>     * Performs custom animation on this object.
      *
@@ -238,7 +244,7 @@ Ext.define('Ext.util.Animate', {
      *
      *   - `width` - The Component's `width` value in pixels.
      *
-     *   - `width` - The Component's `width` value in pixels.
+     *   - `height` - The Component's `height` value in pixels.
      *
      *   - `dynamic` - Specify as true to update the Component's layout (if it is a Container) at every frame of the animation.
      *     *Use sparingly as laying out on every intermediate size change is an expensive operation.*
@@ -290,8 +296,8 @@ Ext.define('Ext.util.Animate', {
         return this;
     },
 
-    // @private - process the passed fx configuration.
-    anim: function(config) {
+<span id='Ext-util-Animate-method-anim'>    // @private - process the passed fx configuration.
+</span>    anim: function(config) {
         if (!Ext.isObject(config)) {
             return (config) ? {} : false;
         }

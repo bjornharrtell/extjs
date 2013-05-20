@@ -1,0 +1,69 @@
+.#{$prefix}grid-group,
+.#{$prefix}grid-group-body,
+.#{$prefix}grid-group-hd {
+    zoom: 1;
+}
+
+.#{$prefix}grid-group-hd {
+
+    padding: $grid-grouped-header-padding;
+
+    background: $grid-grouped-header-background-color;
+
+    border-width: $grid-grouped-header-border-width;
+    border-style: $grid-grouped-header-border-style;
+    border-color: $grid-grouped-header-border-color;
+
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.#{$prefix}grid-group-hd-not-collapsible {
+    cursor: default; 
+}
+
+.#{$prefix}grid-group-hd-collapsible {
+    .#{$prefix}grid-group-title {
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-image: theme-background-image('grid/group-collapse');
+        padding: $grid-grouped-icon-padding;
+    }
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}grid-view .#{$prefix}grid-group-hd-collapsible .#{$prefix}grid-group-title {
+        background-position: right center;
+        padding: rtl($grid-grouped-icon-padding);
+    }
+}
+
+.#{$prefix}grid-group-title {
+    color: $grid-grouped-title-color;
+    font: $grid-grouped-title-font;
+}
+
+.#{$prefix}grid-group-hd-collapsed {
+    .#{$prefix}grid-group-title {
+        background-image: theme-background-image('grid/group-expand');
+    }
+}
+
+.#{$prefix}grid-group-collapsed .#{$prefix}grid-group-title {
+    background-image: theme-background-image('grid/group-expand');
+}
+
+.#{$prefix}grid-row-body-hidden, .#{$prefix}grid-group-collapsed {
+    display: none;
+}
+
+.#{$prefix}group-by-icon {
+    background-image: theme-background-image('grid/group-by');
+}
+
+.#{$prefix}show-groups-icon {
+    background-image: theme-background-image('grid/group-by');
+}
+
+

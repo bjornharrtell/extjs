@@ -40,13 +40,13 @@
 Ext.define(&quot;Ext.form.Labelable&quot;, {
     requires: ['Ext.XTemplate'],
 
-    autoEl: {
-        tag: 'table',
+<span id='Ext-form-Labelable-property-autoEl'>    autoEl: {
+</span>        tag: 'table',
         cellpadding: 0
     },
 
-    childEls: [
-<span id='Ext-form-Labelable-property-labelCell'>        /**
+<span id='Ext-form-Labelable-property-childEls'>    childEls: [
+</span><span id='Ext-form-Labelable-property-labelCell'>        /**
 </span>         * @property {Ext.Element} labelCell
          * The `&lt;TD&gt;` Element which contains the label Element for this component. Only available after the component has been rendered.
          */
@@ -75,9 +75,7 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
          */
         'errorEl',
 
-        'inputRow',
-
-        'bottomPlaceHolder'
+        'inputRow'
     ],
 
 <span id='Ext-form-Labelable-cfg-labelableRenderTpl'>    /**
@@ -136,7 +134,10 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
                 '&lt;td id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot; {labelCellAttrs}&gt;',
                     '{beforeLabelTpl}',
                     '&lt;label id=&quot;{id}-labelEl&quot; {labelAttrTpl}&lt;tpl if=&quot;inputId&quot;&gt; for=&quot;{inputId}&quot;&lt;/tpl&gt; class=&quot;{labelCls}&quot;',
-                        '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;&gt;',
+                        '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;',
+                        // Required for Opera
+                        ' unselectable=&quot;on&quot;',
+                    '&gt;',
                         '{beforeLabelTextTpl}',
                         '&lt;tpl if=&quot;fieldLabel&quot;&gt;{fieldLabel}{labelSeparator}&lt;/tpl&gt;',
                         '{afterLabelTextTpl}',
@@ -154,7 +155,10 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
                     '{beforeLabelTpl}',
                     '&lt;div id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot;&gt;',
                         '&lt;label id=&quot;{id}-labelEl&quot; {labelAttrTpl}&lt;tpl if=&quot;inputId&quot;&gt; for=&quot;{inputId}&quot;&lt;/tpl&gt; class=&quot;{labelCls}&quot;',
-                            '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;&gt;',
+                            '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;',
+                            // Required for Opera
+                            ' unselectable=&quot;on&quot;',
+                        '&gt;',
                             '{beforeLabelTextTpl}',
                             '&lt;tpl if=&quot;fieldLabel&quot;&gt;{fieldLabel}{labelSeparator}&lt;/tpl&gt;',
                             '{afterLabelTextTpl}',
@@ -164,7 +168,7 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
                 '&lt;/tpl&gt;',
 
                 '{beforeSubTpl}',
-                '{[values.$comp.getSubTplMarkup()]}',
+                '{[values.$comp.getSubTplMarkup(values)]}',
                 '{afterSubTpl}',
 
             // Final TD. It's a side error element unless there's a floating external one
@@ -172,7 +176,7 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
                 '{afterBodyEl}',
                 '&lt;/td&gt;',
                 '&lt;td id=&quot;{id}-sideErrorCell&quot; vAlign=&quot;{[values.labelAlign===\'top\' &amp;&amp; !values.hideLabel ? \'bottom\' : \'middle\']}&quot; style=&quot;{[values.autoFitErrors ? \'display:none\' : \'\']}&quot; width=&quot;{errorIconWidth}&quot;&gt;',
-                    '&lt;div id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgCls}&quot; style=&quot;display:none;width:{errorIconWidth}px&quot;&gt;&lt;/div&gt;',
+                    '&lt;div id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgCls}&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
                 '&lt;/td&gt;',
             '&lt;tpl elseif=&quot;msgTarget==\'under\'&quot;&gt;',
                 '&lt;div id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgClass}&quot; colspan=&quot;2&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
@@ -189,11 +193,20 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
 <span id='Ext-form-Labelable-cfg-activeErrorsTpl'>    /**
 </span>     * @cfg {String/String[]/Ext.XTemplate} activeErrorsTpl
      * The template used to format the Array of error messages passed to {@link #setActiveErrors} into a single HTML
-     * string. By default this renders each message as an item in an unordered list.
+     * string. if the {@link #msgTarget} is title, it defaults to a list separated by new lines. Otherwise, it 
+     * renders each message as an item in an unordered list.
      */
-    activeErrorsTpl: [
-        '&lt;tpl if=&quot;errors &amp;&amp; errors.length&quot;&gt;',
-            '&lt;ul&gt;&lt;tpl for=&quot;errors&quot;&gt;&lt;li&gt;{.}&lt;/li&gt;&lt;/tpl&gt;&lt;/ul&gt;',
+    activeErrorsTpl: undefined,
+
+<span id='Ext-form-Labelable-property-htmlActiveErrorsTpl'>    htmlActiveErrorsTpl: [
+</span>        '&lt;tpl if=&quot;errors &amp;&amp; errors.length&quot;&gt;',
+            '&lt;ul class=&quot;{listCls}&quot;&gt;&lt;tpl for=&quot;errors&quot;&gt;&lt;li&gt;{.}&lt;/li&gt;&lt;/tpl&gt;&lt;/ul&gt;',
+        '&lt;/tpl&gt;'
+    ],
+    
+<span id='Ext-form-Labelable-property-plaintextActiveErrorsTpl'>    plaintextActiveErrorsTpl: [
+</span>        '&lt;tpl if=&quot;errors &amp;&amp; errors.length&quot;&gt;',
+            '&lt;tpl for=&quot;errors&quot;&gt;&lt;tpl if=&quot;xindex &amp;gt; 1&quot;&gt;\n&lt;/tpl&gt;{.}&lt;/tpl&gt;',
         '&lt;/tpl&gt;'
     ],
 
@@ -360,8 +373,8 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
      */
     noWrap: true,
 
-    labelableInsertions: [
-
+<span id='Ext-form-Labelable-property-labelableInsertions'>    labelableInsertions: [
+</span>
 <span id='Ext-form-Labelable-cfg-beforeBodyEl'>        /**
 </span>         * @cfg {String/Array/Ext.XTemplate} beforeBodyEl
          * An optional string or `XTemplate` configuration to insert in the field markup
@@ -435,8 +448,8 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
         'labelAttrTpl'
     ],
 
-    // This is an array to avoid a split on every call to Ext.copyTo
-    labelableRenderProps: [ 'allowBlank', 'id', 'labelAlign', 'fieldBodyCls', 'baseBodyCls',
+<span id='Ext-form-Labelable-property-labelableRenderProps'>    // This is an array to avoid a split on every call to Ext.copyTo
+</span>    labelableRenderProps: [ 'allowBlank', 'id', 'labelAlign', 'fieldBodyCls', 'baseBodyCls',
                             'clearCls', 'labelSeparator', 'msgTarget' ],
 
 <span id='Ext-form-Labelable-method-initLabelable'>    /**
@@ -454,7 +467,16 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             me.padding = undefined;
             me.extraMargins = Ext.Element.parseBox(padding);
         }
+        
+        if (!me.activeErrorsTpl) {
+            if (me.msgTarget == 'title') {
+                me.activeErrorsTpl = me.plaintextActiveErrorsTpl;
+            } else {
+                me.activeErrorsTpl = me.htmlActiveErrorsTpl;
+            }
+        }
 
+        me.addCls(Ext.plainTableCls);
         me.addCls(me.formItemCls);
         
         // Prevent first render of active error, at Field render time from signalling a change from undefined to &quot;
@@ -469,6 +491,9 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
              */
             'errorchange'
         );
+
+        // bubbleEvents on the prototype of a mixin won't work, so call enableBubble
+        me.enableBubble('errorchange');
     },
 
 <span id='Ext-form-Labelable-method-trimLabelSeparator'>    /**
@@ -522,8 +547,8 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
         }
     },
 
-    getInsertionRenderData: function (data, names) {
-        var i = names.length,
+<span id='Ext-form-Labelable-method-getInsertionRenderData'>    getInsertionRenderData: function (data, names) {
+</span>        var i = names.length,
             name, value;
 
         while (i--) {
@@ -557,7 +582,8 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             topLabel = me.labelAlign === 'top';
 
         if (!Ext.form.Labelable.errorIconWidth) {
-            Ext.form.Labelable.errorIconWidth = (tempEl = Ext.resetElement.createChild({style: 'position:absolute', cls: Ext.baseCSSPrefix + 'form-invalid-icon'})).getWidth();
+            tempEl = Ext.getBody().createChild({style: 'position:absolute', cls: Ext.baseCSSPrefix + 'form-invalid-icon'});
+            Ext.form.Labelable.errorIconWidth = tempEl.getWidth() + tempEl.getMargin('l');
             tempEl.remove();
         }
 
@@ -582,28 +608,31 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
 
         return data;
     },
-    
-    beforeLabelableRender: function() {
-        var me = this;
-        if (me.ownerLayout) {
-            me.addCls(Ext.baseCSSPrefix + me.ownerLayout.type + '-form-item');
-        }
-    },
 
-    onLabelableRender: function() {
-        var me = this,
-            margins,
-            side,
-            style = {};
-
-        if (me.extraMargins) {
-            margins = me.el.getMargin();
-            for (side in margins) {
-                if (margins.hasOwnProperty(side)) {
-                    style['margin-' + side] = (margins[side] + me.extraMargins[side]) + 'px';
-                }
+<span id='Ext-form-Labelable-property-xhooks'>    xhooks: {
+</span>        beforeRender: function() {
+            var me = this;
+            me.setFieldDefaults(me.getHierarchyState().fieldDefaults);
+            if (me.ownerLayout) {
+                me.addCls(Ext.baseCSSPrefix + me.ownerLayout.type + '-form-item');
             }
-            me.el.setStyle(style);
+        },
+
+        onRender: function() {
+            var me = this,
+                margins,
+                side,
+                style = {};
+
+            if (me.extraMargins) {
+                margins = me.el.getMargin();
+                for (side in margins) {
+                    if (margins.hasOwnProperty(side)) {
+                        style['margin-' + side] = (margins[side] + me.extraMargins[side]) + 'px';
+                    }
+                }
+                me.el.setStyle(style);
+            }
         }
     },
     
@@ -616,6 +645,18 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             return false;
         }
         return !(this.hideEmptyLabel &amp;&amp; !this.getFieldLabel());
+    },
+    
+<span id='Ext-form-Labelable-method-getLabelWidth'>    /**
+</span>     * Gets the width of the label (if visible)
+     * @return {Number} The label width
+     */
+    getLabelWidth: function(){
+        var me = this;
+        if (!me.hasVisibleLabel()) {
+            return 0;
+        }
+        return me.labelWidth + me.labelPad;
     },
     
 <span id='Ext-form-Labelable-method-getBodyColspan'>    /**
@@ -639,32 +680,29 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
         return result;
     },
     
-    getLabelCls: function() {
-        var labelCls = this.labelCls,
+<span id='Ext-form-Labelable-method-getLabelCls'>    getLabelCls: function() {
+</span>        var labelCls = this.labelCls + ' ' + Ext.dom.Element.unselectableCls,
             labelClsExtra = this.labelClsExtra;
 
-        if (this.labelAlign === 'top') {
-            labelCls += '-top';
-        }
         return labelClsExtra ? labelCls + ' ' + labelClsExtra : labelCls;
     },
 
-    getLabelCellStyle: function() {
-        var me = this,
+<span id='Ext-form-Labelable-method-getLabelCellStyle'>    getLabelCellStyle: function() {
+</span>        var me = this,
             hideLabelCell = me.hideLabel || (!me.fieldLabel &amp;&amp; me.hideEmptyLabel);
 
         return hideLabelCell ? 'display:none;' : '';
     },
     
-    getErrorMsgCls: function() {
-        var me = this,
+<span id='Ext-form-Labelable-method-getErrorMsgCls'>    getErrorMsgCls: function() {
+</span>        var me = this,
             hideLabelCell = (me.hideLabel || (!me.fieldLabel &amp;&amp; me.hideEmptyLabel));
         
         return me.errorMsgCls + (!hideLabelCell &amp;&amp; me.labelAlign === 'top' ? ' ' + Ext.baseCSSPrefix + 'lbl-top-err-icon' : '');
     },
 
-    getLabelCellAttrs: function() {
-        var me = this,
+<span id='Ext-form-Labelable-method-getLabelCellAttrs'>    getLabelCellAttrs: function() {
+</span>        var me = this,
             labelAlign = me.labelAlign,
             result = '';
 
@@ -690,7 +728,9 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             if (me.labelWidth) {
                 labelStyle = 'width:' + me.labelWidth + 'px;';
             }
-            labelStyle += 'margin-right:' + labelPad + 'px;';
+            if (labelPad) {
+                labelStyle += 'margin-right:' + labelPad + 'px;';
+            }
         }
         
         return labelStyle + (me.labelStyle || '');
@@ -767,7 +807,10 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
         errors = Ext.Array.from(errors);
         this.activeError = errors[0];
         this.activeErrors = errors;
-        this.activeError = this.getTpl('activeErrorsTpl').apply({errors: errors});
+        this.activeError = this.getTpl('activeErrorsTpl').apply({
+            errors: errors,
+            listCls: Ext.plainListCls 
+        });
         this.renderActiveError();
     },
 
@@ -818,16 +861,11 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
      * @param {Object} defaults The defaults to apply to the object.
      */
     setFieldDefaults: function(defaults) {
-        var me = this,
-            val, key;
+        var key;
 
         for (key in defaults) {
-            if (defaults.hasOwnProperty(key)) {
-                val = defaults[key];
-
-                if (!me.hasOwnProperty(key)) {
-                    me[key] = val;
-                }
+            if (!this.hasOwnProperty(key)) {
+                this[key] = defaults[key];
             }
         }
     }

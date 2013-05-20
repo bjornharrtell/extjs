@@ -7,7 +7,6 @@ Ext.onReady(function () {
     var donut = false,
         chart = Ext.create('Ext.chart.Chart', {
             xtype: 'chart',
-            id: 'chartCmp',
             animate: true,
             store: store1,
             shadow: true,
@@ -69,14 +68,16 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(6, 20));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(6, 20));
+                });
             }
         }, {
             enableToggle: true,
             pressed: false,
             text: 'Donut',
             toggleHandler: function(btn, pressed) {
-                var chart = Ext.getCmp('chartCmp');
                 chart.series.first().donut = pressed ? 35 : false;
                 chart.refresh();
             }

@@ -36,7 +36,7 @@ Ext.define('Ext.ux.TabCloseMenu', {
 
     /**
      * @cfg {String} closeAllTabsText
-     * <p>The text for closing all tabs.
+     * The text for closing all tabs.
      */
     closeAllTabsText: 'Close All Tabs',
 

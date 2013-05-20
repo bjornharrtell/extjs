@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A split button that provides a built-in dropdown arrow that can fire an event separately from the default click event
  * of the button. Typically this would be used to display a dropdown menu that provides additional options to the
@@ -45,40 +65,40 @@ Ext.define('Ext.button.Split', {
      * @cfg {Function} arrowHandler
      * A function called when the arrow button is clicked (can be used instead of click event)
      * @cfg {Ext.button.Split} arrowHandler.this
-     * @cfg {Event} arrowHandler.e The click event
+     * @cfg {Event} arrowHandler.e The click event.
      */
     /**
      * @cfg {String} arrowTooltip
-     * The title attribute of the arrow
+     * The title attribute of the arrow.
      */
 
-    // private
+    // @private
     arrowCls      : 'split',
     split         : true,
 
-    // private
+    // @private
     initComponent : function(){
         this.callParent();
         /**
          * @event arrowclick
          * Fires when this button's arrow is clicked.
          * @param {Ext.button.Split} this
-         * @param {Event} e The click event
+         * @param {Event} e The click event.
          */
         this.addEvents("arrowclick");
     },
 
     /**
      * Sets this button's arrow click handler.
-     * @param {Function} handler The function to call when the arrow is clicked
-     * @param {Object} scope (optional) Scope for the function passed above
+     * @param {Function} handler The function to call when the arrow is clicked.
+     * @param {Object} scope (optional) Scope for the function passed above.
      */
     setArrowHandler : function(handler, scope){
         this.arrowHandler = handler;
         this.scope = scope;
     },
 
-    // private
+    // @private
     onClick : function(e, t) {
         var me = this;
         

@@ -5,6 +5,12 @@
     padding: 8px 15px;
     text-shadow: 0 1px 0 #fff;
 }
+
+.x-theme-neptune #app-header {
+    color: white;
+    text-shadow: none;
+}
+
 #app-msg {
     background: #D1DDEF;
     border: 1px solid #ACC3E4;

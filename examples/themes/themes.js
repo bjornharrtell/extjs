@@ -21,8 +21,7 @@ function hasOption (name) {
     return window.location.search.indexOf(name) >= 0;
 }
 
-var useDeferRender = true,
-    rtl = hasOption('rtl');
+var useDeferRender = true;
 
 if (hasOption('diag')) {
     Ext.require([
@@ -31,81 +30,44 @@ if (hasOption('diag')) {
     ]);
 }
 
-if (rtl) {
-    Ext.require([
-        'Ext.rtl.Element',
-        'Ext.rtl.AbstractComponent'
-    ]);
-}
-
 function getBasicPanel () {
-    return {
+    return applySizing('basicPanel', {
         xtype: 'panel',
-
-        x: 20, y: 20,
-
-        width : 150,
-        height: 90,
-        rtl: rtl,
-
         title: 'Basic Panel',
         animCollapse: true,
         bodyPadding: 5,
-        html       : 'Some content'
-    };
-}
-
-function getCollapsedPanel () {
-    return {
-        xtype: 'panel',
-
-        x: 20, y: 120,
-
-        width : 150,
-        height: 70,
-        rtl: rtl,
-
-        title: 'Collapsed Panel',
-        animCollapse: true,
-        bodyPadding: 5,
-        html       : 'Some content',
-        collapsible: true,
-        collapsed: true
-    };
-}
-
-function getMaskedPanel (rtl) {
-    return Ext.widget({
-        xtype: 'panel',
-
-        x: 180, y: 20,
-
-        width : 130,
-        height: 170,
-        rtl: rtl,
-
-        title: 'Masked Panel',
-
-        bodyPadding: 5,
-        html       : 'Some content',
-        animCollapse: true,
-        collapsible: true
+        html: 'Some content'
     });
 }
 
-function getFramedPanel () {
-    return {
+function getCollapsedPanel () {
+    return applySizing('collapsedPanel', {
         xtype: 'panel',
+        title: 'Collapsed Panel',
+        animCollapse: true,
+        bodyPadding: 5,
+        html: 'Some content',
+        collapsible: true,
+        collapsed: true
+    });
+}
 
-        x: 320, y: 20,
+function getMaskedPanel () {
+    return Ext.widget(applySizing('maskedPanel', {
+        xtype: 'panel',
+        title: 'Masked Panel',
+        bodyPadding: 5,
+        html: 'Some content',
+        animCollapse: true,
+        collapsible: true
+    }));
+}
 
-        width : 170,
-        height: 100,
-        rtl: rtl,
-
+function getFramedPanel () {
+    return applySizing('framedPanel', {
+        xtype: 'panel',
         title: 'Framed Panel',
         animCollapse: true,
-
         dockedItems: [{
             dock: 'top',
             xtype: 'toolbar',
@@ -125,70 +87,34 @@ function getFramedPanel () {
                 text: 'test A'
             }]
         }],
-
         html : 'Some content',
         frame: true
-    };
+    });
 }
 
 function getCollapsedFramedPanel () {
-    return {
+    return applySizing('collapsedFramedPanel', {
         xtype: 'panel',
-
-        x: 320, y: 130,
-
-        width : 170,
-        height: 60,
-        rtl: rtl,
-
         title: 'Collapsed Framed Panel',
         animCollapse: true,
         bodyPadding: 5,
         bodyBorder: true,
-        html       : 'Some content',
-        frame      : true,
+        html: 'Some content',
+        frame: true,
         collapsible: true,
         collapsed: true
-    };
+    });
 }
 
 function getPanelWithToolbars () {
     /**
      * Toolbar with a menu
      */
-    /*var xxxxxxx = Ext.widget('menu', {
-        items: [
-            {text: 'Menu item'},
-            {text: 'Check 1', checked: true},
-            {text: 'Check 2', checked: false},
-            '-',
-            {text: 'Option 1', checked: true,  group: 'opts'},
-            {text: 'Option 2', checked: false, group: 'opts'},
-            '-',
-            {
-                text: 'Sub-items',
-                menu: Ext.widget('menu', {
-                    items: [
-                        {text: 'Item 1'},
-                        {text: 'Item 2'}
-                    ]
-                })
-            }
-        ]
-    });*/
-    return {
+    return applySizing('panelWithToolbars', {
         xtype: 'panel',
         id: 'panelWithToolbars',
-
-        x: 660, y: 20,
-
-        width : 450,
-        height: 170,
-        rtl: rtl,
-
         title: 'Basic Panel With Toolbars',
         collapsible: true,
-
         tbar: {
             id: 'panelWithToolbars_tbar',
             items: [{
@@ -275,22 +201,14 @@ function getPanelWithToolbars () {
                 { text: 'Right' }
             ]
         }
-    };
+    });
 }
 
 function getFormWidgets () {
-    return {
+    return applySizing('formWidgets', {
         xtype: 'form',
-
         id   : 'form-widgets',
         title: 'Form Widgets',
-
-        x: 20, y: 200,
-
-        width : 630,
-        height: 750,
-        rtl: rtl,
-
         frame: true,
         collapsible: true,
 
@@ -443,23 +361,16 @@ function getFormWidgets () {
                 }
             }
         ]
-    };
+    });
 }
 
 function getBorderLayout() {
-    return {
+    return applySizing('borderLayout', {
         xtype: 'panel',
-
-        width : 450,
-        height: 350,
-        rtl: rtl,
-
-        x: 660, y: 200,
-
         title : 'BorderLayout Panel',
         layout: {
             type: 'border',
-            padding: 5
+            padding: Ext.themeName === 'neptune' ? 8 : 5 // match padding to theme splitter size
         },
         collapsible: true,
 
@@ -507,21 +418,22 @@ function getBorderLayout() {
                 html       : 'Center'
             }
         ]
-    };
+    });
 }
 
 function getStore () {
+    // Reverse order data should get sorted by the MemoryProxy
      var myData = [
-         ['3m Co',71.72,0.02,0.03,'9/1 12:00am'],
-         ['Alcoa Inc',29.01,0.42,1.47,'9/1 12:00am'],
-         ['Altria Group Inc',83.81,0.28,0.34,'9/1 12:00am'],
-         ['American Express Company',52.55,0.01,0.02,'9/1 12:00am'],
-         ['American International Group, Inc.',64.13,0.31,0.49,'9/1 12:00am'],
-         ['AT&T Inc.',31.61,-0.48,-1.54,'9/1 12:00am'],
-         ['Boeing Co.',75.43,0.53,0.71,'9/1 12:00am'],
-         ['Caterpillar Inc.',67.27,0.92,1.39,'9/1 12:00am'],
+         ['E.I. du Pont de Nemours and Company',40.48,0.51,1.28,'9/1 12:00am'],
          ['Citigroup, Inc.',49.37,0.02,0.04,'9/1 12:00am'],
-         ['E.I. du Pont de Nemours and Company',40.48,0.51,1.28,'9/1 12:00am']
+         ['Caterpillar Inc.',67.27,0.92,1.39,'9/1 12:00am'],
+         ['Boeing Co.',75.43,0.53,0.71,'9/1 12:00am'],
+         ['AT&T Inc.',31.61,-0.48,-1.54,'9/1 12:00am'],
+         ['American International Group, Inc.',64.13,0.31,0.49,'9/1 12:00am'],
+         ['American Express Company',52.55,0.01,0.02,'9/1 12:00am'],
+         ['Altria Group Inc',83.81,0.28,0.34,'9/1 12:00am'],
+         ['Alcoa Inc',29.01,0.42,1.47,'9/1 12:00am'],
+         ['3m Co',71.72,0.02,0.03,'9/1 12:00am']
      ];
 
     return Ext.create('Ext.data.ArrayStore', {
@@ -549,15 +461,8 @@ function getGrid () {
             displayMsg : 'Displaying topics {0} - {1} of {2}'
         });
 
-    return {
+    return applySizing('grid', {
         xtype: 'gridpanel',
-
-        height: 200,
-        width : 450,
-        rtl: rtl,
-
-        x: 660, y: 560,
-
         title: 'GridPanel',
         collapsible: true,
         deferRowRender: useDeferRender,
@@ -567,9 +472,9 @@ function getGrid () {
         columns: [
             {header: "Company",      flex: 1, sortable: true, dataIndex: 'company'},
             {header: "Price",        width: 75,  sortable: true, dataIndex: 'price'},
-            {header: "Change",       width: 75,  sortable: true, dataIndex: 'change'},
-            {header: "% Change",     width: 75,  sortable: true, dataIndex: 'pctChange'},
-            {header: "Last Updated", width: 85,  sortable: true, xtype: 'datecolumn', dataIndex: 'lastChange'}
+            {header: "Change",       width: 80,  sortable: true, dataIndex: 'change'},
+            {header: "% Change",     width: 95,  sortable: true, dataIndex: 'pctChange'},
+            {header: "Last Updated", width: 110,  sortable: true, xtype: 'datecolumn', dataIndex: 'lastChange'}
         ],
         loadMask: true,
 
@@ -587,7 +492,7 @@ function getGrid () {
                 trigger2Cls: Ext.baseCSSPrefix + 'form-search-trigger'
             }
         ]
-    };
+    });
 }
 
 function getAccordion () {
@@ -613,20 +518,10 @@ function getAccordion () {
         }
     });
 
-    return {
+    return applySizing('accordion', {
         title : 'Accordion and TreePanel',
         collapsible: true,
         layout: 'accordion',
-
-        x: 660, y: 770,
-
-        width : 450,
-        height: 240,
-        rtl: rtl,
-
-        bodyStyle: {
-            'background-color': '#eee'
-        },
 
         items: [
             tree, {
@@ -637,21 +532,15 @@ function getAccordion () {
                 html : 'Some content'
             }
         ]
-    };
+    });
 }
 
 function getTabs (config) {
     return Ext.apply({
         xtype: 'tabpanel',
-
-        width : 310,
-        height: 150,
-        rtl: rtl,
-
         activeTab: 0,
-
         defaults: {
-            bodyStyle: 'padding:10px;'
+            bodyPadding: 10
         },
 
         items: [
@@ -672,11 +561,8 @@ function getTabs (config) {
 }
 
 function getScrollingTabs () {
-    return getTabs({
-        x: 20, y: 960,
-
+    return applySizing('scrollingTabs', getTabs({
         enableTabScroll: true,
-
         items: [
             {
                 title: 'Tab 1',
@@ -708,29 +594,23 @@ function getScrollingTabs () {
                 closable: true
             }
         ]
-    });
+    }));
 }
 
 function getPlainTabs () {
-    return getTabs({
-        plain: true,
-        x    : 340, y: 960
-    });
+    return applySizing('plainTabs', getTabs({
+        plain: true
+    }));
 }
 
 function getDatePicker () {
-    return {
+    return applySizing('datePicker', {
         xtype: 'panel',
-
-        x: 20, y: 1120,
-
-        width : 180,
-        rtl: rtl,
         border: false,
         items: {
             xtype: 'datepicker'
         }
-    };
+    });
 }
 
 function getProgressBar () {
@@ -747,16 +627,9 @@ function getProgressBar () {
         }, 7000);
     }
 
-    return {
+    return applySizing('progressBar', {
         xtype: 'panel',
         title: 'ProgressBar / Slider',
-
-        x: 660, y: 1020,
-
-        width: 450,
-        height: 200,
-        rtl: rtl,
-
         bodyPadding: 5,
         layout: 'anchor',
 
@@ -777,15 +650,11 @@ function getProgressBar () {
                 margin  : '5 0 0 0'
             }
         ]
-    };
+    });
 }
 
 function getFramedGrid () {
-    return {
-        width: 450,
-        height:182,
-        x: 660, y: 1230,
-        rtl: rtl,
+    return applySizing('framedGrid', {
         xtype: 'grid',
         title: 'Framed Grid',
         collapsible: true,
@@ -800,26 +669,16 @@ function getFramedGrid () {
             {header: "Price",   width: 75,  sortable: true, dataIndex: 'price'},
             {header: "Change",  width: 75,  sortable: true, dataIndex: 'change'}
         ]
-    };
+    });
 }
 
 function getBasicWindow () {
-    return Ext.widget('window', {
+    return Ext.widget('window', applySizing('basicWindow', {
         id: 'basicWindow',
-        x: 500, y: 20,
         hidden: false,
-        width   : 150,
-        height  : 170,
-        minWidth: 150,
-        minHeight: 150,
-        maxHeight: 170,
-        rtl: rtl,
-
         title: 'Window',
-
         bodyPadding: 5,
         html       : 'Click Submit for Confirmation Msg.',
-
         collapsible: true,
         floating   : false,
         closable   : false,
@@ -839,21 +698,19 @@ function getBasicWindow () {
                 }
             }
         ]
-    });
+    }));
 }
 
-function addResizer(containerEl) {
-    var rszEl = containerEl.createChild({
-        style: 'background: transparent;position:absolute;left:210px;top:1120px;width:440px;height:200px;overflow:hidden',
-        html: '<div style="padding:20px;position:absolute">Resizable handles</div>'
-    });
-
-    Ext.create('Ext.resizer.Resizer', {
-        id: 'resizer',
-        el: rszEl,
-        handles: 'all',
-        pinned: true
-    });
+function getResizer() {
+    return Ext.widget(applySizing('resizer', {
+        xtype: 'component',
+        style: 'background:transparent;overflow:hidden;',
+        html: '<div style="margin:20px">Resizable handles</div>',
+        resizable: {
+            handles: 'all',
+            pinned: true
+        }
+    }));
 }
 
 function addFormWindow () {
@@ -863,7 +720,6 @@ function addFormWindow () {
         width   : 450,
         // height  : 360,
         minWidth: 450,
-        rtl: rtl,
 
         title: 'Window',
 
@@ -954,61 +810,166 @@ function addFormWindow () {
     }).show();
 }
 
-function doThemes (rtl) {
-    var time = Ext.perf.getTimestamp(),
-        maskedPanel,
-        mainContainer;
-
-    if (hasOption('nocss3')) {
-        Ext.supports.CSS3BorderRadius = false;
-        Ext.getBody().addCls('x-nbr x-nlg');
+var sizing = {
+    mainContainer: {
+        classic: [1130, 1460],
+        neptune: [1250, 1600]
+    },
+    basicPanel: {
+        classic: [150, 90, 20, 20],
+        neptune: [150, 130, 20, 20]
+    },
+    collapsedPanel: {
+        classic: [150, 70, 20, 120],
+        neptune: [150, 120, 20, 160]
+    },
+    maskedPanel: {
+        classic: [130, 170, 180, 20],
+        neptune: [130, 260, 180, 20]
+    },
+    framedPanel: {
+        classic: [170, 100, 320, 20],
+        neptune: [200, 150, 320, 20]
+    },
+    collapsedFramedPanel: {
+        classic: [170, 60, 320, 130],
+        neptune: [200, 100, 320, 180]
+    },
+    basicWindow: {
+        classic: [150, 170, 500, 20, {
+            minWidth: 150,
+            minHeight: 150, 
+            maxHeight: 170
+        }],
+        neptune: [150, 260, 530, 20, {
+            minWidth: 150,
+            minHeight: 200, 
+            maxHeight: 260
+        }]
+    },
+    panelWithToolbars: {
+        classic: [450, 170, 660, 20],
+        neptune: [500, 260, 690, 20]
+    },
+    formWidgets: {
+        classic: [630, 750, 20, 200],
+        neptune: [660, 750, 20, 290]
+    },
+    borderLayout: {
+        classic: [450, 350, 660, 200],
+        neptune: [500, 350, 690, 290]
+    },
+    grid: {
+        classic: [450, 200, 660, 560],
+        neptune: [500, 200, 690, 650]
+    },
+    accordion: {
+        classic: [450, 240, 660, 770],
+        neptune: [500, 240, 690, 860]
+    },
+    scrollingTabs: {
+        classic: [310, 150, 20, 960],
+        neptune: [325, 150, 20, 1050]
+    },
+    plainTabs: {
+        classic: [310, 150, 340, 960],
+        neptune: [325, 150, 355, 1050]
+    },
+    datePicker: {
+        classic: [180, undefined, 20, 1120],
+        access: [180, undefined, 20, 1210],
+        neptune: [212, undefined, 20, 1210]
+    },
+    progressBar: {
+        classic: [450, 200, 660, 1020],
+        neptune: [500, 200, 690, 1110]
+    },
+    framedGrid: {
+        classic: [450, 180, 660, 1230],
+        neptune: [500, 180, 690, 1320]
+    },
+    resizer: {
+        classic: [440, 220, 210, 1120],
+        neptune: [440, 220, 240, 1210],
+        access: [470, 220, 210, 1210]
     }
+};
+
+var theme;
+function getSizing(id) {
+    var theme = Ext.themeName,
+        info;
+        
+    if (theme == 'gray') {
+        // same dimensions
+        theme = 'classic';
+    }
+    
+    info = sizing[id][theme];
+    if (!info && theme === 'access') {
+        // default to neptune for access
+        info = sizing[id].neptune;
+    }
+    return info;
+}
+
+function applySizing(id, config) {
+    
+    var info = getSizing(id),
+        keys = ['width', 'height', 'x', 'y'],
+        len = keys.length,
+        i = 0, 
+        val;
+    
+    if (info) {
+        for (; i < len; ++i) {
+            val = info[i];
+            if (val !== undefined) {
+                config[keys[i]] = val;
+            }
+        }
+    
+        // Any other config options
+        Ext.applyIf(config, info[len]);
+    }
+    
+    return config;
+}
+
+function doThemes () {
+    var time = Ext.perf.getTimestamp(),
+        maskedPanel;
 
     var items = [
-        getBasicPanel(rtl),
-        getCollapsedPanel(rtl),
-        maskedPanel = getMaskedPanel(rtl),
-        getFramedPanel(rtl),
-        getCollapsedFramedPanel(rtl),
-        getBasicWindow(rtl),
-        getPanelWithToolbars(rtl),
-        getFormWidgets(rtl),
-        getBorderLayout(rtl),
-        getGrid(rtl),
-        getAccordion(rtl),
-        getScrollingTabs(rtl),
-        getPlainTabs(rtl),
-        getDatePicker(rtl),
-        getProgressBar(rtl),
-        getFramedGrid(rtl),
+        getBasicPanel(),
+        getCollapsedPanel(),
+        maskedPanel = getMaskedPanel(),
+        getFramedPanel(),
+        getCollapsedFramedPanel(),
+        getBasicWindow(),
+        getPanelWithToolbars(),
+        getFormWidgets(),
+        getBorderLayout(),
+        getGrid(),
+        getAccordion(),
+        getScrollingTabs(),
+        getPlainTabs(),
+        getDatePicker(),
+        getProgressBar(),
+        getFramedGrid(),
+        getResizer(),
         0 // end of list (makes commenting out any of the above easy
     ];
     items.pop(); // remove the 0 on the end
 
-    mainContainer = Ext.create('Ext.container.Container', {
+    mainContainer = Ext.create('Ext.container.Container', applySizing('mainContainer', {
         id: 'main-container',
         renderTo: document.body,
-        height: 1460,
-        width: 1130,
         layout: 'absolute',
         items: items
-    });
+    }));
         
-    addResizer(mainContainer.el);
     //addFormWindow();
-
-    /**
-     * Stylesheet Switcher
-     */
-    Ext.get('styleswitcher_select').on('change', function(e, select) {
-        var name = select[select.selectedIndex].value,
-            currentPath = window.location.pathname,
-            isCurrent = currentPath.match(name);
-        
-        if (!isCurrent) {
-            window.location = name;
-        }
-    });
 
     setTimeout(function() {
         // we may comment out the creation of this for testing

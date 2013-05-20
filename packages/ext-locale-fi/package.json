@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-fi",
+    "type": "locale",
+    "locale": "fi",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

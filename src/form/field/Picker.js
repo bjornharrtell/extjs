@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * An abstract class for fields that have a single trigger which opens a "picker" popup below the field, e.g. a combobox
  * menu list or a date picker. It provides a base implementation for toggling the picker's visibility when the trigger
@@ -23,7 +43,7 @@ Ext.define('Ext.form.field.Picker', {
 
     /**
      * @cfg {String} pickerAlign
-     * The {@link Ext.Element#alignTo alignment position} with which to align the picker. Defaults to "tl-bl?"
+     * The {@link Ext.util.Positionable#alignTo alignment position} with which to align the picker. Defaults to "tl-bl?"
      */
     pickerAlign: 'tl-bl?',
 
@@ -111,20 +131,17 @@ Ext.define('Ext.form.field.Picker', {
 
     // private
     onEsc: function(e) {
-        var me = this;
-        if (me.isExpanded) {
-            me.collapse();
+        if (Ext.isIE) {
+            // Stop the esc key from "restoring" the previous value in IE
+            // For example, type "foo". Highlight all the text, hit backspace.
+            // Hit esc, "foo" will be restored. This behaviour doesn't occur
+            // in any other browsers
+            e.preventDefault();
+        }
+        
+        if (this.isExpanded) {
+            this.collapse();
             e.stopEvent();
-        } else {
-            // If there's an ancestor Window which will see the ESC event and hide, ensure this Field blurs
-            // so that a down arrow will not pop up a disembodied dropdown list.
-            if (me.up('window')) {
-                me.blur();
-            }
-            // Otherwise, only stop the ESC key event if it's not going to bubble up to the FocusManager
-            else if ((!Ext.FocusManager || !Ext.FocusManager.enabled)) {
-                e.stopEvent();
-            }
         }
     },
 
@@ -197,7 +214,7 @@ Ext.define('Ext.form.field.Picker', {
             aboveSfx = '-above',
             isAbove;
 
-        me.picker.alignTo(me.inputEl, me.pickerAlign, me.pickerOffset);
+        me.picker.alignTo(me.bodyEl, me.pickerAlign, me.pickerOffset);
         // add the {openCls}-above class if the picker was aligned above
         // the field due to hitting the bottom of the viewport
         isAbove = picker.el.getY() < me.inputEl.getY();
@@ -280,6 +297,15 @@ Ext.define('Ext.form.field.Picker', {
                 me.expand();
             }
             me.inputEl.focus();
+        }
+    },
+    
+    triggerBlur: function() {
+        var picker = this.picker;
+            
+        this.callParent(arguments);
+        if (picker && picker.isVisible()) {
+            picker.hide();
         }
     },
 

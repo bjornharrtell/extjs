@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * The grid View class provides extra {@link Ext.grid.Panel} specific functionality to the
  * {@link Ext.view.Table}. In general, this class is not instanced directly, instead a viewConfig
@@ -31,7 +51,7 @@ Ext.define('Ext.grid.View', {
     alias: 'widget.gridview',
 
     /**
-     * @cfg
+     * @cfg {Boolean}
      * True to stripe the rows.
      *
      * This causes the CSS class **`x-grid-row-alt`** to be added to alternate rows of the grid. A default CSS rule is

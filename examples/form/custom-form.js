@@ -6,7 +6,8 @@ Ext.require([
     'Ext.view.View',
     'Ext.layout.container.Fit',
     'Ext.toolbar.Paging',
-    'Ext.ux.form.SearchField'
+    'Ext.ux.form.SearchField',
+    'Ext.ux.DataTip'
 ]);
 
 Ext.define('Post', {

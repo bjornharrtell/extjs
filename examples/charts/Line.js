@@ -5,7 +5,6 @@ Ext.onReady(function () {
     store1.loadData(generateData(8));
     
     var chart = Ext.create('Ext.chart.Chart', {
-            xtype: 'chart',
             style: 'background:#fff',
             animate: true,
             store: store1,
@@ -111,7 +110,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(8));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(8));
+                });
             }
         }],
         items: chart

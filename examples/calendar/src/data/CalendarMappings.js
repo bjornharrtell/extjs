@@ -1,3 +1,4 @@
+//@define Ext.calendar.data.CalendarMappings
 /**
  * @class Ext.calendar.data.CalendarMappings
  * @extends Object

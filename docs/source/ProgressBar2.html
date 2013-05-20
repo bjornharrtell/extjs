@@ -80,8 +80,9 @@ Ext.define('Ext.ProgressBar', {
     baseCls: Ext.baseCSSPrefix + 'progress',
 
 <span id='Ext-ProgressBar-cfg-animate'>    /**
-</span>     * @cfg {Boolean} animate
-     * True to animate the progress bar during transitions.
+</span>     * @cfg {Boolean/Object} animate
+     * True to animate the progress bar during transitions, or an animation configuration
+     * (see the {@link #method-animate} method for details).
      */
     animate: false,
 
@@ -91,18 +92,18 @@ Ext.define('Ext.ProgressBar', {
      */
     text: '',
 
-    // private
-    waitTimer: null,
+<span id='Ext-ProgressBar-property-waitTimer'>    // private
+</span>    waitTimer: null,
 
-    childEls: [
-        'bar'
+<span id='Ext-ProgressBar-property-childEls'>    childEls: [
+</span>        'bar'
     ],
 
-    renderTpl: [
-        '&lt;tpl if=&quot;internalText&quot;&gt;',
+<span id='Ext-ProgressBar-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;tpl if=&quot;internalText&quot;&gt;',
             '&lt;div class=&quot;{baseCls}-text {baseCls}-text-back&quot;&gt;{text}&lt;/div&gt;',
         '&lt;/tpl&gt;',
-        '&lt;div id=&quot;{id}-bar&quot; class=&quot;{baseCls}-bar&quot; style=&quot;width:{percentage}%&quot;&gt;',
+        '&lt;div id=&quot;{id}-bar&quot; class=&quot;{baseCls}-bar {baseCls}-bar-{ui}&quot; style=&quot;width:{percentage}%&quot;&gt;',
             '&lt;tpl if=&quot;internalText&quot;&gt;',
                 '&lt;div class=&quot;{baseCls}-text&quot;&gt;',
                     '&lt;div&gt;{text}&lt;/div&gt;',
@@ -111,10 +112,10 @@ Ext.define('Ext.ProgressBar', {
         '&lt;/div&gt;'
     ],
 
-    componentLayout: 'progressbar',
-
-    // private
-    initComponent: function() {
+<span id='Ext-ProgressBar-cfg-componentLayout'>    componentLayout: 'progressbar',
+</span>
+<span id='Ext-ProgressBar-method-initComponent'>    // private
+</span>    initComponent: function() {
         this.callParent();
 
         this.addEvents(
@@ -129,8 +130,8 @@ Ext.define('Ext.ProgressBar', {
         );
     },
 
-    initRenderData: function() {
-        var me = this;
+<span id='Ext-ProgressBar-method-initRenderData'>    initRenderData: function() {
+</span>        var me = this;
         return Ext.apply(me.callParent(), {
             internalText : !me.hasOwnProperty('textEl'),
             text         : me.text || '&amp;#160;',
@@ -138,8 +139,8 @@ Ext.define('Ext.ProgressBar', {
         });
     },
 
-    onRender : function() {
-        var me = this;
+<span id='Ext-ProgressBar-method-onRender'>    onRender : function() {
+</span>        var me = this;
 
         me.callParent(arguments);
 
@@ -210,12 +211,12 @@ Ext.define('Ext.ProgressBar', {
         return me;
     },
 
-    applyText : function(text) {
-        this.updateText(text);
+<span id='Ext-ProgressBar-method-applyText'>    applyText : function(text) {
+</span>        this.updateText(text);
     },
     
-    getText: function(){
-        return this.text;    
+<span id='Ext-ProgressBar-method-getText'>    getText: function(){
+</span>        return this.text;    
     },
 
 <span id='Ext-ProgressBar-method-wait'>    /**
@@ -327,8 +328,8 @@ Ext.define('Ext.ProgressBar', {
         return me;
     },
 
-    // private
-    clearTimer: function(){
+<span id='Ext-ProgressBar-method-clearTimer'>    // private
+</span>    clearTimer: function(){
         var me = this;
         
         if (me.waitTimer) {
@@ -338,8 +339,9 @@ Ext.define('Ext.ProgressBar', {
         }
     },
 
-    onDestroy: function(){
-        var me = this;
+<span id='Ext-ProgressBar-method-onDestroy'>    onDestroy: function(){
+</span>        var me = this,
+            bar = me.bar;
         
         me.clearTimer();
         if (me.rendered) {
@@ -347,6 +349,9 @@ Ext.define('Ext.ProgressBar', {
                 me.textEl.clear();
             }
             Ext.destroyMembers(me, 'textEl', 'progressBar');
+            if (bar &amp;&amp; me.animate) {
+                bar.stopAnimation();
+            }
         }
         me.callParent();
     }

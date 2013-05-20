@@ -16,31 +16,29 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-grid-filter-DateFilter'>/**
-</span> * @class Ext.ux.grid.filter.DateFilter
- * @extends Ext.ux.grid.filter.Filter
- * Filter by a configurable Ext.picker.DatePicker menu
- * &lt;p&gt;&lt;b&gt;&lt;u&gt;Example Usage:&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
- * &lt;pre&gt;&lt;code&gt;
-var filters = Ext.create('Ext.ux.grid.GridFilters', {
-    ...
-    filters: [{
-        // required configs
-        type: 'date',
-        dataIndex: 'dateAdded',
-
-        // optional configs
-        dateFormat: 'm/d/Y',  // default
-        beforeText: 'Before', // default
-        afterText: 'After',   // default
-        onText: 'On',         // default
-        pickerOpts: {
-            // any DatePicker configs
-        },
-
-        active: true // default is false
-    }]
-});
- * &lt;/code&gt;&lt;/pre&gt;
+</span> * Filter by a configurable Ext.picker.DatePicker menu
+ *
+ * Example Usage:
+ *
+ *     var filters = Ext.create('Ext.ux.grid.GridFilters', {
+ *         ...
+ *         filters: [{
+ *             // required configs
+ *             type: 'date',
+ *             dataIndex: 'dateAdded',
+ *      
+ *             // optional configs
+ *             dateFormat: 'm/d/Y',  // default
+ *             beforeText: 'Before', // default
+ *             afterText: 'After',   // default
+ *             onText: 'On',         // default
+ *             pickerOpts: {
+ *                 // any DatePicker configs
+ *             },
+ *      
+ *             active: true // default is false
+ *         }]
+ *     });
  */
 Ext.define('Ext.ux.grid.filter.DateFilter', {
     extend: 'Ext.ux.grid.filter.Filter',
@@ -140,6 +138,7 @@ Ext.define('Ext.ux.grid.filter.DateFilter', {
                     itemId: 'range-' + item,
                     text: me[item + 'Text'],
                     menu: Ext.create('Ext.menu.Menu', {
+                        plain: true,
                         items: [
                             Ext.apply(pickerCfg, {
                                 itemId: item,
@@ -147,7 +146,7 @@ Ext.define('Ext.ux.grid.filter.DateFilter', {
                                     select: me.onPickerSelect,
                                     scope: me
                                 }
-                            }),
+                            })
                         ]
                     }),
                     listeners: {
@@ -163,8 +162,8 @@ Ext.define('Ext.ux.grid.filter.DateFilter', {
         me.values = {};
     },
 
-    onCheckChange : function (item, checked) {
-        var me = this,
+<span id='Ext-ux-grid-filter-DateFilter-method-onCheckChange'>    onCheckChange : function (item, checked) {
+</span>        var me = this,
             picker = item.menu.items.first(),
             itemId = picker.itemId,
             values = me.values;
@@ -255,8 +254,7 @@ Ext.define('Ext.ux.grid.filter.DateFilter', {
     },
 
 <span id='Ext-ux-grid-filter-DateFilter-method-isActivatable'>    /**
-</span>     * @private
-     * Template method that is to return &lt;tt&gt;true&lt;/tt&gt; if the filter
+</span>     * Template method that is to return &lt;tt&gt;true&lt;/tt&gt; if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}
      */
@@ -344,8 +342,8 @@ Ext.define('Ext.ux.grid.filter.DateFilter', {
         return true;
     },
 
-    onPickerSelect: function(picker, date) {
-        // keep track of the picker value separately because the menu gets destroyed
+<span id='Ext-ux-grid-filter-DateFilter-method-onPickerSelect'>    onPickerSelect: function(picker, date) {
+</span>        // keep track of the picker value separately because the menu gets destroyed
         // when columns order changes.  We return this value from getValue() instead
         // of picker.getValue()
         this.values[picker.itemId] = date;

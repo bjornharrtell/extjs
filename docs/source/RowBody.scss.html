@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-rowbody {
+    font: $grid-row-body-font;
+
+    padding: $grid-row-body-padding;
+
+    p {
+        margin: 5px 5px 10px 5px;
+    }
+}
+
+@if $include-ie {
+    .#{$prefix}ie6 .#{$prefix}grid-rowbody {
+        width: 100%;
+    }
+}
+
+.#{$prefix}grid-row-body-hidden {
+    display: none;
+}
+
+.#{$prefix}grid-row-selected .#{$prefix}grid-rowbody {
+    background-color: $grid-row-cell-selected-background-color !important;
+}
+</pre>
+</body>
+</html>

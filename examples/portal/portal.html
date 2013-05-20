@@ -4,7 +4,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Portal Layout Sample</title>
 
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="portal.css" />
 
     <!-- GC -->
@@ -12,20 +11,19 @@
     <!-- <x-compile> -->
 
     <!-- <x-bootstrap> -->
-    <script type="text/javascript" src="../../ext.js"></script>
+    <script type="text/javascript" src="../../examples/shared/include-ext.js"></script>
+    <script type="text/javascript" src="../../examples/shared/options-toolbar.js"></script>
     <!-- </x-bootstrap> -->
 
     <!-- shared example code -->
     <script type="text/javascript" src="../shared/examples.js"></script>
 
-    <script type="text/javascript" src="portal.js"></script>
     <script type="text/javascript">
         Ext.Loader.setPath('Ext.app', 'classes');
-
+    </script>
+    <script type="text/javascript" src="portal.js"></script>
+    <script type="text/javascript">
         Ext.require([
-            //'Ext.diag.layout.ContextItem.*',
-            //'Ext.diag.layout.Context.*',
-
             'Ext.layout.container.*',
             'Ext.resizer.Splitter',
             'Ext.fx.target.Element',
@@ -47,6 +45,6 @@
     <!-- </x-compile> -->
 </head>
 <body>
-<span id="app-msg" style="display:none;"></span>
+    <span id="app-msg" style="display:none;"></span>
 </body>
 </html>

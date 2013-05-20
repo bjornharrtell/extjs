@@ -101,8 +101,8 @@ Ext.define('Ext.fx.Anim', {
      */
     delay: 0,
 
-    /* @private used to track a delayed starting time */
-    delayStart: 0,
+<span id='Ext-fx-Anim-property-delayStart'>    /* @private used to track a delayed starting time */
+</span>    delayStart: 0,
 
 <span id='Ext-fx-Anim-cfg-dynamic'>    /**
 </span>     * @cfg {Boolean} dynamic
@@ -258,11 +258,11 @@ Ext.define('Ext.fx.Anim', {
      *
      */
     
-    // @private
-    frameCount: 0,
+<span id='Ext-fx-Anim-property-frameCount'>    // @private
+</span>    frameCount: 0,
 
-    // @private
-    constructor: function(config) {
+<span id='Ext-fx-Anim-method-constructor'>    // @private
+</span>    constructor: function(config) {
         var me = this,
             curve;
             
@@ -455,8 +455,8 @@ Ext.define('Ext.fx.Anim', {
         }
     },
 
-    endWasCalled: 0,
-
+<span id='Ext-fx-Anim-property-endWasCalled'>    endWasCalled: 0,
+</span>
 <span id='Ext-fx-Anim-method-end'>    /**
 </span>     * Fire afteranimate event and end the animation. Usually called automatically when the
      * animation reaches its final frame, but can also be called manually to pre-emptively
@@ -475,12 +475,12 @@ Ext.define('Ext.fx.Anim', {
         Ext.callback(me.callback, me.scope, [me, me.startTime]);
     },
     
-    isReady: function() {
-        return this.paused === false &amp;&amp; this.running === false &amp;&amp; this.iterations &gt; 0;
+<span id='Ext-fx-Anim-method-isReady'>    isReady: function() {
+</span>        return this.paused === false &amp;&amp; this.running === false &amp;&amp; this.iterations &gt; 0;
     },
     
-    isRunning: function() {
-        return this.paused === false &amp;&amp; this.running === true &amp;&amp; this.isAnimator !== true;
+<span id='Ext-fx-Anim-method-isRunning'>    isRunning: function() {
+</span>        return this.paused === false &amp;&amp; this.running === true &amp;&amp; this.isAnimator !== true;
     }
 });
 // Set flag to indicate that Fx is available. Class might not be available immediately.

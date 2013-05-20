@@ -11,9 +11,12 @@ Ext.onReady(function () {
         tbar: [{
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(1));
-                store3.loadData(generateData(1));
-                store4.loadData(generateData(1));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(1));
+                    store3.loadData(generateData(1));
+                    store4.loadData(generateData(1));
+                });
             }
         }],
         layout: {

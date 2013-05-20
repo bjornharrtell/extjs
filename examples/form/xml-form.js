@@ -3,24 +3,24 @@ Ext.require([
     'Ext.data.*'
 ]);
 
+Ext.define('example.contact', {
+    extend: 'Ext.data.Model',
+    fields: [
+        {name: 'first', mapping: 'name > first'},
+        {name: 'last', mapping: 'name > last'},
+        'company', 'email', 'state',
+        {name: 'dob', type: 'date', dateFormat: 'm/d/Y'}
+    ]
+});
+    
+Ext.define('example.fielderror', {
+    extend: 'Ext.data.Model',
+    fields: ['id', 'msg']
+});
+
 Ext.onReady(function(){
 
-    Ext.define('example.contact', {
-        extend: 'Ext.data.Model',
-        fields: [
-            {name: 'first', mapping: 'name > first'},
-            {name: 'last', mapping: 'name > last'},
-            'company', 'email', 'state',
-            {name: 'dob', type: 'date', dateFormat: 'm/d/Y'}
-        ]
-    });
-
-    Ext.define('example.fielderror', {
-        extend: 'Ext.data.Model',
-        fields: ['id', 'msg']
-    });
-
-    var formPanel = Ext.create('Ext.form.Panel', {
+    var formPanel = new Ext.form.Panel({
         renderTo: 'form-ct',
         frame: true,
         title:'XML Form',
@@ -34,19 +34,20 @@ Ext.onReady(function(){
             msgTarget: 'side'
         },
 
-        // configure how to read the XML data
-        reader : Ext.create('Ext.data.reader.Xml', {
+        // configure how to read the XML data, using an instance
+        reader : new Ext.data.reader.Xml({
             model: 'example.contact',
             record : 'contact',
             successProperty: '@success'
         }),
 
-        // configure how to read the XML errors
-        errorReader: Ext.create('Ext.data.reader.Xml', {
+        // configure how to read the XML error, using a config
+        errorReader: {
+            type: 'xml',
             model: 'example.fielderror',
             record : 'field',
             successProperty: '@success'
-        }),
+        },
 
         items: [{
             xtype: 'fieldset',

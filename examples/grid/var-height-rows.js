@@ -5,7 +5,7 @@ Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
-    'Ext.grid.PagingScroller'
+    'Ext.grid.plugin.BufferedRenderer'
 ]);
 
 Ext.define('Employee', {
@@ -42,6 +42,7 @@ Ext.onReady(function(){
                 name        = Ext.String.format("{0} {1}", firstNames[firstNameId], lastNames[lastNameId]);
 
             data.push({
+                id: 'rec-' + i,
                 rating: rating,
                 salary: salary,
                 name: name,
@@ -67,7 +68,7 @@ Ext.onReady(function(){
     var grid = Ext.create('Ext.grid.Panel', {
         width: 700,
         height: 500,
-        title: 'Bufffered Grid of 50,000 random records',
+        title: 'Bufffered Grid of 49,679 random records',
         store: store,
         verticalScroller: {
             variableRowHeight: true

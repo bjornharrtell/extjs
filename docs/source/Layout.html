@@ -16,12 +16,13 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-layout-Layout'>/**
-</span> * Base Layout class - extended by ComponentLayout and ContainerLayout
+</span> * This class is the base for all layout types: component and container.
+ * @protected
  */
 Ext.define('Ext.layout.Layout', {
-
     requires: [
-        'Ext.XTemplate'
+        'Ext.XTemplate',
+        'Ext.layout.SizeModel'
     ],
 
     uses: [ 'Ext.layout.Context' ],
@@ -29,21 +30,24 @@ Ext.define('Ext.layout.Layout', {
 <span id='Ext-layout-Layout-property-isLayout'>    /**
 </span>     * @property {Boolean} isLayout
      * `true` in this class to identify an object as an instantiated Layout, or subclass thereof.
+     * @readonly
      */
     isLayout: true,
-    initialized: false,
-    running: false,
-
-    autoSizePolicy: {
+<span id='Ext-layout-Layout-property-initialized'>    initialized: false,
+</span><span id='Ext-layout-Layout-property-running'>    running: false,
+</span>
+<span id='Ext-layout-Layout-property-autoSizePolicy'>    autoSizePolicy: {
+</span>        readsWidth: 1,
+        readsHeight: 1,
         setsWidth: 0,
         setsHeight: 0
     },
 
     statics: {
-        layoutsByType: {},
-
-        create: function(layout, defaultType) {
-            var ClassManager = Ext.ClassManager,
+<span id='Ext-layout-Layout-property-layoutsByType'>        layoutsByType: {},
+</span>
+<span id='Ext-layout-Layout-method-create'>        create: function(layout, defaultType) {
+</span>            var ClassManager = Ext.ClassManager,
                 layoutsByType = this.layoutsByType,
                 alias, className, config, layoutClass, type, load;
 
@@ -77,8 +81,8 @@ Ext.define('Ext.layout.Layout', {
         }
     },
 
-    constructor : function(config) {
-        var me = this;
+<span id='Ext-layout-Layout-method-constructor'>    constructor : function(config) {
+</span>        var me = this;
 
         me.id = Ext.id(null, me.type + '-');
         Ext.apply(me, config);
@@ -210,7 +214,9 @@ Ext.define('Ext.layout.Layout', {
      * @param {Ext.layout.ContextItem} ownerContext The context item for the layout's owner
      * component.
      */
-    finishedLayout: function () {
+    finishedLayout: function (ownerContext) {
+        this.lastWidthModel = ownerContext.widthModel;
+        this.lastHeightModel = ownerContext.heightModel;
         this.ownerContext = null;
     },
     
@@ -234,10 +240,10 @@ Ext.define('Ext.layout.Layout', {
      */
     
     redoLayout: Ext.emptyFn,
-    undoLayout: Ext.emptyFn,
-
-    getAnimatePolicy: function() {
-        return this.animatePolicy;
+<span id='Ext-layout-Layout-method-undoLayout'>    undoLayout: Ext.emptyFn,
+</span>
+<span id='Ext-layout-Layout-method-getAnimatePolicy'>    getAnimatePolicy: function() {
+</span>        return this.animatePolicy;
     },
 
 <span id='Ext-layout-Layout-method-getItemSizePolicy'>    /**
@@ -245,28 +251,20 @@ Ext.define('Ext.layout.Layout', {
      * This method must be implemented by any layout that manages components.
      *
      * @param {Ext.Component} item
-     *
-     * @return {Object} An object describing the sizing done by the layout for this item or
-     * null if the layout mimics the size policy of its ownerCt (e.g., 'fit' and 'card').
-     * @return {Boolean} return.readsWidth True if the natural/auto width of this component
-     * is used by the ownerLayout.
-     * @return {Boolean} return.readsHeight True if the natural/auto height of this component
-     * is used by the ownerLayout.
-     * @return {Boolean} return.setsWidth True if the ownerLayout set this component's width.
-     * @return {Boolean} return.setsHeight True if the ownerLayout set this component's height.
-     *
+     * @return {Ext.layout.SizePolicy} An object describing the sizing done by the layout
+     * for this item.
      * @protected
      */
     getItemSizePolicy: function (item) {
         return this.autoSizePolicy;
     },
 
-    isItemBoxParent: function (itemContext) {
-        return false;
+<span id='Ext-layout-Layout-method-isItemBoxParent'>    isItemBoxParent: function (itemContext) {
+</span>        return false;
     },
 
-    isItemLayoutRoot: function (item) {
-        var sizeModel = item.getSizeModel(),
+<span id='Ext-layout-Layout-method-isItemLayoutRoot'>    isItemLayoutRoot: function (item) {
+</span>        var sizeModel = item.getSizeModel(),
             width = sizeModel.width,
             height = sizeModel.height;
 
@@ -280,12 +278,12 @@ Ext.define('Ext.layout.Layout', {
         return !width.shrinkWrap &amp;&amp; !height.shrinkWrap;
     },
 
-    isItemShrinkWrap: function (item) {
-        return item.shrinkWrap;
+<span id='Ext-layout-Layout-method-isItemShrinkWrap'>    isItemShrinkWrap: function (item) {
+</span>        return item.shrinkWrap;
     },
 
-    isRunning: function () {
-        return !!this.ownerContext;
+<span id='Ext-layout-Layout-method-isRunning'>    isRunning: function () {
+</span>        return !!this.ownerContext;
     },
 
     //-----------------------------------------------------
@@ -308,8 +306,8 @@ Ext.define('Ext.layout.Layout', {
      *         target: childElement
      *     }
      */
-    //-----------------------------------------------------
-
+<span id='Ext-layout-Layout-method-getItemsRenderTree'>    //-----------------------------------------------------
+</span>
     getItemsRenderTree: function (items, renderCfgs) {
         var length = items.length,
             i, item, itemConfig, result;
@@ -350,10 +348,10 @@ Ext.define('Ext.layout.Layout', {
         return result;
     },
 
-    finishRender: Ext.emptyFn,
-
-    finishRenderItems: function (target, items) {
-        var length = items.length,
+<span id='Ext-layout-Layout-method-finishRender'>    finishRender: Ext.emptyFn,
+</span>
+<span id='Ext-layout-Layout-method-finishRenderItems'>    finishRenderItems: function (target, items) {
+</span>        var length = items.length,
             i, item;
 
         for (i = 0; i &lt; length; i++) {
@@ -370,8 +368,8 @@ Ext.define('Ext.layout.Layout', {
         }
     },
 
-    renderChildren: function () {
-        var me = this,
+<span id='Ext-layout-Layout-method-renderChildren'>    renderChildren: function () {
+</span>        var me = this,
             items = me.getLayoutItems(),
             target = me.getRenderTarget();
 
@@ -412,22 +410,32 @@ Ext.define('Ext.layout.Layout', {
      */
     isValidParent : function(item, target, position) {
         var itemDom = item.el ? item.el.dom : Ext.getDom(item),
-            targetDom = (target &amp;&amp; target.dom) || target;
+            targetDom = (target &amp;&amp; target.dom) || target,
+            parentNode = itemDom.parentNode,
+            className;
 
         // If it's resizable+wrapped, the position element is the wrapper.
-        if (itemDom.parentNode &amp;&amp; itemDom.parentNode.className.indexOf(Ext.baseCSSPrefix + 'resizable-wrap') !== -1) {
-            itemDom = itemDom.parentNode;
+        if (parentNode) {
+            className = parentNode.className;
+            if (className &amp;&amp; className.indexOf(Ext.baseCSSPrefix + 'resizable-wrap') !== -1) {
+                itemDom = itemDom.parentNode;
+            }
         }
 
         // Test DOM nodes for equality using &quot;===&quot; : http://jsperf.com/dom-equality-test
         if (itemDom &amp;&amp; targetDom) {
             if (typeof position == 'number') {
+                position = this.getPositionOffset(position);
                 return itemDom === targetDom.childNodes[position];
             }
             return itemDom.parentNode === targetDom;
         }
 
         return false;
+    },
+    
+<span id='Ext-layout-Layout-method-getPositionOffset'>    getPositionOffset: function(position){
+</span>        return position;
     },
 
 <span id='Ext-layout-Layout-method-configureItem'>    /**
@@ -489,8 +497,8 @@ Ext.define('Ext.layout.Layout', {
         this.initialized = true;
     },
 
-    // @private Sets the layout owner
-    setOwner : function(owner) {
+<span id='Ext-layout-Layout-method-setOwner'>    // @private Sets the layout owner
+</span>    setOwner : function(owner) {
         this.owner = owner;
     },
 
@@ -502,12 +510,12 @@ Ext.define('Ext.layout.Layout', {
         return [];
     },
 
-    // Placeholder empty functions for subclasses to extend
-    afterRenderItem: Ext.emptyFn,
-    onAdd : Ext.emptyFn,
-    onRemove : Ext.emptyFn,
-    onDestroy : Ext.emptyFn,
-
+<span id='Ext-layout-Layout-method-afterRenderItem'>    // Placeholder empty functions for subclasses to extend
+</span>    afterRenderItem: Ext.emptyFn,
+<span id='Ext-layout-Layout-method-onAdd'>    onAdd : Ext.emptyFn,
+</span><span id='Ext-layout-Layout-method-onRemove'>    onRemove : Ext.emptyFn,
+</span><span id='Ext-layout-Layout-method-onDestroy'>    onDestroy : Ext.emptyFn,
+</span>
 <span id='Ext-layout-Layout-method-afterRemove'>    /**
 </span>     * Removes layout's itemCls and owning Container's itemCls.
      * Clears the managed dimensions flags
@@ -559,8 +567,8 @@ Ext.define('Ext.layout.Layout', {
         me.onDestroy();
     },
 
-    sortWeightedItems: function (items, reverseProp) {
-        for (var i = 0, length = items.length; i &lt; length; ++i) {
+<span id='Ext-layout-Layout-method-sortWeightedItems'>    sortWeightedItems: function (items, reverseProp) {
+</span>        for (var i = 0, length = items.length; i &lt; length; ++i) {
             items[i].$i = i;
         }
 
@@ -582,244 +590,9 @@ Ext.define('Ext.layout.Layout', {
         }
     }
 }, function () {
-    var Layout = this,
-        sizeModels = {},
-        sizeModelsArray = [],
-        i, j, n, pairs, sizeModel;
+    var Layout = this;
 
-    Layout.prototype.sizeModels = Layout.sizeModels = sizeModels;
-
-<span id='Ext-layout-SizeModel'>    /**
-</span>    * This class describes a size determination strategy or algorithm used by the layout
-    * system. There are special instances of this class stored as static properties to
-    * avoid needless object instantiation. These instances should be treated as readonly.
-    * 
-    *  * `calculated`
-    *  * `configured`
-    *  * `constrainedMax`
-    *  * `constrainedMin`
-    *  * `natural`
-    *  * `shrinkWrap`
-    *  * `calculatedFromConfigured`
-    *  * `calculatedFromNatural`
-    *  * `calculatedFromShrinkWrap`
-    *
-    * Using one of these instances is simply:
-    *
-    *       var calculated = Ext.layout.SizeModel.calculated;
-    *
-    * @class Ext.layout.SizeModel
-    * @protected
-    */
-    var SizeModel = function (config) {
-        var me = this,
-            name = config.name;
-
-        Ext.apply(Ext.apply(me, defaults), config);
-
-        me[name] = true; // set the one special flag that matches our name
-        SizeModel[name] = sizeModels[name] = me;
-
-        me.fixed = !(me.auto = me.natural || me.shrinkWrap);
-
-<span id='Ext-layout-SizeModel-property-ordinal'>        /**
-</span>         * @prop {Number} ordinal
-         * The 0-based ordinal for this `SizeModel` instance.
-         * @readonly
-         */
-        me.ordinal = sizeModelsArray.length;
-        sizeModelsArray.push(me);
-    };
-
-    Ext.layout.SizeModel = SizeModel;
-
-    var defaults = {
-<span id='Ext-layout-SizeModel-property-name'>        /**
-</span>        * @property {String} name
-        * The name of this size model (e.g., &quot;calculated&quot;).
-        * @readonly
-        */
-
-<span id='Ext-layout-SizeModel-property-auto'>        /**
-</span>        * @property {Boolean} auto
-        * True if the size is either `natural` or `shrinkWrap`, otherwise false.
-        * @readonly
-        */
-
-<span id='Ext-layout-SizeModel-property-calculated'>        /**
-</span>        * @property {Boolean} calculated
-        * True if the size is calculated by the `ownerLayout`.
-        * @readonly
-        */
-        calculated: false,
-
-<span id='Ext-layout-SizeModel-property-configured'>        /**
-</span>        * @property {Boolean} configured
-        * True if the size is configured (e.g., by a `width` or `minWidth`). The names of
-        * configuration properties can be found in the {@link #names} property.
-        * @readonly
-        */
-        configured: false,
-
-<span id='Ext-layout-SizeModel-property-constrainedMax'>        /**
-</span>        * @property {Boolean} constrainedMax
-        * True if the size is constrained by a `maxWidth` or `maxHeight` configuration. This
-        * is a flavor of `configured` (since `maxWidth` and `maxHeight` are config options).
-        * If true, the {@link #names} property will be defined as well.
-        * @readonly
-        */
-        constrainedMax: false,
-
-<span id='Ext-layout-SizeModel-property-constrainedMin'>        /**
-</span>        * @property {Boolean} constrainedMin
-        * True if the size is constrained by a `minWidth` or `minHeight` configuration. This
-        * is a flavor of `configured` (since `minWidth` and `minHeight` are config options).
-        * If true, the {@link #names} property will be defined as well.
-        * @readonly
-        */
-        constrainedMin: false,
-
-<span id='Ext-layout-SizeModel-property-fixed'>        /**
-</span>        * @property {Boolean} fixed
-        * True if the size is either `calculated` or `configured`, otherwise false.
-        * @readonly
-        */
-
-<span id='Ext-layout-SizeModel-property-natural'>        /**
-</span>        * @property {Boolean} natural
-        * True if the size is determined by CSS and not by content. Such sizes are assumed to
-        * be dependent on the container box and measurement occurs on the outer-most element.
-        * @readonly
-        */
-        natural: false,
-
-<span id='Ext-layout-SizeModel-property-shrinkWrap'>        /**
-</span>        * @property {Boolean} shrinkWrap
-        * True if the size is determined by content irrespective of the container box.
-        * @readonly
-        */
-        shrinkWrap: false,
-
-<span id='Ext-layout-SizeModel-property-calculatedFromConfigured'>        /**
-</span>        * @property {Boolean} calculatedFromConfigured
-        * True if the size is calculated by the `ownerLayout` based on a configured size.
-        * @readonly
-        */
-        calculatedFromConfigured: false,
-
-<span id='Ext-layout-SizeModel-property-calculatedFromNatural'>        /**
-</span>        * @property {Boolean} calculatedFromNatural
-        * True if the size is calculated by the `ownerLayout` based on `natural` size model
-        * results.
-        * @readonly
-        */
-        calculatedFromNatural: false,
-
-<span id='Ext-layout-SizeModel-property-calculatedFromShrinkWrap'>        /**
-</span>        * @property {Boolean} calculatedFromShrinkWrap
-        * True if the size is calculated by the `ownerLayout` based on `shrinkWrap` size model
-        * results.
-        * @readonly
-        */
-        calculatedFromShrinkWrap: false,
-
-<span id='Ext-layout-SizeModel-property-names'>        /**
-</span>        * @property {Object} names An object with the config property names that determine the
-        * size.
-        * @property {String} names.width The width property name (e.g., 'width').
-        * @property {String} names.height The height property name (e.g., 'minHeight').
-        * @readonly
-        */
-        names: null
-    };
-
-    //-------------------------------------------------------------------------------
-    // These are the 4 fundamental size models.
-
-    new SizeModel({
-        name: 'calculated'
-    });
-
-    new SizeModel({
-        name: 'configured',
-        names: { width: 'width', height: 'height' }
-    });
-
-    new SizeModel({
-        name: 'natural'
-    });
-
-    new SizeModel({
-        name: 'shrinkWrap'
-    });
-
-    //-------------------------------------------------------------------------------
-    // These are the size models are flavors of the above but with some extra detail
-    // about their dynamic use.
-
-    new SizeModel({
-        name: 'calculatedFromConfigured',
-        configured: true,
-        names: { width: 'width', height: 'height' }
-    });
-
-    new SizeModel({
-        name: 'calculatedFromNatural',
-        natural: true
-    });
-
-    new SizeModel({
-        name: 'calculatedFromShrinkWrap',
-        shrinkWrap: true
-    });
-
-    new SizeModel({
-        name: 'constrainedMax',
-        configured: true,
-        constrained: true,
-        names: { width: 'maxWidth', height: 'maxHeight' }
-    });
-
-    new SizeModel({
-        name: 'constrainedMin',
-        configured: true,
-        constrained: true,
-        names: { width: 'minWidth', height: 'minHeight' }
-    });
-
-    for (i = 0, n = sizeModelsArray.length; i &lt; n; ++i) {
-        sizeModel = sizeModelsArray[i];
-<span id='Ext-layout-SizeModel-property-pairsByHeightOrdinal'>        /**
-</span>         * An array of objects indexed by the {@link #ordinal} of a height `SizeModel` on
-         * a width `SizeModel` to yield an object describing both height and width size
-         * models.
-         * 
-         * Used like this:
-         *
-         *      widthModel.pairsByHeightOrdinal[heightModel.ordinal]
-         *
-         * This provides a reusable object equivalent to the following:
-         * 
-         *      {
-         *          width: widthModel,
-         *          height: heightModel
-         *      }
-         *
-         * @property {Object[]} pairsByHeightOrdinal
-         * @property {Ext.layout.SizeModel} pairsByHeightOrdinal.width The `SizeModel` for
-         * the width.
-         * @property {Ext.layout.SizeModel} pairsByHeightOrdinal.height The `SizeModel` for
-         * the height.
-         */
-        sizeModel.pairsByHeightOrdinal = pairs = [];
-
-        for (j = 0; j &lt; n; ++j) {
-            pairs.push({
-                width: sizeModel,
-                height: sizeModelsArray[j]
-            });
-        }
-    }
+    Layout.prototype.sizeModels = Layout.sizeModels = Ext.layout.SizeModel.sizeModels;
 });
 </pre>
 </body>

@@ -3,25 +3,18 @@
  * @extends Object
  * A sample portal layout application class.
  */
-// TODO: Fill in the content panel -- no AccordionLayout at the moment
-// TODO: Fix container drag/scroll support (waiting on Ext.lib.Anim)
-// TODO: Fix Ext.Tool scope being set to the panel header
-// TODO: Drag/drop does not cause a refresh of scroll overflow when needed
-// TODO: Grid portlet throws errors on destroy (grid bug)
-// TODO: Z-index issues during drag
 
 Ext.define('Ext.app.Portal', {
 
     extend: 'Ext.container.Viewport',
-    //requires: [ 'Ext.diag.layout.ContextItem', 'Ext.diag.layout.Context' ],
-    uses: ['Ext.app.PortalPanel', 'Ext.app.PortalColumn', 'Ext.app.GridPortlet', 'Ext.app.ChartPortlet'],
+    requires: ['Ext.app.PortalPanel', 'Ext.app.PortalColumn', 'Ext.app.GridPortlet', 'Ext.app.ChartPortlet'],
 
     getTools: function(){
         return [{
             xtype: 'tool',
             type: 'gear',
-            handler: function(e, target, panelHeader, tool){
-                var portlet = panelHeader.ownerCt;
+            handler: function(e, target, header, tool){
+                var portlet = header.ownerCt;
                 portlet.setLoading('Loading...');
                 Ext.defer(function() {
                     portlet.setLoading(false);

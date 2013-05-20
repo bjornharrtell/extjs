@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-sv_SE",
+    "type": "locale",
+    "locale": "sv_SE",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

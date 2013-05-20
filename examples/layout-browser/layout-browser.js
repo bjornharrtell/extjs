@@ -120,7 +120,7 @@ Ext.onReady(function(){
             border: false,
             split:true,
             margins: '2 0 5 5',
-            width: 275,
+            width: 290,
             minSize: 100,
             maxSize: 500,
             items: [treePanel, detailsPanel]

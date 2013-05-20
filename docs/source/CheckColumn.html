@@ -15,10 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-ux-CheckColumn'>/**
-</span> * @class Ext.ux.CheckColumn
- * @extends Ext.grid.column.Column
- * A Header subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.
+  <pre class="prettyprint lang-js"><span id='Ext-grid-column-CheckColumn'>/**
+</span> * A Column subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.
  *
  * Example usage:
  * 
@@ -37,26 +35,30 @@
  *        ...
  *    });
  *
- * In addition to toggling a Boolean value within the record data, this
- * class adds or removes a css class &lt;tt&gt;'x-grid-checked'&lt;/tt&gt; on the td
- * based on whether or not it is checked to alter the background image used
- * for a column.
  */
-Ext.define('Ext.ux.CheckColumn', {
+Ext.define('Ext.grid.column.CheckColumn', {
     extend: 'Ext.grid.column.Column',
+    alternateClassName: 'Ext.ux.CheckColumn',
     alias: 'widget.checkcolumn',
 
-<span id='Ext-ux-CheckColumn-cfg-stopSelection'>    /**
+<span id='Ext-grid-column-CheckColumn-cfg-align'>    /**
+</span>     * @cfg
+     * @hide
+     * Overridden from base class. Must center to line up with editor.
+     */
+    align: 'center',
+
+<span id='Ext-grid-column-CheckColumn-cfg-stopSelection'>    /**
 </span>     * @cfg {Boolean} [stopSelection=true]
      * Prevent grid selection upon mousedown.
      */
     stopSelection: true,
 
-    tdCls: Ext.baseCSSPrefix + 'grid-cell-checkcolumn',
-
-    constructor: function() {
-        this.addEvents(
-<span id='Ext-ux-CheckColumn-event-beforecheckchange'>            /**
+<span id='Ext-grid-column-CheckColumn-cfg-tdCls'>    tdCls: Ext.baseCSSPrefix + 'grid-cell-checkcolumn',
+</span>
+<span id='Ext-grid-column-CheckColumn-method-constructor'>    constructor: function() {
+</span>        this.addEvents(
+<span id='Ext-grid-column-CheckColumn-event-beforecheckchange'>            /**
 </span>             * @event beforecheckchange
              * Fires when before checked state of a row changes.
              * The change may be vetoed by returning `false` from a listener.
@@ -65,7 +67,7 @@ Ext.define('Ext.ux.CheckColumn', {
              * @param {Boolean} checked True if the box is to be checked
              */
             'beforecheckchange',
-<span id='Ext-ux-CheckColumn-event-checkchange'>            /**
+<span id='Ext-grid-column-CheckColumn-event-checkchange'>            /**
 </span>             * @event checkchange
              * Fires when the checked state of a row changes
              * @param {Ext.ux.CheckColumn} this CheckColumn
@@ -74,10 +76,11 @@ Ext.define('Ext.ux.CheckColumn', {
              */
             'checkchange'
         );
+        this.scope = this;
         this.callParent(arguments);
     },
 
-<span id='Ext-ux-CheckColumn-method-processEvent'>    /**
+<span id='Ext-grid-column-CheckColumn-method-processEvent'>    /**
 </span>     * @private
      * Process and refire events routed from the GridView's processEvent method.
      */
@@ -86,7 +89,7 @@ Ext.define('Ext.ux.CheckColumn', {
             key = type === 'keydown' &amp;&amp; e.getKey(),
             mousedown = type == 'mousedown';
 
-        if (mousedown || (key == e.ENTER || key == e.SPACE)) {
+        if (!me.disabled &amp;&amp; (mousedown || (key == e.ENTER || key == e.SPACE))) {
             var dataIndex = me.dataIndex,
                 checked = !record.get(dataIndex);
 
@@ -120,16 +123,47 @@ Ext.define('Ext.ux.CheckColumn', {
         }
     },
 
-    // Note: class names are not placed on the prototype bc renderer scope
-    // is not in the header.
-    renderer : function(value){
-        var cssPrefix = Ext.baseCSSPrefix,
-            cls = [cssPrefix + 'grid-checkheader'];
+<span id='Ext-grid-column-CheckColumn-method-onEnable'>    /**
+</span>     * Enables this CheckColumn.
+     * @param {Boolean} [silent=false]
+     */
+    onEnable: function(silent) {
+        var me = this;
 
-        if (value) {
-            cls.push(cssPrefix + 'grid-checkheader-checked');
+        me.callParent(arguments);
+        me.up('tablepanel').el.select('.' + Ext.baseCSSPrefix + 'grid-cell-' + me.id).removeCls(me.disabledCls);
+        if (!silent) {
+            me.fireEvent('enable', me);
         }
-        return '&lt;div class=&quot;' + cls.join(' ') + '&quot;&gt;&amp;#160;&lt;/div&gt;';
+    },
+
+<span id='Ext-grid-column-CheckColumn-method-onDisable'>    /**
+</span>     * Disables this CheckColumn.
+     * @param {Boolean} [silent=false]
+     */
+    onDisable: function(silent) {
+        var me = this;
+
+        me.callParent(arguments);
+        me.up('tablepanel').el.select('.' + Ext.baseCSSPrefix + 'grid-cell-' + me.id).addCls(me.disabledCls);
+        if (!silent) {
+            me.fireEvent('disable', me);
+        }
+    },
+
+<span id='Ext-grid-column-CheckColumn-method-renderer'>    // Note: class names are not placed on the prototype bc renderer scope
+</span>    // is not in the header.
+    renderer : function(value, meta) {
+        var cssPrefix = Ext.baseCSSPrefix,
+            cls = [cssPrefix + 'grid-checkcolumn'];
+
+        if (this.disabled) {
+            meta.tdCls += ' ' + this.disabledCls;
+        }
+        if (value) {
+            cls.push(cssPrefix + 'grid-checkcolumn-checked');
+        }
+        return '&lt;img class=&quot;' + cls.join(' ') + '&quot; src=&quot;' + Ext.BLANK_IMAGE_URL + '&quot;/&gt;';
     }
 });
 </pre>

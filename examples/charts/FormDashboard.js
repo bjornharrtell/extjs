@@ -14,31 +14,28 @@ Ext.onReady(function(){
         return v + '%';
     }
 
-    var bd = Ext.getBody(),
-        form = false,
-        rec = false,
-        selectedStoreItem = false,
+    var form = false,
+        selectedRec = false,
         //performs the highlight of an item in the bar series
-        selectItem = function(storeItem) {
+        highlightCompanyPriceBar = function(storeItem) {
             var name = storeItem.get('company'),
                 series = barChart.series.get(0),
                 i, items, l;
-            
+
             series.highlight = true;
             series.unHighlightItem();
             series.cleanHighlights();
             for (i = 0, items = series.items, l = items.length; i < l; i++) {
                 if (name == items[i].storeItem.get('company')) {
-                    selectedStoreItem = items[i].storeItem;
                     series.highlightItem(items[i]);
                     break;
                 }
             }
             series.highlight = false;
         },
-        //updates a record modified via the form
-        updateRecord = function(rec) {
-            var name, series, i, l, items, json = [{
+        // Loads fresh records into the radar store based upon the passed company record
+        updateRadarChart = function(rec) {
+            radarStore.loadData([{
                 'Name': 'Price',
                 'Data': rec.get('price')
             }, {
@@ -53,25 +50,7 @@ Ext.onReady(function(){
             }, {
                 'Name': 'Market %',
                 'Data': rec.get('market %')
-            }];
-            chs.loadData(json);
-            selectItem(rec);
-        },
-        createListeners = function() {
-            return {
-                // buffer so we don't refire while the user is still typing
-                buffer: 200,
-                change: function(field, newValue, oldValue, listener) {
-                    if (rec && form) {
-                        if (newValue > field.maxValue) {
-                            field.setValue(field.maxValue);
-                        } else {
-                            form.updateRecord(rec);
-                            updateRecord(rec);
-                        }
-                    }
-                }
-            };
+            }]);
         };
         
     // sample static data for the store
@@ -126,11 +105,31 @@ Ext.onReady(function(){
             {name: 'product %', type: 'float'},
             {name: 'market %',  type: 'float'}
         ],
-        data: myData
+        data: myData,
+        listeners: {
+            beforesort: function() {
+                if (barChart) {
+                    var a = barChart.animate;
+                    barChart.animate = false;
+                    barChart.series.get(0).unHighlightItem();
+                    barChart.animate = a;
+                }
+            },
+            //add listener to (re)select bar item after sorting or refreshing the dataset.
+            refresh: {
+                fn: function() {
+                    if (selectedRec) {
+                        highlightCompanyPriceBar(selectedRec);
+                    }
+                },
+                // Jump over the chart's refresh listener
+                delay: 1
+            }
+        }
     });
-    
-    //create radar dataset model.
-    var chs = Ext.create('Ext.data.JsonStore', {
+
+    //create radar store.
+    var radarStore = Ext.create('Ext.data.JsonStore', {
         fields: ['Name', 'Data'],
         data: [
         {
@@ -158,7 +157,7 @@ Ext.onReady(function(){
         insetPadding: 20,
         flex: 1.2,
         animate: true,
-        store: chs,
+        store: radarStore,
         theme: 'Blue',
         axes: [{
             steps: 5,
@@ -188,7 +187,7 @@ Ext.onReady(function(){
     //create a grid that will list the dataset items.
     var gridPanel = Ext.create('Ext.grid.Panel', {
         id: 'company-form',
-        flex: 0.60,
+        flex: 7,
         store: ds,
         title:'Company Data',
 
@@ -202,7 +201,7 @@ Ext.onReady(function(){
             },
             {
                 text   : 'Price',
-                width    : 75,
+                width    : 90,
                 sortable : true,
                 dataIndex: 'price',
                 align: 'right',
@@ -210,7 +209,7 @@ Ext.onReady(function(){
             },
             {
                 text   : 'Revenue',
-                width    : 75,
+                width    : 110,
                 sortable : true,
                 align: 'right',
                 dataIndex: 'revenue %',
@@ -218,7 +217,7 @@ Ext.onReady(function(){
             },
             {
                 text   : 'Growth',
-                width    : 75,
+                width    : 100,
                 sortable : true,
                 align: 'right',
                 dataIndex: 'growth %',
@@ -226,7 +225,7 @@ Ext.onReady(function(){
             },
             {
                 text   : 'Product',
-                width    : 75,
+                width    : 110,
                 sortable : true,
                 align: 'right',
                 dataIndex: 'product %',
@@ -234,7 +233,7 @@ Ext.onReady(function(){
             },
             {
                 text   : 'Market',
-                width    : 75,
+                width    : 100,
                 sortable : true,
                 align: 'right',
                 dataIndex: 'market %',
@@ -244,11 +243,11 @@ Ext.onReady(function(){
 
         listeners: {
             selectionchange: function(model, records) {
-                var json, name, i, l, items, series, fields;
+                var fields;
                 if (records[0]) {
-                    rec = records[0];
+                    selectedRec = records[0];
                     if (!form) {
-                        form = this.up('form').getForm();
+                        form = this.up('panel').down('form').getForm();
                         fields = form.getFields();
                         fields.each(function(field){
                             if (field.name != 'company') {
@@ -260,14 +259,10 @@ Ext.onReady(function(){
                     }
                     
                     // prevent change events from firing
-                    fields.each(function(field){
-                        field.suspendEvents();
-                    });
-                    form.loadRecord(rec);
-                    updateRecord(rec);
-                    fields.each(function(field){
-                        field.resumeEvents();
-                    });
+                    form.suspendEvents();
+                    form.loadRecord(selectedRec);
+                    form.resumeEvents();
+                    highlightCompanyPriceBar(selectedRec);
                 }
             }
         }
@@ -275,7 +270,9 @@ Ext.onReady(function(){
 
     //create a bar series to be at the top of the panel.
     var barChart = Ext.create('Ext.chart.Chart', {
-        flex: 1,
+        height: 200,
+        margin: '0 0 3 0',
+        cls: 'x-panel-body-default',
         shadow: true,
         animate: true,
         store: ds,
@@ -302,7 +299,6 @@ Ext.onReady(function(){
         series: [{
             type: 'column',
             axis: 'left',
-            highlight: true,
             style: {
                 fill: '#456d9f'
             },
@@ -318,45 +314,25 @@ Ext.onReady(function(){
                 'text-anchor': 'middle'
             },
             listeners: {
-                'itemmouseup': function(item) {
-                     var series = barChart.series.get(0),
-                         index = Ext.Array.indexOf(series.items, item),
-                         selectionModel = gridPanel.getSelectionModel();
-                     
-                     selectedStoreItem = item.storeItem;
-                     selectionModel.select(index);
+                itemmouseup: function(item) {
+                     var series = barChart.series.get(0);
+                     gridPanel.getSelectionModel().select(Ext.Array.indexOf(series.items, item));
                 }
             },
             xField: 'name',
             yField: ['price']
-        }]        
+        }]
     });
     
-    //disable highlighting by default.
-    barChart.series.get(0).highlight = false;
-    
-    //add listener to (re)select bar item after sorting or refreshing the dataset.
-    barChart.addListener('beforerefresh', (function() {
-        var timer = false;
-        return function() {
-            clearTimeout(timer);
-            if (selectedStoreItem) {
-                timer = setTimeout(function() {
-                    selectItem(selectedStoreItem);
-                }, 900);
-            }
-        };
-    })());
-    
     /*
-     * Here is where we create the Form
+     * Here is where we create the main Panel
      */
-    var gridForm = Ext.create('Ext.form.Panel', {
+    Ext.create('Ext.panel.Panel', {
         title: 'Company data',
         frame: true,
         bodyPadding: 5,
-        width: 870,
-        height: 720,
+        width: 1050,
+        height: 740,
 
         fieldDefaults: {
             labelAlign: 'left',
@@ -368,22 +344,13 @@ Ext.onReady(function(){
             align: 'stretch'
         },
         
-        items: [
-            {
-                height: 200,
-                layout: 'fit',
-                margin: '0 0 3 0',
-                items: [barChart]
-            },
-            {
-            
+        items: [barChart, {
+            xtype: 'container',
             layout: {type: 'hbox', align: 'stretch'},
             flex: 3,
-            border: false,
-            bodyStyle: 'background-color: transparent',
-            
             items: [gridPanel, {
-                flex: 0.4,
+                xtype: 'form',
+                flex: 3,
                 layout: {
                     type: 'vbox',
                     align:'stretch'
@@ -398,59 +365,55 @@ Ext.onReady(function(){
                     defaults: {
                         width: 240,
                         labelWidth: 90,
-                        disabled: true
+                        disabled: true,
+                        // min/max will be ignored by the text field
+                        maxValue: 100,
+                        minValue: 0,
+                        enforceMaxLength: true,
+                        maxLength: 5,
+                        bubbleEvents: ['change']
                     },
                     defaultType: 'numberfield',
                     items: [{
                         fieldLabel: 'Name',
                         name: 'company',
-                        xtype: 'textfield'
-                    },{
+                        xtype: 'textfield',
+                        enforceMaxLength: false
+                    }, {
                         fieldLabel: 'Price',
-                        name: 'price',
-                        maxValue: 100,
-                        minValue: 0,
-                        enforceMaxLength: true,
-                        maxLength: 5,
-                        listeners: createListeners('price')
-                    },{
+                        name: 'price'
+                    }, {
                         fieldLabel: 'Revenue %',
-                        name: 'revenue %',
-                        maxValue: 100,
-                        minValue: 0,
-                        enforceMaxLength: true,
-                        maxLength: 5,
-                        listeners: createListeners('revenue %')
-                    },{
+                        name: 'revenue %'
+                    }, {
                         fieldLabel: 'Growth %',
-                        name: 'growth %',
-                        maxValue: 100,
-                        minValue: 0,
-                        enforceMaxLength: true,
-                        maxLength: 5,
-                        listeners: createListeners('growth %')
-                    },{
+                        name: 'growth %'
+                    }, {
                         fieldLabel: 'Product %',
-                        name: 'product %',
-                        maxValue: 100,
-                        minValue: 0,
-                        enforceMaxLength: true,
-                        maxLength: 5,
-                        listeners: createListeners('product %')
-                    },{
+                        name: 'product %'
+                    }, {
                         fieldLabel: 'Market %',
-                        name: 'market %',
-                        maxValue: 100,
-                        minValue: 0,
-                        enforceMaxLength: true,
-                        maxLength: 5,
-                        listeners: createListeners('market %')
+                        name: 'market %'
                     }]
-                }, radarChart]
+                }, radarChart],
+                listeners: {
+                    // buffer so we don't refire while the user is still typing
+                    buffer: 200,
+                    change: function(field, newValue, oldValue, listener) {
+                        if (selectedRec && form) {
+                            if (newValue > field.maxValue) {
+                                field.setValue(field.maxValue);
+                            } else {
+                                if (form.isValid()) {
+                                    form.updateRecord(selectedRec);
+                                    updateRadarChart(selectedRec);
+                                }
+                            }
+                        }
+                    }
+                }
             }]
         }],
-        renderTo: bd
+        renderTo: Ext.getBody()
     });
-
-    var gp = Ext.getCmp('company-form');
 });

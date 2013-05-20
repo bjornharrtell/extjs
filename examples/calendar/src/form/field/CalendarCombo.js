@@ -17,6 +17,9 @@
 Ext.define('Ext.calendar.form.field.CalendarCombo', {
     extend: 'Ext.form.field.ComboBox',
     alias: 'widget.calendarpicker',
+    requires: [
+        'Ext.calendar.data.CalendarMappings'
+    ],
 
     fieldLabel: 'Calendar',
     triggerAction: 'all',

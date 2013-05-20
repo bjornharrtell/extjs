@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-rtl-dom-Layer'>/**
+</span> * @override Ext.rtl.dom.Layer
+ * This override adds RTL positioning methods to Ext.dom.Layer.
+ */
+Ext.define('Ext.rtl.dom.Layer', {
+    override: 'Ext.dom.Layer',
+
+<span id='Ext-rtl-dom-Layer-property-rtlLocalXYNames'>    rtlLocalXYNames: {
+</span>        get: 'rtlGetLocalXY',
+        set: 'rtlSetLocalXY'
+    },
+
+<span id='Ext-rtl-dom-Layer-method-rtlSetLocalX'>    rtlSetLocalX: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-rtl-dom-Layer-method-rtlSetLocalXY'>    rtlSetLocalXY: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-rtl-dom-Layer-method-rtlSetLocalY'>    rtlSetLocalY: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-rtl-dom-Layer-method-rtlSetXY'>    rtlSetXY: function(xy, animate, duration, callback, easing) {
+</span>        var me = this;
+        
+        // Callback will restore shadow state and call the passed callback
+        callback = me.createCB(callback);
+
+        me.fixDisplay();
+        me.beforeAction();
+        me.callParent([xy, animate, duration, callback, easing]);
+        if (!animate) {
+            callback();
+        }
+        return me;
+    },
+    
+<span id='Ext-rtl-dom-Layer-method-setRtl'>    setRtl: function(rtl) {
+</span>        var me = this,
+            shadow = me.shadow;
+            
+        me.localXYNames = rtl ? me.rtlLocalXYNames : Ext.dom.Layer.prototype.localXYNames;
+        
+        if (shadow) {
+            shadow.localXYNames = me.localXYNames;
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.rtl.EventObjectImpl', {
+    override: 'Ext.EventObjectImpl',
+    
+    getXY: function() {
+        var xy = this.xy;
+
+        if (!xy) {
+            xy = this.callParent();
+            // since getXY is a page-level concept, we only need to check the
+            // rootHierarchyState once to see if all successive calls to getXY() should have
+            // their x-coordinate converted to rtl.
+            if (this.rtl || (this.rtl = Ext.rootHierarchyState.rtl)) {
+                xy[0] = Ext.Element.getViewportWidth() - xy[0];
+            }
+        }
+        return xy;
+    }
+
+});</pre>
+</body>
+</html>

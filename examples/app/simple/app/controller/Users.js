@@ -1,11 +1,18 @@
 Ext.define('AM.controller.Users', {
     extend: 'Ext.app.Controller',
 
-    stores: ['Users'],
+    stores: [
+        'Users@AM.store'
+    ],
 
-    models: ['User'],
+    models: [
+        'User@AM.model'
+    ],
 
-    views: ['user.Edit', 'user.List'],
+    views: [
+        'Edit@AM.view.user',
+        'List@AM.view.user'
+    ],
 
     refs: [
         {
@@ -16,7 +23,7 @@ Ext.define('AM.controller.Users', {
 
     init: function() {
         this.control({
-            'viewport > userlist dataview': {
+            'viewport > userlist': {
                 itemdblclick: this.editUser
             },
             'useredit button[action=save]': {

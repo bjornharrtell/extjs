@@ -59,7 +59,7 @@ Ext.onReady(function () {
                     layout: 'fit',
                     items: [{
                         xtype: 'tabpanel',
-                        activeTab: 1,
+                        activeTab: 0,
                         items: [{
                             title: 'Nested Tabs',
                             html: Ext.example.shortBogusMarkup

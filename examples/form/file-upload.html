@@ -5,8 +5,8 @@
     <title>File Uploads</title>
 
     <!-- ExtJS -->
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <script type="text/javascript" src="../../examples/shared/include-ext.js"></script>
+    <script type="text/javascript" src="../../examples/shared/options-toolbar.js"></script>
 
     <!-- Shared -->
     <link rel="stylesheet" type="text/css" href="../shared/example.css" />
@@ -43,9 +43,9 @@
 
     <h2>Basic File Field</h2>
     <p>
-        A typical file upload field with Ext style. Direct editing of the text field cannot be done in a
-        consistent, cross-browser way, so it is always read-only. The file path reported by the <code>getValue</code>
-        method will
+        A typical file upload field with Ext style. Direct editing of the text field cannot be done in a consistent,
+        <br>
+        cross-browser way, so it is always read-only. The file path reported by the <code>getValue</code> method will
     </p>
     <div id="fi-basic"></div>
     <div id="fi-basic-btn"></div>
@@ -53,6 +53,7 @@
     <h2>Button Only</h2>
     <p>
         You can also render the file input as a button without the text field, with access to the field's value via the
+        <br>
         standard <tt>Ext.form.field.Field</tt> interface or by handling the <tt>fileselected</tt> event (as in this example).
     </p>
     <div id="fi-button"></div>
@@ -62,9 +63,23 @@
     <h2>Form Example</h2>
     <p>
         The File field can also be used in form layouts just like any other field, with support for labeling,
+        <br>
         validation (the field is required in this example), empty text, etc.  This example also demonstrates
+        <br>
         using the <tt>buttonConfig</tt> option to provide a customized icon upload button.
     </p>
     <div id="fi-form"></div>
+
+    <h2>Form Example with failure returned from server</h2>
+    <p>
+        This is the same as the form above, except that the server simulates an upload error and returns a failure JSON packet.
+        <br>
+        Explanatory messages are returned in the data packet and processed by the UI.
+        <br>
+        You may set the HTTP response status which the server responds with. It is recommended that applications
+        return a 200, <code><b>success</b></code> response when returning failure packets. The <b>HTTP</b> request
+        is successful. The error is an application-level failure.
+    </p>
+    <div id="fi-form-failure"></div>
 </body>
 </html>

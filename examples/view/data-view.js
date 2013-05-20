@@ -45,9 +45,10 @@ Ext.onReady(function(){
             store: store,
             tpl: [
                 '<tpl for=".">',
-                    '<div class="thumb-wrap" id="{name}">',
-                    '<div class="thumb"><img src="{url}" title="{name}"></div>',
-                    '<span class="x-editable">{shortName}</span></div>',
+                    '<div class="thumb-wrap" id="{name:stripTags}">',
+                        '<div class="thumb"><img src="{url}" title="{name:htmlEncode}"></div>',
+                        '<span class="x-editable">{shortName:htmlEncode}</span>',
+                    '</div>',
                 '</tpl>',
                 '<div class="x-clear"></div>'
             ],

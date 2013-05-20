@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.rtl.grid.RowEditor', {
+    override: 'Ext.grid.RowEditor',
+
+    setButtonPosition: function(btnEl, left){
+        if (this.getHierarchyState().rtl) {
+            btnEl.rtlSetLocalXY(left, this.el.dom.offsetHeight - 1);
+        } else {
+            this.callParent(arguments);
+        }
+    },
+
+    // Workaround for http://code.google.com/p/chromium/issues/detail?id=174656
+    getLocalX: function() {
+        var grid = this.editingPlugin.grid,
+            view = grid.normalGrid ? grid.normalGrid.view : grid.view,
+            viewSize = view.componentLayout.lastComponentSize,
+            hasOverflow = viewSize.contentHeight &gt; viewSize.height;
+
+        // Only work back past the incorrect right origin if there is overflow, and we're not in a locking grid
+        // (if we are, the RowEditor is rendered to the outer container) and we're in RTL mode and we have the
+        // X origin bug.
+        return hasOverflow &amp;&amp; !grid.normalGrid &amp;&amp; grid.getHierarchyState().rtl &amp;&amp; Ext.supports.xOriginBug ? -Ext.getScrollbarSize().width : 0;
+    }
+});
+</pre>
+</body>
+</html>

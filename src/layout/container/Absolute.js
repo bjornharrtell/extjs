@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This is a layout that inherits the anchoring of {@link Ext.layout.container.Anchor} and adds the
  * ability for x/y positioning using the standard x and y component config options.
@@ -117,5 +137,74 @@ Ext.define('Ext.layout.container.Absolute', {
             return false;
         }
         return this.callParent(arguments);
+    },
+
+    calculateContentSize: function (ownerContext, dimensions) {
+        var me = this,
+            containerDimensions = (dimensions || 0) |
+                   ((ownerContext.widthModel.shrinkWrap ? 1 : 0) |
+                    (ownerContext.heightModel.shrinkWrap ? 2 : 0)),
+            calcWidth = (containerDimensions & 1) || undefined,
+            calcHeight = (containerDimensions & 2) || undefined,
+            childItems = ownerContext.childItems,
+            length = childItems.length,
+            contentHeight = 0,
+            contentWidth = 0,
+            needed = 0,
+            props = ownerContext.props,
+            targetPadding, child, childContext, height, i, margins, width;
+
+        if (calcWidth) {
+            if (isNaN(props.contentWidth)) {
+                ++needed;
+            } else {
+                calcWidth = undefined;
+            }
+        }
+        if (calcHeight) {
+            if (isNaN(props.contentHeight)) {
+                ++needed;
+            } else {
+                calcHeight = undefined;
+            }
+        }
+
+        if (needed) {
+            for (i = 0; i < length; ++i) {
+                childContext = childItems[i];
+                child = childContext.target;
+                height = calcHeight && childContext.getProp('height');
+                width = calcWidth && childContext.getProp('width');
+                margins = childContext.getMarginInfo();
+
+                height += margins.bottom;
+                width  += margins.right;
+
+                contentHeight = Math.max(contentHeight, (child.y || 0) + height);
+                contentWidth = Math.max(contentWidth, (child.x || 0) + width);
+
+                if (isNaN(contentHeight) && isNaN(contentWidth)) {
+                    me.done = false;
+                    return;
+                }
+            }
+
+            if (calcWidth || calcHeight) {
+                targetPadding = ownerContext.targetContext.getPaddingInfo();
+            }
+            if (calcWidth && !ownerContext.setContentWidth(contentWidth + targetPadding.width)) {
+                me.done = false;
+            }
+            if (calcHeight && !ownerContext.setContentHeight(contentHeight + targetPadding.height)) {
+                me.done = false;
+            }
+
+            /* add a '/' to turn on this log ('//* enables, '/*' disables)
+            if (me.done) {
+                var el = ownerContext.targetContext.el.dom;
+                Ext.log(this.owner.id, '.contentSize: ', contentWidth, 'x', contentHeight,
+                    ' => scrollSize: ', el.scrollWidth, 'x', el.scrollHeight);
+            }/**/
+        }
     }
 });

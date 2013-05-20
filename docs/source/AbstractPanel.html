@@ -40,6 +40,7 @@ Ext.define('Ext.panel.AbstractPanel', {
 <span id='Ext-panel-AbstractPanel-cfg-baseCls'>    /**
 </span>     * @cfg {String} [baseCls=x-panel]
      * The base CSS class to apply to this panel's element.
+     * @since Ext 2
      */
     baseCls : Ext.baseCSSPrefix + 'panel',
 
@@ -52,8 +53,9 @@ Ext.define('Ext.panel.AbstractPanel', {
 
 <span id='Ext-panel-AbstractPanel-cfg-bodyBorder'>    /**
 </span>     * @cfg {Boolean} bodyBorder
-     * A shortcut to add or remove the border on the body of a panel. This only applies to a panel which has the {@link #frame} configuration set to `true`.
-     * Defaults to &lt;code&gt;undefined&lt;/code&gt;.
+     * A shortcut to add or remove the border on the body of a panel. In the classic theme
+     * this only applies to a panel which has the {@link #frame} configuration set to `true`.
+     * @since Ext 2
      */
 
 <span id='Ext-panel-AbstractPanel-cfg-bodyStyle'>    /**
@@ -68,6 +70,8 @@ bodyStyle: {
     padding: '10px'
 }
      * &lt;/code&gt;&lt;/pre&gt;
+     *
+     * @since Ext 2
      */
 
 <span id='Ext-panel-AbstractPanel-cfg-bodyCls'>    /**
@@ -85,15 +89,45 @@ bodyCls: ['foo', 'bar']
      * `true` in this class to identify an object as an instantiated Panel, or subclass thereof.
      */
     isPanel: true,
+    
+<span id='Ext-panel-AbstractPanel-property-body'>    /**
+</span>     * @property {Ext.dom.Element} body
+     * The Panel's body {@link Ext.dom.Element Element} which may be used to contain HTML content.
+     * The content may be specified in the {@link #html} config, or it may be loaded using the
+     * {@link #loader} config. Read-only.
+     *
+     * If this is used to load visible HTML elements in either way, then
+     * the Panel may not be used as a Layout for hosting nested Panels.
+     *
+     * If this Panel is intended to be used as the host of a Layout (See {@link #layout}
+     * then the body Element must not be loaded or changed - it is under the control
+     * of the Panel's Layout.
+     *
+     * @readonly
+     */
 
-    componentLayout: 'dock',
+<span id='Ext-panel-AbstractPanel-property-contentPaddingProperty'>    /**
+</span>     * @property {String} [contentPaddingProperty='bodyPadding']
+     * @inheritdoc
+     */ 
+    contentPaddingProperty: 'bodyPadding',
+    
+<span id='Ext-panel-AbstractPanel-cfg-shrinkWrapDock'>    /**
+</span>     * @cfg {Boolean/Number} shrinkWrapDock
+     * Allows for this panel to include the {@link #dockedItems} when trying to determine the overall
+     * size of the panel. This option is only applicable when this panel is also shrink wrapping in the
+     * same dimensions. See {@link Ext.AbstractComponent#shrinkWrap} for an explanation of the configuration options.
+     */
+    shrinkWrapDock: false,
 
-    childEls: [
-        'body'
+<span id='Ext-panel-AbstractPanel-cfg-componentLayout'>    componentLayout: 'dock',
+</span>
+<span id='Ext-panel-AbstractPanel-property-childEls'>    childEls: [
+</span>        'body'
     ],
 
-    renderTpl: [
-        // If this Panel is framed, the framing template renders the docked items round the frame
+<span id='Ext-panel-AbstractPanel-cfg-renderTpl'>    renderTpl: [
+</span>        // If this Panel is framed, the framing template renders the docked items round the frame
         '{% this.renderDockedItems(out,values,0); %}',
         // This empty div solves an IE6/7/Quirks problem where the margin-top on the bodyEl
         // is ignored. Best we can figure, this is triggered by the previousSibling being
@@ -102,18 +136,21 @@ bodyCls: ['foo', 'bar']
         // panel and the body. This in turn allows CSS height to expand or contract the
         // panel during things like portlet dragging where we want to avoid running a ton
         // of layouts during the drag operation.
-        (Ext.isIE6 || Ext.isIE7 || Ext.isIEQuirks) ? '&lt;div&gt;&lt;/div&gt;' : '',
+        // This empty div also has to be relatively positioned, otherwise it crashes IE6-9 Quirks
+        // when panel is rendered in a table-based layout.
+        (Ext.isIE7m || Ext.isIEQuirks) ? '&lt;div style=&quot;position:relative&quot;&gt;&lt;/div&gt;' : '',
         '&lt;div id=&quot;{id}-body&quot; class=&quot;{baseCls}-body&lt;tpl if=&quot;bodyCls&quot;&gt; {bodyCls}&lt;/tpl&gt;',
             ' {baseCls}-body-{ui}&lt;tpl if=&quot;uiCls&quot;&gt;',
                 '&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-body-{parent.ui}-{.}&lt;/tpl&gt;',
-            '&lt;/tpl&gt;&quot;&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;',
+            '&lt;/tpl&gt;{childElCls}&quot;',
+            '&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;',
             '{%this.renderContainer(out,values);%}',
         '&lt;/div&gt;',
         '{% this.renderDockedItems(out,values,1); %}'
     ],
 
-    bodyPosProps: {
-        x: 'x',
+<span id='Ext-panel-AbstractPanel-property-bodyPosProps'>    bodyPosProps: {
+</span>        x: 'x',
         y: 'y'
     },
 
@@ -136,18 +173,21 @@ var panel = new Ext.panel.Panel({
 });&lt;/code&gt;&lt;/pre&gt;
      */
 
-    border: true,
+<span id='Ext-panel-AbstractPanel-cfg-border'>    // @since Ext 2
+</span>    border: true,
 
 <span id='Ext-panel-AbstractPanel-property-emptyArray'>    /**
 </span>     * @private
      */
     emptyArray: [],
 
-    initComponent : function() {
-        var me = this;
+<span id='Ext-panel-AbstractPanel-method-initComponent'>    initComponent : function() {
+</span>        this.initBorderProps();
+        this.callParent();
+    },
 
-        //!frame
-        //!border
+<span id='Ext-panel-AbstractPanel-method-initBorderProps'>    initBorderProps: function() {
+</span>        var me = this;
 
         if (me.frame &amp;&amp; me.border &amp;&amp; me.bodyBorder === undefined) {
             me.bodyBorder = false;
@@ -155,17 +195,15 @@ var panel = new Ext.panel.Panel({
         if (me.frame &amp;&amp; me.border &amp;&amp; (me.bodyBorder === false || me.bodyBorder === 0)) {
             me.manageBodyBorders = true;
         }
-
-        me.callParent();
     },
 
-    beforeDestroy: function(){
-        this.destroyDockedItems();
+<span id='Ext-panel-AbstractPanel-method-beforeDestroy'>    beforeDestroy: function(){
+</span>        this.destroyDockedItems();
         this.callParent();
     },
 
-    // @private
-    initItems : function() {
+<span id='Ext-panel-AbstractPanel-method-initItems'>    // @private
+</span>    initItems : function() {
         this.callParent();
         this.initDockingItems();
     },
@@ -192,6 +230,7 @@ var panel = new Ext.panel.Panel({
      * items will only be matched by component id or itemId -- if you pass a numeric index only non-docked child components will be searched.
      * @param {String/Number} comp The component id, itemId or position to find
      * @return {Ext.Component} The component (if found)
+     * @since Ext 2
      */
     getComponent: function(comp) {
         var component = this.callParent(arguments);
@@ -202,8 +241,8 @@ var panel = new Ext.panel.Panel({
         return component;
     },
 
-    getProtoBody: function () {
-        var me = this,
+<span id='Ext-panel-AbstractPanel-method-getProtoBody'>    getProtoBody: function () {
+</span>        var me = this,
             body = me.protoBody;
 
         if (!body) {
@@ -227,23 +266,37 @@ var panel = new Ext.panel.Panel({
      */
     initBodyStyles: function() {
         var me = this,
-            body = me.getProtoBody(),
-            Element = Ext.Element;
+            body = me.getProtoBody();
 
         if (me.bodyPadding !== undefined) {
-            body.setStyle('padding', Element.unitizeBox((me.bodyPadding === true) ? 5 : me.bodyPadding));
+            if (me.layout.managePadding) {
+                // If the container layout manages padding, the layout will apply the 
+                // padding to an inner element rather than the body element.  The
+                // assumed intent is for the configured padding to override any padding
+                // that is applied to the body element via stylesheet rules.  It is
+                // therefore necessary to set the body element's padding to &quot;0&quot;.
+                body.setStyle('padding', 0);
+            } else {
+                body.setStyle('padding', this.unitizeBox((me.bodyPadding === true) ? 5 : me.bodyPadding));
+            }
         }
+        me.initBodyBorder();
+    },
+
+<span id='Ext-panel-AbstractPanel-method-initBodyBorder'>    initBodyBorder: function() {
+</span>        var me = this;
+
         if (me.frame &amp;&amp; me.bodyBorder) {
             if (!Ext.isNumber(me.bodyBorder)) {
                 me.bodyBorder = 1;
             }
-            body.setStyle('border-width', Element.unitizeBox(me.bodyBorder));
+            me.getProtoBody().setStyle('border-width', this.unitizeBox(me.bodyBorder));
         }
     },
 
-    getCollapsedDockedItems: function () {
-        var me = this;
-        return me.collapseMode == 'placeholder' ? me.emptyArray : [ me.getReExpander() ];
+<span id='Ext-panel-AbstractPanel-method-getCollapsedDockedItems'>    getCollapsedDockedItems: function () {
+</span>        var me = this;
+        return me.header === false || me.collapseMode == 'placeholder' ? me.emptyArray : [ me.getReExpander() ];
     },
 
 <span id='Ext-panel-AbstractPanel-method-setBodyStyle'>    /**
@@ -297,8 +350,8 @@ var panel = new Ext.panel.Panel({
         return me;
     },
 
-    // inherit docs
-    addUIClsToElement: function(cls) {
+<span id='Ext-panel-AbstractPanel-method-addUIClsToElement'>    // inherit docs
+</span>    addUIClsToElement: function(cls) {
         var me = this,
             result = me.callParent(arguments);
 
@@ -306,8 +359,8 @@ var panel = new Ext.panel.Panel({
         return result;
     },
 
-    // inherit docs
-    removeUIClsFromElement: function(cls) {
+<span id='Ext-panel-AbstractPanel-method-removeUIClsFromElement'>    // inherit docs
+</span>    removeUIClsFromElement: function(cls) {
         var me = this,
             result = me.callParent(arguments);
 
@@ -315,35 +368,39 @@ var panel = new Ext.panel.Panel({
         return result;
     },
 
-    // inherit docs
-    addUIToElement: function() {
+<span id='Ext-panel-AbstractPanel-method-addUIToElement'>    // inherit docs
+</span>    addUIToElement: function() {
         var me = this;
 
         me.callParent(arguments);
         me.addBodyCls(me.baseCls + '-body-' + me.ui);
     },
 
-    // inherit docs
-    removeUIFromElement: function() {
+<span id='Ext-panel-AbstractPanel-method-removeUIFromElement'>    // inherit docs
+</span>    removeUIFromElement: function() {
         var me = this;
 
         me.callParent(arguments);
         me.removeBodyCls(me.baseCls + '-body-' + me.ui);
     },
 
-    // @private
-    getTargetEl : function() {
+<span id='Ext-panel-AbstractPanel-method-getTargetEl'>    // @private
+</span>    getTargetEl : function() {
         return this.body;
     },
 
-    getRefItems: function(deep) {
-        var items = this.callParent(arguments);
+<span id='Ext-panel-AbstractPanel-method-applyTargetCls'>    applyTargetCls: function(targetCls) {
+</span>        this.getProtoBody().addCls(targetCls);
+    },
+
+<span id='Ext-panel-AbstractPanel-method-getRefItems'>    getRefItems: function(deep) {
+</span>        var items = this.callParent(arguments);
 
         return this.getDockingRefItems(deep, items);
     },
 
-    setupRenderTpl: function (renderTpl) {
-        this.callParent(arguments);
+<span id='Ext-panel-AbstractPanel-method-setupRenderTpl'>    setupRenderTpl: function (renderTpl) {
+</span>        this.callParent(arguments);
         this.setupDockingRenderTpl(renderTpl);
     }
 });

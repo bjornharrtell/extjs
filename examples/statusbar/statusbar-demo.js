@@ -40,7 +40,7 @@ Ext.onReady(function(){
         title: 'Basic StatusBar',
         renderTo: 'basic',
         width: 550,
-        height: 100,
+        manageHeight: false,
         bodyPadding: 10,
         items:[{
             xtype: 'button',
@@ -104,7 +104,7 @@ Ext.onReady(function(){
         title: 'Right-aligned StatusBar',
         renderTo: 'right-aligned',
         width: 550,
-        height: 100,
+        manageHeight: false,
         bodyPadding: 10,
         items:[{
             xtype: 'button',
@@ -127,7 +127,7 @@ Ext.onReady(function(){
  */
     var win = Ext.create('Ext.Window', {
         title: 'StatusBar Window',
-        width: 400,
+        width: 410,
         minWidth: 350,
         height: 150,
         modal: true,

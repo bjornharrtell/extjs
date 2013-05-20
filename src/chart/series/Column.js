@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.chart.series.Column
  *
@@ -90,15 +110,27 @@ Ext.define('Ext.chart.series.Column', {
 
     column: true,
 
+    // private: true if the columns are bound to a numerical x-axis; otherwise they are evenly distributed along the axis
+    boundColumn: false,
+
     /**
-     * @cfg {Number} xPadding
-     * Padding between the left/right axes and the bars
+     * @cfg {String} axis
+     * The position of the axis to bind the values to. Possible values are 'left', 'bottom', 'top' and 'right'.
+     * You must explicitly set this value to bind the values of the column series to the ones in the axis, otherwise a
+     * relative scale will be used.
+     */
+
+    /**
+     * @cfg {Number/Object} xPadding Padding between the left/right axes and the bars.
+     * The possible values are a number (the number of pixels for both left and right padding)
+     * or an object with `{ left, right }` properties.
      */
     xPadding: 10,
 
     /**
-     * @cfg {Number} yPadding
-     * Padding between the top/bottom axes and the bars
+     * @cfg {Number/Object} yPadding Padding between the top/bottom axes and the bars.
+     * The possible values are a number (the number of pixels for both top and bottom padding)
+     * or an object with `{ top, bottom }` properties.
      */
     yPadding: 0
 });

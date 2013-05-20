@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-header-ct {
+    cursor: default;
+    zoom: 1;
+    padding: 0;
+    border: 1px solid $panel-body-border-color;
+
+    // Body border provided by headerCt only when in accordion layout.
+    border-bottom-color: $grid-header-background-color;
+
+    @if $supports-gradients or $compile-all {
+        @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
+    }
+}
+
+@if $include-ext-layout-container-accordion {
+    .#{$prefix}accordion-item .#{$prefix}grid-header-ct {
+        border-width: 0 0 1px !important;
+    }
+
+    // When hideHeaders: true, we need !important to override above rule
+    .#{$prefix}accordion-item .#{$prefix}grid-header-ct-hidden {
+        border: 0 !important;
+    }
+}
+
+// create the bottom border of the header container by adding a top border to the
+// grid body.  This is necessary because the header container is a docked item, and 
+// Dock layout's border-collapsing mechanism removes the bottom border of top docked
+// items with a !important.
+.#{$prefix}grid-body {
+    border-top-color: $grid-header-border-color;
+}
+
+.#{$prefix}hmenu-sort-asc .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-asc');
+}
+
+.#{$prefix}hmenu-sort-desc .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-desc');
+}
+
+.#{$prefix}cols-icon .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/columns');
+}</pre>
+</body>
+</html>

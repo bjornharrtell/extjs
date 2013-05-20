@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-BufferedRendererTreeView'>/**
+</span> * @private
+ * A set of overrides required by the presence of the BufferedRenderer plugin.
+ * 
+ * These overrides of Ext.tree.View take into account the affect of a buffered renderer and
+ * divert execution from the default course where necessary.
+ */
+Ext.define('Ext.grid.plugin.BufferedRendererTreeView', {
+    override: 'Ext.tree.View',
+
+<span id='Ext-grid-plugin-BufferedRendererTreeView-method-onRemove'>    onRemove: function(store, records, indices) {
+</span>
+        // Using buffered rendering - removal (eg folder node collapse)
+        // Has to refresh the view
+        if (this.bufferedRenderer) {
+            this.onDataRefresh();
+        }
+        // No BufferedRenderer preent
+        else {
+            this.callParent([store, records, indices]);
+        }
+    }    
+});
+</pre>
+</body>
+</html>

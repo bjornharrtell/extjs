@@ -121,8 +121,8 @@ Ext.define('Ext.dd.DDProxy', {
         this.createFrame();
     },
 
-    applyConfig: function() {
-        this.callParent();
+<span id='Ext-dd-DDProxy-method-applyConfig'>    applyConfig: function() {
+</span>        this.callParent();
 
         this.resizeFrame = (this.config.resizeFrame !== false);
         this.centerFrame = (this.config.centerFrame);
@@ -165,27 +165,27 @@ Ext.define('Ext.dd.DDProxy', {
         }
     },
 
-    // overrides Ext.dd.DragDrop
-    b4MouseDown: function(e) {
+<span id='Ext-dd-DDProxy-method-b4MouseDown'>    // overrides Ext.dd.DragDrop
+</span>    b4MouseDown: function(e) {
         var x = e.getPageX(),
             y = e.getPageY();
         this.autoOffset(x, y);
         this.setDragElPos(x, y);
     },
 
-    // overrides Ext.dd.DragDrop
-    b4StartDrag: function(x, y) {
+<span id='Ext-dd-DDProxy-method-b4StartDrag'>    // overrides Ext.dd.DragDrop
+</span>    b4StartDrag: function(x, y) {
         // show the drag frame
         this.showFrame(x, y);
     },
 
-    // overrides Ext.dd.DragDrop
-    b4EndDrag: function(e) {
+<span id='Ext-dd-DDProxy-method-b4EndDrag'>    // overrides Ext.dd.DragDrop
+</span>    b4EndDrag: function(e) {
         Ext.fly(this.getDragEl()).hide();
     },
 
-    // overrides Ext.dd.DragDrop
-    // By default we try to move the element to the last location of the frame.
+<span id='Ext-dd-DDProxy-method-endDrag'>    // overrides Ext.dd.DragDrop
+</span>    // By default we try to move the element to the last location of the frame.
     // This is so that the default behavior mirrors that of Ext.dd.DD.
     endDrag: function(e) {
 
@@ -206,16 +206,16 @@ Ext.define('Ext.dd.DDProxy', {
         this.afterDrag();
     },
 
-    beforeMove : function(){
-
+<span id='Ext-dd-DDProxy-method-beforeMove'>    beforeMove : function(){
+</span>
     },
 
-    afterDrag : function(){
-
+<span id='Ext-dd-DDProxy-method-afterDrag'>    afterDrag : function(){
+</span>
     },
 
-    toString: function() {
-        return (&quot;DDProxy &quot; + this.id);
+<span id='Ext-dd-DDProxy-method-toString'>    toString: function() {
+</span>        return (&quot;DDProxy &quot; + this.id);
     }
 
 });

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A date picker. This class is used by the Ext.form.field.Date field to allow browsing and selection of valid
  * dates in a popup next to the field, but may also be used with other components.
@@ -49,23 +69,26 @@ Ext.define('Ext.picker.Date', {
     renderTpl: [
         '<div id="{id}-innerEl" role="grid">',
             '<div role="presentation" class="{baseCls}-header">',
-                '<div class="{baseCls}-prev"><a id="{id}-prevEl" href="#" role="button" title="{prevText}"></a></div>',
+                 // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                '<a id="{id}-prevEl" class="{baseCls}-prev {baseCls}-arrow" href="#" role="button" title="{prevText}" hidefocus="on" ></a>',
                 '<div class="{baseCls}-month" id="{id}-middleBtnEl">{%this.renderMonthBtn(values, out)%}</div>',
-                '<div class="{baseCls}-next"><a id="{id}-nextEl" href="#" role="button" title="{nextText}"></a></div>',
+                 // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                '<a id="{id}-nextEl" class="{baseCls}-next {baseCls}-arrow" href="#" role="button" title="{nextText}" hidefocus="on" ></a>',
             '</div>',
             '<table id="{id}-eventEl" class="{baseCls}-inner" cellspacing="0" role="presentation">',
                 '<thead role="presentation"><tr role="presentation">',
                     '<tpl for="dayNames">',
-                        '<th role="columnheader" title="{.}"><span>{.:this.firstInitial}</span></th>',
+                        '<th role="columnheader" class="{parent.baseCls}-column-header" title="{.}">',
+                            '<div class="{parent.baseCls}-column-header-inner">{.:this.firstInitial}</div>',
+                        '</th>',
                     '</tpl>',
                 '</tr></thead>',
                 '<tbody role="presentation"><tr role="presentation">',
                     '<tpl for="days">',
                         '{#:this.isEndOfWeek}',
                         '<td role="gridcell" id="{[Ext.id()]}">',
-                            '<a role="presentation" href="#" hidefocus="on" class="{parent.baseCls}-date" tabIndex="1">',
-                                '<em role="presentation"><span role="presentation"></span></em>',
-                            '</a>',
+                            // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                            '<a role="presentation" hidefocus="on" class="{parent.baseCls}-date" href="#"></a>',
                         '</td>',
                     '</tpl>',
                 '</tr></tbody>',
@@ -328,14 +351,12 @@ Ext.define('Ext.picker.Date', {
      */
     focusOnShow: false,
 
-    // private
+    // @private
     // Set by other components to stop the picker focus being updated when the value changes.
     focusOnSelect: true,
 
-    width: 178,
-
-    // default value used to initialise each date in the DatePicker
-    // (note: 12 noon was chosen because it steers well clear of all DST timezone changes)
+    // Default value used to initialise each date in the DatePicker.
+    // __Note:__ 12 noon was chosen because it steers well clear of all DST timezone changes.
     initHour: 12, // 24-hour format
 
     numDays: 42,
@@ -349,24 +370,12 @@ Ext.define('Ext.picker.Date', {
         me.disabledCellCls = me.baseCls + '-disabled';
         me.prevCls = me.baseCls + '-prevday';
         me.activeCls = me.baseCls + '-active';
+        me.cellCls = me.baseCls + '-cell';
         me.nextCls = me.baseCls + '-prevday';
         me.todayCls = me.baseCls + '-today';
         me.dayNames = me.dayNames.slice(me.startDay).concat(me.dayNames.slice(0, me.startDay));
 
-        me.listeners = Ext.apply(me.listeners||{}, {
-            mousewheel: {
-                element: 'eventEl',
-                fn: me.handleMouseWheel,
-                scope: me
-            },
-            click: {
-                element: 'eventEl',
-                fn: me.handleDateClick, 
-                scope: me,
-                delegate: 'a.' + me.baseCls + '-date'
-            }
-        });
-        this.callParent();
+        me.callParent();
 
         me.value = me.value ?
                  clearTime(me.value, true) : clearTime(new Date());
@@ -412,7 +421,7 @@ Ext.define('Ext.picker.Date', {
             }
         });
 
-        if (this.showToday) {
+        if (me.showToday) {
             me.todayBtn = new Ext.button.Button({
                 ownerCt: me,
                 ownerLayout: me.getComponentLayout(),
@@ -437,6 +446,8 @@ Ext.define('Ext.picker.Date', {
             nextText: me.nextText,
             days: days
         });
+
+        me.protoEl.unselectable();
     },
 
     // Do the job of a container layout at this point even though we are not a Container.
@@ -451,17 +462,29 @@ Ext.define('Ext.picker.Date', {
         }
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     onRender : function(container, position){
         var me = this;
 
         me.callParent(arguments);
-        me.el.unselectable();
+
         me.cells = me.eventEl.select('tbody td');
-        me.textNodes = me.eventEl.query('tbody td span');
+        me.textNodes = me.eventEl.query('tbody td a');
+        
+        me.mon(me.eventEl, {
+            scope: me,
+            mousewheel: me.handleMouseWheel,
+            click: {
+                fn: me.handleDateClick,
+                delegate: 'a.' + me.baseCls + '-date'
+            }
+        });
+        
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     initEvents: function(){
         var me = this,
             eDate = Ext.Date,
@@ -638,12 +661,13 @@ Ext.define('Ext.picker.Date', {
     },
     //</locale>
 
-    // private
+    // @private
     focus : function(){
         this.update(this.activeDate);
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     onEnable: function(){
         this.callParent();
         this.setDisabledStatus(false);
@@ -651,7 +675,8 @@ Ext.define('Ext.picker.Date', {
 
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     onDisable : function(){
         this.callParent();
         this.setDisabledStatus(true);
@@ -810,7 +835,7 @@ Ext.define('Ext.picker.Date', {
             // 'fix' the JS rolling date conversion if needed
             date = Ext.Date.getLastDateOfMonth(new Date(year, month, 1));
         }
-        me.update(date);
+        me.setValue(date);
         me.hideMonthPicker();
     },
 
@@ -830,7 +855,7 @@ Ext.define('Ext.picker.Date', {
      * @return {Ext.picker.Date} this
      */
     showPrevMonth : function(e){
-        return this.update(Ext.Date.add(this.activeDate, Ext.Date.MONTH, -1));
+        return this.setValue(Ext.Date.add(this.activeDate, Ext.Date.MONTH, -1));
     },
 
     /**
@@ -839,7 +864,7 @@ Ext.define('Ext.picker.Date', {
      * @return {Ext.picker.Date} this
      */
     showNextMonth : function(e){
-        return this.update(Ext.Date.add(this.activeDate, Ext.Date.MONTH, 1));
+        return this.setValue(Ext.Date.add(this.activeDate, Ext.Date.MONTH, 1));
     },
 
     /**
@@ -847,7 +872,7 @@ Ext.define('Ext.picker.Date', {
      * @return {Ext.picker.Date} this
      */
     showPrevYear : function(){
-        this.update(Ext.Date.add(this.activeDate, Ext.Date.YEAR, -1));
+        return this.setValue(Ext.Date.add(this.activeDate, Ext.Date.YEAR, -1));
     },
 
     /**
@@ -855,7 +880,7 @@ Ext.define('Ext.picker.Date', {
      * @return {Ext.picker.Date} this
      */
     showNextYear : function(){
-        this.update(Ext.Date.add(this.activeDate, Ext.Date.YEAR, 1));
+        return this.setValue(Ext.Date.add(this.activeDate, Ext.Date.YEAR, 1));
     },
 
     /**
@@ -993,6 +1018,7 @@ Ext.define('Ext.picker.Date', {
             startingPos = firstOfMonth.getDay() - me.startDay,
             previousMonth = eDate.add(date, eDate.MONTH, -1),
             longDayFormat = me.longDayFormat,
+            disabled,
             prevStart,
             current,
             disableToday,
@@ -1023,46 +1049,50 @@ Ext.define('Ext.picker.Date', {
             }
         }
 
-        setCellClass = function(cell){
+        setCellClass = function(cell, cls){
+            disabled = false;
             value = +eDate.clearTime(current, true);
             cell.title = eDate.format(current, longDayFormat);
             // store dateValue number as an expando
             cell.firstChild.dateValue = value;
             if(value == today){
-                cell.className += ' ' + me.todayCls;
+                cls += ' ' + me.todayCls;
                 cell.title = me.todayText;
             }
             if(value == sel){
-                cell.className += ' ' + me.selectedCls;
+                cls += ' ' + me.selectedCls;
                 me.fireEvent('highlightitem', me, cell);
                 if (visible && me.floating) {
                     Ext.fly(cell.firstChild).focus(50);
                 }
             }
-            // disabling
+            // disabling, once the cell is disabled we can short circuit
+            // the other more expensive checks
             if(value < min) {
-                cell.className = disabledCls;
+                cls += ' ' + disabledCls;
                 cell.title = me.minText;
-                return;
+                disabled = true;
             }
-            if(value > max) {
-                cell.className = disabledCls;
+            if (!disabled && value > max) {
+                cls += ' ' + disabledCls;
                 cell.title = me.maxText;
-                return;
+                disabled = true;
             }
-            if(ddays){
-                if(ddays.indexOf(current.getDay()) != -1){
+            if (!disabled && ddays) {
+                if(ddays.indexOf(current.getDay()) !== -1){
                     cell.title = ddaysText;
-                    cell.className = disabledCls;
+                    cls += ' ' + disabledCls;
+                    disabled = true;
                 }
             }
-            if(ddMatch && format){
+            if(!disabled && ddMatch && format){
                 formatValue = eDate.dateFormat(current, format);
                 if(ddMatch.test(formatValue)){
                     cell.title = ddText.replace('%0', formatValue);
-                    cell.className = disabledCls;
+                    cls += ' ' + disabledCls;
                 }
             }
+            cell.className = cls + ' ' + me.cellCls;
         };
 
         for(; i < me.numDays; ++i) {
@@ -1077,9 +1107,8 @@ Ext.define('Ext.picker.Date', {
                 cls = me.activeCls;
             }
             textNodes[i].innerHTML = html;
-            cells[i].className = cls;
             current.setDate(current.getDate() + 1);
-            setCellClass(cells[i]);
+            setCellClass(cells[i], cls);
         }
 
         me.monthBtn.setText(Ext.Date.format(date, me.monthYearFormat));
@@ -1107,7 +1136,8 @@ Ext.define('Ext.picker.Date', {
         return me;
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     beforeDestroy : function() {
         var me = this;
 
@@ -1127,7 +1157,8 @@ Ext.define('Ext.picker.Date', {
         me.callParent();
     },
 
-    // private, inherit docs
+    // @private
+    // @inheritdoc
     onShow: function() {
         this.callParent(arguments);
         if (this.focusOnShow) {

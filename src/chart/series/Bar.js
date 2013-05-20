@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Creates a Bar Chart. A Bar Chart is a useful visualization technique to display quantitative information for
  * different categories that can show some progression (or regression) in the dataset. As with all other series, the Bar
@@ -106,14 +126,24 @@ Ext.define('Ext.chart.series.Bar', {
     groupGutter: 38.2,
 
     /**
-     * @cfg {Number} xPadding Padding between the left/right axes and the bars
+     * @cfg {Number/Object} xPadding Padding between the left/right axes and the bars.
+     * The possible values are a number (the number of pixels for both left and right padding)
+     * or an object with `{ left, right }` properties.
      */
     xPadding: 0,
 
     /**
-     * @cfg {Number} yPadding Padding between the top/bottom axes and the bars
+     * @cfg {Number/Object} yPadding Padding between the top/bottom axes and the bars.
+     * The possible values are a number (the number of pixels for both top and bottom padding)
+     * or an object with `{ top, bottom }` properties.
      */
     yPadding: 10,
+
+    /**
+     * @cfg {Boolean} stacked
+     * If set to `true` then bars for multiple `yField` values will be rendered stacked on top of one another.
+     * Otherwise, they will be rendered side-by-side. Defaults to `false`.
+     */
 
     constructor: function(config) {
         this.callParent(arguments);
@@ -163,23 +193,72 @@ Ext.define('Ext.chart.series.Bar', {
         }
     },
 
-    // @private sets the bar girth.
+    // @private returns the padding.
+    getPadding: function() {
+        var me = this,
+            xPadding = me.xPadding,
+            yPadding = me.yPadding,
+            padding = { };
+
+        if (Ext.isNumber(xPadding)) {
+            padding.left = xPadding;
+            padding.right = xPadding;
+        } else if (Ext.isObject(xPadding)) {
+            padding.left = xPadding.left;
+            padding.right = xPadding.right;
+        } else {
+            padding.left = 0;
+            padding.right = 0;
+        }
+        padding.width = padding.left + padding.right;
+
+        if (Ext.isNumber(yPadding)) {
+            padding.bottom = yPadding;
+            padding.top = yPadding;
+        } else if (Ext.isObject(yPadding)) {
+            padding.bottom = yPadding.bottom;
+            padding.top = yPadding.top;
+        } else {
+            padding.bottom = 0;
+            padding.top = 0;
+        }
+        padding.height = padding.bottom + padding.top;
+
+        return padding;
+    },
+
+    // @private returns the bar girth.
     getBarGirth: function() {
         var me = this,
             store = me.chart.getChartStore(),
             column = me.column,
             ln = store.getCount(),
-            gutter = me.gutter / 100;
+            gutter = me.gutter / 100,
+            padding,
+            property;
 
-        return (me.chart.chartBBox[column ? 'width' : 'height'] - me[column ? 'xPadding' : 'yPadding'] * 2) / (ln * (gutter + 1) - gutter);
+        if (me.style && me.style.width) {
+            return me.style.width;
+        }
+        padding = me.getPadding();
+        property = (column ? 'width' : 'height');
+        return (me.chart.chartBBox[property] - padding[property]) / (ln * (gutter + 1) - gutter);
     },
 
     // @private returns the gutters.
     getGutters: function() {
         var me = this,
             column = me.column,
-            gutter = Math.ceil(me[column ? 'xPadding' : 'yPadding'] + me.getBarGirth() / 2);
-        return me.column ? [gutter, 0] : [0, gutter];
+            padding = me.getPadding(),
+            halfBarGirth = me.getBarGirth() / 2,
+            lowerGutter = Math.ceil((column ? padding.left : padding.bottom) + halfBarGirth),
+            upperGutter = Math.ceil((column ? padding.right : padding.top) + halfBarGirth);
+
+        return {
+            lower: lowerGutter,
+            upper: upperGutter,
+            verticalAxis: !column
+        };
     },
 
     // @private Get chart and data boundaries
@@ -190,12 +269,12 @@ Ext.define('Ext.chart.series.Bar', {
             data = store.data.items,
             i, ln, record,
             bars = [].concat(me.yField),
+            barsLoc,
             barsLen = bars.length,
             groupBarsLen = barsLen,
             groupGutter = me.groupGutter / 100,
             column = me.column,
-            xPadding = me.xPadding,
-            yPadding = me.yPadding,
+            padding = me.getPadding(),
             stacked = me.stacked,
             barWidth = me.getBarGirth(),
             barWidthProperty = column ? 'width' : 'height',
@@ -205,6 +284,7 @@ Ext.define('Ext.chart.series.Bar', {
             mabs = math.abs,
             boundAxes = me.getAxesForXAndYFields(),
             boundYAxis = boundAxes.yAxis,
+            minX, maxX, colsScale, colsZero, gutters,
             ends, shrunkBarWidth, groupBarWidth, bbox, minY, maxY, axis, out,
             scale, zero, total, rec, j, plus, minus;
 
@@ -238,7 +318,7 @@ Ext.define('Ext.chart.series.Bar', {
         if (!Ext.isNumber(maxY)) {
             maxY = 0;
         }
-        scale = (column ? bbox.height - yPadding * 2 : bbox.width - xPadding * 2) / (maxY - minY);
+        scale = (column ? bbox.height - padding.height : bbox.width - padding.width) / (maxY - minY);
         shrunkBarWidth = barWidth;
         groupBarWidth = (barWidth / ((stacked ? 1 : groupBarsLen) * (groupGutter + 1) - groupGutter));
         
@@ -246,7 +326,7 @@ Ext.define('Ext.chart.series.Bar', {
             groupBarWidth = mmin(groupBarWidth, me.style[barWidthProperty]);
             shrunkBarWidth = groupBarWidth * ((stacked ? 1 : groupBarsLen) * (groupGutter + 1) - groupGutter);
         }
-        zero = (column) ? bbox.y + bbox.height - yPadding : bbox.x + xPadding;
+        zero = (column) ? bbox.y + bbox.height - padding.bottom : bbox.x + padding.left;
 
         if (stacked) {
             total = [[], []];
@@ -266,14 +346,48 @@ Ext.define('Ext.chart.series.Bar', {
             total[+(minY > 0)].push(mabs(minY));
             minus = mmax.apply(math, total[0]);
             plus = mmax.apply(math, total[1]);
-            scale = (column ? bbox.height - yPadding * 2 : bbox.width - xPadding * 2) / (plus + minus);
+            scale = (column ? bbox.height - padding.height : bbox.width - padding.width) / (plus + minus);
             zero = zero + minus * scale * (column ? -1 : 1);
         }
         else if (minY / maxY < 0) {
             zero = zero - minY * scale * (column ? -1 : 1);
         }
+
+        // If the columns are bound to the x-axis, calculate their positions
+        if (me.boundColumn) {
+            axis = chart.axes.get(boundAxes.xAxis);
+            if (axis) {
+                ends = axis.applyData();
+                minX = ends.from;
+                maxX = ends.to;
+            }
+            if (me.xField && !Ext.isNumber(minX)) {
+                out = me.getMinMaxYValues();
+                minX = out[0];
+                maxX = out[1];
+            }
+            if (!Ext.isNumber(minX)) {
+                minX = 0;
+            }
+            if (!Ext.isNumber(maxX)) {
+                maxX = 0;
+            }
+            gutters = me.getGutters();
+            colsScale = (bbox.width - (gutters.lower + gutters.upper)) / ((maxX - minX) || 1);
+
+            colsZero = bbox.x + gutters.lower;
+        
+            barsLoc = [];
+            for (i = 0, ln = data.length; i < ln; i++) {
+                record = data[i];
+                rec = record.get(me.xField);
+                barsLoc[i] = colsZero + (rec - minX) * colsScale - (groupBarWidth / 2);
+            }
+        }
+
         return {
             bars: bars,
+            barsLoc: barsLoc,
             bbox: bbox,
             shrunkBarWidth: shrunkBarWidth,
             barsLen: barsLen,
@@ -282,8 +396,7 @@ Ext.define('Ext.chart.series.Bar', {
             groupBarWidth: groupBarWidth,
             scale: scale,
             zero: zero,
-            xPadding: xPadding,
-            yPadding: yPadding,
+            padding: padding,
             signed: minY / maxY < 0,
             minY: minY,
             maxY: maxY
@@ -299,7 +412,7 @@ Ext.define('Ext.chart.series.Bar', {
             i, total, record,
             bounds = me.bounds = me.getBounds(),
             items = me.items = [],
-            yFields = me.yField,
+            yFields = Ext.isArray(me.yField) ? me.yField : [me.yField],
             gutter = me.gutter / 100,
             groupGutter = me.groupGutter / 100,
             animate = chart.animate,
@@ -312,18 +425,19 @@ Ext.define('Ext.chart.series.Bar', {
             bbox = bounds.bbox,
             barWidth = bounds.barWidth,
             shrunkBarWidth = bounds.shrunkBarWidth,
-            xPadding = me.xPadding,
-            yPadding = me.yPadding,
+            padding = me.getPadding(),
             stacked = me.stacked,
             barsLen = bounds.barsLen,
             colors = me.colorArrayStyle,
             colorLength = colors && colors.length || 0,
+            themeIndex = me.themeIdx,
             math = Math,
             mmax = math.max,
             mmin = math.min,
             mabs = math.abs,
             j, yValue, height, totalDim, totalNegDim, bottom, top, hasShadow, barAttr, attrs, counter,
-            shadowIndex, shadow, sprite, offset, floorY;
+            totalPositiveValues, totalNegativeValues,
+            shadowIndex, shadow, sprite, offset, floorY, idx;
 
         for (i = 0, total = data.length; i < total; i++) {
             record = data[i];
@@ -331,6 +445,7 @@ Ext.define('Ext.chart.series.Bar', {
             top = bounds.zero;
             totalDim = 0;
             totalNegDim = 0;
+            totalPositiveValues = totalNegativeValues = 0;
             hasShadow = false;
             for (j = 0, counter = 0; j < barsLen; j++) {
                 // Excluded series
@@ -338,15 +453,26 @@ Ext.define('Ext.chart.series.Bar', {
                     continue;
                 }
                 yValue = record.get(bounds.bars[j]);
+                if (yValue >= 0) {
+                    totalPositiveValues += yValue;
+                }
+                else {
+                    totalNegativeValues += yValue;
+                }
                 height = Math.round((yValue - mmax(bounds.minY, 0)) * bounds.scale);
+                idx = themeIndex + (barsLen > 1 ? j : 0);
                 barAttr = {
-                    fill: colors[(barsLen > 1 ? j : 0) % colorLength]
+                    fill: colors[idx % colorLength]
                 };
                 if (column) {
                     Ext.apply(barAttr, {
                         height: height,
                         width: mmax(bounds.groupBarWidth, 0),
-                        x: (bbox.x + xPadding + (barWidth - shrunkBarWidth) * 0.5 + i * barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked),
+                        x: (me.boundColumn ? bounds.barsLoc[i] 
+                                           : (bbox.x + padding.left 
+                                                + (barWidth - shrunkBarWidth) * 0.5
+                                                + i * barWidth * (1 + gutter) 
+                                                + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked)),
                         y: bottom - height
                     });
                 }
@@ -357,7 +483,10 @@ Ext.define('Ext.chart.series.Bar', {
                         height: mmax(bounds.groupBarWidth, 0),
                         width: height + (bottom == bounds.zero),
                         x: bottom + (bottom != bounds.zero),
-                        y: (bbox.y + yPadding + (barWidth - shrunkBarWidth) * 0.5 + offset * barWidth * (1 + gutter) + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked + 1)
+                        y: (bbox.y + padding.top 
+                            + (barWidth - shrunkBarWidth) * 0.5 
+                            + offset * barWidth * (1 + gutter) 
+                            + counter * bounds.groupBarWidth * (1 + groupGutter) * !stacked + 1)
                     });
                 }
                 if (height < 0) {
@@ -382,7 +511,7 @@ Ext.define('Ext.chart.series.Bar', {
                 }
                 barAttr.x = Math.floor(barAttr.x) + 1;
                 floorY = Math.floor(barAttr.y);
-                if (!Ext.isIE9 && barAttr.y > floorY) {
+                if (Ext.isIE8m && barAttr.y > floorY) {
                     floorY--;
                 }
                 barAttr.y = floorY;
@@ -431,6 +560,8 @@ Ext.define('Ext.chart.series.Bar', {
             if (stacked && items.length) {
                 items[i * counter].totalDim = totalDim;
                 items[i * counter].totalNegDim = totalNegDim;
+                items[i * counter].totalPositiveValues = totalPositiveValues;
+                items[i * counter].totalNegativeValues = totalNegativeValues;
             }
         }
         if (stacked && counter == 0) {
@@ -514,6 +645,10 @@ Ext.define('Ext.chart.series.Bar', {
             animate = chart.animate,
             stacked = me.stacked,
             column = me.column,
+            chartAxes = chart.axes,
+            boundAxes = me.getAxesForXAndYFields(),
+            boundXAxis = boundAxes.xAxis,
+            boundYAxis = boundAxes.yAxis,
             enableShadows = chart.shadow,
             shadowGroups = me.shadowGroups,
             shadowGroupsLn = shadowGroups.length,
@@ -539,6 +674,10 @@ Ext.define('Ext.chart.series.Bar', {
         me.unHighlightItem();
         me.cleanHighlights();
         
+        me.boundColumn = (boundXAxis && Ext.Array.contains(me.axis,boundXAxis) 
+                            && chartAxes.get(boundXAxis) 
+                            && chartAxes.get(boundXAxis).isNumericAxis);
+
         me.getPaths();
         bounds = me.bounds;
         items = me.items;
@@ -551,6 +690,7 @@ Ext.define('Ext.chart.series.Bar', {
             width: 0
         };
         ln = items.length;
+
         // Create new or reuse sprites and animate/display
         for (i = 0; i < ln; i++) {
             sprite = group.getAt(i);
@@ -621,6 +761,7 @@ Ext.define('Ext.chart.series.Bar', {
             config = me.label,
             endLabelStyle = Ext.apply({}, config, me.seriesLabelStyle || {}),
             sprite;
+
         return surface.add(Ext.apply({
             type: 'text',
             group: group
@@ -628,7 +769,7 @@ Ext.define('Ext.chart.series.Bar', {
     },
 
     // @private callback used when placing a label.
-    onPlaceLabel: function(label, storeItem, item, i, display, animate, j, index) {
+    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {
         // Determine the label's final position. Starts with the configured preferred value but
         // may get flipped from inside to outside or vice-versa depending on space.
         var me = this,
@@ -642,62 +783,206 @@ Ext.define('Ext.chart.series.Bar', {
             yValue = item.value[1],
             attr = item.attr,
             config = me.label,
-            rotate = config.orientation == 'vertical',
+            stacked = me.stacked,
+            stackedDisplay = config.stackedDisplay,
+            rotate = (config.orientation == 'vertical'),
             field = [].concat(config.field),
             format = config.renderer,
-            text = format(storeItem.get(field[index])),
-            size = me.getLabelSize(text),
-            width = size.width,
-            height = size.height,
+            text, size, width, height,
             zero = opt.zero,
-            outside = 'outside',
             insideStart = 'insideStart',
             insideEnd = 'insideEnd',
-            offsetX = 10,
-            offsetY = 6,
+            outside = 'outside',
+            over = 'over',
+            under = 'under',
+            labelMarginX = 4,   // leave space around the labels (important when saving chart as image)
+            labelMarginY = 2,
             signed = opt.signed,
             x, y, finalAttr;
 
+        if (display == insideStart || display == insideEnd || display == outside) {
+            if (stacked && (display == outside)) {
+                // It doesn't make sense to use 'outside' on a stacked chart
+                // unless we only want to display the 'stackedDisplay' labels.
+                label.hide(true);
+                return;
+            }
+            label.setAttributes({
+                // Reset the style in case the label is being reused (for instance, if a series is excluded)
+                // and do it before calling the renderer function.
+                style: undefined
+            });
+            text = (Ext.isNumber(index) ? format(storeItem.get(field[index]), label, storeItem, item, i, display, animate, index) : '');
+            label.setAttributes({
+                // Set the text onto the label.
+                text: text
+            });
+            size = me.getLabelSize(text, label.attr.style);
+            width = size.width;
+            height = size.height;
+            if (column) {
+                //-----------------------------------------
+                // Position the label within a column chart
+            
+                // If there is no label to display, or if the corresponding box in a stacked column 
+                // isn't tall enough to display the label, then leave.
+                if (!width || !height || (stacked && (attr.height < height))) {
+                    label.hide(true);
+                    return;
+                }
+                
+                // Align horizontally the label in the middle of the column
+                x = attr.x + (rotate ? groupBarWidth/2 : (groupBarWidth - width)/2);
+                
+                // If the label is to be displayed outside, make sure there is room for it, otherwise display it inside.
+                if (display == outside) {
+                    var free = (yValue >= 0 ? (attr.y - chartBBox.y) : (chartBBox.y + chartBBox.height - attr.y - attr.height));
+                    if (free < height + labelMarginY) {
+                        display = insideEnd;
+                    }
+                }
+    
+                // If the label is to be displayed inside a non-stacked chart, make sure it is 
+                // not taller than the box, otherwise move it outside.
+                if (!stacked && (display != outside)) {
+                    if (height + labelMarginY > attr.height) {
+                        display = outside;
+                    }
+                }
+    
+                // Place the label vertically depending on its config and on whether the value
+                // it represents is positive (above the X-axis) or negative (below the X-axis)
+                if (!y) {
+                    y = attr.y;
+                    if (yValue >= 0) {
+                        switch (display) {
+                            case insideStart: y += attr.height + (rotate ? -labelMarginY : -height/2);  break;
+                            case insideEnd:   y += (rotate ? height + labelMarginX : height/2);         break;
+                            case outside:     y += (rotate ? -labelMarginY : -height/2);                break;
+                        }
+                    } else {
+                        switch (display) {
+                            case insideStart: y += (rotate ? height + labelMarginY : height/2);                             break;
+                            case insideEnd:   y += (rotate ? attr.height - labelMarginY : attr.height - height/2);          break;
+                            case outside:     y += (rotate ? attr.height + height + labelMarginY : attr.height + height/2); break;
+                        }
+                    }
+                }
+            }
+            else {
+                //-----------------------------------------
+                // Position the label within a bar chart
+    
+                // If there is no label to display, or if the corresponding box has no width, then leave.
+                if (!width || !height || (stacked && !attr.width)) {
+                    label.hide(true);
+                    return;
+                }
+    
+                // Align vertically the label in the middle of the bar
+                y = attr.y + (rotate ? (groupBarWidth + height)/2 : groupBarWidth/2);
+    
+                // If the label is to be displayed outside, make sure there is room for it otherwise display it inside.
+                if (display == outside) {
+                    var free = (yValue >= 0 ? (chartBBox.x + chartBBox.width - attr.x - attr.width) :  (attr.x - chartBBox.x));
+                    if (free < width + labelMarginX) {
+                        display = insideEnd;
+                    }
+                }
+    
+                // If the label is to be displayed inside (and it is not rotated yet), make sure it is
+                // not wider than the box it represents otherwise (for a stacked chart) rotate it vertically
+                // and center it, or (for a non-stacked chart) move it outside.
+                if ((display != outside) && !rotate) {
+                    if (width + labelMarginX > attr.width) {
+                        if (stacked) {
+                            if (height > attr.width) {
+                                label.hide(true);
+                                return; // Even rotated, there isn't enough room.
+                            }
+                            x = attr.x + attr.width/2;
+                            y = attr.y + attr.height - (attr.height - width)/2;
+                            rotate = true;
+                        } else {
+                            display = outside;
+                        }
+                    }
+                }
+    
+                // Place the label horizontally depending on its config and on whether the value
+                // it represents is positive (above the X-axis) or negative (below the X-axis)
+                if (!x) {
+                    x = attr.x;
+                    if (yValue >= 0) {
+                        switch (display) {
+                            case insideStart: x += (rotate ? width/2 : labelMarginX);                           break;
+                            case insideEnd:   x += attr.width + (rotate ? -width/2 : -width - labelMarginX);    break;
+                            case outside:     x += attr.width + (rotate ? width/2 : labelMarginX);              break;
+                        }
+                    } else {
+                        switch (display) {
+                            case insideStart: x += attr.width + (rotate ? -width/2 : -width - labelMarginX);    break;
+                            case insideEnd:   x += (rotate ? width/2 : labelMarginX);                           break;
+                            case outside:     x += (rotate ? -width/2 : -width - labelMarginX);                 break;
+                        }
+                    }
+                }
+            }
+        } else if (display == over || display == under) {
+            if (stacked && stackedDisplay) {
+                //-----------------------------------------
+                // Position the label on top or at the bottom of a stacked bar/column
+    
+                text = label.attr.text;
+                label.setAttributes({
+                    // The text is already set onto the label: we just need to set the style
+                    // (but don't overwrite any custom style that might have been set by an app override).
+                    style: Ext.applyIf((label.attr && label.attr.style) || {},
+                        {
+                            'font-weight':'bold',
+                            'font-size':'14px'
+                        }
+                    )
+                });
+
+                size = me.getLabelSize(text, label.attr.style);
+                width = size.width;
+                height = size.height;
+    
+                switch (display) {
+                    case over:
+                        if (column) {
+                            x = attr.x + (rotate ? groupBarWidth/2 : (groupBarWidth - width)/2);
+                            y = zero - (item.totalDim - item.totalNegDim) - height/2 - labelMarginY;
+                        } else {
+                            x = zero + (item.totalDim - item.totalNegDim) + labelMarginX;
+                            y = attr.y + (rotate ? (groupBarWidth + height)/2 : groupBarWidth/2);
+                        }
+                        break;
+                    case under:
+                        if (column) {
+                            x = attr.x + (rotate ? groupBarWidth/2 : (groupBarWidth - width)/2);
+                            y = zero + item.totalNegDim + height/2;
+                        } else {
+                            x = zero - item.totalNegDim - width - labelMarginX;
+                            y = attr.y + (rotate ? (groupBarWidth + height)/2 : groupBarWidth/2);
+                        }
+                        break;
+                }
+            }
+        }
+        
+        if (x == undefined || y == undefined) {
+            // bad configuration: x/y are not set
+            label.hide(true);
+            return;
+        }
+
+        label.isOutside = (display == outside);
         label.setAttributes({
             text: text
         });
 
-        label.isOutside = false;
-        if (column) {
-            if (display == outside) {
-                if (height + offsetY + attr.height > (yValue >= 0 ? zero - chartBBox.y : chartBBox.y + chartBBox.height - zero)) {
-                    display = insideEnd;
-                }
-            } else {
-                if (height + offsetY > attr.height) {
-                    display = outside;
-                    label.isOutside = true;
-                }
-            }
-            x = attr.x + groupBarWidth / 2;
-            y = display == insideStart ?
-                    (zero + ((height / 2 + 3) * (yValue >= 0 ? -1 : 1))) :
-                    (yValue >= 0 ? (attr.y + ((height / 2 + 3) * (display == outside ? -1 : 1))) :
-                                   (attr.y + attr.height + ((height / 2 + 3) * (display === outside ? 1 : -1))));
-        }
-        else {
-            if (display == outside) {
-                if (width + offsetX + attr.width > (yValue >= 0 ? chartBBox.x + chartBBox.width - zero : zero - chartBBox.x)) {
-                    display = insideEnd;
-                }
-            }
-            else {
-                if (width + offsetX > attr.width) {
-                    display = outside;
-                    label.isOutside = true;
-                }
-            }
-            x = display == insideStart ?
-                (zero + ((width / 2 + 5) * (yValue >= 0 ? 1 : -1))) :
-                (yValue >= 0 ? (attr.x + attr.width + ((width / 2 + 5) * (display === outside ? 1 : -1))) :
-                (attr.x + ((width / 2 + 5) * (display === outside ? -1 : 1))));
-            y = attr.y + groupBarWidth / 2;
-        }
         //set position
         finalAttr = {
             x: x,
@@ -750,10 +1035,10 @@ Ext.define('Ext.chart.series.Bar', {
      * changing visible sprites.
      * @param value
      */
-    getLabelSize: function(value) {
+    getLabelSize: function(value, labelStyle) {
         var tester = this.testerLabel,
             config = this.label,
-            endLabelStyle = Ext.apply({}, config, this.seriesLabelStyle || {}),
+            endLabelStyle = Ext.apply({}, config, labelStyle, this.seriesLabelStyle || {}),
             rotated = config.orientation === 'vertical',
             bbox, w, h,
             undef;
@@ -764,6 +1049,7 @@ Ext.define('Ext.chart.series.Bar', {
             }, endLabelStyle));
         }
         tester.setAttributes({
+            style: labelStyle,
             text: value
         }, true);
 

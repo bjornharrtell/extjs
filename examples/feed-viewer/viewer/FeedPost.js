@@ -52,8 +52,12 @@ Ext.define('FeedViewer.FeedPost', {
      * @param {Ext.data.Model} rec The record
      */
     setActive: function(rec) {
-        this.active = rec;
-        this.update(rec.data);
+        var me = this,
+            gotoButton = me.down('button[text=Go to post]');
+
+        me.active = rec;
+        me.update(rec.data);
+        gotoButton.setHref(rec.get('link'));
     },
 
     /**
@@ -76,8 +80,8 @@ Ext.define('FeedViewer.FeedPost', {
             config.cls = 'x-docked-noborder-top';
         }
         items.push({
-            scope: this,
-            handler: this.goToPost,
+            href: this.inTab ? this.data.link : '#',
+            target: '_blank',
             text: 'Go to post',
             iconCls: 'post-go'
         });

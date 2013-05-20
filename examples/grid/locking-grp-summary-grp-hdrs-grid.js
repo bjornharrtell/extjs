@@ -1,9 +1,15 @@
+Ext.Loader.setConfig({
+    enabled: true
+});
+Ext.Loader.setPath('Ext.ux', '../ux');
+
 Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.form.field.Number',
     'Ext.form.field.Date',
-    'Ext.tip.QuickTipManager'
+    'Ext.tip.QuickTipManager',
+    'Ext.ux.DataTip'
 ]);
 
 Ext.define('Task', {
@@ -23,7 +29,7 @@ Ext.define('Task', {
 var data = [
     {projectId: 100, project: 'Ext Forms: Field Anchoring', taskId: 112, description: 'Integrate 2.0 Forms with 2.0 Layouts', estimate: 6, rate: 150, due:'06/24/2007'},
     {projectId: 100, project: 'Ext Forms: Field Anchoring', taskId: 113, description: 'Implement AnchorLayout', estimate: 4, rate: 150, due:'06/25/2007'},
-    {projectId: 100, project: 'Ext Forms: Field Anchoring', taskId: 114, description: 'Add support for multiple types of anchors', estimate: 4, rate: 150, due:'06/27/2007'},
+    {projectId: 100, project: 'Ext Forms: Field Anchoring', taskId: 114, description: 'Add support for multiple<br>types of anchors', estimate: 4, rate: 150, due:'06/27/2007'},
     {projectId: 100, project: 'Ext Forms: Field Anchoring', taskId: 115, description: 'Testing and debugging', estimate: 8, rate: 0, due:'06/29/2007'},
     {projectId: 101, project: 'Ext Grid: Single-level Grouping', taskId: 101, description: 'Add required rendering "hooks" to GridView', estimate: 6, rate: 100, due:'07/01/2007'},
     {projectId: 101, project: 'Ext Grid: Single-level Grouping', taskId: 102, description: 'Extend GridView and override rendering functions', estimate: 6, rate: 100, due:'07/03/2007'},
@@ -62,7 +68,21 @@ Ext.onReady(function(){
         iconCls: 'icon-grid',
         renderTo: document.body,
         store: store,
-        plugins: [cellEditing],
+        plugins: [
+            cellEditing,
+            {
+                ptype: 'datatip',
+                tpl: 'Click to edit {description}'
+            }
+        ],
+        listeners: {
+            beforeshowtip: function(grid, tip, data) {
+                var cellNode = tip.triggerEvent.getTarget(tip.view.getCellSelector());
+                if (cellNode) {
+                    data.colName = tip.view.headerCt.getHeaderAtIndex(cellNode.cellIndex).text;
+                }
+            }
+        },
         selModel: {
             selType: 'cellmodel'
         },
@@ -74,7 +94,7 @@ Ext.onReady(function(){
                 text: 'Toggle Summary',
                 enableToggle: true,
                 pressed: true,
-                handler: function(){
+                handler: function() {
                     showSummary = !showSummary;
                     var view = grid.lockedGrid.getView();
                     view.getFeature('group').toggleSummaryRow(showSummary);
@@ -91,6 +111,9 @@ Ext.onReady(function(){
             groupHeaderTpl: '{name}',
             hideGroupedHeader: true,
             enableGroupingMenu: false
+        }, {
+            ftype: 'summary',
+            dock: 'bottom'
         }],
         columns: [{
             text: 'Task',
@@ -116,7 +139,7 @@ Ext.onReady(function(){
             header: 'Schedule',
             columns: [{
                 header: 'Due Date',
-                width: 130,
+                width: 125,
                 sortable: true,
                 dataIndex: 'due',
                 summaryType: 'max',
@@ -127,7 +150,7 @@ Ext.onReady(function(){
                 }
             }, {
                 header: 'Estimate',
-                width: 130,
+                width: 125,
                 sortable: true,
                 dataIndex: 'estimate',
                 summaryType: 'sum',
@@ -142,7 +165,7 @@ Ext.onReady(function(){
                 }
             }, {
                 header: 'Rate',
-                width: 130,
+                width: 125,
                 sortable: true,
                 renderer: Ext.util.Format.usMoney,
                 summaryRenderer: Ext.util.Format.usMoney,
@@ -153,7 +176,8 @@ Ext.onReady(function(){
                 }
             }, {
                 header: 'Cost',
-                width: 130,
+                width: 114,
+                flex: true,
                 sortable: false,
                 groupable: false,
                 renderer: function(value, metaData, record, rowIdx, colIdx, store, view) {

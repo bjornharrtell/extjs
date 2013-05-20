@@ -1,0 +1,21 @@
+//column move icons, when moving columns
+.col-move-top,
+.col-move-bottom {
+    width: 9px;
+    height: 9px;
+    position: absolute;
+    top: 0;
+    line-height: 0;
+    font-size: 0;
+    overflow: hidden;
+    z-index: 20000;
+    background: no-repeat center top transparent;
+}
+
+.col-move-top {
+    background-image: theme-background-image('grid/col-move-top');
+}
+
+.col-move-bottom {
+    background-image: theme-background-image('grid/col-move-bottom');
+}

@@ -4,8 +4,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>ExtJS Layout Examples</title>
     <!-- Ext -->
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <script type="text/javascript" src="../../examples/shared/include-ext.js"></script>
+    <script type="text/javascript" src="../../examples/shared/options-toolbar.js"></script>
 
     <!-- example code -->
 
@@ -116,32 +116,35 @@ items: [{
             <p>Every border layout <b>must</b> at least have a center region.  All other regions are optional.</p>
             <p><b>Sample Config:</b></p>
             <pre><code>
-layout:'border',
+layout: 'border',
+bodyBorder: false,
 defaults: {
     collapsible: true,
     split: true,
-    bodyStyle: 'padding:15px'
+    bodyPadding: 15
 },
 items: [{
     title: 'Footer',
     region: 'south',
     height: 150,
-    minSize: 75,
-    maxSize: 250,
-    cmargins: '5 0 0 0'
+    minHeight: 75,
+    maxHeight: 250,
+    html: '<p>Footer content</p>'
 },{
     title: 'Navigation',
     region:'west',
+    floatable: false,
     margins: '5 0 0 0',
-    cmargins: '5 5 0 0',
     width: 175,
-    minSize: 100,
-    maxSize: 250
+    minWidth: 100,
+    maxWidth: 250,
+    html: '<p>Secondary content like navigation links could go here</p>'
 },{
     title: 'Main Content',
     collapsible: false,
-    region:'center',
-    margins: '5 0 0 0'
+    region: 'center',
+    margins: '5 0 0 0',
+    html: '<h1>Main Page</h1><p>This is where the main content would go</p>'
 }]
             </code></pre>
             <p><a href="http://docs.sencha.com/ext-js/4-0/#/api/Ext.layout.container.Border" target="_blank">API Reference</a></p>

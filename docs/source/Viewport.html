@@ -126,16 +126,16 @@ Ext.define('Ext.container.Viewport', {
      */
     isViewport: true,
 
-    ariaRole: 'application',
-    
-    preserveElOnDestroy: true,
-
-    initComponent : function() {
-        var me = this,
+<span id='Ext-container-Viewport-property-ariaRole'>    ariaRole: 'application',
+</span>    
+<span id='Ext-container-Viewport-property-preserveElOnDestroy'>    preserveElOnDestroy: true,
+</span>
+<span id='Ext-container-Viewport-method-initComponent'>    initComponent : function() {
+</span>        var me = this,
             html = document.body.parentNode,
-            el;
+            el = me.el = Ext.getBody();
 
-        // Get the DOM disruption over with beforfe the Viewport renders and begins a layout
+        // Get the DOM disruption over with before the Viewport renders and begins a layout
         Ext.getScrollbarSize();
         
         // Clear any dimensions, we will size later on
@@ -144,20 +144,22 @@ Ext.define('Ext.container.Viewport', {
         me.callParent(arguments);
         Ext.fly(html).addCls(Ext.baseCSSPrefix + 'viewport');
         if (me.autoScroll) {
+            Ext.fly(html).setStyle(me.getOverflowStyle());
             delete me.autoScroll;
-            Ext.fly(html).setStyle('overflow', 'auto');
         }
-        me.el = el = Ext.getBody();
-        el.setHeight = Ext.emptyFn;
-        el.setWidth = Ext.emptyFn;
-        el.setSize = Ext.emptyFn;
+        el.setHeight = el.setWidth = Ext.emptyFn;
         el.dom.scroll = 'no';
         me.allowDomMove = false;
         me.renderTo = me.el;
     },
     
-    onRender: function() {
-        var me = this;
+<span id='Ext-container-Viewport-method-applyTargetCls'>    // override here to prevent an extraneous warning
+</span>    applyTargetCls: function(targetCls) {
+        this.el.addCls(targetCls);
+    },
+    
+<span id='Ext-container-Viewport-method-onRender'>    onRender: function() {
+</span>        var me = this;
 
         me.callParent(arguments);
 
@@ -167,8 +169,8 @@ Ext.define('Ext.container.Viewport', {
         me.height = Ext.Element.getViewportHeight();
     },
 
-    afterFirstLayout: function() {
-        var me = this;
+<span id='Ext-container-Viewport-method-afterFirstLayout'>    afterFirstLayout: function() {
+</span>        var me = this;
 
         me.callParent(arguments);
         setTimeout(function() {
@@ -176,12 +178,16 @@ Ext.define('Ext.container.Viewport', {
         }, 1);
     },
 
-    fireResize : function(width, height){
-        // In IE we can get resize events that have our current size, so we ignore them
+<span id='Ext-container-Viewport-method-fireResize'>    fireResize : function(width, height){
+</span>        // In IE we can get resize events that have our current size, so we ignore them
         // to avoid the useless layout...
         if (width != this.width || height != this.height) {
             this.setSize(width, height);
         }
+    },
+
+<span id='Ext-container-Viewport-method-initHierarchyState'>    initHierarchyState: function(hierarchyState) {
+</span>        this.callParent([this.hierarchyState = Ext.rootHierarchyState]);
     }
 });
 </pre>

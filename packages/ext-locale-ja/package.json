@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-ja",
+    "type": "locale",
+    "locale": "ja",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

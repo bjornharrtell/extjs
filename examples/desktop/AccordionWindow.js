@@ -92,7 +92,7 @@ Ext.define('MyDesktop.AccordionWindow', {
                 iconCls: 'accordion',
                 animCollapse: false,
                 constrainHeader: true,
-                bodyBorder: true,
+                bodyBorder: Ext.themeName !== 'neptune',
                 tbar: {
                     xtype: 'toolbar',
                     ui: 'plain',

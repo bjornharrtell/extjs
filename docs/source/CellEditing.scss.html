@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-cell-editor {
+    // Position editor text over underlying grid cell text
+    .#{$prefix}form-text {
+        padding: 0 $grid-cell-editor-field-padding-horizontal;
+    }
+    .#{$prefix}form-cb-wrap {
+        padding-top: $grid-cell-editor-checkbox-padding-top;
+    }
+}
+
+@if $include-ie {
+    .#{$prefix}ie {
+        .#{$prefix}grid-cell-editor .#{$prefix}form-text {
+            padding-left: $grid-cell-editor-field-padding-horizontal + 1;
+        }
+    }
+}
+
+@if $include-opera {
+    .#{$prefix}opera .#{$prefix}grid-cell-editor .#{$prefix}form-text {
+        padding-left: $grid-cell-editor-field-padding-horizontal + 1;
+    }
+}
+
+@if $include-ext-tree-panel {
+    .#{$prefix}grid-editor-on-text-node {
+        .#{$prefix}form-text {
+            // specify padding left and padding right individually since we don't want to override padding-bottom (which can vary)
+            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal;
+            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal;
+        }
+    }
+    @if $include-ie {
+        .#{$prefix}ie .#{$prefix}grid-editor-on-text-node .#{$prefix}form-text {
+            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
+            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
+        }
+    }
+    @if $include-opera {
+        .#{$prefix}opera .#{$prefix}grid-editor-on-text-node .#{$prefix}form-text {
+            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
+            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
+        }
+    }
+}
+</pre>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-row-expander {
+    background-image: theme-background-image('grid/group-collapse');
+
+    width: $row-expander-width;
+    height: $row-expander-height;
+
+    // This prevents IEQuirks from collapsing the icon's margin-top into the cell-inner's padding-top.
+    // Without this, the icon moves upwards due to above collapsing effect.
+    float: left;
+
+    // This prevents IEquirks from stretching the icon div to accommodate the &amp;nbsp; at the grid cell's own specified line height.
+    // Without this, the icon expands above its configured row-expander-height.
+    line-height: 0;
+
+    // Centers the icon within the standard sized row for the theme.
+    margin: $row-expander-margin;
+}
+
+.#{$prefix}grid-row-collapsed {
+    .#{$prefix}grid-row-expander {
+        background-image: theme-background-image('grid/group-expand');
+    }
+}</pre>
+</body>
+</html>

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.fx.target.Element
  * 
@@ -19,23 +39,17 @@ Ext.define('Ext.fx.target.Element', {
         if (val == undefined) {
             if (attr === 'x') {
                 val = el.getX();
-            }
-            else if (attr === 'y') {
+            } else if (attr === 'y') {
                 val = el.getY();
-            }
-            else if (attr === 'scrollTop') {
+            } else if (attr === 'scrollTop') {
                 val = el.getScroll().top;
-            }
-            else if (attr === 'scrollLeft') {
+            } else if (attr === 'scrollLeft') {
                 val = el.getScroll().left;
-            }
-            else if (attr === 'height') {
+            } else if (attr === 'height') {
                 val = el.getHeight();
-            }
-            else if (attr === 'width') {
+            } else if (attr === 'width') {
                 val = el.getWidth();
-            }
-            else {
+            } else {
                 val = el.getStyle(attr);
             }
         }
@@ -50,7 +64,8 @@ Ext.define('Ext.fx.target.Element', {
     setAttr: function(targetData) {
         var target = this.target,
             ln = targetData.length,
-            attrs, attr, o, i, j, ln2, element, value;
+            attrs, attr, o, i, j, ln2;
+            
         for (i = 0; i < ln; i++) {
             attrs = targetData[i].attrs;
             for (attr in attrs) {
@@ -58,26 +73,28 @@ Ext.define('Ext.fx.target.Element', {
                     ln2 = attrs[attr].length;
                     for (j = 0; j < ln2; j++) {
                         o = attrs[attr][j];
-                        element = o[0];
-                        value = o[1];
-                        if (attr === 'x') {
-                            element.setX(value);
-                        } else if (attr === 'y') {
-                            element.setY(value);
-                        } else if (attr === 'scrollTop') {
-                            element.scrollTo('top', value);
-                        } else if (attr === 'scrollLeft') {
-                            element.scrollTo('left',value);
-                        } else if (attr === 'width') {
-                            element.setWidth(value);
-                        } else if (attr === 'height') {
-                            element.setHeight(value);
-                        } else {
-                            element.setStyle(attr, value);
-                        }
+                        this.setElVal(o[0], attr, o[1]);
                     }
                 }
             }
+        }
+    },
+    
+    setElVal: function(element, attr, value){
+        if (attr === 'x') {
+            element.setX(value);
+        } else if (attr === 'y') {
+            element.setY(value);
+        } else if (attr === 'scrollTop') {
+            element.scrollTo('top', value);
+        } else if (attr === 'scrollLeft') {
+            element.scrollTo('left',value);
+        } else if (attr === 'width') {
+            element.setWidth(value);
+        } else if (attr === 'height') {
+            element.setHeight(value);
+        } else {
+            element.setStyle(attr, value);
         }
     }
 });

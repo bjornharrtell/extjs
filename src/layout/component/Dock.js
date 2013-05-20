@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This ComponentLayout handles docking for Panels. It takes care of panels that are
  * part of a ContainerLayout that sets this Panel's size and Panels that are part of
@@ -18,6 +38,38 @@ Ext.define('Ext.layout.component.Dock', {
     /* End Definitions */
 
     type: 'dock',
+    
+    horzAxisProps: {
+        name: 'horz',
+        oppositeName: 'vert',
+        dockBegin: 'left',
+        dockEnd: 'right',
+        horizontal: true,
+        marginBegin: 'margin-left',
+        maxSize: 'maxWidth',
+        minSize: 'minWidth',
+        pos: 'x',
+        setSize: 'setWidth',
+        shrinkWrapDock: 'shrinkWrapDockWidth',
+        size: 'width',
+        sizeModel: 'widthModel'
+    },
+
+    vertAxisProps: {
+        name: 'vert',
+        oppositeName: 'horz',
+        dockBegin: 'top',
+        dockEnd: 'bottom',
+        horizontal: false,
+        marginBegin: 'margin-top',
+        maxSize: 'maxHeight',
+        minSize: 'minHeight',
+        pos: 'y',
+        setSize: 'setHeight',
+        shrinkWrapDock: 'shrinkWrapDockHeight',
+        size: 'height',
+        sizeModel: 'heightModel'
+    },
 
     initializedBorders: -1,
 
@@ -45,20 +97,36 @@ Ext.define('Ext.layout.component.Dock', {
         return true;
     },
 
-    dockOpposites: {
-        top: 'bottom',
-        right: 'left',
-        bottom: 'top',
-        left: 'right'
+    noBorderClasses: [
+        Ext.baseCSSPrefix + 'docked-noborder-top',
+        Ext.baseCSSPrefix + 'docked-noborder-right',
+        Ext.baseCSSPrefix + 'docked-noborder-bottom',
+        Ext.baseCSSPrefix + 'docked-noborder-left'
+    ],
+
+    noBorderClassesSides: {
+        top: Ext.baseCSSPrefix + 'docked-noborder-top',
+        right: Ext.baseCSSPrefix + 'docked-noborder-right',
+        bottom: Ext.baseCSSPrefix + 'docked-noborder-bottom',
+        left: Ext.baseCSSPrefix + 'docked-noborder-left'
+    },
+
+    borderWidthProps: {
+        top: 'border-top-width',
+        right: 'border-right-width',
+        bottom: 'border-bottom-width',
+        left: 'border-left-width'
     },
 
     handleItemBorders: function() {
         var me = this,
             owner = me.owner,
             borders, docked,
+            lastItems = me.lastDockedItems,
             oldBorders = me.borders,
-            opposites = me.dockOpposites,
             currentGeneration = owner.dockedItems.generation,
+            noBorderClassesSides = me.noBorderClassesSides,
+            borderWidthProps = me.borderWidthProps,
             i, ln, item, dock, side, borderItem,
             collapsed = me.collapsed;
 
@@ -70,7 +138,7 @@ Ext.define('Ext.layout.component.Dock', {
 
         // Borders have to be calculated using expanded docked item collection.
         me.collapsed = false;
-        docked = me.getLayoutItems();
+        me.lastDockedItems = docked = me.getLayoutItems();
         me.collapsed = collapsed;
 
         borders = { top: [], right: [], bottom: [], left: [] };
@@ -88,56 +156,49 @@ Ext.define('Ext.layout.component.Dock', {
                 borders[dock].satisfied = true;
             }
 
-            if (!borders.top.satisfied && opposites[dock] !== 'top') {
+            if (!borders.top.satisfied && dock !== 'bottom') {
                 borders.top.push(item);
             }
-            if (!borders.right.satisfied && opposites[dock] !== 'right') {
+            if (!borders.right.satisfied && dock !== 'left') {
                 borders.right.push(item);
             }
-            if (!borders.bottom.satisfied && opposites[dock] !== 'bottom') {
+            if (!borders.bottom.satisfied && dock !== 'top') {
                 borders.bottom.push(item);
             }
-            if (!borders.left.satisfied && opposites[dock] !== 'left') {
+            if (!borders.left.satisfied && dock !== 'right') {
                 borders.left.push(item);
+            }
+        }
+
+        if (lastItems) {
+            for (i = 0, ln = lastItems.length; i < ln; i++) {
+                item = lastItems[i];
+                if (!item.isDestroyed && !item.ignoreBorderManagement && !owner.manageBodyBorders) {
+                    item.removeCls(me.noBorderClasses);
+                }
             }
         }
 
         if (oldBorders) {
             for (side in oldBorders) {
-                if (oldBorders.hasOwnProperty(side)) {
-                    ln = oldBorders[side].length;
-                    if (!owner.manageBodyBorders) {
-                        for (i = 0; i < ln; i++) {
-                            borderItem = oldBorders[side][i];
-                            if (!borderItem.isDestroyed) {
-                                borderItem.removeCls(Ext.baseCSSPrefix + 'docked-noborder-' + side);
-                            }
-                        }
-                        if (!oldBorders[side].satisfied && !owner.bodyBorder) {
-                            owner.removeBodyCls(Ext.baseCSSPrefix + 'docked-noborder-' + side);
-                        }
-                    }
-                    else if (oldBorders[side].satisfied) {
-                        owner.setBodyStyle('border-' + side + '-width', '');
-                    }
+                if (owner.manageBodyBorders && oldBorders[side].satisfied) {
+                    owner.setBodyStyle(borderWidthProps[side], '');
                 }
             }
         }
 
         for (side in borders) {
-            if (borders.hasOwnProperty(side)) {
-                ln = borders[side].length;
-                if (!owner.manageBodyBorders) {
-                    for (i = 0; i < ln; i++) {
-                        borders[side][i].addCls(Ext.baseCSSPrefix + 'docked-noborder-' + side);
-                    }
-                    if ((!borders[side].satisfied && !owner.bodyBorder) || owner.bodyBorder === false) {
-                        owner.addBodyCls(Ext.baseCSSPrefix + 'docked-noborder-' + side);
-                    }
+            ln = borders[side].length;
+            if (!owner.manageBodyBorders) {
+                for (i = 0; i < ln; i++) {
+                    borders[side][i].addCls(noBorderClassesSides[side]);
                 }
-                else if (borders[side].satisfied) {
-                    owner.setBodyStyle('border-' + side + '-width', '1px');
+                if ((!borders[side].satisfied && !owner.bodyBorder) || owner.bodyBorder === false) {
+                    owner.addBodyCls(noBorderClassesSides[side]);
                 }
+            }
+            else if (borders[side].satisfied) {
+                owner.setBodyStyle(borderWidthProps[side], '1px');
             }
         }
 
@@ -148,6 +209,7 @@ Ext.define('Ext.layout.component.Dock', {
         var me = this,
             owner = me.owner,
             shrinkWrap = me.sizeModels.shrinkWrap,
+            shrinkWrapDock = owner.shrinkWrapDock,
             collapsedHorz, collapsedVert;
 
         if (owner.collapsed) {
@@ -172,6 +234,10 @@ Ext.define('Ext.layout.component.Dock', {
         } else if (collapsedHorz) {
             ownerContext.widthModel = shrinkWrap;
         }
+        
+        shrinkWrapDock = shrinkWrapDock === true ? 3 : (shrinkWrapDock || 0);
+        ownerContext.shrinkWrapDockHeight = (shrinkWrapDock & 1) && ownerContext.heightModel.shrinkWrap;
+        ownerContext.shrinkWrapDockWidth = (shrinkWrapDock & 2) && ownerContext.widthModel.shrinkWrap;
     },
 
     beginLayout: function(ownerContext) {
@@ -181,11 +247,9 @@ Ext.define('Ext.layout.component.Dock', {
             layoutContext = ownerContext.context,
             dockedItemCount = docked.length,
             dockedItems, i, item, itemContext, offsets,
-            collapsed;
+            collapsed, dock;
 
         me.callParent(arguments);
-
-        me.handleItemBorders();
 
         // Cache the children as ContextItems (like a Container). Also setup to handle
         // collapsed state:
@@ -210,9 +274,11 @@ Ext.define('Ext.layout.component.Dock', {
         for (i = 0; i < dockedItemCount; i++) {
             item = docked[i];
             if (item.rendered) {
+                dock = item.dock;
                 itemContext = layoutContext.getCmp(item);
                 itemContext.dockedAt = { x: 0, y: 0 };
-                itemContext.offsets = offsets = Ext.Element.parseBox(item.offsets || {});
+                itemContext.offsets = offsets = Ext.Element.parseBox(item.offsets || 0);
+                itemContext.horizontal = dock == 'top' || dock == 'bottom';
                 offsets.width = offsets.left + offsets.right;
                 offsets.height = offsets.top + offsets.bottom;
                 dockedItems.push(itemContext);
@@ -233,9 +299,24 @@ Ext.define('Ext.layout.component.Dock', {
 
         me.callParent(arguments);
 
-        if (lastHeightModel && lastHeightModel.shrinkWrap &&
-                    !ownerContext.heightModel.shrinkWrap && !me.owner.manageHeight) {
-            owner.body.dom.style.marginBottom = '';
+        if (me.owner.manageHeight) {
+            // Reset in case manageHeight gets turned on during lifecycle.
+            // See below for why display could be set to non-default value.
+            if (me.lastBodyDisplay) {
+                owner.body.dom.style.display = me.lastBodyDisplay = '';
+            }
+        } else {
+            // When manageHeight is false, the body stretches the outer el by using wide margins to force it to
+            // accommodate the docked items. When overflow is visible (when panel is resizable and has embedded handles),
+            // the body must be inline-block so as not to collapse its margins
+            if (me.lastBodyDisplay !== 'inline-block') {
+                owner.body.dom.style.display = me.lastBodyDisplay = 'inline-block';
+            }
+
+            if (lastHeightModel && lastHeightModel.shrinkWrap &&
+                        !ownerContext.heightModel.shrinkWrap) {
+                owner.body.dom.style.marginBottom = '';
+            }
         }
 
         if (ownerContext.widthModel.auto) {
@@ -270,7 +351,7 @@ Ext.define('Ext.layout.component.Dock', {
             dock = item.dock;
 
             if (dock == 'right') {
-                item.el.setLeft(0);
+                item.setLocalX(0);
             } else if (dock != 'left') {
                 continue;
             }
@@ -286,23 +367,53 @@ Ext.define('Ext.layout.component.Dock', {
             horzDone = state.horzDone,
             vertDone = state.vertDone,
             bodyContext = ownerContext.bodyContext,
-            horz, vert, forward, backward;
+            framing, horz, vert, forward, backward;
 
         // make sure we can use these value w/o calling methods to get them
         ownerContext.borderInfo  || ownerContext.getBorderInfo();
         ownerContext.paddingInfo || ownerContext.getPaddingInfo();
-        ownerContext.framingInfo || ownerContext.getFraming();
+        ownerContext.frameInfo   || ownerContext.getFrameInfo();
         bodyContext.borderInfo   || bodyContext.getBorderInfo();
         bodyContext.paddingInfo  || bodyContext.getPaddingInfo();
+
+        // On CSS3 browsers, the border and padding frame the outer el. On non-CSS3
+        // browsers, the outer el has no border or padding - all that appears on the
+        // framing elements as padding and height. In CSS3, the border size effects the
+        // origin of the dockedItems but the padding does not (so that must be added in
+        // most of the time). In non-CSS3 mode, the dockedItems are outside the framing:
+        //
+        //      ... top / left dockedItems ...
+        //      <div id="...-ml" style="padding-left: border-radius-left;">
+        //          <div id="...-mr" style="padding-right: border-radius-right;">
+        //              <div id="...-mc" style="padding: extra;">
+        //                  ... body ...
+        //              </div>
+        //          </div>
+        //      </div>
+        //      ... bottom / right dockedItems ...
+        // 
+        // For the sake of sanity, we perform all the calculations in CSS3 mode. We test
+        // for the presence of non-CSS3 framing only when necessary.
+        //
+        if (!ownerContext.frameBorder) {
+            if (!(framing = ownerContext.framing)) {
+                ownerContext.frameBorder = ownerContext.borderInfo;
+                ownerContext.framePadding = ownerContext.paddingInfo;
+            } else {
+                // These values match what they would have been in CSS3.
+                ownerContext.frameBorder = framing.border;
+                ownerContext.framePadding = framing.padding;
+            }
+        }
 
         // Start the axes so they are ready to proceed inwards (fixed-size) or outwards
         // (shrinkWrap) and stash key property names as well:
         horz = !horzDone &&
                me.createAxis(ownerContext, measure.contentWidth, ownerContext.widthModel,
-                             'left', 'right', 'x', 'width', 'Width', ownerContext.collapsedHorz);
+                             me.horzAxisProps, ownerContext.collapsedHorz);
         vert = !vertDone &&
                me.createAxis(ownerContext, measure.contentHeight, ownerContext.heightModel,
-                             'top', 'bottom', 'y', 'height', 'Height', ownerContext.collapsedVert);
+                             me.vertAxisProps, ownerContext.collapsedVert);
 
         // We iterate forward and backward over the dockedItems at the same time based on
         // whether an axis is shrinkWrap or fixed-size. For a fixed-size axis, the outer box
@@ -320,11 +431,11 @@ Ext.define('Ext.layout.component.Dock', {
                 me.dockChild(ownerContext, vert, backward, forward);
             }
         }
-
+        
         if (horz && me.finishAxis(ownerContext, horz)) {
             state.horzDone = horzDone = horz;
         }
-
+        
         if (vert && me.finishAxis(ownerContext, vert)) {
             state.vertDone = vertDone = vert;
         }
@@ -342,20 +453,79 @@ Ext.define('Ext.layout.component.Dock', {
     },
 
     /**
-     * Creates an axis object given the particulars.
+     * Creates an axis object given the particulars. The process starts by placing the
+     * dockedItems in an idealized box where this method is called once for each side.
+     * The ideal box is defined by the CSS3 border and padding values (which account for
+     * the influence of border-radius). The origin (the (0,0) point) of the ideal box is
+     * the top-left edge of the border or the border-box. Normal dockedItems are placed
+     * inside this box at an offset to clear the border and padding and sit properly in
+     * the panel next to the body.
+     * 
+     * The origin has to be started differently if the axis is in shrinkWrap mode. When
+     * shrink-wrapping an axis, the axis starts at the edge of the body and expands
+     * outwards as items are docked. This means the ideal (0,0) for shrinkWrap is on the
+     * top-left corner of the body.
+     * 
+     * The following diagram illustrates this using the vertical axis.
+     * 
+     *      +---------------------------+ 10px (border)
+     *      |                           |
+     *      |  xxxxxxxxxxxxxxxxxxxxxxx  | 5px (padding)   shrinkWrap    other
+     *      |  +=====================+  |                   -50         15
+     *      |  |  Header             |  | 30px
+     *      |  |                     |  |
+     *      |  +=====================+  |
+     *      |  +---------------------+  |                   -20         45
+     *      |  |  tbar               |  | 20 px
+     *      |  +---------------------+  |
+     *      |  +---------------------+  |                   0           65
+     *      |  |  Body               |  | 100px
+     *      |  |                     |  |
+     *      |  |                     |  |
+     *      |  +---------------------+  |
+     *      |  +---------------------+  |                   100         165
+     *      |  |  bbar               |  | 15px
+     *      |  +---------------------+  |
+     *      |  xxxxxxxxxxxxxxxxxxxxxxx  | 5px
+     *      |                           |
+     *      +---------------------------+ 10px
+     *
+     * These are sufficient to determine sizes of things, but to finalize this process
+     * and assign proper positions, the tentative coordinates have to be adjusted by an
+     * amount appropriate for the item. Because dockedItems are position:absolute, they
+     * sit inside the border and so must be adjusted for padding. The body is different
+     * because it is position:relative and so it naturally sits inside the padding and
+     * the padding must not be included in its position.
+     * 
+     * Headers and footers that use `ignoreParentFrame` interact with this process by
+     * moving themselves outside the border and padding. So in the above diagram, the
+     * Header would move up by 15px and *everything else* would move up by 10px. When
+     * shrinkWrap is taking place, the 10px of border on the top is removed from the
+     * height as well.
+     * 
+     * The bbar behaves slightly different when it is `ignoreParentFrame`. In shrinkWrap
+     * mode, it alone would move down by the padding and the bottom border would not be
+     * included in the height. Otherwise, the bbar would be moved down 15px (since the
+     * edge is fixed) and the next dockedItem would be placed at, or the body would be
+     * stretched down to, 5px (padding) pixels above the bbar.
+     *
      * @private
      */
-    createAxis: function (ownerContext, contentSize, sizeModel, dockBegin, dockEnd, posProp,
-                          sizeProp, sizePropCap, collapsedAxis) {
-        var begin = 0,
-            owner = this.owner,
-            maxSize = owner['max' + sizePropCap],
-            minSize = owner['min' + sizePropCap] || 0,
+    createAxis: function (ownerContext, contentSize, sizeModel, axisProps, collapsedAxis) {
+        var me = this,
+            begin = 0,
+            owner = me.owner,
+            maxSize = owner[axisProps.maxSize],
+            minSize = owner[axisProps.minSize] || 0,
+            dockBegin = axisProps.dockBegin,
+            dockEnd = axisProps.dockEnd,
+            posProp = axisProps.pos,
+            sizeProp = axisProps.size,
             hasMaxSize = maxSize != null, // exactly the same as "maxSize !== null && maxSize !== undefined"
-            setSize = 'set' + sizePropCap,
-            border, bodyContext, frameSize, padding, end;
+            shrinkWrap = sizeModel.shrinkWrap,
+            bodyContext, framing, padding, end;
 
-        if (sizeModel.shrinkWrap) {
+        if (shrinkWrap) {
             // End position before adding docks around the content is content size plus the body borders in this axis.
             // If collapsed in this axis, the body borders will not be shown.
             if (collapsedAxis) {
@@ -365,37 +535,37 @@ Ext.define('Ext.layout.component.Dock', {
                 end = contentSize + bodyContext.borderInfo[sizeProp];
             }
         } else {
-            border    = ownerContext.borderInfo;
-            frameSize = ownerContext.framingInfo;
-            padding   = ownerContext.paddingInfo;
+            framing = ownerContext.frameBorder;
+            padding = ownerContext.framePadding;
 
-            end = ownerContext.getProp(sizeProp);
-            end -= border[dockEnd] + padding[dockEnd] + frameSize[dockEnd];
-
-            begin = border[dockBegin] + padding[dockBegin] + frameSize[dockBegin];
+            begin = framing[dockBegin] + padding[dockBegin];
+            end = ownerContext.getProp(sizeProp) - (framing[dockEnd] + padding[dockEnd]);
         }
 
         return {
             shrinkWrap: sizeModel.shrinkWrap,
             sizeModel: sizeModel,
             // An axis tracks start and end+1 px positions. eg 0 to 10 for 10px high
+            initialBegin: begin,
             begin: begin,
             end: end,
             collapsed: collapsedAxis,
-            horizontal: posProp == 'x',
-            ignoreFrameBegin: false,
-            ignoreFrameEnd: false,
+            horizontal: axisProps.horizontal,
+            ignoreFrameBegin: null,
+            ignoreFrameEnd: null,
             initialSize: end - begin,
+            maxChildSize: 0,
             hasMinMaxConstraints: (minSize || hasMaxSize) && sizeModel.shrinkWrap,
             minSize: minSize,
             maxSize: hasMaxSize ? maxSize : 1e9,
-            bodyPosProp: this.owner.manageHeight ? posProp : ('margin-' + dockBegin), // 'margin-left' or 'margin-top'
+            bodyPosProp: me.owner.manageHeight ? posProp : axisProps.marginBegin,
             dockBegin: dockBegin,    // 'left' or 'top'
             dockEnd: dockEnd,        // 'right' or 'end'
             posProp: posProp,        // 'x' or 'y'
             sizeProp: sizeProp,      // 'width' or 'height'
-            sizePropCap: sizePropCap, // 'Width' or 'Height'
-            setSize: setSize,
+            setSize: axisProps.setSize,
+            shrinkWrapDock: ownerContext[axisProps.shrinkWrapDock],
+            sizeModelName: axisProps.sizeModel,
             dockedPixelsEnd: 0
         };
     },
@@ -413,13 +583,16 @@ Ext.define('Ext.layout.component.Dock', {
             itemContext = ownerContext.dockedItems[axis.shrinkWrap ? backward : forward],
             item = itemContext.target,
             dock = item.dock, // left/top/right/bottom
-            pos;
+            sizeProp = axis.sizeProp,
+            pos, size;
 
-        if(item.ignoreParentFrame && ownerContext.isCollapsingOrExpanding) {
+        if (item.ignoreParentFrame && ownerContext.isCollapsingOrExpanding) {
             // collapsed window header margins may differ from expanded window header margins
             // so we need to make sure the old cached values are not used in axis calculations
             itemContext.clearMarginCache();
         }
+
+        itemContext.marginInfo || itemContext.getMarginInfo(); // get marginInfo ready
 
         if (dock == axis.dockBegin) {
             if (axis.shrinkWrap) {
@@ -434,7 +607,15 @@ Ext.define('Ext.layout.component.Dock', {
                 pos = me.dockInwardEnd(ownerContext, itemContext, item, axis);
             }
         } else {
-            pos = me.dockStretch(ownerContext, itemContext, item, axis);
+            if (axis.shrinkWrapDock) {
+                // we are still shrinkwrapping transversely... so we need to include the
+                // size of this item in the max calculation
+                size = itemContext.getProp(sizeProp) + itemContext.marginInfo[sizeProp];
+                axis.maxChildSize = Math.max(axis.maxChildSize, size);
+                pos = 0;
+            } else {
+                pos = me.dockStretch(ownerContext, itemContext, item, axis);
+            }
         }
 
         itemContext.dockedAt[axis.posProp] = pos;
@@ -449,18 +630,28 @@ Ext.define('Ext.layout.component.Dock', {
     dockInwardBegin: function (ownerContext, itemContext, item, axis) {
         var pos = axis.begin,
             sizeProp = axis.sizeProp,
+            ignoreParentFrame = item.ignoreParentFrame,
+            delta,
             size, 
             dock;
 
-        if (item.ignoreParentFrame) {
+        if (ignoreParentFrame) {
+            axis.ignoreFrameBegin = itemContext;
             dock = item.dock;
-            pos -= ownerContext.borderInfo[dock] + ownerContext.paddingInfo[dock] +
-                   ownerContext.framingInfo[dock];
+
+            // We need to move everything up by the border-width.
+            delta = ownerContext.frameBorder[dock];
+
+            // We need to move the header "up" by the padding as well.
+            pos -= delta + ownerContext.framePadding[dock];
         }
 
         if (!item.overlay) {
-            size = itemContext.getProp(sizeProp) + itemContext.getMarginInfo()[sizeProp];
+            size = itemContext.getProp(sizeProp) + itemContext.marginInfo[sizeProp];
             axis.begin += size;
+            if (ignoreParentFrame) {
+                axis.begin -= delta;
+            }
         }
 
         return pos;
@@ -473,16 +664,19 @@ Ext.define('Ext.layout.component.Dock', {
      */
     dockInwardEnd: function (ownerContext, itemContext, item, axis) {
         var sizeProp = axis.sizeProp,
-            size = itemContext.getProp(sizeProp) + itemContext.getMarginInfo()[sizeProp],
-            pos = axis.end - size;
+            size = itemContext.getProp(sizeProp) + itemContext.marginInfo[sizeProp],
+            pos = axis.end - size,
+            frameEnd;
 
         if (!item.overlay) {
             axis.end = pos;
         }
 
         if (item.ignoreParentFrame) {
-            pos += ownerContext.borderInfo[item.dock] + ownerContext.paddingInfo[item.dock] +
-                   ownerContext.framingInfo[item.dock];
+            axis.ignoreFrameEnd = itemContext;
+            frameEnd = ownerContext.frameBorder[item.dock];
+            pos += frameEnd + ownerContext.framePadding[item.dock];
+            axis.end += frameEnd;
         }
 
         return pos;
@@ -503,20 +697,18 @@ Ext.define('Ext.layout.component.Dock', {
     dockOutwardBegin: function (ownerContext, itemContext, item, axis) {
         var pos = axis.begin,
             sizeProp = axis.sizeProp,
-            dock, size;
+            size;
 
         if (axis.collapsed) {
-            axis.ignoreFrameBegin = axis.ignoreFrameEnd = true;
+            axis.ignoreFrameBegin = axis.ignoreFrameEnd = itemContext;
         } else if (item.ignoreParentFrame) {
-            dock = item.dock;
-            pos -= ownerContext.borderInfo[dock] + ownerContext.paddingInfo[dock] +
-                   ownerContext.framingInfo[dock];
-
-            axis.ignoreFrameBegin = true;
+            axis.ignoreFrameBegin = itemContext;
         }
+        // NOTE - When shrinkWrapping an ignoreParentFrame, this must be the last item
+        // on the axis. Since that is so, we let finishAxis take this in to account.
 
         if (!item.overlay) {
-            size = itemContext.getProp(sizeProp) + itemContext.getMarginInfo()[sizeProp];
+            size = itemContext.getProp(sizeProp) + itemContext.marginInfo[sizeProp];
             pos -= size;
             axis.begin = pos;
         }
@@ -532,19 +724,17 @@ Ext.define('Ext.layout.component.Dock', {
     dockOutwardEnd: function (ownerContext, itemContext, item, axis) {
         var pos = axis.end,
             sizeProp = axis.sizeProp,
-            dock, size;
+            size;
 
-        size = itemContext.getProp(sizeProp) + itemContext.getMarginInfo()[sizeProp];
+        size = itemContext.getProp(sizeProp) + itemContext.marginInfo[sizeProp];
 
         if (axis.collapsed) {
-            axis.ignoreFrameBegin = axis.ignoreFrameEnd = true;
+            axis.ignoreFrameBegin = axis.ignoreFrameEnd = itemContext;
         } else if (item.ignoreParentFrame) {
-            dock = item.dock;
-            pos += ownerContext.borderInfo[dock] + ownerContext.paddingInfo[dock] +
-                   ownerContext.framingInfo[dock];
-
-            axis.ignoreFrameEnd = true;
+            axis.ignoreFrameEnd = itemContext;
         }
+        // NOTE - When shrinkWrapping an ignoreParentFrame, this must be the last item
+        // on the axis. Since that is so, we let finishAxis take this in to account.
 
         if (!item.overlay) {
             axis.end = pos + size;
@@ -563,24 +753,27 @@ Ext.define('Ext.layout.component.Dock', {
         var dock = item.dock, // left/top/right/bottom (also used to index padding/border)
             sizeProp = axis.sizeProp, // 'width' or 'height'
             horizontal = dock == 'top' || dock == 'bottom',
+            border = ownerContext.frameBorder,
             offsets = itemContext.offsets,
-            border = ownerContext.borderInfo,
-            padding = ownerContext.paddingInfo,
+            padding = ownerContext.framePadding,
             endProp = horizontal ? 'right' : 'bottom',
             startProp = horizontal ? 'left' : 'top',
             pos = axis.begin + offsets[startProp],
-            margin, size, framing;
+            margin, size;
 
         if (item.stretch !== false) {
             size = axis.end - pos - offsets[endProp];
 
             if (item.ignoreParentFrame) {
-                framing = ownerContext.framingInfo;
-                pos -= border[startProp] + padding[startProp] + framing[startProp];
-                size += border[sizeProp] + padding[sizeProp] + framing[sizeProp];
+                // In CSS3, the border and padding need to be ignored specifically. In
+                // non-CSS3 / framing mode, the border and padding will be 0 **but** the
+                // header is not rendered inside the framing elements and so we do not
+                // want to do anything anyway!
+                pos -= padding[startProp] + border[startProp];
+                size += padding[sizeProp] + border[sizeProp];
             }
 
-            margin = itemContext.getMarginInfo();
+            margin = itemContext.marginInfo;
             size -= margin[sizeProp];
 
             itemContext[axis.setSize](size);
@@ -595,36 +788,88 @@ Ext.define('Ext.layout.component.Dock', {
      * @private
      */
     finishAxis: function (ownerContext, axis) {
-        var size = axis.end - axis.begin,
+        // If the maxChildSize is NaN it means at some point we tried to determine
+        // The size of a docked item but we couldn't, so just jump out straight
+        // away before doing any other processing
+        if (isNaN(axis.maxChildSize)) {
+            return false;
+        }
+        
+        var axisBegin = axis.begin,
+            size = axis.end - axisBegin,
+            collapsed = axis.collapsed,
             setSizeMethod = axis.setSize,
             beginName = axis.dockBegin, // left or top
             endName = axis.dockEnd, // right or bottom
-            border = ownerContext.borderInfo,
-            padding = ownerContext.paddingInfo,
-            framing = ownerContext.framingInfo,
-            frameSize = padding[beginName] + border[beginName] + framing[beginName],
+            padding = ownerContext.framePadding,
+            border = ownerContext.frameBorder,
+            borderBegin = border[beginName],
+            framing = ownerContext.framing,
+            framingBegin = framing && framing[beginName],
+            // The padding is in play unless the axis is collapsed.
+            paddingBegin = collapsed ? 0 : padding[beginName],
+            sizeProp = axis.sizeProp,
+            ignoreFrameBegin = axis.ignoreFrameBegin,
+            ignoreFrameEnd = axis.ignoreFrameEnd,
             bodyContext = ownerContext.bodyContext,
-            bodyPos, bodySize, dirty;
+            extraPaddingBegin = Math.max(borderBegin + paddingBegin - framingBegin, 0),
+            bodyPos, bodySize, delta, dirty;
 
         if (axis.shrinkWrap) {
             // Since items docked left/top on a shrinkWrap axis go into negative coordinates,
             // we apply a delta to all coordinates to adjust their relative origin back to
-            // (0,0).
-            axis.delta = -axis.begin;  // either 0 or a positive number
+            // a (0,0) inside the border.
 
             bodySize = axis.initialSize;
 
-            if (axis.ignoreFrameBegin) {
-                axis.delta -= border[beginName];
-                bodyPos = -axis.begin - frameSize;
+            if (framing) {
+                // In CSS3 mode, things are compartively simple because "framing" is just
+                // borders and padding. In non-CSS3 mode, however, the framing elements
+                // are given a size equal to the max of the border-width and border-radius
+                // and this pushes the body down accordingly. Further, the dockedItems are
+                // all rendered outside the framing elements, so their origin equals the
+                // ideal box origin. To translate this to match CSS3, we have to add on
+                // the border-top.
+
+                delta = -axisBegin + borderBegin + paddingBegin;
+                bodyPos = delta - framingBegin - extraPaddingBegin;
             } else {
-                size += frameSize;
-                axis.delta += padding[beginName] + framing[beginName];
-                bodyPos = -axis.begin;
+                bodyPos = -axisBegin;
+                delta = bodyPos + paddingBegin;
             }
 
-            if (!axis.ignoreFrameEnd) {
-                size += padding[endName] + border[endName] + framing[endName];
+            if (!collapsed) {
+                size += padding[sizeProp];
+            }
+
+            if (ignoreFrameBegin) {
+                // When some component ignores the begin framing, we move everything "up"
+                // by that amount of framing. We also do not include that amount of the
+                // framing in the shrinkWrap size.
+                delta -= borderBegin;
+                bodyPos -= borderBegin;
+
+                // The item ignoring the framing must also escape the padding. Since the
+                // axis.delta includes the padding and we want to apply this to only the
+                // one item, we just poke its dockedAt.x/y property so that when we add
+                // axis.begin the padding will cancel out. (Note: when we are collapsed
+                // paddingBegin will be 0).
+                
+                ignoreFrameBegin.dockedAt[axis.posProp] -= paddingBegin;
+            } else {
+                size += borderBegin;
+            }
+
+            if (collapsed) {
+                // in this case "ignoreFrameBegin === ignoreFrameEnd" so we can take the
+                // special cases out of the mix here...
+            } else if (ignoreFrameEnd) {
+                // When a component ignores the end framing, we simply move it further
+                // "down" by the end padding and we do not add the end framing to the
+                // shrinkWrap size.
+                ignoreFrameEnd.dockedAt[axis.posProp] += padding[endName];
+            } else {
+                size += border[endName];
             }
 
             axis.size = size; // we have to wait for min/maxWidth/Height processing
@@ -637,38 +882,81 @@ Ext.define('Ext.layout.component.Dock', {
         } else {
             // For a fixed-size axis, we started at the outer box and already have the
             // proper origin... almost... except for the owner's border.
-            axis.delta = -border[axis.dockBegin]; // 'left' or 'top'
+            if (framing) {
+                // since dockedItems are rendered outside the framing, they have the
+                // proper origin already:
+                delta = 0;
+                bodyPos = axisBegin - framingBegin - extraPaddingBegin;
+            } else {
+                delta = -borderBegin;
+                bodyPos = axisBegin - paddingBegin - borderBegin;
+            }
 
             // Body size is remaining space between ends of Axis.
             bodySize = size;
-            bodyPos = axis.begin - frameSize;
         }
 
+        axis.delta = delta;
         bodyContext[setSizeMethod](bodySize, dirty);
         bodyContext.setProp(axis.bodyPosProp, bodyPos);
 
         return !isNaN(size);
     },
+    
+    beforeInvalidateShrinkWrapDock: function(itemContext, options){
+        var sizeModelName = options.axis.sizeModelName;
+        if (!itemContext[sizeModelName].constrainedMin) {
+            // if the child hit a min constraint, it needs to be at its configured size, so
+            // we leave the sizeModel alone
+            itemContext[sizeModelName] = Ext.layout.SizeModel.calculated;
+        }
+    },
+    
+    afterInvalidateShrinkWrapDock: function(itemContext, options){
+        var axis = options.axis,
+            me = options.layout,
+            pos;
 
+        if (itemContext[axis.sizeModelName].calculated) {
+            pos = me.dockStretch(options.ownerContext, itemContext, itemContext.target, axis);
+            itemContext.setProp(axis.posProp, axis.delta + pos);
+        }
+    },
+    
     /**
      * Finishes processing of each axis by applying the min/max size constraints.
      * @private
      */
     finishConstraints: function (ownerContext, horz, vert) {
-        var sizeModels = this.sizeModels,
+        var me = this,
+            sizeModels = me.sizeModels,
             publishWidth = horz.shrinkWrap,
             publishHeight = vert.shrinkWrap,
-            dirty, height, width, heightModel, widthModel, size;
+            owner = me.owner,
+            dirty, height, width, heightModel, widthModel, size, 
+            minSize, maxSize, maxChildSize, desiredSize;
 
+        // In these calculations, maxChildSize will only be > 0 in the scenario where
+        // we are dock shrink wrapping in that direction, otherwise it is not measured.
+        // As such, the additions are done to simplify the logic, even though in most
+        // cases, it will have no impact on the overall result.
+        
         if (publishWidth) {
             size = horz.size;
+            minSize = horz.collapsed ? 0 : horz.minSize;
+            maxSize = horz.maxSize;
+            maxChildSize = horz.maxChildSize;
+            desiredSize = Math.max(size, maxChildSize);
 
-            if (size < horz.minSize) {
-                widthModel = sizeModels.constrainedMin;
-                width = horz.minSize;
-            } else if (size > horz.maxSize) {
+            if (desiredSize > maxSize) {
                 widthModel = sizeModels.constrainedMax;
-                width = horz.maxSize;
+                width = maxSize;
+            } else if (desiredSize < minSize) {
+                widthModel = sizeModels.constrainedMin;
+                width = minSize;
+            } else if (size < maxChildSize) {
+                widthModel = sizeModels.constrainedDock;
+                owner.dockConstrainedWidth = width = maxChildSize;
             } else {
                 width = size;
             }
@@ -676,15 +964,24 @@ Ext.define('Ext.layout.component.Dock', {
 
         if (publishHeight) {
             size = vert.size;
+            minSize = vert.collapsed ? 0 : vert.minSize;
+            maxSize = vert.maxSize;
+            maxChildSize = vert.maxChildSize;
+            // For vertical docks, their weighting means the height is affected by top/bottom
+            // docked items, so we need to subtract them here
+            desiredSize = Math.max(size, maxChildSize + size - vert.initialSize);
 
-            if (size < vert.minSize) {
-                heightModel = sizeModels.constrainedMin;
-                height = vert.minSize;
-            } else if (size > vert.maxSize) {
+            if (desiredSize > maxSize) {
                 heightModel = sizeModels.constrainedMax;
-                height = vert.maxSize;
+                height = maxSize;
+            } else if (desiredSize < minSize) {
+                heightModel = sizeModels.constrainedMin;
+                height = minSize;
+            } else if (size < maxChildSize) {
+                heightModel = sizeModels.constrainedDock;
+                owner.dockConstrainedHeight = height = maxChildSize;
             } else {
-                if (!ownerContext.collapsedVert && !this.owner.manageHeight) {
+                if (!ownerContext.collapsedVert && !owner.manageHeight) {
                     // height of the outerEl is provided by the height (including margins)
                     // of the bodyEl, so this value does not need to be written to the DOM
                     dirty = false;
@@ -703,7 +1000,7 @@ Ext.define('Ext.layout.component.Dock', {
             // See ContextItem#init for an analysis of why this case is special. Basically,
             // in this case, we only know the width and the height could be anything.
             if (widthModel && heightModel &&
-                        widthModel.constrainedMax &&  heightModel.constrainedMin) {
+                        widthModel.constrainedMax &&  heightModel.constrainedByMin) {
                 ownerContext.invalidate({ widthModel: widthModel });
                 return false;
             }
@@ -721,6 +1018,11 @@ Ext.define('Ext.layout.component.Dock', {
             // We have a constraint to deal with, so we just adjust the size models and
             // allow the ownerLayout to invalidate us with its contribution to our final
             // size...
+        } else {
+            // We're not invalidating, the ownerContext, so if we're shrink wrapping we'll need to
+            // tell any docked items to invalidate themselves if necessary.'
+            me.invalidateAxes(ownerContext, horz, vert);
+            
         }
 
         // we only publish the sizes if we are not invalidating the result...
@@ -739,6 +1041,84 @@ Ext.define('Ext.layout.component.Dock', {
         }
 
         return true;
+    },
+    
+    /**
+     * 
+     * The default weighting of docked items produces this arrangement:
+     * 
+     *      +--------------------------------------------+
+     *      |                    Top 1                   |
+     *      +--------------------------------------------+
+     *      |                    Top 2                   |
+     *      +-----+-----+--------------------+-----+-----+
+     *      |     |     |                    |     |     |
+     *      |     |     |                    |     |     |
+     *      |     |     |                    |  R  |  R  |
+     *      |  L  |  L  |                    |  I  |  I  |
+     *      |  E  |  E  |                    |  G  |  G  |
+     *      |  F  |  F  |                    |  H  |  H  |
+     *      |  T  |  T  |                    |  T  |  T  |
+     *      |     |     |                    |     |     |
+     *      |  2  |  1  |                    |  1  |  2  |
+     *      |     |     |                    |     |     |
+     *      |     |     |                    |     |     |
+     *      +-----+-----+--------------------+-----+-----+
+     *      |                  Bottom 1                  |
+     *      +--------------------------------------------+
+     *      |                  Bottom 2                  |
+     *      +--------------------------------------------+
+     * 
+     * So when we are shrinkWrapDock on the horizontal, the stretch size for top/bottom
+     * docked items is the final axis size. For the vertical axis, however, the stretch
+     *
+     */ 
+    invalidateAxes: function(ownerContext, horz, vert){
+        var before = this.beforeInvalidateShrinkWrapDock,
+            after = this.afterInvalidateShrinkWrapDock,
+            horzSize = horz.end - horz.begin,
+            vertSize = vert.initialSize,
+            invalidateHorz = horz.shrinkWrapDock && horz.maxChildSize < horzSize,
+            invalidateVert = vert.shrinkWrapDock && vert.maxChildSize < vertSize,
+            dockedItems, len, i, itemContext, itemSize, isHorz, axis, sizeProp;
+
+        if (invalidateHorz || invalidateVert) {
+            if (invalidateVert) {
+                // For vertical, we need to reset the initial position because they are affected
+                // by the horizontally docked items
+                vert.begin = vert.initialBegin;
+                vert.end = vert.begin + vert.initialSize;
+            }
+            dockedItems = ownerContext.dockedItems;
+            for (i = 0, len = dockedItems.length; i < len; ++i) {
+                itemContext = dockedItems[i];
+                isHorz = itemContext.horizontal;
+                axis = null;
+                if (invalidateHorz && isHorz) {
+                    sizeProp = horz.sizeProp;
+                    itemSize = horzSize;
+                    axis = horz;
+                } else if (invalidateVert && !isHorz) {
+                    sizeProp = vert.sizeProp;
+                    itemSize = vertSize;
+                    axis = vert;
+                }
+                
+                if (axis) {
+                    // subtract any margins
+                    itemSize -= itemContext.getMarginInfo()[sizeProp];
+                    if (itemSize !== itemContext.props[sizeProp]) {
+                        itemContext.invalidate({
+                            before: before,
+                            after: after,
+                            axis: axis,
+                            ownerContext: ownerContext,
+                            layout: this
+                        });
+                    }
+                }
+            }
+        }
     },
 
     /**
@@ -926,6 +1306,8 @@ Ext.define('Ext.layout.component.Dock', {
             items = me.getDockedItems(),
             target = me.getRenderTarget();
 
+        me.handleItemBorders();
+
         me.renderItems(items, target);
     },
 
@@ -949,7 +1331,7 @@ Ext.define('Ext.layout.component.Dock', {
         // Calculate the number of DOM nodes in our target that are not our docked items
         for (i = 0, j = 0; i < targetChildCount; i++) {
             targetChildNode = targetNodes[i];
-            if (Ext.fly(targetChildNode).hasCls('x-resizable-handle')) {
+            if (Ext.fly(targetChildNode).hasCls(Ext.baseCSSPrefix + 'resizable-handle')) {
                 break;
             }
             for (j = 0; j < dockedItemCount; j++) {
@@ -1016,10 +1398,33 @@ Ext.define('Ext.layout.component.Dock', {
             setsWidth: 0,
             setsHeight: 0
         },
-        stretchH: {
-            setsWidth: 1,
-            setsHeight: 0
+
+        horz: { // item goes horizontally (top or bottom docked)
+            shrinkWrap: {
+                // This is how we manage the width of a top/bottom docked item when its
+                // shrinkWrapWidth and ours need to be maxed (calculatedFromShrinkWrap)
+                setsWidth: 1,
+                setsHeight: 0,
+                readsWidth: 1
+            },
+            stretch: {
+                setsWidth: 1,
+                setsHeight: 0
+            }
         },
+
+        vert: { // item goes vertically (left or right docked)
+            shrinkWrap: {
+                setsWidth: 0,
+                setsHeight: 1,
+                readsHeight: 1
+            },
+            stretch: {
+                setsWidth: 0,
+                setsHeight: 1
+            }
+        },
+
         stretchV: {
             setsWidth: 0,
             setsHeight: 1
@@ -1058,8 +1463,10 @@ Ext.define('Ext.layout.component.Dock', {
         }
     },
 
-    getItemSizePolicy: function (item) {
-        var policy = this.sizePolicy,
+    getItemSizePolicy: function (item, ownerSizeModel) {
+        var me = this,
+            policy = me.sizePolicy,
+            shrinkWrapDock = me.owner.shrinkWrapDock,
             dock, vertical;
 
         if (item.stretch === false) {
@@ -1069,26 +1476,26 @@ Ext.define('Ext.layout.component.Dock', {
         dock = item.dock;
         vertical = (dock == 'left' || dock == 'right');
 
-        /*
-        owner = this.owner;
-        autoWidth = !owner.isFixedWidth();
-        autoHeight = !owner.isFixedHeight();
-        if (autoWidth !== autoHeight) { // if (partial auto)
-            // see above...
-            if (vertical) {
-                if (autoHeight) {
-                    return policy.autoStretchV;
-                }
-            } else if (autoWidth) {
-                return policy.autoStretchH;
-            }
-        }*/
-
+        shrinkWrapDock = shrinkWrapDock === true ? 3 : (shrinkWrapDock || 0);
         if (vertical) {
-            return policy.stretchV;
+            policy = policy.vert;
+            shrinkWrapDock = shrinkWrapDock & 1;
+        } else {
+            policy = policy.horz;
+            shrinkWrapDock = shrinkWrapDock & 2;
         }
 
-        return policy.stretchH;
+        if (shrinkWrapDock) {
+            // Getting the size model is expensive, so only do so if we really need it
+            if (!ownerSizeModel) {
+                ownerSizeModel = me.owner.getSizeModel();
+            }
+            if (ownerSizeModel[vertical ? 'height' : 'width'].shrinkWrap) {
+                return policy.shrinkWrap;
+            }
+        }
+
+        return policy.stretch;
     },
 
     /**
@@ -1102,7 +1509,17 @@ Ext.define('Ext.layout.component.Dock', {
         this.callParent(arguments);
 
         item.addCls(Ext.baseCSSPrefix + 'docked');
-        item.addClsWithUI('docked-' + item.dock);
+        item.addClsWithUI(this.getDockCls(item.dock));
+    },
+
+    /**
+     * Get's the css class name for a given dock position.
+     * @param {String} dock `top`, `right`, `bottom`, or `left`
+     * @return {String}
+     * @private 
+     */
+    getDockCls: function(dock) {
+        return 'docked-' + dock;
     },
 
     afterRemove : function(item) {
@@ -1116,5 +1533,67 @@ Ext.define('Ext.layout.component.Dock', {
             dom.parentNode.removeChild(dom);
         }
         this.childrenChanged = true;
+    },
+
+    /**
+     * This object is indexed by a component's `baseCls` to yield another object which
+     * is then indexed by the component's `ui` to produce an array of CSS class names.
+     * This array is indexed in the same manner as the `noBorderClassTable` and indicates
+     * the a particular edge of a docked item or the body element is actually "collapsed"
+     * with the component's outer border.
+     * @private
+     */
+    borderCollapseMap: {
+        /*
+        'x-panel': {
+            'default': []
+        }
+        */
+    },
+
+    /**
+     * Returns the array of class names to add to a docked item or body element when for
+     * the edges that should collapse with the outer component border. Basically, the
+     * panel's outer border must look visually like a contiguous border but may need to
+     * be realized by using the border of docked items and/or the body. This class name
+     * allows the border color and width to be controlled accordingly and distinctly from
+     * the border of the docked item or body element when it is not having its border
+     * collapsed.
+     * @private
+     */
+    getBorderCollapseTable: function () {
+        var me = this,
+            map = me.borderCollapseMap,
+            owner = me.owner,
+            baseCls = owner.baseCls,
+            ui = owner.ui,
+            table;
+
+        map = map[baseCls] || (map[baseCls] = {});
+        table = map[ui];
+
+        if (!table) {
+            baseCls += '-' + ui + '-outer-border-';
+            map[ui] = table = [
+                0,                  // TRBL
+                baseCls + 'l',      // 0001 = 1
+                baseCls + 'b',      // 0010 = 2
+                baseCls + 'bl',     // 0011 = 3
+                baseCls + 'r',      // 0100 = 4
+                baseCls + 'rl',     // 0101 = 5
+                baseCls + 'rb',     // 0110 = 6
+                baseCls + 'rbl',    // 0111 = 7
+                baseCls + 't',      // 1000 = 8
+                baseCls + 'tl',     // 1001 = 9
+                baseCls + 'tb',     // 1010 = 10
+                baseCls + 'tbl',    // 1011 = 11
+                baseCls + 'tr',     // 1100 = 12
+                baseCls + 'trl',    // 1101 = 13
+                baseCls + 'trb',    // 1110 = 14
+                baseCls + 'trbl'    // 1111 = 15
+            ];
+        }
+
+        return table;
     }
 });

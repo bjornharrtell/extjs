@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This is a base class for layouts that contain a single item that automatically expands to fill the layout's
  * container. This class is intended to be extended or created via the layout:'fit'
@@ -75,10 +95,10 @@ Ext.define('Ext.layout.container.Fit', {
     manageMargins: true,
 
     sizePolicies: {
-        0: { setsWidth: 0, setsHeight: 0 },
-        1: { setsWidth: 1, setsHeight: 0 },
-        2: { setsWidth: 0, setsHeight: 1 },
-        3: { setsWidth: 1, setsHeight: 1 }
+        0: { readsWidth: 1, readsHeight: 1, setsWidth: 0, setsHeight: 0 },
+        1: { readsWidth: 0, readsHeight: 1, setsWidth: 1, setsHeight: 0 },
+        2: { readsWidth: 1, readsHeight: 0, setsWidth: 0, setsHeight: 1 },
+        3: { readsWidth: 0, readsHeight: 0, setsWidth: 1, setsHeight: 1 }
     },
 
     getItemSizePolicy: function (item, ownerSizeModel) {
@@ -164,11 +184,11 @@ Ext.define('Ext.layout.container.Fit', {
         c = ownerContext.target;
         ownerContext.overflowX = (!ownerContext.widthModel.shrinkWrap && 
                                    ownerContext.maxChildMinWidth &&
-                                   (c.autoScroll || c.overflowX)) || undef;
+                                   c.scrollFlags.x) || undef;
 
         ownerContext.overflowY = (!ownerContext.heightModel.shrinkWrap &&
                                    ownerContext.maxChildMinHeight &&
-                                   (c.autoScroll || c.overflowY)) || undef;
+                                   c.scrollFlags.y) || undef;
     },
 
     calculate : function (ownerContext) {

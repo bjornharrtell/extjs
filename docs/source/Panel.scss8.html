@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tab-Panel'>/**
+</span> * @class Ext.tab.Panel
+ */
+
+$tab-base-color: $base-color !default;
+$tab-base-color-over: $tab-base-color !default;
+$tab-base-color-active: $tab-base-color !default;
+$tab-base-color-disabled: $tab-base-color !default;
+
+$tab-color: $color !default;
+$tab-color-over: $tab-color !default;
+$tab-color-active: $tab-color !default;
+$tab-color-disabled: $tab-color !default;
+
+$tab-font-size: $font-size !default; //11px
+$tab-font-size-over: $tab-font-size !default;
+$tab-font-size-active: $tab-font-size !default;
+$tab-font-size-disabled: $tab-font-size !default;
+
+$tab-font-family: $font-family !default;
+$tab-font-family-over: $tab-font-family !default;
+$tab-font-family-active: $tab-font-family !default;
+$tab-font-family-disabled: $tab-font-family !default;
+
+$tab-font-weight: bold !default;
+$tab-font-weight-over: $tab-font-weight !default;
+$tab-font-weight-active: $tab-font-weight !default;
+$tab-font-weight-disabled: $tab-font-weight !default;
+
+$tab-cursor: pointer !default;
+$tab-cursor-disabled: default !default;
+
+$tab-background-gradient: 'tab' !default;
+$tab-background-gradient-over: 'tab-over' !default;
+$tab-background-gradient-active: 'tab-active' !default;
+$tab-background-gradient-disabled: 'tab-disabled' !default;
+
+//borders
+$tab-border-radius: 4px 4px 0 0 !default;
+$tab-border-width: 1px 1px 0 1px !default;
+$tab-inner-border-width: 1px 1px 0 !default;
+
+$tab-border-color: $base-color !default;
+$tab-border-color-over: $tab-border-color !default;
+$tab-border-color-active: $tab-border-color !default;
+$tab-border-color-disabled: $tab-border-color !default;
+
+$tab-inner-border-color: #fff !default;
+
+$tab-padding: 3px 9px !default;
+$tab-text-padding: 0 !default;
+
+//size
+$tab-line-height: 13px !default;
+$tab-margin: 0 0 0 2px !default;
+
+//closable tab
+$tab-closable-icon-width: 11px !default;
+$tab-closable-icon-height: 11px !default;
+$tab-closable-icon-top: 2px !default;
+$tab-closable-icon-right: 2px !default;
+// the space in between the text and the close button
+$tab-closable-icon-spacing: 3px !default;
+
+$tab-closable-icon-opacity: 1 !default;
+$tab-closable-icon-opacity-over: 1 !default;
+$tab-closable-icon-opacity-disabled: 1 !default;
+
+<span id='Ext-tab-Panel-css_var-S-tabbar-closable-icon-include-hover-background-position'>/**
+</span> * var {boolean} $tabbar-closable-icon-include-hover-background-position
+ * true to change the x postition of the close icon background image on hover to allow for a
+ * horizonatlly alined background image sprite
+ */
+$tabbar-closable-icon-include-hover-background-position: false !default;
+
+<span id='Ext-tab-Panel-css_var-S-tabbar-closable-icon-include-pressed-background-position'>/**
+</span> * var {boolean} $tabbar-closable-icon-include-pressed-background-position
+ * true to change the x postition of the close icon background image on click to allow for a
+ * horizonatlly alined background image sprite
+ */
+$tabbar-closable-icon-include-pressed-background-position: false !default;
+
+$tabbar-padding: 0 !default;
+$tabbar-plain-padding: $tabbar-padding !default;
+$tabbar-base-color: $base-color !default;
+$tabbar-background-gradient: 'tabbar' !default;
+$tabbar-border-color: $panel-header-border-color !default;
+$tabbar-border-width: 1px 1px 0 !default;
+$tabbar-plain-border-width: 0 !default;
+$tabbar-strip-height: 3px !default;
+$tabbar-strip-border-color: $panel-header-border-color !default;
+$tabbar-strip-background-color: $tab-base-color-active !default;
+$tabbar-strip-border-width: 1px 0 0 !default;
+$tabbar-strip-plain-border-width: 1px 1px 0 !default;
+
+$tabbar-scroller-width: 18px !default;
+$tabbar-scroller-cursor: pointer !default;
+$tabbar-scroller-cursor-disabled: default !default;
+$tabbar-scroller-opacity: 1 !default;
+$tabbar-scroller-opacity-over: 1 !default;
+$tabbar-scroller-opacity-pressed: 1 !default;
+$tabbar-scroller-opacity-disabled: 1 !default;
+<span id='Ext-tab-Panel-css_var-S-tabbar-scroller-include-hover-background-position'>/**
+</span> * var {boolean} $tabbar-scroller-include-hover-background-position
+ * true to change the x postition of the background image on hover to allow for a
+ * horizonatlly alined background image sprite
+ */
+$tabbar-scroller-include-hover-background-position: true !default;
+
+<span id='Ext-tab-Panel-css_var-S-tabbar-scroller-include-plain-icon'>/**
+</span> * var {boolean} $tabbar-scroller-include-plain-icon
+ * true to include separate scroller icons for &quot;plain&quot; tabbars
+ */
+$tabbar-scroller-include-plain-icon: false !default;
+
+<span id='Ext-tab-Panel-css_var-S-tabbar-scroller-symmetrical-icons'>/**
+</span> * var {boolean} $tabbar-scroller-symmetrical-icons
+ * if true, the tabbar will use symmetrical scroller icons.  Top and bottom tabbars
+ * will share icons, and Left and right will share icons.
+ */
+$tabbar-scroller-symmetrical-icons: true !default;
+
+$tab-icon-width: 16px !default;
+$tab-icon-height: 16px !default;
+$tab-icon-spacing: 4px !default;
+$tab-icon-background-position: center center !default;
+
+$tab-glyph-color: $tab-color !default;
+$tab-glyph-color-over: $tab-color-over !default;
+$tab-glyph-color-active: $tab-color-active !default;
+$tab-glyph-color-disabled: $tab-color-disabled !default;
+$tab-glyph-opacity: .5 !default;
+$tab-glyph-opacity-disabled: .3 !default;
+
+<span id='Ext-tab-Panel-css_var-S-tab-opacity-disabled'>/**
+</span> * var {number} $tab-opacity-disabled
+ * opacity to apply to the tab's main element when the tab is disabled
+ */
+$tab-opacity-disabled: 1 !default;
+
+<span id='Ext-tab-Panel-css_var-S-tab-text-opacity-disabled'>/**
+</span> * var {number} $tab-text-opacity-disabled
+ * opacity to apply to the tab's  text element when the tab is disabled
+ */
+$tab-text-opacity-disabled: .3 !default;
+
+<span id='Ext-tab-Panel-css_var-S-tab-icon-opacity-disabled'>/**
+</span> * var {number} $tab-icon-opacity-disabled
+ * opacity to apply to the tab's icon element when the tab is disabled
+ */
+$tab-icon-opacity-disabled: .5 !default;
+
+<span id='Ext-tab-Panel-css_var-S-tab-left-rotate-direction'>/**
+</span> * var {string} $tab-left-rotate-direction
+ * @private
+ * Has issues with IE
+ * The direction to rotate the contents of a left-aligned tab.  `right` to rotate
+ * clockwise or `left` to rotate counterclockwise. Defaults to `left`.
+ */
+$tab-left-rotate-direction: 'left';
+
+<span id='Ext-tab-Panel-css_var-S-tab-right-rotate-direction'>/**
+</span> * var {string} $tab-right-rotate-direction
+ * @private
+ * Has issues with IE
+ * The direction to rotate the contents of a right-aligned tab.  `right` to rotate
+ * clockwise or `left` to rotate counterclockwise. Defaults to `right`.
+ */
+$tab-right-rotate-direction: 'right';
+</pre>
+</body>
+</html>

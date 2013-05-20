@@ -26,31 +26,31 @@ Ext.define('Ext.draw.engine.Vml', {
 
     requires: ['Ext.draw.Draw', 'Ext.draw.Color', 'Ext.draw.Sprite', 'Ext.draw.Matrix', 'Ext.Element'],
 
-    /* End Definitions */
-
+<span id='Ext-draw-engine-Vml-property-engine'>    /* End Definitions */
+</span>
     engine: 'Vml',
 
-    map: {M: &quot;m&quot;, L: &quot;l&quot;, C: &quot;c&quot;, Z: &quot;x&quot;, m: &quot;t&quot;, l: &quot;r&quot;, c: &quot;v&quot;, z: &quot;x&quot;},
-    bitesRe: /([clmz]),?([^clmz]*)/gi,
-    valRe: /-?[^,\s\-]+/g,
-    fillUrlRe: /^url\(\s*['&quot;]?([^\)]+?)['&quot;]?\s*\)$/i,
-    pathlike: /^(path|rect)$/,
-    NonVmlPathRe: /[ahqstv]/ig, // Non-VML Pathing ops
-    partialPathRe: /[clmz]/g,
-    fontFamilyRe: /^['&quot;]+|['&quot;]+$/g,
-    baseVmlCls: Ext.baseCSSPrefix + 'vml-base',
-    vmlGroupCls: Ext.baseCSSPrefix + 'vml-group',
-    spriteCls: Ext.baseCSSPrefix + 'vml-sprite',
-    measureSpanCls: Ext.baseCSSPrefix + 'vml-measure-span',
-    zoom: 21600,
-    coordsize: 1000,
-    coordorigin: '0 0',
-    zIndexShift: 0,
-    // VML uses CSS z-index and therefore doesn't need sprites to be kept in zIndex order
-    orderSpritesByZIndex: false,
+<span id='Ext-draw-engine-Vml-property-map'>    map: {M: &quot;m&quot;, L: &quot;l&quot;, C: &quot;c&quot;, Z: &quot;x&quot;, m: &quot;t&quot;, l: &quot;r&quot;, c: &quot;v&quot;, z: &quot;x&quot;},
+</span><span id='Ext-draw-engine-Vml-property-bitesRe'>    bitesRe: /([clmz]),?([^clmz]*)/gi,
+</span><span id='Ext-draw-engine-Vml-property-valRe'>    valRe: /-?[^,\s\-]+/g,
+</span><span id='Ext-draw-engine-Vml-property-fillUrlRe'>    fillUrlRe: /^url\(\s*['&quot;]?([^\)]+?)['&quot;]?\s*\)$/i,
+</span><span id='Ext-draw-engine-Vml-property-pathlike'>    pathlike: /^(path|rect)$/,
+</span><span id='Ext-draw-engine-Vml-property-partialPathRe'><span id='Ext-draw-engine-Vml-property-NonVmlPathRe'>    NonVmlPathRe: /[ahqstv]/ig, // Non-VML Pathing ops
+</span></span>    partialPathRe: /[clmz]/g,
+<span id='Ext-draw-engine-Vml-property-fontFamilyRe'>    fontFamilyRe: /^['&quot;]+|['&quot;]+$/g,
+</span><span id='Ext-draw-engine-Vml-property-baseVmlCls'>    baseVmlCls: Ext.baseCSSPrefix + 'vml-base',
+</span><span id='Ext-draw-engine-Vml-property-vmlGroupCls'>    vmlGroupCls: Ext.baseCSSPrefix + 'vml-group',
+</span><span id='Ext-draw-engine-Vml-property-spriteCls'>    spriteCls: Ext.baseCSSPrefix + 'vml-sprite',
+</span><span id='Ext-draw-engine-Vml-property-measureSpanCls'>    measureSpanCls: Ext.baseCSSPrefix + 'vml-measure-span',
+</span><span id='Ext-draw-engine-Vml-property-zoom'>    zoom: 21600,
+</span><span id='Ext-draw-engine-Vml-property-coordsize'>    coordsize: 1000,
+</span><span id='Ext-draw-engine-Vml-property-coordorigin'>    coordorigin: '0 0',
+</span><span id='Ext-draw-engine-Vml-property-zIndexShift'>    zIndexShift: 0,
+</span><span id='Ext-draw-engine-Vml-property-orderSpritesByZIndex'>    // VML uses CSS z-index and therefore doesn't need sprites to be kept in zIndex order
+</span>    orderSpritesByZIndex: false,
 
-    // @private
-    // Convert an SVG standard path into a VML path
+<span id='Ext-draw-engine-Vml-method-path2vml'>    // @private
+</span>    // Convert an SVG standard path into a VML path
     path2vml: function (path) {
         var me = this,
             nonVML = me.NonVmlPathRe,
@@ -94,8 +94,8 @@ Ext.define('Ext.draw.engine.Vml', {
         return res.join(&quot; &quot;);
     },
 
-    // @private - set of attributes which need to be translated from the sprite API to the native browser API
-    translateAttrs: {
+<span id='Ext-draw-engine-Vml-property-translateAttrs'>    // @private - set of attributes which need to be translated from the sprite API to the native browser API
+</span>    translateAttrs: {
         radius: &quot;r&quot;,
         radiusX: &quot;rx&quot;,
         radiusY: &quot;ry&quot;,
@@ -105,8 +105,8 @@ Ext.define('Ext.draw.engine.Vml', {
         strokeLinejoin: &quot;stroke-linejoin&quot;
     },
 
-    // @private - Minimun set of defaults for different types of sprites.
-    minDefaults: {
+<span id='Ext-draw-engine-Vml-property-minDefaults'>    // @private - Minimun set of defaults for different types of sprites.
+</span>    minDefaults: {
         circle: {
             fill: &quot;none&quot;,
             stroke: null,
@@ -172,18 +172,18 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    // private
-    onMouseEnter: function (e) {
+<span id='Ext-draw-engine-Vml-method-onMouseEnter'>    // private
+</span>    onMouseEnter: function (e) {
         this.fireEvent(&quot;mouseenter&quot;, e);
     },
 
-    // private
-    onMouseLeave: function (e) {
+<span id='Ext-draw-engine-Vml-method-onMouseLeave'>    // private
+</span>    onMouseLeave: function (e) {
         this.fireEvent(&quot;mouseleave&quot;, e);
     },
 
-    // @private - Normalize a delegated single event from the main container to each sprite and sprite group
-    processEvent: function (name, e) {
+<span id='Ext-draw-engine-Vml-method-processEvent'>    // @private - Normalize a delegated single event from the main container to each sprite and sprite group
+</span>    processEvent: function (name, e) {
         var target = e.getTarget(),
             surface = this.surface,
             sprite;
@@ -194,8 +194,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    // Create the VML element/elements and append them to the DOM
-    createSpriteElement: function (sprite) {
+<span id='Ext-draw-engine-Vml-method-createSpriteElement'>    // Create the VML element/elements and append them to the DOM
+</span>    createSpriteElement: function (sprite) {
         var me = this,
             attr = sprite.attr,
             type = sprite.type,
@@ -238,8 +238,8 @@ Ext.define('Ext.draw.engine.Vml', {
         return sprite.el;
     },
 
-    getBBoxText: function (sprite) {
-        var vml = sprite.vml;
+<span id='Ext-draw-engine-Vml-method-getBBoxText'>    getBBoxText: function (sprite) {
+</span>        var vml = sprite.vml;
         return {
             x: vml.X + (vml.bbx || 0) - vml.W / 2,
             y: vml.Y - vml.H / 2,
@@ -248,8 +248,8 @@ Ext.define('Ext.draw.engine.Vml', {
         };
     },
 
-    applyAttrs: function (sprite) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-applyAttrs'>    applyAttrs: function (sprite) {
+</span>        var me = this,
             vml = sprite.vml,
             group = sprite.group,
             spriteAttr = sprite.attr,
@@ -360,8 +360,8 @@ Ext.define('Ext.draw.engine.Vml', {
         sprite.dirty = false;
     },
 
-    setZIndex: function (sprite) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-setZIndex'>    setZIndex: function (sprite) {
+</span>        var me = this,
             zIndex = sprite.attr.zIndex,
             shift = me.zIndexShift,
             items, iLen, item, i;
@@ -392,8 +392,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    // Normalize all virtualized types into paths.
-    setPaths: function (sprite, params) {
+<span id='Ext-draw-engine-Vml-method-setPaths'>    // Normalize all virtualized types into paths.
+</span>    setPaths: function (sprite, params) {
         var spriteAttr = sprite.attr, thickness = sprite.attr['stroke-width'] || 1;
         // Clear bbox cache
         sprite.bbox.plain = null;
@@ -417,8 +417,8 @@ Ext.define('Ext.draw.engine.Vml', {
         return false;
     },
 
-    setFill: function (sprite, params) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-setFill'>    setFill: function (sprite, params) {
+</span>        var me = this,
             el = sprite.el.dom,
             fillEl = el.fill,
             newfill = false,
@@ -486,8 +486,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    setStroke: function (sprite, params) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-setStroke'>    setStroke: function (sprite, params) {
+</span>        var me = this,
             el = sprite.el.dom,
             strokeEl = sprite.strokeEl,
             newStroke = false,
@@ -530,8 +530,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    setClip: function (sprite, params) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-setClip'>    setClip: function (sprite, params) {
+</span>        var me = this,
             el = sprite.el,
             clipEl = sprite.clipEl,
             rect = String(params[&quot;clip-rect&quot;]).split(me.separatorRe);
@@ -550,8 +550,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    setTextAttributes: function (sprite, params) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-setTextAttributes'>    setTextAttributes: function (sprite, params) {
+</span>        var me = this,
             vml = sprite.vml,
             textStyle = vml.textpath.style,
             spanCacheStyle = me.span.style,
@@ -610,28 +610,28 @@ Ext.define('Ext.draw.engine.Vml', {
         sprite.dirtyFont = false;
     },
 
-    setText: function (sprite, text) {
-        sprite.vml.textpath.string = Ext.htmlDecode(text);
+<span id='Ext-draw-engine-Vml-method-setText'>    setText: function (sprite, text) {
+</span>        sprite.vml.textpath.string = Ext.htmlDecode(text);
     },
 
-    hide: function () {
-        this.el.hide();
+<span id='Ext-draw-engine-Vml-method-hide'>    hide: function () {
+</span>        this.el.hide();
     },
 
-    show: function () {
-        this.el.show();
+<span id='Ext-draw-engine-Vml-method-show'>    show: function () {
+</span>        this.el.show();
     },
 
-    hidePrim: function (sprite) {
-        sprite.el.addCls(Ext.baseCSSPrefix + 'hide-visibility');
+<span id='Ext-draw-engine-Vml-method-hidePrim'>    hidePrim: function (sprite) {
+</span>        sprite.el.addCls(Ext.baseCSSPrefix + 'hide-visibility');
     },
 
-    showPrim: function (sprite) {
-        sprite.el.removeCls(Ext.baseCSSPrefix + 'hide-visibility');
+<span id='Ext-draw-engine-Vml-method-showPrim'>    showPrim: function (sprite) {
+</span>        sprite.el.removeCls(Ext.baseCSSPrefix + 'hide-visibility');
     },
 
-    setSize: function (width, height) {
-        var me = this;
+<span id='Ext-draw-engine-Vml-method-setSize'>    setSize: function (width, height) {
+</span>        var me = this;
         width = width || me.width;
         height = height || me.height;
         me.width = width;
@@ -675,23 +675,23 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    onAdd: function (item) {
-        this.callParent(arguments);
+<span id='Ext-draw-engine-Vml-method-onAdd'>    onAdd: function (item) {
+</span>        this.callParent(arguments);
         if (this.el) {
             this.renderItem(item);
         }
     },
 
-    onRemove: function (sprite) {
-        if (sprite.el) {
+<span id='Ext-draw-engine-Vml-method-onRemove'>    onRemove: function (sprite) {
+</span>        if (sprite.el) {
             sprite.el.remove();
             delete sprite.el;
         }
         this.callParent(arguments);
     },
 
-    render: function (container) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-render'>    render: function (container) {
+</span>        var me = this,
             doc = Ext.getDoc().dom,
             el;
         // VML Node factory method (createNode)
@@ -737,17 +737,17 @@ Ext.define('Ext.draw.engine.Vml', {
         me.renderAll();
     },
 
-    renderAll: function () {
-        this.items.each(this.renderItem, this);
+<span id='Ext-draw-engine-Vml-method-renderAll'>    renderAll: function () {
+</span>        this.items.each(this.renderItem, this);
     },
 
-    redraw: function (sprite) {
-        sprite.dirty = true;
+<span id='Ext-draw-engine-Vml-method-redraw'>    redraw: function (sprite) {
+</span>        sprite.dirty = true;
         this.renderItem(sprite);
     },
 
-    renderItem: function (sprite) {
-        // Does the surface element exist?
+<span id='Ext-draw-engine-Vml-method-renderItem'>    renderItem: function (sprite) {
+</span>        // Does the surface element exist?
         if (!this.el) {
             return;
         }
@@ -765,8 +765,8 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    rotationCompensation: function (deg, dx, dy) {
-        var matrix = new Ext.draw.Matrix();
+<span id='Ext-draw-engine-Vml-method-rotationCompensation'>    rotationCompensation: function (deg, dx, dy) {
+</span>        var matrix = new Ext.draw.Matrix();
         matrix.rotate(-deg, 0.5, 0.5);
         return {
             x: matrix.x(dx, dy),
@@ -774,8 +774,8 @@ Ext.define('Ext.draw.engine.Vml', {
         };
     },
 
-    transform: function (sprite, matrixOnly) {
-        var me = this,
+<span id='Ext-draw-engine-Vml-method-transform'>    transform: function (sprite, matrixOnly) {
+</span>        var me = this,
             bbox = me.getBBox(sprite, true),
             cx = bbox.x + bbox.width * 0.5,
             cy = bbox.y + bbox.height * 0.5,
@@ -859,22 +859,22 @@ Ext.define('Ext.draw.engine.Vml', {
         }
     },
 
-    createItem: function (config) {
-        return Ext.create('Ext.draw.Sprite', config);
+<span id='Ext-draw-engine-Vml-method-createItem'>    createItem: function (config) {
+</span>        return Ext.create('Ext.draw.Sprite', config);
     },
 
-    getRegion: function () {
-        return this.el.getRegion();
+<span id='Ext-draw-engine-Vml-method-getRegion'>    getRegion: function () {
+</span>        return this.el.getRegion();
     },
 
-    addCls: function (sprite, className) {
-        if (sprite &amp;&amp; sprite.el) {
+<span id='Ext-draw-engine-Vml-method-addCls'>    addCls: function (sprite, className) {
+</span>        if (sprite &amp;&amp; sprite.el) {
             sprite.el.addCls(className);
         }
     },
 
-    removeCls: function (sprite, className) {
-        if (sprite &amp;&amp; sprite.el) {
+<span id='Ext-draw-engine-Vml-method-removeCls'>    removeCls: function (sprite, className) {
+</span>        if (sprite &amp;&amp; sprite.el) {
             sprite.el.removeCls(className);
         }
     },
@@ -919,8 +919,8 @@ Ext.define('Ext.draw.engine.Vml', {
         });
     },
 
-    destroy: function () {
-        var me = this;
+<span id='Ext-draw-engine-Vml-method-destroy'>    destroy: function () {
+</span>        var me = this;
 
         me.callParent(arguments);
         if (me.el) {

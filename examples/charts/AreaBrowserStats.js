@@ -248,8 +248,6 @@ Ext.onReady(function () {
     });
 
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             style: 'background:#fff',
             animate: true,
             theme: 'Browser:gradients',
@@ -287,9 +285,10 @@ Ext.onReady(function () {
                   width: 170,
                   height: 28,
                   renderer: function(storeItem, item) {
-                      this.setTitle(item.storeField + ' - '
-                              + Ext.Date.format(new Date(storeItem.get('date')), 'M y')
-                              + ' - ' + storeItem.get(item.storeField) + '%');
+                      var d = Ext.Date.format(new Date(storeItem.get('date')), 'M y'),
+                          percent = storeItem.get(item.storeField) + '%';
+                          
+                      this.setTitle(item.storeField + ' - ' + d + ' - ' + percent);
                   }
                 },
                 xField: 'name',

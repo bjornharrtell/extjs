@@ -15,10 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Object'>/**
-</span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
- * @docauthor Jacky Nguyen &lt;jacky@sencha.com&gt;
- * @class Ext.Object
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require Function.js
+
+<span id='Ext-Object'>/**
+</span> * @class Ext.Object
  *
  * A collection of useful static methods to deal with objects.
  *
@@ -32,10 +33,16 @@ var TemplateClass = function(){},
     ExtObject = Ext.Object = {
 
 <span id='Ext-Object-method-chain'>    /**
-</span>     * Returns a new object with the given object as the prototype chain.
+</span>     * Returns a new object with the given object as the prototype chain. This method is
+     * designed to mimic the ECMA standard `Object.create` method and is assigned to that
+     * function when it is available.
+     * 
+     * **NOTE** This method does not support the property definitions capability of the
+     * `Object.create` method. Only the first argument is supported.
+     * 
      * @param {Object} object The prototype chain for the new object.
      */
-    chain: function (object) {
+    chain: Object.create || function (object) {
         TemplateClass.prototype = object;
         var result = new TemplateClass();
         TemplateClass.prototype = null;
@@ -170,8 +177,7 @@ var TemplateClass = function(){},
 
             if (Ext.isEmpty(value)) {
                 value = '';
-            }
-            else if (Ext.isDate(value)) {
+            } else if (Ext.isDate(value)) {
                 value = Ext.Date.toString(value);
             }
 
@@ -186,8 +192,8 @@ var TemplateClass = function(){},
      *
      * Non-recursive:
      *
-     *     Ext.Object.fromQueryString(&quot;foo=1&amp;bar=2&quot;); // returns {foo: 1, bar: 2}
-     *     Ext.Object.fromQueryString(&quot;foo=&amp;bar=2&quot;); // returns {foo: null, bar: 2}
+     *     Ext.Object.fromQueryString(&quot;foo=1&amp;bar=2&quot;); // returns {foo: '1', bar: '2'}
+     *     Ext.Object.fromQueryString(&quot;foo=&amp;bar=2&quot;); // returns {foo: null, bar: '2'}
      *     Ext.Object.fromQueryString(&quot;some%20price=%24300&quot;); // returns {'some price': '$300'}
      *     Ext.Object.fromQueryString(&quot;colors=red&amp;colors=green&amp;colors=blue&quot;); // returns {colors: ['red', 'green', 'blue']}
      *
@@ -537,6 +543,69 @@ var TemplateClass = function(){},
 
         return size;
     },
+    
+<span id='Ext-Object-method-isEmpty'>    /**
+</span>     * Checks if there are any properties on this object.
+     * @param {Object} object
+     * @return {Boolean} `true` if there no properties on the object.
+     */
+    isEmpty: function(object){
+        for (var key in object) {
+            if (object.hasOwnProperty(key)) {
+                return false;
+            }
+        }
+        return true;    
+    },
+    
+<span id='Ext-Object-method-equals'>    /**
+</span>     * Shallow compares the contents of 2 objects using strict equality. Objects are
+     * considered equal if they both have the same set of properties and the
+     * value for those properties equals the other in the corresponding object.
+     * 
+     *     // Returns true
+     *     Ext.Object.equals({
+     *         foo: 1,
+     *         bar: 2
+     *     }, {
+     *         foo: 1,
+     *         bar: 2
+     *     });
+     * 
+     * @param {Object} object1
+     * @param {Object} object2
+     * @return {Boolean} `true` if the objects are equal.
+     */
+    equals: (function() {
+        var check = function(o1, o2) {
+            var key;
+        
+            for (key in o1) {
+                if (o1.hasOwnProperty(key)) {
+                    if (o1[key] !== o2[key]) {
+                        return false;
+                    }    
+                }
+            }    
+            return true;
+        };
+        
+        return function(object1, object2) {
+            
+            // Short circuit if the same object is passed twice
+            if (object1 === object2) {
+                return true;
+            } if (object1 &amp;&amp; object2) {
+                // Do the second check because we could have extra keys in
+                // object2 that don't exist in object1.
+                return check(object1, object2) &amp;&amp; check(object2, object1);  
+            } else if (!object1 &amp;&amp; !object2) {
+                return object1 === object2;
+            } else {
+                return false;
+            }
+        };
+    })(),
 
 <span id='Ext-Object-method-classify'>    /**
 </span>     * @private

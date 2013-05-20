@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-GroupTabRenderer'>/**
+</span>* Allows GroupTab to render a table structure.
+*/
+Ext.define('Ext.ux.GroupTabRenderer', {
+    alias: 'plugin.grouptabrenderer',
+    extend: 'Ext.AbstractPlugin',
+
+<span id='Ext-ux-GroupTabRenderer-property-tableTpl'>    tableTpl: new Ext.XTemplate(
+</span>        '&lt;div id=&quot;{view.id}-body&quot; class=&quot;' + Ext.baseCSSPrefix + '{view.id}-table ' + Ext.baseCSSPrefix + 'grid-table ' + Ext.baseCSSPrefix + 'grid-table-resizer&quot; style=&quot;{tableStyle}&quot;&gt;',
+            '{%',
+                'values.view.renderRows(values.rows, values.viewStartIndex, out);',
+            '%}',
+        '&lt;/div&gt;',
+        {
+            priority: 5
+        }
+    ),
+
+<span id='Ext-ux-GroupTabRenderer-property-rowTpl'>    rowTpl: new Ext.XTemplate(
+</span>        '{%',
+            'Ext.Array.remove(values.itemClasses, &quot;', Ext.baseCSSPrefix + 'grid-row&quot;);',
+            'var dataRowCls = values.recordIndex === -1 ? &quot;&quot; : &quot; ' + Ext.baseCSSPrefix + 'grid-data-row&quot;;',
+        '%}',
+        '&lt;div {[values.rowId ? (&quot;id=\\&quot;&quot; + values.rowId + &quot;\\&quot;&quot;) : &quot;&quot;]} ',
+            'data-boundView=&quot;{view.id}&quot; ',
+            'data-recordId=&quot;{record.internalId}&quot; ',
+            'data-recordIndex=&quot;{recordIndex}&quot; ',
+            'class=&quot;' + Ext.baseCSSPrefix + 'grouptab-row {[values.itemClasses.join(&quot; &quot;)]} {[values.rowClasses.join(&quot; &quot;)]}{[dataRowCls]}&quot; ',
+            '{rowAttr:attributes}&gt;',
+            '&lt;tpl for=&quot;columns&quot;&gt;' +
+                '{%',
+                    'parent.view.renderCell(values, parent.record, parent.recordIndex, xindex - 1, out, parent)',
+                 '%}',
+            '&lt;/tpl&gt;',
+        '&lt;/div&gt;',
+        {
+            priority: 5
+        }
+    ),
+
+<span id='Ext-ux-GroupTabRenderer-property-cellTpl'>    cellTpl: new Ext.XTemplate(
+</span>        '{%values.tdCls = values.tdCls.replace(&quot; ' + Ext.baseCSSPrefix + 'grid-cell &quot;,&quot; &quot;);%}',
+        '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grouptab-cell {tdCls}&quot; {tdAttr}&gt;',
+            '&lt;div {unselectableAttr} class=&quot;' + Ext.baseCSSPrefix + 'grid-cell-inner&quot; style=&quot;text-align: {align}; {style};&quot;&gt;{value}&lt;/div&gt;',
+            '&lt;div class=&quot;x-grouptabs-corner x-grouptabs-corner-top-left&quot;&gt;&lt;/div&gt;',
+            '&lt;div class=&quot;x-grouptabs-corner x-grouptabs-corner-bottom-left&quot;&gt;&lt;/div&gt;',
+        '&lt;/div&gt;',
+        {
+            priority: 5
+        }
+    ),
+
+<span id='Ext-ux-GroupTabRenderer-property-selectors'>    selectors: {
+</span>        // Outer table
+        bodySelector: 'div.' + Ext.baseCSSPrefix + 'grid-table-resizer',
+
+        // Element which contains rows
+        nodeContainerSelector: 'div.' + Ext.baseCSSPrefix + 'grid-table-resizer',
+
+        // row
+        itemSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab-row',
+
+        // row which contains cells as opposed to wrapping rows
+        dataRowSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab-row',
+
+        // cell
+        cellSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab-cell', 
+
+        getCellSelector: function(header) {
+            var result = 'div.' + Ext.baseCSSPrefix + 'grid-cell';
+            if (header) {
+                result += '-' + header.getItemId();
+            }
+            return result;
+        }
+
+    },
+
+<span id='Ext-ux-GroupTabRenderer-method-init'>    init: function(grid) {
+</span>        var view = grid.getView(), 
+            me = this;
+        view.addTableTpl(me.tableTpl);
+        view.addRowTpl(me.rowTpl);
+        view.addCellTpl(me.cellTpl);
+        Ext.apply(view, me.selectors);
+    }
+});
+
+
+
+</pre>
+</body>
+</html>

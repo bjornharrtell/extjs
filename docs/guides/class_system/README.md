@@ -13,7 +13,7 @@ This manual is intended for any developer who wants to create new or extend exis
 ## I. Overview
 ______________
 
-Ext JS 4 ships with more than 300 classes. We have a huge community of more than 200,000 developers to date, coming from various programming backgrounds all over the world. At that scale of a framework, we face a big challange of providing a common code architecture that is:
+Ext JS 4 ships with more than 300 classes. We have a huge community of more than 200,000 developers to date, coming from various programming backgrounds all over the world. At that scale of a framework, we face a big challenge of providing a common code architecture that is:
 
 - familiar and simple to learn
 - fast to develop, easy to debug, painless to deploy

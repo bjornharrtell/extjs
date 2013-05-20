@@ -1,0 +1,37 @@
+$kitchensink-header-background-color: #81af34;
+$kitchensink-header-text-color: #fff;
+$kitchensink-header-text-shadow-color: #4e691f;
+@if $theme-name != 'ext-theme-neptune' {
+    $kitchensink-header-background-color: $border-layout-ct-background-color;
+    $kitchensink-header-text-color: $panel-header-color;
+    $kitchensink-header-text-shadow-color: gray;
+}
+
+
+
+#app-header {
+	@include background-image(linear-gradient(top, lighten($kitchensink-header-background-color, 5), darken($kitchensink-header-background-color, 5)));
+	border-bottom: 1px solid darken($kitchensink-header-background-color, 15);
+
+    @if $theme-name == 'ext-theme-neptune' {
+        .#{$prefix}nlg & {
+            background-image: url(images/header-bg.png);
+        }
+    }
+}
+
+#app-header-title {
+    padding: 15px 10px 10px 31px;
+
+    background: url(images/logo.png) no-repeat 10px 11px;
+
+    color: $kitchensink-header-text-color;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 1px 0 $kitchensink-header-text-shadow-color;
+}
+
+#theme-switcher-combo-labelEl {
+    color: $kitchensink-header-text-color;
+    font-weight: bold;
+}

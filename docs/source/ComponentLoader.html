@@ -72,8 +72,8 @@ Ext.define('Ext.ComponentLoader', {
     extend: 'Ext.ElementLoader',
 
     statics: {
-        Renderer: {
-            Data: function(loader, response, active){
+<span id='Ext-ComponentLoader-property-Renderer'>        Renderer: {
+</span>            Data: function(loader, response, active){
                 var success = true;
                 try {
                     loader.getTarget().update(Ext.decode(response.responseText));
@@ -183,8 +183,8 @@ The function must return false is loading is not successful. Below is a sample o
         me.target = target;
     },
 
-    // inherit docs
-    removeMask: function(){
+<span id='Ext-ComponentLoader-method-removeMask'>    // inherit docs
+</span>    removeMask: function(){
         this.target.setLoading(false);
     },
 
@@ -198,8 +198,8 @@ The function must return false is loading is not successful. Below is a sample o
     },
 
 
-    setOptions: function(active, options){
-        active.removeAll = Ext.isDefined(options.removeAll) ? options.removeAll : this.removeAll;
+<span id='Ext-ComponentLoader-method-setOptions'>    setOptions: function(active, options){
+</span>        active.removeAll = Ext.isDefined(options.removeAll) ? options.removeAll : this.removeAll;
     },
 
 <span id='Ext-ComponentLoader-method-getRenderer'>    /**

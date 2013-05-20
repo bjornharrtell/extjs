@@ -122,32 +122,32 @@
 }
 
 /*
- * CheckColumn styles
+ * StatusColumn styles
  */
-.x-grid-cell-checkcolumn .x-grid-cell-inner {
+.x-grid-cell-statuscolumn .x-grid-cell-inner {
     line-height: 0;
     padding: 2px 4px;
 }
-.x-grid-with-row-lines .x-grid-cell-checkcolumn .x-grid-cell-inner {
+.x-grid-with-row-lines .x-grid-cell-statuscolumn .x-grid-cell-inner {
     padding-top: 1px;
 }
-.x-grid-checkheader {
+.x-grid-statusheader {
     height: 16px;
     width: 16px;
 }
-.x-grid-checkheader-inner {
+.x-grid-statusheader-inner {
     height: 16px;
     width: 16px;
     cursor: pointer;
     background: url('../images/check.png') no-repeat 1px 1px;
 }
-.x-grid-checkheader-checked .x-grid-checkheader-inner {
+.x-grid-statusheader-checked .x-grid-statusheader-inner {
     background-position: -1px -16px;
 }
-.x-grid-checkheader-over {
+.x-grid-statusheader-over {
     background: url('../images/check.png') no-repeat 0 -32px;
 }
-.tasks-completed-task .x-grid-cell-checkcolumn {
+.tasks-completed-task .x-grid-cell-statuscolumn {
     text-decoration: none;
 }
 

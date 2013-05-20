@@ -24,8 +24,8 @@ Ext.define('Ext.fx.CubicBezier', {
 
     singleton: true,
 
-    /* End Definitions */
-
+<span id='Ext-fx-CubicBezier-method-cubicBezierAtTime'>    /* End Definitions */
+</span>
     cubicBezierAtTime: function(t, p1x, p1y, p2x, p2y, duration) {
         var cx = 3 * p1x,
             bx = 3 * (p2x - p1x) - cx,
@@ -79,8 +79,8 @@ Ext.define('Ext.fx.CubicBezier', {
         return solve(t, 1 / (200 * duration));
     },
 
-    cubicBezier: function(x1, y1, x2, y2) {
-        var fn = function(pos) {
+<span id='Ext-fx-CubicBezier-method-cubicBezier'>    cubicBezier: function(x1, y1, x2, y2) {
+</span>        var fn = function(pos) {
             return Ext.fx.CubicBezier.cubicBezierAtTime(pos, x1, y1, x2, y2, 1);
         };
         fn.toCSS3 = function() {

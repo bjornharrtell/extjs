@@ -1,7 +1,8 @@
 Ext.require('Ext.chart.*');
 
 Ext.onReady(function () {
-    var chart;
+    var chart, timeAxis;
+    
     var generateData = (function() {
         var data = [], i = 0,
             last = false,
@@ -60,26 +61,24 @@ Ext.onReady(function () {
         store.loadData(gs);
     }, 1000);
 
-    Ext.create('Ext.Window', {
+    var win = Ext.create('Ext.window.Window', {
         width: 800,
         height: 600,
         minHeight: 400,
         minWidth: 550,
-        hidden: false,
         maximizable: true,
         title: 'Live Animated Chart',
-        renderTo: Ext.getBody(),
+        autoShow: true,
         layout: 'fit',
         items: [{
             xtype: 'chart',
             style: 'background:#fff',
-            id: 'chartCmp',
+            itemId: 'chartCmp',
             store: store,
             shadow: false,
             animate: true,
             axes: [{
                 type: 'Numeric',
-                grid: true,
                 minimum: 0,
                 maximum: 100,
                 position: 'left',
@@ -157,6 +156,6 @@ Ext.onReady(function () {
             }]
         }]
     });
-    chart = Ext.getCmp('chartCmp');
-    var timeAxis = chart.axes.get(1);
+    chart = win.child('#chartCmp');
+    timeAxis = chart.axes.get(1);
 });

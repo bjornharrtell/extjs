@@ -23,8 +23,8 @@ Ext.define('Ext.panel.DD', {
     extend: 'Ext.dd.DragSource',
     requires: ['Ext.panel.Proxy'],
 
-    constructor : function(panel, cfg){
-        var me = this;
+<span id='Ext-panel-DD-method-constructor'>    constructor : function(panel, cfg){
+</span>        var me = this;
         
         me.panel = panel;
         me.dragData = {panel: panel};
@@ -35,8 +35,8 @@ Ext.define('Ext.panel.DD', {
         me.setupEl(panel);
     },
     
-    setupEl: function(panel){
-        var me = this,
+<span id='Ext-panel-DD-method-setupEl'>    setupEl: function(panel){
+</span>        var me = this,
             header = panel.header,
             el = panel.body;
             
@@ -53,44 +53,47 @@ Ext.define('Ext.panel.DD', {
         }
     },
 
-    showFrame: Ext.emptyFn,
-    startDrag: Ext.emptyFn,
-    
-    b4StartDrag: function(x, y) {
-        this.panelProxy.show();
+<span id='Ext-panel-DD-method-showFrame'>    showFrame: Ext.emptyFn,
+</span><span id='Ext-panel-DD-method-startDrag'>    startDrag: Ext.emptyFn,
+</span>    
+<span id='Ext-panel-DD-method-b4StartDrag'>    b4StartDrag: function(x, y) {
+</span>        this.panelProxy.show();
     },
     
-    b4MouseDown: function(e) {
-        var x = e.getPageX(),
+<span id='Ext-panel-DD-method-b4MouseDown'>    b4MouseDown: function(e) {
+</span>        var x = e.getPageX(),
             y = e.getPageY();
             
         this.autoOffset(x, y);
     },
     
-    onInitDrag : function(x, y){
-        this.onStartDrag(x, y);
+<span id='Ext-panel-DD-method-onInitDrag'>    onInitDrag : function(x, y){
+</span>        this.onStartDrag(x, y);
         return true;
     },
     
-    createFrame : Ext.emptyFn,
-    
-    getDragEl : function(e){
-        return this.panelProxy.ghost.el.dom;
+<span id='Ext-panel-DD-method-createFrame'>    createFrame : Ext.emptyFn,
+</span>    
+<span id='Ext-panel-DD-method-getDragEl'>    getDragEl : function(e){
+</span>        var ghost = this.panelProxy.ghost;
+        if (ghost) {
+            return ghost.el.dom;
+        }
     },
     
-    endDrag : function(e){
-        this.panelProxy.hide();
+<span id='Ext-panel-DD-method-endDrag'>    endDrag : function(e){
+</span>        this.panelProxy.hide();
         this.panel.saveState();
     },
 
-    autoOffset : function(x, y) {
-        x -= this.startPageX;
+<span id='Ext-panel-DD-method-autoOffset'>    autoOffset : function(x, y) {
+</span>        x -= this.startPageX;
         y -= this.startPageY;
         this.setDelta(x, y);
     },
     
-    // Override this, we don't want to repair on an &quot;invalid&quot; drop, the panel
-    // should main it's position
+<span id='Ext-panel-DD-method-onInvalidDrop'>    // Override this, we don't want to repair on an &quot;invalid&quot; drop, the panel
+</span>    // should main it's position
     onInvalidDrop: function(target, e, id) {
         var me = this;
         

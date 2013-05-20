@@ -16,8 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-FieldReplicator'>/**
-</span> * @class Ext.ux.FieldReplicator
- * &lt;p&gt;A plugin for Field Components which creates clones of the Field for as
+</span> * &lt;p&gt;A plugin for Field Components which creates clones of the Field for as
  * long as the user keeps filling them. Leaving the final one blank ends the repeating series.&lt;/p&gt;
  * &lt;p&gt;Usage:&lt;/p&gt;
  * &lt;pre&gt;&lt;code&gt;
@@ -33,8 +32,8 @@
 Ext.define('Ext.ux.FieldReplicator', {
     singleton: true,
 
-    init: function(field) {
-        // Assign the field an id grouping it with fields cloned from it. If it already
+<span id='Ext-ux-FieldReplicator-method-init'>    init: function(field) {
+</span>        // Assign the field an id grouping it with fields cloned from it. If it already
         // has an id that means it is itself a clone.
         if (!field.replicatorId) {
             field.replicatorId = Ext.id();
@@ -43,8 +42,8 @@ Ext.define('Ext.ux.FieldReplicator', {
         field.on('blur', this.onBlur, this);
     },
 
-    onBlur: function(field) {
-        var ownerCt = field.ownerCt,
+<span id='Ext-ux-FieldReplicator-method-onBlur'>    onBlur: function(field) {
+</span>        var ownerCt = field.ownerCt,
             replicatorId = field.replicatorId,
             isEmpty = Ext.isEmpty(field.getRawValue()),
             siblings = ownerCt.query('[replicatorId=' + replicatorId + ']'),

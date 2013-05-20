@@ -11,13 +11,15 @@ Ext.define('FV.view.feed.Add', {
         ['http://news.google.com/news?ned=us&topic=t&output=rss', 'Sci/Tech - Google News'],
         ['http://rss.news.yahoo.com/rss/software', 'Yahoo Software News']
     ],
+    
+    defaultFocus: '#feed',
 
-    height: 129,
-    width: 400,
+    width: 500,
     title: 'Add Feed',
-    closeAction: 'hide',
     iconCls: 'feed-add',
     layout: 'fit',
+    modal: true,
+    plain: true,
 
     initComponent: function() {
         Ext.apply(this, {
@@ -32,7 +34,9 @@ Ext.define('FV.view.feed.Add', {
 
             items: [{
                 xtype: 'form',
-                bodyStyle: 'padding: 10px;',
+                bodyPadding: '12 10 10',
+                border: false,
+                unstyled: true,
                 items: [{
                     itemId: 'feed',
                     anchor: '0',

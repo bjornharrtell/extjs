@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-LiveSearchGridPanel'>/**
-</span> * @class Ext.ux.LiveSearchGridPanel
- * @extends Ext.grid.Panel
- * &lt;p&gt;A GridPanel class with live search support.&lt;/p&gt;
+</span> * A GridPanel class with live search support.
  * @author Nicolas Ferrero
  */
 Ext.define('Ext.ux.LiveSearchGridPanel', {
@@ -72,10 +70,10 @@ Ext.define('Ext.ux.LiveSearchGridPanel', {
      */
     matchCls: 'x-livesearch-match',
     
-    defaultStatusText: 'Nothing Found',
-    
-    // Component initialization override: adds the top and bottom toolbars and setup headers renderer.
-    initComponent: function() {
+<span id='Ext-ux-LiveSearchGridPanel-property-defaultStatusText'>    defaultStatusText: 'Nothing Found',
+</span>    
+<span id='Ext-ux-LiveSearchGridPanel-method-initComponent'>    // Component initialization override: adds the top and bottom toolbars and setup headers renderer.
+</span>    initComponent: function() {
         var me = this;
         me.tbar = ['Search',{
                  xtype: 'textfield',
@@ -123,21 +121,21 @@ Ext.define('Ext.ux.LiveSearchGridPanel', {
         me.callParent(arguments);
     },
     
-    // afterRender override: it adds textfield and statusbar reference and start monitoring keydown events in textfield input 
-    afterRender: function() {
+<span id='Ext-ux-LiveSearchGridPanel-method-afterRender'>    // afterRender override: it adds textfield and statusbar reference and start monitoring keydown events in textfield input 
+</span>    afterRender: function() {
         var me = this;
         me.callParent(arguments);
         me.textField = me.down('textfield[name=searchField]');
         me.statusBar = me.down('statusbar[name=searchStatusBar]');
     },
-    // detects html tag
-    tagsRe: /&lt;[^&gt;]*&gt;/gm,
+<span id='Ext-ux-LiveSearchGridPanel-property-tagsRe'>    // detects html tag
+</span>    tagsRe: /&lt;[^&gt;]*&gt;/gm,
     
-    // DEL ASCII code
-    tagsProtect: '\x0f',
+<span id='Ext-ux-LiveSearchGridPanel-property-tagsProtect'>    // DEL ASCII code
+</span>    tagsProtect: '\x0f',
     
-    // detects regexp reserved word
-    regExpProtect: /\\|\/|\+|\\|\.|\[|\]|\{|\}|\?|\$|\*|\^|\|/gm,
+<span id='Ext-ux-LiveSearchGridPanel-property-regExpProtect'>    // detects regexp reserved word
+</span>    regExpProtect: /\\|\/|\+|\\|\.|\[|\]|\{|\}|\?|\$|\*|\^|\|/gm,
     
 <span id='Ext-ux-LiveSearchGridPanel-method-getSearchValue'>    /**
 </span>     * In normal mode it returns the value with protected regexp characters.

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * ToolTip is a {@link Ext.tip.Tip} implementation that handles the common case of displaying a
  * tooltip when hovering over a certain element or elements on the page. It allows fine-grained
@@ -56,24 +76,23 @@
  *         width: 400,
  *         renderTo: Ext.getBody()
  *     });
- *
- *     grid.getView().on('render', function(view) {
- *         view.tip = Ext.create('Ext.tip.ToolTip', {
- *             // The overall target element.
- *             target: view.el,
- *             // Each grid row causes its own separate show and hide.
- *             delegate: view.itemSelector,
- *             // Moving within the row should not hide the tip.
- *             trackMouse: true,
- *             // Render immediately so that tip.body can be referenced prior to the first show.
- *             renderTo: Ext.getBody(),
- *             listeners: {
- *                 // Change content dynamically depending on which element triggered the show.
- *                 beforeshow: function updateTipBody(tip) {
- *                     tip.update('Over company "' + view.getRecord(tip.triggerElement).get('company') + '"');
- *                 }
+ *     
+ *     var view = grid.getView();
+ *     var tip = Ext.create('Ext.tip.ToolTip', {
+ *         // The overall target element.
+ *         target: view.el,
+ *         // Each grid row causes its own separate show and hide.
+ *         delegate: view.itemSelector,
+ *         // Moving within the row should not hide the tip.
+ *         trackMouse: true,
+ *         // Render immediately so that tip.body can be referenced prior to the first show.
+ *         renderTo: Ext.getBody(),
+ *         listeners: {
+ *             // Change content dynamically depending on which element triggered the show.
+ *             beforeshow: function updateTipBody(tip) {
+ *                 tip.update('Over company "' + view.getRecord(tip.triggerElement).get('company') + '"');
  *             }
- *         });
+ *         }
  *     });
  *
  * {@img Ext.tip.ToolTip/Ext.tip.ToolTip2.png Ext.tip.ToolTip with delegation}
@@ -191,11 +210,11 @@ Ext.define('Ext.tip.ToolTip', {
      * See the delegate example in class documentation of {@link Ext.tip.ToolTip}.
      */
 
-    // private
+    // @private
     targetCounter: 0,
     quickShowInterval: 250,
 
-    // private
+    // @private
     initComponent: function() {
         var me = this;
         me.callParent(arguments);
@@ -204,7 +223,7 @@ Ext.define('Ext.tip.ToolTip', {
         me.origAnchor = me.anchor;
     },
 
-    // private
+    // @private
     onRender: function(ct, position) {
         var me = this;
         me.callParent(arguments);
@@ -249,7 +268,7 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     onMouseMove: function(e) {
         var me = this,
             t = me.delegate ? e.getTarget(me.delegate) : me.triggerElement = true,
@@ -260,7 +279,7 @@ Ext.define('Ext.tip.ToolTip', {
                 if (!me.hidden && me.trackMouse) {
                     xy = me.getTargetXY();
                     if (me.constrainPosition) {
-                        xy = me.el.adjustForConstraints(xy, me.el.getScopeParent());
+                        xy = me.el.adjustForConstraints(xy, me.el.parent());
                     }
                     me.setPagePosition(xy);
                 }
@@ -274,7 +293,7 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     getTargetXY: function() {
         var me = this,
             mouseOffset,
@@ -285,7 +304,7 @@ Ext.define('Ext.tip.ToolTip', {
         if (me.anchor) {
             me.targetCounter++;
             offsets = me.getOffsets();
-            xy = (me.anchorToTarget && !me.trackMouse) ? me.el.getAlignToXY(me.anchorTarget, me.getAnchorAlign()) : me.targetXY;
+            xy = (me.anchorToTarget && !me.trackMouse) ? me.getAlignToXY(me.anchorTarget, me.getAnchorAlign()) : me.targetXY;
             dw = Ext.Element.getViewWidth() - 5;
             dh = Ext.Element.getViewHeight() - 5;
             de = document.documentElement;
@@ -361,7 +380,7 @@ Ext.define('Ext.tip.ToolTip', {
         return offset;
     },
 
-    // private
+    // @private
     getAnchorPosition: function() {
         var me = this,
             m;
@@ -388,7 +407,7 @@ Ext.define('Ext.tip.ToolTip', {
         return 'left';
     },
 
-    // private
+    // @private
     getAnchorAlign: function() {
         switch (this.anchor) {
         case 'top':
@@ -402,7 +421,7 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     getOffsets: function() {
         var me = this,
             mouseOffset,
@@ -446,7 +465,7 @@ Ext.define('Ext.tip.ToolTip', {
         return offsets;
     },
 
-    // private
+    // @private
     onTargetOver: function(e) {
         var me = this,
             t;
@@ -457,20 +476,21 @@ Ext.define('Ext.tip.ToolTip', {
         t = e.getTarget(me.delegate);
         if (t) {
             me.triggerElement = t;
+            me.triggerEvent = e;
             me.clearTimer('hide');
             me.targetXY = e.getXY();
             me.delayShow();
         }
     },
 
-    // private
+    // @private
     delayShow: function() {
         var me = this;
         if (me.hidden && !me.showTimer) {
             if (Ext.Date.getElapsed(me.lastActive) < me.quickShowInterval) {
                 me.show();
             } else {
-                me.showTimer = Ext.defer(me.show, me.showDelay, me);
+                me.showTimer = Ext.defer(me.showFromDelay, me.showDelay, me);
             }
         }
         else if (!me.hidden && me.autoHide !== false) {
@@ -478,12 +498,19 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
     
+    showFromDelay: function(){
+        this.fromDelayShow = true;
+        this.show();
+        delete this.fromDelayShow;
+    },
+    
     onShowVeto: function(){
         this.callParent();
+        delete this.triggerElement;
         this.clearTimer('show');
     },
 
-    // private
+    // @private
     onTargetOut: function(e) {
         var me = this;
 
@@ -498,7 +525,7 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     delayHide: function() {
         var me = this;
         if (!me.hidden && !me.hideTimer) {
@@ -549,7 +576,7 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // inherit docs
+    // @inheritdoc
     showAt: function(xy) {
         var me = this;
         me.lastActive = new Date();
@@ -584,7 +611,7 @@ Ext.define('Ext.tip.ToolTip', {
         delete me.calledFromShowAt;
     },
 
-    // private
+    // @private
     syncAnchor: function() {
         var me = this,
             anchorPos,
@@ -616,7 +643,7 @@ Ext.define('Ext.tip.ToolTip', {
         me.anchorEl.setStyle('z-index', parseInt(me.el.getZIndex(), 10) || 0 + 1).setVisibilityMode(Ext.Element.DISPLAY);
     },
 
-    // private
+    // @private
     setPagePosition: function(x, y) {
         var me = this;
         me.callParent(arguments);
@@ -625,14 +652,14 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     clearTimer: function(name) {
         name = name + 'Timer';
         clearTimeout(this[name]);
         delete this[name];
     },
 
-    // private
+    // @private
     clearTimers: function() {
         var me = this;
         me.clearTimer('show');
@@ -640,21 +667,21 @@ Ext.define('Ext.tip.ToolTip', {
         me.clearTimer('hide');
     },
 
-    // private
+    // @private
     onShow: function() {
         var me = this;
         me.callParent();
         me.mon(Ext.getDoc(), 'mousedown', me.onDocMouseDown, me);
     },
 
-    // private
+    // @private
     onHide: function() {
         var me = this;
         me.callParent();
         me.mun(Ext.getDoc(), 'mousedown', me.onDocMouseDown, me);
     },
 
-    // private
+    // @private
     onDocMouseDown: function(e) {
         var me = this;
         if (!me.closable && !e.within(me.el.dom)) {
@@ -663,14 +690,14 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
-    // private
+    // @private
     doEnable: function() {
         if (!this.isDestroyed) {
             this.enable();
         }
     },
 
-    // private
+    // @private
     onDisable: function() {
         this.callParent();
         this.clearTimers();
@@ -688,7 +715,7 @@ Ext.define('Ext.tip.ToolTip', {
         me.callParent();
     },
 
-    // private
+    // @private
     onDestroy: function() {
         Ext.getDoc().un('mousedown', this.onDocMouseDown, this);
         this.callParent();

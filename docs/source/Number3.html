@@ -221,30 +221,12 @@ Ext.define('Ext.form.field.Number', {
      */
     autoStripChars: false,
 
-    initComponent: function() {
-        var me = this,
-            allowed;
-
+<span id='Ext-form-field-Number-method-initComponent'>    initComponent: function() {
+</span>        var me = this;
         me.callParent();
 
         me.setMinValue(me.minValue);
         me.setMaxValue(me.maxValue);
-
-        // Build regexes for masking and stripping based on the configured options
-        if (me.disableKeyFilter !== true) {
-            allowed = me.baseChars + '';
-            if (me.allowDecimals) {
-                allowed += me.decimalSeparator;
-            }
-            if (me.minValue &lt; 0) {
-                allowed += '-';
-            }
-            allowed = Ext.String.escapeRegex(allowed);
-            me.maskRe = new RegExp('[' + allowed + ']');
-            if (me.autoStripChars) {
-                me.stripCharsRe = new RegExp('[^' + allowed + ']', 'gi');
-            }
-        }
     },
 
 <span id='Ext-form-field-Number-method-getErrors'>    /**
@@ -289,16 +271,16 @@ Ext.define('Ext.form.field.Number', {
         return errors;
     },
 
-    rawToValue: function(rawValue) {
-        var value = this.fixPrecision(this.parseValue(rawValue));
+<span id='Ext-form-field-Number-method-rawToValue'>    rawToValue: function(rawValue) {
+</span>        var value = this.fixPrecision(this.parseValue(rawValue));
         if (value === null) {
             value = rawValue || null;
         }
         return  value;
     },
 
-    valueToRaw: function(value) {
-        var me = this,
+<span id='Ext-form-field-Number-method-valueToRaw'>    valueToRaw: function(value) {
+</span>        var me = this,
             decimalSeparator = me.decimalSeparator;
         value = me.parseValue(value);
         value = me.fixPrecision(value);
@@ -307,8 +289,8 @@ Ext.define('Ext.form.field.Number', {
         return value;
     },
     
-    getSubmitValue: function() {
-        var me = this,
+<span id='Ext-form-field-Number-method-getSubmitValue'>    getSubmitValue: function() {
+</span>        var me = this,
             value = me.callParent();
             
         if (!me.submitLocaleSeparator) {
@@ -317,18 +299,29 @@ Ext.define('Ext.form.field.Number', {
         return value;
     },
 
-    onChange: function() {
-        this.toggleSpinners();
+<span id='Ext-form-field-Number-method-onChange'>    onChange: function() {
+</span>        this.toggleSpinners();
         this.callParent(arguments);
     },
     
-    toggleSpinners: function(){
-        var me = this,
+<span id='Ext-form-field-Number-method-toggleSpinners'>    toggleSpinners: function(){
+</span>        var me = this,
             value = me.getValue(),
-            valueIsNull = value === null;
-            
-        me.setSpinUpEnabled(valueIsNull || value &lt; me.maxValue);
-        me.setSpinDownEnabled(valueIsNull || value &gt; me.minValue);
+            valueIsNull = value === null,
+            enabled;
+        
+        // If it's disabled, only allow it to be re-enabled if we are
+        // the ones who are disabling it.
+        if (me.spinUpEnabled || me.spinUpDisabledByToggle) {
+            enabled = valueIsNull || value &lt; me.maxValue;
+            me.setSpinUpEnabled(enabled, true);
+        }
+        
+        
+        if (me.spinDownEnabled || me.spinDownDisabledByToggle) {
+            enabled = valueIsNull || value &gt; me.minValue;
+            me.setSpinDownEnabled(enabled, true);
+        }
     },
 
 <span id='Ext-form-field-Number-method-setMinValue'>    /**
@@ -336,8 +329,27 @@ Ext.define('Ext.form.field.Number', {
      * @param {Number} value The minimum value
      */
     setMinValue : function(value) {
-        this.minValue = Ext.Number.from(value, Number.NEGATIVE_INFINITY);
-        this.toggleSpinners();
+        var me = this,
+            allowed;
+        
+        me.minValue = Ext.Number.from(value, Number.NEGATIVE_INFINITY);
+        me.toggleSpinners();
+        
+        // Build regexes for masking and stripping based on the configured options
+        if (me.disableKeyFilter !== true) {
+            allowed = me.baseChars + '';
+            if (me.allowDecimals) {
+                allowed += me.decimalSeparator;
+            }
+            if (me.minValue &lt; 0) {
+                allowed += '-';
+            }
+            allowed = Ext.String.escapeRegex(allowed);
+            me.maskRe = new RegExp('[' + allowed + ']');
+            if (me.autoStripChars) {
+                me.stripCharsRe = new RegExp('[^' + allowed + ']', 'gi');
+            }
+        }
     },
 
 <span id='Ext-form-field-Number-method-setMaxValue'>    /**
@@ -349,8 +361,8 @@ Ext.define('Ext.form.field.Number', {
         this.toggleSpinners();
     },
 
-    // private
-    parseValue : function(value) {
+<span id='Ext-form-field-Number-method-parseValue'>    // private
+</span>    parseValue : function(value) {
         value = parseFloat(String(value).replace(this.decimalSeparator, '.'));
         return isNaN(value) ? null : value;
     },
@@ -372,27 +384,61 @@ Ext.define('Ext.form.field.Number', {
         return parseFloat(Ext.Number.toFixed(parseFloat(value), precision));
     },
 
-    beforeBlur : function() {
-        var me = this,
+<span id='Ext-form-field-Number-method-beforeBlur'>    beforeBlur : function() {
+</span>        var me = this,
             v = me.parseValue(me.getRawValue());
 
         if (!Ext.isEmpty(v)) {
             me.setValue(v);
         }
     },
-
-    onSpinUp: function() {
-        var me = this;
-        if (!me.readOnly) {
-            me.setValue(Ext.Number.constrain(me.getValue() + me.step, me.minValue, me.maxValue));
+    
+<span id='Ext-form-field-Number-method-setSpinUpEnabled'>    setSpinUpEnabled: function(enabled, /* private */ internal){
+</span>        this.callParent(arguments);
+        if (!internal) {
+            delete this.spinUpDisabledByToggle;
+        } else {
+            this.spinUpDisabledByToggle = !enabled;
         }
     },
 
-    onSpinDown: function() {
-        var me = this;
+<span id='Ext-form-field-Number-method-onSpinUp'>    onSpinUp: function() {
+</span>        var me = this;
+            
         if (!me.readOnly) {
-            me.setValue(Ext.Number.constrain(me.getValue() - me.step, me.minValue, me.maxValue));
+            me.setSpinValue(Ext.Number.constrain(me.getValue() + me.step, me.minValue, me.maxValue));
         }
+    },
+    
+<span id='Ext-form-field-Number-method-setSpinDownEnabled'>    setSpinDownEnabled: function(enabled, /* private */ internal){
+</span>        this.callParent(arguments);
+        if (!internal) {
+            delete this.spinDownDisabledByToggle;
+        } else {
+            this.spinDownDisabledByToggle = !enabled;
+        }   
+    },
+
+<span id='Ext-form-field-Number-method-onSpinDown'>    onSpinDown: function() {
+</span>        var me = this;
+        
+        if (!me.readOnly) {
+            me.setSpinValue(Ext.Number.constrain(me.getValue() - me.step, me.minValue, me.maxValue));
+        }
+    },
+    
+<span id='Ext-form-field-Number-method-setSpinValue'>    setSpinValue: function(value) {
+</span>        var me = this,
+            len;
+            
+        if (me.enforceMaxLength) {
+            // We need to round the value here, otherwise we could end up with a
+            // very long number (think 0.1 + 0.2)
+            if (me.fixPrecision(value).toString().length &gt; me.maxLength) {
+                return;
+            }
+        }
+        me.setValue(value);
     }
 });
 </pre>

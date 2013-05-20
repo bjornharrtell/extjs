@@ -1,0 +1,82 @@
+.#{$prefix}datepicker {
+    position: relative;
+}
+
+.#{$prefix}datepicker-inner {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: separate;
+}
+
+.#{$prefix}datepicker-cell {
+    padding: 0;
+}
+
+.#{$prefix}datepicker-header {
+    position: relative;
+    zoom: 1;
+}
+
+.#{$prefix}datepicker-arrow {
+    position: absolute;
+    outline: none;
+    font-size: 0;
+}
+
+.#{$prefix}datepicker-column-header {
+    padding: 0;
+}
+
+.#{$prefix}datepicker-date {
+    display: block;
+    zoom: 1;
+    text-decoration: none;
+}
+
+.#{$prefix}monthpicker {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.#{$prefix}monthpicker-body {
+    height: 100%;
+}
+
+.#{$prefix}monthpicker-months,
+.#{$prefix}monthpicker-years {
+    float: left;
+    height: 100%;
+}
+
+.#{$prefix}monthpicker-item {
+    float: left;
+}
+
+.#{$prefix}monthpicker-item-inner {
+    display: block;
+    text-decoration: none;
+}
+
+.#{$prefix}monthpicker-yearnav-button-ct {
+    float: left;
+    text-align: center;
+}
+
+.#{$prefix}monthpicker-yearnav-button {
+    display: inline-block;
+    outline: none;
+    font-size: 0;
+}
+
+.#{$prefix}monthpicker-buttons {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+
+    @if $include-ie {
+        .#{$prefix}strict .#{$prefix}ie6 & {
+            bottom: -1px;
+        }
+    }
+}

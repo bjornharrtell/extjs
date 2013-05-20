@@ -81,8 +81,6 @@
  * `data1`, `data2` and `data3` respectively. All x-fields for the series must be the same field, in this case `name`.
  * Each scatter series has a different styling configuration for markers, specified by the `markerConfig` object. Finally we set the left axis as
  * axis to show the current values of the elements.
- *
- * @xtype scatter
  */
 Ext.define('Ext.chart.series.Scatter', {
 
@@ -92,8 +90,8 @@ Ext.define('Ext.chart.series.Scatter', {
 
     requires: ['Ext.chart.axis.Axis', 'Ext.chart.Shape', 'Ext.fx.Anim'],
 
-    /* End Definitions */
-
+<span id='Ext-chart-series-Scatter-cfg-type'>    /* End Definitions */
+</span>
     type: 'scatter',
     alias: 'series.scatter',
 
@@ -105,13 +103,6 @@ Ext.define('Ext.chart.series.Scatter', {
 <span id='Ext-chart-series-Scatter-cfg-style'>    /**
 </span>     * @cfg {Object} style
      * Append styling properties to this object for it to override theme properties.
-     */
-    
-<span id='Ext-chart-series-Scatter-cfg-axis'>    /**
-</span>     * @cfg {String/Array} axis
-     * The position of the axis to bind the values to. Possible values are 'left', 'bottom', 'top' and 'right'.
-     * You must explicitly set this value to bind the values of the line series to the ones in the axis, otherwise a
-     * relative scale will be used. If multiple axes are being used, they should both be specified in in the configuration.
      */
 
     constructor: function(config) {
@@ -144,8 +135,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }
     },
 
-    // @private Get chart and data boundaries
-    getBounds: function() {
+<span id='Ext-chart-series-Scatter-method-getBounds'>    // @private Get chart and data boundaries
+</span>    getBounds: function() {
         var me = this,
             chart = me.chart,
             store = chart.getChartStore(),
@@ -210,8 +201,8 @@ Ext.define('Ext.chart.series.Scatter', {
         };
     },
 
-    // @private Build an array of paths for the chart
-    getPaths: function() {
+<span id='Ext-chart-series-Scatter-method-getPaths'>    // @private Build an array of paths for the chart
+</span>    getPaths: function() {
         var me = this,
             chart = me.chart,
             enableShadows = chart.shadow,
@@ -281,8 +272,8 @@ Ext.define('Ext.chart.series.Scatter', {
         return attrs;
     },
 
-    // @private translate point to the center
-    resetPoint: function(sprite) {
+<span id='Ext-chart-series-Scatter-method-resetPoint'>    // @private translate point to the center
+</span>    resetPoint: function(sprite) {
         var bbox = this.bbox;
         sprite.setAttributes({
             translate: {
@@ -292,8 +283,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }, true);
     },
 
-    // @private translate shadows of a sprite to the center
-    resetShadow: function(sprite) {
+<span id='Ext-chart-series-Scatter-method-resetShadow'>    // @private translate shadows of a sprite to the center
+</span>    resetShadow: function(sprite) {
         var me = this,
             shadows = sprite.shadows,
             shadowAttributes = me.shadowAttributes,
@@ -317,8 +308,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }
     },
 
-    // @private create a new point
-    createPoint: function(attr, type) {
+<span id='Ext-chart-series-Scatter-method-createPoint'>    // @private create a new point
+</span>    createPoint: function(attr, type) {
         var me = this,
             chart = me.chart,
             group = me.group,
@@ -335,8 +326,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }, attr));
     },
 
-    // @private create a new set of shadows for a sprite
-    createShadow: function(sprite, endMarkerStyle, type) {
+<span id='Ext-chart-series-Scatter-method-createShadow'>    // @private create a new set of shadows for a sprite
+</span>    createShadow: function(sprite, endMarkerStyle, type) {
         var me = this,
             chart = me.chart,
             shadowGroups = me.shadowGroups,
@@ -465,8 +456,8 @@ Ext.define('Ext.chart.series.Scatter', {
         me.renderCallouts();
     },
 
-    // @private callback for when creating a label sprite.
-    onCreateLabel: function(storeItem, item, i, display) {
+<span id='Ext-chart-series-Scatter-method-onCreateLabel'>    // @private callback for when creating a label sprite.
+</span>    onCreateLabel: function(storeItem, item, i, display) {
         var me = this,
             group = me.labelsGroup,
             config = me.label,
@@ -481,8 +472,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }, endLabelStyle));
     },
 
-    // @private callback for when placing a label sprite.
-    onPlaceLabel: function(label, storeItem, item, i, display, animate) {
+<span id='Ext-chart-series-Scatter-method-onPlaceLabel'>    // @private callback for when placing a label sprite.
+</span>    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {
         var me = this,
             chart = me.chart,
             resizing = chart.resizing,
@@ -496,7 +487,7 @@ Ext.define('Ext.chart.series.Scatter', {
             bb, width, height, anim;
 
         label.setAttributes({
-            text: format(storeItem.get(field)),
+            text: format(storeItem.get(field), label, storeItem, item, i, display, animate, index),
             hidden: true
         }, true);
 
@@ -567,8 +558,8 @@ Ext.define('Ext.chart.series.Scatter', {
         }
     },
 
-    // @private callback for when placing a callout sprite.
-    onPlaceCallout: function(callout, storeItem, item, i, display, animate, index) {
+<span id='Ext-chart-series-Scatter-method-onPlaceCallout'>    // @private callback for when placing a callout sprite.
+</span>    onPlaceCallout: function(callout, storeItem, item, i, display, animate, index) {
         var me = this,
             chart = me.chart,
             surface = chart.surface,
@@ -661,14 +652,14 @@ Ext.define('Ext.chart.series.Scatter', {
         }
     },
 
-    // @private handles sprite animation for the series.
-    onAnimate: function(sprite, attr) {
+<span id='Ext-chart-series-Scatter-method-onAnimate'>    // @private handles sprite animation for the series.
+</span>    onAnimate: function(sprite, attr) {
         sprite.show();
         return this.callParent(arguments);
     },
 
-    isItemInPoint: function(x, y, item) {
-        var point,
+<span id='Ext-chart-series-Scatter-method-isItemInPoint'>    isItemInPoint: function(x, y, item) {
+</span>        var point,
             tolerance = 10,
             abs = Math.abs;
 

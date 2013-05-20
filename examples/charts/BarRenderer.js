@@ -3,7 +3,6 @@ Ext.require(['Ext.Window', 'Ext.fx.target.Sprite', 'Ext.layout.container.Fit', '
 
 Ext.onReady(function () {
     var chart = Ext.create('Ext.chart.Chart', {
-            xtype: 'chart',
             animate: true,
             style: 'background:#fff',
             shadow: false,
@@ -62,7 +61,7 @@ Ext.onReady(function () {
         hidden: false,
         maximizable: true,
         title: 'Bar Renderer',
-        renderTo: Ext.getBody(),
+        autoShow: true,
         layout: 'fit',
         tbar: [{
             text: 'Save Chart',
@@ -78,7 +77,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData());
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData());
+                });
             }
         }],
         items: chart

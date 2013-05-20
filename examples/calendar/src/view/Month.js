@@ -141,9 +141,11 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onResize: function() {
-        if (this.monitorResize) {
-            this.maxEventsPerDay = this.getMaxEventsPerDay();
-            this.refresh();
+        var me = this;
+        me.callParent(arguments);
+        me.maxEventsPerDay = me.getMaxEventsPerDay();
+        if (me.monitorResize) {
+            me.refresh();
         }
     },
 
@@ -314,9 +316,9 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     getDaySize: function(contentOnly) {
-        var box = this.el.getBox(),
-        w = box.width / this.dayCount,
-        h = box.height / this.getWeekCount();
+        var box = this.el.down(this.daySelector).getBox(),
+        w = box.width,
+        h = box.height;
 
         if (contentOnly) {
             var hd = this.el.select('.ext-cal-dtitle').first().parent('tr');
@@ -331,8 +333,12 @@ Ext.define('Ext.calendar.view.Month', {
     // private
     getEventHeight: function() {
         if (!this.eventHeight) {
-            var evt = this.el.select('.ext-cal-evt').first();
+            var evt = this.el.down('.ext-cal-evt');
             this.eventHeight = evt ? evt.parent('tr').getHeight() : 18;
+            var evt = this.el.down('.ext-cal-evr');
+            if (evt) {
+                this.eventHeight = Math.max(this.eventHeight, evt ? evt.parent('tr').getHeight() : 18);
+            }
         }
         return this.eventHeight;
     },
@@ -374,7 +380,9 @@ Ext.define('Ext.calendar.view.Month', {
     onInitDrag: function() {
         this.callParent(arguments);
         
-        Ext.select(this.daySelector).removeCls(this.dayOverClass);
+        if (this.dayOverClass) {
+            Ext.select(this.daySelector).removeCls(this.dayOverClass);
+        }
         if (this.detailPanel) {
             this.detailPanel.hide();
         }
@@ -474,7 +482,7 @@ Ext.define('Ext.calendar.view.Month', {
     // private
     handleDayMouseEvent: function(e, t, type) {
         var el = e.getTarget(this.weekLinkSelector, 3, true);
-        if (el) {
+        if (el && this.weekLinkOverClass) {
             el[type == 'over' ? 'addCls': 'removeCls'](this.weekLinkOverClass);
             return;
         }

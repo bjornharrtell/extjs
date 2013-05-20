@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-JSON'>/**
+  <pre class="prettyprint lang-js">//@tag extras,core
+//@require ../lang/Error.js
+
+<span id='Ext-JSON'>/**
 </span> * Modified version of [Douglas Crockford's JSON.js][dc] that doesn't
  * mess with the Object prototype.
  *
@@ -108,11 +111,16 @@ Ext.JSON = (new(function() {
         var cnewline = newline + '   ',
             sep = ',' + cnewline,
             a = [&quot;{&quot;, cnewline], // Note newline in case there are no members
-            i;
+            i, val;
 
         for (i in o) {
+            val = o[i];
             if (!useHasOwn || o.hasOwnProperty(i)) {
-                a.push(Ext.JSON.encodeValue(i) + ': ' + Ext.JSON.encodeValue(o[i], cnewline), sep);
+                // To match JSON.stringify, we shouldn't encode functions or undefined
+                if (typeof val === 'function' || val === undefined) {
+                    continue;
+                }
+                a.push(Ext.JSON.encodeValue(i) + ': ' + Ext.JSON.encodeValue(val, cnewline), sep);
             }
         }
 
@@ -149,10 +157,16 @@ Ext.JSON = (new(function() {
         //&lt;/debug&gt;
 
         var a = [&quot;{&quot;, &quot;&quot;], // Note empty string in case there are no serializable members.
-            i;
+            i, val;
         for (i in o) {
+            val = o[i];
             if (!useHasOwn || o.hasOwnProperty(i)) {
-                a.push(Ext.JSON.encodeValue(i), &quot;:&quot;, Ext.JSON.encodeValue(o[i]), ',');
+                // To match JSON.stringify, we shouldn't encode functions or undefined
+                if (typeof val === 'function' || val === undefined) {
+                    continue;
+                }
+                a.push(Ext.JSON.encodeValue(i), &quot;:&quot;, Ext.JSON.encodeValue(val), ',');
+                
             }
         }
         // Overwrite trailing comma (or empty string)

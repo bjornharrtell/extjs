@@ -23,26 +23,25 @@
  */
 
 <span id='Ext-ux-IFrame'>/**
-</span> * Barebones iframe implementation. For serious iframe work, see the ManagedIFrame extension
+</span> * Barebones iframe implementation. For serious iframe work, see the
+ * ManagedIFrame extension
  * (http://www.sencha.com/forum/showthread.php?71961).
- *
- * @class Ext.ux.IFrame
  */
 Ext.define('Ext.ux.IFrame', {
     extend: 'Ext.Component',
 
     alias: 'widget.uxiframe',
 
-    loadMask: 'Loading...',
-
-    src: 'about:blank',
-
-    renderTpl: [
-        '&lt;iframe src=&quot;{src}&quot; name=&quot;{frameName}&quot; width=&quot;100%&quot; height=&quot;100%&quot; frameborder=&quot;0&quot;&gt;&lt;/iframe&gt;'
+<span id='Ext-ux-IFrame-property-loadMask'>    loadMask: 'Loading...',
+</span>
+<span id='Ext-ux-IFrame-property-src'>    src: 'about:blank',
+</span>
+<span id='Ext-ux-IFrame-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;iframe src=&quot;{src}&quot; name=&quot;{frameName}&quot; width=&quot;100%&quot; height=&quot;100%&quot; frameborder=&quot;0&quot;&gt;&lt;/iframe&gt;'
     ],
 
-    initComponent: function () {
-        this.callParent();
+<span id='Ext-ux-IFrame-method-initComponent'>    initComponent: function () {
+</span>        this.callParent();
 
         this.frameName = this.frameName || this.id + '-frame';
 
@@ -56,36 +55,34 @@ Ext.define('Ext.ux.IFrame', {
         });
     },
 
-    initEvents : function() {
-        var me = this,
-            iframeEl = me.iframeEl.dom,
-            frameEl = me.getFrame();
+<span id='Ext-ux-IFrame-method-initEvents'>    initEvents : function() {
+</span>        var me = this;
         me.callParent();
         me.iframeEl.on('load', me.onLoad, me);
     },
 
-    initRenderData: function() {
-        return Ext.apply(this.callParent(), {
+<span id='Ext-ux-IFrame-method-initRenderData'>    initRenderData: function() {
+</span>        return Ext.apply(this.callParent(), {
             src: this.src,
             frameName: this.frameName
         });
     },
 
-    getBody: function() {
-        var doc = this.getDoc();
+<span id='Ext-ux-IFrame-method-getBody'>    getBody: function() {
+</span>        var doc = this.getDoc();
         return doc.body || doc.documentElement;
     },
 
-    getDoc: function() {
-        try {
+<span id='Ext-ux-IFrame-method-getDoc'>    getDoc: function() {
+</span>        try {
             return this.getWin().document;
         } catch (ex) {
             return null;
         }
     },
 
-    getWin: function() {
-        var me = this,
+<span id='Ext-ux-IFrame-method-getWin'>    getWin: function() {
+</span>        var me = this,
             name = me.frameName,
             win = Ext.isIE
                 ? me.iframeEl.dom.contentWindow
@@ -93,13 +90,13 @@ Ext.define('Ext.ux.IFrame', {
         return win;
     },
 
-    getFrame: function() {
-        var me = this;
+<span id='Ext-ux-IFrame-method-getFrame'>    getFrame: function() {
+</span>        var me = this;
         return me.iframeEl.dom;
     },
 
-    beforeDestroy: function () {
-        var me = this,
+<span id='Ext-ux-IFrame-method-beforeDestroy'>    beforeDestroy: function () {
+</span>        var me = this,
             doc, prop;
 
         if (me.rendered) {
@@ -119,8 +116,8 @@ Ext.define('Ext.ux.IFrame', {
         me.callParent();
     },
 
-    onLoad: function() {
-        var me = this,
+<span id='Ext-ux-IFrame-method-onLoad'>    onLoad: function() {
+</span>        var me = this,
             doc = me.getDoc(),
             fn = me.onRelayedEvent;
 
@@ -160,12 +157,19 @@ Ext.define('Ext.ux.IFrame', {
 
     },
 
-    onRelayedEvent: function (event) {
-        // relay event from the iframe's document to the document that owns the iframe...
+<span id='Ext-ux-IFrame-method-onRelayedEvent'>    onRelayedEvent: function (event) {
+</span>        // relay event from the iframe's document to the document that owns the iframe...
 
         var iframeEl = this.iframeEl,
-            iframeXY = iframeEl.getXY(),
-            eventXY = event.getXY();
+
+            // Get the left-based iframe position
+            iframeXY = Ext.Element.getTrueXY(iframeEl),
+            originalEventXY = event.getXY(),
+
+            // Get the left-based XY position.
+            // This is because the consumer of the injected event (Ext.EventManager) will
+            // perform its own RTL normalization.
+            eventXY = Ext.EventManager.getPageXY(event.browserEvent);
 
         // the event from the inner document has XY relative to that document's origin,
         // so adjust it to use the origin of the iframe in the outer document:
@@ -173,11 +177,11 @@ Ext.define('Ext.ux.IFrame', {
 
         event.injectEvent(iframeEl); // blame the iframe for the event...
 
-        event.xy = eventXY; // restore the original XY (just for safety)
+        event.xy = originalEventXY; // restore the original XY (just for safety)
     },
 
-    load: function (src) {
-        var me = this,
+<span id='Ext-ux-IFrame-method-load'>    load: function (src) {
+</span>        var me = this,
             text = me.loadMask,
             frame = me.getFrame();
 

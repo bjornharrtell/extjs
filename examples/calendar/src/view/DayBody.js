@@ -410,7 +410,7 @@ Ext.define('Ext.calendar.view.DayBody', {
             timeX = x;
 
         if (el) {
-            timeX = el.getLeft();
+            timeX = el.getX();
         }
 
         return {

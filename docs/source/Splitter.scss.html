@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}splitter {
+    font-size:1px;
+}
+
+.#{$prefix}splitter-horizontal {
+    cursor: e-resize;
+    cursor: row-resize;
+}
+
+.#{$prefix}splitter-vertical {
+    cursor: e-resize;
+    cursor: col-resize;
+}
+
+.#{$prefix}splitter-collapsed,
+.#{$prefix}splitter-horizontal-noresize,
+.#{$prefix}splitter-vertical-noresize {
+    cursor: default;
+}
+
+.#{$prefix}splitter-active {
+    z-index: 4;
+}
+
+.#{$prefix}collapse-el {
+    position: absolute;
+    background-repeat: no-repeat;
+}</pre>
+</body>
+</html>

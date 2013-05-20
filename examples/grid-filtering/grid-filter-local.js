@@ -237,7 +237,7 @@ Ext.onReady(function(){
     var win = Ext.create('Ext.Window', {
         title: 'Grid Filters Example',
         height: 400,
-        width: 700,
+        width: 875,
         layout: 'fit',
         items: grid
     }).show();

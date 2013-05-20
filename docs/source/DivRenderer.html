@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.grid.plugin.DivRenderer', {
+    alias: 'plugin.divrenderer',
+    extend: 'Ext.AbstractPlugin',
+
+    tableTpl: [
+        '&lt;div id=&quot;{view.id}-table&quot; class=&quot;' + Ext.baseCSSPrefix + '{view.id}-table ' + Ext.baseCSSPrefix + 'grid-table&quot; style=&quot;{tableStyle}&quot;&gt;',
+            '{%',
+                'values.view.renderRows(values.rows, values.viewStartIndex, out);',
+            '%}',
+        '&lt;/div&gt;',
+        {
+            priority: 0
+        }
+    ],
+
+    rowTpl: [
+        '{%',
+            'var dataRowCls = values.recordIndex === -1 ? &quot;&quot; : &quot; ' + Ext.baseCSSPrefix + 'grid-data-row&quot;;',
+        '%}',
+        '&lt;dl {[values.rowId ? (&quot;id=\\&quot;&quot; + values.rowId + &quot;\\&quot;&quot;) : &quot;&quot;]} ',
+            'data-boundView=&quot;{view.id}&quot; ',
+            'data-recordId=&quot;{record.internalId}&quot; ',
+            'data-recordIndex=&quot;{recordIndex}&quot; ',
+            'class=&quot;{[values.itemClasses.join(&quot; &quot;)]} {[values.rowClasses.join(&quot; &quot;)]}{[dataRowCls]}&quot; ',
+            'style=&quot;position:relative&quot; ',
+            '{rowAttr:attributes}&gt;',
+            '&lt;tpl for=&quot;columns&quot;&gt;' +
+                '{%',
+                    'parent.view.renderCell(values, parent.record, parent.recordIndex, xindex - 1, out, parent)',
+                 '%}',
+            '&lt;/tpl&gt;',
+        '&lt;/dl&gt;',
+        {
+            priority: 0
+        }
+    ],
+
+    cellTpl: [
+        '&lt;dt class=&quot;{tdCls}&quot; {tdAttr} data-cellIndex=&quot;{cellIndex}&quot;&gt;',
+            '&lt;div {unselectableAttr} class=&quot;' + Ext.baseCSSPrefix + 'grid-cell-inner&quot;',
+                'style=&quot;text-align:{align};&lt;tpl if=&quot;style&quot;&gt;{style}&lt;/tpl&gt;&quot;&gt;{value}&lt;/div&gt;',
+        '&lt;/dt&gt;', {
+            priority: 0
+        }
+    ],
+
+    selectors: {
+        // Outer table
+        bodySelector: 'div',
+
+        // Element which contains rows
+        nodeContainerSelector: 'div',
+
+        // view item (may be a wrapper)
+        itemSelector: 'dl.' + Ext.baseCSSPrefix + 'grid-row',
+
+        // row which contains cells as opposed to wrapping rows
+        dataRowSelector: 'dl.' + Ext.baseCSSPrefix + 'grid-data-row',
+
+        // cell
+        cellSelector: 'dt.' + Ext.baseCSSPrefix + 'grid-cell',
+
+        innerSelector: 'div.' + Ext.baseCSSPrefix + 'grid-cell-inner',
+
+        getNodeContainerSelector: function() {
+            return this.getBodySelector();
+        },
+
+        getNodeContainer: function() {
+            return this.el.getById(this.id + '-table', true);
+        }
+    },
+
+    init: function(grid) {
+        var view = grid.getView();
+        view.tableTpl = Ext.XTemplate.getTpl(this, 'tableTpl');
+        view.rowTpl   = Ext.XTemplate.getTpl(this, 'rowTpl');
+        view.cellTpl  = Ext.XTemplate.getTpl(this, 'cellTpl');
+        Ext.apply(view, this.selectors);
+    }
+});</pre>
+</body>
+</html>

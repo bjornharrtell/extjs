@@ -22,7 +22,7 @@ Ext.onReady(function(){
             
                 /* Language chooser combobox  */
                 var store = Ext.create('Ext.data.ArrayStore', {
-                    fields: ['code', 'language', 'charset'],
+                    fields: ['code', 'language'],
                     data : Ext.exampledata.languages // from languages.js
                 });
                 
@@ -37,7 +37,7 @@ Ext.onReady(function(){
                         select: {
                             fn: function(cb, records) {
                                 var record = records[0];
-                                window.location.search = Ext.urlEncode({"lang":record.get("code"),"charset":record.get("charset")});
+                                window.location.search = Ext.urlEncode({"lang":record.get("code")});
                             },
                             scope: this
                         }
@@ -60,8 +60,7 @@ Ext.onReady(function(){
                         url,
                         this.onSuccess,
                         this.onFailure,
-                        this,
-                        params.charset);
+                        this);
                 } else {
                     this.setupDemo();
                 }

@@ -90,7 +90,8 @@ Ext.onReady(function(){
             width: 80,
             sortable: true,
             dataIndex: 'due',
-            renderer: Ext.util.Format.dateRenderer('m/d/Y')
+            renderer: Ext.util.Format.dateRenderer('m/d/Y'),
+            summaryRenderer: Ext.util.Format.dateRenderer('m/d/Y')
         }, {
             header: 'Estimate',
             width: 75,

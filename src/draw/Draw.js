@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.draw.Draw
  * Base Drawing class.  Provides base drawing functions.
@@ -491,7 +511,7 @@ Ext.define('Ext.draw.Draw', {
             msqrt = math.sqrt,
             mabs = math.abs,
             masin = math.asin,
-            xy, cos, sin, x, y, h, rx2, ry2, k, cx, cy, f1, f2, df, c1, s1, c2, s2,
+            xy, x, y, h, rx2, ry2, k, cx, cy, f1, f2, df, c1, s1, c2, s2,
             t, hx, hy, m1, m2, m3, m4, newres, i, ln, f2old, x2old, y2old;
         if (!recursive) {
             xy = me.rotate(x1, y1, -rad);
@@ -500,8 +520,6 @@ Ext.define('Ext.draw.Draw', {
             xy = me.rotate(x2, y2, -rad);
             x2 = xy.x;
             y2 = xy.y;
-            cos = mcos(radian * angle);
-            sin = msin(radian * angle);
             x = (x1 - x2) / 2;
             y = (y1 - y2) / 2;
             h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
@@ -648,7 +666,7 @@ Ext.define('Ext.draw.Draw', {
             Y = [],
             i = 0,
             ln = path.length,
-            p, xmin, ymin, dim;
+            p, xmin, ymin, xmax, ymax, dim;
         for (; i < ln; i++) {
             p = path[i];
             if (p[0] == "M") {
@@ -667,12 +685,14 @@ Ext.define('Ext.draw.Draw', {
         }
         xmin = Math.min.apply(0, X);
         ymin = Math.min.apply(0, Y);
+        xmax = Math.max.apply(0, X);
+        ymax = Math.max.apply(0, Y);
         return {
-            x: xmin,
-            y: ymin,
+            x: Math.round(xmin),
+            y: Math.round(ymin),
             path: path,
-            width: Math.max.apply(0, X) - xmin,
-            height: Math.max.apply(0, Y) - ymin
+            width: Math.round(xmax - xmin),
+            height: Math.round(ymax - ymin)
         };
     },
 
@@ -701,7 +721,7 @@ Ext.define('Ext.draw.Draw', {
             ln = clipPolygon.length,
             cp1 = clipPolygon[ln - 1],
             outputList = subjectPolygon,
-            cp2, s, e, point, ln2, inputList, j;
+            cp2, s, e, ln2, inputList, j;
         for (; i < ln; ++i) {
             cp2 = clipPolygon[i];
             inputList = outputList;
@@ -909,8 +929,6 @@ Ext.define('Ext.draw.Draw', {
             beg = 1,
             mx = x,
             my = y,
-            cx = 0,
-            cy = 0,
             pathi,
             pathil,
             pathim,
@@ -933,8 +951,6 @@ Ext.define('Ext.draw.Draw', {
                 while (path[j][0] != "C") {
                     j++;
                 }
-                cx = path[j][5];
-                cy = path[j][6];
                 newp.push(["M", mx, my]);
                 beg = newp.length;
                 x = mx;
@@ -981,8 +997,9 @@ Ext.define('Ext.draw.Draw', {
             level = Math.floor(Math.log(step) / Math.LN10) + 1,
             m = Math.pow(10, level),
             cur,
+            floor,
             modulo = Math.round((step % m) * Math.pow(10, 2 - level)),
-            interval = [[0, 15], [20, 4], [30, 2], [40, 4], [50, 9], [60, 4], [70, 2], [80, 4], [100, 15]],
+            interval = [[0, 15], [10, 1], [20, 4], [25, 2], [50, 9], [100, 15]],
             stepCount = 0,
             value,
             weight,
@@ -990,9 +1007,13 @@ Ext.define('Ext.draw.Draw', {
             topValue,
             topWeight = 1e9,
             ln = interval.length;
-        cur = from = Math.floor(from / m) * m;
+
+        floor = Math.floor(from / m) * m;
+        if (from == floor && floor > 0) {
+            floor = Math.floor((from - (m/10)) / m) * m;
+        }
         
-        if(prettyNumbers){
+        if (prettyNumbers) {
             for (i = 0; i < ln; i++) {
                 value = interval[i][0];
                 weight = (value - modulo) < 0 ? 1e6 : (value - modulo) / interval[i][1];
@@ -1002,12 +1023,31 @@ Ext.define('Ext.draw.Draw', {
                 }
             }
             step = Math.floor(step * Math.pow(10, -level)) * Math.pow(10, level) + topValue * Math.pow(10, level - 2);
-            while (cur < to) {
-                cur += step;
-                stepCount++;
+
+            if (from < 0 && to >= 0) {
+                cur = 0;
+                while (cur > from) {
+                    cur -= step;
+                    stepCount++;
+                }
+                from = +cur.toFixed(10);
+
+                cur = 0;
+                while (cur < to) {
+                    cur += step;
+                    stepCount++;
+                }
+                to = +cur.toFixed(10);
+            } else {
+                cur = from = floor;
+                while (cur < to) {
+                    cur += step;
+                    stepCount++;
+                }
             }
             to = +cur.toFixed(10);
-        }else{
+        } else {
+            from = floor;
             stepCount = stepsMax;
         }
         
@@ -1027,27 +1067,29 @@ Ext.define('Ext.draw.Draw', {
      * @param {Date} from The minimum value in the data
      * @param {Date} to The maximum value in the data
      * @param {Number} stepsMax The maximum number of ticks
-     * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values
-     *        and will not be adjusted
+     * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values and will not be adjusted
+     *
      * @return {Object} The calculated step and ends info; properties are:
-     *     - from: The result start value, which may be lower than the original start value
-     *     - to: The result end value, which may be higher than the original end value
-     *     - step: The value size of each step
-     *     - steps: The number of steps. NOTE: the steps may not divide the from/to range perfectly evenly;
-     *              there may be a smaller distance between the last step and the end value than between prior
-     *              steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
-     *              the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
-     *              `from` to find the correct point for each tick.
+     * - from: The result start value, which may be lower than the original start value
+     * - to: The result end value, which may be higher than the original end value
+     * - step: The fixed value size of each step, or undefined if the steps are not fixed.
+     * - steps: The number of steps if the steps are fixed, or an array of step values.
+     
+     * NOTE: Even when the steps have a fixed value, they may not divide the from/to range perfectly evenly;
+     * there may be a smaller distance between the last step and the end value than between prior
+     * steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
+     * the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
+     * `from` to find the correct point for each tick.
      */
     snapEndsByDate: function (from, to, stepsMax, lockEnds) {
         var selectedStep = false,
             scales       = [
-                [Ext.Date.MILLI, [1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500]],
-                [Ext.Date.SECOND, [1, 2, 3, 5, 10, 15, 30]],
-                [Ext.Date.MINUTE, [1, 2, 3, 5, 10, 20, 30]],
+                [Ext.Date.MILLI, [1, 2, 5, 10, 20, 50, 100, 200, 250, 500]],
+                [Ext.Date.SECOND, [1, 2, 5, 10, 15, 30]],
+                [Ext.Date.MINUTE, [1, 2, 5, 10, 15, 30]],
                 [Ext.Date.HOUR, [1, 2, 3, 4, 6, 12]],
-                [Ext.Date.DAY, [1, 2, 3, 7, 14]],
-                [Ext.Date.MONTH, [1, 2, 3, 4, 6]]
+                [Ext.Date.DAY, [1, 2, 7, 14]],
+                [Ext.Date.MONTH, [1, 2, 3, 6]]
             ],
             sLen         = scales.length,
             stop         = false,
@@ -1078,65 +1120,167 @@ Ext.define('Ext.draw.Draw', {
     /**
      * snapEndsByDateAndStep is a utility method to deduce an appropriate tick configuration for the data set of given
      * feature and specific step size.
+     *
      * @param {Date} from The minimum value in the data
      * @param {Date} to The maximum value in the data
-     * @param {Array} step An array with two components: The first is the unit of the step (day, month, year, etc). The second one is the number of units for the step (1, 2, etc.).
+     * @param {Array} step An array with two components: The first is the unit of the step (day, month, year, etc). 
+     * The second is the number of units for the step (1, 2, etc.).
+     * If the number is an integer, it represents the number of units for the step ([Ext.Date.DAY, 2] means "Every other day").
+     * If the number is a fraction, it represents the number of steps per unit ([Ext.Date.DAY, 1/2] means "Twice a day").
+     * If the unit is the month, the steps may be adjusted depending on the month. For instance [Ext.Date.MONTH, 1/3], which means "Three times a month",
+     * generates steps on the 1st, the 10th and the 20th of every month regardless of whether a month has 28 days or 31 days. The steps are generated
+     * as follows:
+     * - [Ext.Date.MONTH, n]: on the current date every 'n' months, maxed to the number of days in the month.
+     * - [Ext.Date.MONTH, 1/2]: on the 1st and 15th of every month.
+     * - [Ext.Date.MONTH, 1/3]: on the 1st, 10th and 20th of every month.
+     * - [Ext.Date.MONTH, 1/4]: on the 1st, 8th, 15th and 22nd of every month.
      * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values
      *        and will not be adjusted
+     *
+     * @return {Object} The calculated step and ends info; properties are:
+     * - from: The result start value, which may be lower than the original start value
+     * - to: The result end value, which may be higher than the original end value
+     * - step: The fixed value size of each step, or undefined if the steps are not fixed.
+     * - steps: The number of steps if the steps are fixed, or an array of step values.
+     
+     * NOTE: Even when the steps have a fixed value, they may not divide the from/to range perfectly evenly;
+     * there may be a smaller distance between the last step and the end value than between prior
+     * steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
+     * the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
+     * `from` to find the correct point for each tick.
      */
+
     snapEndsByDateAndStep: function(from, to, step, lockEnds) {
         var fromStat = [from.getFullYear(), from.getMonth(), from.getDate(),
                 from.getHours(), from.getMinutes(), from.getSeconds(), from.getMilliseconds()],
-            steps = 0, testFrom, testTo;
+            steps, testFrom, testTo, date, year, month, day, fractionalMonth,
+            stepUnit = step[0], stepValue = step[1];
         if (lockEnds) {
             testFrom = from;
         } else {
-            switch (step[0]) {
+            switch (stepUnit) {
                 case Ext.Date.MILLI:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            fromStat[4], fromStat[5], Math.floor(fromStat[6] / step[1]) * step[1]);
+                            fromStat[4], fromStat[5], Math.floor(fromStat[6] / stepValue) * stepValue);
                     break;
                 case Ext.Date.SECOND:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            fromStat[4], Math.floor(fromStat[5] / step[1]) * step[1], 0);
+                            fromStat[4], Math.floor(fromStat[5] / stepValue) * stepValue, 0);
                     break;
                 case Ext.Date.MINUTE:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            Math.floor(fromStat[4] / step[1]) * step[1], 0, 0);
+                            Math.floor(fromStat[4] / stepValue) * stepValue, 0, 0);
                     break;
                 case Ext.Date.HOUR:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2],
-                            Math.floor(fromStat[3] / step[1]) * step[1], 0, 0, 0);
+                            Math.floor(fromStat[3] / stepValue) * stepValue, 0, 0, 0);
                     break;
                 case Ext.Date.DAY:
                     testFrom = new Date(fromStat[0], fromStat[1],
-                            Math.floor(fromStat[2] - 1 / step[1]) * step[1] + 1, 0, 0, 0, 0);
+                            Math.floor((fromStat[2] - 1) / stepValue) * stepValue + 1, 0, 0, 0, 0);
                     break;
                 case Ext.Date.MONTH:
-                    testFrom = new Date(fromStat[0], Math.floor(fromStat[1] / step[1]) * step[1], 1, 0, 0, 0, 0);
+                    testFrom = new Date(fromStat[0], Math.floor(fromStat[1] / stepValue) * stepValue, 1, 0, 0, 0, 0);
                     break;
                 default: // Ext.Date.YEAR
-                    testFrom = new Date(Math.floor(fromStat[0] / step[1]) * step[1], 0, 1, 0, 0, 0, 0);
+                    testFrom = new Date(Math.floor(fromStat[0] / stepValue) * stepValue, 0, 1, 0, 0, 0, 0);
                     break;
             }
         }
 
-        testTo = testFrom;
+        fractionalMonth = ((stepUnit === Ext.Date.MONTH) && (stepValue == 1/2 || stepValue == 1/3 || stepValue == 1/4));
+        steps = (fractionalMonth ? [] : 0);
+
         // TODO(zhangbei) : We can do it better somehow...
+        testTo = new Date(testFrom);
         while (testTo < to) {
-            testTo = Ext.Date.add(testTo, step[0], step[1]);
-            steps++;
+            if (fractionalMonth) {
+                date = new Date(testTo);
+                year = date.getFullYear();
+                month = date.getMonth();
+                day = date.getDate();
+                switch(stepValue) {
+                    case 1/2:   // the 1st and 15th of every month
+                        if (day >= 15) {
+                            day = 1;
+                            if (++month > 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            day = 15;
+                        }
+                        break;
+
+                    case 1/3:   // the 1st, 10th and 20th of every month
+                        if (day >= 20) {
+                            day = 1;
+                            if (++month > 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            if (day >= 10) {
+                                day = 20
+                            }
+                            else {
+                                day = 10;
+                            }
+                        }
+                        break;
+
+                    case 1/4:   // the 1st, 8th, 15th and 22nd of every month
+                        if (day >= 22) {
+                            day = 1;
+                            if (++month > 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            if (day >= 15) {
+                                day = 22
+                            }
+                            else {
+                                if (day >= 8) {
+                                    day = 15
+                                }
+                                else {
+                                    day = 8;
+                                }
+                            }
+                        }
+                        break;
+                }
+                testTo.setYear(year);
+                testTo.setMonth(month);
+                testTo.setDate(day);
+                steps.push(new Date(testTo));
+            }
+            else {
+                testTo = Ext.Date.add(testTo, stepUnit, stepValue);                
+                steps++;
+            }
         }
 
         if (lockEnds) {
             testTo = to;
         }
-        return {
-            from : +testFrom,
-            to : +testTo,
-            step : (testTo - testFrom) / steps,
-            steps : steps
-        };
+        
+        if (fractionalMonth) {
+            return {
+                from : +testFrom,
+                to : +testTo,
+                steps : steps   // array of steps
+            };            
+        }
+        else {
+            return {
+                from : +testFrom,
+                to : +testTo,
+                step : (testTo - testFrom) / steps,
+                steps : steps   // number of steps
+            };            
+        }
     },
 
     sorter: function (a, b) {

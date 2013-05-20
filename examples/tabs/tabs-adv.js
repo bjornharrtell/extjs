@@ -52,8 +52,14 @@ Ext.onReady(function() {
                     currentItem = null;
                 },
                 beforemenu: function (menu, item) {
+                    var enabled = menu.child('[text="Enabled"]'); 
                     menu.child('[text="Closable"]').setChecked(item.closable);
-                    menu.child('[text="Enabled"]').setChecked(!item.tab.isDisabled());
+                    if (item.tab.active) {
+                        enabled.disable();
+                    } else {
+                        enabled.enable();
+                        enabled.setChecked(!item.tab.isDisabled());
+                    }
 
                     currentItem = item;
                 }
@@ -67,6 +73,13 @@ Ext.onReady(function() {
     while(index < 3) {
         addTab(index % 2);
     }
+    
+    function doScroll(item) {
+        var id = item.id.replace('_menu', ''),
+            tab = tabs.getComponent(id).tab;
+       
+        tabs.getTabBar().layout.overflowHandler.scrollToItem(tab);
+    }
 
     function addTab (closable) {
         ++index;
@@ -77,6 +90,24 @@ Ext.onReady(function() {
             title: 'New Tab ' + index
         }).show();
     }
+    
+    function addToMenu(ct, tab) {
+        menu.add({
+           text: tab.title,
+           id: tab.id + '_menu',
+           handler: doScroll
+       });
+    }
+    
+    function removeFromMenu(ct, tab) {
+        var id = tab.id + '_menu';
+        menu.remove(id);
+    }
+    
+    tabs.on({
+        add: addToMenu,
+        remove: removeFromMenu
+    });
 
     Ext.widget('button', {
         iconCls: 'new-tab',
@@ -96,4 +127,16 @@ Ext.onReady(function() {
             addTab(false);
         }
     });
+    
+    var menu = new Ext.menu.Menu();
+    tabs.items.each(function(tab){
+        addToMenu(tabs, tab);
+    });
+    Ext.widget('button', {
+        iconCls: 'scroll',
+        renderTo: 'addButtonCt',
+        style: 'margin-left: 8px;',
+        text: 'Scroll to:',
+        menu: menu
+    })
 });

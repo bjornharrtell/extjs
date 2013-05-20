@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * As the number of records increases, the time required for the browser to render them increases. Paging is used to
  * reduce the amount of data exchanged with the client. Note: if there are more records/rows than can be viewed in the
@@ -356,7 +376,7 @@ Ext.define('Ext.toolbar.Paging', {
 
         me.bindStore(me.store || 'ext-empty-store', true);
     },
-    // private
+    // @private
     updateInfo : function(){
         var me = this,
             displayItem = me.child('#displayItem'),
@@ -380,7 +400,7 @@ Ext.define('Ext.toolbar.Paging', {
         }
     },
 
-    // private
+    // @private
     onLoad : function(){
         var me = this,
             pageData,
@@ -419,7 +439,7 @@ Ext.define('Ext.toolbar.Paging', {
         }
     },
 
-    // private
+    // @private
     getPageData : function(){
         var store = this.store,
             totalCount = store.getTotalCount();
@@ -434,7 +454,7 @@ Ext.define('Ext.toolbar.Paging', {
         };
     },
 
-    // private
+    // @private
     onLoadError : function(){
         if (!this.rendered) {
             return;
@@ -442,7 +462,7 @@ Ext.define('Ext.toolbar.Paging', {
         this.child('#refresh').enable();
     },
 
-    // private
+    // @private
     readPageFromInput : function(pageData){
         var v = this.child('#inputItem').getValue(),
             pageNum = parseInt(v, 10);
@@ -458,13 +478,13 @@ Ext.define('Ext.toolbar.Paging', {
         this.child('#inputItem').select();
     },
 
-    //private
+    // @private
     onPagingBlur : function(e){
         var curPage = this.getPageData().currentPage;
         this.child('#inputItem').setValue(curPage);
     },
 
-    // private
+    // @private
     onPagingKeyDown : function(field, e){
         var me = this,
             k = e.getKey(),
@@ -500,7 +520,7 @@ Ext.define('Ext.toolbar.Paging', {
         }
     },
 
-    // private
+    // @private
     beforeLoad : function(){
         if(this.rendered && this.refresh){
             this.refresh.disable();
@@ -593,7 +613,7 @@ Ext.define('Ext.toolbar.Paging', {
         this.bindStore(store);
     },
 
-    // private
+    // @private
     onDestroy : function(){
         this.unbind();
         this.callParent();

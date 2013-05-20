@@ -20,6 +20,8 @@ Ext.define('SimpleTasks.view.tasks.EditWindow', {
     modal: true,
     width: 500,
     height: 350,
+    minWidth: 500,
+    minHeight: 350,
     layout: 'fit',
 
     dockedItems: [
@@ -53,7 +55,7 @@ Ext.define('SimpleTasks.view.tasks.EditWindow', {
                     xtype: 'textfield',
                     name: 'title',
                     fieldLabel: 'Task Subject',
-                    labelWidth: 80,
+                    labelWidth: 90,
                     anchor: '100%'
                 },
                 {
@@ -68,8 +70,8 @@ Ext.define('SimpleTasks.view.tasks.EditWindow', {
                             xtype: 'datefield',
                             name: 'due',
                             fieldLabel: 'Due Date',
-                            labelWidth: 80,
-                            width: 185,
+                            labelWidth: 90,
+                            width: 195,
                             margin: '0 15 0 0'
                         },
                         {

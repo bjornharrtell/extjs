@@ -16,6 +16,7 @@ Ext.onReady(function() {
             fieldWidth: 60,
             msgTarget: 'side',
             allowBlank: false,
+            vtype: 'email',
             x: 5,
             y: 5,
             name: 'to',
@@ -39,6 +40,7 @@ Ext.onReady(function() {
     });
 
     var win = Ext.create('Ext.window.Window', {
+        autoShow: true,
         title: 'Resize Me',
         width: 500,
         height: 300,
@@ -54,6 +56,4 @@ Ext.onReady(function() {
             text: 'Cancel'
         }]
     });
-
-    win.show();
 });

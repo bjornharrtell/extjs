@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  * TabBar is used internally by a {@link Ext.tab.Panel TabPanel} and typically should not need to be created manually.
@@ -8,11 +28,14 @@ Ext.define('Ext.tab.Bar', {
     alias: 'widget.tabbar',
     baseCls: Ext.baseCSSPrefix + 'tab-bar',
 
-    requires: ['Ext.tab.Tab'],
+    requires: [
+        'Ext.tab.Tab',
+        'Ext.util.Point'
+    ],
 
     /**
      * @property {Boolean} isTabBar
-     * `true` in this class to identify an objact as an instantiated Tab Bar, or subclass thereof.
+     * `true` in this class to identify an object as an instantiated Tab Bar, or subclass thereof.
      */
     isTabBar: true,
     
@@ -39,10 +62,14 @@ Ext.define('Ext.tab.Bar', {
 
     // @private
     renderTpl: [
-        '<div id="{id}-body" class="{baseCls}-body {bodyCls}<tpl if="ui"> {baseCls}-body-{ui}<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl></tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
+        '<div id="{id}-body" class="{baseCls}-body {bodyCls} {bodyTargetCls}<tpl if="ui"> {baseCls}-body-{ui}<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl></tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
             '{%this.renderContainer(out,values)%}',
         '</div>',
-        '<div id="{id}-strip" class="{baseCls}-strip<tpl if="ui"> {baseCls}-strip-{ui}<tpl for="uiCls"> {parent.baseCls}-strip-{parent.ui}-{.}</tpl></tpl>"></div>'
+        '<div id="{id}-strip" class="{baseCls}-strip {baseCls}-strip-{dock}',
+            '<tpl if="ui"> {baseCls}-strip-{ui}',
+                '<tpl for="uiCls"> {parent.baseCls}-strip-{parent.ui}-{.}</tpl>',
+            '</tpl>">',
+        '</div>'
     ],
 
     /**
@@ -57,15 +84,20 @@ Ext.define('Ext.tab.Bar', {
      * @deprecated This config is deprecated. It is much easier to use the {@link Ext.tab.Panel#maxTabWidth maxTabWidth} config on the TabPanel.
      */
 
+    _reverseDockNames: {
+        left: 'right',
+        right: 'left'
+    },
+
     // @private
     initComponent: function() {
         var me = this;
 
         if (me.plain) {
-            me.setUI(me.ui + '-plain');
+            me.addCls(me.baseCls + '-plain');
         }
 
-        me.addClsWithUI(me.dock);
+        me.addClsWithUI(me.orientation);
 
         me.addEvents(
             /**
@@ -80,6 +112,7 @@ Ext.define('Ext.tab.Bar', {
 
         // Element onClick listener added by Header base class
         me.callParent(arguments);
+        Ext.merge(me.layout, me.initialConfig.layout);
 
         // TabBar must override the Header's align setting.
         me.layout.align = (me.orientation == 'vertical') ? 'left' : 'top';
@@ -89,13 +122,74 @@ Ext.define('Ext.tab.Bar', {
         delete me.titleCmp;
 
         Ext.apply(me.renderData, {
-            bodyCls: me.bodyCls
+            bodyCls: me.bodyCls,
+            dock: me.dock
         });
+    },
+
+    onRender: function() {
+        var me = this;
+
+        me.callParent();
+
+        if (me.orientation === 'vertical' && (Ext.isIE8 || Ext.isIE9) && Ext.isStrict) {
+            me.el.on({
+                mousemove: me.onMouseMove, 
+                scope: me
+            });
+        }
+    },
+
+    afterRender: function() {
+        var layout = this.layout;
+
+        this.callParent();
+        if (Ext.isIE9 && Ext.isStrict && this.orientation === 'vertical') {
+            // EXTJSIV-8765: focusing a vertically-oriented tab in IE9 strict can cause
+            // the innerCt to scroll if the tabs have bordering.  
+            layout.innerCt.on('scroll', function() {
+                layout.innerCt.dom.scrollLeft = 0;
+            });
+        }
+    },
+
+    afterLayout: function() {
+        this.adjustTabPositions();
+        this.callParent(arguments);
+    },
+
+    adjustTabPositions: function() {
+        var items = this.items.items,
+            i = items.length,
+            tab;
+
+        // When tabs are rotated vertically we don't have a reliable way to position
+        // them using CSS in modern browsers.  This is because of the way transform-orign
+        // works - it requires the width to be known, and the width is not known in css.
+        // Consequently we have to make an adjustment to the tab's position in these browsers.
+        // This is similar to what we do in Ext.panel.Header#adjustTitlePosition
+        if (!Ext.isIE9m) {
+            if (this.dock === 'right') {
+                // rotated 90 degrees around using the top left corner as the axis.
+                // tabs need to be shifted to the right by their width
+                while (i--) {
+                    tab = items[i];
+                    tab.el.setStyle('left', tab.lastBox.width + 'px');
+                }
+            } else if (this.dock === 'left') {
+                // rotated 270 degrees around using the top left corner as the axis.
+                // tabs need to be shifted down by their height
+                while (i--) {
+                    tab = items[i];
+                    tab.el.setStyle('left', -tab.lastBox.height + 'px');
+                }
+            }
+        }
     },
 
     getLayout: function() {
         var me = this;
-        me.layout.type = (me.dock === 'top' || me.dock === 'bottom') ? 'hbox' : 'vbox';
+        me.layout.type = (me.orientation === 'horizontal') ? 'hbox' : 'vbox';
         return me.callParent(arguments);
     },
 
@@ -115,18 +209,37 @@ Ext.define('Ext.tab.Bar', {
     },
 
     afterComponentLayout : function(width) {
-        this.callParent(arguments);
-        this.strip.setWidth(width);
+        var me = this,
+            needsScroll = me.needsScroll;
+        
+        me.callParent(arguments);
+            
+        if (needsScroll) {
+            me.layout.overflowHandler.scrollToItem(me.activeTab);
+        }    
+        delete me.needsScroll;
     },
 
     // @private
     onClick: function(e, target) {
-        // The target might not be a valid tab el.
         var me = this,
-            tabEl = e.getTarget('.' + Ext.tab.Tab.prototype.baseCls),
-            tab = tabEl && Ext.getCmp(tabEl.id),
             tabPanel = me.tabPanel,
+            tabEl, tab, isCloseClick, tabInfo;
+
+        if (e.getTarget('.' + Ext.baseCSSPrefix + 'box-scroller')) {
+            return;
+        }
+
+        if (me.orientation === 'vertical' && (Ext.isIE8 || Ext.isIE9) && Ext.isStrict) {
+            tabInfo = me.getTabInfoFromPoint(e.getXY());
+            tab = tabInfo.tab;
+            isCloseClick = tabInfo.close;
+        } else {
+            // The target might not be a valid tab el.
+            tabEl = e.getTarget('.' + Ext.tab.Tab.prototype.baseCls);
+            tab = tabEl && Ext.getCmp(tabEl.id);
             isCloseClick = tab && tab.closeEl && (target === tab.closeEl.dom);
+        }
 
         if (isCloseClick) {
             e.preventDefault();
@@ -144,6 +257,120 @@ Ext.define('Ext.tab.Bar', {
                 tab.focus();
             }
         }
+    },
+
+    // private
+    onMouseMove: function(e) {
+        var me = this,
+            overTab = me._overTab,
+            tabInfo, tab;
+
+        if (e.getTarget('.' + Ext.baseCSSPrefix + 'box-scroller')) {
+            return;
+        }
+
+        tabInfo = me.getTabInfoFromPoint(e.getXY());
+        tab = tabInfo.tab;
+
+        if (tab !== overTab) {
+            if (overTab && overTab.rendered) {
+                overTab.onMouseLeave(e);
+                me._overTab = null;
+            }
+            if (tab) {
+                tab.onMouseEnter(e);
+                me._overTab = tab;
+                if (!tab.disabled) {
+                    me.el.setStyle('cursor', 'pointer');
+                }
+            } else {
+                me.el.setStyle('cursor', 'default');
+            }
+        }
+    },
+
+    onMouseLeave: function(e) {
+        var overTab = this._overTab;
+
+        if (overTab && overTab.rendered) {
+            overTab.onMouseLeave(e);
+        }
+    },
+
+    // @private
+    // in IE8 and IE9 the clickable region of a rotated element is not its new rotated
+    // position, but it's original unrotated position.  The result is that rotated tabs do
+    // not capture click and mousenter/mosueleave events correctly.  This method accepts
+    // an xy position and calculates if the coordinates are within a tab and if they
+    // are within the tab's close icon (if any)
+    getTabInfoFromPoint: function(xy) {
+        var me = this,
+            tabs = me.items.items,
+            length = tabs.length,
+            innerCt = me.layout.innerCt,
+            innerCtXY = innerCt.getXY(),
+            point = new Ext.util.Point(xy[0], xy[1]),
+            i = 0,
+            lastBox, tabRegion, closeEl, close, closeXY, closeX, closeY, closeWidth,
+            closeHeight, tabX, tabY, tabWidth, tabHeight, closeRegion, isTabReversed,
+            direction, tab;
+
+        for (; i < length; i++) {
+            lastBox = tabs[i].lastBox;
+            tabX = innerCtXY[0] + lastBox.x;
+            tabY = innerCtXY[1] - innerCt.dom.scrollTop + lastBox.y;
+            tabWidth = lastBox.width;
+            tabHeight = lastBox.height;
+            tabRegion = new Ext.util.Region(
+                tabY,
+                tabX + tabWidth,
+                tabY + tabHeight,
+                tabX
+            );
+            if (tabRegion.contains(point)) {
+                tab = tabs[i];
+                closeEl = tab.closeEl;
+                if (closeEl) {
+                    closeXY = closeEl.getXY();
+                    closeWidth = closeEl.getWidth();
+                    closeHeight = closeEl.getHeight();
+                    // Read the dom to determine if the contents of the tab are reversed
+                    // (rotated 180 degrees).  If so, we can cache the result becuase
+                    // it's safe to assume all tabs in the tabbar will be the same
+                    if (me._isTabReversed === undefined) {
+                        me._isTabReversed = isTabReversed =
+                        // use currentStyle because getComputedStyle won't get the
+                        // filter property in IE9
+                        (tab.btnWrap.dom.currentStyle.filter.indexOf('rotation=2') !== -1);
+                    }
+
+                    direction = isTabReversed ? this._reverseDockNames[me.dock] : me.dock;
+
+                    if (direction === 'right') {
+                        closeX = tabX + tabWidth - ((closeXY[1] - tabY) + closeEl.getHeight()); 
+                        closeY = tabY + (closeXY[0] - tabX); 
+                    } else {
+                        closeX = tabX + (closeXY[1] - tabY);
+                        closeY = tabY + tabX + tabHeight - closeXY[0] - closeEl.getWidth();
+                    }
+                        
+                    closeRegion = new Ext.util.Region(
+                        closeY,
+                        closeX + closeWidth,
+                        closeY + closeHeight,
+                        closeX
+                    );
+
+                    close = closeRegion.contains(point);
+                }
+                break;
+            }
+        }
+            
+        return {
+            tab: tab,
+            close: close
+        };
     },
 
     /**
@@ -224,8 +451,9 @@ Ext.define('Ext.tab.Bar', {
      * @private
      * Marks the given tab as active
      * @param {Ext.tab.Tab} tab The tab to mark active
+     * @param {Boolean} initial True if we're setting the tab during setup
      */
-    setActiveTab: function(tab) {
+    setActiveTab: function(tab, initial) {
         var me = this;
 
         if (!tab.disabled && tab !== me.activeTab) {
@@ -240,19 +468,16 @@ Ext.define('Ext.tab.Bar', {
             tab.activate();
 
             me.activeTab = tab;
-            me.fireEvent('change', me, tab, tab.card);
+            me.needsScroll = true;
+            
+            // We don't fire the change event when setting the first tab.
+            // Also no need to run a layout
+            if (!initial) {
+            	me.fireEvent('change', me, tab, tab.card);
 
-            // Ensure that after the currently in progress layout, the active tab is scrolled into view
-            me.on({
-                afterlayout: me.afterTabActivate,
-                scope: me,
-                single: true
-            });
-            me.updateLayout();
+            	// Ensure that after the currently in progress layout, the active tab is scrolled into view
+            	me.updateLayout();
+            }
         }
-    },
-
-    afterTabActivate: function() {
-        this.layout.overflowHandler.scrollToItem(this.activeTab);
     }
 });

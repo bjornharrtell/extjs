@@ -59,8 +59,13 @@ Ext.define('Ext.ux.form.ItemSelector', {
         bottom: &quot;Move to Bottom&quot;
     },
 
-    initComponent: function() {
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-cfg-layout'>    layout: {
+</span>        type: 'hbox',
+        align: 'stretch'
+    },
+
+<span id='Ext-ux-form-ItemSelector-method-initComponent'>    initComponent: function() {
+</span>        var me = this;
 
         me.ddGroup = me.id + '-dd';
         me.callParent();
@@ -70,11 +75,20 @@ Ext.define('Ext.ux.form.ItemSelector', {
         me.bindStore(me.store);
     },
 
-    createList: function(title){
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-method-createList'>    createList: function(title){
+</span>        var me = this;
 
         return Ext.create('Ext.ux.form.MultiSelect', {
+            // We don't want the multiselects themselves to act like fields,
+            // so override these methods to prevent them from including
+            // any of their values
             submitValue: false,
+            getSubmitData: function(){
+                return null;
+            },
+            getModelData: function(){
+                return null;    
+            },
             flex: 1,
             dragGroup: me.ddGroup,
             dropGroup: me.ddGroup,
@@ -84,6 +98,7 @@ Ext.define('Ext.ux.form.ItemSelector', {
                 data: []
             },
             displayField: me.displayField,
+            valueField: me.valueField,
             disabled: me.disabled,
             listeners: {
                 boundList: {
@@ -95,37 +110,29 @@ Ext.define('Ext.ux.form.ItemSelector', {
         });
     },
 
-    setupItems: function() {
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-method-setupItems'>    setupItems: function() {
+</span>        var me = this;
 
         me.fromField = me.createList(me.fromTitle);
         me.toField = me.createList(me.toTitle);
 
-        return {
-            border: false,
-            layout: {
-                type: 'hbox',
-                align: 'stretch'
-            },
-            items: [
-                me.fromField,
-                {
-                    xtype: 'container',
-                    margins: '0 4',
-                    width: 22,
-                    layout: {
-                        type: 'vbox',
-                        pack: 'center'
-                    },
-                    items: me.createButtons()
+        return [
+            me.fromField,
+            {
+                xtype: 'container',
+                margins: '0 4',
+                layout: {
+                    type: 'vbox',
+                    pack: 'center'
                 },
-                me.toField
-            ]
-        };
+                items: me.createButtons()
+            },
+            me.toField
+        ];
     },
 
-    createButtons: function(){
-        var me = this,
+<span id='Ext-ux-form-ItemSelector-method-createButtons'>    createButtons: function() {
+</span>        var me = this,
             buttons = [];
 
         if (!me.hideNavIcons) {
@@ -169,8 +176,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         });
     },
 
-    onTopBtnClick : function() {
-        var list = this.toField.boundList,
+<span id='Ext-ux-form-ItemSelector-method-onTopBtnClick'>    onTopBtnClick : function() {
+</span>        var list = this.toField.boundList,
             store = list.getStore(),
             selected = this.getSelections(list);
 
@@ -183,8 +190,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         list.getSelectionModel().select(selected);
     },
 
-    onBottomBtnClick : function() {
-        var list = this.toField.boundList,
+<span id='Ext-ux-form-ItemSelector-method-onBottomBtnClick'>    onBottomBtnClick : function() {
+</span>        var list = this.toField.boundList,
             store = list.getStore(),
             selected = this.getSelections(list);
 
@@ -197,8 +204,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         list.getSelectionModel().select(selected);
     },
 
-    onUpBtnClick : function() {
-        var list = this.toField.boundList,
+<span id='Ext-ux-form-ItemSelector-method-onUpBtnClick'>    onUpBtnClick : function() {
+</span>        var list = this.toField.boundList,
             store = list.getStore(),
             selected = this.getSelections(list),
             rec,
@@ -220,8 +227,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         list.getSelectionModel().select(selected);
     },
 
-    onDownBtnClick : function() {
-        var list = this.toField.boundList,
+<span id='Ext-ux-form-ItemSelector-method-onDownBtnClick'>    onDownBtnClick : function() {
+</span>        var list = this.toField.boundList,
             store = list.getStore(),
             selected = this.getSelections(list),
             rec,
@@ -242,24 +249,24 @@ Ext.define('Ext.ux.form.ItemSelector', {
         list.getSelectionModel().select(selected);
     },
 
-    onAddBtnClick : function() {
-        var me = this,
+<span id='Ext-ux-form-ItemSelector-method-onAddBtnClick'>    onAddBtnClick : function() {
+</span>        var me = this,
             selected = me.getSelections(me.fromField.boundList);
 
         me.moveRec(true, selected);
         me.toField.boundList.getSelectionModel().select(selected);
     },
 
-    onRemoveBtnClick : function() {
-        var me = this,
+<span id='Ext-ux-form-ItemSelector-method-onRemoveBtnClick'>    onRemoveBtnClick : function() {
+</span>        var me = this,
             selected = me.getSelections(me.toField.boundList);
 
         me.moveRec(false, selected);
         me.fromField.boundList.getSelectionModel().select(selected);
     },
 
-    moveRec: function(add, recs) {
-        var me = this,
+<span id='Ext-ux-form-ItemSelector-method-moveRec'>    moveRec: function(add, recs) {
+</span>        var me = this,
             fromField = me.fromField,
             toField   = me.toField,
             fromStore = add ? fromField.store : toField.store,
@@ -278,18 +285,18 @@ Ext.define('Ext.ux.form.ItemSelector', {
         me.syncValue();
     },
 
-    // Synchronizes the submit value with the current state of the toStore
-    syncValue: function() {
+<span id='Ext-ux-form-ItemSelector-method-syncValue'>    // Synchronizes the submit value with the current state of the toStore
+</span>    syncValue: function() {
         var me = this; 
         me.mixins.field.setValue.call(me, me.setupValue(me.toField.store.getRange()));
     },
 
-    onItemDblClick: function(view, rec) {
-        this.moveRec(view === this.fromField.boundList, rec);
+<span id='Ext-ux-form-ItemSelector-method-onItemDblClick'>    onItemDblClick: function(view, rec) {
+</span>        this.moveRec(view === this.fromField.boundList, rec);
     },
 
-    setValue: function(value) {
-        var me = this,
+<span id='Ext-ux-form-ItemSelector-method-setValue'>    setValue: function(value) {
+</span>        var me = this,
             fromField = me.fromField,
             toField = me.toField,
             fromStore = fromField.store,
@@ -340,8 +347,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         Ext.resumeLayouts(true);        
     },
 
-    onBindStore: function(store, initial) {
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-method-onBindStore'>    onBindStore: function(store, initial) {
+</span>        var me = this;
 
         if (me.fromField) {
             me.fromField.store.removeAll()
@@ -356,8 +363,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         }
     },
 
-    populateFromStore: function(store) {
-        var fromStore = this.fromField.store;
+<span id='Ext-ux-form-ItemSelector-method-populateFromStore'>    populateFromStore: function(store) {
+</span>        var fromStore = this.fromField.store;
 
         // Flag set when the fromStore has been loaded
         this.fromStorePopulated = true;
@@ -368,8 +375,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         fromStore.fireEvent('load', fromStore);
     },
 
-    onEnable: function(){
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-method-onEnable'>    onEnable: function(){
+</span>        var me = this;
 
         me.callParent();
         me.fromField.enable();
@@ -380,8 +387,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         });
     },
 
-    onDisable: function(){
-        var me = this;
+<span id='Ext-ux-form-ItemSelector-method-onDisable'>    onDisable: function(){
+</span>        var me = this;
 
         me.callParent();
         me.fromField.disable();
@@ -392,8 +399,8 @@ Ext.define('Ext.ux.form.ItemSelector', {
         });
     },
 
-    onDestroy: function(){
-        this.bindStore(null);
+<span id='Ext-ux-form-ItemSelector-method-onDestroy'>    onDestroy: function(){
+</span>        this.bindStore(null);
         this.callParent();
     }
 });

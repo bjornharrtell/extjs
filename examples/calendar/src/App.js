@@ -48,10 +48,10 @@ Ext.define('Ext.calendar.App', {
             layout: 'border',
             renderTo: 'calendar-ct',
             items: [{
+                xtype: 'component',
                 id: 'app-header',
                 region: 'north',
                 height: 35,
-                border: false,
                 contentEl: 'app-header-content'
             },{
                 id: 'app-center',
@@ -64,10 +64,10 @@ Ext.define('Ext.calendar.App', {
                     }
                 },
                 items: [{
+                    xtype: 'container',
                     id:'app-west',
                     region: 'west',
-                    width: 179,
-                    border: false,
+                    width: Ext.themeName === 'neptune' ? 214 : 179,
                     items: [{
                         xtype: 'datepicker',
                         id: 'app-nav-picker',
@@ -328,7 +328,7 @@ function() {
         updateOperation: function(operation, callback, scope) {
             operation.setCompleted();
             operation.setSuccessful();
-            Ext.callback(callback, scope || me, [operation]);
+            Ext.callback(callback, scope || this, [operation]);
         },
         create: function() {
             this.updateOperation.apply(this, arguments);

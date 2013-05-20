@@ -134,8 +134,8 @@ Ext.define('Ext.Action', {
         this.items = [];
     },
 
-    /*
-     * @property {Boolean} isAction
+<span id='Ext-Action-property-isAction'>    /*
+</span>     * @property {Boolean} isAction
      * `true` in this class to identify an object as an instantiated Action, or subclass thereof.
      */
     isAction : true,
@@ -259,8 +259,8 @@ Ext.define('Ext.Action', {
         Ext.each(this.items, fn, scope);
     },
 
-    // private
-    callEach : function(fnName, args){
+<span id='Ext-Action-method-callEach'>    // @private
+</span>    callEach : function(fnName, args){
         var items = this.items,
             i = 0,
             len = items.length,
@@ -274,14 +274,14 @@ Ext.define('Ext.Action', {
         Ext.resumeLayouts(true);
     },
 
-    // private
-    addComponent : function(comp){
+<span id='Ext-Action-method-addComponent'>    // @private
+</span>    addComponent : function(comp){
         this.items.push(comp);
         comp.on('destroy', this.removeComponent, this);
     },
 
-    // private
-    removeComponent : function(comp){
+<span id='Ext-Action-method-removeComponent'>    // @private
+</span>    removeComponent : function(comp){
         Ext.Array.remove(this.items, comp);
     },
 

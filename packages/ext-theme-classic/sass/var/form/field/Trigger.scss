@@ -1,0 +1,10 @@
+$form-trigger-width: 17px !default;
+$form-trigger-border-bottom-width: 1px !default;
+$form-trigger-border-bottom-style: solid !default;
+$form-trigger-border-bottom-color: $form-field-border-color !default;
+$form-trigger-border-bottom: $form-trigger-border-bottom-width $form-trigger-border-bottom-style $form-trigger-border-bottom-color !default;
+
+$form-trigger-border-bottom-color-over: adjust-color($base-color, $hue: -4.322deg, $saturation: -1.065%, $lightness: -16.863%) !default;
+$form-trigger-border-bottom-color-focus: adjust-color($base-color, $hue: -4.322deg, $saturation: -1.065%, $lightness: -16.863%) !default;
+$form-trigger-border-bottom-color-focus-over: null !default;
+$form-trigger-border-bottom-color-pressed: null !default;

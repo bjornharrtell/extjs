@@ -22,10 +22,10 @@ Ext.define('Ext.ux.TabReorderer', {
 
     extend: 'Ext.ux.BoxReorderer',
 
-    itemSelector: '.x-tab',
-
-    init: function(tabPanel) {
-        var me = this;
+<span id='Ext-ux-TabReorderer-cfg-itemSelector'>    itemSelector: '.x-tab',
+</span>
+<span id='Ext-ux-TabReorderer-method-init'>    init: function(tabPanel) {
+</span>        var me = this;
         
         me.callParent([tabPanel.getTabBar()]);
 
@@ -33,8 +33,8 @@ Ext.define('Ext.ux.TabReorderer', {
         tabPanel.onAdd = Ext.Function.createSequence(tabPanel.onAdd, me.onAdd);
     },
 
-    afterFirstLayout: function() {
-        var tabs,
+<span id='Ext-ux-TabReorderer-method-afterFirstLayout'>    afterFirstLayout: function() {
+</span>        var tabs,
             len,
             i = 0,
             tab;
@@ -50,12 +50,12 @@ Ext.define('Ext.ux.TabReorderer', {
         }
     },
 
-    onAdd: function(card, index) {
-        card.tab.reorderable = card.reorderable;
+<span id='Ext-ux-TabReorderer-method-onAdd'>    onAdd: function(card, index) {
+</span>        card.tab.reorderable = card.reorderable;
     },
 
-    afterBoxReflow: function() {
-        var me = this;
+<span id='Ext-ux-TabReorderer-method-afterBoxReflow'>    afterBoxReflow: function() {
+</span>        var me = this;
 
         // Cannot use callParent, this is not called in the scope of this plugin, but that of its Ext.dd.DD object
         Ext.ux.BoxReorderer.prototype.afterBoxReflow.apply(me, arguments);

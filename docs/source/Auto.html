@@ -61,8 +61,8 @@ Ext.define('Ext.layout.component.Auto', {
 
     extend: 'Ext.layout.component.Component',
 
-    /* End Definitions */
-
+<span id='Ext-layout-component-Auto-property-type'>    /* End Definitions */
+</span>
     type: 'autocomponent',
 
 <span id='Ext-layout-component-Auto-cfg-setHeightInDom'>    /**
@@ -81,28 +81,28 @@ Ext.define('Ext.layout.component.Auto', {
      */
     setWidthInDom: false,
 
-    waitForOuterHeightInDom: false,
-    waitForOuterWidthInDom: false,
-    
-    beginLayoutCycle: function(ownerContext, firstCycle){
-        var me = this,
+<span id='Ext-layout-component-Auto-property-waitForOuterHeightInDom'>    waitForOuterHeightInDom: false,
+</span><span id='Ext-layout-component-Auto-property-waitForOuterWidthInDom'>    waitForOuterWidthInDom: false,
+</span>    
+<span id='Ext-layout-component-Auto-method-beginLayoutCycle'>    beginLayoutCycle: function(ownerContext, firstCycle){
+</span>        var me = this,
             lastWidthModel = me.lastWidthModel,
             lastHeightModel = me.lastHeightModel,
-            owner = me.owner;
+            el = me.owner.el;
             
         me.callParent(arguments);
             
         if (lastWidthModel &amp;&amp; lastWidthModel.fixed &amp;&amp; ownerContext.widthModel.shrinkWrap) {
-            owner.el.setWidth(null);
+            el.setWidth(null);
         }
             
         if (lastHeightModel &amp;&amp; lastHeightModel.fixed &amp;&amp; ownerContext.heightModel.shrinkWrap) {
-            owner.el.setHeight(null);
+            el.setHeight(null);
         }    
     },
 
-    calculate: function(ownerContext) {
-        var me = this,
+<span id='Ext-layout-component-Auto-method-calculate'>    calculate: function(ownerContext) {
+</span>        var me = this,
             measurement = me.measureAutoDimensions(ownerContext),
             heightModel = ownerContext.heightModel,
             widthModel = ownerContext.widthModel,
@@ -147,16 +147,16 @@ Ext.define('Ext.layout.component.Auto', {
         }
     },
 
-    calculateOwnerHeightFromContentHeight: function (ownerContext, contentHeight) {
-        return contentHeight + ownerContext.getFrameInfo().height;
+<span id='Ext-layout-component-Auto-method-calculateOwnerHeightFromContentHeight'>    calculateOwnerHeightFromContentHeight: function (ownerContext, contentHeight) {
+</span>        return contentHeight + ownerContext.getFrameInfo().height;
     },
 
-    calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
-        return contentWidth + ownerContext.getFrameInfo().width;
+<span id='Ext-layout-component-Auto-method-calculateOwnerWidthFromContentWidth'>    calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
+</span>        return contentWidth + ownerContext.getFrameInfo().width;
     },
 
-    publishOwnerHeight: function (ownerContext, contentHeight) {
-        var me = this,
+<span id='Ext-layout-component-Auto-method-publishOwnerHeight'>    publishOwnerHeight: function (ownerContext, contentHeight) {
+</span>        var me = this,
             owner = me.owner,
             height = me.calculateOwnerHeightFromContentHeight(ownerContext, contentHeight),
             constrainedHeight, dirty, heightModel;
@@ -187,8 +187,8 @@ Ext.define('Ext.layout.component.Auto', {
         }
     },
 
-    publishOwnerWidth: function (ownerContext, contentWidth) {
-        var me = this,
+<span id='Ext-layout-component-Auto-method-publishOwnerWidth'>    publishOwnerWidth: function (ownerContext, contentWidth) {
+</span>        var me = this,
             owner = me.owner,
             width = me.calculateOwnerWidthFromContentWidth(ownerContext, contentWidth),
             constrainedWidth, dirty, widthModel;

@@ -1,0 +1,104 @@
+/**
+ * @class Ext.Component
+ */
+
+/**
+ * @var {string} $prefix
+ * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your
+ * JavaScript application.
+ */
+$prefix: 'x-' !default;
+
+/**
+ * @var {boolean/string} $relative-image-path-for-uis
+ * True to use a relative image path for all new UIs. If true, the path will be "../images/".
+ * It can also be a string of the path value.
+ * It defaults to false, which means it will look for the images in the ExtJS SDK folder.
+ */
+$relative-image-path-for-uis: false !default;
+
+/**
+ * @var {boolean} $include-not-found-images
+ * True to include files which are not found when compiling your SASS
+ */
+$include-missing-images: true !default;
+
+/**
+ * @var {boolean} $include-ie
+ * True to include Internet Explorer specific rules
+ */
+$include-ie: true !default;
+
+/**
+ * @var {boolean} $include-ff
+ * True to include Firefox specific rules
+ */
+$include-ff: true !default;
+
+/**
+ * @var {boolean} $include-chrome
+ * True to include Chrome specific rules
+ */
+$include-chrome: true !default;
+
+/**
+ * @var {boolean} $include-safari
+ * True to include Safari specific rules
+ */
+$include-safari: true !default;
+
+/**
+ * @var {boolean} $include-opera
+ * True to include Opera specific rules
+ */
+$include-opera: true !default;
+
+/**
+ * @var {boolean} $include-webkit
+ * True to include Webkit specific rules
+ */
+$include-webkit: true !default;
+
+$supports-border-radius: true !default;
+$supports-gradients: true !default;
+
+/**
+ * @var {boolean} $compile-all
+ * True to copile all CSS, even if above include rules are false
+ */
+$compile-all: true !default;
+
+/**
+ * @var {measurement} $css-shadow-border-radius
+ * The border radius for CSS shadows
+ */
+$css-shadow-border-radius: 5px !default;
+
+/**
+ * @var {color} $include-shadow-images
+ * True to include all shadow images.
+ */
+$include-shadow-images: true !default;
+
+/**
+ * @var {boolean} $include-rtl
+ * True to include right-to-left styles
+ */
+$include-rtl: false !default;
+
+/**
+ * @var {string} $image-extension
+ * default file extension to use for images (defaults to 'png').
+ */
+$image-extension: 'png' !default;
+
+/**
+ * @var {string} $slicer-image-extension
+ * default file extension to use for slicer images (defaults to 'gif').
+ */
+$slicer-image-extension: 'gif' !default;
+
+/**
+ * Default search path for images
+ */
+$image-search-path: '.' !default

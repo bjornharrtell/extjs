@@ -36,6 +36,18 @@ Ext.define('Ext.data.proxy.WebStorage', {
      */
     id: undefined,
 
+<span id='Ext-data-proxy-WebStorage-cfg-reader'>    /**
+</span>     * @cfg {Object} reader
+     * Not used by web storage proxy.
+     * @hide
+     */
+
+<span id='Ext-data-proxy-WebStorage-cfg-writer'>    /**
+</span>     * @cfg {Object} writer
+     * Not used by web storage proxy.
+     * @hide
+     */
+
 <span id='Ext-data-proxy-WebStorage-method-constructor'>    /**
 </span>     * Creates the proxy, throws an error if local storage is not supported in the current browser.
      * @param {Object} config (optional) Config object.
@@ -67,8 +79,8 @@ Ext.define('Ext.data.proxy.WebStorage', {
         this.initialize();
     },
 
-    //inherit docs
-    create: function(operation, callback, scope) {
+<span id='Ext-data-proxy-WebStorage-method-create'>    //inherit docs
+</span>    create: function(operation, callback, scope) {
         var me = this,
             records = operation.records,
             length = records.length,
@@ -111,8 +123,8 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
     },
 
-    //inherit docs
-    read: function(operation, callback, scope) {
+<span id='Ext-data-proxy-WebStorage-method-read'>    //inherit docs
+</span>    read: function(operation, callback, scope) {
         //TODO: respect sorters, filters, start and limit options on the Operation
 
         var me = this,
@@ -168,8 +180,8 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
     },
 
-    //inherit docs
-    update: function(operation, callback, scope) {
+<span id='Ext-data-proxy-WebStorage-method-update'>    //inherit docs
+</span>    update: function(operation, callback, scope) {
         var records = operation.records,
             length  = records.length,
             ids     = this.getIds(),
@@ -199,8 +211,8 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
     },
 
-    //inherit
-    destroy: function(operation, callback, scope) {
+<span id='Ext-data-proxy-WebStorage-method-destroy'>    //inherit
+</span>    destroy: function(operation, callback, scope) {
         var me = this,
             records = operation.records,
             ids = me.getIds(),

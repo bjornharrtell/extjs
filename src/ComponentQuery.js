@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides searching of Components within Ext.ComponentManager (globally) or a specific
  * Ext.container.Container on the document with a similar syntax to a CSS selector.
@@ -6,7 +26,7 @@
  *
  * - `component`
  * - `gridpanel`
- * 
+ *
  * Matching by xtype matches inherited types, so in the following code, the previous field
  * *of any type which inherits from `TextField`* will be found:
  *
@@ -25,6 +45,64 @@
  * - `component[autoScroll]`
  * - `panel[title="Test"]`
  *
+ * Attributes can use any of the operators in {@link Ext.dom.Query DomQuery}'s {@link Ext.dom.Query#operators operators} to compare
+ * values.
+ *
+ * Prefixing the attribute name with an at sign `@` means that the property must be the object's `ownProperty`, not
+ * a property from the prototype chain.
+ *
+ * Specifications like `[propName]` check that the property is a truthy value. To check that the object has an `ownProperty`
+ * of a certain name, regardless of the value use the form `[?propName]`
+ *
+ * The specified value is coerced to match the type of the property found in the candidate Component using {@link Ext#coerce}.
+ *
+ * The '=' operator will return the results that <strong>exactly</strong> match:
+ *
+ *     Ext.Component.query('panel[cls=my-cls]')
+ *
+ * Will match the following Component:
+ *
+ *     Ext.create('Ext.Panel', {
+ *         cls : 'my-cls'
+ *     });
+ *
+ * The '~=' operator will return results that <strong>exactly</strong> matches one of the whitespace-separated values:
+ *
+ *     Ext.Component.query('panel[cls~=my-cls]')
+ *
+ * Will match the follow Component:
+ *
+ *     Ext.create('My.Panel', {
+ *         cls : 'foo-cls my-cls bar-cls'
+ *     });
+ *
+ * The '^=' operator will return results that start with the passed value:
+ *
+ *     Ext.Component.query('panel[cls^=my]')
+ *
+ * Will match the follow Component:
+ *
+ *     Ext.create('My.Panel', {
+ *         cls : 'my-cls'
+ *     });
+ *
+ * The '$=' operator will return results that end with the passed value:
+ *
+ *     Ext.Component.query('panel[cls$=cls]')
+ *
+ * Will match the follow Component:
+ *
+ *     Ext.create('My.Panel', {
+ *         cls : 'my-cls'
+ *     });
+ *
+ * This is because it <strong>exactly</strong> matched the 'my-cls' within the cls config.
+ *
+ * The following test will find panels with their `ownProperty` collapsed being equal to `false`. It will *not* match
+ * a collapsed property from the prototype chain.
+ *
+ *     Ext.ComponentQuery.query('panel[@collapsed=false]')
+ *
  * Member expressions from candidate Components may be tested. If the expression returns a *truthy* value,
  * the candidate Component will be included in the query:
  *
@@ -42,7 +120,7 @@
  *         }
  *         return result;
  *     };
- *      
+
  *     var invalidFields = myFormPanel.query('field:invalid');
  *     if (invalidFields.length) {
  *         invalidFields[0].getEl().scrollIntoView(myFormPanel.body);
@@ -53,9 +131,11 @@
  *
  * Default pseudos include:
  *
- * - not
- * - first
- * - last
+ * * `not` Negates a selector.
+ * * `first` Filters out all except the first matching item for a selector.
+ * * `last` Filters out all except the last matching item for a selector.
+ * * `focusable` Filters out all except components which are currently able to recieve focus.
+ * * `nth-child` Filters components by ordinal position in the selection.
  *
  * Queries return an array of components.
  * Here are some example queries.
@@ -71,6 +151,9 @@
  *
  *     // retrieve all grids and trees
  *     var gridsAndTrees = Ext.ComponentQuery.query('gridpanel, treepanel');
+ *     
+ *     // Focus first component
+ *     myFormPanel.child(':focusable').focus();
  *
  * For easy access to queries based from a particular Container see the {@link Ext.container.Container#query},
  * {@link Ext.container.Container#down} and {@link Ext.container.Container#child} methods. Also see
@@ -78,10 +161,16 @@
  */
 Ext.define('Ext.ComponentQuery', {
     singleton: true,
-    requires: ['Ext.ComponentManager']
+    requires: [
+        'Ext.ComponentManager',
+        'Ext.dom.Query'
+    ]
 }, function() {
 
     var cq = this,
+        domQueryOperators = Ext.dom.Query.operators,
+        nthRe = /(\d*)n\+?(\d*)/,
+        nthRe2 = /\D/,
 
         // A function source code pattern with a placeholder which accepts an expression which yields a truth value when applied
         // as a member on each item in the passed array.
@@ -130,7 +219,7 @@ Ext.define('Ext.ComponentQuery', {
                 candidate;
             for (; i < length; i++) {
                 candidate = items[i];
-                while (!!(candidate = (candidate.ownerCt || candidate.floatParent))) {
+                while (!!(candidate = candidate.getRefOwner())) {
                     result.push(candidate);
                 }
             }
@@ -159,8 +248,7 @@ Ext.define('Ext.ComponentQuery', {
 
         // Filters the passed candidate array and returns only items which have the passed className
         filterByClassName = function(items, className) {
-            var EA = Ext.Array,
-                result = [],
+            var result = [],
                 i = 0,
                 length = items.length,
                 candidate;
@@ -174,15 +262,56 @@ Ext.define('Ext.ComponentQuery', {
         },
 
         // Filters the passed candidate array and returns only items which have the specified property match
-        filterByAttribute = function(items, property, operator, value) {
+        filterByAttribute = function(items, property, operator, compareTo) {
             var result = [],
                 i = 0,
                 length = items.length,
-                candidate;
+                mustBeOwnProperty,
+                presenceOnly,
+                candidate, propValue,
+                j, propLen;
+
+            // Prefixing property name with an @ means that the property must be in the candidate, not in its prototype
+            if (property.charAt(0) === '@') {
+                mustBeOwnProperty = true;
+                property = property.substr(1);
+            }
+            if (property.charAt(0) === '?') {
+                mustBeOwnProperty = true;
+                presenceOnly = true;
+                property = property.substr(1);
+            }
+
             for (; i < length; i++) {
                 candidate = items[i];
-                if (!value ? !!candidate[property] : (String(candidate[property]) === value)) {
-                    result.push(candidate);
+
+                // Check candidate hasOwnProperty is propName prefixed with a bang.
+                if (!mustBeOwnProperty || candidate.hasOwnProperty(property)) {
+
+                    // pull out property value to test
+                    propValue = candidate[property];
+
+                    if (presenceOnly) {
+                        result.push(candidate);
+                    }
+                    // implies property is an array, and we must compare value against each element.
+                    else if (operator === '~=') {
+                        if (propValue) {
+                            //We need an array
+                            if (!Ext.isArray(propValue)) {
+                                propValue = propValue.split(' ');
+                            }
+
+                            for (j = 0, propLen = propValue.length; j < propLen; j++) {
+                                if (domQueryOperators[operator](Ext.coerce(propValue[j], compareTo), compareTo)) {
+                                    result.push(candidate);
+                                    break;
+                                }
+                            }
+                        }
+                    } else if (!compareTo ? !!candidate[property] : domQueryOperators[operator](Ext.coerce(propValue, compareTo), compareTo)) {
+                        result.push(candidate);
+                    }
                 }
             }
             return result;
@@ -219,9 +348,11 @@ Ext.define('Ext.ComponentQuery', {
             // Checks for .xtype with possibly (true|false) appended for the "shallow" parameter
             re: /^\.([\w\-]+)(?:\((true|false)\))?/,
             method: filterByXType
-        },{
-            // checks for [attribute=value]
-            re: /^(?:[\[](?:@)?([\w\-]+)\s?(?:(=|.=)\s?['"]?(.*?)["']?)?[\]])/,
+        }, {
+            // checks for [attribute=value], [attribute^=value], [attribute$=value], [attribute*=value], [attribute~=value], [attribute%=value], [attribute!=value]
+            // Allow [@attribute] to check truthy ownProperty
+            // Allow [?attribute] to check for presence of ownProperty
+            re: /^(?:\[((?:@|\?)?[\w\-\$]*[^\^\$\*~%!])\s?(?:(=|.=)\s?['"]?(.*?)["']?)?\])/,
             method: filterByAttribute
         }, {
             // checks for #cmpItemId
@@ -263,8 +394,8 @@ Ext.define('Ext.ComponentQuery', {
             if (!root) {
                 workingItems = Ext.ComponentManager.all.getArray();
             }
-            // Root is a candidate Array
-            else if (Ext.isArray(root)) {
+            // Root is an iterable object like an Array, or system Collection, eg HtmlCollection
+            else if (Ext.isIterable(root)) {
                 workingItems = root;
             }
             // Root is a MixedCollection
@@ -363,6 +494,41 @@ Ext.define('Ext.ComponentQuery', {
                     ret.push(components[len - 1]);
                 }
                 return ret;
+            },
+            focusable: function(cmps) {
+                var len = cmps.length,
+                    results = [],
+                    i = 0,
+                    c;
+
+                for (; i < len; i++) {
+                    c = cmps[i];
+                    // If this is a generally focusable Component (has a focusEl, is rendered, enabled and visible)
+                    // then it is currently focusable if focus management is enabled or if it is an input field, a button or a menu item
+                    if (c.isFocusable()) {
+                        results.push(c);
+                    }
+                }
+
+                return results;
+            },
+            "nth-child" : function(c, a) {
+                var result = [],
+                    m = nthRe.exec(a == "even" && "2n" || a == "odd" && "2n+1" || !nthRe2.test(a) && "n+" + a || a),
+                    f = (m[1] || 1) - 0, l = m[2] - 0,
+                    i, n, nodeIndex;
+                for (i = 0; n = c[i]; i++) {
+                    nodeIndex = i + 1;
+                    if (f == 1) {
+                        if (l == 0 || nodeIndex == l) {
+                            result.push(n);
+                        }
+                    } else if ((nodeIndex + l) % f == 0){
+                        result.push(n);
+                    }
+                }
+
+                return result;
             }
         },
 
@@ -375,10 +541,10 @@ Ext.define('Ext.ComponentQuery', {
          * See class summary for details.
          *
          * @param {String} selector The selector string to filter returned Components
-         * @param {Ext.container.Container} root The Container within which to perform the query.
+         * @param {Ext.container.Container} [root] The Container within which to perform the query.
          * If omitted, all Components within the document are included in the search.
          * 
-         * This parameter may also be an array of Components to filter according to the selector.</p>
+         * This parameter may also be an array of Components to filter according to the selector.
          * @returns {Ext.Component[]} The matched Components.
          * 
          * @member Ext.ComponentQuery

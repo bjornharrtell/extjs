@@ -32,10 +32,11 @@ Ext.define('Ext.util.Point', {
 <span id='Ext-util-Point-static-method-fromEvent'>        /**
 </span>         * Returns a new instance of Ext.util.Point base on the pageX / pageY values of the given event
          * @static
-         * @param {Event} e The event
+         * @param {Ext.EventObject/Event} e The event
          * @return {Ext.util.Point}
          */
         fromEvent: function(e) {
+            e = e.browserEvent || e;
             e = (e.changedTouches &amp;&amp; e.changedTouches.length &gt; 0) ? e.changedTouches[0] : e;
             return new this(e.pageX, e.pageY);
         }
@@ -63,7 +64,7 @@ Ext.define('Ext.util.Point', {
 
 <span id='Ext-util-Point-method-equals'>    /**
 </span>     * Compare this point and another point
-     * @param {Ext.util.Point/Object} The point to compare with, either an instance
+     * @param {Ext.util.Point/Object} p The point to compare with, either an instance
      * of Ext.util.Point or an object with left and top properties
      * @return {Boolean} Returns whether they are equivalent
      */
@@ -88,6 +89,19 @@ Ext.define('Ext.util.Point', {
 
         return (this.x &lt;= p.x + threshold.x &amp;&amp; this.x &gt;= p.x - threshold.x &amp;&amp;
                 this.y &lt;= p.y + threshold.y &amp;&amp; this.y &gt;= p.y - threshold.y);
+    },
+
+<span id='Ext-util-Point-method-isContainedBy'>    /**
+</span>     * Determins whether this Point contained by the passed Region, Component or element.
+     * @param {Ext.util.Region/Ext.Component/Ext.dom.Element/HTMLElement} region
+     * The rectangle to check that this Point is within.
+     * @return {Boolean}
+     */
+    isContainedBy: function(region) {
+        if (!(region instanceof Ext.util.Region)) {
+            region = Ext.get(region.el || region).getRegion();
+        }
+        return region.contains(this);
     },
 
 <span id='Ext-util-Point-method-roundedEquals'>    /**

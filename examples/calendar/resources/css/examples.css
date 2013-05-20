@@ -9,6 +9,7 @@ h1 {
 #app-header {
     text-align: center;
     font-family: arial;
+    background-color: #fff;
 }
 #app-center .x-panel-header {
     font-size: 13px;

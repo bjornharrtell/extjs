@@ -13,6 +13,7 @@ Ext.define('Ext.calendar.form.EventWindow', {
     
     requires: [
         'Ext.form.Panel',
+        'Ext.calendar.util.Date',
         'Ext.calendar.data.EventModel',
         'Ext.calendar.data.EventMappings'
     ],

@@ -85,17 +85,17 @@ Ext.define('Ext.layout.container.Table', {
      * this layout will be rendered into a single row using one column per Component.
      */
 
-    // private
-    monitorResize:false,
+<span id='Ext-layout-container-Table-property-monitorResize'>    // private
+</span>    monitorResize:false,
 
-    type: 'table',
-
-    clearEl: true, // Base class will not create it if already truthy. Not needed in tables.
-
-    targetCls: Ext.baseCSSPrefix + 'table-layout-ct',
-    tableCls: Ext.baseCSSPrefix + 'table-layout',
-    cellCls: Ext.baseCSSPrefix + 'table-layout-cell',
-
+<span id='Ext-layout-container-Table-property-type'>    type: 'table',
+</span>    
+<span id='Ext-layout-container-Table-property-createsInnerCt'>    createsInnerCt: true,
+</span>
+<span id='Ext-layout-container-Table-property-targetCls'>    targetCls: Ext.baseCSSPrefix + 'table-layout-ct',
+</span><span id='Ext-layout-container-Table-property-tableCls'>    tableCls: Ext.baseCSSPrefix + 'table-layout',
+</span><span id='Ext-layout-container-Table-property-cellCls'>    cellCls: Ext.baseCSSPrefix + 'table-layout-cell',
+</span>
 <span id='Ext-layout-container-Table-cfg-tableAttrs'>    /**
 </span>     * @cfg {Object} tableAttrs
      * An object containing properties which are added to the {@link Ext.DomHelper DomHelper} specification used to
@@ -128,17 +128,16 @@ Ext.define('Ext.layout.container.Table', {
      * create the layout's `&lt;td&gt;` elements.
      */
 
-    itemSizePolicy: {
-        setsWidth: 0,
-        setsHeight: 0
-    },
-
     getItemSizePolicy: function (item) {
-        return this.itemSizePolicy;
+        return this.autoSizePolicy;
+    },
+    
+<span id='Ext-layout-container-Table-method-initHierarchyState'>    initHierarchyState: function (hierarchyStateInner) {    
+</span>        hierarchyStateInner.inShrinkWrapTable  = true;
     },
 
-    getLayoutItems: function() {
-        var me = this,
+<span id='Ext-layout-container-Table-method-getLayoutItems'>    getLayoutItems: function() {
+</span>        var me = this,
             result = [],
             items = me.callParent(),
             item,
@@ -150,6 +149,21 @@ Ext.define('Ext.layout.container.Table', {
                 result.push(item);
             }
         }
+        return result;
+    },
+    
+<span id='Ext-layout-container-Table-method-getHiddenItems'>    getHiddenItems: function(){
+</span>        var result = [],
+            items = this.owner.items.items,
+            len = items.length,
+            i = 0, item;
+            
+        for (; i &lt; len; ++i) {
+            item = items[i];
+            if (item.rendered &amp;&amp; item.hidden) {
+                result.push(item);
+            }
+        }    
         return result;
     },
 
@@ -165,7 +179,8 @@ Ext.define('Ext.layout.container.Table', {
             rows = tbody.rows,
             i = 0,
             len = items.length,
-            cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt;
+            hiddenItems = me.getHiddenItems(),
+            cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt, el;
 
         // Calculate the correct cell structure for the current items
         cells = me.calculateCells(items);
@@ -198,8 +213,7 @@ Ext.define('Ext.layout.container.Table', {
             // Render or move the component into the cell
             if (!item.rendered) {
                 me.renderItem(item, itemCt, 0);
-            }
-            else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
+            } else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
                 me.moveItem(item, itemCt, 0);
             }
 
@@ -231,10 +245,28 @@ Ext.define('Ext.layout.container.Table', {
         while (tbody.rows[rowIdx]) {
             tbody.deleteRow(rowIdx);
         }
+        
+        // Check if we've removed any cells that contain a component, we need to move
+        // them so they don't get cleaned up by the gc
+        for (i = 0, len = hiddenItems.length; i &lt; len; ++i) {
+            me.ensureInDocument(hiddenItems[i].getEl());
+        }
+    },
+    
+<span id='Ext-layout-container-Table-method-ensureInDocument'>    ensureInDocument: function(el){
+</span>        var dom = el.dom.parentNode;
+        while (dom) {
+            if (dom.tagName.toUpperCase() == 'BODY') {
+                return;
+            }
+            dom = dom.parentNode;
+        } 
+        
+        Ext.getDetachedBody().appendChild(el);
     },
 
-    calculate: function (ownerContext) {
-        if (!ownerContext.hasDomProp('containerChildrenDone')) {
+<span id='Ext-layout-container-Table-method-calculate'>    calculate: function (ownerContext) {
+</span>        if (!ownerContext.hasDomProp('containerChildrenSizeDone')) {
             this.done = false;
         } else {
             var targetContext = ownerContext.targetContext,
@@ -254,8 +286,8 @@ Ext.define('Ext.layout.container.Table', {
         }
     },
 
-    finalizeLayout: function() {
-        if (this.needsDivWrap()) {
+<span id='Ext-layout-container-Table-method-finalizeLayout'>    finalizeLayout: function() {
+</span>        if (this.needsDivWrap()) {
             // set wrapper div width to match layed out item - see docs below
             var items = this.getLayoutItems(),
                 i,
@@ -268,7 +300,7 @@ Ext.define('Ext.layout.container.Table', {
                 Ext.fly(item.el.dom.parentNode).setWidth(item.getWidth());
             }
         }
-        if (Ext.isIE6 || (Ext.isIEQuirks)) {
+        if (Ext.isIE6 || Ext.isIEQuirks) {
             // Fixes an issue where the table won't paint
             this.owner.getTargetEl().child('table').repaint();
         }
@@ -331,8 +363,8 @@ Ext.define('Ext.layout.container.Table', {
         return cells;
     },
 
-    getRenderTree: function() {
-        var me = this,
+<span id='Ext-layout-container-Table-method-getRenderTree'>    getRenderTree: function() {
+</span>        var me = this,
             items = me.getLayoutItems(),
             cells,
             rows = [],
@@ -341,6 +373,7 @@ Ext.define('Ext.layout.container.Table', {
                 role: 'presentation',
                 cls: me.tableCls,
                 cellspacing: 0,
+                cellpadding: 0,
                 cn: {
                     tag: 'tbody',
                     cn: rows
@@ -399,8 +432,8 @@ Ext.define('Ext.layout.container.Table', {
         return result;
     },
 
-    isValidParent: function(item, target, rowIdx, cellIdx) {
-        var tbody,
+<span id='Ext-layout-container-Table-method-isValidParent'>    isValidParent: function(item, target, rowIdx, cellIdx) {
+</span>        var tbody,
             correctCell,
             table;
 

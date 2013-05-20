@@ -72,7 +72,6 @@ function getBasicLayouts() {
             id: 'accordion-panel',
             title: 'Accordion Layout',
             layout: 'accordion',
-            bodyStyle: 'background-color:#DFE8F6',  // if all accordion panels are collapsed, this looks better in this layout
             defaults: {bodyStyle: 'padding:15px'},
             items: [{
                 title: 'Introduction',
@@ -103,16 +102,23 @@ function getBasicLayouts() {
             id:'anchor-panel',
             title: 'Anchor Layout',
             layout:'anchor',
-            defaults: {bodyStyle: 'padding:15px'},
+            bodyPadding: 10,
+            defaults: {
+                bodyStyle: 'padding:15px',
+                ui: Ext.themeName == 'neptune' ? 'light' : 'default',
+                frame: true
+            },
             items: [{
                 title: 'Panel 1',
                 height: 100,
                 anchor: '50%',
+                margin: '0 0 10 0',
                 html: '<p>Width = 50% of the container</p>'
             },{
                 title: 'Panel 2',
                 height: 100,
                 anchor: '-100',
+                margin: '0 0 10 0',
                 html: '<p>Width = container width - 100 pixels</p>'
             },{
                 title: 'Panel 3',
@@ -132,28 +138,23 @@ function getBasicLayouts() {
             defaults: {
                 collapsible: true,
                 split: true,
-                animFloat: false,
-                autoHide: false,
-                useSplitTips: true,
-                bodyStyle: 'padding:15px'
+                bodyPadding: 15
             },
             items: [{
                 title: 'Footer',
                 region: 'south',
                 height: 150,
-                minSize: 75,
-                maxSize: 250,
-                cmargins: '5 0 0 0',
+                minHeight: 75,
+                maxHeight: 250,
                 html: '<p>Footer content</p>'
             },{
                 title: 'Navigation',
                 region:'west',
                 floatable: false,
                 margins: '5 0 0 0',
-                cmargins: '5 5 0 0',
                 width: 175,
-                minSize: 100,
-                maxSize: 250,
+                minWidth: 100,
+                maxWidth: 250,
                 html: '<p>Secondary content like navigation links could go here</p>'
             },{
                 title: 'Main Content',
@@ -173,7 +174,6 @@ function getBasicLayouts() {
         cardTabs: {
             xtype: 'tabpanel',
             id: 'card-tabs-panel',
-            plain: true,  //remove the header border
             activeTab: 0,
             style: 'background-color:#dfe8f6; ',
             defaults: {bodyStyle: 'padding:15px'},
@@ -237,6 +237,7 @@ function getBasicLayouts() {
             },{
                 title: 'Width = 0.75',
                 columnWidth: 0.75,
+                ui: Ext.themeName == 'neptune' ? 'light' : 'default',
                 html: '<p>This is some longer content.</p><p>This is some longer content.</p><p>This is some longer content.</p><p>This is some longer content.</p><p>This is some longer content.</p><p>This is some longer content.</p>'
             },{
                 title: 'Width = 250px',
@@ -256,6 +257,7 @@ function getBasicLayouts() {
                 title: 'Inner Panel',
                 html: '<p>This panel is fit within its container.</p>',
                 bodyStyle: 'padding:15px',
+                ui: Ext.themeName == 'neptune' ? 'light' : 'default',
                 border: false
             }
         },
@@ -311,7 +313,8 @@ function getBasicLayouts() {
                 columns: 4
             },
             defaults: {
-                bodyStyle:'padding:15px 20px'
+                bodyStyle:'padding:15px 20px',
+                border: true
             },
             items: [{
                 title: 'Lots of Spanning',
@@ -350,6 +353,7 @@ function getBasicLayouts() {
         vbox: {
             id: 'vbox-panel',
             title: 'vBox Layout',
+            bodyPadding: 10,
             layout: {
                 type: 'vbox',
                 pack: 'start',
@@ -361,10 +365,12 @@ function getBasicLayouts() {
             items: [{
                 title: 'Panel 1',
                 flex: 1,
+                margin: '0 0 10 0',
                 html: 'flex : 1'
             }, {
                 title: 'Panel 2',
                 height: 100,
+                margin: '0 0 10 0',
                 html: 'height: 100'
             }, {
                 title: 'Panel 3',
@@ -379,6 +385,7 @@ function getBasicLayouts() {
         hbox: {
             id: 'hbox-panel',
             title: 'hBox Layout',
+            bodyPadding: 10,
             layout: {
                 type: 'hbox',
                 pack: 'start',
@@ -390,10 +397,12 @@ function getBasicLayouts() {
             items: [{
                 title: 'Panel 1',
                 flex: 1,
+                margin: '0 10 0 0',
                 html: 'flex : 1'
             }, {
                 title: 'Panel 2',
                 width: 100,
+                margin: '0 10 0 0',
                 html: 'width : 100'
             }, {
                 title: 'Panel 3',

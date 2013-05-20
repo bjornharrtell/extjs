@@ -1,0 +1,110 @@
+$datepicker-border-width: 1px !default;
+$datepicker-border-style: solid !default;
+$datepicker-background-color: #fff !default;
+
+$datepicker-next-image: 'datepicker/arrow-right' !default;
+$datepicker-prev-image: 'datepicker/arrow-left' !default;
+$datepicker-arrow-width: 16px !default;
+$datepicker-arrow-height: 16px !default;
+$datepicker-arrow-cursor: pointer !default;
+$datepicker-arrow-opacity: 1 !default;
+$datepicker-arrow-opacity-over: 1 !default;
+
+$datepicker-header-background-gradient: null !default;
+$datepicker-header-padding: 4px 6px !default;
+$datepicker-month-button-color: #fff !default; 
+$datepicker-month-button-arrow-width: $button-small-arrow-width !default; 
+$datepicker-month-button-arrow-image: 'datepicker/month-arrow' !default;
+$datepicker-use-transparent-month-button: true !default; 
+$datepicker-header-text-align: center !default;
+
+$datepicker-item-height: 25px !default;
+$datepicker-item-width: 30px !default;
+$datepicker-item-padding: 0 7px 0 0 !default;
+$datepicker-item-font-family: $font-family !default;
+$datepicker-item-font-size: $font-size !default;
+$datepicker-item-font-weight: normal !default;
+$datepicker-item-text-align: right !default;
+$datepicker-item-color: $color !default;
+$datepicker-item-cursor: pointer !default;
+
+$datepicker-column-header-font-family: $datepicker-item-font-family !default;
+$datepicker-column-header-font-size: $datepicker-item-font-size !default;
+$datepicker-column-header-font-weight: $datepicker-item-font-weight !default;
+$datepicker-column-header-background-gradient: null !default;
+$datepicker-column-header-border-style: solid !default;
+$datepicker-column-header-border-width: 0 0 1px !default;
+$datepicker-column-header-text-align: $datepicker-item-text-align !default;
+$datepicker-column-header-height: $datepicker-item-height !default;
+$datepicker-column-header-item-padding: 0 9px 0 0 !default;
+
+//item
+$datepicker-item-color: $color !default;
+$datepicker-item-border-width: 1px !default;
+$datepicker-item-border-style: solid !default;
+$datepicker-item-border-color: $datepicker-background-color !default;
+
+$datepicker-item-today-border-style: solid !default;
+
+$datepicker-item-selected-border-style: solid !default;
+$datepicker-item-selected-font-weight: bold !default;
+
+$datepicker-item-prev-next-color: lighten($datepicker-item-color,  75%) !default;
+
+$datepicker-item-disabled-cursor: default !default;
+$datepicker-item-disabled-color: lighten($datepicker-item-color,  50%) !default;
+$datepicker-item-disabled-background-color: #eee !default;
+
+$datepicker-footer-background-color: $datepicker-column-header-background-color !default;
+$datepicker-footer-background-gradient: null !default;
+$datepicker-footer-border-width: 1px 0 0 !default;
+$datepicker-footer-border-style: solid !default;
+$datepicker-footer-text-align: center !default;
+$datepicker-footer-padding: 3px 0 !default;
+$datepicker-footer-button-spacing: 4px !default;
+
+$datepicker-monthpicker-border-color: $datepicker-border-color !default;
+$datepicker-monthpicker-border-width: $datepicker-border-width !default;
+$datepicker-monthpicker-border-style: $datepicker-border-style !default;
+
+$datepicker-monthpicker-item-color: $color !default;
+$datepicker-monthpicker-item-border-width: $datepicker-item-border-width !default;
+$datepicker-monthpicker-item-border-color: $datepicker-item-border-color !default;
+$datepicker-monthpicker-item-border-style: $datepicker-item-border-style !default;
+
+$datepicker-monthpicker-item-font-family: $datepicker-item-font-family !default;
+$datepicker-monthpicker-item-font-size: $datepicker-item-font-size !default;
+$datepicker-monthpicker-item-font-weight: $datepicker-item-font-weight !default;
+$datepicker-monthpicker-item-margin: 5px !default;
+$datepicker-monthpicker-item-text-align: center !default;
+$datepicker-monthpicker-item-height: 24px !default;
+$datepicker-monthpicker-item-cursor: pointer !default;
+
+$datepicker-monthpicker-item-hover-background-color: $datepicker-item-hover-background-color !default;
+
+$datepicker-monthpicker-item-selected-background-color: $datepicker-item-selected-background-color !default;
+$datepicker-monthpicker-item-selected-border-style: $datepicker-item-selected-border-style !default;
+$datepicker-monthpicker-item-selected-border-color: $datepicker-item-selected-border-color !default;
+
+$datepicker-monthpicker-yearnav-button-height: 16px !default;
+$datepicker-monthpicker-yearnav-button-width: 16px !default;
+$datepicker-monthpicker-yearnav-button-cursor: pointer !default;
+
+$datepicker-monthpicker-yearnav-button-opacity: 1 !default;
+$datepicker-monthpicker-yearnav-button-opacity-over: 1 !default;
+
+$datepicker-monthpicker-next-image: 'datepicker/arrow-right' !default;
+$datepicker-monthpicker-prev-image: 'datepicker/arrow-left' !default;
+
+$datepicker-monthpicker-next-background-position: 0 0 !default;
+$datepicker-monthpicker-next-background-position-over: 0 0 !default;
+$datepicker-monthpicker-prev-background-position: 0 0 !default;
+$datepicker-monthpicker-prev-background-position-over: 0 0 !default;
+
+$datepicker-monthpicker-separator-border-style: solid !default;
+$datepicker-monthpicker-separator-border-width: 1px !default;
+$datepicker-monthpicker-separator-border-color: $datepicker-border-color !default;
+
+// "small" monthpicker styles are used when the datepicker does not have buttons
+$datepicker-monthpicker-small-item-margin: 2px 5px !default;
+$datepicker-monthpicker-small-item-height: $datepicker-monthpicker-item-height !default;

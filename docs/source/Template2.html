@@ -58,12 +58,14 @@ Ext.define('Ext.grid.column.Template', {
      * {@link Ext.data.Model Model}'s {@link Ext.data.Model#persistenceProperty data} to produce a
      * column's rendered value.
      */
+    
 <span id='Ext-grid-column-Template-cfg-renderer'>    /**
-</span>     * @cfg renderer
+</span>     * @cfg {Object} renderer
      * @hide
      */
+    
 <span id='Ext-grid-column-Template-cfg-scope'>    /**
-</span>     * @cfg scope
+</span>     * @cfg {Object} scope
      * @hide
      */
 
@@ -76,8 +78,8 @@ Ext.define('Ext.grid.column.Template', {
         me.callParent(arguments);
     },
     
-    defaultRenderer: function(value, meta, record) {
-        var data = Ext.apply({}, record.data, record.getAssociatedData());
+<span id='Ext-grid-column-Template-method-defaultRenderer'>    defaultRenderer: function(value, meta, record) {
+</span>        var data = Ext.apply({}, record.data, record.getAssociatedData());
         return this.tpl.apply(data);
     }
 });

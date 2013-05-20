@@ -95,7 +95,7 @@ Ext.define('Ext.calendar.form.field.DateRange', {
         me.allDay = me.down('#' + me.id + '-allday');
         me.toLabel = me.down('#' + me.id + '-to-label');
 
-        me.startDate.validateOnChange = me.endDate.validateOnChange = false,
+        me.startDate.validateOnChange = me.endDate.validateOnChange = false;
 
         me.startDate.isValid = me.endDate.isValid = function() {
                                     var me = this,
@@ -215,8 +215,10 @@ Ext.define('Ext.calendar.form.field.DateRange', {
     },
     
     onAllDayChange: function(chk, checked) {
-        this.startTime.setVisible(!checked);
-        this.endTime.setVisible(!checked);
+        Ext.suspendLayouts();
+        this.startTime.setDisabled(checked).setVisible(!checked);
+        this.endTime.setDisabled(checked).setVisible(!checked);
+        Ext.resumeLayouts(true);
     },
     
     getDateSeparatorConfig: function() {
@@ -294,10 +296,25 @@ Ext.define('Ext.calendar.form.field.DateRange', {
      * @return {Array} The array of return values
      */
     getValue: function(){
+        var eDate = Ext.calendar.util.Date,
+            start = this.getDT('start'),
+            end = this.getDT('end'),
+            allDay = this.allDay.getValue();
+        
+        if (Ext.isDate(start) && Ext.isDate(end) && start.getTime() !== end.getTime()) {
+            if (!allDay && eDate.isMidnight(start) && eDate.isMidnight(end)) {
+                // 12:00am -> 12:00am over n days, all day event
+                allDay = true;
+                end = eDate.add(end, {
+                    days: -1
+                });
+            }
+        }
+        
         return [
-            this.getDT('start'), 
-            this.getDT('end'),
-            this.allDay.getValue()
+            start, 
+            end,
+            allDay
         ];
     },
     
@@ -311,8 +328,8 @@ Ext.define('Ext.calendar.form.field.DateRange', {
         }
         else{
             return null;
-        };
-        if(time && time != ''){
+        }
+        if(time && time !== ''){
             time = Ext.Date.format(time, this[startend+'Time'].format);
             var val = Ext.Date.parseDate(dt + ' ' + time, this[startend+'Date'].format + ' ' + this[startend+'Time'].format);
             return val;

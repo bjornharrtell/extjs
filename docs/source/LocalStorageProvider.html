@@ -18,8 +18,8 @@
   <pre class="prettyprint lang-js"><span id='Ext-state-LocalStorageProvider'>/**
 </span> * @class Ext.state.LocalStorageProvider
  * A Provider implementation which saves and retrieves state via the HTML5 localStorage object.
- * If the browser does not support local storage, an exception will be thrown upon instantiating
- * this class.
+ * If the browser does not support local storage, there will be no attempt to read the state.
+ * Before creating this class, a check should be made to {@link Ext.supports#LocalStorage}.
  */
 
 Ext.define('Ext.state.LocalStorageProvider', {
@@ -29,17 +29,21 @@ Ext.define('Ext.state.LocalStorageProvider', {
     
     alias: 'state.localstorage',
     
-    /* End Definitions */
-   
+<span id='Ext-state-LocalStorageProvider-method-constructor'>    /* End Definitions */
+</span>   
     constructor: function(){
         var me = this;
         me.callParent(arguments);
         me.store = me.getStorageObject();
-        me.state = me.readLocalStorage();
+        if (me.store) {
+            me.state = me.readLocalStorage();
+        } else {
+            me.state = {};
+        }
     },
     
-    readLocalStorage: function(){
-        var store = this.store,
+<span id='Ext-state-LocalStorageProvider-method-readLocalStorage'>    readLocalStorage: function(){
+</span>        var store = this.store,
             i = 0,
             len = store.length,
             prefix = this.prefix,
@@ -56,8 +60,8 @@ Ext.define('Ext.state.LocalStorageProvider', {
         return data;
     },
     
-    set : function(name, value){
-        var me = this;
+<span id='Ext-state-LocalStorageProvider-method-set'>    set : function(name, value){
+</span>        var me = this;
         
         me.clear(name);
         if (typeof value == &quot;undefined&quot; || value === null) {
@@ -67,24 +71,20 @@ Ext.define('Ext.state.LocalStorageProvider', {
         me.callParent(arguments);
     },
 
-    // private
-    clear : function(name){
+<span id='Ext-state-LocalStorageProvider-method-clear'>    // private
+</span>    clear : function(name){
         this.store.removeItem(this.prefix + name);
         this.callParent(arguments);
     },
     
-    getStorageObject: function(){
-        try {
-            var supports = 'localStorage' in window &amp;&amp; window['localStorage'] !== null;
-            if (supports) {
-                return window.localStorage;
-            }
-        } catch (e) {
-            return false;
+<span id='Ext-state-LocalStorageProvider-method-getStorageObject'>    getStorageObject: function(){
+</span>        if (Ext.supports.LocalStorage) {
+            return window.localStorage;
         }
         //&lt;debug&gt;
         Ext.Error.raise('LocalStorage is not supported by the current browser');
         //&lt;/debug&gt;
+        return false;
     }    
 });
 </pre>

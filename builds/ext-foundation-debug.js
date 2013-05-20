@@ -1,40 +1,24 @@
 /*
-Ext JS 4.1 - JavaScript Library
-Copyright (c) 2006-2012, Sencha Inc.
-All rights reserved.
-licensing@sencha.com
+This file is part of Ext JS 4.2
 
-http://www.sencha.com/license
+Copyright (c) 2011-2013 Sencha Inc
 
-Open Source License
-------------------------------------------------------------------------------------------
-This version of Ext JS is licensed under the terms of the Open Source GPL 3.0 license. 
+Contact:  http://www.sencha.com/contact
 
-http://www.gnu.org/licenses/gpl.html
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
 
-There are several FLOSS exceptions available for use with this release for
-open source applications that are distributed under a license other than GPL.
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-* Open Source License Exception for Applications
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
 
-  http://www.sencha.com/products/floss-exception.php
-
-* Open Source License Exception for Development
-
-  http://www.sencha.com/products/ux-exception.php
-
-
-Alternate Licensing
-------------------------------------------------------------------------------------------
-Commercial and OEM Licenses are available for an alternate download of Ext JS.
-This is the appropriate option if you are creating proprietary applications and you are 
-not prepared to distribute and share the source code of your application under the 
-GPL v3 license. Please visit http://www.sencha.com/license for more details.
-
---
-
-This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT OF THIRD-PARTY INTELLECTUAL PROPERTY RIGHTS.  See the GNU General Public License for more details.
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
 */
+
 //@tag foundation,core
 
 
@@ -53,7 +37,11 @@ Ext._startTime = new Date().getTime();
             var method = callOverrideParent.caller.caller; 
             return method.$owner.prototype[method.$name].apply(this, arguments);
         },
-        i;
+        i,
+        nonWhitespaceRe = /\S/,
+        ExtApp;
+
+    Function.prototype.$extIsFunction = true;
 
     Ext.global = global;
 
@@ -96,8 +84,7 @@ Ext._startTime = new Date().getTime();
     };
 
     Ext.buildSettings = Ext.apply({
-        baseCSSPrefix: 'x-',
-        scopeResetCSS: false
+        baseCSSPrefix: 'x-'
     }, Ext.buildSettings || {});
 
     Ext.apply(Ext, {
@@ -107,6 +94,11 @@ Ext._startTime = new Date().getTime();
 
         
         emptyFn: emptyFn,
+        
+        
+        identityFn: function(o) {
+            return o;
+        },
 
         
         emptyString: new String(),
@@ -283,7 +275,7 @@ Ext._startTime = new Date().getTime();
             if (type === 'object') {
                 if (value.nodeType !== undefined) {
                     if (value.nodeType === 3) {
-                        return (/\S/).test(value.nodeValue) ? 'textnode' : 'whitespace';
+                        return (nonWhitespaceRe).test(value.nodeValue) ? 'textnode' : 'whitespace';
                     }
                     else {
                         return 'element';
@@ -293,6 +285,31 @@ Ext._startTime = new Date().getTime();
                 return 'object';
             }
 
+        },
+
+        
+        coerce: function(from, to) {
+            var fromType = Ext.typeOf(from),
+                toType = Ext.typeOf(to),
+                isString = typeof from === 'string';
+
+            if (fromType !== toType) {
+                switch (toType) {
+                    case 'string':
+                        return String(from);
+                    case 'number':
+                        return Number(from);
+                    case 'boolean':
+                        return isString && (!from || from === 'false') ? false : Boolean(from);
+                    case 'null':
+                        return isString && (!from || from === 'null') ? null : from;
+                    case 'undefined':
+                        return isString && (!from || from === 'undefined') ? undefined : from;
+                    case 'date':
+                        return isString && isNaN(from) ? Ext.Date.parse(from, Ext.Date.defaultFormat) : Date(Number(from));
+                }
+            }
+            return from;
         },
 
         
@@ -332,13 +349,8 @@ Ext._startTime = new Date().getTime();
         },
 
         
-        isFunction:
-        
-        
-        (typeof document !== 'undefined' && typeof document.getElementsByTagName('body') === 'function') ? function(value) {
-            return toString.call(value) === '[object Function]';
-        } : function(value) {
-            return typeof value === 'function';
+        isFunction: function(value) {
+            return !!(value && value.$extIsFunction);
         },
 
         
@@ -531,7 +543,65 @@ Ext._startTime = new Date().getTime();
 
     
     Ext.type = Ext.typeOf;
+    
+    
+    
+    
+    ExtApp = Ext.app;
+    if (!ExtApp) {
+        ExtApp = Ext.app = {};
+    }
+    Ext.apply(ExtApp, {
+        namespaces: {},
+        
+        
+        collectNamespaces: function(paths) {
+            var namespaces = Ext.app.namespaces,
+                path;
+            
+            for (path in paths) {
+                if (paths.hasOwnProperty(path)) {
+                    namespaces[path] = true;
+                }
+            }
+        },
 
+        
+        addNamespaces: function(ns) {
+            var namespaces = Ext.app.namespaces,
+                i, l;
+
+            if (!Ext.isArray(ns)) {
+                ns = [ns];
+            }
+
+            for (i = 0, l = ns.length; i < l; i++) {
+                namespaces[ns[i]] = true;
+            }
+        },
+
+        
+        clearNamespaces: function() {
+            Ext.app.namespaces = {};
+        },
+
+        
+        getNamespace: function(className) {
+            var namespaces    = Ext.app.namespaces,
+                deepestPrefix = '',
+                prefix;
+
+            for (prefix in namespaces) {
+                if (namespaces.hasOwnProperty(prefix)    &&
+                    prefix.length > deepestPrefix.length &&
+                    (prefix + '.' === className.substring(0, prefix.length + 1))) {
+                    deepestPrefix = prefix;
+                }
+            }
+
+            return deepestPrefix === '' ? undefined : deepestPrefix;
+        }
+    });
 }());
 
 
@@ -543,6 +613,10 @@ Ext.globalEval = Ext.global.execScript
         
         
         (function(){
+            
+            
+            
+            var Ext = this.Ext;
             eval($$code);
         }());
     };
@@ -556,7 +630,8 @@ Ext.globalEval = Ext.global.execScript
 (function() {
 
 
-var version = '4.1.1.1', Version;
+
+var version = '4.2.0.663', Version;
     Ext.Version = Version = Ext.extend(Object, {
 
         
@@ -787,9 +862,80 @@ Ext.String = (function() {
         },
         htmlDecodeReplaceFn = function(match, capture) {
             return (capture in entityToChar) ? entityToChar[capture] : String.fromCharCode(parseInt(capture.substr(2), 10));
+        },
+        boundsCheck = function(s, other){
+            if (s === null || s === undefined || other === null || other === undefined) {
+                return false;
+            }
+            
+            return other.length <= s.length; 
         };
 
     return {
+        
+        
+        insert: function(s, value, index) {
+            if (!s) {
+                return value;
+            }
+            
+            if (!value) {
+                return s;
+            }
+            
+            var len = s.length;
+            
+            if (!index && index !== 0) {
+                index = len;
+            }
+            
+            if (index < 0) {
+                index *= -1;
+                if (index >= len) {
+                    
+                    index = 0;
+                } else {
+                    index = len - index;
+                }
+            }
+            
+            if (index === 0) {
+                s = value + s;
+            } else if (index >= s.length) {
+                s += value;
+            } else {
+                s = s.substr(0, index) + value + s.substr(index);
+            }
+            return s;
+        },
+        
+        
+        startsWith: function(s, start, ignoreCase){
+            var result = boundsCheck(s, start);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    start = start.toLowerCase();
+                }
+                result = s.lastIndexOf(start, 0) === 0;
+            }
+            return result;
+        },
+        
+        
+        endsWith: function(s, end, ignoreCase){
+            var result = boundsCheck(s, end);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    end = end.toLowerCase();
+                }
+                result = s.indexOf(end, s.length - end.length) !== -1;
+            }
+            return result;
+        },
 
         
         createVarName: function(s) {
@@ -910,6 +1056,9 @@ Ext.String = (function() {
 
         
         repeat: function(pattern, count, sep) {
+            if (count < 1) {
+                count = 0;
+            }
             for (var buf = [], i = count; i--; ) {
                 buf.push(pattern);
             }
@@ -1046,6 +1195,14 @@ Ext.Number = new function() {
         
         randomInt: function (from, to) {
            return math.floor(math.random() * (to - from + 1) + from);
+        },
+        
+        
+        correctFloat: function(n) {
+            
+            
+            
+            return parseFloat(n.toPrecision(14));
         }
     });
 
@@ -1173,9 +1330,16 @@ Ext.Number = new function() {
 
     function replaceNative (array, index, removeCount, insert) {
         if (insert && insert.length) {
-            if (index < array.length) {
+            
+            if (index === 0 && !removeCount) {
+                array.unshift.apply(array, insert);
+            }
+            
+            else if (index < array.length) {
                 array.splice.apply(array, [index, removeCount].concat(insert));
-            } else {
+            }
+            
+            else {
                 array.push.apply(array, insert);
             }
         } else {
@@ -1244,7 +1408,7 @@ Ext.Number = new function() {
 
         
         forEach: supportsForEach ? function(array, fn, scope) {
-            return array.forEach(fn, scope);
+            array.forEach(fn, scope);
         } : function(array, fn, scope) {
             var i = 0,
                 ln = array.length;
@@ -1256,7 +1420,7 @@ Ext.Number = new function() {
 
         
         indexOf: supportsIndexOf ? function(array, item, from) {
-            return array.indexOf(item, from);
+            return arrayPrototype.indexOf.call(array, item, from);
          } : function(array, item, from) {
             var i, length = array.length;
 
@@ -1271,7 +1435,7 @@ Ext.Number = new function() {
 
         
         contains: supportsIndexOf ? function(array, item) {
-            return array.indexOf(item) !== -1;
+            return arrayPrototype.indexOf.call(array, item) !== -1;
         } : function(array, item) {
             var i, ln;
 
@@ -1371,6 +1535,30 @@ Ext.Number = new function() {
 
             return false;
         },
+        
+        
+        equals: function(array1, array2) {
+            var len1 = array1.length,
+                len2 = array2.length,
+                i;
+                
+            
+            if (array1 === array2) {
+                return true;
+            }
+                
+            if (len1 !== len2) {
+                return false;
+            }
+            
+            for (i = 0; i < len1; ++i) {
+                if (array1[i] !== array2[i]) {
+                    return false;
+                }
+            }
+            
+            return true;
+        },
 
         
         clean: function(array) {
@@ -1423,6 +1611,19 @@ Ext.Number = new function() {
             }
 
             return results;
+        },
+
+        
+        findBy : function(array, fn, scope) {
+            var i = 0,
+                len = array.length;
+
+            for (; i < len; i++) {
+                if (fn.call(scope || array, array[i], i)) {
+                    return array[i];
+                }
+            }
+            return null;
         },
 
         
@@ -1727,6 +1928,28 @@ Ext.Number = new function() {
             return map;
         },
 
+        
+        toValueMap: function(array, getKey, scope) {
+            var map = {},
+                i = array.length;
+
+            if (!getKey) {
+                while (i--) {
+                    map[array[i]] = array[i];
+                }
+            } else if (typeof getKey == 'string') {
+                while (i--) {
+                    map[array[i][getKey]] = array[i];
+                }
+            } else {
+                while (i--) {
+                    map[getKey.call(scope, array[i])] = array[i];
+                }
+            }
+
+            return map;
+        },
+
 
         
         erase: erase,
@@ -1755,7 +1978,7 @@ Ext.Number = new function() {
             }
             for (; i < len; i++) {
                 newItem = arguments[i];
-                Array.prototype.push[Ext.isArray(newItem) ? 'apply' : 'call'](array, newItem);
+                Array.prototype.push[Ext.isIterable(newItem) ? 'apply' : 'call'](array, newItem);
             }
             return array;
         }
@@ -1900,14 +2123,15 @@ Ext.Function = {
         var method = origFn;
         if (!Ext.isFunction(newFn)) {
             return origFn;
-        }
-        else {
+        } else {
+            returnValue = Ext.isDefined(returnValue) ? returnValue : null;
             return function() {
                 var me = this,
                     args = arguments;
+                    
                 newFn.target = me;
                 newFn.method = origFn;
-                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue || null;
+                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue;
             };
         }
     },
@@ -2039,7 +2263,7 @@ var TemplateClass = function(){},
     ExtObject = Ext.Object = {
 
     
-    chain: function (object) {
+    chain: Object.create || function (object) {
         TemplateClass.prototype = object;
         var result = new TemplateClass();
         TemplateClass.prototype = null;
@@ -2108,8 +2332,7 @@ var TemplateClass = function(){},
 
             if (Ext.isEmpty(value)) {
                 value = '';
-            }
-            else if (Ext.isDate(value)) {
+            } else if (Ext.isDate(value)) {
                 value = Ext.Date.toString(value);
             }
 
@@ -2326,6 +2549,48 @@ var TemplateClass = function(){},
 
         return size;
     },
+    
+    
+    isEmpty: function(object){
+        for (var key in object) {
+            if (object.hasOwnProperty(key)) {
+                return false;
+            }
+        }
+        return true;    
+    },
+    
+    
+    equals: (function() {
+        var check = function(o1, o2) {
+            var key;
+        
+            for (key in o1) {
+                if (o1.hasOwnProperty(key)) {
+                    if (o1[key] !== o2[key]) {
+                        return false;
+                    }    
+                }
+            }    
+            return true;
+        };
+        
+        return function(object1, object2) {
+            
+            
+            if (object1 === object2) {
+                return true;
+            } if (object1 && object2) {
+                
+                
+                return check(object1, object2) && check(object2, object1);  
+            } else if (!object1 && !object2) {
+                return object1 === object2;
+            } else {
+                return false;
+            }
+        };
+    })(),
 
     
     classify: function(object) {
@@ -2399,19 +2664,141 @@ Ext.urlDecode = function() {
 
 
 
-(function() {
+Ext.Date = new function() {
+  var utilDate = this,
+      stripEscapeRe = /(\\.)/g,
+      hourInfoRe = /([gGhHisucUOPZ]|MS)/,
+      dateInfoRe = /([djzmnYycU]|MS)/,
+      slashRe = /\\/gi,
+      numberTokenRe = /\{(\d+)\}/g,
+      MSFormatRe = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
+      code = [
+        
+        "var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday,",
+            "def = me.defaults,",
+            "from = Ext.Number.from,",
+            "results = String(input).match(me.parseRegexes[{0}]);", 
 
+        "if(results){",
+            "{1}",
 
+            "if(u != null){", 
+                "v = new Date(u * 1000);", 
+            "}else{",
+                
+                
+                
+                "dt = me.clearTime(new Date);",
 
+                "y = from(y, from(def.y, dt.getFullYear()));",
+                "m = from(m, from(def.m - 1, dt.getMonth()));",
+                "d = from(d, from(def.d, dt.getDate()));",
 
-function xf(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/\{(\d+)\}/g, function(m, i) {
-        return args[i];
-    });
-}
+                "h  = from(h, from(def.h, dt.getHours()));",
+                "i  = from(i, from(def.i, dt.getMinutes()));",
+                "s  = from(s, from(def.s, dt.getSeconds()));",
+                "ms = from(ms, from(def.ms, dt.getMilliseconds()));",
 
-Ext.Date = {
+                "if(z >= 0 && y >= 0){",
+                    
+                    
+
+                    
+                    
+                    "v = me.add(new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms), me.YEAR, y < 100 ? y - 100 : 0);",
+
+                    
+                    "v = !strict? v : (strict === true && (z <= 364 || (me.isLeapYear(v) && z <= 365))? me.add(v, me.DAY, z) : null);",
+                "}else if(strict === true && !me.isValid(y, m + 1, d, h, i, s, ms)){", 
+                    "v = null;", 
+                "}else{",
+                    "if (W) {", 
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        "year = y || (new Date()).getFullYear(),",
+                        "jan4 = new Date(year, 0, 4, 0, 0, 0),",
+                        "week1monday = new Date(jan4.getTime() - ((jan4.getDay() - 1) * 86400000));",
+                        "v = Ext.Date.clearTime(new Date(week1monday.getTime() + ((W - 1) * 604800000)));",
+                    "} else {",
+                        
+                        
+                        "v = me.add(new Date(y < 100 ? 100 : y, m, d, h, i, s, ms), me.YEAR, y < 100 ? y - 100 : 0);",
+                    "}",
+                "}",
+            "}",
+        "}",
+
+        "if(v){",
+            
+            "if(zz != null){",
+                
+                "v = me.add(v, me.SECOND, -v.getTimezoneOffset() * 60 - zz);",
+            "}else if(o){",
+                
+                "v = me.add(v, me.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));",
+            "}",
+        "}",
+
+        "return v;"
+      ].join('\n');
+
+  
+  
+  
+  function xf(format) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return format.replace(numberTokenRe, function(m, i) {
+          return args[i];
+      });
+  }
+
+  Ext.apply(utilDate, {
     
     now: Date.now || function() {
         return +new Date();
@@ -2461,9 +2848,22 @@ Ext.Date = {
         "MS": function(input, strict) {
             
             
-            var re = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
-                r = (input || '').match(re);
-            return r? new Date(((r[1] || '') + r[2]) * 1) : null;
+            var r = (input || '').match(MSFormatRe);
+            return r ? new Date(((r[1] || '') + r[2]) * 1) : null;
+        },
+        "time": function(input, strict) {
+            var num = parseInt(input, 10);
+            if (num || num === 0) {
+                return new Date(num);
+            }
+            return null;
+        },
+        "timestamp": function(input, strict) {
+            var num = parseInt(input, 10);
+            if (num || num === 0) {
+                return new Date(num * 1000);
+            }
+            return null;
         }
     },
     parseRegexes: [],
@@ -2473,6 +2873,12 @@ Ext.Date = {
         "MS": function() {
             
             return '\\/Date(' + this.getTime() + ')\\/';
+        },
+        "time": function(){
+            return this.getTime().toString();
+        },
+        "timestamp": function(){
+            return utilDate.format(this, 'U');
         }
     },
 
@@ -2589,34 +2995,22 @@ Ext.Date = {
     
 
     
-    formatContainsHourInfo : (function(){
-        var stripEscapeRe = /(\\.)/g,
-            hourInfoRe = /([gGhHisucUOPZ]|MS)/;
-        return function(format){
-            return hourInfoRe.test(format.replace(stripEscapeRe, ''));
-        };
-    }()),
+    formatContainsHourInfo : function(format){
+        return hourInfoRe.test(format.replace(stripEscapeRe, ''));
+    },
 
     
-    formatContainsDateInfo : (function(){
-        var stripEscapeRe = /(\\.)/g,
-            dateInfoRe = /([djzmnYycU]|MS)/;
-
-        return function(format){
-            return dateInfoRe.test(format.replace(stripEscapeRe, ''));
-        };
-    }()),
+    formatContainsDateInfo : function(format){
+        return dateInfoRe.test(format.replace(stripEscapeRe, ''));
+    },
     
     
-    unescapeFormat: (function() { 
-        var slashRe = /\\/gi;
-        return function(format) {
-            
-            
-            
-            return format.replace(slashRe, '');
-        }
-    }()),
+    unescapeFormat: function(format) {
+        
+        
+        
+        return format.replace(slashRe, '');
+    },
 
     
     formatCodes : {
@@ -2691,7 +3085,7 @@ Ext.Date = {
         if (p[format] == null) {
             utilDate.createParser(format);
         }
-        return p[format](input, Ext.isDefined(strict) ? strict : utilDate.useStrict);
+        return p[format].call(utilDate, input, Ext.isDefined(strict) ? strict : utilDate.useStrict);
     },
 
     
@@ -2735,107 +3129,44 @@ Ext.Date = {
     },
 
     
-    createParser : (function() {
-        var code = [
-            "var dt, y, m, d, h, i, s, ms, o, z, zz, u, v,",
-                "def = Ext.Date.defaults,",
-                "results = String(input).match(Ext.Date.parseRegexes[{0}]);", 
+    createParser : function(format) {
+        var regexNum = utilDate.parseRegexes.length,
+            currentGroup = 1,
+            calc = [],
+            regex = [],
+            special = false,
+            ch = "",
+            i = 0,
+            len = format.length,
+            atEnd = [],
+            obj;
 
-            "if(results){",
-                "{1}",
-
-                "if(u != null){", 
-                    "v = new Date(u * 1000);", 
-                "}else{",
-                    
-                    
-                    
-                    "dt = Ext.Date.clearTime(new Date);",
-
-                    
-                    "y = Ext.Number.from(y, Ext.Number.from(def.y, dt.getFullYear()));",
-                    "m = Ext.Number.from(m, Ext.Number.from(def.m - 1, dt.getMonth()));",
-                    "d = Ext.Number.from(d, Ext.Number.from(def.d, dt.getDate()));",
-
-                    
-                    "h  = Ext.Number.from(h, Ext.Number.from(def.h, dt.getHours()));",
-                    "i  = Ext.Number.from(i, Ext.Number.from(def.i, dt.getMinutes()));",
-                    "s  = Ext.Number.from(s, Ext.Number.from(def.s, dt.getSeconds()));",
-                    "ms = Ext.Number.from(ms, Ext.Number.from(def.ms, dt.getMilliseconds()));",
-
-                    "if(z >= 0 && y >= 0){",
-                        
-                        
-
-                        
-                        
-                        "v = Ext.Date.add(new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms), Ext.Date.YEAR, y < 100 ? y - 100 : 0);",
-
-                        
-                        "v = !strict? v : (strict === true && (z <= 364 || (Ext.Date.isLeapYear(v) && z <= 365))? Ext.Date.add(v, Ext.Date.DAY, z) : null);",
-                    "}else if(strict === true && !Ext.Date.isValid(y, m + 1, d, h, i, s, ms)){", 
-                        "v = null;", 
-                    "}else{",
-                        
-                        
-                        "v = Ext.Date.add(new Date(y < 100 ? 100 : y, m, d, h, i, s, ms), Ext.Date.YEAR, y < 100 ? y - 100 : 0);",
-                    "}",
-                "}",
-            "}",
-
-            "if(v){",
-                
-                "if(zz != null){",
-                    
-                    "v = Ext.Date.add(v, Ext.Date.SECOND, -v.getTimezoneOffset() * 60 - zz);",
-                "}else if(o){",
-                    
-                    "v = Ext.Date.add(v, Ext.Date.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));",
-                "}",
-            "}",
-
-            "return v;"
-        ].join('\n');
-
-        return function(format) {
-            var regexNum = utilDate.parseRegexes.length,
-                currentGroup = 1,
-                calc = [],
-                regex = [],
-                special = false,
-                ch = "",
-                i = 0,
-                len = format.length,
-                atEnd = [],
-                obj;
-
-            for (; i < len; ++i) {
-                ch = format.charAt(i);
-                if (!special && ch == "\\") {
-                    special = true;
-                } else if (special) {
-                    special = false;
-                    regex.push(Ext.String.escape(ch));
-                } else {
-                    obj = utilDate.formatCodeToRegex(ch, currentGroup);
-                    currentGroup += obj.g;
-                    regex.push(obj.s);
-                    if (obj.g && obj.c) {
-                        if (obj.calcAtEnd) {
-                            atEnd.push(obj.c);
-                        } else {
-                            calc.push(obj.c);
-                        }
+        for (; i < len; ++i) {
+            ch = format.charAt(i);
+            if (!special && ch == "\\") {
+                special = true;
+            } else if (special) {
+                special = false;
+                regex.push(Ext.String.escape(ch));
+            } else {
+                obj = utilDate.formatCodeToRegex(ch, currentGroup);
+                currentGroup += obj.g;
+                regex.push(obj.s);
+                if (obj.g && obj.c) {
+                    if (obj.calcAtEnd) {
+                        atEnd.push(obj.c);
+                    } else {
+                        calc.push(obj.c);
                     }
                 }
             }
-            
-            calc = calc.concat(atEnd);
+        }
 
-            utilDate.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
-            utilDate.parseFunctions[format] = Ext.functionFactory("input", "strict", xf(code, regexNum, calc.join('')));
-        };
-    }()),
+        calc = calc.concat(atEnd);
+
+        utilDate.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
+        utilDate.parseFunctions[format] = Ext.functionFactory("input", "strict", xf(code, regexNum, calc.join('')));
+    },
 
     
     parseCodes : {
@@ -2888,14 +3219,14 @@ Ext.Date = {
             s:"(\\d{1,3})" 
         },
         W: {
-            g:0,
-            c:null,
-            s:"(?:\\d{2})" 
+            g:1,
+            c:"W = parseInt(results[{0}], 10);\n",
+            s:"(\\d{2})" 
         },
         F: function() {
             return {
                 g:1,
-                c:"m = parseInt(Ext.Date.getMonthNumber(results[{0}]), 10);\n", 
+                c:"m = parseInt(me.getMonthNumber(results[{0}]), 10);\n", 
                 s:"(" + utilDate.monthNames.join("|") + ")"
             };
         },
@@ -2925,8 +3256,11 @@ Ext.Date = {
             c:null,
             s:"(?:1|0)"
         },
-        o: function() {
-            return utilDate.formatCodeToRegex("Y");
+        o: { 
+            g: 1,
+            c: "y = parseInt(results[{0}], 10);\n",
+            s: "(\\d{4})" 
+
         },
         Y: {
             g:1,
@@ -2936,7 +3270,7 @@ Ext.Date = {
         y: {
             g:1,
             c:"var ty = parseInt(results[{0}], 10);\n"
-                + "y = ty > Ext.Date.y2kYear ? 1900 + ty : 2000 + ty;\n", 
+                + "y = ty > me.y2kYear ? 1900 + ty : 2000 + ty;\n", 
             s:"(\\d{1,2})"
         },
         
@@ -3020,7 +3354,7 @@ Ext.Date = {
         T: {
             g:0,
             c:null,
-            s:"[A-Z]{1,4}" 
+            s:"[A-Z]{1,5}" 
         },
         Z: {
             g:1,
@@ -3128,7 +3462,7 @@ Ext.Date = {
         
         
         
-        return date.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, "$1$2").replace(/[^A-Z]/g, "");
+        return date.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,5})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, "$1$2").replace(/[^A-Z]/g, "");
     },
 
     
@@ -3274,45 +3608,97 @@ Ext.Date = {
     add : function(date, interval, value) {
         var d = Ext.Date.clone(date),
             Date = Ext.Date,
-            day;
+            day, decimalValue, base = 0;
         if (!interval || value === 0) {
             return d;
         }
 
-        switch(interval.toLowerCase()) {
-            case Ext.Date.MILLI:
-                d.setMilliseconds(d.getMilliseconds() + value);
-                break;
-            case Ext.Date.SECOND:
-                d.setSeconds(d.getSeconds() + value);
-                break;
-            case Ext.Date.MINUTE:
-                d.setMinutes(d.getMinutes() + value);
-                break;
-            case Ext.Date.HOUR:
-                d.setHours(d.getHours() + value);
-                break;
-            case Ext.Date.DAY:
-                d.setDate(d.getDate() + value);
-                break;
-            case Ext.Date.MONTH:
-                day = date.getDate();
-                if (day > 28) {
-                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
-                }
-                d.setDate(day);
-                d.setMonth(date.getMonth() + value);
-                break;
-            case Ext.Date.YEAR:
-                day = date.getDate();
-                if (day > 28) {
-                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
-                }
-                d.setDate(day);
-                d.setFullYear(date.getFullYear() + value);
-                break;
+        decimalValue = value - parseInt(value, 10);
+        value = parseInt(value, 10);
+
+        if (value) {
+            switch(interval.toLowerCase()) {
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                case Ext.Date.MILLI:
+                    d.setTime(d.getTime() + value);
+                    break;
+                case Ext.Date.SECOND:
+                    d.setTime(d.getTime() + value * 1000);
+                    break;
+                case Ext.Date.MINUTE:
+                    d.setTime(d.getTime() + value * 60 * 1000);
+                    break;
+                case Ext.Date.HOUR:
+                    d.setTime(d.getTime() + value * 60 * 60 * 1000);
+                    break;
+                case Ext.Date.DAY:
+                    d.setDate(d.getDate() + value);
+                    break;
+                case Ext.Date.MONTH:
+                    day = date.getDate();
+                    if (day > 28) {
+                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
+                    }
+                    d.setDate(day);
+                    d.setMonth(date.getMonth() + value);
+                    break;
+                case Ext.Date.YEAR:
+                    day = date.getDate();
+                    if (day > 28) {
+                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
+                    }
+                    d.setDate(day);
+                    d.setFullYear(date.getFullYear() + value);
+                    break;
+            }
         }
+
+        if (decimalValue) {
+            switch (interval.toLowerCase()) {
+                case Ext.Date.MILLI:    base = 1;               break;
+                case Ext.Date.SECOND:   base = 1000;            break;
+                case Ext.Date.MINUTE:   base = 1000*60;         break;
+                case Ext.Date.HOUR:     base = 1000*60*60;      break;
+                case Ext.Date.DAY:      base = 1000*60*60*24;   break;
+
+                case Ext.Date.MONTH:
+                    day = utilDate.getDaysInMonth(d);
+                    base = 1000*60*60*24*day;
+                    break;
+
+                case Ext.Date.YEAR:
+                    day = (utilDate.isLeapYear(d) ? 366 : 365);
+                    base = 1000*60*60*24*day;
+                    break;
+            }
+            if (base) {
+                d.setTime(d.getTime() + base * decimalValue); 
+            }
+        }
+
         return d;
+    },
+    
+    
+    subtract: function(date, interval, value){
+        return utilDate.add(date, interval, -value);
     },
 
     
@@ -3324,7 +3710,7 @@ Ext.Date = {
     
     compat: function() {
         var nativeDate = window.Date,
-            p, u,
+            p,
             statics = ['useStrict', 'formatCodeToRegex', 'parseFunctions', 'parseRegexes', 'formatFunctions', 'y2kYear', 'MILLI', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'MONTH', 'YEAR', 'defaults', 'dayNames', 'monthNames', 'monthNumbers', 'getShortMonthName', 'getShortDayName', 'getMonthNumber', 'formatCodes', 'isValid', 'parseDate', 'getFormatCode', 'createFormat', 'createParser', 'parseCodes'],
             proto = ['dateFormat', 'format', 'getTimezone', 'getGMTOffset', 'getDayOfYear', 'getWeekOfYear', 'isLeapYear', 'getFirstDayOfMonth', 'getLastDayOfMonth', 'getDaysInMonth', 'getSuffix', 'clone', 'isDST', 'clearTime', 'add', 'between'],
             sLen    = statics.length,
@@ -3347,11 +3733,8 @@ Ext.Date = {
             };
         }
     }
+  });
 };
-
-var utilDate = Ext.Date;
-
-}());
 
 //@tag foundation,core
 
@@ -3362,7 +3745,21 @@ var utilDate = Ext.Date;
 (function(flexSetter) {
 
 var noArgs = [],
-    Base = function(){};
+    Base = function(){},
+    hookFunctionFactory = function(hookFunction, underriddenFunction, methodName, owningClass) {
+        var result = function() {
+            var result = this.callParent(arguments);
+            hookFunction.apply(this, arguments);
+            return result;
+        };
+        result.$name = methodName;
+        result.$owner = owningClass;
+        if (underriddenFunction) {
+            result.$previous = underriddenFunction.$previous;
+            underriddenFunction.$previous = result;
+        }
+        return result;
+    };
 
     
     Ext.apply(Base, {
@@ -3423,6 +3820,7 @@ var noArgs = [],
 
         
         triggerExtended: function() {
+        
             var callbacks = this.$onExtended,
                 ln = callbacks.length,
                 i, callback;
@@ -3551,7 +3949,7 @@ var noArgs = [],
                 if (members.hasOwnProperty(name)) {
                     member = members[name];
 
-                    if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn) {
+                    if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn && member !== Ext.identityFn) {
                         member.$owner = this;
                         member.$name = name;
                     }
@@ -3564,14 +3962,13 @@ var noArgs = [],
         },
 
         
-        addMember: function(name, member) {
-            if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn) {
+        addMember: function(name, member) {            
+            if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn && member !== Ext.identityFn) {
                 member.$owner = this;
                 member.$name = name;
             }
 
             this.prototype[name] = member;
-
             return this;
         },
 
@@ -3582,6 +3979,7 @@ var noArgs = [],
 
         
         borrow: function(fromClass, members) {
+            
             var prototype = this.prototype,
                 fromPrototype = fromClass.prototype,
                 i, ln, name, fn, toBorrow;
@@ -3632,6 +4030,8 @@ var noArgs = [],
                 for (name in members) { 
                     if (name == 'statics') {
                         statics = members[name];
+                    } else if (name == 'inheritableStatics'){
+                        me.addInheritableStatics(members[name]);
                     } else if (name == 'config') {
                         me.addConfig(members[name], true);
                     } else {
@@ -3649,7 +4049,7 @@ var noArgs = [],
                     if (members.hasOwnProperty(name)) {
                         member = members[name];
 
-                        if (typeof member == 'function' && !member.$className && member !== Ext.emptyFn) {
+                        if (typeof member == 'function' && !member.$className && member !== Ext.emptyFn && member !== Ext.identityFn) {
                             if (typeof member.$owner != 'undefined') {
                                 member = cloneFunction(member);
                             }
@@ -3681,8 +4081,8 @@ var noArgs = [],
 
             
             return (method = this.callParent.caller) && (method.$previous ||
-                ((method = method.$owner ? method : method.caller) &&
-                    method.$owner.superclass.self[method.$name])).apply(this, args || noArgs);
+                  ((method = method.$owner ? method : method.caller) &&
+                        method.$owner.superclass.self[method.$name])).apply(this, args || noArgs);
         },
 
         
@@ -3691,18 +4091,20 @@ var noArgs = [],
 
             
             return (method = this.callSuper.caller) &&
-                ((method = method.$owner ? method : method.caller) &&
-                    method.$owner.superclass.self[method.$name]).apply(this, args || noArgs);
+                    ((method = method.$owner ? method : method.caller) &&
+                      method.$owner.superclass.self[method.$name]).apply(this, args || noArgs);
         },
 
         
         mixin: function(name, mixinClass) {
-            var mixin = mixinClass.prototype,
-                prototype = this.prototype,
-                key;
+            var me = this,
+                mixin = mixinClass.prototype,
+                prototype = me.prototype,
+                key, statics, i, ln, staticName,
+                mixinValue, hookKey, hookFunction;
 
             if (typeof mixin.onClassMixedIn != 'undefined') {
-                mixin.onClassMixedIn.call(mixinClass, this);
+                mixin.onClassMixedIn.call(mixinClass, me);
             }
 
             if (!prototype.hasOwnProperty('mixins')) {
@@ -3715,19 +4117,54 @@ var noArgs = [],
             }
 
             for (key in mixin) {
+                mixinValue = mixin[key];
                 if (key === 'mixins') {
-                    Ext.merge(prototype.mixins, mixin[key]);
+                    Ext.merge(prototype.mixins, mixinValue);
                 }
-                else if (typeof prototype[key] == 'undefined' && key != 'mixinId' && key != 'config') {
-                    prototype[key] = mixin[key];
+                else if (key === 'xhooks') {
+                    for (hookKey in mixinValue) {
+                        hookFunction = mixinValue[hookKey];
+
+                        
+                        hookFunction.$previous = Ext.emptyFn;
+
+                        if (prototype.hasOwnProperty(hookKey)) {
+
+                            
+                            
+                            
+                            hookFunctionFactory(hookFunction, prototype[hookKey], hookKey, me);
+                        } else {
+                            
+                            
+                            prototype[hookKey] = hookFunctionFactory(hookFunction, null, hookKey, me);
+                        }
+                    }
+                }
+                else if (!(key === 'mixinId' || key === 'config') && (prototype[key] === undefined)) {
+                    prototype[key] = mixinValue;
+                }
+            }
+
+            
+            statics = mixin.$inheritableStatics;
+
+            if (statics) {
+                for (i = 0, ln = statics.length; i < ln; i++) {
+                    staticName = statics[i];
+
+                    if (!me.hasOwnProperty(staticName)) {
+                        me[staticName] = mixinClass[staticName];
+                    }
                 }
             }
 
             if ('config' in mixin) {
-                this.addConfig(mixin.config, false);
+                me.addConfig(mixin.config, false);
             }
 
             prototype.mixins[name] = mixin;
+            return me;
         },
 
         
@@ -3821,8 +4258,8 @@ var noArgs = [],
             
             var method,
                 superMethod = (method = this.callSuper.caller) &&
-                    ((method = method.$owner ? method : method.caller) &&
-                        method.$owner.superclass[method.$name]);
+                        ((method = method.$owner ? method : method.caller) &&
+                          method.$owner.superclass[method.$name]);
 
 
             return superMethod.apply(this, args || noArgs);
@@ -4022,9 +4459,11 @@ var noArgs = [],
     Ext.apply(ExtClass, {
         
         onBeforeCreated: function(Class, data, hooks) {
+        
             Class.addMembers(data);
 
             hooks.onCreated.call(Class, Class);
+            
         },
 
         
@@ -4053,7 +4492,7 @@ var noArgs = [],
                 },
                 preprocessors = [],
                 preprocessor, preprocessorsProperties,
-                i, ln, j, subLn, preprocessorProperty, process;
+                i, ln, j, subLn, preprocessorProperty;
 
             delete data.preprocessors;
 
@@ -4089,18 +4528,19 @@ var noArgs = [],
             this.doProcess(Class, data, hooks);
         },
         
-        doProcess: function(Class, data, hooks){
+        doProcess: function(Class, data, hooks) {
             var me = this,
-                preprocessor = hooks.preprocessors.shift();
+                preprocessors = hooks.preprocessors,
+                preprocessor = preprocessors.shift(),
+                doProcess = me.doProcess;
 
-            if (!preprocessor) {
-                hooks.onBeforeCreated.apply(me, arguments);
-                return;
+            for ( ; preprocessor ; preprocessor = preprocessors.shift()) {
+                
+                if (preprocessor.call(me, Class, data, hooks, doProcess) === false) {
+                    return;
+                }
             }
-
-            if (preprocessor.call(me, Class, data, hooks, me.doProcess) !== false) {
-                me.doProcess(Class, data, hooks);
-            }
+            hooks.onBeforeCreated.apply(me, arguments);
         },
 
         
@@ -4208,7 +4648,8 @@ var noArgs = [],
     });
 
     
-    ExtClass.registerPreprocessor('extend', function(Class, data) {
+    ExtClass.registerPreprocessor('extend', function(Class, data, hooks) {
+        
         var Base = Ext.Base,
             basePrototype = Base.prototype,
             extend = data.extend,
@@ -4246,6 +4687,7 @@ var noArgs = [],
 
     
     ExtClass.registerPreprocessor('statics', function(Class, data) {
+        
         Class.addStatics(data.statics);
 
         delete data.statics;
@@ -4253,6 +4695,7 @@ var noArgs = [],
 
     
     ExtClass.registerPreprocessor('inheritableStatics', function(Class, data) {
+        
         Class.addInheritableStatics(data.inheritableStatics);
 
         delete data.inheritableStatics;
@@ -4260,6 +4703,7 @@ var noArgs = [],
 
     
     ExtClass.registerPreprocessor('config', function(Class, data) {
+        
         var config = data.config,
             prototype = Class.prototype;
 
@@ -4353,12 +4797,14 @@ var noArgs = [],
 
     
     ExtClass.registerPreprocessor('mixins', function(Class, data, hooks) {
+        
         var mixins = data.mixins,
             name, mixin, i, ln;
 
         delete data.mixins;
 
         Ext.Function.interceptBefore(hooks, 'onCreated', function() {
+        
             if (mixins instanceof Array) {
                 for (i = 0,ln = mixins.length; i < ln; i++) {
                     mixin = mixins[i];
@@ -4379,6 +4825,7 @@ var noArgs = [],
 
     
     Ext.extend = function(Class, Parent, members) {
+            
         if (arguments.length === 2 && Ext.isObject(Parent)) {
             members = Parent;
             Parent = Class;
@@ -4418,7 +4865,6 @@ var noArgs = [],
 
         return cls;
     };
-
 }());
 
 //@tag foundation,core
@@ -4543,6 +4989,7 @@ var noArgs = [],
 
         
         onCreated: function(fn, scope, className) {
+            
             var listeners = this.createdListeners,
                 nameListeners = this.nameCreatedListeners,
                 listener = {
@@ -4872,13 +5319,14 @@ var noArgs = [],
                 Manager.processCreate(className, this, data);
             });
         },
-        
+
         processCreate: function(className, cls, clsData){
             var me = this,
                 postprocessor = clsData.postprocessors.shift(),
                 createdFn = clsData.createdFn;
 
             if (!postprocessor) {
+                
                 if (className) {
                     me.set(className, cls);
                 }
@@ -4945,7 +5393,7 @@ var noArgs = [],
 
             
             me.onCreated(classReady, me, overriddenClassName);
- 
+
             return me;
         },
 
@@ -5170,6 +5618,7 @@ var noArgs = [],
 
     
     Manager.registerPostprocessor('alias', function(name, cls, data) {
+        
         var aliases = data.alias,
             i, ln;
 
@@ -5183,12 +5632,19 @@ var noArgs = [],
 
     
     Manager.registerPostprocessor('singleton', function(name, cls, data, fn) {
-        fn.call(this, name, new cls(), data);
+        
+        if (data.singleton) {
+            fn.call(this, name, new cls(), data);
+        }
+        else {
+            return true;
+        }
         return false;
     });
 
     
     Manager.registerPostprocessor('alternateClassName', function(name, cls, data) {
+        
         var alternates = data.alternateClassName,
             i, ln, alternate;
 
@@ -5227,7 +5683,7 @@ var noArgs = [],
             } else {
                 config = config || {};
             }
-            
+
             if (config.isComponent) {
                 return config;
             }
@@ -5239,7 +5695,7 @@ var noArgs = [],
             if (!className) {
                 load = true;
             }
-            
+
             T = Manager.get(className);
             if (load || !T) {
                 return Manager.instantiateByAlias(alias, config);
@@ -5252,12 +5708,14 @@ var noArgs = [],
 
         
         define: function (className, data, createdFn) {
+            
             if (data.override) {
                 return Manager.createOverride.apply(Manager, arguments);
             }
 
             return Manager.create.apply(Manager, arguments);
         },
+
 
         
         getClassName: alias(Manager, 'getName'),
@@ -5298,9 +5756,11 @@ var noArgs = [],
         if (data.$className) {
             cls.$className = data.$className;
         }
+        
     }, true, 'first');
 
     Class.registerPreprocessor('alias', function(cls, data) {
+        
         var prototype = cls.prototype,
             xtypes = arrayFrom(data.xtype),
             aliases = arrayFrom(data.alias),
@@ -5336,6 +5796,7 @@ var noArgs = [],
         data.xtypesMap = xtypesMap;
 
         Ext.Function.interceptAfter(data, 'onClassCreated', function() {
+        
             var mixins = prototype.mixins,
                 key, mixin;
 
@@ -5372,6 +5833,18 @@ var noArgs = [],
 
 }(Ext.Class, Ext.Function.alias, Array.prototype.slice, Ext.Array.from, Ext.global));
 
+
+
+if (Ext._alternatesMetadata) {
+   Ext.ClassManager.addNameAlternateMappings(Ext._alternatesMetadata);
+   Ext._alternatesMetadata = null;
+}
+
+if (Ext._aliasMetadata) {
+    Ext.ClassManager.addNameAliasMappings(Ext._aliasMetadata);
+    Ext._aliasMetadata = null;
+}
+
 //@tag foundation,core
 
 //@require ClassManager.js
@@ -5394,7 +5867,8 @@ Ext.Loader = new function() {
         isInHistory = {},
         history = [],
         slashDotSlashRe = /\/\.\//g,
-        dotRe = /\./g;
+        dotRe = /\./g,
+        setPathCount = 0;
 
     Ext.apply(Loader, {
 
@@ -5437,9 +5911,17 @@ Ext.Loader = new function() {
         setConfig: function(name, value) {
             if (Ext.isObject(name) && arguments.length === 1) {
                 Ext.merge(Loader.config, name);
+
+                if ('paths' in name) {
+                    Ext.app.collectNamespaces(name.paths);
+                }
             }
             else {
                 Loader.config[name] = (Ext.isObject(value)) ? Ext.merge(Loader.config[name], value) : value;
+
+                if (name === 'paths') {
+                    Ext.app.collectNamespaces(value);
+                }
             }
 
             return Loader;
@@ -5457,6 +5939,8 @@ Ext.Loader = new function() {
         
         setPath: flexSetter(function(name, path) {
             Loader.config.paths[name] = path;
+            Ext.app.namespaces[name] = true;
+            setPathCount++;
 
             return Loader;
         }),
@@ -5465,9 +5949,14 @@ Ext.Loader = new function() {
         addClassPathMappings: function(paths) {
             var name;
 
-            for(name in paths){
-                Loader.config.paths[name] = paths[name];
+            if(setPathCount == 0){
+                Loader.config.paths = paths;
+            } else {
+                for(name in paths){
+                    Loader.config.paths[name] = paths[name];
+                }
             }
+            setPathCount++;
             return Loader;
         },
 
@@ -5567,7 +6056,10 @@ Ext.Loader = new function() {
         scriptElements = {},
         readyListeners = [],
         usedClasses = [],
-        requiresMap = {};
+        requiresMap = {},
+        comparePriority = function(listenerA, listenerB) {
+            return listenerB.priority - listenerA.priority;
+        };
 
     Ext.apply(Loader, {
         
@@ -5731,7 +6223,11 @@ Ext.Loader = new function() {
                 if (collect) {
                     for (prop in script) {
                         try {
-                            script[prop] = null;
+                            if (prop != 'src') {
+                                
+                                
+                                script[prop] = null;
+                            }
                             delete script[prop];      
                         } catch (cleanEx) {
                             
@@ -5823,7 +6319,7 @@ Ext.Loader = new function() {
                 }
 
                 status = (xhr.status === 1223) ? 204 :
-                    (xhr.status === 0 && (self.location || {}).protocol == 'file:') ? 200 : xhr.status;
+                    (xhr.status === 0 && ((self.location || {}).protocol == 'file:' || (self.location || {}).protocol == 'ionp:')) ? 200 : xhr.status;
 
                 isCrossOriginRestricted = isCrossOriginRestricted || (status === 0);
 
@@ -5980,14 +6476,15 @@ Ext.Loader = new function() {
                 
                 
                 if (syncModeEnabled && isClassFileLoaded.hasOwnProperty(className)) {
-                    Loader.numPendingFiles--;
-                    Loader.removeScriptElement(filePath);
-                    delete isClassFileLoaded[className];
+                    if (!isClassFileLoaded[className]) {
+                        Loader.numPendingFiles--;
+                        Loader.removeScriptElement(filePath);
+                        delete isClassFileLoaded[className];
+                    }
                 }
 
                 if (!isClassFileLoaded.hasOwnProperty(className)) {
                     isClassFileLoaded[className] = false;
-
                     classNameToFilePathMap[className] = filePath;
 
                     Loader.numPendingFiles++;
@@ -6014,12 +6511,17 @@ Ext.Loader = new function() {
 
         
         onFileLoaded: function(className, filePath) {
+            var loaded = isClassFileLoaded[className];
             Loader.numLoadedFiles++;
 
             isClassFileLoaded[className] = true;
             isFileLoaded[filePath] = true;
 
-            Loader.numPendingFiles--;
+            
+            
+            if (!loaded) {
+                Loader.numPendingFiles--;
+            }
 
             if (Loader.numPendingFiles === 0) {
                 Loader.refreshQueue();
@@ -6054,7 +6556,7 @@ Ext.Loader = new function() {
         
         triggerReady: function() {
             var listener,
-                i, refClasses = usedClasses;
+                refClasses = usedClasses;
 
             if (Loader.isLoading) {
                 Loader.isLoading = false;
@@ -6069,6 +6571,8 @@ Ext.Loader = new function() {
                     return Loader;
                 }
             }
+
+            Ext.Array.sort(readyListeners, comparePriority);
 
             
             
@@ -6101,7 +6605,8 @@ Ext.Loader = new function() {
             else {
                 readyListeners.push({
                     fn: fn,
-                    scope: scope
+                    scope: scope,
+                    priority: (options && options.priority) || 0
                 });
             }
         },
@@ -6141,6 +6646,7 @@ Ext.Loader = new function() {
 
     
     Class.registerPreprocessor('loader', function(cls, data, hooks, continueFn) {
+        
         var me = this,
             dependencies = [],
             dependency,
@@ -6228,6 +6734,7 @@ Ext.Loader = new function() {
 
     
     Manager.registerPostprocessor('uses', function(name, cls, data) {
+        
         var uses = data.uses;
         if (uses) {
             Loader.addUsedClasses(uses);

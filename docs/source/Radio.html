@@ -200,17 +200,23 @@ Ext.define('Ext.form.field.Radio', {
      */
     isRadio: true,
 
+<span id='Ext-form-field-Radio-cfg-focusCls'>    /**
+</span>     * @cfg {String} [focusCls='x-form-radio-focus']
+     * The CSS class to use when the radio field receives focus
+     */
+    focusCls: 'form-radio-focus',
+
 <span id='Ext-form-field-Radio-cfg-uncheckedValue'>    /**
 </span>     * @cfg {String} uncheckedValue
      * @private
      */
 
-    // private
-    inputType: 'radio',
-    ariaRole: 'radio',
-    
-    formId: null,
-
+<span id='Ext-form-field-Radio-cfg-inputType'>    // private
+</span>    inputType: 'radio',
+<span id='Ext-form-field-Radio-property-ariaRole'>    ariaRole: 'radio',
+</span>    
+<span id='Ext-form-field-Radio-property-formId'>    formId: null,
+</span>
 <span id='Ext-form-field-Radio-method-getGroupValue'>    /**
 </span>     * If this radio is part of a group, it will return the selected value
      * @return {String}
@@ -230,8 +236,8 @@ Ext.define('Ext.form.field.Radio', {
         }
     },
     
-    onRemoved: function(){
-        this.callParent(arguments);
+<span id='Ext-form-field-Radio-method-onRemoved'>    onRemoved: function(){
+</span>        this.callParent(arguments);
         this.formId = null;
     },
 
@@ -264,12 +270,12 @@ Ext.define('Ext.form.field.Radio', {
         return this.checked ? this.inputValue : null;
     },
 
-    getModelData: function() {
-        return this.getSubmitData();
+<span id='Ext-form-field-Radio-method-getModelData'>    getModelData: function() {
+</span>        return this.getSubmitData();
     },
 
-    // inherit docs
-    onChange: function(newVal, oldVal) {
+<span id='Ext-form-field-Radio-method-onChange'>    // inherit docs
+</span>    onChange: function(newVal, oldVal) {
         var me = this,
             r, rLen, radio, radios;
 
@@ -289,8 +295,8 @@ Ext.define('Ext.form.field.Radio', {
         }
     },
 
-    // inherit docs
-    getManager: function() {
+<span id='Ext-form-field-Radio-method-getManager'>    // inherit docs
+</span>    getManager: function() {
         return Ext.form.RadioManager;
     }
 });

@@ -18,7 +18,6 @@ Ext.onReady(function () {
         constructor: function(config) {
             this.callParent([Ext.apply({
                 axis: {
-                    fill: baseColor,
                     stroke: baseColor
                 },
                 axisLabelLeft: {
@@ -39,8 +38,6 @@ Ext.onReady(function () {
     });
 
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             theme: 'Fancy',
             animate: {
                 easing: 'bounceOut',
@@ -184,7 +181,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(5, 0));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(5, 0));
+                });
             }
         }],
         items: chart

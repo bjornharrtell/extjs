@@ -28,18 +28,35 @@ Ext.define('Ext.layout.component.Body', {
 
     extend: 'Ext.layout.component.Auto',
 
-    /* End Definitions */
-
+<span id='Ext-layout-component-Body-property-type'>    /* End Definitions */
+</span>
     type: 'body',
 
-    beginLayout: function (ownerContext) {
-        this.callParent(arguments);
+<span id='Ext-layout-component-Body-method-beginLayout'>    beginLayout: function (ownerContext) {
+</span>        this.callParent(arguments);
 
         ownerContext.bodyContext = ownerContext.getEl('body');
     },
 
-    // Padding is exciting here because we have 2 el's: owner.el and owner.body. Content
-    // size always includes the padding of the targetEl, which should be owner.body. But
+<span id='Ext-layout-component-Body-method-beginLayoutCycle'>    beginLayoutCycle: function(ownerContext, firstCycle){
+</span>        var me = this,
+            lastWidthModel = me.lastWidthModel,
+            lastHeightModel = me.lastHeightModel,
+            body = me.owner.body;
+
+        me.callParent(arguments);
+
+        if (lastWidthModel &amp;&amp; lastWidthModel.fixed &amp;&amp; ownerContext.widthModel.shrinkWrap) {
+            body.setWidth(null);
+        }
+
+        if (lastHeightModel &amp;&amp; lastHeightModel.fixed &amp;&amp; ownerContext.heightModel.shrinkWrap) {
+            body.setHeight(null);
+        }
+    },
+
+<span id='Ext-layout-component-Body-method-calculateOwnerHeightFromContentHeight'>    // Padding is exciting here because we have 2 el's: owner.el and owner.body. Content
+</span>    // size always includes the padding of the targetEl, which should be owner.body. But
     // it is common to have padding on owner.el also (such as a panel header), so we need
     // to do some more padding work if targetContext is not owner.el. The base class has
     // already handled the ownerContext's frameInfo (border+framing) so all that is left
@@ -55,8 +72,8 @@ Ext.define('Ext.layout.component.Body', {
         return height;
     },
 
-    calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
-        var width = this.callParent(arguments);
+<span id='Ext-layout-component-Body-method-calculateOwnerWidthFromContentWidth'>    calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
+</span>        var width = this.callParent(arguments);
 
         if (ownerContext.targetContext != ownerContext) {
             width += ownerContext.getPaddingInfo().width;
@@ -65,16 +82,16 @@ Ext.define('Ext.layout.component.Body', {
         return width;
     },
 
-    measureContentWidth: function (ownerContext) {
-        return ownerContext.bodyContext.setWidth(ownerContext.bodyContext.el.dom.offsetWidth, false);
+<span id='Ext-layout-component-Body-method-measureContentWidth'>    measureContentWidth: function (ownerContext) {
+</span>        return ownerContext.bodyContext.setWidth(ownerContext.bodyContext.el.dom.offsetWidth, false);
     },
 
-    measureContentHeight: function (ownerContext) {
-        return ownerContext.bodyContext.setHeight(ownerContext.bodyContext.el.dom.offsetHeight, false);
+<span id='Ext-layout-component-Body-method-measureContentHeight'>    measureContentHeight: function (ownerContext) {
+</span>        return ownerContext.bodyContext.setHeight(ownerContext.bodyContext.el.dom.offsetHeight, false);
     },
 
-    publishInnerHeight: function (ownerContext, height) {
-        var innerHeight = height - ownerContext.getFrameInfo().height,
+<span id='Ext-layout-component-Body-method-publishInnerHeight'>    publishInnerHeight: function (ownerContext, height) {
+</span>        var innerHeight = height - ownerContext.getFrameInfo().height,
             targetContext = ownerContext.targetContext;
 
         if (targetContext != ownerContext) {
@@ -85,8 +102,8 @@ Ext.define('Ext.layout.component.Body', {
         return ownerContext.bodyContext.setHeight(innerHeight, !ownerContext.heightModel.natural);
     },
 
-    publishInnerWidth: function (ownerContext, width) {
-        var innerWidth = width - ownerContext.getFrameInfo().width,
+<span id='Ext-layout-component-Body-method-publishInnerWidth'>    publishInnerWidth: function (ownerContext, width) {
+</span>        var innerWidth = width - ownerContext.getFrameInfo().width,
             targetContext = ownerContext.targetContext;
 
         if (targetContext != ownerContext) {

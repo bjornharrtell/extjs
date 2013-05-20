@@ -10,6 +10,7 @@ Ext.define('Ext.calendar.view.MonthDayDetail', {
 
     requires: [
         'Ext.XTemplate',
+        'Ext.calendar.util.Date',
         'Ext.calendar.view.AbstractCalendar'
     ],
     

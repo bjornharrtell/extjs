@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  *
@@ -47,19 +67,21 @@
  *                 "parent_id": null,
  *                 "name": "Parent Group"
  *             },
- *             "child_groups": [{
- *                 "id": 2,
- *                 "parent_id": 10,
- *                 "name": "Child Group 1"
- *             },{
- *                 "id": 3,
- *                 "parent_id": 10,
- *                 "name": "Child Group 2"
- *             },{
- *                 "id": 4,
- *                 "parent_id": 10,
- *                 "name": "Child Group 3"
- *             }]
+ *             "nested" : {
+ *                 "child_groups": [{
+ *                     "id": 2,
+ *                     "parent_id": 10,
+ *                     "name": "Child Group 1"
+ *                 },{
+ *                     "id": 3,
+ *                     "parent_id": 10,
+ *                     "name": "Child Group 2"
+ *                 },{
+ *                     "id": 4,
+ *                     "parent_id": 10,
+ *                     "name": "Child Group 3"
+ *                 }]
+ *             }
  *         }
  *     }
  *
@@ -81,7 +103,7 @@
  *             primaryKey: 'id',
  *             foreignKey: 'parent_id',
  *             autoLoad: true,
- *             associationKey: 'child_groups' // read child data from child_groups
+ *             associationKey: 'nested.child_groups' // read child data from nested.child_groups
  *         }, {
  *             type: 'belongsTo',
  *             model: 'Group',
@@ -153,6 +175,8 @@ Ext.define('Ext.data.association.Association', {
      * The name of the property in the data to read the association from. Defaults to the name of the associated model.
      */
 
+    associationKeyFunction : null,
+
     defaultReaderType: 'json',
 
     isAssociation: true,
@@ -195,12 +219,22 @@ Ext.define('Ext.data.association.Association', {
     constructor: function(config) {
         Ext.apply(this, config);
 
-        var me = this,
+        var me              = this,
             types           = Ext.ModelManager.types,
             ownerName       = config.ownerModel,
             associatedName  = config.associatedModel,
             ownerModel      = types[ownerName],
-            associatedModel = types[associatedName];
+            associatedModel = types[associatedName],
+            associationKey  = config.associationKey,
+            keyReIdx;
+
+        if (associationKey) {
+            keyReIdx = String(associationKey).search(/[\[\.]/);
+
+            if (keyReIdx >= 0) {
+                me.associationKeyFunction = Ext.functionFactory('obj', 'return obj' + (keyReIdx > 0 ? '.' : '') + associationKey);
+            }
+        }
 
         me.initialConfig = config;
 

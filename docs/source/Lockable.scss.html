@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-locked .#{$prefix}grid-inner-locked {
+    border-width: 0 1px 0 0;
+    border-style: solid;
+}
+@if $include-rtl {
+    .#{$prefix}grid-locked .#{$prefix}rtl.#{$prefix}grid-inner-locked {
+        border-width: 0 0 0 1px;
+    }
+}
+
+// Inner locked grid has a 1px border. Last cell looks bad with an extra grey one.
+// The rules must be last because they override default header and cell bordering.
+// Must use the border-right property because we have to override the .x-column-header border-right setting.
+.#{$prefix}grid-inner-locked {
+    // Override last border width
+    .#{$prefix}column-header-last,
+    .#{$prefix}grid-cell-last {
+        border-right-width: 0!important;
+    }
+    @if $include-rtl {
+        .#{$prefix}rtl.#{$prefix}column-header-last {
+            border-left-width: 0!important;
+        }
+    }
+}
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}grid-inner-locked {
+        .#{$prefix}grid-row {
+            .#{$prefix}column-header-last {
+                border-left: 0 none;
+            }
+            .#{$prefix}grid-cell-last {
+                border-left: 0 none;
+            }
+        }
+    }
+}
+
+.#{$prefix}hmenu-lock .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-lock');
+}
+
+.#{$prefix}hmenu-unlock .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-unlock');
+}
+
+</pre>
+</body>
+</html>

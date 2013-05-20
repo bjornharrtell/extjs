@@ -39,6 +39,39 @@
  *     });
  *
  *     p.getLayout().setActiveItem(1);
+ * 
+ * The {@link Ext.Component#beforedeactivate beforedeactivate} and {@link Ext.Component#beforeactivate beforeactivate}
+ * events can be used to prevent a card from activating or deactivating by returning `false`.
+ * 
+ *     @example   
+ *     var active = 0;
+ *     var main = Ext.create('Ext.panel.Panel', {
+ *         renderTo: Ext.getBody(),
+ *         width: 200,
+ *         height: 200,
+ *         layout: 'card',
+ *         tbar: [{
+ *             text: 'Next',
+ *             handler: function(){
+ *                 var layout = main.getLayout();
+ *                 ++active;
+ *                 layout.setActiveItem(active);
+ *                 active = main.items.indexOf(layout.getActiveItem());
+ *             }
+ *         }],
+ *         items: [{
+ *             title: 'P1'
+ *         }, {
+ *             title: 'P2'
+ *         }, {
+ *             title: 'P3',
+ *             listeners: {
+ *                 beforeactivate: function(){
+ *                     return false;
+ *                 }
+ *             }
+ *         }]
+ *     });
  *
  * In the following example, a simplistic wizard setup is demonstrated.  A button bar is added
  * to the footer of the containing panel to provide navigation buttons.  The buttons will be handled by a
@@ -113,12 +146,12 @@ Ext.define('Ext.layout.container.Card', {
 
     alias: 'layout.card',
 
-    /* End Definitions */
-
+<span id='Ext-layout-container-Card-property-type'>    /* End Definitions */
+</span>
     type: 'card',
 
-    hideInactive: true,
-
+<span id='Ext-layout-container-Card-property-hideInactive'>    hideInactive: true,
+</span>
 <span id='Ext-layout-container-Card-cfg-deferredRender'>    /**
 </span>     * @cfg {Boolean} deferredRender
      * True to render each contained item at the time it becomes active, false to render all contained items
@@ -128,8 +161,8 @@ Ext.define('Ext.layout.container.Card', {
      */
     deferredRender : false,
     
-    getRenderTree: function () {
-        var me = this,
+<span id='Ext-layout-container-Card-method-getRenderTree'>    getRenderTree: function () {
+</span>        var me = this,
             activeItem = me.getActiveItem();
 
         if (activeItem) {
@@ -163,8 +196,8 @@ Ext.define('Ext.layout.container.Card', {
         }
     },
 
-    renderChildren: function () {
-        var me = this,
+<span id='Ext-layout-container-Card-method-renderChildren'>    renderChildren: function () {
+</span>        var me = this,
             active = me.getActiveItem();
             
         if (!me.deferredRender) {
@@ -175,8 +208,8 @@ Ext.define('Ext.layout.container.Card', {
         }
     },
 
-    isValidParent : function(item, target, position) {
-        // Note: Card layout does not care about order within the target because only one is ever visible.
+<span id='Ext-layout-container-Card-method-isValidParent'>    isValidParent : function(item, target, position) {
+</span>        // Note: Card layout does not care about order within the target because only one is ever visible.
         // We only care whether the item is a direct child of the target.
         var itemEl = item.el ? item.el.dom : Ext.getDom(item);
         return (itemEl &amp;&amp; itemEl.parentNode === (target.dom || target)) || false;
@@ -201,8 +234,8 @@ Ext.define('Ext.layout.container.Card', {
         return me.activeItem;
     },
 
-    // @private
-    parseActiveItem: function(item) {
+<span id='Ext-layout-container-Card-method-parseActiveItem'>    // @private
+</span>    parseActiveItem: function(item) {
         if (item &amp;&amp; item.isComponent) {
             return item;
         } else if (typeof item == 'number' || item === undefined) {
@@ -212,8 +245,8 @@ Ext.define('Ext.layout.container.Card', {
         }
     },
 
-    // @private. Called before both dynamic render, and bulk render.
-    // Ensure that the active item starts visible, and inactive ones start invisible
+<span id='Ext-layout-container-Card-method-configureItem'>    // @private. Called before both dynamic render, and bulk render.
+</span>    // Ensure that the active item starts visible, and inactive ones start invisible
     configureItem: function(item) {
         if (item === this.getActiveItem()) {
             item.hidden = false;
@@ -223,16 +256,16 @@ Ext.define('Ext.layout.container.Card', {
         this.callParent(arguments);
     },
 
-    onRemove: function(component) {
-        var me = this;
+<span id='Ext-layout-container-Card-method-onRemove'>    onRemove: function(component) {
+</span>        var me = this;
         
         if (component === me.activeItem) {
             me.activeItem = null;
         }
     },
 
-    // @private
-    getAnimation: function(newCard, owner) {
+<span id='Ext-layout-container-Card-method-getAnimation'>    // @private
+</span>    getAnimation: function(newCard, owner) {
         var newAnim = (newCard || {}).cardSwitchAnimation;
         if (newAnim === false) {
             return false;
@@ -245,8 +278,6 @@ Ext.define('Ext.layout.container.Card', {
      * @returns {Ext.Component} The next component or false.
      */
     getNext: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var wrap = arguments[0],
             items = this.getLayoutItems(),
             index = Ext.Array.indexOf(items, this.activeItem);
@@ -259,8 +290,6 @@ Ext.define('Ext.layout.container.Card', {
      * @return {Ext.Component} the activated component or false when nothing activated.
      */
     next: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var anim = arguments[0], 
             wrap = arguments[1];
         return this.setActiveItem(this.getNext(wrap), anim);
@@ -271,8 +300,6 @@ Ext.define('Ext.layout.container.Card', {
      * @returns {Ext.Component} The previous component or false.
      */
     getPrev: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var wrap = arguments[0],
             items = this.getLayoutItems(),
             index = Ext.Array.indexOf(items, this.activeItem);
@@ -285,8 +312,6 @@ Ext.define('Ext.layout.container.Card', {
      * @return {Ext.Component} the activated component or false when nothing activated.
      */
     prev: function() {
-        //NOTE: Removed the JSDoc for this function's arguments because it is not actually supported in 4.0. This 
-        //should come back in 4.1
         var anim = arguments[0], 
             wrap = arguments[1];
         return this.setActiveItem(this.getPrev(wrap), anim);

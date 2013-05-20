@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-de",
+    "type": "locale",
+    "locale": "de",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

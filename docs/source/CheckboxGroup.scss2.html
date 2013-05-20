@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}form-checkboxgroup-body {
+    padding: $form-checkboxgroup-body-padding;
+}
+
+.#{$prefix}form-invalid {
+    .#{$prefix}form-checkboxgroup-body {
+        border: 1px solid $form-field-invalid-border-color;
+        @if $form-field-invalid-background-image != null {
+            background-image: theme-background-image($form-field-invalid-background-image);
+            background-repeat: $form-field-invalid-background-repeat;
+            background-position: $form-field-invalid-background-position;
+        }
+    }
+}
+
+.#{$prefix}check-group-alt {
+    background: $form-checkboxgroup-alt-background;
+    border-top: $form-checkboxgroup-alt-border-top;
+    border-bottom: $form-checkboxgroup-alt-border-bottom;
+}
+
+.#{$prefix}form-check-group-label {
+    color: $form-checkboxgroup-label-color;
+    padding: $form-checkboxgroup-label-padding;
+    margin: $form-checkboxgroup-label-margin;
+    border-width: $form-checkboxgroup-label-border-width;
+    border-style: $form-checkboxgroup-label-border-style;
+    border-color: $form-checkboxgroup-label-border-color;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}form-check-group-label {
+        margin: rtl($form-checkboxgroup-label-margin);
+    }
+}
+</pre>
+</body>
+</html>

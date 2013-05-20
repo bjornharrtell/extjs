@@ -27,7 +27,6 @@ Ext.onReady(function(){
         },
         items: [{
             region: 'north',
-            styleHtmlContent: true,
             height: 150,
             bodyPadding: 5,
             split: true,
@@ -54,7 +53,6 @@ Ext.onReady(function(){
                             maximizable: true,
                             stateId: 'stateWindowExample',
                             stateful: true,
-                            styleHtmlContent: true,
                             bodyPadding: 5,
                             html: [
                                 'Between refreshes, this window will remember:',

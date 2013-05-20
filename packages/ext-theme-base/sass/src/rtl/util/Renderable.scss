@@ -1,0 +1,12 @@
+/*
+ * Although this file only contains a variable, all vars are included by default
+ * in application sass builds, so this needs to be in the rule file section
+ * to allow javascript inclusion filtering to disable it.
+ */
+
+/**
+ * @var {boolean} $include-rtl
+ * True to include right-to-left styles
+ * @member Global_CSS
+ */
+$include-rtl: true;

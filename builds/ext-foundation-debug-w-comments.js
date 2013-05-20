@@ -1,39 +1,22 @@
 /*
-Ext JS 4.1 - JavaScript Library
-Copyright (c) 2006-2012, Sencha Inc.
-All rights reserved.
-licensing@sencha.com
+This file is part of Ext JS 4.2
 
-http://www.sencha.com/license
+Copyright (c) 2011-2013 Sencha Inc
 
-Open Source License
-------------------------------------------------------------------------------------------
-This version of Ext JS is licensed under the terms of the Open Source GPL 3.0 license. 
+Contact:  http://www.sencha.com/contact
 
-http://www.gnu.org/licenses/gpl.html
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
 
-There are several FLOSS exceptions available for use with this release for
-open source applications that are distributed under a license other than GPL.
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-* Open Source License Exception for Applications
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
 
-  http://www.sencha.com/products/floss-exception.php
-
-* Open Source License Exception for Development
-
-  http://www.sencha.com/products/ux-exception.php
-
-
-Alternate Licensing
-------------------------------------------------------------------------------------------
-Commercial and OEM Licenses are available for an alternate download of Ext JS.
-This is the appropriate option if you are creating proprietary applications and you are 
-not prepared to distribute and share the source code of your application under the 
-GPL v3 license. Please visit http://www.sencha.com/license for more details.
-
---
-
-This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT OF THIRD-PARTY INTELLECTUAL PROPERTY RIGHTS.  See the GNU General Public License for more details.
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
 */
 //@tag foundation,core
 /**
@@ -55,7 +38,11 @@ Ext._startTime = new Date().getTime();
             var method = callOverrideParent.caller.caller; // skip callParent (our caller)
             return method.$owner.prototype[method.$name].apply(this, arguments);
         },
-        i;
+        i,
+        nonWhitespaceRe = /\S/,
+        ExtApp;
+
+    Function.prototype.$extIsFunction = true;
 
     Ext.global = global;
 
@@ -109,8 +96,7 @@ Ext._startTime = new Date().getTime();
     };
 
     Ext.buildSettings = Ext.apply({
-        baseCSSPrefix: 'x-',
-        scopeResetCSS: false
+        baseCSSPrefix: 'x-'
     }, Ext.buildSettings || {});
 
     Ext.apply(Ext, {
@@ -125,9 +111,17 @@ Ext._startTime = new Date().getTime();
         name: Ext.sandboxName || 'Ext',
 
         /**
+         * @property {Function}
          * A reusable empty function
          */
         emptyFn: emptyFn,
+        
+        /**
+         * A reusable identity function. The function will always return the first argument, unchanged.
+         */
+        identityFn: function(o) {
+            return o;
+        },
 
         /**
          * A zero length string which will pass a truth test. Useful for passing to methods
@@ -391,7 +385,7 @@ Ext._startTime = new Date().getTime();
             if (type === 'object') {
                 if (value.nodeType !== undefined) {
                     if (value.nodeType === 3) {
-                        return (/\S/).test(value.nodeValue) ? 'textnode' : 'whitespace';
+                        return (nonWhitespaceRe).test(value.nodeValue) ? 'textnode' : 'whitespace';
                     }
                     else {
                         return 'element';
@@ -401,6 +395,49 @@ Ext._startTime = new Date().getTime();
                 return 'object';
             }
 
+        },
+
+        /**
+         * Coerces the first value if possible so that it is comparable to the second value.
+         *
+         * Coercion only works between the basic atomic data types String, Boolean, Number, Date, null and undefined.
+         *
+         * Numbers and numeric strings are coerced to Dates using the value as the millisecond era value.
+         *
+         * Strings are coerced to Dates by parsing using the {@link Ext.Date#defaultFormat defaultFormat}.
+         * 
+         * For example
+         *
+         *     Ext.coerce('false', true);
+         *     
+         * returns the boolean value `false` because the second parameter is of type `Boolean`.
+         * 
+         * @param {Mixed} from The value to coerce
+         * @param {Mixed} to The value it must be compared against
+         * @return The coerced value.
+         */
+        coerce: function(from, to) {
+            var fromType = Ext.typeOf(from),
+                toType = Ext.typeOf(to),
+                isString = typeof from === 'string';
+
+            if (fromType !== toType) {
+                switch (toType) {
+                    case 'string':
+                        return String(from);
+                    case 'number':
+                        return Number(from);
+                    case 'boolean':
+                        return isString && (!from || from === 'false') ? false : Boolean(from);
+                    case 'null':
+                        return isString && (!from || from === 'null') ? null : from;
+                    case 'undefined':
+                        return isString && (!from || from === 'undefined') ? undefined : from;
+                    case 'date':
+                        return isString && isNaN(from) ? Ext.Date.parse(from, Ext.Date.defaultFormat) : Date(Number(from));
+                }
+            }
+            return from;
         },
 
         /**
@@ -478,13 +515,8 @@ Ext._startTime = new Date().getTime();
          * @return {Boolean}
          * @method
          */
-        isFunction:
-        // Safari 3.x and 4.x returns 'function' for typeof <NodeList>, hence we need to fall back to using
-        // Object.prototype.toString (slower)
-        (typeof document !== 'undefined' && typeof document.getElementsByTagName('body') === 'function') ? function(value) {
-            return toString.call(value) === '[object Function]';
-        } : function(value) {
-            return typeof value === 'function';
+        isFunction: function(value) {
+            return !!(value && value.$extIsFunction);
         },
 
         /**
@@ -730,7 +762,79 @@ Ext._startTime = new Date().getTime();
      * @inheritdoc Ext#typeOf
      */
     Ext.type = Ext.typeOf;
+    
+    // When using Cmd optimizations, the namespace Ext.app may already be defined
+    // by this point since it's done up front by the tool. Check if app already
+    // exists before overwriting it.
+    ExtApp = Ext.app;
+    if (!ExtApp) {
+        ExtApp = Ext.app = {};
+    }
+    Ext.apply(ExtApp, {
+        namespaces: {},
+        
+        /**
+        * @private
+        */
+        collectNamespaces: function(paths) {
+            var namespaces = Ext.app.namespaces,
+                path;
+            
+            for (path in paths) {
+                if (paths.hasOwnProperty(path)) {
+                    namespaces[path] = true;
+                }
+            }
+        },
 
+        /**
+        * Adds namespace(s) to known list.
+        *
+        * @param {String/String[]} namespace
+        */
+        addNamespaces: function(ns) {
+            var namespaces = Ext.app.namespaces,
+                i, l;
+
+            if (!Ext.isArray(ns)) {
+                ns = [ns];
+            }
+
+            for (i = 0, l = ns.length; i < l; i++) {
+                namespaces[ns[i]] = true;
+            }
+        },
+
+        /**
+        * @private Clear all namespaces from known list.
+        */
+        clearNamespaces: function() {
+            Ext.app.namespaces = {};
+        },
+
+        /**
+        * Get namespace prefix for a class name.
+        *
+        * @param {String} className
+        *
+        * @return {String} Namespace prefix if it's known, otherwise undefined
+        */
+        getNamespace: function(className) {
+            var namespaces    = Ext.app.namespaces,
+                deepestPrefix = '',
+                prefix;
+
+            for (prefix in namespaces) {
+                if (namespaces.hasOwnProperty(prefix)    &&
+                    prefix.length > deepestPrefix.length &&
+                    (prefix + '.' === className.substring(0, prefix.length + 1))) {
+                    deepestPrefix = prefix;
+                }
+            }
+
+            return deepestPrefix === '' ? undefined : deepestPrefix;
+        }
+    });
 }());
 
 /*
@@ -748,6 +852,10 @@ Ext.globalEval = Ext.global.execScript
         // IMPORTANT: because we use eval we cannot place this in the above function or it
         // will break the compressor's ability to rename local variables...
         (function(){
+            // This var should not be replaced by the compressor. We need to do this so
+            // that Ext refers to the global Ext, if we're sandboxing it may
+            // refer to the local instance inside the closure
+            var Ext = this.Ext;
             eval($$code);
         }());
     };
@@ -785,7 +893,8 @@ Ext.globalEval = Ext.global.execScript
 (function() {
 
 // Current core version
-var version = '4.1.1.1', Version;
+// also fix Ext-more.js
+var version = '4.2.0.663', Version;
     Ext.Version = Version = Ext.extend(Object, {
 
         /**
@@ -1135,7 +1244,7 @@ var version = '4.1.1.1', Version;
 /**
  * @class Ext.String
  *
- * A collection of useful static methods to deal with strings
+ * A collection of useful static methods to deal with strings.
  * @singleton
  */
 
@@ -1156,16 +1265,107 @@ Ext.String = (function() {
         },
         htmlDecodeReplaceFn = function(match, capture) {
             return (capture in entityToChar) ? entityToChar[capture] : String.fromCharCode(parseInt(capture.substr(2), 10));
+        },
+        boundsCheck = function(s, other){
+            if (s === null || s === undefined || other === null || other === undefined) {
+                return false;
+            }
+            
+            return other.length <= s.length; 
         };
 
     return {
+        
+        /**
+         * Inserts a substring into a string.
+         * @param {String} s The original string.
+         * @param {String} value The substring to insert.
+         * @param {Number} index The index to insert the substring. Negative indexes will insert from the end of
+         * the string. Example: 
+         *
+         *     Ext.String.insert("abcdefg", "h", -1); // abcdefhg
+         *
+         * @return {String} The value with the inserted substring
+         */
+        insert: function(s, value, index) {
+            if (!s) {
+                return value;
+            }
+            
+            if (!value) {
+                return s;
+            }
+            
+            var len = s.length;
+            
+            if (!index && index !== 0) {
+                index = len;
+            }
+            
+            if (index < 0) {
+                index *= -1;
+                if (index >= len) {
+                    // negative overflow, insert at start
+                    index = 0;
+                } else {
+                    index = len - index;
+                }
+            }
+            
+            if (index === 0) {
+                s = value + s;
+            } else if (index >= s.length) {
+                s += value;
+            } else {
+                s = s.substr(0, index) + value + s.substr(index);
+            }
+            return s;
+        },
+        
+        /**
+         * Checks if a string starts with a substring
+         * @param {String} s The original string
+         * @param {String} start The substring to check
+         * @param {Boolean} [ignoreCase=false] True to ignore the case in the comparison
+         */
+        startsWith: function(s, start, ignoreCase){
+            var result = boundsCheck(s, start);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    start = start.toLowerCase();
+                }
+                result = s.lastIndexOf(start, 0) === 0;
+            }
+            return result;
+        },
+        
+        /**
+         * Checks if a string ends with a substring
+         * @param {String} s The original string
+         * @param {String} start The substring to check
+         * @param {Boolean} [ignoreCase=false] True to ignore the case in the comparison
+         */
+        endsWith: function(s, end, ignoreCase){
+            var result = boundsCheck(s, end);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    end = end.toLowerCase();
+                }
+                result = s.indexOf(end, s.length - end.length) !== -1;
+            }
+            return result;
+        },
 
         /**
-         * Converts a string of characters into a legal, parseable Javascript `var` name as long as the passed
+         * Converts a string of characters into a legal, parse-able JavaScript `var` name as long as the passed
          * string contains at least one alphabetic character. Non alphanumeric characters, and *leading* non alphabetic
          * characters will be removed.
          * @param {String} s A string to be converted into a `var` name.
-         * @return {String} A legal Javascript `var` name.
+         * @return {String} A legal JavaScript `var` name.
          */
         createVarName: function(s) {
             return s.replace(varReplace, '');
@@ -1173,8 +1373,8 @@ Ext.String = (function() {
 
         /**
          * Convert certain characters (&, <, >, ', and ") to their HTML character equivalents for literal display in web pages.
-         * @param {String} value The string to encode
-         * @return {String} The encoded text
+         * @param {String} value The string to encode.
+         * @return {String} The encoded text.
          * @method
          */
         htmlEncode: function(value) {
@@ -1183,8 +1383,8 @@ Ext.String = (function() {
 
         /**
          * Convert certain characters (&, <, >, ', and ") from their HTML character equivalents.
-         * @param {String} value The string to decode
-         * @return {String} The decoded text
+         * @param {String} value The string to decode.
+         * @return {String} The decoded text.
          * @method
          */
         htmlDecode: function(value) {
@@ -1206,10 +1406,10 @@ Ext.String = (function() {
          *      });
          *      var s = Ext.String.htmlEncode("A string with entities: èÜçñ");
          *
-         * Note: the values of the character entites defined on this object are expected
+         * __Note:__ the values of the character entities defined on this object are expected
          * to be single character values.  As such, the actual values represented by the
-         * characters are sensitive to the character encoding of the javascript source
-         * file when defined in string literal form. Script tasgs referencing server
+         * characters are sensitive to the character encoding of the JavaScript source
+         * file when defined in string literal form. Script tags referencing server
          * resources with character entities must ensure that the 'charset' attribute
          * of the script node is consistent with the actual character encoding of the
          * server resource.
@@ -1270,13 +1470,13 @@ Ext.String = (function() {
 
         /**
          * Trims whitespace from either end of a string, leaving spaces within the string intact.  Example:
-         * @example
-    var s = '  foo bar  ';
-    alert('-' + s + '-');         //alerts "- foo bar -"
-    alert('-' + Ext.String.trim(s) + '-');  //alerts "-foo bar-"
-
-         * @param {String} string The string to escape
-         * @return {String} The trimmed string
+         *
+         *     var s = '  foo bar  ';
+         *     alert('-' + s + '-');                   //alerts "- foo bar -"
+         *     alert('-' + Ext.String.trim(s) + '-');  //alerts "-foo bar-"
+         *
+         * @param {String} string The string to trim.
+         * @return {String} The trimmed string.
          */
         trim: function(string) {
             return string.replace(trimRegex, "");
@@ -1292,7 +1492,7 @@ Ext.String = (function() {
         },
 
         /**
-         * Uncapitalize the given string
+         * Uncapitalize the given string.
          * @param {String} string
          * @return {String}
          */
@@ -1301,11 +1501,11 @@ Ext.String = (function() {
         },
 
         /**
-         * Truncate a string and add an ellipsis ('...') to the end if it exceeds the specified length
-         * @param {String} value The string to truncate
-         * @param {Number} length The maximum length to allow before truncating
-         * @param {Boolean} word True to try to find a common word break
-         * @return {String} The converted text
+         * Truncate a string and add an ellipsis ('...') to the end if it exceeds the specified length.
+         * @param {String} value The string to truncate.
+         * @param {Number} length The maximum length to allow before truncating.
+         * @param {Boolean} [word=false] `true` to try to find a common word break.
+         * @return {String} The converted text.
          */
         ellipsis: function(value, len, word) {
             if (value && value.length > len) {
@@ -1322,7 +1522,7 @@ Ext.String = (function() {
         },
 
         /**
-         * Escapes the passed string for use in a regular expression
+         * Escapes the passed string for use in a regular expression.
          * @param {String} string
          * @return {String}
          */
@@ -1344,17 +1544,17 @@ Ext.String = (function() {
          * is compared to the current string, and if they are equal, the other value that was passed in is returned.  If
          * they are already different, the first value passed in is returned.  Note that this method returns the new value
          * but does not change the current string.
-         * <pre><code>
-        // alternate sort directions
-        sort = Ext.String.toggle(sort, 'ASC', 'DESC');
-
-        // instead of conditional logic:
-        sort = (sort == 'ASC' ? 'DESC' : 'ASC');
-           </code></pre>
-         * @param {String} string The current string
-         * @param {String} value The value to compare to the current string
-         * @param {String} other The new value to use if the string already equals the first value passed in
-         * @return {String} The new value
+         *
+         *     // alternate sort directions
+         *     sort = Ext.String.toggle(sort, 'ASC', 'DESC');
+         *
+         *     // instead of conditional logic:
+         *     sort = (sort === 'ASC' ? 'DESC' : 'ASC');
+         *
+         * @param {String} string The current string.
+         * @param {String} value The value to compare to the current string.
+         * @param {String} other The new value to use if the string already equals the first value passed in.
+         * @return {String} The new value.
          */
         toggle: function(string, value, other) {
             return string === value ? other : value;
@@ -1364,14 +1564,13 @@ Ext.String = (function() {
          * Pads the left side of a string with a specified character.  This is especially useful
          * for normalizing number and date strings.  Example usage:
          *
-         * <pre><code>
-    var s = Ext.String.leftPad('123', 5, '0');
-    // s now contains the string: '00123'
-           </code></pre>
-         * @param {String} string The original string
-         * @param {Number} size The total length of the output string
-         * @param {String} character (optional) The character with which to pad the original string (defaults to empty string " ")
-         * @return {String} The padded string
+         *     var s = Ext.String.leftPad('123', 5, '0');
+         *     // s now contains the string: '00123'
+         *
+         * @param {String} string The original string.
+         * @param {Number} size The total length of the output string.
+         * @param {String} [character=' '] (optional) The character with which to pad the original string.
+         * @return {String} The padded string.
          */
         leftPad: function(string, size, character) {
             var result = String(string);
@@ -1385,15 +1584,15 @@ Ext.String = (function() {
         /**
          * Allows you to define a tokenized string and pass an arbitrary number of arguments to replace the tokens.  Each
          * token must be unique, and must increment in the format {0}, {1}, etc.  Example usage:
-         * <pre><code>
-    var cls = 'my-class', text = 'Some text';
-    var s = Ext.String.format('&lt;div class="{0}">{1}&lt;/div>', cls, text);
-    // s now contains the string: '&lt;div class="my-class">Some text&lt;/div>'
-           </code></pre>
-         * @param {String} string The tokenized string to be formatted
-         * @param {String} value1 The value to replace token {0}
-         * @param {String} value2 Etc...
-         * @return {String} The formatted string
+         *
+         *     var cls = 'my-class',
+         *         text = 'Some text';
+         *     var s = Ext.String.format('<div class="{0}">{1}</div>', cls, text);
+         *     // s now contains the string: '<div class="my-class">Some text</div>'
+         *
+         * @param {String} string The tokenized string to be formatted.
+         * @param {Mixed...} values The values to replace tokens `{0}`, `{1}`, etc in order.
+         * @return {String} The formatted string.
          */
         format: function(format) {
             var args = Ext.Array.toArray(arguments, 1);
@@ -1403,7 +1602,7 @@ Ext.String = (function() {
         },
 
         /**
-         * Returns a string with a specified number of repititions a given string pattern.
+         * Returns a string with a specified number of repetitions a given string pattern.
          * The pattern be separated by a different string.
          *
          *      var s = Ext.String.repeat('---', 4); // = '------------'
@@ -1414,6 +1613,9 @@ Ext.String = (function() {
          * @param {String} sep An option string to separate each pattern.
          */
         repeat: function(pattern, count, sep) {
+            if (count < 1) {
+                count = 0;
+            }
             for (var buf = [], i = count; i--; ) {
                 buf.push(pattern);
             }
@@ -1632,6 +1834,19 @@ Ext.Number = new function() {
          */
         randomInt: function (from, to) {
            return math.floor(math.random() * (to - from + 1) + from);
+        },
+        
+        /**
+         * Corrects floating point numbers that overflow to a non-precise
+         * value because of their floating nature, for example `0.1 + 0.2`
+         * @param {Number} The number
+         * @return {Number} The correctly rounded number
+         */
+        correctFloat: function(n) {
+            // This is to correct the type of errors where 2 floats end with
+            // a long string of decimals, eg 0.1 + 0.2. When they overflow in this
+            // manner, they usually go to 15-16 decimals, so we cut it off at 14.
+            return parseFloat(n.toPrecision(14));
         }
     });
 
@@ -1798,9 +2013,16 @@ Ext.Number = new function() {
 
     function replaceNative (array, index, removeCount, insert) {
         if (insert && insert.length) {
-            if (index < array.length) {
+            // Inserting at index zero with no removing: use unshift
+            if (index === 0 && !removeCount) {
+                array.unshift.apply(array, insert);
+            }
+            // Inserting/replacing in middle of array
+            else if (index < array.length) {
                 array.splice.apply(array, [index, removeCount].concat(insert));
-            } else {
+            }
+            // Appending to array
+            else {
                 array.push.apply(array, insert);
             }
         } else {
@@ -1924,7 +2146,7 @@ Ext.Number = new function() {
          * @param {Object} scope (Optional) The execution scope (`this`) in which the specified function is executed.
          */
         forEach: supportsForEach ? function(array, fn, scope) {
-            return array.forEach(fn, scope);
+            array.forEach(fn, scope);
         } : function(array, fn, scope) {
             var i = 0,
                 ln = array.length;
@@ -1944,7 +2166,7 @@ Ext.Number = new function() {
          * @return {Number} The index of item in the array (or -1 if it is not found)
          */
         indexOf: supportsIndexOf ? function(array, item, from) {
-            return array.indexOf(item, from);
+            return arrayPrototype.indexOf.call(array, item, from);
          } : function(array, item, from) {
             var i, length = array.length;
 
@@ -1965,7 +2187,7 @@ Ext.Number = new function() {
          * @return {Boolean} True if the array contains the item, false otherwise
          */
         contains: supportsIndexOf ? function(array, item) {
-            return array.indexOf(item) !== -1;
+            return arrayPrototype.indexOf.call(array, item) !== -1;
         } : function(array, item) {
             var i, ln;
 
@@ -2057,7 +2279,10 @@ Ext.Number = new function() {
          *
          * @param {Array} array
          * @param {Function} fn Callback function for each item
-         * @param {Object} scope Callback function scope
+         * @param {Mixed} fn.item Current item.
+         * @param {Number} fn.index Index of the item.
+         * @param {Array} fn.array The whole array that's being iterated.
+         * @param {Object} [scope] Callback function scope
          * @return {Array} results
          */
         map: supportsMap ? function(array, fn, scope) {
@@ -2081,6 +2306,9 @@ Ext.Number = new function() {
          *
          * @param {Array} array
          * @param {Function} fn Callback function for each item
+         * @param {Mixed} fn.item Current item.
+         * @param {Number} fn.index Index of the item.
+         * @param {Array} fn.array The whole array that's being iterated.
          * @param {Object} scope Callback function scope
          * @return {Boolean} True if no false value is returned by the callback function.
          */
@@ -2105,6 +2333,9 @@ Ext.Number = new function() {
          *
          * @param {Array} array
          * @param {Function} fn Callback function for each item
+         * @param {Mixed} fn.item Current item.
+         * @param {Number} fn.index Index of the item.
+         * @param {Array} fn.array The whole array that's being iterated.
          * @param {Object} scope Callback function scope
          * @return {Boolean} True if the callback function returns a truthy value.
          */
@@ -2121,6 +2352,35 @@ Ext.Number = new function() {
             }
 
             return false;
+        },
+        
+        /**
+         * Shallow compares the contents of 2 arrays using strict equality.
+         * @param {Array} array1
+         * @param {Array} array2
+         * @return {Boolean} `true` if the arrays are equal.
+         */
+        equals: function(array1, array2) {
+            var len1 = array1.length,
+                len2 = array2.length,
+                i;
+                
+            // Short circuit if the same array is passed twice
+            if (array1 === array2) {
+                return true;
+            }
+                
+            if (len1 !== len2) {
+                return false;
+            }
+            
+            for (i = 0; i < len1; ++i) {
+                if (array1[i] !== array2[i]) {
+                    return false;
+                }
+            }
+            
+            return true;
         },
 
         /**
@@ -2177,6 +2437,9 @@ Ext.Number = new function() {
          *
          * @param {Array} array
          * @param {Function} fn Callback function for each item
+         * @param {Mixed} fn.item Current item.
+         * @param {Number} fn.index Index of the item.
+         * @param {Array} fn.array The whole array that's being iterated.
          * @param {Object} scope Callback function scope
          * @return {Array} results
          */
@@ -2194,6 +2457,30 @@ Ext.Number = new function() {
             }
 
             return results;
+        },
+
+        /**
+         * Returns the first item in the array which elicits a true return value from the
+         * passed selection function.
+         * @param {Array} array The array to search
+         * @param {Function} fn The selection function to execute for each item.
+         * @param {Mixed} fn.item The array item.
+         * @param {String} fn.index The index of the array item.
+         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the
+         * function is executed. Defaults to the array
+         * @return {Object} The first item in the array which returned true from the selection
+         * function, or null if none was found.
+         */
+        findBy : function(array, fn, scope) {
+            var i = 0,
+                len = array.length;
+
+            for (; i < len; i++) {
+                if (fn.call(scope || array, array[i], i)) {
+                    return array[i];
+                }
+            }
+            return null;
         },
 
         /**
@@ -2425,6 +2712,8 @@ Ext.Number = new function() {
          *
          * @param {Array} array The array to sort.
          * @param {Function} sortFn (optional) The comparison function.
+         * @param {Mixed} sortFn.a An item to compare.
+         * @param {Mixed} sortFn.b Another item to compare.
          * @return {Array} The sorted array.
          */
         sort: supportsSort ? function(array, sortFn) {
@@ -2495,6 +2784,8 @@ Ext.Number = new function() {
          * @param {Array/NodeList} array The Array from which to select the minimum value.
          * @param {Function} comparisonFn (optional) a function to perform the comparision which determines minimization.
          * If omitted the "<" operator will be used. Note: gt = 1; eq = 0; lt = -1
+         * @param {Mixed} comparisonFn.min Current minimum value.
+         * @param {Mixed} comparisonFn.item The value to compare with the current minimum.
          * @return {Object} minValue The minimum value
          */
         min: function(array, comparisonFn) {
@@ -2525,6 +2816,8 @@ Ext.Number = new function() {
          * @param {Array/NodeList} array The Array from which to select the maximum value.
          * @param {Function} comparisonFn (optional) a function to perform the comparision which determines maximization.
          * If omitted the ">" operator will be used. Note: gt = 1; eq = 0; lt = -1
+         * @param {Mixed} comparisonFn.max Current maximum value.
+         * @param {Mixed} comparisonFn.item The value to compare with the current maximum.
          * @return {Object} maxValue The maximum value
          */
         max: function(array, comparisonFn) {
@@ -2605,6 +2898,12 @@ Ext.Number = new function() {
          *          ], function (obj) { return obj.name.toUpperCase(); });
          *
          *      // map = { A: 1, B: 2, C: 3 };
+         * 
+         * @param {Array} array The Array to create the map from.
+         * @param {String/Function} [getKey] Name of the object property to use
+         * as a key or a function to extract the key.
+         * @param {Object} [scope] Value of this inside callback.
+         * @return {Object} The resulting map.
          */
         toMap: function(array, getKey, scope) {
             var map = {},
@@ -2621,6 +2920,61 @@ Ext.Number = new function() {
             } else {
                 while (i--) {
                     map[getKey.call(scope, array[i])] = i+1;
+                }
+            }
+
+            return map;
+        },
+
+        /**
+         * Creates a map (object) keyed by a property of elements of the given array. The values in
+         * the map are the array element. For example:
+         * 
+         *      var map = Ext.Array.toMap(['a','b','c']);
+         *
+         *      // map = { a: 'a', b: 'b', c: 'c' };
+         * 
+         * Or a key property can be specified:
+         * 
+         *      var map = Ext.Array.toMap([
+         *              { name: 'a' },
+         *              { name: 'b' },
+         *              { name: 'c' }
+         *          ], 'name');
+         *
+         *      // map = { a: {name: 'a'}, b: {name: 'b'}, c: {name: 'c'} };
+         * 
+         * Lastly, a key extractor can be provided:
+         * 
+         *      var map = Ext.Array.toMap([
+         *              { name: 'a' },
+         *              { name: 'b' },
+         *              { name: 'c' }
+         *          ], function (obj) { return obj.name.toUpperCase(); });
+         *
+         *      // map = { A: {name: 'a'}, B: {name: 'b'}, C: {name: 'c'} };
+         *
+         * @param {Array} array The Array to create the map from.
+         * @param {String/Function} [getKey] Name of the object property to use
+         * as a key or a function to extract the key.
+         * @param {Object} [scope] Value of this inside callback.
+         * @return {Object} The resulting map.
+         */
+        toValueMap: function(array, getKey, scope) {
+            var map = {},
+                i = array.length;
+
+            if (!getKey) {
+                while (i--) {
+                    map[array[i]] = array[i];
+                }
+            } else if (typeof getKey == 'string') {
+                while (i--) {
+                    map[array[i][getKey]] = array[i];
+                }
+            } else {
+                while (i--) {
+                    map[getKey.call(scope, array[i])] = array[i];
                 }
             }
 
@@ -2709,7 +3063,7 @@ Ext.Number = new function() {
             }
             for (; i < len; i++) {
                 newItem = arguments[i];
-                Array.prototype.push[Ext.isArray(newItem) ? 'apply' : 'call'](array, newItem);
+                Array.prototype.push[Ext.isIterable(newItem) ? 'apply' : 'call'](array, newItem);
             }
             return array;
         }
@@ -3010,23 +3364,24 @@ Ext.Function = {
      *
      * @param {Function} origFn The original function.
      * @param {Function} newFn The function to call before the original
-     * @param {Object} scope (optional) The scope (`this` reference) in which the passed function is executed.
+     * @param {Object} [scope] The scope (`this` reference) in which the passed function is executed.
      * **If omitted, defaults to the scope in which the original function is called or the browser window.**
-     * @param {Object} returnValue (optional) The value to return if the passed function return false (defaults to null).
+     * @param {Object} [returnValue=null] The value to return if the passed function return false.
      * @return {Function} The new function
      */
     createInterceptor: function(origFn, newFn, scope, returnValue) {
         var method = origFn;
         if (!Ext.isFunction(newFn)) {
             return origFn;
-        }
-        else {
+        } else {
+            returnValue = Ext.isDefined(returnValue) ? returnValue : null;
             return function() {
                 var me = this,
                     args = arguments;
+                    
                 newFn.target = me;
                 newFn.method = origFn;
-                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue || null;
+                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue;
             };
         }
     },
@@ -3304,8 +3659,6 @@ Ext.bind = Ext.Function.alias(Ext.Function, 'bind');
 //@require Function.js
 
 /**
- * @author Jacky Nguyen <jacky@sencha.com>
- * @docauthor Jacky Nguyen <jacky@sencha.com>
  * @class Ext.Object
  *
  * A collection of useful static methods to deal with objects.
@@ -3320,10 +3673,16 @@ var TemplateClass = function(){},
     ExtObject = Ext.Object = {
 
     /**
-     * Returns a new object with the given object as the prototype chain.
+     * Returns a new object with the given object as the prototype chain. This method is
+     * designed to mimic the ECMA standard `Object.create` method and is assigned to that
+     * function when it is available.
+     * 
+     * **NOTE** This method does not support the property definitions capability of the
+     * `Object.create` method. Only the first argument is supported.
+     * 
      * @param {Object} object The prototype chain for the new object.
      */
-    chain: function (object) {
+    chain: Object.create || function (object) {
         TemplateClass.prototype = object;
         var result = new TemplateClass();
         TemplateClass.prototype = null;
@@ -3458,8 +3817,7 @@ var TemplateClass = function(){},
 
             if (Ext.isEmpty(value)) {
                 value = '';
-            }
-            else if (Ext.isDate(value)) {
+            } else if (Ext.isDate(value)) {
                 value = Ext.Date.toString(value);
             }
 
@@ -3474,8 +3832,8 @@ var TemplateClass = function(){},
      *
      * Non-recursive:
      *
-     *     Ext.Object.fromQueryString("foo=1&bar=2"); // returns {foo: 1, bar: 2}
-     *     Ext.Object.fromQueryString("foo=&bar=2"); // returns {foo: null, bar: 2}
+     *     Ext.Object.fromQueryString("foo=1&bar=2"); // returns {foo: '1', bar: '2'}
+     *     Ext.Object.fromQueryString("foo=&bar=2"); // returns {foo: null, bar: '2'}
      *     Ext.Object.fromQueryString("some%20price=%24300"); // returns {'some price': '$300'}
      *     Ext.Object.fromQueryString("colors=red&colors=green&colors=blue"); // returns {colors: ['red', 'green', 'blue']}
      *
@@ -3820,6 +4178,69 @@ var TemplateClass = function(){},
 
         return size;
     },
+    
+    /**
+     * Checks if there are any properties on this object.
+     * @param {Object} object
+     * @return {Boolean} `true` if there no properties on the object.
+     */
+    isEmpty: function(object){
+        for (var key in object) {
+            if (object.hasOwnProperty(key)) {
+                return false;
+            }
+        }
+        return true;    
+    },
+    
+    /**
+     * Shallow compares the contents of 2 objects using strict equality. Objects are
+     * considered equal if they both have the same set of properties and the
+     * value for those properties equals the other in the corresponding object.
+     * 
+     *     // Returns true
+     *     Ext.Object.equals({
+     *         foo: 1,
+     *         bar: 2
+     *     }, {
+     *         foo: 1,
+     *         bar: 2
+     *     });
+     * 
+     * @param {Object} object1
+     * @param {Object} object2
+     * @return {Boolean} `true` if the objects are equal.
+     */
+    equals: (function() {
+        var check = function(o1, o2) {
+            var key;
+        
+            for (key in o1) {
+                if (o1.hasOwnProperty(key)) {
+                    if (o1[key] !== o2[key]) {
+                        return false;
+                    }    
+                }
+            }    
+            return true;
+        };
+        
+        return function(object1, object2) {
+            
+            // Short circuit if the same object is passed twice
+            if (object1 === object2) {
+                return true;
+            } if (object1 && object2) {
+                // Do the second check because we could have extra keys in
+                // object2 that don't exist in object1.
+                return check(object1, object2) && check(object2, object1);  
+            } else if (!object1 && !object2) {
+                return object1 === object2;
+            } else {
+                return false;
+            }
+        };
+    })(),
 
     /**
      * @private
@@ -3917,105 +4338,105 @@ Ext.urlDecode = function() {
  * this object for convenience
  *
  * The date parsing and formatting syntax contains a subset of
- * <a href="http://www.php.net/date">PHP's date() function</a>, and the formats that are
+ * [PHP's `date()` function](http://www.php.net/date), and the formats that are
  * supported will provide results equivalent to their PHP versions.
  *
  * The following is a list of all currently supported formats:
  * <pre class="">
-Format  Description                                                               Example returned values
-------  -----------------------------------------------------------------------   -----------------------
-  d     Day of the month, 2 digits with leading zeros                             01 to 31
-  D     A short textual representation of the day of the week                     Mon to Sun
-  j     Day of the month without leading zeros                                    1 to 31
-  l     A full textual representation of the day of the week                      Sunday to Saturday
-  N     ISO-8601 numeric representation of the day of the week                    1 (for Monday) through 7 (for Sunday)
-  S     English ordinal suffix for the day of the month, 2 characters             st, nd, rd or th. Works well with j
-  w     Numeric representation of the day of the week                             0 (for Sunday) to 6 (for Saturday)
-  z     The day of the year (starting from 0)                                     0 to 364 (365 in leap years)
-  W     ISO-8601 week number of year, weeks starting on Monday                    01 to 53
-  F     A full textual representation of a month, such as January or March        January to December
-  m     Numeric representation of a month, with leading zeros                     01 to 12
-  M     A short textual representation of a month                                 Jan to Dec
-  n     Numeric representation of a month, without leading zeros                  1 to 12
-  t     Number of days in the given month                                         28 to 31
-  L     Whether it&#39;s a leap year                                                  1 if it is a leap year, 0 otherwise.
-  o     ISO-8601 year number (identical to (Y), but if the ISO week number (W)    Examples: 1998 or 2004
-        belongs to the previous or next year, that year is used instead)
-  Y     A full numeric representation of a year, 4 digits                         Examples: 1999 or 2003
-  y     A two digit representation of a year                                      Examples: 99 or 03
-  a     Lowercase Ante meridiem and Post meridiem                                 am or pm
-  A     Uppercase Ante meridiem and Post meridiem                                 AM or PM
-  g     12-hour format of an hour without leading zeros                           1 to 12
-  G     24-hour format of an hour without leading zeros                           0 to 23
-  h     12-hour format of an hour with leading zeros                              01 to 12
-  H     24-hour format of an hour with leading zeros                              00 to 23
-  i     Minutes, with leading zeros                                               00 to 59
-  s     Seconds, with leading zeros                                               00 to 59
-  u     Decimal fraction of a second                                              Examples:
-        (minimum 1 digit, arbitrary number of digits allowed)                     001 (i.e. 0.001s) or
-                                                                                  100 (i.e. 0.100s) or
-                                                                                  999 (i.e. 0.999s) or
-                                                                                  999876543210 (i.e. 0.999876543210s)
-  O     Difference to Greenwich time (GMT) in hours and minutes                   Example: +1030
-  P     Difference to Greenwich time (GMT) with colon between hours and minutes   Example: -08:00
-  T     Timezone abbreviation of the machine running the code                     Examples: EST, MDT, PDT ...
-  Z     Timezone offset in seconds (negative if west of UTC, positive if east)    -43200 to 50400
-  c     ISO 8601 date
-        Notes:                                                                    Examples:
-        1) If unspecified, the month / day defaults to the current month / day,   1991 or
-           the time defaults to midnight, while the timezone defaults to the      1992-10 or
-           browser's timezone. If a time is specified, it must include both hours 1993-09-20 or
-           and minutes. The "T" delimiter, seconds, milliseconds and timezone     1994-08-19T16:20+01:00 or
-           are optional.                                                          1995-07-18T17:21:28-02:00 or
-        2) The decimal fraction of a second, if specified, must contain at        1996-06-17T18:22:29.98765+03:00 or
-           least 1 digit (there is no limit to the maximum number                 1997-05-16T19:23:30,12345-0400 or
-           of digits allowed), and may be delimited by either a '.' or a ','      1998-04-15T20:24:31.2468Z or
-        Refer to the examples on the right for the various levels of              1999-03-14T20:24:32Z or
-        date-time granularity which are supported, or see                         2000-02-13T21:25:33
-        http://www.w3.org/TR/NOTE-datetime for more info.                         2001-01-12 22:26:34
-  U     Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)                1193432466 or -2138434463
-  MS    Microsoft AJAX serialized dates                                           \/Date(1238606590509)\/ (i.e. UTC milliseconds since epoch) or
-                                                                                  \/Date(1238606590509+0800)\/
+Format      Description                                                               Example returned values
+------      -----------------------------------------------------------------------   -----------------------
+  d         Day of the month, 2 digits with leading zeros                             01 to 31
+  D         A short textual representation of the day of the week                     Mon to Sun
+  j         Day of the month without leading zeros                                    1 to 31
+  l         A full textual representation of the day of the week                      Sunday to Saturday
+  N         ISO-8601 numeric representation of the day of the week                    1 (for Monday) through 7 (for Sunday)
+  S         English ordinal suffix for the day of the month, 2 characters             st, nd, rd or th. Works well with j
+  w         Numeric representation of the day of the week                             0 (for Sunday) to 6 (for Saturday)
+  z         The day of the year (starting from 0)                                     0 to 364 (365 in leap years)
+  W         ISO-8601 week number of year, weeks starting on Monday                    01 to 53
+  F         A full textual representation of a month, such as January or March        January to December
+  m         Numeric representation of a month, with leading zeros                     01 to 12
+  M         A short textual representation of a month                                 Jan to Dec
+  n         Numeric representation of a month, without leading zeros                  1 to 12
+  t         Number of days in the given month                                         28 to 31
+  L         Whether it&#39;s a leap year                                                  1 if it is a leap year, 0 otherwise.
+  o         ISO-8601 year number (identical to (Y), but if the ISO week number (W)    Examples: 1998 or 2004
+            belongs to the previous or next year, that year is used instead)
+  Y         A full numeric representation of a year, 4 digits                         Examples: 1999 or 2003
+  y         A two digit representation of a year                                      Examples: 99 or 03
+  a         Lowercase Ante meridiem and Post meridiem                                 am or pm
+  A         Uppercase Ante meridiem and Post meridiem                                 AM or PM
+  g         12-hour format of an hour without leading zeros                           1 to 12
+  G         24-hour format of an hour without leading zeros                           0 to 23
+  h         12-hour format of an hour with leading zeros                              01 to 12
+  H         24-hour format of an hour with leading zeros                              00 to 23
+  i         Minutes, with leading zeros                                               00 to 59
+  s         Seconds, with leading zeros                                               00 to 59
+  u         Decimal fraction of a second                                              Examples:
+            (minimum 1 digit, arbitrary number of digits allowed)                     001 (i.e. 0.001s) or
+                                                                                      100 (i.e. 0.100s) or
+                                                                                      999 (i.e. 0.999s) or
+                                                                                      999876543210 (i.e. 0.999876543210s)
+  O         Difference to Greenwich time (GMT) in hours and minutes                   Example: +1030
+  P         Difference to Greenwich time (GMT) with colon between hours and minutes   Example: -08:00
+  T         Timezone abbreviation of the machine running the code                     Examples: EST, MDT, PDT ...
+  Z         Timezone offset in seconds (negative if west of UTC, positive if east)    -43200 to 50400
+  c         ISO 8601 date
+            Notes:                                                                    Examples:
+            1) If unspecified, the month / day defaults to the current month / day,   1991 or
+               the time defaults to midnight, while the timezone defaults to the      1992-10 or
+               browser's timezone. If a time is specified, it must include both hours 1993-09-20 or
+               and minutes. The "T" delimiter, seconds, milliseconds and timezone     1994-08-19T16:20+01:00 or
+               are optional.                                                          1995-07-18T17:21:28-02:00 or
+            2) The decimal fraction of a second, if specified, must contain at        1996-06-17T18:22:29.98765+03:00 or
+               least 1 digit (there is no limit to the maximum number                 1997-05-16T19:23:30,12345-0400 or
+               of digits allowed), and may be delimited by either a '.' or a ','      1998-04-15T20:24:31.2468Z or
+            Refer to the examples on the right for the various levels of              1999-03-14T20:24:32Z or
+            date-time granularity which are supported, or see                         2000-02-13T21:25:33
+            http://www.w3.org/TR/NOTE-datetime for more info.                         2001-01-12 22:26:34
+  U         Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)                1193432466 or -2138434463
+  MS        Microsoft AJAX serialized dates                                           \/Date(1238606590509)\/ (i.e. UTC milliseconds since epoch) or
+                                                                                      \/Date(1238606590509+0800)\/
+  time      A javascript millisecond timestamp                                        1350024476440
+  timestamp A UNIX timestamp (same as U)                                              1350024866            
 </pre>
  *
  * Example usage (note that you must escape format specifiers with '\\' to render them as character literals):
- * <pre><code>
-// Sample date:
-// 'Wed Jan 10 2007 15:05:01 GMT-0600 (Central Standard Time)'
-
-var dt = new Date('1/10/2007 03:05:01 PM GMT-0600');
-console.log(Ext.Date.format(dt, 'Y-m-d'));                          // 2007-01-10
-console.log(Ext.Date.format(dt, 'F j, Y, g:i a'));                  // January 10, 2007, 3:05 pm
-console.log(Ext.Date.format(dt, 'l, \\t\\he jS \\of F Y h:i:s A')); // Wednesday, the 10th of January 2007 03:05:01 PM
-</code></pre>
+ *
+ *     // Sample date:
+ *     // 'Wed Jan 10 2007 15:05:01 GMT-0600 (Central Standard Time)'
+ *     
+ *     var dt = new Date('1/10/2007 03:05:01 PM GMT-0600');
+ *     console.log(Ext.Date.format(dt, 'Y-m-d'));                          // 2007-01-10
+ *     console.log(Ext.Date.format(dt, 'F j, Y, g:i a'));                  // January 10, 2007, 3:05 pm
+ *     console.log(Ext.Date.format(dt, 'l, \\t\\he jS \\of F Y h:i:s A')); // Wednesday, the 10th of January 2007 03:05:01 PM
  *
  * Here are some standard date/time patterns that you might find helpful.  They
  * are not part of the source of Ext.Date, but to use them you can simply copy this
  * block of code into any script that is included after Ext.Date and they will also become
  * globally available on the Date object.  Feel free to add or remove patterns as needed in your code.
- * <pre><code>
-Ext.Date.patterns = {
-    ISO8601Long:"Y-m-d H:i:s",
-    ISO8601Short:"Y-m-d",
-    ShortDate: "n/j/Y",
-    LongDate: "l, F d, Y",
-    FullDateTime: "l, F d, Y g:i:s A",
-    MonthDay: "F d",
-    ShortTime: "g:i A",
-    LongTime: "g:i:s A",
-    SortableDateTime: "Y-m-d\\TH:i:s",
-    UniversalSortableDateTime: "Y-m-d H:i:sO",
-    YearMonth: "F, Y"
-};
-</code></pre>
+ *
+ *     Ext.Date.patterns = {
+ *         ISO8601Long:"Y-m-d H:i:s",
+ *         ISO8601Short:"Y-m-d",
+ *         ShortDate: "n/j/Y",
+ *         LongDate: "l, F d, Y",
+ *         FullDateTime: "l, F d, Y g:i:s A",
+ *         MonthDay: "F d",
+ *         ShortTime: "g:i A",
+ *         LongTime: "g:i:s A",
+ *         SortableDateTime: "Y-m-d\\TH:i:s",
+ *         UniversalSortableDateTime: "Y-m-d H:i:sO",
+ *         YearMonth: "F, Y"
+ *     };
  *
  * Example usage:
- * <pre><code>
-var dt = new Date();
-console.log(Ext.Date.format(dt, Ext.Date.patterns.ShortDate));
-</code></pre>
- * <p>Developer-written, custom formats may be used by supplying both a formatting and a parsing function
- * which perform to specialized requirements. The functions are stored in {@link #parseFunctions} and {@link #formatFunctions}.</p>
+ *
+ *     var dt = new Date();
+ *     console.log(Ext.Date.format(dt, Ext.Date.patterns.ShortDate));
+ *
+ * Developer-written, custom formats may be used by supplying both a formatting and a parsing function
+ * which perform to specialized requirements. The functions are stored in {@link #parseFunctions} and {@link #formatFunctions}.
  * @singleton
  */
 
@@ -4027,19 +4448,141 @@ console.log(Ext.Date.format(dt, Ext.Date.patterns.ShortDate));
  * on every Date object.
  */
 
-(function() {
+Ext.Date = new function() {
+  var utilDate = this,
+      stripEscapeRe = /(\\.)/g,
+      hourInfoRe = /([gGhHisucUOPZ]|MS)/,
+      dateInfoRe = /([djzmnYycU]|MS)/,
+      slashRe = /\\/gi,
+      numberTokenRe = /\{(\d+)\}/g,
+      MSFormatRe = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
+      code = [
+        // date calculations (note: the code below creates a dependency on Ext.Number.from())
+        "var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday,",
+            "def = me.defaults,",
+            "from = Ext.Number.from,",
+            "results = String(input).match(me.parseRegexes[{0}]);", // either null, or an array of matched strings
 
-// create private copy of Ext's Ext.util.Format.format() method
-// - to remove unnecessary dependency
-// - to resolve namespace conflict with MS-Ajax's implementation
-function xf(format) {
-    var args = Array.prototype.slice.call(arguments, 1);
-    return format.replace(/\{(\d+)\}/g, function(m, i) {
-        return args[i];
-    });
-}
+        "if(results){",
+            "{1}",
 
-Ext.Date = {
+            "if(u != null){", // i.e. unix time is defined
+                "v = new Date(u * 1000);", // give top priority to UNIX time
+            "}else{",
+                // create Date object representing midnight of the current day;
+                // this will provide us with our date defaults
+                // (note: clearTime() handles Daylight Saving Time automatically)
+                "dt = me.clearTime(new Date);",
+
+                "y = from(y, from(def.y, dt.getFullYear()));",
+                "m = from(m, from(def.m - 1, dt.getMonth()));",
+                "d = from(d, from(def.d, dt.getDate()));",
+
+                "h  = from(h, from(def.h, dt.getHours()));",
+                "i  = from(i, from(def.i, dt.getMinutes()));",
+                "s  = from(s, from(def.s, dt.getSeconds()));",
+                "ms = from(ms, from(def.ms, dt.getMilliseconds()));",
+
+                "if(z >= 0 && y >= 0){",
+                    // both the year and zero-based day of year are defined and >= 0.
+                    // these 2 values alone provide sufficient info to create a full date object
+
+                    // create Date object representing January 1st for the given year
+                    // handle years < 100 appropriately
+                    "v = me.add(new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms), me.YEAR, y < 100 ? y - 100 : 0);",
+
+                    // then add day of year, checking for Date "rollover" if necessary
+                    "v = !strict? v : (strict === true && (z <= 364 || (me.isLeapYear(v) && z <= 365))? me.add(v, me.DAY, z) : null);",
+                "}else if(strict === true && !me.isValid(y, m + 1, d, h, i, s, ms)){", // check for Date "rollover"
+                    "v = null;", // invalid date, so return null
+                "}else{",
+                    "if (W) {", // support ISO-8601
+                        // http://en.wikipedia.org/wiki/ISO_week_date
+                        //
+                        // Mutually equivalent definitions for week 01 are:
+                        // a. the week starting with the Monday which is nearest in time to 1 January
+                        // b. the week with 4 January in it
+                        // ... there are many others ...
+                        //
+                        // We'll use letter b above to determine the first week of the year.
+                        //
+                        // So, first get a Date object for January 4th of whatever calendar year is desired.
+                        //
+                        // Then, the first Monday of the year can easily be determined by (operating on this Date):
+                        // 1. Getting the day of the week.
+                        // 2. Subtracting that by one.
+                        // 3. Multiplying that by 86400000 (one day in ms).
+                        // 4. Subtracting this number of days (in ms) from the January 4 date (represented in ms).
+                        // 
+                        // Example #1 ...
+                        //
+                        //       January 2012
+                        //   Su Mo Tu We Th Fr Sa
+                        //    1  2  3  4  5  6  7
+                        //    8  9 10 11 12 13 14
+                        //   15 16 17 18 19 20 21
+                        //   22 23 24 25 26 27 28
+                        //   29 30 31
+                        //
+                        // 1. January 4th is a Wednesday.
+                        // 2. Its day number is 3.
+                        // 3. Simply substract 2 days from Wednesday.
+                        // 4. The first week of the year begins on Monday, January 2. Simple!
+                        //
+                        // Example #2 ...
+                        //       January 1992
+                        //   Su Mo Tu We Th Fr Sa
+                        //             1  2  3  4
+                        //    5  6  7  8  9 10 11
+                        //   12 13 14 15 16 17 18
+                        //   19 20 21 22 23 24 25
+                        //   26 27 28 29 30 31
+                        // 
+                        // 1. January 4th is a Saturday.
+                        // 2. Its day number is 6.
+                        // 3. Simply subtract 5 days from Saturday.
+                        // 4. The first week of the year begins on Monday, December 30. Simple!
+                        //
+                        // v = Ext.Date.clearTime(new Date(week1monday.getTime() + ((W - 1) * 604800000)));
+                        // (This is essentially doing the same thing as above but for the week rather than the day)
+                        "year = y || (new Date()).getFullYear(),",
+                        "jan4 = new Date(year, 0, 4, 0, 0, 0),",
+                        "week1monday = new Date(jan4.getTime() - ((jan4.getDay() - 1) * 86400000));",
+                        "v = Ext.Date.clearTime(new Date(week1monday.getTime() + ((W - 1) * 604800000)));",
+                    "} else {",
+                        // plain old Date object
+                        // handle years < 100 properly
+                        "v = me.add(new Date(y < 100 ? 100 : y, m, d, h, i, s, ms), me.YEAR, y < 100 ? y - 100 : 0);",
+                    "}",
+                "}",
+            "}",
+        "}",
+
+        "if(v){",
+            // favor UTC offset over GMT offset
+            "if(zz != null){",
+                // reset to UTC, then add offset
+                "v = me.add(v, me.SECOND, -v.getTimezoneOffset() * 60 - zz);",
+            "}else if(o){",
+                // reset to GMT, then add offset
+                "v = me.add(v, me.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));",
+            "}",
+        "}",
+
+        "return v;"
+      ].join('\n');
+
+  // create private copy of Ext JS's `Ext.util.Format.format()` method
+  // - to remove unnecessary dependency
+  // - to resolve namespace conflict with MS-Ajax's implementation
+  function xf(format) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return format.replace(numberTokenRe, function(m, i) {
+          return args[i];
+      });
+  }
+
+  Ext.apply(utilDate, {
     /**
      * Returns the current timestamp.
      * @return {Number} Milliseconds since UNIX epoch.
@@ -4065,9 +4608,9 @@ Ext.Date = {
     },
 
     /**
-     * Returns the number of milliseconds between two dates
-     * @param {Date} dateA The first date
-     * @param {Date} dateB (optional) The second date, defaults to now
+     * Returns the number of milliseconds between two dates.
+     * @param {Date} dateA The first date.
+     * @param {Date} [dateB=new Date()] (optional) The second date.
      * @return {Number} The difference in milliseconds
      */
     getElapsed: function(dateA, dateB) {
@@ -4077,9 +4620,8 @@ Ext.Date = {
     /**
      * Global flag which determines if strict date parsing should be used.
      * Strict date parsing will not roll-over invalid dates, which is the
-     * default behaviour of javascript Date objects.
+     * default behavior of JavaScript Date objects.
      * (see {@link #parse} for more information)
-     * Defaults to <tt>false</tt>.
      * @type Boolean
     */
     useStrict: false,
@@ -4099,27 +4641,32 @@ Ext.Date = {
         }, p) : {
             g: 0,
             c: null,
-            s: Ext.String.escapeRegex(character) // treat unrecognised characters as literals
+            s: Ext.String.escapeRegex(character) // treat unrecognized characters as literals
         };
     },
 
     /**
-     * <p>An object hash in which each property is a date parsing function. The property name is the
-     * format string which that function parses.</p>
-     * <p>This object is automatically populated with date parsing functions as
-     * date formats are requested for Ext standard formatting strings.</p>
-     * <p>Custom parsing functions may be inserted into this object, keyed by a name which from then on
-     * may be used as a format string to {@link #parse}.<p>
-     * <p>Example:</p><pre><code>
-Ext.Date.parseFunctions['x-date-format'] = myDateParser;
-</code></pre>
-     * <p>A parsing function should return a Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
+     * An object hash in which each property is a date parsing function. The property name is the
+     * format string which that function parses.
+     *
+     * This object is automatically populated with date parsing functions as
+     * date formats are requested for Ext standard formatting strings.
+     *
+     * Custom parsing functions may be inserted into this object, keyed by a name which from then on
+     * may be used as a format string to {@link #parse}.
+     *
+     * Example:
+     *
+     *     Ext.Date.parseFunctions['x-date-format'] = myDateParser;
+     *
+     * A parsing function should return a Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
      * <li><code>date</code> : String<div class="sub-desc">The date string to parse.</div></li>
      * <li><code>strict</code> : Boolean<div class="sub-desc">True to validate date strings while parsing
-     * (i.e. prevent javascript Date "rollover") (The default must be false).
-     * Invalid date strings should return null when parsed.</div></li>
-     * </ul></div></p>
-     * <p>To enable Dates to also be <i>formatted</i> according to that format, a corresponding
+     * (i.e. prevent JavaScript Date "rollover") (The default must be `false`).
+     * Invalid date strings should return `null` when parsed.</div></li>
+     * </ul></div>
+     *
+     * To enable Dates to also be _formatted_ according to that format, a corresponding
      * formatting function must be placed into the {@link #formatFunctions} property.
      * @property parseFunctions
      * @type Object
@@ -4128,26 +4675,45 @@ Ext.Date.parseFunctions['x-date-format'] = myDateParser;
         "MS": function(input, strict) {
             // note: the timezone offset is ignored since the MS Ajax server sends
             // a UTC milliseconds-since-Unix-epoch value (negative values are allowed)
-            var re = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
-                r = (input || '').match(re);
-            return r? new Date(((r[1] || '') + r[2]) * 1) : null;
+            var r = (input || '').match(MSFormatRe);
+            return r ? new Date(((r[1] || '') + r[2]) * 1) : null;
+        },
+        "time": function(input, strict) {
+            var num = parseInt(input, 10);
+            if (num || num === 0) {
+                return new Date(num);
+            }
+            return null;
+        },
+        "timestamp": function(input, strict) {
+            var num = parseInt(input, 10);
+            if (num || num === 0) {
+                return new Date(num * 1000);
+            }
+            return null;
         }
     },
     parseRegexes: [],
 
     /**
-     * <p>An object hash in which each property is a date formatting function. The property name is the
-     * format string which corresponds to the produced formatted date string.</p>
-     * <p>This object is automatically populated with date formatting functions as
-     * date formats are requested for Ext standard formatting strings.</p>
-     * <p>Custom formatting functions may be inserted into this object, keyed by a name which from then on
-     * may be used as a format string to {@link #format}. Example:</p><pre><code>
-Ext.Date.formatFunctions['x-date-format'] = myDateFormatter;
-</code></pre>
-     * <p>A formatting function should return a string representation of the passed Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
+     * An object hash in which each property is a date formatting function. The property name is the
+     * format string which corresponds to the produced formatted date string.
+     *
+     * This object is automatically populated with date formatting functions as
+     * date formats are requested for Ext standard formatting strings.
+     *
+     * Custom formatting functions may be inserted into this object, keyed by a name which from then on
+     * may be used as a format string to {@link #format}.
+     *
+     * Example:
+     *
+     *     Ext.Date.formatFunctions['x-date-format'] = myDateFormatter;
+     *
+     * A formatting function should return a string representation of the passed Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
      * <li><code>date</code> : Date<div class="sub-desc">The Date to format.</div></li>
-     * </ul></div></p>
-     * <p>To enable date strings to also be <i>parsed</i> according to that format, a corresponding
+     * </ul></div>
+     *
+     * To enable date strings to also be _parsed_ according to that format, a corresponding
      * parsing function must be placed into the {@link #parseFunctions} property.
      * @property formatFunctions
      * @type Object
@@ -4156,6 +4722,12 @@ Ext.Date.formatFunctions['x-date-format'] = myDateFormatter;
         "MS": function() {
             // UTC milliseconds since Unix epoch (MS-AJAX serialized date format (MRSF))
             return '\\/Date(' + this.getTime() + ')\\/';
+        },
+        "time": function(){
+            return this.getTime().toString();
+        },
+        "timestamp": function(){
+            return utilDate.format(this, 'U');
         }
     },
 
@@ -4203,8 +4775,9 @@ Ext.Date.formatFunctions['x-date-format'] = myDateFormatter;
     YEAR : "y",
 
     /**
-     * <p>An object hash containing default date values used during date parsing.</p>
-     * <p>The following properties are available:<div class="mdetail-params"><ul>
+     * An object hash containing default date values used during date parsing.
+     * 
+     * The following properties are available:<div class="mdetail-params"><ul>
      * <li><code>y</code> : Number<div class="sub-desc">The default year value. (defaults to undefined)</div></li>
      * <li><code>m</code> : Number<div class="sub-desc">The default 1-based month value. (defaults to undefined)</div></li>
      * <li><code>d</code> : Number<div class="sub-desc">The default day value. (defaults to undefined)</div></li>
@@ -4212,21 +4785,24 @@ Ext.Date.formatFunctions['x-date-format'] = myDateFormatter;
      * <li><code>i</code> : Number<div class="sub-desc">The default minute value. (defaults to undefined)</div></li>
      * <li><code>s</code> : Number<div class="sub-desc">The default second value. (defaults to undefined)</div></li>
      * <li><code>ms</code> : Number<div class="sub-desc">The default millisecond value. (defaults to undefined)</div></li>
-     * </ul></div></p>
-     * <p>Override these properties to customize the default date values used by the {@link #parse} method.</p>
-     * <p><b>Note: In countries which experience Daylight Saving Time (i.e. DST), the <tt>h</tt>, <tt>i</tt>, <tt>s</tt>
-     * and <tt>ms</tt> properties may coincide with the exact time in which DST takes effect.
-     * It is the responsiblity of the developer to account for this.</b></p>
+     * </ul></div>
+     * 
+     * Override these properties to customize the default date values used by the {@link #parse} method.
+     * 
+     * __Note:__ In countries which experience Daylight Saving Time (i.e. DST), the `h`, `i`, `s`
+     * and `ms` properties may coincide with the exact time in which DST takes effect.
+     * It is the responsibility of the developer to account for this.
+     *
      * Example Usage:
-     * <pre><code>
-// set default day value to the first day of the month
-Ext.Date.defaults.d = 1;
-
-// parse a February date string containing only year and month values.
-// setting the default day value to 1 prevents weird date rollover issues
-// when attempting to parse the following date string on, for example, March 31st 2009.
-Ext.Date.parse('2009-02', 'Y-m'); // returns a Date object representing February 1st 2009
-</code></pre>
+     * 
+     *     // set default day value to the first day of the month
+     *     Ext.Date.defaults.d = 1;
+     *
+     *     // parse a February date string containing only year and month values.
+     *     // setting the default day value to 1 prevents weird date rollover issues
+     *     // when attempting to parse the following date string on, for example, March 31st 2009.
+     *     Ext.Date.parse('2009-02', 'Y-m'); // returns a Date object representing February 1st 2009
+     *
      * @property defaults
      * @type Object
      */
@@ -4237,14 +4813,14 @@ Ext.Date.parse('2009-02', 'Y-m'); // returns a Date object representing February
      * @property {String[]} dayNames
      * An array of textual day names.
      * Override these values for international dates.
+     *
      * Example:
-     * <pre><code>
-Ext.Date.dayNames = [
-    'SundayInYourLang',
-    'MondayInYourLang',
-    ...
-];
-</code></pre>
+     *
+     *     Ext.Date.dayNames = [
+     *         'SundayInYourLang',
+     *         'MondayInYourLang'
+     *         // ...
+     *     ];
      */
     dayNames : [
         "Sunday",
@@ -4262,14 +4838,14 @@ Ext.Date.dayNames = [
      * @property {String[]} monthNames
      * An array of textual month names.
      * Override these values for international dates.
+     *
      * Example:
-     * <pre><code>
-Ext.Date.monthNames = [
-    'JanInYourLang',
-    'FebInYourLang',
-    ...
-];
-</code></pre>
+     *
+     *     Ext.Date.monthNames = [
+     *         'JanInYourLang',
+     *         'FebInYourLang'
+     *         // ...
+     *     ];
      */
     monthNames : [
         "January",
@@ -4290,18 +4866,18 @@ Ext.Date.monthNames = [
     //<locale type="object">
     /**
      * @property {Object} monthNumbers
-     * An object hash of zero-based javascript month numbers (with short month names as keys. note: keys are case-sensitive).
+     * An object hash of zero-based JavaScript month numbers (with short month names as keys. **Note:** keys are case-sensitive).
      * Override these values for international dates.
+     *
      * Example:
-     * <pre><code>
-Ext.Date.monthNumbers = {
-    'LongJanNameInYourLang': 0,
-    'ShortJanNameInYourLang':0,
-    'LongFebNameInYourLang':1,
-    'ShortFebNameInYourLang':1,
-    ...
-};
-</code></pre>
+     *
+     *     Ext.Date.monthNumbers = {
+     *         'LongJanNameInYourLang': 0,
+     *         'ShortJanNameInYourLang':0,
+     *         'LongFebNameInYourLang':1,
+     *         'ShortFebNameInYourLang':1
+     *         // ...
+     *     };
      */
     monthNumbers : {
         January: 0,
@@ -4333,9 +4909,10 @@ Ext.Date.monthNumbers = {
     //<locale>
     /**
      * @property {String} defaultFormat
-     * <p>The date format string that the {@link Ext.util.Format#dateRenderer}
-     * and {@link Ext.util.Format#date} functions use.  See {@link Ext.Date} for details.</p>
-     * <p>This may be overridden in a locale file.</p>
+     * The date format string that the {@link Ext.util.Format#dateRenderer}
+     * and {@link Ext.util.Format#date} functions use.  See {@link Ext.Date} for details.
+     *
+     * This may be overridden in a locale file.
      */
     defaultFormat : "m/d/Y",
     //</locale>
@@ -4343,7 +4920,7 @@ Ext.Date.monthNumbers = {
     /**
      * Get the short month name for the given month number.
      * Override this function for international dates.
-     * @param {Number} month A zero-based javascript month number.
+     * @param {Number} month A zero-based JavaScript month number.
      * @return {String} The short month name.
      */
     getShortMonthName : function(month) {
@@ -4355,7 +4932,7 @@ Ext.Date.monthNumbers = {
     /**
      * Get the short day name for the given day number.
      * Override this function for international dates.
-     * @param {Number} day A zero-based javascript day number.
+     * @param {Number} day A zero-based JavaScript day number.
      * @return {String} The short day name.
      */
     getShortDayName : function(day) {
@@ -4365,13 +4942,13 @@ Ext.Date.monthNumbers = {
 
     //<locale type="function">
     /**
-     * Get the zero-based javascript month number for the given short/full month name.
+     * Get the zero-based JavaScript month number for the given short/full month name.
      * Override this function for international dates.
      * @param {String} name The short/full month name.
-     * @return {Number} The zero-based javascript month number.
+     * @return {Number} The zero-based JavaScript month number.
      */
     getMonthNumber : function(name) {
-        // handle camel casing for english month names (since the keys for the Ext.Date.monthNumbers hash are case sensitive)
+        // handle camel casing for English month names (since the keys for the Ext.Date.monthNumbers hash are case sensitive)
         return Ext.Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
     },
     //</locale>
@@ -4382,13 +4959,9 @@ Ext.Date.monthNumbers = {
      * @return {Boolean} True if the format contains hour information
      * @method
      */
-    formatContainsHourInfo : (function(){
-        var stripEscapeRe = /(\\.)/g,
-            hourInfoRe = /([gGhHisucUOPZ]|MS)/;
-        return function(format){
-            return hourInfoRe.test(format.replace(stripEscapeRe, ''));
-        };
-    }()),
+    formatContainsHourInfo : function(format){
+        return hourInfoRe.test(format.replace(stripEscapeRe, ''));
+    },
 
     /**
      * Checks if the specified format contains information about
@@ -4398,14 +4971,9 @@ Ext.Date.monthNumbers = {
      * date/day information.
      * @method
      */
-    formatContainsDateInfo : (function(){
-        var stripEscapeRe = /(\\.)/g,
-            dateInfoRe = /([djzmnYycU]|MS)/;
-
-        return function(format){
-            return dateInfoRe.test(format.replace(stripEscapeRe, ''));
-        };
-    }()),
+    formatContainsDateInfo : function(format){
+        return dateInfoRe.test(format.replace(stripEscapeRe, ''));
+    },
     
     /**
      * Removes all escaping for a date format string. In date formats,
@@ -4414,15 +4982,12 @@ Ext.Date.monthNumbers = {
      * @return {String} The unescaped format
      * @method
      */
-    unescapeFormat: (function() { 
-        var slashRe = /\\/gi;
-        return function(format) {
-            // Escape the format, since \ can be used to escape special
-            // characters in a date format. For example, in a spanish
-            // locale the format may be: 'd \\de F \\de Y'
-            return format.replace(slashRe, '');
-        }
-    }()),
+    unescapeFormat: function(format) {
+        // Escape the format, since \ can be used to escape special
+        // characters in a date format. For example, in a Spanish
+        // locale the format may be: 'd \\de F \\de Y'
+        return format.replace(slashRe, '');
+    },
 
     /**
      * The base format-code to formatting-function hashmap used by the {@link #format} method.
@@ -4430,17 +4995,18 @@ Ext.Date.monthNumbers = {
      * will return the appropriate value when evaluated in the context of the Date object
      * from which the {@link #format} method is called.
      * Add to / override these mappings for custom date formatting.
-     * Note: Ext.Date.format() treats characters as literals if an appropriate mapping cannot be found.
+     *
+     * __Note:__ Ext.Date.format() treats characters as literals if an appropriate mapping cannot be found.
+     *
      * Example:
-     * <pre><code>
-Ext.Date.formatCodes.x = "Ext.util.Format.leftPad(this.getDate(), 2, '0')";
-console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the month
-</code></pre>
+     *
+     *     Ext.Date.formatCodes.x = "Ext.util.Format.leftPad(this.getDate(), 2, '0')";
+     *     console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the month
      * @type Object
      */
     formatCodes : {
         d: "Ext.String.leftPad(this.getDate(), 2, '0')",
-        D: "Ext.Date.getShortDayName(this.getDay())", // get localised short day name
+        D: "Ext.Date.getShortDayName(this.getDay())", // get localized short day name
         j: "this.getDate()",
         l: "Ext.Date.dayNames[this.getDay()]",
         N: "(this.getDay() ? this.getDay() : 7)",
@@ -4450,7 +5016,7 @@ console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the 
         W: "Ext.String.leftPad(Ext.Date.getWeekOfYear(this), 2, '0')",
         F: "Ext.Date.monthNames[this.getMonth()]",
         m: "Ext.String.leftPad(this.getMonth() + 1, 2, '0')",
-        M: "Ext.Date.getShortMonthName(this.getMonth())", // get localised short month name
+        M: "Ext.Date.getShortMonthName(this.getMonth())", // get localized short month name
         n: "(this.getMonth() + 1)",
         t: "Ext.Date.getDaysInMonth(this)",
         L: "(Ext.Date.isLeapYear(this) ? 1 : 0)",
@@ -4498,7 +5064,7 @@ console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the 
     },
 
     /**
-     * Checks if the passed Date parameters will cause a javascript Date "rollover".
+     * Checks if the passed Date parameters will cause a JavaScript Date "rollover".
      * @param {Number} year 4-digit year
      * @param {Number} month 1-based month-of-year
      * @param {Number} day Day of month
@@ -4506,7 +5072,7 @@ console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the 
      * @param {Number} minute (optional) Minute
      * @param {Number} second (optional) Second
      * @param {Number} millisecond (optional) Millisecond
-     * @return {Boolean} true if the passed parameters do not cause a Date "rollover", false otherwise.
+     * @return {Boolean} `true` if the passed parameters do not cause a Date "rollover", `false` otherwise.
      */
     isValid : function(y, m, d, h, i, s, ms) {
         // setup defaults
@@ -4535,26 +5101,28 @@ console.log(Ext.Date.format(new Date(), 'X'); // returns the current day of the 
      * the current date's year, month, day or DST-adjusted zero-hour time value will be used instead.
      * Keep in mind that the input date string must precisely match the specified format string
      * in order for the parse operation to be successful (failed parse operations return a null value).
-     * <p>Example:</p><pre><code>
-//dt = Fri May 25 2007 (current date)
-var dt = new Date();
-
-//dt = Thu May 25 2006 (today&#39;s month/day in 2006)
-dt = Ext.Date.parse("2006", "Y");
-
-//dt = Sun Jan 15 2006 (all date parts specified)
-dt = Ext.Date.parse("2006-01-15", "Y-m-d");
-
-//dt = Sun Jan 15 2006 15:20:01
-dt = Ext.Date.parse("2006-01-15 3:20:01 PM", "Y-m-d g:i:s A");
-
-// attempt to parse Sun Feb 29 2006 03:20:01 in strict mode
-dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
-</code></pre>
+     * 
+     * Example:
+     *
+     *     //dt = Fri May 25 2007 (current date)
+     *     var dt = new Date();
+     *     
+     *     //dt = Thu May 25 2006 (today&#39;s month/day in 2006)
+     *     dt = Ext.Date.parse("2006", "Y");
+     *     
+     *     //dt = Sun Jan 15 2006 (all date parts specified)
+     *     dt = Ext.Date.parse("2006-01-15", "Y-m-d");
+     *     
+     *     //dt = Sun Jan 15 2006 15:20:01
+     *     dt = Ext.Date.parse("2006-01-15 3:20:01 PM", "Y-m-d g:i:s A");
+     *     
+     *     // attempt to parse Sun Feb 29 2006 03:20:01 in strict mode
+     *     dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
+     *
      * @param {String} input The raw date string.
      * @param {String} format The expected date string format.
-     * @param {Boolean} strict (optional) True to validate date strings while parsing (i.e. prevents javascript Date "rollover")
-                        (defaults to false). Invalid date strings will return null when parsed.
+     * @param {Boolean} [strict=false] (optional) `true` to validate date strings while parsing (i.e. prevents JavaScript Date "rollover").
+     * Invalid date strings will return `null` when parsed.
      * @return {Date} The parsed Date.
      */
     parse : function(input, format, strict) {
@@ -4562,7 +5130,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         if (p[format] == null) {
             utilDate.createParser(format);
         }
-        return p[format](input, Ext.isDefined(strict) ? strict : utilDate.useStrict);
+        return p[format].call(utilDate, input, Ext.isDefined(strict) ? strict : utilDate.useStrict);
     },
 
     // Backwards compat
@@ -4606,107 +5174,44 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
     },
 
     // private
-    createParser : (function() {
-        var code = [
-            "var dt, y, m, d, h, i, s, ms, o, z, zz, u, v,",
-                "def = Ext.Date.defaults,",
-                "results = String(input).match(Ext.Date.parseRegexes[{0}]);", // either null, or an array of matched strings
+    createParser : function(format) {
+        var regexNum = utilDate.parseRegexes.length,
+            currentGroup = 1,
+            calc = [],
+            regex = [],
+            special = false,
+            ch = "",
+            i = 0,
+            len = format.length,
+            atEnd = [],
+            obj;
 
-            "if(results){",
-                "{1}",
-
-                "if(u != null){", // i.e. unix time is defined
-                    "v = new Date(u * 1000);", // give top priority to UNIX time
-                "}else{",
-                    // create Date object representing midnight of the current day;
-                    // this will provide us with our date defaults
-                    // (note: clearTime() handles Daylight Saving Time automatically)
-                    "dt = Ext.Date.clearTime(new Date);",
-
-                    // date calculations (note: these calculations create a dependency on Ext.Number.from())
-                    "y = Ext.Number.from(y, Ext.Number.from(def.y, dt.getFullYear()));",
-                    "m = Ext.Number.from(m, Ext.Number.from(def.m - 1, dt.getMonth()));",
-                    "d = Ext.Number.from(d, Ext.Number.from(def.d, dt.getDate()));",
-
-                    // time calculations (note: these calculations create a dependency on Ext.Number.from())
-                    "h  = Ext.Number.from(h, Ext.Number.from(def.h, dt.getHours()));",
-                    "i  = Ext.Number.from(i, Ext.Number.from(def.i, dt.getMinutes()));",
-                    "s  = Ext.Number.from(s, Ext.Number.from(def.s, dt.getSeconds()));",
-                    "ms = Ext.Number.from(ms, Ext.Number.from(def.ms, dt.getMilliseconds()));",
-
-                    "if(z >= 0 && y >= 0){",
-                        // both the year and zero-based day of year are defined and >= 0.
-                        // these 2 values alone provide sufficient info to create a full date object
-
-                        // create Date object representing January 1st for the given year
-                        // handle years < 100 appropriately
-                        "v = Ext.Date.add(new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms), Ext.Date.YEAR, y < 100 ? y - 100 : 0);",
-
-                        // then add day of year, checking for Date "rollover" if necessary
-                        "v = !strict? v : (strict === true && (z <= 364 || (Ext.Date.isLeapYear(v) && z <= 365))? Ext.Date.add(v, Ext.Date.DAY, z) : null);",
-                    "}else if(strict === true && !Ext.Date.isValid(y, m + 1, d, h, i, s, ms)){", // check for Date "rollover"
-                        "v = null;", // invalid date, so return null
-                    "}else{",
-                        // plain old Date object
-                        // handle years < 100 properly
-                        "v = Ext.Date.add(new Date(y < 100 ? 100 : y, m, d, h, i, s, ms), Ext.Date.YEAR, y < 100 ? y - 100 : 0);",
-                    "}",
-                "}",
-            "}",
-
-            "if(v){",
-                // favour UTC offset over GMT offset
-                "if(zz != null){",
-                    // reset to UTC, then add offset
-                    "v = Ext.Date.add(v, Ext.Date.SECOND, -v.getTimezoneOffset() * 60 - zz);",
-                "}else if(o){",
-                    // reset to GMT, then add offset
-                    "v = Ext.Date.add(v, Ext.Date.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));",
-                "}",
-            "}",
-
-            "return v;"
-        ].join('\n');
-
-        return function(format) {
-            var regexNum = utilDate.parseRegexes.length,
-                currentGroup = 1,
-                calc = [],
-                regex = [],
-                special = false,
-                ch = "",
-                i = 0,
-                len = format.length,
-                atEnd = [],
-                obj;
-
-            for (; i < len; ++i) {
-                ch = format.charAt(i);
-                if (!special && ch == "\\") {
-                    special = true;
-                } else if (special) {
-                    special = false;
-                    regex.push(Ext.String.escape(ch));
-                } else {
-                    obj = utilDate.formatCodeToRegex(ch, currentGroup);
-                    currentGroup += obj.g;
-                    regex.push(obj.s);
-                    if (obj.g && obj.c) {
-                        if (obj.calcAtEnd) {
-                            atEnd.push(obj.c);
-                        } else {
-                            calc.push(obj.c);
-                        }
+        for (; i < len; ++i) {
+            ch = format.charAt(i);
+            if (!special && ch == "\\") {
+                special = true;
+            } else if (special) {
+                special = false;
+                regex.push(Ext.String.escape(ch));
+            } else {
+                obj = utilDate.formatCodeToRegex(ch, currentGroup);
+                currentGroup += obj.g;
+                regex.push(obj.s);
+                if (obj.g && obj.c) {
+                    if (obj.calcAtEnd) {
+                        atEnd.push(obj.c);
+                    } else {
+                        calc.push(obj.c);
                     }
                 }
             }
-            
-            calc = calc.concat(atEnd);
+        }
 
-            utilDate.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
-            utilDate.parseFunctions[format] = Ext.functionFactory("input", "strict", xf(code, regexNum, calc.join('')));
-        };
-    }()),
+        calc = calc.concat(atEnd);
+
+        utilDate.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
+        utilDate.parseFunctions[format] = Ext.functionFactory("input", "strict", xf(code, regexNum, calc.join('')));
+    },
 
     // private
     parseCodes : {
@@ -4756,7 +5261,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         w: {
             g:0,
             c:null,
-            s:"[0-6]" // javascript day number (0 (sunday) - 6 (saturday))
+            s:"[0-6]" // JavaScript day number (0 (sunday) - 6 (saturday))
         },
         z: {
             g:1,
@@ -4764,14 +5269,14 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
             s:"(\\d{1,3})" // day of the year (0 - 364 (365 in leap years))
         },
         W: {
-            g:0,
-            c:null,
-            s:"(?:\\d{2})" // ISO-8601 week number (with leading zero)
+            g:1,
+            c:"W = parseInt(results[{0}], 10);\n",
+            s:"(\\d{2})" // ISO-8601 week number (with leading zero)
         },
         F: function() {
             return {
                 g:1,
-                c:"m = parseInt(Ext.Date.getMonthNumber(results[{0}]), 10);\n", // get localised month number
+                c:"m = parseInt(me.getMonthNumber(results[{0}]), 10);\n", // get localised month number
                 s:"(" + utilDate.monthNames.join("|") + ")"
             };
         },
@@ -4801,8 +5306,11 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
             c:null,
             s:"(?:1|0)"
         },
-        o: function() {
-            return utilDate.formatCodeToRegex("Y");
+        o: { 
+            g: 1,
+            c: "y = parseInt(results[{0}], 10);\n",
+            s: "(\\d{4})" // ISO-8601 year number (with leading zero)
+
         },
         Y: {
             g:1,
@@ -4812,7 +5320,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         y: {
             g:1,
             c:"var ty = parseInt(results[{0}], 10);\n"
-                + "y = ty > Ext.Date.y2kYear ? 1900 + ty : 2000 + ty;\n", // 2-digit year
+                + "y = ty > me.y2kYear ? 1900 + ty : 2000 + ty;\n", // 2-digit year
             s:"(\\d{1,2})"
         },
         /*
@@ -4900,7 +5408,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         T: {
             g:0,
             c:null,
-            s:"[A-Z]{1,4}" // timezone abbrev. may be between 1 - 4 chars
+            s:"[A-Z]{1,5}" // timezone abbrev. may be between 1 - 5 chars
         },
         Z: {
             g:1,
@@ -4973,7 +5481,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
      * Compares if two dates are equal by comparing their values.
      * @param {Date} date1
      * @param {Date} date2
-     * @return {Boolean} True if the date values are equal
+     * @return {Boolean} `true` if the date values are equal
      */
     isEqual: function(date1, date2) {
         // check we have 2 date objects
@@ -5007,7 +5515,7 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
     /**
      * Get the timezone abbreviation of the current date (equivalent to the format specifier 'T').
      *
-     * Note: The date string returned by the javascript Date object's toString() method varies
+     * __Note:__ The date string returned by the JavaScript Date object's `toString()` method varies
      * between browsers (e.g. FF vs IE) and system region settings (e.g. IE in Asia vs IE in America).
      * For a given date string e.g. "Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)",
      * getTimezone() first tries to get the timezone abbreviation from between a pair of parentheses
@@ -5029,13 +5537,13 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         // step 1: (?:\((.*)\) -- find timezone in parentheses
         // step 2: ([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?) -- if nothing was found in step 1, find timezone from timezone offset portion of date string
         // step 3: remove all non uppercase characters found in step 1 and 2
-        return date.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, "$1$2").replace(/[^A-Z]/g, "");
+        return date.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,5})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, "$1$2").replace(/[^A-Z]/g, "");
     },
 
     /**
      * Get the offset from GMT of the current date (equivalent to the format specifier 'O').
      * @param {Date} date The date
-     * @param {Boolean} colon (optional) true to separate the hours and minutes with a colon (defaults to false).
+     * @param {Boolean} [colon=false] (optional) true to separate the hours and minutes with a colon.
      * @return {String} The 4-character offset string prefixed with + or - (e.g. '-0600').
      */
     getGMTOffset : function(date, colon) {
@@ -5098,12 +5606,13 @@ dt = Ext.Date.parse("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
      * Get the first day of the current month, adjusted for leap year.  The returned value
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
+     *
      * Example:
-     * <pre><code>
-var dt = new Date('1/10/2007'),
-    firstDay = Ext.Date.getFirstDayOfMonth(dt);
-console.log(Ext.Date.dayNames[firstDay]); //output: 'Monday'
-     * </code></pre>
+     *
+     *     var dt = new Date('1/10/2007'),
+     *         firstDay = Ext.Date.getFirstDayOfMonth(dt);
+     *     console.log(Ext.Date.dayNames[firstDay]); // output: 'Monday'
+     *
      * @param {Date} date The date
      * @return {Number} The day number (0-6).
      */
@@ -5116,12 +5625,13 @@ console.log(Ext.Date.dayNames[firstDay]); //output: 'Monday'
      * Get the last day of the current month, adjusted for leap year.  The returned value
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
+     *
      * Example:
-     * <pre><code>
-var dt = new Date('1/10/2007'),
-    lastDay = Ext.Date.getLastDayOfMonth(dt);
-console.log(Ext.Date.dayNames[lastDay]); //output: 'Wednesday'
-     * </code></pre>
+     *
+     *     var dt = new Date('1/10/2007'),
+     *         lastDay = Ext.Date.getLastDayOfMonth(dt);
+     *     console.log(Ext.Date.dayNames[lastDay]); // output: 'Wednesday'
+     *
      * @param {Date} date The date
      * @return {Number} The day number (0-6).
      */
@@ -5195,20 +5705,20 @@ console.log(Ext.Date.dayNames[lastDay]); //output: 'Wednesday'
      * modify the original instance, you should create a clone.
      *
      * Example of correctly cloning a date:
-     * <pre><code>
-//wrong way:
-var orig = new Date('10/1/2006');
-var copy = orig;
-copy.setDate(5);
-console.log(orig);  //returns 'Thu Oct 05 2006'!
-
-//correct way:
-var orig = new Date('10/1/2006'),
-    copy = Ext.Date.clone(orig);
-copy.setDate(5);
-console.log(orig);  //returns 'Thu Oct 01 2006'
-     * </code></pre>
-     * @param {Date} date The date
+     *
+     *     //wrong way:
+     *     var orig = new Date('10/1/2006');
+     *     var copy = orig;
+     *     copy.setDate(5);
+     *     console.log(orig);  // returns 'Thu Oct 05 2006'!
+     *
+     *     //correct way:
+     *     var orig = new Date('10/1/2006'),
+     *         copy = Ext.Date.clone(orig);
+     *     copy.setDate(5);
+     *     console.log(orig);  // returns 'Thu Oct 01 2006'
+     *
+     * @param {Date} date The date.
      * @return {Date} The new Date instance.
      */
     clone : function(date) {
@@ -5218,7 +5728,7 @@ console.log(orig);  //returns 'Thu Oct 01 2006'
     /**
      * Checks if the current date is affected by Daylight Saving Time (DST).
      * @param {Date} date The date
-     * @return {Boolean} True if the current date is affected by DST.
+     * @return {Boolean} `true` if the current date is affected by DST.
      */
     isDST : function(date) {
         // adapted from http://sencha.com/forum/showthread.php?p=247172#post247172
@@ -5229,9 +5739,10 @@ console.log(orig);  //returns 'Thu Oct 01 2006'
     /**
      * Attempts to clear all time information from this Date by setting the time to midnight of the same day,
      * automatically adjusting for Daylight Saving Time (DST) where applicable.
-     * (note: DST timezone information for the browser's host operating system is assumed to be up-to-date)
+     *
+     * __Note:__ DST timezone information for the browser's host operating system is assumed to be up-to-date.
      * @param {Date} date The date
-     * @param {Boolean} clone true to create a clone of this date, clear the time and return it (defaults to false).
+     * @param {Boolean} [clone=false] `true` to create a clone of this date, clear the time and return it.
      * @return {Date} this or the clone.
      */
     clearTime : function(date, clone) {
@@ -5270,16 +5781,18 @@ console.log(orig);  //returns 'Thu Oct 01 2006'
      * a new Date instance containing the resulting date value.
      *
      * Examples:
-     * <pre><code>
-// Basic usage:
-var dt = Ext.Date.add(new Date('10/29/2006'), Ext.Date.DAY, 5);
-console.log(dt); //returns 'Fri Nov 03 2006 00:00:00'
-
-// Negative values will be subtracted:
-var dt2 = Ext.Date.add(new Date('10/1/2006'), Ext.Date.DAY, -5);
-console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
-
-     * </code></pre>
+     *
+     *     // Basic usage:
+     *     var dt = Ext.Date.add(new Date('10/29/2006'), Ext.Date.DAY, 5);
+     *     console.log(dt); // returns 'Fri Nov 03 2006 00:00:00'
+     *
+     *     // Negative values will be subtracted:
+     *     var dt2 = Ext.Date.add(new Date('10/1/2006'), Ext.Date.DAY, -5);
+     *     console.log(dt2); // returns 'Tue Sep 26 2006 00:00:00'
+     *
+     *      // Decimal values can be used:
+     *     var dt3 = Ext.Date.add(new Date('10/1/2006'), Ext.Date.DAY, 1.25);
+     *     console.log(dt3); // returns 'Mon Oct 02 2006 06:00:00'
      *
      * @param {Date} date The date to modify
      * @param {String} interval A valid date interval enum value.
@@ -5289,45 +5802,120 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
     add : function(date, interval, value) {
         var d = Ext.Date.clone(date),
             Date = Ext.Date,
-            day;
+            day, decimalValue, base = 0;
         if (!interval || value === 0) {
             return d;
         }
 
-        switch(interval.toLowerCase()) {
-            case Ext.Date.MILLI:
-                d.setMilliseconds(d.getMilliseconds() + value);
-                break;
-            case Ext.Date.SECOND:
-                d.setSeconds(d.getSeconds() + value);
-                break;
-            case Ext.Date.MINUTE:
-                d.setMinutes(d.getMinutes() + value);
-                break;
-            case Ext.Date.HOUR:
-                d.setHours(d.getHours() + value);
-                break;
-            case Ext.Date.DAY:
-                d.setDate(d.getDate() + value);
-                break;
-            case Ext.Date.MONTH:
-                day = date.getDate();
-                if (day > 28) {
-                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
-                }
-                d.setDate(day);
-                d.setMonth(date.getMonth() + value);
-                break;
-            case Ext.Date.YEAR:
-                day = date.getDate();
-                if (day > 28) {
-                    day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
-                }
-                d.setDate(day);
-                d.setFullYear(date.getFullYear() + value);
-                break;
+        decimalValue = value - parseInt(value, 10);
+        value = parseInt(value, 10);
+
+        if (value) {
+            switch(interval.toLowerCase()) {
+                // See EXTJSIV-7418. We use setTime() here to deal with issues related to
+                // the switchover that occurs when changing to daylight savings and vice
+                // versa. setTime() handles this correctly where setHour/Minute/Second/Millisecond
+                // do not. Let's assume the DST change occurs at 2am and we're incrementing using add
+                // for 15 minutes at time. When entering DST, we should see:
+                // 01:30am
+                // 01:45am
+                // 03:00am // skip 2am because the hour does not exist
+                // ...
+                // Similarly, leaving DST, we should see:
+                // 01:30am
+                // 01:45am
+                // 01:00am // repeat 1am because that's the change over
+                // 01:30am
+                // 01:45am
+                // 02:00am
+                // ....
+                // 
+                case Ext.Date.MILLI:
+                    d.setTime(d.getTime() + value);
+                    break;
+                case Ext.Date.SECOND:
+                    d.setTime(d.getTime() + value * 1000);
+                    break;
+                case Ext.Date.MINUTE:
+                    d.setTime(d.getTime() + value * 60 * 1000);
+                    break;
+                case Ext.Date.HOUR:
+                    d.setTime(d.getTime() + value * 60 * 60 * 1000);
+                    break;
+                case Ext.Date.DAY:
+                    d.setDate(d.getDate() + value);
+                    break;
+                case Ext.Date.MONTH:
+                    day = date.getDate();
+                    if (day > 28) {
+                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
+                    }
+                    d.setDate(day);
+                    d.setMonth(date.getMonth() + value);
+                    break;
+                case Ext.Date.YEAR:
+                    day = date.getDate();
+                    if (day > 28) {
+                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
+                    }
+                    d.setDate(day);
+                    d.setFullYear(date.getFullYear() + value);
+                    break;
+            }
         }
+
+        if (decimalValue) {
+            switch (interval.toLowerCase()) {
+                case Ext.Date.MILLI:    base = 1;               break;
+                case Ext.Date.SECOND:   base = 1000;            break;
+                case Ext.Date.MINUTE:   base = 1000*60;         break;
+                case Ext.Date.HOUR:     base = 1000*60*60;      break;
+                case Ext.Date.DAY:      base = 1000*60*60*24;   break;
+
+                case Ext.Date.MONTH:
+                    day = utilDate.getDaysInMonth(d);
+                    base = 1000*60*60*24*day;
+                    break;
+
+                case Ext.Date.YEAR:
+                    day = (utilDate.isLeapYear(d) ? 366 : 365);
+                    base = 1000*60*60*24*day;
+                    break;
+            }
+            if (base) {
+                d.setTime(d.getTime() + base * decimalValue); 
+            }
+        }
+
         return d;
+    },
+    
+    /**
+     * Provides a convenient method for performing basic date arithmetic. This method
+     * does not modify the Date instance being called - it creates and returns
+     * a new Date instance containing the resulting date value.
+     * 
+     * Examples:
+     *
+     *     // Basic usage:
+     *     var dt = Ext.Date.subtract(new Date('10/29/2006'), Ext.Date.DAY, 5);
+     *     console.log(dt); // returns 'Tue Oct 24 2006 00:00:00'
+     *
+     *     // Negative values will be added:
+     *     var dt2 = Ext.Date.subtract(new Date('10/1/2006'), Ext.Date.DAY, -5);
+     *     console.log(dt2); // returns 'Fri Oct 6 2006 00:00:00'
+     *
+     *      // Decimal values can be used:
+     *     var dt3 = Ext.Date.subtract(new Date('10/1/2006'), Ext.Date.DAY, 1.25);
+     *     console.log(dt3); // returns 'Fri Sep 29 2006 06:00:00'
+     * 
+     * @param {Date} date The date to modify
+     * @param {String} interval A valid date interval enum value.
+     * @param {Number} value The amount to subtract from the current date.
+     * @return {Date} The new Date instance.
+     */
+    subtract: function(date, interval, value){
+        return utilDate.add(date, interval, -value);
     },
 
     /**
@@ -5335,7 +5923,7 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
      * @param {Date} date The date to check
      * @param {Date} start Start date
      * @param {Date} end End date
-     * @return {Boolean} true if this date falls on or between the given start and end dates.
+     * @return {Boolean} `true` if this date falls on or between the given start and end dates.
      */
     between : function(date, start, end) {
         var t = date.getTime();
@@ -5345,7 +5933,7 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
     //Maintains compatibility with old static and prototype window.Date methods.
     compat: function() {
         var nativeDate = window.Date,
-            p, u,
+            p,
             statics = ['useStrict', 'formatCodeToRegex', 'parseFunctions', 'parseRegexes', 'formatFunctions', 'y2kYear', 'MILLI', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'MONTH', 'YEAR', 'defaults', 'dayNames', 'monthNames', 'monthNumbers', 'getShortMonthName', 'getShortDayName', 'getMonthNumber', 'formatCodes', 'isValid', 'parseDate', 'getFormatCode', 'createFormat', 'createParser', 'parseCodes'],
             proto = ['dateFormat', 'format', 'getTimezone', 'getGMTOffset', 'getDayOfYear', 'getWeekOfYear', 'isLeapYear', 'getFirstDayOfMonth', 'getLastDayOfMonth', 'getDaysInMonth', 'getSuffix', 'clone', 'isDST', 'clearTime', 'add', 'between'],
             sLen    = statics.length,
@@ -5368,11 +5956,8 @@ console.log(dt2); //returns 'Tue Sep 26 2006 00:00:00'
             };
         }
     }
+  });
 };
-
-var utilDate = Ext.Date;
-
-}());
 
 //@tag foundation,core
 //@require ../lang/Date.js
@@ -5390,7 +5975,21 @@ var utilDate = Ext.Date;
 (function(flexSetter) {
 
 var noArgs = [],
-    Base = function(){};
+    Base = function(){},
+    hookFunctionFactory = function(hookFunction, underriddenFunction, methodName, owningClass) {
+        var result = function() {
+            var result = this.callParent(arguments);
+            hookFunction.apply(this, arguments);
+            return result;
+        };
+        result.$name = methodName;
+        result.$owner = owningClass;
+        if (underriddenFunction) {
+            result.$previous = underriddenFunction.$previous;
+            underriddenFunction.$previous = result;
+        }
+        return result;
+    };
 
     // These static properties will be copied to every newly created class with {@link Ext#define}
     Ext.apply(Base, {
@@ -5480,6 +6079,7 @@ var noArgs = [],
          * @inheritable
          */
         triggerExtended: function() {
+        
             var callbacks = this.$onExtended,
                 ln = callbacks.length,
                 i, callback;
@@ -5660,7 +6260,7 @@ var noArgs = [],
                 if (members.hasOwnProperty(name)) {
                     member = members[name];
 
-                    if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn) {
+                    if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn && member !== Ext.identityFn) {
                         member.$owner = this;
                         member.$name = name;
                     }
@@ -5679,14 +6279,13 @@ var noArgs = [],
          * @param name
          * @param member
          */
-        addMember: function(name, member) {
-            if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn) {
+        addMember: function(name, member) {            
+            if (typeof member == 'function' && !member.$isClass && member !== Ext.emptyFn && member !== Ext.identityFn) {
                 member.$owner = this;
                 member.$name = name;
             }
 
             this.prototype[name] = member;
-
             return this;
         },
 
@@ -5729,6 +6328,7 @@ var noArgs = [],
          * @private
          */
         borrow: function(fromClass, members) {
+            
             var prototype = this.prototype,
                 fromPrototype = fromClass.prototype,
                 i, ln, name, fn, toBorrow;
@@ -5829,6 +6429,8 @@ var noArgs = [],
                 for (name in members) { // hasOwnProperty is checked in the next loop...
                     if (name == 'statics') {
                         statics = members[name];
+                    } else if (name == 'inheritableStatics'){
+                        me.addInheritableStatics(members[name]);
                     } else if (name == 'config') {
                         me.addConfig(members[name], true);
                     } else {
@@ -5846,7 +6448,7 @@ var noArgs = [],
                     if (members.hasOwnProperty(name)) {
                         member = members[name];
 
-                        if (typeof member == 'function' && !member.$className && member !== Ext.emptyFn) {
+                        if (typeof member == 'function' && !member.$className && member !== Ext.emptyFn && member !== Ext.identityFn) {
                             if (typeof member.$owner != 'undefined') {
                                 member = cloneFunction(member);
                             }
@@ -5878,8 +6480,8 @@ var noArgs = [],
 
             // This code is intentionally inlined for the least number of debugger stepping
             return (method = this.callParent.caller) && (method.$previous ||
-                ((method = method.$owner ? method : method.caller) &&
-                    method.$owner.superclass.self[method.$name])).apply(this, args || noArgs);
+                  ((method = method.$owner ? method : method.caller) &&
+                        method.$owner.superclass.self[method.$name])).apply(this, args || noArgs);
         },
 
         // Documented downwards
@@ -5888,8 +6490,8 @@ var noArgs = [],
 
             // This code is intentionally inlined for the least number of debugger stepping
             return (method = this.callSuper.caller) &&
-                ((method = method.$owner ? method : method.caller) &&
-                    method.$owner.superclass.self[method.$name]).apply(this, args || noArgs);
+                    ((method = method.$owner ? method : method.caller) &&
+                      method.$owner.superclass.self[method.$name]).apply(this, args || noArgs);
         },
 
         /**
@@ -5899,12 +6501,14 @@ var noArgs = [],
          * @inheritable
          */
         mixin: function(name, mixinClass) {
-            var mixin = mixinClass.prototype,
-                prototype = this.prototype,
-                key;
+            var me = this,
+                mixin = mixinClass.prototype,
+                prototype = me.prototype,
+                key, statics, i, ln, staticName,
+                mixinValue, hookKey, hookFunction;
 
             if (typeof mixin.onClassMixedIn != 'undefined') {
-                mixin.onClassMixedIn.call(mixinClass, this);
+                mixin.onClassMixedIn.call(mixinClass, me);
             }
 
             if (!prototype.hasOwnProperty('mixins')) {
@@ -5917,19 +6521,54 @@ var noArgs = [],
             }
 
             for (key in mixin) {
+                mixinValue = mixin[key];
                 if (key === 'mixins') {
-                    Ext.merge(prototype.mixins, mixin[key]);
+                    Ext.merge(prototype.mixins, mixinValue);
                 }
-                else if (typeof prototype[key] == 'undefined' && key != 'mixinId' && key != 'config') {
-                    prototype[key] = mixin[key];
+                else if (key === 'xhooks') {
+                    for (hookKey in mixinValue) {
+                        hookFunction = mixinValue[hookKey];
+
+                        // Mixed in xhook methods cannot call a parent.
+                        hookFunction.$previous = Ext.emptyFn;
+
+                        if (prototype.hasOwnProperty(hookKey)) {
+
+                            // Pass the hook function, and the existing function which it is to underride.
+                            // The existing function has its $previous pointer replaced by a closure
+                            // which calls the hookFunction and then the existing function's original $previous
+                            hookFunctionFactory(hookFunction, prototype[hookKey], hookKey, me);
+                        } else {
+                            // There's no original function, so generate an implementation which calls
+                            // the hook function. It will not get any $previous pointer.
+                            prototype[hookKey] = hookFunctionFactory(hookFunction, null, hookKey, me);
+                        }
+                    }
+                }
+                else if (!(key === 'mixinId' || key === 'config') && (prototype[key] === undefined)) {
+                    prototype[key] = mixinValue;
+                }
+            }
+
+            // Mixin statics inheritance
+            statics = mixin.$inheritableStatics;
+
+            if (statics) {
+                for (i = 0, ln = statics.length; i < ln; i++) {
+                    staticName = statics[i];
+
+                    if (!me.hasOwnProperty(staticName)) {
+                        me[staticName] = mixinClass[staticName];
+                    }
                 }
             }
 
             if ('config' in mixin) {
-                this.addConfig(mixin.config, false);
+                me.addConfig(mixin.config, false);
             }
 
             prototype.mixins[name] = mixin;
+            return me;
         },
 
         /**
@@ -6198,40 +6837,40 @@ var noArgs = [],
          * This method is used by an override to call the superclass method but bypass any
          * overridden method. This is often done to "patch" a method that contains a bug
          * but for whatever reason cannot be fixed directly.
-         *
+         * 
          * Consider:
-         *
+         * 
          *      Ext.define('Ext.some.Class', {
          *          method: function () {
          *              console.log('Good');
          *          }
          *      });
-         *
+         * 
          *      Ext.define('Ext.some.DerivedClass', {
          *          method: function () {
          *              console.log('Bad');
-         *
+         * 
          *              // ... logic but with a bug ...
-         *
+         *              
          *              this.callParent();
          *          }
          *      });
-         *
+         * 
          * To patch the bug in `DerivedClass.method`, the typical solution is to create an
          * override:
-         *
+         * 
          *      Ext.define('App.paches.DerivedClass', {
          *          override: 'Ext.some.DerivedClass',
-         *
+         *          
          *          method: function () {
          *              console.log('Fixed');
-         *
+         * 
          *              // ... logic but with bug fixed ...
          *
          *              this.callSuper();
          *          }
          *      });
-         *
+         * 
          * The patch method cannot use `callParent` to call the superclass `method` since
          * that would call the overridden method containing the bug. In other words, the
          * above patch would only produce "Fixed" then "Good" in the console log, whereas,
@@ -6249,8 +6888,8 @@ var noArgs = [],
             // to be.
             var method,
                 superMethod = (method = this.callSuper.caller) &&
-                    ((method = method.$owner ? method : method.caller) &&
-                        method.$owner.superclass[method.$name]);
+                        ((method = method.$owner ? method : method.caller) &&
+                          method.$owner.superclass[method.$name]);
 
 
             return superMethod.apply(this, args || noArgs);
@@ -6580,21 +7219,17 @@ var noArgs = [],
     Ext.apply(ExtClass, {
         /**
          * @private
-         * @param Class
-         * @param data
-         * @param hooks
          */
         onBeforeCreated: function(Class, data, hooks) {
+        
             Class.addMembers(data);
 
             hooks.onCreated.call(Class, Class);
+            
         },
 
         /**
          * @private
-         * @param Class
-         * @param classData
-         * @param onClassCreated
          */
         create: function(Class, data) {
             var name, i;
@@ -6614,9 +7249,6 @@ var noArgs = [],
 
         /**
          * @private
-         * @param Class
-         * @param data
-         * @param onCreated
          */
         process: function(Class, data, onCreated) {
             var preprocessorStack = data.preprocessors || ExtClass.defaultPreprocessors,
@@ -6626,7 +7258,7 @@ var noArgs = [],
                 },
                 preprocessors = [],
                 preprocessor, preprocessorsProperties,
-                i, ln, j, subLn, preprocessorProperty, process;
+                i, ln, j, subLn, preprocessorProperty;
 
             delete data.preprocessors;
 
@@ -6662,18 +7294,19 @@ var noArgs = [],
             this.doProcess(Class, data, hooks);
         },
         
-        doProcess: function(Class, data, hooks){
+        doProcess: function(Class, data, hooks) {
             var me = this,
-                preprocessor = hooks.preprocessors.shift();
+                preprocessors = hooks.preprocessors,
+                preprocessor = preprocessors.shift(),
+                doProcess = me.doProcess;
 
-            if (!preprocessor) {
-                hooks.onBeforeCreated.apply(me, arguments);
-                return;
+            for ( ; preprocessor ; preprocessor = preprocessors.shift()) {
+                // Returning false signifies an asynchronous preprocessor - it will call doProcess when we can continue
+                if (preprocessor.call(me, Class, data, hooks, doProcess) === false) {
+                    return;
+                }
             }
-
-            if (preprocessor.call(me, Class, data, hooks, me.doProcess) !== false) {
-                me.doProcess(Class, data, hooks);
-            }
+            hooks.onBeforeCreated.apply(me, arguments);
         },
 
         /** @private */
@@ -6859,7 +7492,8 @@ var noArgs = [],
      *         say: function(text) { this.callParent(["print "+text]); }
      *     });
      */
-    ExtClass.registerPreprocessor('extend', function(Class, data) {
+    ExtClass.registerPreprocessor('extend', function(Class, data, hooks) {
+        
         var Base = Ext.Base,
             basePrototype = Base.prototype,
             extend = data.extend,
@@ -6913,6 +7547,7 @@ var noArgs = [],
      *     var dellComputer = Computer.factory('Dell');
      */
     ExtClass.registerPreprocessor('statics', function(Class, data) {
+        
         Class.addStatics(data.statics);
 
         delete data.statics;
@@ -6924,6 +7559,7 @@ var noArgs = [],
      * Otherwise just like {@link #statics} but subclasses inherit these methods.
      */
     ExtClass.registerPreprocessor('inheritableStatics', function(Class, data) {
+        
         Class.addInheritableStatics(data.inheritableStatics);
 
         delete data.inheritableStatics;
@@ -6953,8 +7589,19 @@ var noArgs = [],
      *     iPhone.getPrice(); // 500;
      *     iPhone.getOperatingSystem(); // 'iOS'
      *     iPhone.getHasTouchScreen(); // true;
+     *
+     * NOTE for when configs are reference types, the getter and setter methods do not make copies.
+     *
+     * For example, when a config value is set, the reference is stored on the instance. All instances that set
+     * the same reference type will share it.
+     *
+     * In the case of the getter, the value with either come from the prototype if the setter was never called or from
+     * the instance as the last value passed to the setter.
+     *
+     * For some config properties, the value passed to the setter is transformed prior to being stored on the instance.
      */
     ExtClass.registerPreprocessor('config', function(Class, data) {
+        
         var config = data.config,
             prototype = Class.prototype;
 
@@ -7082,12 +7729,14 @@ var noArgs = [],
      * through special `mixins` property.
      */
     ExtClass.registerPreprocessor('mixins', function(Class, data, hooks) {
+        
         var mixins = data.mixins,
             name, mixin, i, ln;
 
         delete data.mixins;
 
         Ext.Function.interceptBefore(hooks, 'onCreated', function() {
+        
             if (mixins instanceof Array) {
                 for (i = 0,ln = mixins.length; i < ln; i++) {
                     mixin = mixins[i];
@@ -7108,6 +7757,7 @@ var noArgs = [],
 
     // Backwards compatible
     Ext.extend = function(Class, Parent, members) {
+            
         if (arguments.length === 2 && Ext.isObject(Parent)) {
             members = Parent;
             Parent = Class;
@@ -7147,7 +7797,6 @@ var noArgs = [],
 
         return cls;
     };
-
 }());
 
 //@tag foundation,core
@@ -7486,6 +8135,7 @@ var noArgs = [],
          * @private
          */
         onCreated: function(fn, scope, className) {
+            
             var listeners = this.createdListeners,
                 nameListeners = this.nameCreatedListeners,
                 listener = {
@@ -7816,9 +8466,10 @@ var noArgs = [],
 
         /**
          * Get the name of the class by its reference or its instance;
-         * usually invoked by the shorthand {@link Ext#getClassName Ext.getClassName}
+         * 
+         * {@link Ext.ClassManager#getName} is usually invoked by the shorthand {@link Ext#getClassName}.
          *
-         *     Ext.ClassManager.getName(Ext.Action); // returns "Ext.Action"
+         *     Ext.getName(Ext.Action); // returns "Ext.Action"
          *
          * @param {Ext.Class/Object} object
          * @return {String} className
@@ -7829,11 +8480,13 @@ var noArgs = [],
 
         /**
          * Get the class of the provided object; returns null if it's not an instance
-         * of any class created with Ext.define. This is usually invoked by the shorthand {@link Ext#getClass Ext.getClass}
+         * of any class created with Ext.define.
+         *
+         * {@link Ext.ClassManager#getClass} is usually invoked by the shorthand {@link Ext#getClass}.
          *
          *     var component = new Ext.Component();
          *
-         *     Ext.ClassManager.getClass(component); // returns Ext.Component
+         *     Ext.getClass(component); // returns Ext.Component
          *
          * @param {Object} object
          * @return {Ext.Class} class
@@ -7895,13 +8548,14 @@ var noArgs = [],
                 Manager.processCreate(className, this, data);
             });
         },
-        
+
         processCreate: function(className, cls, clsData){
             var me = this,
                 postprocessor = clsData.postprocessors.shift(),
                 createdFn = clsData.createdFn;
 
             if (!postprocessor) {
+                
                 if (className) {
                     me.set(className, cls);
                 }
@@ -7968,16 +8622,19 @@ var noArgs = [],
 
             // Override the target class right after it's created
             me.onCreated(classReady, me, overriddenClassName);
- 
+
             return me;
         },
 
         /**
-         * Instantiate a class by its alias; usually invoked by the convenient shorthand {@link Ext#createByAlias Ext.createByAlias}
+         * Instantiate a class by its alias.
+         * 
+         * {@link Ext.ClassManager#instantiateByAlias} is usually invoked by the shorthand {@link Ext#createByAlias}.
+         *
          * If {@link Ext.Loader} is {@link Ext.Loader#setConfig enabled} and the class has not been defined yet, it will
          * attempt to load the class via synchronous loading.
          *
-         *     var window = Ext.ClassManager.instantiateByAlias('widget.window', { width: 600, height: 800, ... });
+         *     var window = Ext.createByAlias('widget.window', { width: 600, height: 800, ... });
          *
          * @param {String} alias
          * @param {Object...} args Additional arguments after the alias will be passed to the
@@ -8138,7 +8795,7 @@ var noArgs = [],
          * Set the default post processors array stack which are applied to every class.
          *
          * @private
-         * @param {String/Array} The name of a registered post processor or an array of registered names.
+         * @param {String/Array} postprocessors The name of a registered post processor or an array of registered names.
          * @return {Ext.ClassManager} this
          */
         setDefaultPostprocessors: function(postprocessors) {
@@ -8278,6 +8935,7 @@ var noArgs = [],
      * Besides "widget" for xtype there are alias namespaces like "feature" for ftype and "plugin" for ptype.
      */
     Manager.registerPostprocessor('alias', function(name, cls, data) {
+        
         var aliases = data.alias,
             i, ln;
 
@@ -8304,7 +8962,13 @@ var noArgs = [],
      *     Logger.log('Hello');
      */
     Manager.registerPostprocessor('singleton', function(name, cls, data, fn) {
-        fn.call(this, name, new cls(), data);
+        
+        if (data.singleton) {
+            fn.call(this, name, new cls(), data);
+        }
+        else {
+            return true;
+        }
         return false;
     });
 
@@ -8327,6 +8991,7 @@ var noArgs = [],
      *     rms.code('hack hack');
      */
     Manager.registerPostprocessor('alternateClassName', function(name, cls, data) {
+        
         var alternates = data.alternateClassName,
             i, ln, alternate;
 
@@ -8430,7 +9095,7 @@ var noArgs = [],
             } else {
                 config = config || {};
             }
-            
+
             if (config.isComponent) {
                 return config;
             }
@@ -8442,7 +9107,7 @@ var noArgs = [],
             if (!className) {
                 load = true;
             }
-            
+
             T = Manager.get(className);
             if (load || !T) {
                 return Manager.instantiateByAlias(alias, config);
@@ -8451,14 +9116,13 @@ var noArgs = [],
         },
 
         /**
-         * Convenient shorthand, see {@link Ext.ClassManager#instantiateByAlias}
+         * @inheritdoc Ext.ClassManager#instantiateByAlias
          * @member Ext
          * @method createByAlias
          */
         createByAlias: alias(Manager, 'instantiateByAlias'),
 
         /**
-         * @method
          * Defines a class or override. A basic class is defined like this:
          *
          *      Ext.define('My.awesome.Class', {
@@ -8476,7 +9140,7 @@ var noArgs = [],
          *      obj.someMethod('Say '); // alerts 'Say something'
          *
          * To create an anonymous class, pass `null` for the `className`:
-         * 
+         *
          *      Ext.define(null, {
          *          constructor: function () {
          *              // ...
@@ -8487,10 +9151,10 @@ var noArgs = [],
          * properties. The best way to do this is to pass a function instead of an object
          * as the second parameter. This function will be called to produce the class
          * body:
-         * 
+         *
          *      Ext.define('MyApp.foo.Bar', function () {
          *          var id = 0;
-         *          
+         *
          *          return {
          *              nextId: function () {
          *                  return ++id;
@@ -8498,10 +9162,27 @@ var noArgs = [],
          *          };
          *      });
          * 
+         * _Note_ that when using override, the above syntax will not override successfully, because
+         * the passed function would need to be executed first to determine whether or not the result 
+         * is an override or defining a new object. As such, an alternative syntax that immediately 
+         * invokes the function can be used:
+         * 
+         *      Ext.define('MyApp.override.BaseOverride', function () {
+         *          var counter = 0;
+         *
+         *          return {
+         *              override: 'Ext.Component',
+         *              logId: function () {
+         *                  console.log(++counter, this.id);
+         *              }
+         *          };
+         *      }());
+         * 
+         *
          * When using this form of `Ext.define`, the function is passed a reference to its
          * class. This can be used as an efficient way to access any static properties you
          * may have:
-         * 
+         *
          *      Ext.define('MyApp.foo.Bar', function (Bar) {
          *          return {
          *              statics: {
@@ -8509,7 +9190,7 @@ var noArgs = [],
          *                      // ...
          *                  }
          *              },
-         *              
+         *
          *              method: function () {
          *                  return Bar.staticMethod();
          *              }
@@ -8610,11 +9291,10 @@ var noArgs = [],
          * @param {Function} createdFn Optional callback to execute after the class is created, the execution scope of which
          * (`this`) will be the newly created class itself.
          * @return {Ext.Base}
-         * @markdown
          * @member Ext
-         * @method define
          */
         define: function (className, data, createdFn) {
+            
             if (data.override) {
                 return Manager.createOverride.apply(Manager, arguments);
             }
@@ -8622,8 +9302,9 @@ var noArgs = [],
             return Manager.create.apply(Manager, arguments);
         },
 
+
         /**
-         * Convenient shorthand, see {@link Ext.ClassManager#getName}
+         * @inheritdoc Ext.ClassManager#getName
          * @member Ext
          * @method getClassName
          */
@@ -8653,7 +9334,7 @@ var noArgs = [],
         },
 
         /**
-         * Convenient shorthand, see {@link Ext.ClassManager#getClass}
+         * @inheritdoc Ext.ClassManager#getClass
          * @member Ext
          * @method getClass
          */
@@ -8701,9 +9382,11 @@ var noArgs = [],
         if (data.$className) {
             cls.$className = data.$className;
         }
+        
     }, true, 'first');
 
     Class.registerPreprocessor('alias', function(cls, data) {
+        
         var prototype = cls.prototype,
             xtypes = arrayFrom(data.xtype),
             aliases = arrayFrom(data.alias),
@@ -8739,6 +9422,7 @@ var noArgs = [],
         data.xtypesMap = xtypesMap;
 
         Ext.Function.interceptAfter(data, 'onClassCreated', function() {
+        
             var mixins = prototype.mixins,
                 key, mixin;
 
@@ -8774,6 +9458,18 @@ var noArgs = [],
     }, ['xtype', 'alias']);
 
 }(Ext.Class, Ext.Function.alias, Array.prototype.slice, Ext.Array.from, Ext.global));
+
+// simple mechanism for automated means of injecting large amounts of dependency info
+// at the appropriate time in the load cycle
+if (Ext._alternatesMetadata) {
+   Ext.ClassManager.addNameAlternateMappings(Ext._alternatesMetadata);
+   Ext._alternatesMetadata = null;
+}
+
+if (Ext._aliasMetadata) {
+    Ext.ClassManager.addNameAliasMappings(Ext._aliasMetadata);
+    Ext._aliasMetadata = null;
+}
 
 //@tag foundation,core
 //@require ClassManager.js
@@ -8927,7 +9623,8 @@ Ext.Loader = new function() {
         isInHistory = {},
         history = [],
         slashDotSlashRe = /\/\.\//g,
-        dotRe = /\./g;
+        dotRe = /\./g,
+        setPathCount = 0;
 
     Ext.apply(Loader, {
 
@@ -9045,9 +9742,17 @@ Ext.Loader = new function() {
         setConfig: function(name, value) {
             if (Ext.isObject(name) && arguments.length === 1) {
                 Ext.merge(Loader.config, name);
+
+                if ('paths' in name) {
+                    Ext.app.collectNamespaces(name.paths);
+                }
             }
             else {
                 Loader.config[name] = (Ext.isObject(value)) ? Ext.merge(Loader.config[name], value) : value;
+
+                if (name === 'paths') {
+                    Ext.app.collectNamespaces(value);
+                }
             }
 
             return Loader;
@@ -9073,12 +9778,14 @@ Ext.Loader = new function() {
          *     Ext.Loader.setPath('Ext', '.');
          *
          * @param {String/Object} name See {@link Ext.Function#flexSetter flexSetter}
-         * @param {String} path See {@link Ext.Function#flexSetter flexSetter}
+         * @param {String} [path] See {@link Ext.Function#flexSetter flexSetter}
          * @return {Ext.Loader} this
          * @method
          */
         setPath: flexSetter(function(name, path) {
             Loader.config.paths[name] = path;
+            Ext.app.namespaces[name] = true;
+            setPathCount++;
 
             return Loader;
         }),
@@ -9092,9 +9799,14 @@ Ext.Loader = new function() {
         addClassPathMappings: function(paths) {
             var name;
 
-            for(name in paths){
-                Loader.config.paths[name] = paths[name];
+            if(setPathCount == 0){
+                Loader.config.paths = paths;
+            } else {
+                for(name in paths){
+                    Loader.config.paths[name] = paths[name];
+                }
             }
+            setPathCount++;
             return Loader;
         },
 
@@ -9181,8 +9893,11 @@ Ext.Loader = new function() {
         },
 
         /**
-         * Loads all classes by the given names and all their direct dependencies; optionally executes the given callback function when
-         * finishes, within the optional scope. This method is aliased by {@link Ext#require Ext.require} for convenience
+         * Loads all classes by the given names and all their direct dependencies; optionally executes
+         * the given callback function when finishes, within the optional scope.
+         *
+         * {@link Ext#require} is alias for {@link Ext.Loader#require}.
+         *
          * @param {String/Array} expressions Can either be a string or an array of string
          * @param {Function} fn (Optional) The callback function
          * @param {Object} scope (Optional) The execution scope (`this`) of the callback function
@@ -9195,7 +9910,11 @@ Ext.Loader = new function() {
         },
 
         /**
-         * Synchronously loads all classes by the given names and all their direct dependencies; optionally executes the given callback function when finishes, within the optional scope. This method is aliased by {@link Ext#syncRequire} for convenience
+         * Synchronously loads all classes by the given names and all their direct dependencies; optionally
+         * executes the given callback function when finishes, within the optional scope.
+         *
+         * {@link Ext#syncRequire} is alias for {@link Ext.Loader#syncRequire}.
+         *
          * @param {String/Array} expressions Can either be a string or an array of string
          * @param {Function} fn (Optional) The callback function
          * @param {Object} scope (Optional) The execution scope (`this`) of the callback function
@@ -9210,6 +9929,8 @@ Ext.Loader = new function() {
          *     Ext.exclude('Ext.data.*').require('*');
          *
          *     Ext.exclude('widget.button*').require('widget.*');
+         *
+         * {@link Ext#exclude} is alias for {@link Ext.Loader#exclude}.
          *
          * @param {Array} excludes
          * @return {Object} object contains `require` method for chaining
@@ -9255,7 +9976,10 @@ Ext.Loader = new function() {
         scriptElements = {},
         readyListeners = [],
         usedClasses = [],
-        requiresMap = {};
+        requiresMap = {},
+        comparePriority = function(listenerA, listenerB) {
+            return listenerB.priority - listenerA.priority;
+        };
 
     Ext.apply(Loader, {
         /**
@@ -9473,7 +10197,11 @@ Ext.Loader = new function() {
                 if (collect) {
                     for (prop in script) {
                         try {
-                            script[prop] = null;
+                            if (prop != 'src') {
+                                // If we set the src property to null IE
+                                // will try and request a script at './null'
+                                script[prop] = null;
+                            }
                             delete script[prop];      // and prepare for GC
                         } catch (cleanEx) {
                             //ignore
@@ -9579,7 +10307,7 @@ Ext.Loader = new function() {
                 }
 
                 status = (xhr.status === 1223) ? 204 :
-                    (xhr.status === 0 && (self.location || {}).protocol == 'file:') ? 200 : xhr.status;
+                    (xhr.status === 0 && ((self.location || {}).protocol == 'file:' || (self.location || {}).protocol == 'ionp:')) ? 200 : xhr.status;
 
                 isCrossOriginRestricted = isCrossOriginRestricted || (status === 0);
 
@@ -9736,14 +10464,15 @@ Ext.Loader = new function() {
                 // we need to destroy the script tag and revert the count
                 // This file will then be forced loaded in synchronous
                 if (syncModeEnabled && isClassFileLoaded.hasOwnProperty(className)) {
-                    Loader.numPendingFiles--;
-                    Loader.removeScriptElement(filePath);
-                    delete isClassFileLoaded[className];
+                    if (!isClassFileLoaded[className]) {
+                        Loader.numPendingFiles--;
+                        Loader.removeScriptElement(filePath);
+                        delete isClassFileLoaded[className];
+                    }
                 }
 
                 if (!isClassFileLoaded.hasOwnProperty(className)) {
                     isClassFileLoaded[className] = false;
-
                     classNameToFilePathMap[className] = filePath;
 
                     Loader.numPendingFiles++;
@@ -9774,12 +10503,17 @@ Ext.Loader = new function() {
          * @param {String} filePath
          */
         onFileLoaded: function(className, filePath) {
+            var loaded = isClassFileLoaded[className];
             Loader.numLoadedFiles++;
 
             isClassFileLoaded[className] = true;
             isFileLoaded[filePath] = true;
 
-            Loader.numPendingFiles--;
+            // In FF, when we sync load something that has had a script tag inserted, the load event may
+            // sometimes fire even if we clean it up and set it to null, so check if we're already loaded here.
+            if (!loaded) {
+                Loader.numPendingFiles--;
+            }
 
             if (Loader.numPendingFiles === 0) {
                 Loader.refreshQueue();
@@ -9821,7 +10555,7 @@ Ext.Loader = new function() {
          */
         triggerReady: function() {
             var listener,
-                i, refClasses = usedClasses;
+                refClasses = usedClasses;
 
             if (Loader.isLoading) {
                 Loader.isLoading = false;
@@ -9836,6 +10570,8 @@ Ext.Loader = new function() {
                     return Loader;
                 }
             }
+
+            Ext.Array.sort(readyListeners, comparePriority);
 
             // this method can be called with Loader.isLoading either true or false
             // (can be called with false when all 'uses' classes are already loaded)
@@ -9868,7 +10604,8 @@ Ext.Loader = new function() {
             else {
                 readyListeners.push({
                     fn: fn,
-                    scope: scope
+                    scope: scope,
+                    priority: (options && options.priority) || 0
                 });
             }
         },
@@ -9904,18 +10641,16 @@ Ext.Loader = new function() {
 
 
     /**
-     * Convenient alias of {@link Ext.Loader#require}. Please see the introduction documentation of
-     * {@link Ext.Loader} for examples.
      * @member Ext
      * @method require
+     * @inheritdoc Ext.Loader#require
      */
     Ext.require = alias(Loader, 'require');
 
     /**
-     * Synchronous version of {@link Ext#require}, convenient alias of {@link Ext.Loader#syncRequire}.
-     *
      * @member Ext
      * @method syncRequire
+     * @inheritdoc Ext.Loader#syncRequire
      */
     Ext.syncRequire = alias(Loader, 'syncRequire');
 
@@ -9923,6 +10658,7 @@ Ext.Loader = new function() {
      * Convenient shortcut to {@link Ext.Loader#exclude}
      * @member Ext
      * @method exclude
+     * @inheritdoc Ext.Loader#exclude
      */
     Ext.exclude = alias(Loader, 'exclude');
 
@@ -9950,6 +10686,7 @@ Ext.Loader = new function() {
      *     });
      */
     Class.registerPreprocessor('loader', function(cls, data, hooks, continueFn) {
+        
         var me = this,
             dependencies = [],
             dependency,
@@ -10072,6 +10809,7 @@ Ext.Loader = new function() {
      *     });
      */
     Manager.registerPostprocessor('uses', function(name, cls, data) {
+        
         var uses = data.uses;
         if (uses) {
             Loader.addUsedClasses(uses);
@@ -10123,7 +10861,7 @@ if (Ext._beforereadyhandler){
  * A wrapper class for the native JavaScript Error object that adds a few useful capabilities for handling
  * errors in an Ext application. When you use Ext.Error to {@link #raise} an error from within any class that
  * uses the Ext 4 class system, the Error class can automatically add the source class and method from which
- * the error was raised. It also includes logic to automatically log the eroor to the console, if available,
+ * the error was raised. It also includes logic to automatically log the error to the console, if available,
  * with additional metadata about the error. In all cases, the error will always be thrown at the end so that
  * execution will halt.
  *

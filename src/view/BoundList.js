@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * An internally used DataView for {@link Ext.form.field.ComboBox ComboBox}.
  */
@@ -44,7 +64,7 @@ Ext.define('Ext.view.BoundList', {
     ],
 
     renderTpl: [
-        '<div id="{id}-listEl" class="{baseCls}-list-ct" style="overflow:auto"></div>',
+        '<div id="{id}-listEl" class="{baseCls}-list-ct ', Ext.dom.Element.unselectableCls, '" style="overflow:auto"></div>',
         '{%',
             'var me=values.$comp, pagingToolbar=me.pagingToolbar;',
             'if (pagingToolbar) {',
@@ -110,8 +130,8 @@ Ext.define('Ext.view.BoundList', {
             // should be setting aria-posinset based on entire set of data
             // not filtered set
             me.tpl = new Ext.XTemplate(
-                '<ul><tpl for=".">',
-                    '<li role="option" class="' + itemCls + '">' + me.getInnerTpl(me.displayField) + '</li>',
+                '<ul class="' + Ext.plainListCls + '"><tpl for=".">',
+                    '<li role="option" unselectable="on" class="' + itemCls + '">' + me.getInnerTpl(me.displayField) + '</li>',
                 '</tpl></ul>'
             );
         } else if (Ext.isString(me.tpl)) {
@@ -137,13 +157,7 @@ Ext.define('Ext.view.BoundList', {
         }
     },
 
-    /**
-     * @private
-     * Boundlist-specific implementation of the getBubbleTarget used by {@link Ext.AbstractComponent#up} method.
-     * This links to the owning input field so that the FocusManager, when receiving notification of a hide event,
-     * can find a focusable parent.
-     */
-    getBubbleTarget: function() {
+    getRefOwner: function() {
         return this.pickerField;
     },
 
@@ -155,7 +169,7 @@ Ext.define('Ext.view.BoundList', {
         return Ext.widget('pagingtoolbar', {
             id: this.id + '-paging-toolbar',
             pageSize: this.pageSize,
-            store: this.store,
+            store: this.dataSource,
             border: false,
             ownerCt: this,
             ownerLayout: this.getComponentLayout()
@@ -176,14 +190,21 @@ Ext.define('Ext.view.BoundList', {
     
     refresh: function(){
         var me = this,
-            toolbar = me.pagingToolbar;
+            toolbar = me.pagingToolbar,
+            rendered = me.rendered;
         
         me.callParent();
         // The view removes the targetEl from the DOM before updating the template
         // Ensure the toolbar goes to the end
-        if (me.rendered && toolbar && toolbar.rendered && !me.preserveScrollOnRefresh) {
+        if (rendered && toolbar && toolbar.rendered && !me.preserveScrollOnRefresh) {
             me.el.appendChild(toolbar.el);
         }  
+        
+        // IE6 strict can sometimes have repaint issues when showing
+        // the list from a remote data source
+        if (rendered && Ext.isIE6 && Ext.isStrict) {
+            me.listEl.repaint();
+        }
     },
 
     bindStore : function(store, initial) {
@@ -191,7 +212,7 @@ Ext.define('Ext.view.BoundList', {
             
         this.callParent(arguments);
         if (toolbar) {
-            toolbar.bindStore(this.store, initial);
+            toolbar.bindStore(store, initial);
         }
     },
 

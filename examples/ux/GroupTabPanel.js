@@ -1,7 +1,5 @@
 /**
  * @author Nicolas Ferrero
- * @class Ext.ux.GroupTabPanel
- * @extends Ext.Container
  * A TabPanel with grouping support.
  */
 Ext.define('Ext.ux.GroupTabPanel', {
@@ -10,9 +8,8 @@ Ext.define('Ext.ux.GroupTabPanel', {
     alias: 'widget.grouptabpanel',
 
     requires:[
-        'Ext.data.*',
-        'Ext.tree.*',
-        'Ext.layout.*'
+        'Ext.tree.Panel',
+        'Ext.ux.GroupTabRenderer'
     ],
 
     baseCls : Ext.baseCSSPrefix + 'grouptabpanel',
@@ -43,29 +40,13 @@ Ext.define('Ext.ux.GroupTabPanel', {
             hideHeaders: true,
             animate: false,
             processEvent: Ext.emptyFn,
+            border: false,
+            plugins: [{
+                ptype: 'grouptabrenderer'
+            }],
             viewConfig: {
                 overItemCls: '',
-                getRowClass: me.getRowClass,
-                itemSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab-row',
-                cellSelector: 'div.' + Ext.baseCSSPrefix + 'grouptab',
-                getTableChunker: function() {
-                    return Ext.ux.GroupTreeChunker;
-                },
-                onHeaderResize: function(header, w, suppressFocus) {
-                    var me = this,
-                        el = me.el;
-
-                    if (el) {
-                        el.select('div.' + Ext.baseCSSPrefix + 'grid-table-resizer').setWidth(me.headerCt.getFullWidth());
-                        if (!me.ignoreTemplate) {
-                            me.setNewTemplate();
-                        }
-                        if (!suppressFocus) {
-                            me.el.focus();
-                        }
-                        me.forceReflow();
-                    }
-                }
+                getRowClass: me.getRowClass
             },
             columns: [{
                 xtype: 'treecolumn',
@@ -96,7 +77,7 @@ Ext.define('Ext.ux.GroupTabPanel', {
                     return value;
                 }
              }]
-        },{
+        }, {
             xtype: 'container',
             flex: 1,
             layout: 'card',
@@ -334,121 +315,5 @@ Ext.define('Ext.ux.GroupTabPanel', {
      */
     getActiveGroup: function() {
         return this.activeGroup;
-    }
-});
-
-/**
- * Allows GroupTab to render a table structure.
- */
-Ext.define('Ext.ux.GroupTreeChunker', {
-    singleton: true,
-    requires: ['Ext.XTemplate'],
-    metaTableTpl: [
-        '{%if (this.openTableWrap)out.push(this.openTableWrap())%}',
-        '<table class="' + Ext.baseCSSPrefix + 'grid-table-resizer" border="0" cellspacing="0" cellpadding="0" {[this.embedFullWidth(values)]}><tr><td>',
-            '{[this.openRows()]}',
-                '{row}',
-            '{[this.closeRows()]}',
-        '</td></tr><table>',
-        '{%if (this.closeTableWrap)out.push(this.closeTableWrap())%}'
-    ],
-
-    constructor: function() {
-        Ext.XTemplate.prototype.recurse = function(values, reference) {
-            return this.apply(reference ? values[reference] : values);
-        };
-    },
-
-    embedFullWidth: function(values) {
-        var result = 'style="width:{fullWidth}px;';
-
-        // If there are no records, we need to give the table a height so that it
-        // is displayed and causes q scrollbar if the width exceeds the View's width.
-        if (!values.rowCount) {
-            result += 'height:1px;';
-        }
-        return result + '"';
-    },
-
-    openRows: function() {
-        return '<tpl for="rows">';
-    },
-
-    closeRows: function() {
-        return '</tpl>';
-    },
-
-    metaRowTpl: [
-        '<div class="' + Ext.baseCSSPrefix + 'grouptab-row {[this.embedRowCls()]}" {[this.embedRowAttr()]}>',
-            '<tpl for="columns">',
-                '<div class="{cls} ' + Ext.baseCSSPrefix + 'grouptab-cell ' + Ext.baseCSSPrefix + 'grid-cell-{columnId} {{id}-modified} {{id}-tdCls} {[this.firstOrLastCls(xindex, xcount)]}" {{id}-tdAttr}>',
-                    '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'grid-cell-inner {unselectableCls}" style="text-align: {align}; {{id}-style};">{{id}}</div>',
-                    '<div class="x-grouptabs-corner x-grouptabs-corner-top-left" id="ext-gen25"></div>',
-                    '<div class="x-grouptabs-corner x-grouptabs-corner-bottom-left" id="ext-gen26"></div>',
-                '</div>',
-            '</tpl>',
-        '</div>'
-    ],
-
-    firstOrLastCls: function(xindex, xcount) {
-        if (xindex === 1) {
-            return Ext.view.Table.prototype.firstCls;
-        } else if (xindex === xcount) {
-            return Ext.view.Table.prototype.lastCls;
-        }
-    },
-    
-    embedRowCls: function() {
-        return '{rowCls}';
-    },
-    
-    embedRowAttr: function() {
-        return '{rowAttr}';
-    },
-
-    getTableTpl: function(cfg, textOnly) {
-        var tpl,
-            tableTplMemberFns = {
-                openRows: this.openRows,
-                closeRows: this.closeRows,
-                embedFullWidth: this.embedFullWidth
-            },
-            tplMemberFns = {},
-            features = cfg.features || [],
-            ln = features.length,
-            i  = 0,
-            memberFns = {
-                embedRowCls: this.embedRowCls,
-                embedRowAttr: this.embedRowAttr,
-                firstOrLastCls: this.firstOrLastCls,
-                unselectableAttr: cfg.enableTextSelection ? '' : 'unselectable="on"',
-                unselectableCls: cfg.enableTextSelection ? '' : Ext.baseCSSPrefix + 'unselectable'
-            },
-            // copy the default
-            metaRowTpl = Array.prototype.slice.call(this.metaRowTpl, 0),
-            metaTableTpl;
-            
-        for (; i < ln; i++) {
-            if (!features[i].disabled) {
-                features[i].mutateMetaRowTpl(metaRowTpl);
-                Ext.apply(memberFns, features[i].getMetaRowTplFragments());
-                Ext.apply(tplMemberFns, features[i].getFragmentTpl());
-                Ext.apply(tableTplMemberFns, features[i].getTableFragments());
-            }
-        }
-        
-        metaRowTpl = new Ext.XTemplate(metaRowTpl.join(''), memberFns);
-        cfg.row = metaRowTpl.applyTemplate(cfg);
-        
-        metaTableTpl = new Ext.XTemplate(this.metaTableTpl.join(''), tableTplMemberFns);
-        
-        tpl = metaTableTpl.applyTemplate(cfg);
-        
-        // TODO: Investigate eliminating.
-        if (!textOnly) {
-            tpl = new Ext.XTemplate(tpl, tplMemberFns);
-        }
-        return tpl;
-        
     }
 });

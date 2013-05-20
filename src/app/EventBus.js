@@ -1,112 +1,86 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
- * @class Ext.app.EventBus
+ * This class manages event dispatching for Controllers. The details of connecting classes
+ * to this dispatching mechanism is delegated to {@link Ext.app.EventDomain} instances.
+ *
  * @private
  */
 Ext.define('Ext.app.EventBus', {
+    singleton: true,
+
     requires: [
-        'Ext.util.Event',
-        'Ext.Component'
+        'Ext.app.domain.Component'
     ],
-    mixins: {
-        observable: 'Ext.util.Observable'
-    },
-
+    
     constructor: function() {
-        this.mixins.observable.constructor.call(this);
+        var me = this,
+            domains = Ext.app.EventDomain.instances;
 
-        this.bus = {};
+        me.callParent();
 
-        var me = this;
-        Ext.override(Ext.Component, {
-            fireEvent: function(ev) {
-                if (Ext.util.Observable.prototype.fireEvent.apply(this, arguments) !== false) {
-                    return me.dispatch.call(me, ev, this, arguments);
-                }
-                return false;
-            }
-        });
+        me.domains = domains;
+        me.bus = domains.component.bus; // compat
     },
 
-    dispatch: function(ev, target, args) {
-        var bus = this.bus,
-            selectors = bus[ev],
-            selector, controllers, id, events, event, i, ln;
-
-        if (selectors) {
-            // Loop over all the selectors that are bound to this event
-            for (selector in selectors) {
-                // Check if the target matches the selector
-                if (selectors.hasOwnProperty(selector) && target.is(selector)) {
-                    // Loop over all the controllers that are bound to this selector
-                    controllers = selectors[selector];
-                    for (id in controllers) {
-                        if (controllers.hasOwnProperty(id)) {
-                            // Loop over all the events that are bound to this selector on this controller
-                            events = controllers[id];
-                            for (i = 0, ln = events.length; i < ln; i++) {
-                                event = events[i];
-                                // Fire the event!
-                                if (event.fire.apply(event, Array.prototype.slice.call(args, 1)) === false) {
-                                    return false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return true;
+    /**
+     * Adds a set of component event listeners for a controller. To work with event domains
+     * other than component, see {@link #listen}.
+     *
+     * @param {Object} selectors Config object containing selectors and listeners.
+     * @param {Ext.app.Controller} controller The listening controller instance.
+     */
+    control: function(selectors, controller) {
+        return this.domains.component.listen(selectors, controller);
     },
 
-    control: function(selectors, listeners, controller) {
-        var bus = this.bus,
-            hasListeners, tree, list,
-            selector, options, listener, scope, event, listenerList, ev;
+    /**
+     * Adds a set of event domain listeners for a controller. For more information on event
+     * domains, see {@link Ext.app.EventDomain} and {@link Ext.app.Controller}.
+     *
+     * @param {Object} to Config object containing domains, selectors and listeners.
+     * @param {Ext.app.Controller} controller The listening controller instance.
+     */
+    listen: function(to, controller) {
+        var domains = this.domains,
+            domain;
 
-        if (Ext.isString(selectors)) {
-            selector = selectors;
-            selectors = {};
-            selectors[selector] = listeners;
-            this.control(selectors, null, controller);
-            return;
-        }
-
-        hasListeners = Ext.util.Observable.HasListeners.prototype;
-        for (selector in selectors) {
-            if (selectors.hasOwnProperty(selector)) {
-                listenerList = selectors[selector] || {};
-
-                for (ev in listenerList) {
-                    if (listenerList.hasOwnProperty(ev)) {
-                        options  = {};
-                        listener = listenerList[ev];
-                        scope    = controller;
-                        event    = new Ext.util.Event(controller, ev);
-
-                        // Normalize the listener
-                        if (Ext.isObject(listener)) {
-                            options  = listener;
-                            listener = options.fn;
-                            scope    = options.scope || controller;
-
-                            delete options.fn;
-                            delete options.scope;
-                        }
-
-                        event.addListener(listener, scope, options);
-
-                        hasListeners[ev] = 1;
-
-                        // Create the bus tree if it is not there yet
-                        tree = bus[ev] || (bus[ev] = {});
-                        tree = tree[selector] || (tree[selector] = {});
-                        list = tree[controller.id] || (tree[controller.id] = []);
-
-                        // Push our listener in our bus
-                        list.push(event);
-                    }
-                } //end inner loop
+        for (domain in to) {
+            if (to.hasOwnProperty(domain)) {
+                domains[domain].listen(to[domain], controller);
             }
-        } //end outer loop
+        }
+    },
+
+    /**
+     * Removes all of a controller's attached listeners.
+     *
+     * @param {String} controllerId The id of the controller.
+     */
+    unlisten: function(controllerId) {
+        var domains = Ext.app.EventDomain.instances,
+            domain;
+        
+        for (domain in domains) {
+            domains[domain].unlisten(controllerId);
+        }
     }
 });

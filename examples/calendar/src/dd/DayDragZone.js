@@ -3,7 +3,10 @@
  */
 Ext.define('Ext.calendar.dd.DayDragZone', {
     extend: 'Ext.calendar.dd.DragZone',
-    
+    requires: [
+        'Ext.calendar.data.EventMappings'
+    ],
+
     ddGroup: 'DayViewDD',
     resizeSelector: '.ext-evt-rsz',
 

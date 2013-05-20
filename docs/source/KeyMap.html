@@ -142,8 +142,8 @@ Ext.define('Ext.util.KeyMap', {
      */
     eventName: 'keydown',
 
-    constructor: function(config) {
-        var me = this;
+<span id='Ext-util-KeyMap-method-constructor'>    constructor: function(config) {
+</span>        var me = this;
 
         // Handle legacy arg list in which the first argument is the target.
         // TODO: Deprecate in V5
@@ -226,21 +226,59 @@ Ext.define('Ext.util.KeyMap', {
      * set no action is performed..
      */
     addBinding : function(binding){
-        var keyCode = binding.key,
-            processed = false,
-            key,
-            keys,
-            keyString,
+        var me = this,
+            keyCode = binding.key,
             i,
             len;
 
+        if (me.processing) {
+            me.bindings = bindings.slice(0);
+        }
+        
         if (Ext.isArray(binding)) {
             for (i = 0, len = binding.length; i &lt; len; i++) {
-                this.addBinding(binding[i]);
+                me.addBinding(binding[i]);
             }
             return;
         }
 
+        me.bindings.push(Ext.apply({
+            keyCode: me.processKeys(keyCode)
+        }, binding));
+    },
+    
+<span id='Ext-util-KeyMap-method-removeBinding'>    /**
+</span>     * Remove a binding from this KeyMap.
+     * @param {Object} binding See {@link #addBinding for options}
+     */
+    removeBinding: function(binding){
+        var me = this,
+            bindings = me.bindings,
+            len = bindings.length,
+            i, item, keys;
+            
+        if (me.processing) {
+            me.bindings = bindings.slice(0);
+        }
+        
+        keys = me.processKeys(binding.key);
+        for (i = 0; i &lt; len; ++i) {
+            item = bindings[i];
+            if (item.fn === binding.fn &amp;&amp; item.scope === binding.scope) {
+                if (binding.alt == item.alt &amp;&amp; binding.crtl == item.crtl &amp;&amp; binding.shift == item.shift) {
+                    if (Ext.Array.equals(item.keyCode, keys)) {
+                        Ext.Array.erase(me.bindings, i, 1);
+                        return;
+                    }
+                }
+            }
+        }
+    },
+    
+<span id='Ext-util-KeyMap-method-processKeys'>    processKeys: function(keyCode){
+</span>        var processed = false,
+            key, keys, keyString, len, i;
+            
         if (Ext.isString(keyCode)) {
             keys = [];
             keyString = keyCode.toUpperCase();
@@ -264,10 +302,7 @@ Ext.define('Ext.util.KeyMap', {
                 }
             }
         }
-
-        this.bindings.push(Ext.apply({
-            keyCode: keyCode
-        }, binding));
+        return keyCode;
     },
 
 <span id='Ext-util-KeyMap-method-handleTargetEvent'>    /**
@@ -283,8 +318,8 @@ Ext.define('Ext.util.KeyMap', {
                 bindings, i, len,
                 target, contentEditable;
 
-            if (this.enabled) { //just in case
-                bindings = this.bindings;
+            if (me.enabled) { //just in case
+                bindings = me.bindings;
                 i = 0;
                 len = bindings.length;
 
@@ -308,9 +343,11 @@ Ext.define('Ext.util.KeyMap', {
                 if (!event.getKey) {
                     return event;
                 }
+                me.processing = true;
                 for(; i &lt; len; ++i){
-                    this.processBinding(bindings[i], event);
+                    me.processBinding(bindings[i], event);
                 }
+                me.processing = false;
             }
         }
     }()),
@@ -324,9 +361,7 @@ Ext.define('Ext.util.KeyMap', {
      * the first parameter. Extra information from the event arguments may be injected into the event for use by the handler
      * functions before returning it.
      */
-    processEvent: function(event){
-        return event;
-    },
+    processEvent: Ext.identityFn,
 
 <span id='Ext-util-KeyMap-method-processBinding'>    /**
 </span>     * Process a particular binding and fire the handler if necessary.
@@ -400,6 +435,35 @@ Ext.define('Ext.util.KeyMap', {
             keyCode = key;
         }
         this.addBinding({
+            key: keyCode,
+            shift: shift,
+            ctrl: ctrl,
+            alt: alt,
+            fn: fn,
+            scope: scope
+        });
+    },
+    
+<span id='Ext-util-KeyMap-method-un'>    /**
+</span>     * Shorthand for removing a single key listener.
+     *
+     * @param {Number/Number[]/Object} key Either the numeric key code, array of key codes or an object with the
+     * following options: `{key: (number or array), shift: (true/false), ctrl: (true/false), alt: (true/false)}`
+     * @param {Function} fn The function to call
+     * @param {Object} [scope] The scope (`this` reference) in which the function is executed.
+     * Defaults to the browser window.
+     */
+    un: function(key, fn, scope) {
+        var keyCode, shift, ctrl, alt;
+        if (Ext.isObject(key) &amp;&amp; !Ext.isArray(key)) {
+            keyCode = key.key;
+            shift = key.shift;
+            ctrl = key.ctrl;
+            alt = key.alt;
+        } else {
+            keyCode = key;
+        }
+        this.removeBinding({
             key: keyCode,
             shift: shift,
             ctrl: ctrl,

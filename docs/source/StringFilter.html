@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-grid-filter-StringFilter'>/**
-</span> * @class Ext.ux.grid.filter.StringFilter
- * @extends Ext.ux.grid.filter.Filter
- * Filter by a configurable Ext.form.field.Text
+</span> * Filter by a configurable Ext.form.field.Text
  * &lt;p&gt;&lt;b&gt;&lt;u&gt;Example Usage:&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
  * &lt;pre&gt;&lt;code&gt;
 var filters = Ext.create('Ext.ux.grid.GridFilters', {
@@ -48,10 +46,10 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
      */
     iconCls : 'ux-gridfilter-text-icon',
 
-    emptyText: 'Enter Filter Text...',
-    selectOnFocus: true,
-    width: 125,
-
+<span id='Ext-ux-grid-filter-StringFilter-property-emptyText'>    emptyText: 'Enter Filter Text...',
+</span><span id='Ext-ux-grid-filter-StringFilter-property-selectOnFocus'>    selectOnFocus: true,
+</span><span id='Ext-ux-grid-filter-StringFilter-property-width'>    width: 125,
+</span>
 <span id='Ext-ux-grid-filter-StringFilter-method-init'>    /**
 </span>     * @private
      * Template method that is to initialize the filter and install required menu items.
@@ -59,8 +57,10 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
     init : function (config) {
         Ext.applyIf(config, {
             enableKeyEvents: true,
-            iconCls: this.iconCls,
-            hideLabel: true,
+            labelCls: 'ux-rangemenu-icon ' + this.iconCls,
+            hideEmptyLabel: false,
+            labelSeparator: '',
+            labelWidth: 29,
             listeners: {
                 scope: this,
                 keyup: this.onInputKeyUp,
@@ -74,6 +74,7 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
 
         this.inputItem = Ext.create('Ext.form.field.Text', config);
         this.menu.add(this.inputItem);
+        this.menu.showSeparator = false;
         this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
     },
 
@@ -97,8 +98,7 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
     },
 
 <span id='Ext-ux-grid-filter-StringFilter-method-isActivatable'>    /**
-</span>     * @private
-     * Template method that is to return &lt;tt&gt;true&lt;/tt&gt; if the filter
+</span>     * Template method that is to return &lt;tt&gt;true&lt;/tt&gt; if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}
      */

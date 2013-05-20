@@ -53,6 +53,7 @@ Ext.onReady(function(){
     });
     
     var main = Ext.create('Ext.panel.Panel', {
+        // The id is used for styling
         id: 'logger',
         title: 'Remote Call Log',
         renderTo: document.body,
@@ -61,7 +62,7 @@ Ext.onReady(function(){
         tpl: '<p>{data}</p>',
         tplWriteMode: 'append',
         autoScroll: true,
-        bodyStyle: 'padding: 5px;',
+        bodyPadding: 5,
         dockedItems: [{
             dock: 'bottom',
             xtype: 'toolbar',

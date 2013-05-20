@@ -21,17 +21,19 @@
  */
 Ext.define('Ext.dd.StatusProxy', {
     extend: 'Ext.Component',
-    animRepair: false,
-
-    childEls: [
-        'ghost'
+<span id='Ext-dd-StatusProxy-property-animRepair'>    animRepair: false,
+</span>
+<span id='Ext-dd-StatusProxy-property-childEls'>    childEls: [
+</span>        'ghost'
     ],
 
-    renderTpl: [
-        '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'dd-drop-icon&quot;&gt;&lt;/div&gt;' +
+<span id='Ext-dd-StatusProxy-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'dd-drop-icon&quot;&gt;&lt;/div&gt;' +
         '&lt;div id=&quot;{id}-ghost&quot; class=&quot;' + Ext.baseCSSPrefix + 'dd-drag-ghost&quot;&gt;&lt;/div&gt;'
     ],
-
+    
+<span id='Ext-dd-StatusProxy-property-repairCls'>    repairCls: Ext.baseCSSPrefix + 'dd-drag-repair',
+</span>
 <span id='Ext-dd-StatusProxy-method-constructor'>    /**
 </span>     * Creates new StatusProxy.
      * @param {Object} [config] Config object.
@@ -163,7 +165,7 @@ Ext.define('Ext.dd.StatusProxy', {
         me.callback = callback;
         me.scope = scope;
         if (xy &amp;&amp; me.animRepair !== false) {
-            me.el.addCls(Ext.baseCSSPrefix + 'dd-drag-repair');
+            me.el.addCls(me.repairCls);
             me.el.hideUnders(true);
             me.anim = me.el.animate({
                 duration: me.repairDuration || 500,
@@ -181,12 +183,12 @@ Ext.define('Ext.dd.StatusProxy', {
         }
     },
 
-    // private
-    afterRepair : function() {
+<span id='Ext-dd-StatusProxy-method-afterRepair'>    // private
+</span>    afterRepair : function() {
         var me = this;
     
         me.hide(true);
-        me.el.removeCls(Ext.baseCSSPrefix + 'dd-drag-repair');
+        me.el.removeCls(me.repairCls);
         if (typeof me.callback == &quot;function&quot;) {
             me.callback.call(me.scope || me);
         }

@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-ToolbarDroppable'>/**
-</span> * @class Ext.ux.ToolbarDroppable
- * @extends Object
- * Plugin which allows items to be dropped onto a toolbar and be turned into new Toolbar items.
+</span> * Plugin which allows items to be dropped onto a toolbar and be turned into new Toolbar items.
  * To use the plugin, you just need to provide a createItem implementation that takes the drop
  * data as an argument and returns an object that can be placed onto the toolbar. Example:
  * &lt;pre&gt;
@@ -33,10 +31,10 @@
  * the item has been created.
  */
  Ext.define('Ext.ux.ToolbarDroppable', {
-    extend: 'Object',
 
 <span id='Ext-ux-ToolbarDroppable-method-constructor'>    /**
-</span>     * @constructor
+</span>     * Creates new ToolbarDroppable.
+     * @param {Object} config Config options.
      */
     constructor: function(config) {
       Ext.apply(this, config);

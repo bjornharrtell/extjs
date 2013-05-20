@@ -1,7 +1,7 @@
 Ext.define('Ext.calendar.template.BoxLayout', {
     extend: 'Ext.XTemplate',
     
-    requires: ['Ext.Date'],
+    requires: ['Ext.calendar.util.Date'],
     
     constructor: function(config){
         
@@ -108,6 +108,7 @@ Ext.define('Ext.calendar.template.BoxLayout', {
     
     getTodayText : function(){
         var dt = Ext.Date.format(new Date(), 'l, F j, Y'),
+            fmt,
             todayText = this.showTodayText !== false ? this.todayText : '',
             timeText = this.showTime !== false ? ' <span id="'+this.id+'-clock" class="ext-cal-dtitle-time">' + 
                     Ext.Date.format(new Date(), 'g:i a') + '</span>' : '',

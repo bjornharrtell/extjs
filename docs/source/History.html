@@ -50,9 +50,9 @@ Ext.define('Ext.util.History', {
      */
     iframeId: Ext.baseCSSPrefix + 'history-frame',
 
-    constructor: function() {
-        var me = this;
-        me.oldIEMode = Ext.isIE6 || Ext.isIE7 || !Ext.isStrict &amp;&amp; Ext.isIE8;
+<span id='Ext-util-History-method-constructor'>    constructor: function() {
+</span>        var me = this;
+        me.oldIEMode = Ext.isIE7m || !Ext.isStrict &amp;&amp; Ext.isIE8;
         me.iframe = null;
         me.hiddenField = null;
         me.ready = false;
@@ -60,15 +60,15 @@ Ext.define('Ext.util.History', {
         me.mixins.observable.constructor.call(me);
     },
 
-    getHash: function() {
-        var href = window.location.href,
+<span id='Ext-util-History-method-getHash'>    getHash: function() {
+</span>        var href = window.location.href,
             i = href.indexOf(&quot;#&quot;);
 
         return i &gt;= 0 ? href.substr(i + 1) : null;
     },
 
-    setHash: function (hash) {
-        var me = this,
+<span id='Ext-util-History-method-setHash'>    setHash: function (hash) {
+</span>        var me = this,
             win = me.useTopWindow ? window.top : window;
         try {
             win.location.hash = hash;
@@ -77,18 +77,18 @@ Ext.define('Ext.util.History', {
         }
     },
 
-    doSave: function() {
-        this.hiddenField.value = this.currentToken;
+<span id='Ext-util-History-method-doSave'>    doSave: function() {
+</span>        this.hiddenField.value = this.currentToken;
     },
 
 
-    handleStateChange: function(token) {
-        this.currentToken = token;
+<span id='Ext-util-History-method-handleStateChange'>    handleStateChange: function(token) {
+</span>        this.currentToken = token;
         this.fireEvent('change', token);
     },
 
-    updateIFrame: function(token) {
-        var html = '&lt;html&gt;&lt;body&gt;&lt;div id=&quot;state&quot;&gt;' +
+<span id='Ext-util-History-method-updateIFrame'>    updateIFrame: function(token) {
+</span>        var html = '&lt;html&gt;&lt;body&gt;&lt;div id=&quot;state&quot;&gt;' +
                     Ext.util.Format.htmlEncode(token) +
                     '&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;',
             doc;
@@ -104,8 +104,8 @@ Ext.define('Ext.util.History', {
         }
     },
 
-    checkIFrame: function () {
-        var me = this,
+<span id='Ext-util-History-method-checkIFrame'>    checkIFrame: function () {
+</span>        var me = this,
             contentWindow = me.iframe.contentWindow,
             doc, elem, oldToken, oldHash;
 
@@ -144,8 +144,8 @@ Ext.define('Ext.util.History', {
         me.fireEvent('ready', me);
     },
 
-    startUp: function () {
-        var me = this,
+<span id='Ext-util-History-method-startUp'>    startUp: function () {
+</span>        var me = this,
             hash;
 
         me.currentToken = me.hiddenField.value || this.getHash();

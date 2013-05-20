@@ -1,0 +1,63 @@
+$grid-base-color: $base-color !default;
+$grid-row-focus-border-style: dotted !default;
+$grid-cell-border-width: 1px !default;
+
+// Row height *within* borders. Eventual height will be 21 (border:collapse)
+$grid-row-height: 20px !default;
+
+$grid-row-cell-color: null !default;
+$grid-row-cell-line-height: $grid-row-cell-font-size + $grid-row-line-height-increment !default;
+$grid-row-cell-font: normal #{$grid-row-cell-font-size}/#{$grid-row-cell-line-height} $font-family !default;
+
+// Tree rows are sized to standard table panel row height by their elbow/line icons.
+// Row border of 1px is subtracted
+$tree-elbow-height: $grid-row-height - $grid-cell-border-width !default;
+
+//row body
+$grid-row-body-font: normal 11px/13px $font-family !default;
+$grid-row-body-padding: 0 !default;
+
+//row cell
+$grid-row-cell-background-color: #fff !default;
+$grid-row-cell-border-color: #ededed !default;
+$grid-row-cell-border-style: solid !default;
+$grid-row-cell-border-width: 1px 0 !default;
+
+//cell with col lines
+$grid-cell-with-col-lines-border-color: $grid-row-cell-border-color !default;
+
+// special cells
+$grid-cell-special-background-color: $grid-row-cell-background-color !default;
+$grid-cell-special-background-gradient: null !default;
+$grid-cell-special-border-color: $grid-cell-with-col-lines-border-color !default;
+$grid-cell-special-selected-border-color: $grid-cell-with-col-lines-border-color !default;
+$grid-cell-special-background-image: null !default;
+$grid-cell-special-selected-background-image: null !default;
+
+//row cell alt
+$grid-row-cell-alt-background-color: darken($grid-row-cell-background-color, 2) !default;
+
+//row cell over
+$grid-row-cell-over-border-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: -6.667%) !default;
+$grid-row-cell-over-background-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: 0.392%) !default;
+$grid-row-cell-over-background-gradient: 'grid-row-over' !default;
+
+//row cell selected
+$grid-row-cell-selected-border-style: dotted !default;
+$grid-row-cell-selected-border-color: adjust-color($base-color, $hue: 6.952deg, $saturation: 5.848%, $lightness: -6.471%) !default;
+$grid-row-cell-selected-background-color: adjust-color($base-color, $hue: 3.188deg, $saturation: 0.542%, $lightness: 7.843%) !default;
+
+//row cell focus
+$grid-row-cell-focus-border-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: -66%) !default;
+$grid-row-cell-focus-background-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: 0.392%) !default;
+$grid-row-cell-focus-background-gradient: 'grid-row-over' !default;
+
+//standard cells
+$grid-cell-inner-padding: 2px 6px 4px !default;
+
+//special cell
+$grid-cell-special-over-background-color: adjust-color($base-color, $hue: -0.476deg, $saturation: 25.214%, $lightness: 5.686%) !default;
+
+$grid-body-border-color: $panel-body-border-color !default;
+$grid-body-border-width: $panel-body-border-width !default;
+$grid-body-border-style: $panel-body-border-style !default;

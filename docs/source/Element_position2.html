@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-rtl-dom-Element_position'>/**
+</span> * This override adds RTL positioning methods to Ext.dom.Element.
+ */
+Ext.define('Ext.rtl.dom.Element_position', {
+    override: 'Ext.dom.Element',
+
+<span id='Ext-dom-Element-property-_positionTopRight'>    _positionTopRight: ['position', 'top', 'right'],
+</span>
+    statics: {
+<span id='Ext-dom-Element-method-getXY'>        getXY: function(el) {
+</span>            var doc = document,
+                bd = doc.body,
+                docEl = doc.documentElement,
+                leftBorder = 0,
+                topBorder = 0,
+                ret = [0,0],
+                x, box, scroll;
+
+            el = Ext.getDom(el);
+
+            if(el !== doc &amp;&amp; el !== bd){
+                // IE has the potential to throw when getBoundingClientRect
+                // is called on an element not attached to dom
+                if (Ext.isIE) {
+                    try {
+                        box = el.getBoundingClientRect();
+                        // In some versions of IE, the documentElement (HTML element)
+                        // will have a 2px border that gets included, so subtract it off
+                        topBorder = docEl.clientTop || bd.clientTop;
+                        leftBorder = docEl.clientLeft || bd.clientLeft;
+                    } catch (ex) {
+                        box = { left: 0, top: 0 };
+                    }
+                } else {
+                    box = el.getBoundingClientRect();
+                }
+
+                doc = Ext.fly(document, '_getXY');
+                if (Ext.rootHierarchyState.rtl) {
+                    scroll = doc.rtlGetScroll();
+                    x = Ext.Element.getViewportWidth() - box.right + scroll.left;
+                } else {
+                    scroll = doc.getScroll();
+                    x = box.left + scroll.left;
+                }
+                ret = [
+                    Math.round(x - leftBorder),
+                    Math.round(box.top + scroll.top - topBorder)
+                ];
+            }
+            return ret;
+        },
+
+<span id='Ext-dom-Element-method-setXY'>        setXY: function(el, xy) {
+</span>            (el = Ext.fly(el, '_setXY')).position();
+
+            var pts = el.translatePoints(xy),
+                style = el.dom.style,
+                pos;
+
+            style[Ext.rootHierarchyState.rtl ? 'left' : 'right'] = 'auto';
+            for (pos in pts) {
+                if (!isNaN(pts[pos])) {
+                    style[pos] = pts[pos] + 'px';
+                }
+            }
+        }
+    },
+
+<span id='Ext-dom-Element-method-getPositioning'>    getPositioning: function(autoPx){
+</span>        var xStyle = Ext.rootHierarchyState.rtl ? 'right' : 'left',
+            styles = this.getStyle([xStyle, 'top', 'position', 'z-index']),
+            dom = this.dom;
+
+        if(autoPx) {
+            if(styles[xStyle] === 'auto') {
+                styles[xStyle] = (xStyle === 'left') ? (dom.offsetLeft + 'px') :
+                    (dom.offsetParent.offsetWidth - dom.offsetLeft - dom.offsetWidth);
+            }
+            if(styles.top === 'auto') {
+                styles.top = dom.offsetTop + 'px';
+            }
+        }
+
+        return styles;
+    },
+
+<span id='Ext-dom-Element-method-rtlGetLocalX'>    rtlGetLocalX: function() {
+</span>        var me = this,
+            offsetParent = me.dom.offsetParent,
+            x = me.getStyle('right');
+
+        if (!x || x === 'auto') {
+            x = 0;
+        } else if (me.pxRe.test(x)) {
+            x = parseFloat(x);
+        } else {
+            x = me.getX();
+            if (offsetParent) {
+                x -= Ext.fly(offsetParent, '_rtlGetLocalX').getX();
+            }
+        }
+
+        return x;
+    },
+
+<span id='Ext-dom-Element-method-rtlGetLocalXY'>    rtlGetLocalXY: function() {
+</span>        var me = this,
+            offsetParent = me.dom.offsetParent,
+            style = me.getStyle(['right', 'top']),
+            x = style.right,
+            y = style.top;
+
+        if (!x || x === 'auto') {
+            x = 0;
+        } else if (me.pxRe.test(x)) {
+            x = parseFloat(x);
+        } else {
+            x = me.getX();
+            if (offsetParent) {
+                x -= Ext.fly(offsetParent, '_rtlGetLocalXY').getX();
+            }
+        }
+
+        if (!y || y === 'auto') {
+            y = 0;
+        } else if (me.pxRe.test(y)) {
+            y = parseFloat(y);
+        } else {
+            y = me.getY();
+            if (offsetParent) {
+                y -= Ext.Element.getY(offsetParent);
+            }
+        }
+
+        return [x, y];
+    },
+
+<span id='Ext-dom-Element-method-rtlSetLocalX'>    rtlSetLocalX: function(x) {
+</span>        var style = this.dom.style;
+
+        // clear left style just in case it was previously set by setXY/setLocalXY
+        style.left = 'auto';
+        style.right = (x === null) ? 'auto' : x + 'px';
+    },
+
+<span id='Ext-dom-Element-method-rtlSetLocalXY'>    rtlSetLocalXY: function(x, y) {
+</span>        var style = this.dom.style;
+
+        // clear left style just in case it was previously set by setXY/setLocalXY
+        style.left = 'auto';
+
+        if (x &amp;&amp; x.length) {
+            y = x[1];
+            x = x[0];
+        }
+
+        if (x === null) {
+            style.right = 'auto';
+        } else if (x !== undefined) {
+            style.right = x + 'px';
+        }
+
+        if (y === null) {
+            style.top = 'auto';
+        } else if (y !== undefined) {
+            style.top = y + 'px';
+        }
+    },
+
+<span id='Ext-dom-Element-method-rtlSetX'>    rtlSetX: function(x, animate) {
+</span>        return this.rtlSetXY([x, this.getY()], animate);
+    },
+
+<span id='Ext-dom-Element-method-rtlSetXY'>    rtlSetXY: function(xy, animate) {
+</span>        var me = this,
+            pts, style, pos;
+
+        if (!animate || !me.anim) {
+            pts = me.rtlTranslatePoints(xy);
+            style = me.dom.style;
+
+            // left position may have been previously set by setXY or setLocalXY
+            // so clear it here just in case.
+            style.left = 'auto';
+            for (pos in pts) {
+                if (!isNaN(pts[pos])) {
+                    style[pos] = pts[pos] + &quot;px&quot;;
+                }
+            }
+        } else {
+            if (!Ext.isObject(animate)) {
+                animate = {};
+            }
+            me.animate(Ext.applyIf({ to: { x: xy[0], y: xy[1] } }, animate));
+        }
+        return me;
+    },
+
+<span id='Ext-dom-Element-method-rtlSetY'>    rtlSetY: function(y, animate) {
+</span>        return this.rtlSetXY([this.getX(), y], animate);
+    },
+
+<span id='Ext-dom-Element-method-rtlTranslatePoints'>    rtlTranslatePoints: function(x, y) {
+</span>        var pos = this.rtlTranslateXY(x, y);
+
+        return {
+            right: pos.x,
+            top: pos.y
+        };
+    },
+
+<span id='Ext-dom-Element-method-rtlTranslateXY'>    rtlTranslateXY: function(x, y) {
+</span>        var me = this,
+            styles = me.getStyle(me._positionTopRight),
+            relative = styles.position == 'relative',
+            right = parseFloat(styles.right),
+            top = parseFloat(styles.top),
+            xy = me.getXY(),
+            dom = me.dom,
+            doc, body, offsetParentWidth, offsetParent;
+
+        if (x &amp;&amp; x.length) {
+             y = x[1];
+             x = x[0];
+        }
+        if (isNaN(right)) {
+            doc = document;
+            body = doc.body;
+            if (dom === body) {
+                // translateXY can sometimes be called on the body element.
+                // e.g. in Renderable#afterFirstLayout if the &quot;container&quot; is a viewport
+                right = 0;
+            } else {
+                offsetParent = dom.offsetParent;
+                offsetParentWidth = (offsetParent &amp;&amp;
+                    offsetParent !== body &amp;&amp; offsetParent !== doc.documentElement) ?
+                        offsetParent.scrollWidth : Ext.Element.getViewportWidth();
+                right = offsetParentWidth - dom.offsetLeft - me.getWidth();
+            }
+        }
+        if (isNaN(top)) {
+            top = relative ? 0 : me.dom.offsetTop;
+        }
+        right = (typeof x == 'number') ? x - xy[0] + right : undefined;
+        top = (typeof y == 'number') ? y - xy[1] + top : undefined;
+        return {
+            x: right,
+            y: top
+        };
+    },
+
+<span id='Ext-dom-Element-method-setX'>    setX: function(x, animate) {
+</span>        return Ext.rootHierarchyState.rtl ? this.rtlSetX(x, animate) :
+            this.callParent(arguments);
+    },
+
+<span id='Ext-dom-Element-method-setXY'>    setXY: function(xy, animate) {
+</span>        return Ext.rootHierarchyState.rtl ? this.rtlSetXY(xy, animate) :
+            this.callParent(arguments);
+    },
+
+<span id='Ext-dom-Element-method-setY'>    setY: function(y, animate) {
+</span>        return Ext.rootHierarchyState.rtl ? this.rtlSetY(y, animate) :
+            this.callParent(arguments);
+    },
+
+<span id='Ext-dom-Element-method-translatePoints'>    translatePoints: function(x, y) {
+</span>        return Ext.rootHierarchyState.rtl ? this.rtlTranslatePoints(x, y) : 
+            this.callParent(arguments);
+    },
+
+<span id='Ext-dom-Element-method-translateXY'>    translateXY: function(x, y) {
+</span>        return Ext.rootHierarchyState.rtl ? this.rtlTranslateXY(x, y) : 
+            this.callParent(arguments);
+    }
+});</pre>
+</body>
+</html>

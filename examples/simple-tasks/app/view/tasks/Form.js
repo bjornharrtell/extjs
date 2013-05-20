@@ -33,7 +33,7 @@ Ext.define('SimpleTasks.view.tasks.Form', {
                 xtype: 'datefield',
                 name: 'due',
                 value: new Date(),
-                width: 85
+                width: 95
             }
         ];
 

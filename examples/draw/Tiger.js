@@ -7,7 +7,9 @@ Ext.onReady(function() {
             constrain: true,
             constrainTo: Ext.getBody()
         },
-        floating: true,
+        floating: {
+            shadow: false
+        },
         renderTo: Ext.getBody(),
         items: [{
             type: "path",

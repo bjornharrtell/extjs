@@ -16,27 +16,22 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-util-HashMap'>/**
-</span> * @class Ext.util.HashMap
- * &lt;p&gt;
- * Represents a collection of a set of key and value pairs. Each key in the HashMap
+</span> * Represents a collection of a set of key and value pairs. Each key in the HashMap
  * must be unique, the same key cannot exist twice. Access to items is provided via
  * the key only. Sample usage:
- * &lt;pre&gt;&lt;code&gt;
-var map = new Ext.util.HashMap();
-map.add('key1', 1);
-map.add('key2', 2);
-map.add('key3', 3);
-
-map.each(function(key, value, length){
-    console.log(key, value, length);
-});
- * &lt;/code&gt;&lt;/pre&gt;
- * &lt;/p&gt;
  *
- * &lt;p&gt;The HashMap is an unordered class,
+ *     var map = new Ext.util.HashMap();
+ *     map.add('key1', 1);
+ *     map.add('key2', 2);
+ *     map.add('key3', 3);
+ *
+ *     map.each(function(key, value, length){
+ *         console.log(key, value, length);
+ *     });
+ *
+ * The HashMap is an unordered class,
  * there is no guarantee when iterating over the items that they will be in any particular
  * order. If this is required, then use a {@link Ext.util.MixedCollection}.
- * &lt;/p&gt;
  */
 Ext.define('Ext.util.HashMap', {
     mixins: {
@@ -45,8 +40,8 @@ Ext.define('Ext.util.HashMap', {
 
 <span id='Ext-util-HashMap-cfg-keyFn'>    /**
 </span>     * @cfg {Function} keyFn A function that is used to retrieve a default key for a passed object.
-     * A default is provided that returns the &lt;b&gt;id&lt;/b&gt; property on the object. This function is only used
-     * if the add method is called with a single argument.
+     * A default is provided that returns the `id` property on the object. This function is only used
+     * if the `add` method is called with a single argument.
      */
 
 <span id='Ext-util-HashMap-method-constructor'>    /**
@@ -59,11 +54,12 @@ Ext.define('Ext.util.HashMap', {
         var me = this,
             keyFn = config.keyFn;
 
+        me.initialConfig = config;
         me.addEvents(
 <span id='Ext-util-HashMap-event-add'>            /**
 </span>             * @event add
-             * Fires when a new item is added to the hash
-             * @param {Ext.util.HashMap} this.
+             * Fires when a new item is added to the hash.
+             * @param {Ext.util.HashMap} this
              * @param {String} key The key of the added item.
              * @param {Object} value The value of the added item.
              */
@@ -71,13 +67,13 @@ Ext.define('Ext.util.HashMap', {
 <span id='Ext-util-HashMap-event-clear'>            /**
 </span>             * @event clear
              * Fires when the hash is cleared.
-             * @param {Ext.util.HashMap} this.
+             * @param {Ext.util.HashMap} this
              */
             'clear',
 <span id='Ext-util-HashMap-event-remove'>            /**
 </span>             * @event remove
              * Fires when an item is removed from the hash.
-             * @param {Ext.util.HashMap} this.
+             * @param {Ext.util.HashMap} this
              * @param {String} key The key of the removed item.
              * @param {Object} value The value of the removed item.
              */
@@ -85,7 +81,7 @@ Ext.define('Ext.util.HashMap', {
 <span id='Ext-util-HashMap-event-replace'>            /**
 </span>             * @event replace
              * Fires when an item is replaced in the hash.
-             * @param {Ext.util.HashMap} this.
+             * @param {Ext.util.HashMap} this
              * @param {String} key The key of the replaced item.
              * @param {Object} value The new value for the item.
              * @param {Object} old The old value for the item.
@@ -153,7 +149,9 @@ Ext.define('Ext.util.HashMap', {
     add: function(key, value) {
         var me = this;
 
-        if (value === undefined) {
+        // Need to check arguments length here, since we could have called:
+        // map.add('foo', undefined);
+        if (arguments.length === 1) {
             value = key;
             key = me.getKey(value);
         }
@@ -182,7 +180,9 @@ Ext.define('Ext.util.HashMap', {
             map = me.map,
             old;
 
-        if (value === undefined) {
+        // Need to check arguments length here, since we could have called:
+        // map.replace('foo', undefined);
+        if (arguments.length === 1) {
             value = key;
             key = me.getKey(value);
         }
@@ -311,14 +311,11 @@ Ext.define('Ext.util.HashMap', {
 </span>     * Executes the specified function once for each item in the hash.
      * Returning false from the function will cease iteration.
      *
-     * The paramaters passed to the function are:
-     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
-     * &lt;li&gt;&lt;b&gt;key&lt;/b&gt; : String&lt;p class=&quot;sub-desc&quot;&gt;The key of the item&lt;/p&gt;&lt;/li&gt;
-     * &lt;li&gt;&lt;b&gt;value&lt;/b&gt; : Number&lt;p class=&quot;sub-desc&quot;&gt;The value of the item&lt;/p&gt;&lt;/li&gt;
-     * &lt;li&gt;&lt;b&gt;length&lt;/b&gt; : Number&lt;p class=&quot;sub-desc&quot;&gt;The total number of items in the hash&lt;/p&gt;&lt;/li&gt;
-     * &lt;/ul&gt;&lt;/div&gt;
      * @param {Function} fn The function to execute.
-     * @param {Object} scope The scope to execute in. Defaults to &lt;tt&gt;this&lt;/tt&gt;.
+     * @param {String} fn.key The key of the item.
+     * @param {Number} fn.value The value of the item.
+     * @param {Number} fn.length The total number of items in the hash.
+     * @param {Object} [scope] The scope to execute in. Defaults to &lt;tt&gt;this&lt;/tt&gt;.
      * @return {Ext.util.HashMap} this
      */
     each: function(fn, scope) {
@@ -343,7 +340,7 @@ Ext.define('Ext.util.HashMap', {
      * @return {Ext.util.HashMap} The new hash object.
      */
     clone: function() {
-        var hash = new this.self(),
+        var hash = new this.self(this.initialConfig),
             map = this.map,
             key;
 

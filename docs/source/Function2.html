@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Function'>/**
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require Array.js
+
+<span id='Ext-Function'>/**
 </span> * @class Ext.Function
  *
  * A collection of useful static methods to deal with function callbacks
@@ -211,23 +214,24 @@ Ext.Function = {
      *
      * @param {Function} origFn The original function.
      * @param {Function} newFn The function to call before the original
-     * @param {Object} scope (optional) The scope (`this` reference) in which the passed function is executed.
+     * @param {Object} [scope] The scope (`this` reference) in which the passed function is executed.
      * **If omitted, defaults to the scope in which the original function is called or the browser window.**
-     * @param {Object} returnValue (optional) The value to return if the passed function return false (defaults to null).
+     * @param {Object} [returnValue=null] The value to return if the passed function return false.
      * @return {Function} The new function
      */
     createInterceptor: function(origFn, newFn, scope, returnValue) {
         var method = origFn;
         if (!Ext.isFunction(newFn)) {
             return origFn;
-        }
-        else {
+        } else {
+            returnValue = Ext.isDefined(returnValue) ? returnValue : null;
             return function() {
                 var me = this,
                     args = arguments;
+                    
                 newFn.target = me;
                 newFn.method = origFn;
-                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue || null;
+                return (newFn.apply(scope || me || Ext.global, args) !== false) ? origFn.apply(me || Ext.global, args) : returnValue;
             };
         }
     },

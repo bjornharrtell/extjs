@@ -8,10 +8,14 @@ Ext.require([
 Ext.onReady(function(){
     Ext.define('Book',{
         extend: 'Ext.data.Model',
+        proxy: {
+            type: 'ajax',
+            reader: 'xml'
+        },
         fields: [
             // set up the fields mapping into the xml doc
             // The first needs mapping, the others are very basic
-            {name: 'Author', mapping: 'ItemAttributes > Author'},
+            {name: 'Author', mapping: '@author.name'},
             'Title',
             'Manufacturer',
             'ProductGroup',
@@ -41,8 +45,8 @@ Ext.onReady(function(){
         columns: [
             {text: "Author", width: 120, dataIndex: 'Author', sortable: true},
             {text: "Title", flex: 1, dataIndex: 'Title', sortable: true},
-            {text: "Manufacturer", width: 115, dataIndex: 'Manufacturer', sortable: true},
-            {text: "Product Group", width: 100, dataIndex: 'ProductGroup', sortable: true}
+            {text: "Manufacturer", width: 125, dataIndex: 'Manufacturer', sortable: true},
+            {text: "Product Group", width: 125, dataIndex: 'ProductGroup', sortable: true}
         ],
         forceFit: true,
         height:210,
@@ -63,7 +67,7 @@ Ext.onReady(function(){
         renderTo: 'binding-example',
         frame: true,
         title: 'Book List',
-        width: 540,
+        width: 580,
         height: 400,
         layout: 'border',
         items: [
@@ -80,7 +84,7 @@ Ext.onReady(function(){
     grid.getSelectionModel().on('selectionchange', function(sm, selectedRecord) {
         if (selectedRecord.length) {
             var detailPanel = Ext.getCmp('detailPanel');
-            bookTpl.overwrite(detailPanel.body, selectedRecord[0].data);
+            detailPanel.update(bookTpl.apply(selectedRecord[0].data));
         }
     });
 

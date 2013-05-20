@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">//@tag enterprise
+<span id='Ext-data-amf-RemotingMessage'>/**
+</span> * @class Ext.data.amf.RemotingMessage
+ * Represents a remote call to be sent to the server.
+ */
+
+Ext.define('Ext.data.amf.RemotingMessage', {
+
+    alias: 'data.amf.remotingmessage',
+
+    config: {
+
+<span id='Ext-data-amf-RemotingMessage-cfg-S-flexType'>        $flexType: 'flex.messaging.messages.RemotingMessage',
+</span>
+<span id='Ext-data-amf-RemotingMessage-property-body'>        /**
+</span>         * @property {Array} body - typically an array of parameters to pass to a method call
+         */
+        body: [],
+
+<span id='Ext-data-amf-RemotingMessage-property-clientID'>        /**
+</span>         * @property {String} clientID - identifies the calling client.
+         */
+        clientId: &quot;&quot;,
+
+<span id='Ext-data-amf-RemotingMessage-property-destination'>        /**
+</span>         * @property {String} destination - the service destination on the server
+         */
+        destination: &quot;&quot;,
+
+<span id='Ext-data-amf-RemotingMessage-property-headers'>        /**
+</span>         * @property {Object} headers - the headers to attach to the message.
+         * Would typically contain the DSEndpoint and DSId fields.
+         */
+        headers: [],
+
+<span id='Ext-data-amf-RemotingMessage-property-messageId'>        /**
+</span>         * @property {String} messageId - message identifier
+         */
+        messageId: &quot;&quot;,
+
+<span id='Ext-data-amf-RemotingMessage-property-operation'>        /**
+</span>         * @property {String} operation - the method name to call
+         */
+        operation: &quot;&quot;,
+
+<span id='Ext-data-amf-RemotingMessage-property-source'>        /**
+</span>         * @property {Array} source - should be empty for security purposes
+         */
+        source: &quot;&quot;,
+
+<span id='Ext-data-amf-RemotingMessage-property-timestamp'>        /**
+</span>         * @property {Number} timestamp - when the message was created
+         */
+        timestamp: [],
+
+<span id='Ext-data-amf-RemotingMessage-property-timeToLive'>        /**
+</span>         * @property {Number} timeToLive - how long the message is still valid for passing
+         */
+        timeToLive: []
+
+
+    },
+
+
+<span id='Ext-data-amf-RemotingMessage-method-constructor'>    /**
+</span>     * Creates new message.
+     * @param {Object} config Configuration options
+     */
+    constructor: function(config) {
+        this.initConfig(config);
+    },
+
+
+
+<span id='Ext-data-amf-RemotingMessage-method-encodeMessage'>    /**
+</span>     * Returns an AMFX encoded version of the message.
+     */
+    encodeMessage: function() {
+        var encoder = Ext.create('Ext.data.amf.XmlEncoder'),
+            cleanObj;
+        cleanObj = Ext.copyTo({}, this, &quot;$flexType,body,clientId,destination,headers,messageId,operation,source,timestamp,timeToLive&quot;, true);
+        encoder.writeObject(cleanObj);
+        return encoder.body;
+    }
+
+});
+</pre>
+</body>
+</html>

@@ -6,6 +6,10 @@
     background-image:url(images/tabs.gif ) !important;
 }
 
+.scroll {
+    background-image: url(images/arrow_switch.png) !important;
+}
+
 .list {
     padding-left: 16px;
     padding-bottom: 10px;

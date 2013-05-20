@@ -4,7 +4,8 @@ Ext.require([
 ]);
 
 Ext.onReady(function () {
-    var chart;
+    var chart, timeAxis;
+    
     var generateData = (function() {
         var data = [], i = 0,
             last = false,
@@ -64,7 +65,7 @@ Ext.onReady(function () {
         store.loadData(gs);
     }, 100);
 
-    Ext.create('Ext.Window', {
+    var win = Ext.create('Ext.window.Window', {
         width: 800,
         height: 600,
         minHeight: 400,
@@ -76,10 +77,9 @@ Ext.onReady(function () {
             xtype: 'chart',
             style: 'background:#fff',
             store: store,
-            id: 'chartCmp',
+            itemId: 'chartCmp',
             axes: [{
                 type: 'Numeric',
-                grid: true,
                 minimum: 0,
                 maximum: 100,
                 position: 'left',
@@ -153,6 +153,6 @@ Ext.onReady(function () {
             }]
         }]
     }).show();
-    chart = Ext.getCmp('chartCmp');
-    var timeAxis = chart.axes.get(1);
+    chart = win.child('#chartCmp');
+    timeAxis = chart.axes.get(1);
 });

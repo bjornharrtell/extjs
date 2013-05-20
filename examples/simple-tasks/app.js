@@ -1,9 +1,4 @@
-SimpleTasksSettings = {
-    // This property is used to turn on local storage.  If set to false the php backend will be used.
-    useLocalStorage: true
-};
-
-if (SimpleTasksSettings.useLocalStorage && !window.localStorage) {
+if (SimpleTasksSettings.useLocalStorage && !Ext.supports.LocalStorage) {
     alert('Simple Tasks is configured to use HTML5 Local Storage, but your browser does not support Local Storage');
 } else {
     Ext.Loader.setPath('Ext.ux', '../ux/')
@@ -13,6 +8,9 @@ if (SimpleTasksSettings.useLocalStorage && !window.localStorage) {
     Ext.application({
         name: 'SimpleTasks',
         autoCreateViewport: true,
-        controllers: ['Lists', 'Tasks']
+        controllers: ['Lists', 'Tasks'],
+        launch: function() {
+            Ext.getCmp('options-toolbar').alignTo(document.body, 'br-br');
+        }
     });
 }

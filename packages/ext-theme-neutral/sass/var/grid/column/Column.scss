@@ -1,0 +1,6 @@
+$grid-column-header-font: normal ceil($font-size * .9) $font-family !default;
+$grid-column-header-color: #000 !default;
+$grid-column-header-border-width: 1px !default;
+
+// TODO: could calculate this
+$grid-column-align-right-margin: 10px !default;

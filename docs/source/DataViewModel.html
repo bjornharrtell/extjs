@@ -23,8 +23,8 @@ Ext.define('Ext.selection.DataViewModel', {
 
     requires: ['Ext.util.KeyNav'],
 
-    deselectOnContainerClick: true,
-
+<span id='Ext-selection-DataViewModel-property-deselectOnContainerClick'>    deselectOnContainerClick: true,
+</span>
 <span id='Ext-selection-DataViewModel-cfg-enableKeyNav'>    /**
 </span>     * @cfg {Boolean} enableKeyNav
      *
@@ -32,8 +32,8 @@ Ext.define('Ext.selection.DataViewModel', {
      */
     enableKeyNav: true,
 
-    constructor: function(cfg){
-        this.addEvents(
+<span id='Ext-selection-DataViewModel-method-constructor'>    constructor: function(cfg){
+</span>        this.addEvents(
 <span id='Ext-selection-DataViewModel-event-beforedeselect'>            /**
 </span>             * @event beforedeselect
              * Fired before a record is deselected. If any listener returns false, the
@@ -71,8 +71,8 @@ Ext.define('Ext.selection.DataViewModel', {
         this.callParent(arguments);
     },
 
-    bindComponent: function(view) {
-        var me = this,
+<span id='Ext-selection-DataViewModel-method-bindComponent'>    bindComponent: function(view) {
+</span>        var me = this,
             eventListeners = {
                 refresh: me.refresh,
                 scope: me
@@ -90,19 +90,26 @@ Ext.define('Ext.selection.DataViewModel', {
             me.initKeyNav(view);
         }
     },
-
-    onItemClick: function(view, record, item, index, e) {
-        this.selectWithEvent(record, e);
+    
+<span id='Ext-selection-DataViewModel-method-onUpdate'>    onUpdate: function(record){
+</span>        var view = this.view;
+        if (view &amp;&amp; this.isSelected(record)) {
+            view.onItemSelect(record);
+        }
     },
 
-    onContainerClick: function() {
-        if (this.deselectOnContainerClick) {
+<span id='Ext-selection-DataViewModel-method-onItemClick'>    onItemClick: function(view, record, item, index, e) {
+</span>        this.selectWithEvent(record, e);
+    },
+
+<span id='Ext-selection-DataViewModel-method-onContainerClick'>    onContainerClick: function() {
+</span>        if (this.deselectOnContainerClick) {
             this.deselectAll();
         }
     },
 
-    initKeyNav: function(view) {
-        var me = this;
+<span id='Ext-selection-DataViewModel-method-initKeyNav'>    initKeyNav: function(view) {
+</span>        var me = this;
 
         if (!view.rendered) {
             view.on({
@@ -126,8 +133,8 @@ Ext.define('Ext.selection.DataViewModel', {
         });
     },
 
-    onNavKey: function(step) {
-        step = step || 1;
+<span id='Ext-selection-DataViewModel-method-onNavKey'>    onNavKey: function(step) {
+</span>        step = step || 1;
         var me = this,
             view = me.view,
             selected = me.getSelection()[0],
@@ -149,8 +156,8 @@ Ext.define('Ext.selection.DataViewModel', {
         me.select(idx);
     },
 
-    // Allow the DataView to update the ui
-    onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
+<span id='Ext-selection-DataViewModel-method-onSelectChange'>    // Allow the DataView to update the ui
+</span>    onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
         var me = this,
             view = me.view,
             eventName = isSelected ? 'select' : 'deselect';
@@ -172,8 +179,16 @@ Ext.define('Ext.selection.DataViewModel', {
         }
     },
     
-    destroy: function(){
-        Ext.destroy(this.keyNav);
+<span id='Ext-selection-DataViewModel-method-onLastFocusChanged'>    onLastFocusChanged: function(oldFocus, newFocus, suppressFocus){
+</span>        var view = this.view;
+        if (view &amp;&amp; !suppressFocus &amp;&amp; newFocus) {
+            view.focusNode(newFocus);
+            this.fireEvent('focuschange', this, oldFocus, newFocus);
+        }
+    },
+    
+<span id='Ext-selection-DataViewModel-method-destroy'>    destroy: function(){
+</span>        Ext.destroy(this.keyNav);
         this.callParent();
     }
 });

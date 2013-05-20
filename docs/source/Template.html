@@ -15,7 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Template'>/**
+  <pre class="prettyprint lang-js">//@tag core
+<span id='Ext-Template'>/**
 </span> * Represents an HTML fragment template. Templates may be {@link #compile precompiled} for greater performance.
  *
  * An instance of this class may be created by passing to the constructor either a single argument, or multiple
@@ -149,8 +150,8 @@ Ext.define('Ext.Template', {
      */
     disableFormats: false,
 
-    re: /\{([\w\-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g,
-
+<span id='Ext-Template-property-re'>    re: /\{([\w\-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g,
+</span>
 <span id='Ext-Template-method-apply'>    /**
 </span>     * Returns an HTML fragment of this template with the specified values applied.
      *
@@ -241,10 +242,10 @@ Ext.define('Ext.Template', {
         return compile ? me.compile() : me;
     },
 
-    compileARe: /\\/g,
-    compileBRe: /(\r\n|\n)/g,
-    compileCRe: /'/g,
-
+<span id='Ext-Template-property-compileARe'>    compileARe: /\\/g,
+</span><span id='Ext-Template-property-compileBRe'>    compileBRe: /(\r\n|\n)/g,
+</span><span id='Ext-Template-property-compileCRe'>    compileCRe: /'/g,
+</span>
 <span id='Ext-Template-method-compile'>    /**
 </span>     * Compiles the template into an internal function, eliminating the RegEx overhead.
      * @return {Ext.Template} this
@@ -328,8 +329,8 @@ Ext.define('Ext.Template', {
         return this.doInsert('beforeEnd', el, values, returnElement);
     },
 
-    doInsert: function(where, el, values, returnElement) {
-        var newNode = Ext.DomHelper.insertHtml(where, Ext.getDom(el), this.apply(values));
+<span id='Ext-Template-method-doInsert'>    doInsert: function(where, el, values, returnElement) {
+</span>        var newNode = Ext.DomHelper.insertHtml(where, Ext.getDom(el), this.apply(values));
         return returnElement ? Ext.get(newNode) : newNode;
     },
 

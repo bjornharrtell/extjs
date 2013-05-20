@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.grid.filter.BooleanFilter
- * @extends Ext.ux.grid.filter.Filter
  * Boolean filters use unique radio group IDs (so you can have more than one!)
  * <p><b><u>Example Usage:</u></b></p>
  * <pre><code>

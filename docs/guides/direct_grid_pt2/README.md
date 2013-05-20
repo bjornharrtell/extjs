@@ -86,7 +86,7 @@ grid.js
 		autoCancel: false
 	});
 
-By declaring it as a variable, it'll make it easier to use later on, as for the configuration options, `clicksToMoveEditor` is how many times the user clicks to move to a different record in our grid. `autoCancel` means that they can't discard changes before moving on and will bring up an arrow pointing to the record saying that they need to commit their changes first. Whenever adding a new component it's well worth checking out the [corresponding API documentation on it](http://docs.sencha.com/ext-js/4-0/#!/api/Ext.grid.plugin.RowEditing) to find out all the configuration possibilities.
+By declaring it as a variable, it'll make it easier to use later on, as for the configuration options, `clicksToMoveEditor` is how many times the user clicks to move to a different record in our grid. `autoCancel` means that they can't discard changes before moving on and will bring up an arrow pointing to the record saying that they need to commit their changes first. Whenever adding a new component it's well worth checking out the {@link Ext.grid.plugin.RowEditing corresponding API documentation on it} to find out all the configuration possibilities.
 
 We also need to specify a field type for each of the fields we'll want to edit in the grid, simply append the following to the name, address and state columns:
 

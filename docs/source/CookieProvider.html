@@ -75,8 +75,8 @@ Ext.define('Ext.state.CookieProvider', {
         me.state = me.readCookies();
     },
 
-    // private
-    set : function(name, value){
+<span id='Ext-state-CookieProvider-method-set'>    // private
+</span>    set : function(name, value){
         var me = this;
 
         if(typeof value == &quot;undefined&quot; || value === null){
@@ -87,14 +87,14 @@ Ext.define('Ext.state.CookieProvider', {
         me.callParent(arguments);
     },
 
-    // private
-    clear : function(name){
+<span id='Ext-state-CookieProvider-method-clear'>    // private
+</span>    clear : function(name){
         this.clearCookie(name);
         this.callParent(arguments);
     },
 
-    // private
-    readCookies : function(){
+<span id='Ext-state-CookieProvider-method-readCookies'>    // private
+</span>    readCookies : function(){
         var cookies = {},
             c = document.cookie + &quot;;&quot;,
             re = /\s?(.*?)=(.*?);/g,
@@ -114,8 +114,8 @@ Ext.define('Ext.state.CookieProvider', {
         return cookies;
     },
 
-    // private
-    setCookie : function(name, value){
+<span id='Ext-state-CookieProvider-method-setCookie'>    // private
+</span>    setCookie : function(name, value){
         var me = this;
 
         document.cookie = me.prefix + name + &quot;=&quot; + me.encodeValue(value) +
@@ -125,8 +125,8 @@ Ext.define('Ext.state.CookieProvider', {
            ((me.secure == true) ? &quot;; secure&quot; : &quot;&quot;);
     },
 
-    // private
-    clearCookie : function(name){
+<span id='Ext-state-CookieProvider-method-clearCookie'>    // private
+</span>    clearCookie : function(name){
         var me = this;
 
         document.cookie = me.prefix + name + &quot;=null; expires=Thu, 01-Jan-70 00:00:01 GMT&quot; +

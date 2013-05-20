@@ -966,7 +966,7 @@
  *
  * The following example displays the string &quot;sencha&quot;:
  *
- *     var upperText=&quot;sencha&quot;;
+ *     var upperText=&quot;SENCHA&quot;;
  *     document.write(upperText.toLocaleLowerCase());
  *
  * @return {String} Returns value of the string in lowercase.
@@ -1050,6 +1050,25 @@
  *     alert(x.valueOf())          // Displays &quot;Hello world&quot;
  *
  * @return {String} Returns value of string.
- */</pre>
+ */
+
+// ECMAScript 5 methods
+
+<span id='String-method-trim'>/**
+</span> * @method trim
+ * Removes whitespace from both ends of the string.
+ *
+ * Does not affect the value of the string itself.
+ *
+ * The following example displays the lowercase string `&quot;foo&quot;`:
+ *
+ *     var orig = &quot;   foo  &quot;;
+ *     alert(orig.trim());
+ *
+ * **NOTE:** This method is part of the ECMAScript 5 standard.
+ *
+ * @return {String} A string stripped of whitespace on both ends.
+ */
+</pre>
 </body>
 </html>

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This is a utility class that can be passed into a {@link Ext.grid.column.Column} as a column config that provides
  * an automatic row numbering column.
@@ -42,6 +62,12 @@ Ext.define('Ext.grid.RowNumberer', {
      */
     draggable: false,
 
+    // Flag to Lockable to move instances of this column to the locked side.
+    autoLock: true,
+
+    // May not be moved from its preferred locked side when grid is enableLocking:true
+    lockable: false,
+
     align: 'right',
 
     constructor : function(config){
@@ -66,11 +92,12 @@ Ext.define('Ext.grid.RowNumberer', {
 
     // private
     renderer: function(value, metaData, record, rowIdx, colIdx, store) {
-        if (this.rowspan){
-            metaData.cellAttr = 'rowspan="'+this.rowspan+'"';
+        var rowspan = this.rowspan;
+        if (rowspan) {
+            metaData.tdAttr = 'rowspan="' + rowspan + '"';
         }
 
         metaData.tdCls = Ext.baseCSSPrefix + 'grid-cell-special';
-        return store.indexOfTotal(record) + 1;
+        return rowIdx + 1;
     }
 });

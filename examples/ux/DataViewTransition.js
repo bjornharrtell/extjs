@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.DataViewTransition
- * @extends Object
  * @author Ed Spencer (http://sencha.com)
  * Transition plugin for DataViews
  */
@@ -117,8 +115,8 @@ Ext.ux.DataViewTransition = Ext.extend(Object, {
                     el = elCache[id] = Ext.get(this.dataviewID + '-' + id);
                 
                 oldPositions[id] = {
-                    top : el.getTop()  - parentEl.getTop()  - el.getMargin('t') - parentEl.getPadding('t'),
-                    left: el.getLeft() - parentEl.getLeft() - el.getMargin('l') - parentEl.getPadding('l')
+                    top : el.getY()  - parentEl.getY()  - el.getMargin('t') - parentEl.getPadding('t'),
+                    left: el.getX() - parentEl.getX() - el.getMargin('l') - parentEl.getPadding('l')
                 };
             }, this);
             

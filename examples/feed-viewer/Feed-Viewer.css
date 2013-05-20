@@ -87,6 +87,11 @@
     background:transparent url(images/post.gif) no-repeat;
 }
 
+.x-rtl .topic {
+    padding: 2px 20px 0 0;
+    background:transparent url(images/post.gif) no-repeat top right;
+}
+
 .topic b {
     font-family: tahoma, verdana;
     display: block;
@@ -106,6 +111,10 @@
     margin: 5px 20px 10px 25px !important;
     color: #555;
     font-size: 11px;
+}
+
+.feed-grid .x-rtl .x-grid-rowbody {
+    margin: 5px 25px 10px 20px !important;
 }
 
 /* Preview classes */
@@ -133,6 +142,11 @@
     margin-left:18px;
 }
 
+.x-rtl .preview .x-panel-body ul li {
+    margin-left: 0;
+    margin-right: 18px;
+}
+
 .preview .x-panel-body pre, #preview .x-panel-body code {
     background:#f1f1f1;
     display:block;
@@ -148,6 +162,9 @@
     color:#555;
     float:right;
     font-size:11px;
+}
+.x-rtl .preview .x-panel-body span.post-date {
+    float:left;
 }
 .preview .x-panel-body div.post-data {
     background:#f1f2f4;

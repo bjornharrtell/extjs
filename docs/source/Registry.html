@@ -21,14 +21,14 @@
  */
 Ext.define('Ext.dd.Registry', {
     singleton: true,
-    constructor: function() {
-        this.elements = {}; 
+<span id='Ext-dd-Registry-method-constructor'>    constructor: function() {
+</span>        this.elements = {}; 
         this.handles = {}; 
         this.autoIdSeed = 0;
     },
     
-    getId: function(el, autogen){
-        if(typeof el == &quot;string&quot;){
+<span id='Ext-dd-Registry-method-getId'>    getId: function(el, autogen){
+</span>        if(typeof el == &quot;string&quot;){
             return el;
         }
         var id = el.id;

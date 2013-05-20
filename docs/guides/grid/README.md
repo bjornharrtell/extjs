@@ -6,11 +6,13 @@ The {@link Ext.grid.Panel Grid Panel} is one of the centerpieces of Ext JS. It's
 
 {@img simple_grid.png Simple Grid}
 
-Let's get started by creating a basic {@link Ext.grid.Panel Grid Panel} .  Here's all you need to know to get a simple grid up and running:
+Let's get started by creating a basic {@link Ext.grid.Panel Grid Panel}.  Here's all you need to know to get a simple grid up and running:
 
 ### Model and Store
 
-A {@link Ext.grid.Panel Grid Panel} is simply a component that displays data contained in a {@link Ext.data.Store Store}. A {@link Ext.data.Store Store} can be thought of as a collection of records, or {@link Ext.data.Model Model} instances. For more information on {@link Ext.data.Store Store}s and {@link Ext.data.Model Model}s see the [Data guide](#/guide/data).  The benefit of this setup is clear separation of concerns.  The {@link Ext.grid.Panel Grid Panel} is only concerned with displaying the data, while the {@link Ext.data.Store Store} takes care of fetching and saving the data using its {@link Ext.data.proxy.Proxy Proxy}.
+A {@link Ext.grid.Panel Grid Panel} is simply a component that displays data contained in a {@link Ext.data.Store Store}. A {@link Ext.data.Store Store} can be thought of as a collection of records, or {@link Ext.data.Model Model} instances.
+For more information on {@link Ext.data.Store Store}s and {@link Ext.data.Model Model}s see the [Data guide](#/guide/data).  The benefit of this setup is clear separation of concerns.  The {@link Ext.grid.Panel Grid Panel} is only concerned
+with displaying the data, while the {@link Ext.data.Store Store} takes care of fetching and saving the data using its {@link Ext.data.proxy.Proxy Proxy}.
 
 First we need to define a {@link Ext.data.Model Model}. A {@link Ext.data.Model Model} is just a collection of fields that represents a type of data.  Let's define a model that represents a "User":
 
@@ -36,6 +38,9 @@ For sake of ease we configured the {@link Ext.data.Store Store} to load its data
 ### Grid Panel
 
 Now that we have a {@link Ext.data.Model Model} which defines our data structure, and we've loaded several {@link Ext.data.Model Model} instances into a {@link Ext.data.Store Store}, we're ready to display the data using a {@link Ext.grid.Panel Grid Panel}:
+
+For the sake of ease we configured the grid with {@link Ext.AbstractComponent#renderTo renderTo} to immediately render the grid into the HTML document. In a real world application, the grid will usually be a {@link Ext.Container#property-items child item} of a
+{@link Ext.Container Container} and rendering will therefore be the responsibility of that Container and the developer must not render.
 
     Ext.create('Ext.grid.Panel', {
         renderTo: Ext.getBody(),
@@ -65,7 +70,7 @@ Now that we have a {@link Ext.data.Model Model} which defines our data structure
         ]
     });
 
-And that's all there is to it.  We just created a {@link Ext.grid.Panel Grid Panel} that renders itself to the body element, and we told it to get its data from the `userStore` {@link Ext.data.Store Store} that we created earlier.  Finally we defined what columns the {@link Ext.grid.Panel Grid Panel} will have, and we used the `dataIndex` property to configure which field in the `User` {@link Ext.data.Model Model} each column will get its data from.  The `Name` column has a fixed width of 100px and has sorting and hiding disabled, the `Email Address` column is hidden by default (it can be shown again by using the menu on any other column), and the `Phone Number` column flexes to fit the remainder of the {@link Ext.grid.Panel Grid Panel}'s total width.  To view this example live, see the [Simple Grid Example](guides/grid/examples/simple_grid/index.html).
+And that's all there is to it.  We just created a {@link Ext.grid.Panel Grid Panel} that renders itself to the body element, and we told it to get its data from the `userStore` {@link Ext.data.Store Store} that we created earlier.  Finally we defined what columns the {@link Ext.grid.Panel Grid Panel} will have, and we used the `dataIndex` property to configure which field in the `User` {@link Ext.data.Model Model} each column will get its data from.  The `Name` column has a fixed width of 100px and has sorting and hiding disabled, the `Email Address` column is hidden by default (it can be shown again by using the menu on any other column), and the `Phone Number` column flexes to fit the remainder of the {@link Ext.grid.Panel Grid Panel}'s total width.  For a larger example, see the [Array Grid Example](#!/example/grid/array-grid.html).
 
 ## Renderers
 
@@ -88,7 +93,7 @@ You can use the `renderer` property of the column config to change the way data 
         }
     ]
 
-See the [Renderers Example](guides/grid/examples/renderers/index.html) for a live demo that uses custom renderers.
+See [Array Grid Example](#!/example/grid/array-grid.html) for a live demo that uses custom renderers.
 
 
 ## Grouping
@@ -112,7 +117,7 @@ For more on grouping in {@link Ext.data.Store Store}s please refer to the [Data 
         features: [{ ftype: 'grouping' }]
     });
 
-See [Grouping Grid Panel](guides/grid/examples/grouping/index.html) for a live example.
+See [Grouping Grid Panel](#!/example/grid/groupgrid.html) for a live example.
 
 
 ## Selection Models
@@ -190,7 +195,7 @@ Finally, to enable editing we need to configure the {@link Ext.grid.Panel Grid P
         ]
     });
 
-And that's all it takes to create an editable grid using cell editing. See [Cell Editing](guides/grid/examples/cell_editing) for a working example.
+And that's all it takes to create an editable grid using cell editing. See [Cell Editing](#!/example/grid/cell-editing.html) for a working example.
 
 {@img cell_editing.png Cell Editing Grid}
 
@@ -208,7 +213,7 @@ Row editing enables you to edit an entire row at a time, rather than editing cel
         ]
     });
 
-[Row Editing - Live Example](guides/grid/examples/row_editing)
+[Row Editing - Live Example](#!/example/grid/cell-editing.html)
 
 {@img row_editing.png Row Editing Grid}
 
@@ -267,20 +272,47 @@ Now that we've setup our {@link Ext.data.Store Store} to support paging, all tha
 
 {@img paging_toolbar.png Paging Toolbar}
 
-[Paging Toolbar Example](guides/grid/examples/paging_toolbar/index.html)
+[Paging Toolbar Example](#!/example/grid/paging.html)
 
-### Paging Scroller
+### Buffered rendering
 
-Grid supports infinite scrolling as an alternative to using a paging toolbar. Your users can scroll through thousands of records without the performance penalties of renderering all the records on screen at once. The grid should be bound to a store with a pageSize specified.
+Grids support buffered rendering of extremely large datasets as an alternative to using a paging toolbar.
+Your users can scroll through thousands of records without the performance penalties of renderering all the
+records on screen at once. The grid should be bound to a store with a pageSize specified.
+
+To use buffered rendering, configure your grid with the `bufferedrenderer` plugin. The Store can be
+fully loaded with a very large dataset.
+
+Only enough rows are rendered to fill the visible area of the grid with a little
+({@link Ext.grid.plugin.BufferedRenderer#leadingBufferZone configurable}) overflow either side to
+allow scrolling. As scrolling proceeds, new rows are rendered in the direction of scroll, and rows are removed from
+the receding side of the table.
 
     Ext.create('Ext.grid.Panel', {
-        // Use a PagingGridScroller (this is interchangeable with a PagingToolbar)
-        verticalScrollerType: 'paginggridscroller',
-        // do not reset the scrollbar when the view refreshs
-        invalidateScrollerOnRefresh: false,
-        // infinite scrolling does not support selection
-        disableSelection: true,
-        // ...
+        // Use a BufferedRenderer plugin
+        plugins: {
+            ptype: 'bufferedrenderer'
+        },
+        // Configure the rest as usual
+        ...
     });
 
-[Infinite Scrolling Example](extjs/examples/grid/infinite-scroll.html)
+[Buffered rendering of a loaded store Example](#!/example/grid/buffer-grid.html)
+
+### Buffered Stores
+
+If a dataset is **extremely** large, then loading the full dataset into the Store may be infeasible. In this case, the solution is to
+use a {@link Ext.data.Store#buffered buffered Store}. When using a buffered store, the grid automatically uses the buffered rendering plugin.
+
+A buffered store must be configured with a {@link Ext.data.Store#pageSize pageSize}, and maintains a *sparsely populated* cache
+of pages which are loaded from the server as needed.
+
+A buffered store only loads the pages required to render the visible portion of the dataset with a little
+({@link Ext.data.Store#leadingBufferZone configurable}) overflow either side to allow new data to be fetched by the buffered renderer
+for immediate rendering while new pages are fetched in the background to fulfill future scrolling demands.
+
+As the user scrolls through the dataset, and pages move outside of the visible range, they may be purged from the store's page cache
+depending upon the {@link Ext.data.Store#purgePageCount purgePageCount} setting. Configuring this as zero means that once loaded,
+pages are never purged from the cache, and may be returned to and rendered with no Ajax delay.
+
+[Buffered store Example](#!/example/grid/infinite-scroll.html)

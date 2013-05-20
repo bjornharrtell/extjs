@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A time picker which provides a list of times from which to choose. This is used by the Ext.form.field.Time
  * class to allow browsing and selection of valid times, but could also be used with other components.
@@ -83,6 +103,14 @@ Ext.define('Ext.picker.Time', {
         me.absMax = dateUtil.add(clearTime(new Date(initDate[0], initDate[1], initDate[2])), 'mi', (24 * 60) - 1);
 
         me.store = me.createStore();
+
+        // Add our min/max range filter, but do not apply it.
+        // The owning TimeField will filter it.
+        me.store.addFilter(me.rangeFilter = new Ext.util.Filter({
+            id: 'time-picker-filter'
+        }), false);
+
+        // Updates the range filter's filterFn according to our configured min and max
         me.updateList();
 
         me.callParent();
@@ -129,10 +157,11 @@ Ext.define('Ext.picker.Time', {
             min = me.normalizeDate(me.minValue || me.absMin),
             max = me.normalizeDate(me.maxValue || me.absMax);
 
-        me.store.filterBy(function(record) {
+        me.rangeFilter.setFilterFn(function(record) {
             var date = record.get('date');
             return date >= min && date <= max;
         });
+        me.store.filter();
     },
 
     /**
@@ -160,6 +189,12 @@ Ext.define('Ext.picker.Time', {
             fields: ['disp', 'date'],
             data: times
         });
+    },
+
+    focusNode: function (rec) {
+        // We don't want the view being focused when interacting with the inputEl (see Ext.form.field.ComboBox:onKeyUp)
+        // so this is here to prevent focus of the boundlist view. See EXTJSIV-7319.
+        return false;
     }
 
 });

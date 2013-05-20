@@ -25,30 +25,42 @@ Ext.define('Ext.picker.Month', {
     requires: [
         'Ext.XTemplate', 
         'Ext.util.ClickRepeater', 
-        'Ext.Date', 
+        'Ext.Date',
         'Ext.button.Button'
     ],
     alias: 'widget.monthpicker',
     alternateClassName: 'Ext.MonthPicker',
 
-    childEls: [
-        'bodyEl', 'prevEl', 'nextEl', 'buttonsEl', 'monthEl', 'yearEl'
+<span id='Ext-picker-Month-property-childEls'>    childEls: [
+</span>        'bodyEl', 'prevEl', 'nextEl', 'buttonsEl', 'monthEl', 'yearEl'
     ],
 
-    renderTpl: [
-        '&lt;div id=&quot;{id}-bodyEl&quot; class=&quot;{baseCls}-body&quot;&gt;',
+<span id='Ext-picker-Month-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;div id=&quot;{id}-bodyEl&quot; class=&quot;{baseCls}-body&quot;&gt;',
           '&lt;div id=&quot;{id}-monthEl&quot; class=&quot;{baseCls}-months&quot;&gt;',
               '&lt;tpl for=&quot;months&quot;&gt;',
-                  '&lt;div class=&quot;{parent.baseCls}-item {parent.baseCls}-month&quot;&gt;&lt;a style=&quot;{parent.monthStyle}&quot; href=&quot;#&quot; hidefocus=&quot;on&quot;&gt;{.}&lt;/a&gt;&lt;/div&gt;',
+                  '&lt;div class=&quot;{parent.baseCls}-item {parent.baseCls}-month&quot;&gt;',
+                      // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                      '&lt;a style=&quot;{parent.monthStyle}&quot; hidefocus=&quot;on&quot; class=&quot;{parent.baseCls}-item-inner&quot; href=&quot;#&quot;&gt;{.}&lt;/a&gt;',
+                  '&lt;/div&gt;',
               '&lt;/tpl&gt;',
           '&lt;/div&gt;',
           '&lt;div id=&quot;{id}-yearEl&quot; class=&quot;{baseCls}-years&quot;&gt;',
               '&lt;div class=&quot;{baseCls}-yearnav&quot;&gt;',
-                  '&lt;button id=&quot;{id}-prevEl&quot; class=&quot;{baseCls}-yearnav-prev&quot;&gt;&lt;/button&gt;',
-                  '&lt;button id=&quot;{id}-nextEl&quot; class=&quot;{baseCls}-yearnav-next&quot;&gt;&lt;/button&gt;',
+                  '&lt;div class=&quot;{baseCls}-yearnav-button-ct&quot;&gt;',
+                      // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                      '&lt;a id=&quot;{id}-prevEl&quot; class=&quot;{baseCls}-yearnav-button {baseCls}-yearnav-prev&quot; href=&quot;#&quot; hidefocus=&quot;on&quot; &gt;&lt;/a&gt;',
+                  '&lt;/div&gt;',
+                  '&lt;div class=&quot;{baseCls}-yearnav-button-ct&quot;&gt;',
+                      // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                      '&lt;a id=&quot;{id}-nextEl&quot; class=&quot;{baseCls}-yearnav-button {baseCls}-yearnav-next&quot; href=&quot;#&quot; hidefocus=&quot;on&quot; &gt;&lt;/a&gt;',
+                  '&lt;/div&gt;',
               '&lt;/div&gt;',
               '&lt;tpl for=&quot;years&quot;&gt;',
-                  '&lt;div class=&quot;{parent.baseCls}-item {parent.baseCls}-year&quot;&gt;&lt;a href=&quot;#&quot; hidefocus=&quot;on&quot;&gt;{.}&lt;/a&gt;&lt;/div&gt;',
+                  '&lt;div class=&quot;{parent.baseCls}-item {parent.baseCls}-year&quot;&gt;',
+                      // the href attribute is required for the :hover selector to work in IE6/7/quirks
+                      '&lt;a hidefocus=&quot;on&quot; class=&quot;{parent.baseCls}-item-inner&quot; href=&quot;#&quot;&gt;{.}&lt;/a&gt;',
+                  '&lt;/div&gt;',
               '&lt;/tpl&gt;',
           '&lt;/div&gt;',
           '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'clear&quot;&gt;&lt;/div&gt;',
@@ -97,20 +109,19 @@ Ext.define('Ext.picker.Month', {
 </span>     * @cfg {Date/Number[]} value The default value to set. See {@link #setValue}
      */
     
-    
-    width: 178,
     measureWidth: 35,
-    measureMaxHeight: 20,
+<span id='Ext-picker-Month-property-measureMaxHeight'>    measureMaxHeight: 20,
+</span>
+<span id='Ext-picker-Month-property-smallCls'>    // used when attached to date picker which isnt showing buttons
+</span>    smallCls: Ext.baseCSSPrefix + 'monthpicker-small',
 
-    // used when attached to date picker which isnt showing buttons
-    smallCls: Ext.baseCSSPrefix + 'monthpicker-small',
+<span id='Ext-picker-Month-property-totalYears'>    // @private
+</span>    totalYears: 10,
+<span id='Ext-picker-Month-property-monthOffset'><span id='Ext-picker-Month-property-yearOffset'>    yearOffset: 5, // 10 years in total, 2 per row
+</span></span>    monthOffset: 6, // 12 months, 2 per row
 
-    // private
-    totalYears: 10,
-    yearOffset: 5, // 10 years in total, 2 per row
-    monthOffset: 6, // 12 months, 2 per row
-
-    // private, inherit docs
+<span id='Ext-picker-Month-method-initComponent'>    // @private
+</span>    // @inheritdoc
     initComponent: function(){
         var me = this;
 
@@ -193,7 +204,8 @@ Ext.define('Ext.picker.Month', {
         this.callParent();
     },
 
-    // private, inherit docs
+<span id='Ext-picker-Month-method-beforeRender'>    // @private
+</span>    // @inheritdoc
     beforeRender: function(){
         var me = this,
             i = 0,
@@ -221,7 +233,8 @@ Ext.define('Ext.picker.Month', {
         });
     },
 
-    // private, inherit docs
+<span id='Ext-picker-Month-method-afterRender'>    // @private
+</span>    // @inheritdoc
     afterRender: function(){
         var me = this,
             body = me.bodyEl,
@@ -252,8 +265,8 @@ Ext.define('Ext.picker.Month', {
         }
     },
     
-    calculateMonthMargin: function(){
-        // We use this method for locales where the short month name
+<span id='Ext-picker-Month-method-calculateMonthMargin'>    calculateMonthMargin: function(){
+</span>        // We use this method for locales where the short month name
         // may be longer than we see in English. For example in the 
         // zh_TW locale the month ends up spanning lines, so we loosen
         // the margins to get some extra space
@@ -270,8 +283,8 @@ Ext.define('Ext.picker.Month', {
         return itemMargin;
     },
     
-    getLargest: function(months){
-        var largest = 0;
+<span id='Ext-picker-Month-method-getLargest'>    getLargest: function(months){
+</span>        var largest = 0;
         this.months.each(function(item){
             var h = item.getHeight();
             if (h &gt; largest) {
@@ -385,7 +398,7 @@ Ext.define('Ext.picker.Month', {
                 year = yearNumbers[y];
                 el.dom.innerHTML = year;
                 if (year == value) {
-                    el.dom.className = cls;
+                    el.addCls(cls);
                 }
             }
             if (month !== null) {
@@ -502,7 +515,8 @@ Ext.define('Ext.picker.Month', {
         }
     },
 
-    // private, inherit docs
+<span id='Ext-picker-Month-method-beforeDestroy'>    // @private
+</span>    // @inheritdoc
     beforeDestroy: function(){
         var me = this;
         me.years = me.months = null;
@@ -510,8 +524,8 @@ Ext.define('Ext.picker.Month', {
         me.callParent();
     },
 
-    // Do the job of a container layout at this point even though we are not a Container.
-    // TODO: Refactor as a Container.
+<span id='Ext-picker-Month-method-finishRenderChildren'>    // Do the job of a container layout at this point even though we are not a Container.
+</span>    // TODO: Refactor as a Container.
     finishRenderChildren: function () {
         var me = this;
 
@@ -523,8 +537,8 @@ Ext.define('Ext.picker.Month', {
         }
     },
 
-    onDestroy: function() {
-        Ext.destroyMembers(this, 'okBtn', 'cancelBtn');
+<span id='Ext-picker-Month-method-onDestroy'>    onDestroy: function() {
+</span>        Ext.destroyMembers(this, 'okBtn', 'cancelBtn');
         this.callParent();
     }
     

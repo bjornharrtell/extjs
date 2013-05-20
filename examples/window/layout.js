@@ -12,12 +12,17 @@ Ext.onReady(function(){
 
         if (!win) {
             win = Ext.create('widget.window', {
-                title: 'Layout Window',
+                title: 'Layout Window with title <em>after</em> tools',
+                header: {
+                    titlePosition: 2,
+                    titleAlign: 'center'
+                },
                 closable: true,
                 closeAction: 'hide',
                 width: 600,
                 minWidth: 350,
                 height: 350,
+                tools: [{type: 'pin'}],
                 layout: {
                     type: 'border',
                     padding: 5
@@ -33,8 +38,10 @@ Ext.onReady(function(){
                     region: 'center',
                     xtype: 'tabpanel',
                     items: [{
+                        // LTR even when example is RTL so that the code can be read
+                        rtl: false,
                         title: 'Bogus Tab',
-                        html: 'Hello world 1'
+                        html: '<p>Window configured with:</p><pre style="margin-left:20px"><code>header: {\n    titlePosition: 2,\n    titleAlign: "center"\n},\ntools: [{type: "pin"}],\nclosable: true</code></pre>'
                     }, {
                         title: 'Another Tab',
                         html: 'Hello world 2'

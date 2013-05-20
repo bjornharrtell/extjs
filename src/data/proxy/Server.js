@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  *
@@ -21,63 +41,69 @@ Ext.define('Ext.data.proxy.Server', {
      */
 
     /**
-     * @cfg {String} pageParam
+     * @cfg {String} [pageParam="page"]
      * The name of the 'page' parameter to send in a request. Defaults to 'page'. Set this to undefined if you don't
      * want to send a page parameter.
      */
     pageParam: 'page',
 
     /**
-     * @cfg {String} startParam
+     * @cfg {String} [startParam="start"]
      * The name of the 'start' parameter to send in a request. Defaults to 'start'. Set this to undefined if you don't
      * want to send a start parameter.
      */
     startParam: 'start',
 
     /**
-     * @cfg {String} limitParam
+     * @cfg {String} [limitParam="limit"]
      * The name of the 'limit' parameter to send in a request. Defaults to 'limit'. Set this to undefined if you don't
      * want to send a limit parameter.
      */
     limitParam: 'limit',
 
     /**
-     * @cfg {String} groupParam
+     * @cfg {String} [groupParam="group"]
      * The name of the 'group' parameter to send in a request. Defaults to 'group'. Set this to undefined if you don't
      * want to send a group parameter.
      */
     groupParam: 'group',
 
     /**
-     * @cfg {String} groupDirectionParam
+     * @cfg {String} [groupDirectionParam="groupDir"]
      * The name of the direction parameter to send in a request. **This is only used when simpleGroupMode is set to
-     * true.** Defaults to 'groupDir'.
+     * true.**
      */
     groupDirectionParam: 'groupDir',
 
     /**
-     * @cfg {String} sortParam
+     * @cfg {String} [sortParam="sort"]
      * The name of the 'sort' parameter to send in a request. Defaults to 'sort'. Set this to undefined if you don't
      * want to send a sort parameter.
      */
     sortParam: 'sort',
 
     /**
-     * @cfg {String} filterParam
+     * @cfg {String} [filterParam="filter"]
      * The name of the 'filter' parameter to send in a request. Defaults to 'filter'. Set this to undefined if you don't
      * want to send a filter parameter.
      */
     filterParam: 'filter',
 
     /**
-     * @cfg {String} directionParam
+     * @cfg {String} [directionParam="dir"]
      * The name of the direction parameter to send in a request. **This is only used when simpleSortMode is set to
-     * true.** Defaults to 'dir'.
+     * true.**
      */
     directionParam: 'dir',
 
     /**
-     * @cfg {Boolean} simpleSortMode
+     * @cfg {String} [idParam="id"]
+     * The name of the parameter which carries the id of the entity being operated upon.
+     */
+    idParam: 'id',
+
+    /**
+     * @cfg {Boolean} [simpleSortMode=false]
      * Enabling simpleSortMode in conjunction with remoteSort will only send one sort property and a direction when a
      * remote sort is requested. The {@link #directionParam} and {@link #sortParam} will be sent with the property name
      * and either 'ASC' or 'DESC'.
@@ -85,7 +111,7 @@ Ext.define('Ext.data.proxy.Server', {
     simpleSortMode: false,
 
     /**
-     * @cfg {Boolean} simpleGroupMode
+     * @cfg {Boolean} [simpleGroupMode=false]
      * Enabling simpleGroupMode in conjunction with remoteGroup will only send one group property and a direction when a
      * remote group is requested. The {@link #groupDirectionParam} and {@link #groupParam} will be sent with the property name and either 'ASC'
      * or 'DESC'.
@@ -93,13 +119,13 @@ Ext.define('Ext.data.proxy.Server', {
     simpleGroupMode: false,
 
     /**
-     * @cfg {Boolean} noCache
+     * @cfg {Boolean} [noCache=true]
      * Disable caching by adding a unique parameter name to the request. Set to false to allow caching. Defaults to true.
      */
     noCache : true,
 
     /**
-     * @cfg {String} cacheString
+     * @cfg {String} [cacheString="_dc"]
      * The name of the cache param added to the url when using noCache. Defaults to "_dc".
      */
     cacheString: "_dc",
@@ -144,7 +170,8 @@ Ext.define('Ext.data.proxy.Server', {
         config = config || {};
         /**
          * @event exception
-         * Fires when the server returns an exception
+         * Fires when the server returns an exception. This event may also be listened
+         * to in the event that a request has timed out or has been aborted.
          * @param {Ext.data.proxy.Proxy} this
          * @param {Object} response The response from the AJAX request
          * @param {Ext.data.Operation} operation The operation that triggered request
@@ -201,14 +228,18 @@ Ext.define('Ext.data.proxy.Server', {
      */
     buildRequest: function(operation) {
         var me = this,
-            params = Ext.applyIf(operation.params || {}, me.extraParams || {}),
+            // Clone params right now so that they can be mutated at any point further down the call stack
+            params = operation.params = Ext.apply({}, operation.params, me.extraParams),
             request;
 
         //copy any sorters, filters etc into the params so they can be sent over the wire
-        params = Ext.applyIf(params, me.getParams(operation));
+        Ext.applyIf(params, me.getParams(operation));
 
-        if (operation.id !== undefined && params.id === undefined) {
-            params.id = operation.id;
+        // Set up the entity id parameter according to the configured name.
+        // This defaults to "id". But TreeStore has a "nodeParam" configuration which
+        // specifies the id parameter name of the node being loaded.
+        if (operation.id !== undefined && params[me.idParam] === undefined) {
+            params[me.idParam] = operation.id;
         }
 
         request = new Ext.data.Request({
@@ -297,14 +328,12 @@ Ext.define('Ext.data.proxy.Server', {
      * @param {Object} response The server response
      * @return {Object} The response data to be used by the reader
      */
-    extractResponseData: function(response) {
-        return response;
-    },
+    extractResponseData: Ext.identityFn,
 
     /**
      * Encode any values being sent to the server. Can be overridden in subclasses.
      * @private
-     * @param {Array} An array of sorters/filters.
+     * @param {Array} value An array of sorters/filters.
      * @return {Object} The encoded value
      */
     applyEncoding: function(value) {
@@ -375,7 +404,8 @@ Ext.define('Ext.data.proxy.Server', {
             groupDirectionParam = me.groupDirectionParam,
             sortParam = me.sortParam,
             filterParam = me.filterParam,
-            directionParam = me.directionParam;
+            directionParam = me.directionParam,
+            hasGroups, index;
 
         if (pageParam && isDef(page)) {
             params[pageParam] = page;
@@ -389,7 +419,8 @@ Ext.define('Ext.data.proxy.Server', {
             params[limitParam] = limit;
         }
 
-        if (groupParam && groupers && groupers.length > 0) {
+        hasGroups = groupParam && groupers && groupers.length > 0;
+        if (hasGroups) {
             // Grouper is a subclass of sorter, so we can just use the sorter method
             if (simpleGroupMode) {
                 params[groupParam] = groupers[0].property;
@@ -401,8 +432,13 @@ Ext.define('Ext.data.proxy.Server', {
 
         if (sortParam && sorters && sorters.length > 0) {
             if (simpleSortMode) {
-                params[sortParam] = sorters[0].property;
-                params[directionParam] = sorters[0].direction;
+                index = 0;
+                // Group will be included in sorters, so grab the next one
+                if (sorters.length > 1 && hasGroups) {
+                    index = 1;
+                }
+                params[sortParam] = sorters[index].property;
+                params[directionParam] = sorters[index].direction;
             } else {
                 params[sortParam] = me.encodeSorters(sorters);
             }

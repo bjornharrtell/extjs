@@ -2,23 +2,20 @@ body {
     font-family:'lucida grande',tahoma,arial,sans-serif;
     font-size:11px;
 }
-a {
-    color:#15428B;
-}
-a:link, a:visited {
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
 #header {
     background: #7F99BE url(images/layout-browser-hd-bg.gif) repeat-x center;
 }
+.x-theme-neptune #header,
+.x-theme-access #header {
+    background: transparent;
+}
+
 #header h1 {
     font-size: 16px;
     color: #fff;
     font-weight: normal;
     padding: 5px 10px;
+    margin: 0;
 }
 #start-div h2 {
     font-size: 12px;
@@ -50,6 +47,16 @@ a:hover {
     border:1px dotted #999;
     color:#555;
     background: #f9f9f9;
+}
+#details-panel a {
+    color:#15428B;
+}
+#details-panel a:link,
+#details-panel a:visited {
+    text-decoration: none;
+}
+#details-panel a:hover {
+    text-decoration: underline;
 }
 .x-tab-panel-header-plain .x-tab-strip-top {
     background: #DFE8F6 url(../../resources/themes/images/default/tabs/tab-strip-bg.gif) repeat-x scroll center bottom !important;
@@ -104,7 +111,7 @@ a:hover {
     border-bottom:1px solid #99BBE8;
     margin:-5px -4px 0;
 }
-.inner-tab-custom .x-border-layout-ct {
+.x-theme-classic .inner-tab-custom .x-border-layout-ct {
     background: #fff;
 }
 .x-panel-body .absolute-form-toolbar {

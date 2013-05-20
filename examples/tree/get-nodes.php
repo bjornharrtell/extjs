@@ -46,7 +46,8 @@ if (is_dir($directory)){
             $nodes[] = array(
                 'text' => $f,
                 'id'   => $node.'/'.$f,
-                'cls'  => 'folder'
+                'cls'  => 'folder',
+                'qtip' => $qtip
             );
         } else {
             $size = formatBytes(filesize($filename), 2);
@@ -55,7 +56,8 @@ if (is_dir($directory)){
                 'text' => $f,
                 'id'   => $node.'/'.$f,
                 'leaf' => true,
-                'cls'  => 'file'
+                'cls'  => 'file',
+                'qtip' => $qtip
             );
         }
     }
@@ -76,5 +78,6 @@ if ($isXml) {
     $xmlDoc->formatOutput = true;
     echo $xmlDoc->saveXml();
 } else {
+    header("Content-Type: text/json");
     echo json_encode($nodes);
 }

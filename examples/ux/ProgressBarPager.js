@@ -1,11 +1,7 @@
 /**
-* @class Ext.ux.ProgressBarPager
-* @extends Object
-* Plugin for displaying a progressbar inside of a paging toolbar instead of plain text
-* @constructor
-* Create a new ProgressBarPager
-* @param {Object} config Configuration options
-*/
+ * Plugin for displaying a progressbar inside of a paging toolbar
+ * instead of plain text.
+ */
 Ext.define('Ext.ux.ProgressBarPager', {
 
     requires: ['Ext.ProgressBar'],
@@ -27,7 +23,11 @@ Ext.define('Ext.ux.ProgressBarPager', {
 		duration: 1000,
 		easing: 'bounceOut'	
 	},	
-    
+
+    /**
+     * Creates new ProgressBarPager.
+     * @param {Object} config Configuration options
+     */
     constructor : function(config) {
         if (config) {
             Ext.apply(this, config);

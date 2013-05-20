@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-is'>/**
+  <pre class="prettyprint lang-js">//@tag extras,core
+//@require perf/Monitor.js
+//@define Ext.Supports
+
+<span id='Ext-is'>/**
 </span> * @class Ext.is
  * 
  * Determines information about the current platform the application is running on.
@@ -161,7 +165,26 @@ Ext.is.init();
         var view = element.ownerDocument.defaultView,
             style = (view ? view.getComputedStyle(element, null) : element.currentStyle) || element.style;
         return style[styleName];
+    },
+    supportsVectors = {
+        'IE6-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
+        'IE6-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,0,1,0,0],
+        'IE7-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
+        'IE7-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,0,0,1,0,1,0,0],
+        'IE8-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
+        'IE8-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,0,0,1,0,1,0,0],
+        'IE9-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
+        'IE9-strict': [0,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,0,0,0,0],
+        'IE10-quirks': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0],
+        'IE10-strict': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0]
     };
+
+function getBrowserKey() {
+    var browser = Ext.isIE6 ? 'IE6' : Ext.isIE7 ? 'IE7' : Ext.isIE8 ? 'IE8' :
+        Ext.isIE9 ? 'IE9': Ext.isIE10 ? 'IE10' : '';
+
+    return browser ? browser + (Ext.isStrict ? '-strict' : '-quirks') : '';
+}
 
 Ext.supports = {
 <span id='Ext-supports-method-init'>    /**
@@ -178,10 +201,12 @@ Ext.supports = {
     init : function() {
         var me = this,
             doc = document,
-            tests = me.tests,
-            n = tests.length,
+            toRun = me.toRun || me.tests,
+            n = toRun.length,
             div = n &amp;&amp; Ext.isReady &amp;&amp; doc.createElement('div'),
-            test, notRun = [];
+            notRun = [],
+            browserKey = getBrowserKey(),
+            test, vector, value;
 
         if (div) {
             div.innerHTML = [
@@ -198,9 +223,13 @@ Ext.supports = {
             doc.body.appendChild(div);
         }
 
+        vector = supportsVectors[browserKey];
         while (n--) {
-            test = tests[n];
-            if (div || test.early) {
+            test = toRun[n];
+            value = vector &amp;&amp; vector[n];
+            if (value !== undefined) {
+                me[test.identity] = value;
+            } else if (div || test.early) {
                 me[test.identity] = test.fn.call(me, doc, div);
             } else {
                 notRun.push(test);
@@ -211,14 +240,48 @@ Ext.supports = {
             doc.body.removeChild(div);
         }
 
-        me.tests = notRun;
+        me.toRun = notRun;
     },
+
+    //&lt;debug&gt;
+<span id='Ext-supports-method-generateVector'>    /**
+</span>     * Generates a support vector for the current browser/mode.  The result can be
+     * added to supportsVectors to eliminate feature detection at startup time.
+     * @private
+     */
+    generateVector: function() {
+        var tests = this.tests,
+            vector = [],
+            i = 0,
+            ln = tests.length,
+            test;
+
+        for (; i &lt; ln; i++) {
+            test = tests[i];
+            vector.push(this[test.identity] ? 1 : 0);
+        }
+        return vector;
+    },
+    //&lt;/debug&gt;
 
 <span id='Ext-supports-property-PointerEvents'>    /**
 </span>     * @property PointerEvents True if document environment supports the CSS3 pointer-events style.
      * @type {Boolean}
      */
     PointerEvents: 'pointerEvents' in document.documentElement.style,
+
+    // IE10/Win8 throws &quot;Access Denied&quot; accessing window.localStorage, so this test
+    // needs to have a try/catch
+<span id='Ext-supports-property-LocalStorage'>    /**
+</span>     * @property LocalStorage True if localStorage is supported
+     */
+    LocalStorage: (function() {
+        try {
+            return 'localStorage' in window &amp;&amp; window['localStorage'] !== null;
+        } catch (e) {
+            return false;
+        }
+    })(),
 
 <span id='Ext-supports-property-CSS3BoxShadow'>    /**
 </span>     * @property CSS3BoxShadow True if document environment supports the CSS3 box-shadow style.
@@ -485,12 +548,13 @@ Ext.supports = {
                     webkit   = '-webkit-gradient(linear, left top, right bottom, from(black), to(white))',
                     w3c      = 'linear-gradient(left top, black, white)',
                     moz      = '-moz-' + w3c,
+                    ms       = '-ms-' + w3c,
                     opera    = '-o-' + w3c,
-                    options  = [property + webkit, property + w3c, property + moz, property + opera];
+                    options  = [property + webkit, property + w3c, property + moz, property + ms, property + opera];
 
                 div.style.cssText = options.join(';');
 
-                return (&quot;&quot; + div.style.backgroundImage).indexOf('gradient') !== -1;
+                return ((&quot;&quot; + div.style.backgroundImage).indexOf('gradient') !== -1) &amp;&amp; !Ext.isIE9;
             }
         },
 
@@ -520,7 +584,8 @@ Ext.supports = {
         {
             identity: 'GeoLocation',
             fn: function() {
-                return (typeof navigator != 'undefined' &amp;&amp; typeof navigator.geolocation != 'undefined') || (typeof google != 'undefined' &amp;&amp; typeof google.gears != 'undefined');
+                // Use the in check for geolocation, see https://github.com/Modernizr/Modernizr/issues/513
+                return (typeof navigator != 'undefined' &amp;&amp; 'geolocation' in navigator) || (typeof google != 'undefined' &amp;&amp; typeof google.gears != 'undefined');
             }
         },
 <span id='Ext-supports-property-MouseEnterLeave'>        /**
@@ -577,7 +642,7 @@ Ext.supports = {
         {
             identity: 'Direct2DBug',
             fn: function() {
-                return Ext.isString(document.body.style.msTransformOrigin);
+                return Ext.isString(document.body.style.msTransformOrigin) &amp;&amp; Ext.isIE10m;
             }
         },
 <span id='Ext-supports-property-BoundingClientRect'>        /**
@@ -588,6 +653,33 @@ Ext.supports = {
             identity: 'BoundingClientRect',
             fn: function(doc, div) {
                 return Ext.isFunction(div.getBoundingClientRect);
+            }
+        },
+<span id='Ext-supports-property-RotatedBoundingClientRect'>        /**
+</span>         * @property RotatedBoundingClientRect True if the BoundingClientRect is
+         * rotated when the element is rotated using a CSS transform.
+         * @type {Boolean}
+         */
+        {
+            identity: 'RotatedBoundingClientRect',
+            fn: function() {
+                var body = document.body,
+                    supports = false,
+                    el = document.createElement('div'),
+                    style = el.style;
+
+                if (el.getBoundingClientRect) {
+                    style.WebkitTransform = style.MozTransform =
+                        style.OTransform = style.transform = 'rotate(90deg)';
+                    style.width = '100px';
+                    style.height = '30px';
+                    body.appendChild(el)
+
+                    supports = el.getBoundingClientRect().height !== 100;
+                    body.removeChild(el);
+                }
+               
+                return supports;
             }
         },
         {
@@ -670,6 +762,74 @@ Ext.supports = {
             identity: 'GetPositionPercentage',
             fn: function(doc, div){
                return getStyle(div.childNodes[2], 'left') == '10%';
+            }
+        },
+<span id='Ext-supports-property-PercentageHeightOverflowBug'>        /**
+</span>         * @property {Boolean} PercentageHeightOverflowBug
+         * In some browsers (IE quirks, IE6, IE7, IE9, chrome, safari and opera at the time
+         * of this writing) a percentage-height element ignores the horizontal scrollbar
+         * of its parent element.  This method returns true if the browser is affected
+         * by this bug.
+         *
+         * @private
+         */
+        {
+            identity: 'PercentageHeightOverflowBug',
+            fn: function(doc) {
+                var hasBug = false,
+                    style, el;
+
+                if (Ext.getScrollbarSize().height) {
+                    // must have space-consuming scrollbars for bug to be possible
+                    el = doc.createElement('div');
+                    style = el.style;
+                    style.height = '50px';
+                    style.width = '50px';
+                    style.overflow = 'auto';
+                    style.position = 'absolute';
+                    
+                    el.innerHTML = [
+                        '&lt;div style=&quot;display:table;height:100%;&quot;&gt;',
+                            // The element that causes the horizontal overflow must be 
+                            // a child of the element with the 100% height, otherwise
+                            // horizontal overflow is not triggered in webkit quirks mode
+                            '&lt;div style=&quot;width:51px;&quot;&gt;&lt;/div&gt;',
+                        '&lt;/div&gt;'
+                    ].join('');
+                    doc.body.appendChild(el);
+                    if (el.firstChild.offsetHeight === 50) {
+                        hasBug = true;
+                    }
+                    doc.body.removeChild(el);
+                }
+                
+                return hasBug;
+            }
+        },
+<span id='Ext-supports-property-xOriginBug'>        /**
+</span>         * @property {Boolean} xOriginBug
+         * In Chrome 24.0, an RTL element which has vertical overflow positions its right X origin incorrectly.
+         * It skips a non-existent scrollbar which has been moved to the left edge due to the RTL setting.
+         *
+         * http://code.google.com/p/chromium/issues/detail?id=174656
+         *
+         * This method returns true if the browser is affected by this bug.
+         *
+         * @private
+         */
+        {
+            identity: 'xOriginBug',
+            fn: function(doc, div) {
+               div.innerHTML = '&lt;div id=&quot;b1&quot; style=&quot;height:100px;width:100px;direction:rtl;position:relative;overflow:scroll&quot;&gt;' +
+                    '&lt;div id=&quot;b2&quot; style=&quot;position:relative;width:100%;height:20px;&quot;&gt;&lt;/div&gt;' +
+                    '&lt;div id=&quot;b3&quot; style=&quot;position:absolute;width:20px;height:20px;top:0px;right:0px&quot;&gt;&lt;/div&gt;' +
+                '&lt;/div&gt;';
+
+                var outerBox = document.getElementById('b1').getBoundingClientRect(),
+                    b2 = document.getElementById('b2').getBoundingClientRect(),
+                    b3 = document.getElementById('b3').getBoundingClientRect();
+
+                return (b2.left !== outerBox.left &amp;&amp; b3.right !== outerBox.right);
             }
         }
     ]

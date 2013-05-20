@@ -24,8 +24,8 @@ Ext.define('Ext.draw.Matrix', {
 
     requires: ['Ext.draw.Draw'],
 
-    /* End Definitions */
-
+<span id='Ext-draw-Matrix-method-constructor'>    /* End Definitions */
+</span>
     constructor: function(a, b, c, d, e, f) {
         if (a != null) {
             this.matrix = [[a, c, e], [b, d, f], [0, 0, 1]];
@@ -35,8 +35,8 @@ Ext.define('Ext.draw.Matrix', {
         }
     },
 
-    add: function(a, b, c, d, e, f) {
-        var me = this,
+<span id='Ext-draw-Matrix-method-add'>    add: function(a, b, c, d, e, f) {
+</span>        var me = this,
             out = [[], [], []],
             matrix = [[a, c, e], [b, d, f], [0, 0, 1]],
             x,
@@ -56,8 +56,8 @@ Ext.define('Ext.draw.Matrix', {
         me.matrix = out;
     },
 
-    prepend: function(a, b, c, d, e, f) {
-        var me = this,
+<span id='Ext-draw-Matrix-method-prepend'>    prepend: function(a, b, c, d, e, f) {
+</span>        var me = this,
             out = [[], [], []],
             matrix = [[a, c, e], [b, d, f], [0, 0, 1]],
             x,
@@ -77,8 +77,8 @@ Ext.define('Ext.draw.Matrix', {
         me.matrix = out;
     },
 
-    invert: function() {
-        var matrix = this.matrix,
+<span id='Ext-draw-Matrix-method-invert'>    invert: function() {
+</span>        var matrix = this.matrix,
             a = matrix[0][0],
             b = matrix[1][0],
             c = matrix[0][1],
@@ -89,8 +89,8 @@ Ext.define('Ext.draw.Matrix', {
         return new Ext.draw.Matrix(d / x, -b / x, -c / x, a / x, (c * f - d * e) / x, (b * e - a * f) / x);
     },
 
-    clone: function() {
-        var matrix = this.matrix,
+<span id='Ext-draw-Matrix-method-clone'>    clone: function() {
+</span>        var matrix = this.matrix,
             a = matrix[0][0],
             b = matrix[1][0],
             c = matrix[0][1],
@@ -100,52 +100,52 @@ Ext.define('Ext.draw.Matrix', {
         return new Ext.draw.Matrix(a, b, c, d, e, f);
     },
 
-    translate: function(x, y) {
-        this.prepend(1, 0, 0, 1, x, y);
+<span id='Ext-draw-Matrix-method-translate'>    translate: function(x, y) {
+</span>        this.prepend(1, 0, 0, 1, x, y);
     },
 
-    scale: function(x, y, cx, cy) {
-        var me = this;
+<span id='Ext-draw-Matrix-method-scale'>    scale: function(x, y, cx, cy) {
+</span>        var me = this;
         if (y == null) {
             y = x;
         }
         me.add(x, 0, 0, y, cx * (1 - x), cy * (1 - y));
     },
 
-    rotate: function(a, x, y) {
-        a = Ext.draw.Draw.rad(a);
+<span id='Ext-draw-Matrix-method-rotate'>    rotate: function(a, x, y) {
+</span>        a = Ext.draw.Draw.rad(a);
         var me = this,
             cos = +Math.cos(a).toFixed(9),
             sin = +Math.sin(a).toFixed(9);
         me.add(cos, sin, -sin, cos, x - cos * x + sin * y, -(sin * x) + y - cos * y);
     },
 
-    x: function(x, y) {
-        var matrix = this.matrix;
+<span id='Ext-draw-Matrix-method-x'>    x: function(x, y) {
+</span>        var matrix = this.matrix;
         return x * matrix[0][0] + y * matrix[0][1] + matrix[0][2];
     },
 
-    y: function(x, y) {
-        var matrix = this.matrix;
+<span id='Ext-draw-Matrix-method-y'>    y: function(x, y) {
+</span>        var matrix = this.matrix;
         return x * matrix[1][0] + y * matrix[1][1] + matrix[1][2];
     },
 
-    get: function(i, j) {
-        return + this.matrix[i][j].toFixed(4);
+<span id='Ext-draw-Matrix-method-get'>    get: function(i, j) {
+</span>        return + this.matrix[i][j].toFixed(4);
     },
 
-    toString: function() {
-        var me = this;
+<span id='Ext-draw-Matrix-method-toString'>    toString: function() {
+</span>        var me = this;
         return [me.get(0, 0), me.get(0, 1), me.get(1, 0), me.get(1, 1), 0, 0].join();
     },
 
-    toSvg: function() {
-        var me = this;
+<span id='Ext-draw-Matrix-method-toSvg'>    toSvg: function() {
+</span>        var me = this;
         return &quot;matrix(&quot; + [me.get(0, 0), me.get(1, 0), me.get(0, 1), me.get(1, 1), me.get(0, 2), me.get(1, 2)].join() + &quot;)&quot;;
     },
 
-    toFilter: function(dx, dy) {
-        var me = this;
+<span id='Ext-draw-Matrix-method-toFilter'>    toFilter: function(dx, dy) {
+</span>        var me = this;
         dx = dx || 0;
         dy = dy || 0;
         return &quot;progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', filterType='bilinear', M11=&quot; + me.get(0, 0) +
@@ -153,13 +153,13 @@ Ext.define('Ext.draw.Matrix', {
             &quot;, Dx=&quot; + (me.get(0, 2) + dx) + &quot;, Dy=&quot; + (me.get(1, 2) + dy) + &quot;)&quot;;
     },
 
-    offset: function() {
-        var matrix = this.matrix;
+<span id='Ext-draw-Matrix-method-offset'>    offset: function() {
+</span>        var matrix = this.matrix;
         return [(matrix[0][2] || 0).toFixed(4), (matrix[1][2] || 0).toFixed(4)];
     },
 
-    // Split matrix into Translate Scale, Shear, and Rotate
-    split: function () {
+<span id='Ext-draw-Matrix-method-split'>    // Split matrix into Translate Scale, Shear, and Rotate
+</span>    split: function () {
         function norm(a) {
             return a[0] * a[0] + a[1] * a[1];
         }

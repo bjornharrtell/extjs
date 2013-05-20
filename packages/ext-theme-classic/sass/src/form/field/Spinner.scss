@@ -1,0 +1,12 @@
+@if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
+    .#{$prefix}toolbar-item {
+
+        // In classic theme, form fields are 2px less tall, so spinner triggers each shrink by 1px
+        .#{$prefix}form-spinner-up,
+        .#{$prefix}form-spinner-down {
+            .#{$prefix}strict .#{$prefix}ie6 &, .#{$prefix}strict .#{$prefix}ie7 & {
+                height: $spinner-btn-height - 1 !important;
+            }
+        }
+    }
+}

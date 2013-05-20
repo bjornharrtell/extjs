@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This animation class is a mixin.
  *
@@ -198,8 +218,14 @@
  *     }
  */
 Ext.define('Ext.util.Animate', {
-    requires: ['Ext.Element', 'Ext.CompositeElementLite'],
-    uses: ['Ext.fx.Manager', 'Ext.fx.Anim'],
+    requires: [
+        'Ext.Element', 
+        'Ext.CompositeElementLite',
+        'Ext.fx.Manager', 
+        'Ext.fx.Anim'
+    ],
+    
+    isAnimate: true,
 
     /**
      * Performs custom animation on this object.
@@ -221,7 +247,7 @@ Ext.define('Ext.util.Animate', {
      *
      *   - `width` - The Component's `width` value in pixels.
      *
-     *   - `width` - The Component's `width` value in pixels.
+     *   - `height` - The Component's `height` value in pixels.
      *
      *   - `dynamic` - Specify as true to update the Component's layout (if it is a Container) at every frame of the animation.
      *     *Use sparingly as laying out on every intermediate size change is an expensive operation.*

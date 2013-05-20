@@ -26,6 +26,7 @@
  *
  * The series class supports listeners via the Observable syntax. Some of these listeners are:
  *
+ *  - `itemclick` When the user interacts with a marker.
  *  - `itemmouseup` When the user interacts with a marker.
  *  - `itemmousedown` When the user interacts with a marker.
  *  - `itemmousemove` When the user iteracts with a marker.
@@ -115,13 +116,20 @@ Ext.define('Ext.chart.series.Series', {
      */
     shadowAttributes: null,
 
-    // @private animating flag
-    animating: false,
+<span id='Ext-chart-series-Series-property-animating'>    // @private animating flag
+</span>    animating: false,
+
+<span id='Ext-chart-series-Series-property-nullGutters'>    // @private default gutters
+</span>    nullGutters: { lower: 0, upper: 0, verticalAxis: undefined },
+
+<span id='Ext-chart-series-Series-property-nullPadding'>    // @private default padding
+</span>    nullPadding: { left:0, right:0, width:0, bottom:0, top:0, height:0 },
 
 <span id='Ext-chart-series-Series-cfg-listeners'>    /**
 </span>     * @cfg {Object} listeners
      * An (optional) object with event callbacks. All event callbacks get the target *item* as first parameter. The callback functions are:
      *
+     *  - itemclick
      *  - itemmouseover
      *  - itemmouseout
      *  - itemmousedown
@@ -143,6 +151,7 @@ Ext.define('Ext.chart.series.Series', {
 
         me.addEvents({
             scope: me,
+            itemclick: true,
             itemmouseover: true,
             itemmouseout: true,
             itemmousedown: true,
@@ -173,6 +182,8 @@ Ext.define('Ext.chart.series.Series', {
         }
     },
     
+<span id='Ext-chart-series-Series-method-onRedraw'>    onRedraw: Ext.emptyFn,
+</span>    
 <span id='Ext-chart-series-Series-method-eachRecord'>    /**
 </span>     * Iterate over each of the records for this series. The default implementation simply iterates
      * through the entire data store, but individual series implementations can override this to
@@ -182,7 +193,7 @@ Ext.define('Ext.chart.series.Series', {
      */
     eachRecord: function(fn, scope) {
         var chart = this.chart;
-        (chart.substore || chart.store).each(fn, scope);
+        chart.getChartStore().each(fn, scope);
     },
 
 <span id='Ext-chart-series-Series-method-getRecordCount'>    /**
@@ -191,7 +202,7 @@ Ext.define('Ext.chart.series.Series', {
      */
     getRecordCount: function() {
         var chart = this.chart,
-            store = chart.substore || chart.store;
+            store = chart.getChartStore();
         return store ? store.getCount() : 0;
     },
 
@@ -204,13 +215,12 @@ Ext.define('Ext.chart.series.Series', {
         return !!(excludes &amp;&amp; excludes[index]);
     },
 
-    // @private set the bbox and clipBox for the series
-    setBBox: function(noGutter) {
+<span id='Ext-chart-series-Series-method-setBBox'>    // @private set the bbox and clipBox for the series
+</span>    setBBox: function(noGutter) {
         var me = this,
             chart = me.chart,
             chartBBox = chart.chartBBox,
-            gutterX = noGutter ? 0 : chart.maxGutter[0],
-            gutterY = noGutter ? 0 : chart.maxGutter[1],
+            maxGutters = noGutter ? { left: 0, right: 0, bottom: 0, top: 0 } : chart.maxGutters,
             clipBox, bbox;
 
         clipBox = {
@@ -222,16 +232,16 @@ Ext.define('Ext.chart.series.Series', {
         me.clipBox = clipBox;
 
         bbox = {
-            x: (clipBox.x + gutterX) - (chart.zoom.x * chart.zoom.width),
-            y: (clipBox.y + gutterY) - (chart.zoom.y * chart.zoom.height),
-            width: (clipBox.width - (gutterX * 2)) * chart.zoom.width,
-            height: (clipBox.height - (gutterY * 2)) * chart.zoom.height
+            x: (clipBox.x + maxGutters.left) - (chart.zoom.x * chart.zoom.width),
+            y: (clipBox.y + maxGutters.bottom) - (chart.zoom.y * chart.zoom.height),
+            width: (clipBox.width - (maxGutters.left + maxGutters.right)) * chart.zoom.width,
+            height: (clipBox.height - (maxGutters.bottom + maxGutters.top)) * chart.zoom.height
         };
         me.bbox = bbox;
     },
 
-    // @private set the animation for the sprite
-    onAnimate: function(sprite, attr) {
+<span id='Ext-chart-series-Series-method-onAnimate'>    // @private set the animation for the sprite
+</span>    onAnimate: function(sprite, attr) {
         var me = this;
         sprite.stopAnimation();
         if (me.animating) {
@@ -239,23 +249,27 @@ Ext.define('Ext.chart.series.Series', {
         } else {
             me.animating = true;
             return sprite.animate(Ext.apply(Ext.applyIf(attr, me.chart.animate), {
-                listeners: {
-                    'afteranimate': function() {
-                        me.animating = false;
-                        me.fireEvent('afterrender');
-                    }
+                // use callback, don't overwrite listeners
+                callback: function() {
+                    me.animating = false;
+                    me.fireEvent('afterrender');
                 }
             }));
         }
     },
 
-    // @private return the gutter.
-    getGutters: function() {
-        return [0, 0];
+<span id='Ext-chart-series-Series-method-getGutters'>    // @private return the gutters.
+</span>    getGutters: function() {
+        return this.nullGutters;
     },
 
-    // @private wrapper for the itemmouseover event.
-    onItemMouseOver: function(item) {
+<span id='Ext-chart-series-Series-method-getPadding'>    // @private return the gutters.
+</span>    getPadding: function() {
+        return this.nullPadding;
+    },
+
+<span id='Ext-chart-series-Series-method-onItemMouseOver'>    // @private wrapper for the itemmouseover event.
+</span>    onItemMouseOver: function(item) {
         var me = this;
         if (item.series === me) {
             if (me.highlight) {
@@ -267,8 +281,8 @@ Ext.define('Ext.chart.series.Series', {
         }
     },
 
-    // @private wrapper for the itemmouseout event.
-    onItemMouseOut: function(item) {
+<span id='Ext-chart-series-Series-method-onItemMouseOut'>    // @private wrapper for the itemmouseout event.
+</span>    onItemMouseOut: function(item) {
         var me = this;
         if (item.series === me) {
             me.unHighlightItem();
@@ -278,8 +292,8 @@ Ext.define('Ext.chart.series.Series', {
         }
     },
 
-    // @private wrapper for the mouseleave event.
-    onMouseLeave: function() {
+<span id='Ext-chart-series-Series-method-onMouseLeave'>    // @private wrapper for the mouseleave event.
+</span>    onMouseLeave: function() {
         var me = this;
         me.unHighlightItem();
         if (me.tooltip) {
@@ -322,8 +336,8 @@ Ext.define('Ext.chart.series.Series', {
         return null;
     },
 
-    isItemInPoint: function(x, y, item, i) {
-        return false;
+<span id='Ext-chart-series-Series-method-isItemInPoint'>    isItemInPoint: function(x, y, item, i) {
+</span>        return false;
     },
 
 <span id='Ext-chart-series-Series-method-hideAll'>    /**
@@ -374,8 +388,8 @@ Ext.define('Ext.chart.series.Series', {
         me.chart.animate = prevAnimate;
     },
     
-    hide: function() {
-        if (this.items) {
+<span id='Ext-chart-series-Series-method-hide'>    hide: function() {
+</span>        if (this.items) {
             var me = this,
                 items = me.items,
                 i, j, lsh, ln, shadows;
@@ -413,7 +427,7 @@ Ext.define('Ext.chart.series.Series', {
                 return stroke;
             }
         }
-        return (me.colorArrayStyle)?me.colorArrayStyle[me.seriesIdx % me.colorArrayStyle.length]:'#000';
+        return (me.colorArrayStyle)?me.colorArrayStyle[me.themeIdx % me.colorArrayStyle.length]:'#000';
     },
 
 <span id='Ext-chart-series-Series-method-visibleInLegend'>    /**

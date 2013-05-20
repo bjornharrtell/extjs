@@ -14,11 +14,12 @@ Ext.define('Ext.chooser.Window', {
         'Ext.layout.container.Border',
         'Ext.form.field.Text',
         'Ext.form.field.ComboBox',
-        'Ext.toolbar.TextItem'
+        'Ext.toolbar.TextItem',
+        'Ext.layout.container.Fit'
     ],
     
     height: 400,
-    width : 600,
+    width : 670,
     title : 'Choose an Image',
     closeAction: 'hide',
     layout: 'border',
@@ -36,10 +37,10 @@ Ext.define('Ext.chooser.Window', {
             {
                 xtype: 'panel',
                 region: 'center',
-                autoScroll: true,
-                
+                layout: 'fit',
                 items: {
                     xtype: 'iconbrowser',
+                    autoScroll: true,
                     id: 'img-chooser-view',
                     listeners: {
                         scope: this,
@@ -130,17 +131,24 @@ Ext.define('Ext.chooser.Window', {
      */
     filter: function(field, newValue) {
         var store = this.down('iconbrowser').store,
-            dataview = this.down('dataview');
+            view = this.down('dataview'),
+            selModel = view.getSelectionModel(),
+            selection = selModel.getSelection()[0];
         
         store.suspendEvents();
         store.clearFilter();
-        dataview.getSelectionModel().clearSelections();
-        store.resumeEvents();
         store.filter({
             property: 'name',
             anyMatch: true,
             value   : newValue
         });
+        store.resumeEvents();
+        if (selection && store.indexOf(selection) === -1) {
+            selModel.clearSelections();
+            this.down('infopanel').clear();
+        }
+        view.refresh();
+        
     },
     
     /**

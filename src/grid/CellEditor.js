@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Internal utility class that provides default configuration for cell editing.
  * @private
@@ -36,19 +56,30 @@ Ext.define('Ext.grid.CellEditor', {
     onShow: function() {
         var me = this,
             innerCell = me.boundEl.first(),
-            lastChild,
+            treeNode,
             textNode;
 
         if (innerCell) {
-            lastChild = innerCell.dom.lastChild;
-            if(lastChild && lastChild.nodeType === 3) {
+            
+            // Extract text bearing node.
+            // TreeColumns have a .x-tree-node-text inline element (<a> or <span>)
+            if (me.isForTree) {
+                treeNode = innerCell.child('.' + Ext.baseCSSPrefix + 'tree-node-text', true);
+                if (treeNode) {
+                    textNode = treeNode.firstChild;
+                }
+            } else {
+                textNode = innerCell.dom.lastChild;
+            }
+
+            if (textNode && textNode.nodeType === 3) {
                 // if the cell has a text node, save a reference to it
-                textNode = me.cellTextNode = innerCell.dom.lastChild;
+                me.cellTextNode = textNode;
                 // save the cell text so we can add it back when we're done editing
                 me.cellTextValue = textNode.nodeValue;
                 // The text node has to have at least one character in it, or the cell borders
                 // in IE quirks mode will not show correctly, so let's use a non-breaking space.
-                textNode.nodeValue = '\u00a0';
+                textNode.nodeValue = me.emptyText;
             }
         }
         me.callParent(arguments);
@@ -60,10 +91,15 @@ Ext.define('Ext.grid.CellEditor', {
      */
     onHide: function() {
         var me = this,
-            innerCell = me.boundEl.first();
+            innerCell = me.boundEl.first(),
+            node = me.cellTextNode;
 
-        if (innerCell && me.cellTextNode) {
-            me.cellTextNode.nodeValue = me.cellTextValue;
+        if (innerCell && node) {
+            // The value may have changed since we started, so only restore it
+            // if the value is the same as our space we set earlier
+            if (node.nodeValue == me.emptyText) {
+                node.nodeValue = me.cellTextValue;
+            }
             delete me.cellTextNode;
             delete me.cellTextValue;
         }
@@ -117,35 +153,27 @@ Ext.define('Ext.grid.CellEditor', {
             children = innerCell.dom.childNodes,
             childCount = children.length,
             offsets = Ext.Array.clone(me.offsets),
-            inputEl = me.field.inputEl,
-            lastChild, leftBound, rightBound, width;
+            textSpan, width;
 
         // If the inner cell has more than one child, or the first child node is not a text node,
         // let's assume this cell contains additional elements before the text node.
         // This is the case for tree cells, but could also be used to accomodate grid cells that
         // have a custom renderer that render, say, an icon followed by some text for example
         // For now however, this support will only be used for trees.
-        if(me.isForTree && (childCount > 1 || (childCount === 1 && children[0].nodeType !== 3))) {
-            // get the inner cell's last child
-            lastChild = innerCell.last();
-            // calculate the left bound of the text node
-            leftBound = lastChild.getOffsetsTo(innerCell)[0] + lastChild.getWidth();
+        if (me.isForTree && (childCount > 1 || (childCount === 1 && children[0].nodeType !== 3))) {
+            // Get the inner cell's text bearing element
+            textSpan = innerCell.child('.' + Ext.baseCSSPrefix + 'tree-node-text');
+            // Calculate the left bound of the text node
+            // set the editor's x offset to the left bound position
+            offsets[0] = textSpan.getOffsetsTo(innerCell)[0];
             // calculate the right bound of the text node (this is assumed to be the right edge of
             // the inner cell, since we are assuming the text node is always the last node in the
             // inner cell)
-            rightBound = innerCell.getWidth();
-            // difference between right and left bound is the text node's allowed "width",
+            // Difference between right edge and text start..
             // this will be used as the width for the editor.
-            width = rightBound - leftBound;
-            // adjust width for column lines - this ensures the editor will be the same width
-            // regardless of columLines config
-            if(!me.editingPlugin.grid.columnLines) {
-                width --;
-            }
-            // set the editor's x offset to the left bound position
-            offsets[0] += leftBound;
+            width = innerCell.getWidth() - offsets[0];
 
-            me.addCls(Ext.baseCSSPrefix + 'grid-editor-on-text-node');
+            me.addCls(Ext.baseCSSPrefix + 'grid-cell-editor-on-text-node');
         } else {
             width = boundEl.getWidth() - 1;
         }
@@ -163,10 +191,14 @@ Ext.define('Ext.grid.CellEditor', {
             field.onEditorTab(e);
         }
     },
+    
+    emptyText: '\u00a0',
 
     alignment: "tl-tl",
     hideEl : false,
-    cls: Ext.baseCSSPrefix + "small-editor " + Ext.baseCSSPrefix + "grid-editor",
+    cls: Ext.baseCSSPrefix + 'small-editor ' +
+        Ext.baseCSSPrefix + 'grid-editor ' + 
+        Ext.baseCSSPrefix + 'grid-cell-editor',
     shim: false,
     shadow: false
 });

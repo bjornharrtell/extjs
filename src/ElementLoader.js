@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A class used to load remote content to an Element. Sample usage:
  *
@@ -254,13 +274,11 @@ Ext.define('Ext.ElementLoader', {
         options = Ext.apply({}, options);
 
         var me = this,
-            target = me.target,
             mask = Ext.isDefined(options.loadMask) ? options.loadMask : me.loadMask,
             params = Ext.apply({}, options.params),
             ajaxOptions = Ext.apply({}, options.ajaxOptions),
             callback = options.callback || me.callback,
-            scope = options.scope || me.scope || me,
-            request;
+            scope = options.scope || me.scope || me;
 
         Ext.applyIf(ajaxOptions, me.ajaxOptions);
         Ext.applyIf(options, ajaxOptions);
@@ -292,9 +310,7 @@ Ext.define('Ext.ElementLoader', {
             me.addMask(mask);
         }
 
-        request = Ext.Ajax.request(options);
         me.active = {
-            request: request,
             options: options,
             mask: mask,
             scope: scope,
@@ -304,6 +320,7 @@ Ext.define('Ext.ElementLoader', {
             renderer: options.renderer || me.renderer,
             scripts: Ext.isDefined(options.scripts) ? options.scripts : me.scripts
         };
+        me.active.request = Ext.Ajax.request(options);
         me.setOptions(me.active, options);
     },
 
@@ -325,25 +342,25 @@ Ext.define('Ext.ElementLoader', {
     onComplete: function(options, success, response) {
         var me = this,
             active = me.active,
-            scope = active.scope,
-            renderer = me.getRenderer(active.renderer);
+            scope;
 
+        if (active) {
+            scope = active.scope;
+            if (success) {
+                success = me.getRenderer(active.renderer).call(me, me, response, active) !== false;
+            }
 
-        if (success) {
-            success = renderer.call(me, me, response, active) !== false;
-        }
-
-        if (success) {
-            Ext.callback(active.success, scope, [me, response, options]);
-            me.fireEvent('load', me, response, options);
-        } else {
-            Ext.callback(active.failure, scope, [me, response, options]);
-            me.fireEvent('exception', me, response, options);
-        }
-        Ext.callback(active.callback, scope, [me, success, response, options]);
-
-        if (active.mask) {
-            me.removeMask();
+            if (success) {
+                Ext.callback(active.success, scope, [me, response, options]);
+                me.fireEvent('load', me, response, options);
+            } else {
+                Ext.callback(active.failure, scope, [me, response, options]);
+                me.fireEvent('exception', me, response, options);
+            }
+            Ext.callback(active.callback, scope, [me, success, response, options]);
+            if (active.mask) {
+                me.removeMask();
+            }
         }
 
         delete me.active;

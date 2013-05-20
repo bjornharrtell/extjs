@@ -58,7 +58,16 @@ Ext.onReady(function(){
         }
     });
     
-    var rowEditing = Ext.create('Ext.grid.plugin.RowEditing');
+    var rowEditing = Ext.create('Ext.grid.plugin.RowEditing', {
+        listeners: {
+            cancelEdit: function(rowEditing, context) {
+                // Canceling editing of a locally added, unsaved record: remove it
+                if (context.record.phantom) {
+                    store.remove(context.record);
+                }
+            }
+        }
+    });
     
     var grid = Ext.create('Ext.grid.Panel', {
         renderTo: document.body,

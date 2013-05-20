@@ -3,9 +3,9 @@ Ext.onReady(function() {
     var cw;
 
     function closeRegion (e, target, header, tool) {
-        var region = header.ownerCt;
-        newRegions.unshift(region.initialConfig);
-        viewport.remove(region);
+        var panel = header.ownerCt;
+        newRegions.unshift(panel.initialConfig);
+        viewport.remove(panel);
     }
 
     var newRegions = [{

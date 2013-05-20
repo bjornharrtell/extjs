@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.grid.filter.NumericFilter
- * @extends Ext.ux.grid.filter.Filter
  * Filters using an Ext.ux.grid.menu.RangeMenu.
  * <p><b><u>Example Usage:</u></b></p>
  * <pre><code>
@@ -53,7 +51,6 @@ Ext.define('Ext.ux.grid.filter.NumericFilter', {
     },
 
     /**
-     * @private
      * Template method that is to return <tt>true</tt> if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}

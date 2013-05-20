@@ -1,5 +1,9 @@
 Ext.define('SimpleTasks.model.List', {
     extend: 'Ext.data.Model',
+    requires:[
+        'Ext.data.proxy.LocalStorage',
+        'Ext.data.proxy.Ajax'
+    ],
     fields: [
         { name: 'id', type: 'int' },
         { name: 'name' },

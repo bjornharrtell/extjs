@@ -84,14 +84,22 @@ Ext.define('Ext.button.Cycle', {
      * regardless of which item is selected in the dropdown list. This overrides the default behavior of changing the
      * button's icon to match the selected item's icon on change.
      */
+
+<span id='Ext-button-Cycle-cfg-forceGlyph'>    /**
+</span>     * @cfg {Number/String} forceGlyph
+     * The charCode to be used as the static icon for this button.  This icon will always be
+     * displayed regardless of which item is selected in the dropdown list. This override
+     * the default behavior of changing the button's icon to match the selected item's icon
+     * on change. This property expects a format consistent with that of {@link #glyph}
+     */
 <span id='Ext-button-Cycle-property-menu'>    /**
 </span>     * @property {Ext.menu.Menu} menu
      * The {@link Ext.menu.Menu Menu} object used to display the {@link Ext.menu.CheckItem CheckItems} representing the
      * available choices.
      */
 
-    // private
-    getButtonText: function(item) {
+<span id='Ext-button-Cycle-method-getButtonText'>    // @private
+</span>    getButtonText: function(item) {
         var me = this,
             text = '';
 
@@ -120,9 +128,11 @@ Ext.define('Ext.button.Cycle', {
             if (!me.rendered) {
                 me.text = me.getButtonText(item);
                 me.iconCls = item.iconCls;
+                me.glyph = item.glyph;
             } else {
                 me.setText(me.getButtonText(item));
                 me.setIconCls(item.iconCls);
+                me.setGlyph(item.glyph);
             }
             me.activeItem = item;
             if (!item.checked) {
@@ -130,6 +140,9 @@ Ext.define('Ext.button.Cycle', {
             }
             if (me.forceIcon) {
                 me.setIconCls(me.forceIcon);
+            }
+            if (me.forceGlyph) {
+                me.setGlyph(me.forceGlyph);
             }
             if (!suppressEvent) {
                 me.fireEvent('change', me, item);
@@ -145,8 +158,8 @@ Ext.define('Ext.button.Cycle', {
         return this.activeItem;
     },
 
-    // private
-    initComponent: function() {
+<span id='Ext-button-Cycle-method-initComponent'>    // @private
+</span>    initComponent: function() {
         var me      = this,
             checked = 0,
             items,
@@ -209,8 +222,8 @@ Ext.define('Ext.button.Cycle', {
         }
     },
 
-    // private
-    checkHandler: function(item, pressed) {
+<span id='Ext-button-Cycle-method-checkHandler'>    // @private
+</span>    checkHandler: function(item, pressed) {
         if (pressed) {
             this.setActiveItem(item);
         }

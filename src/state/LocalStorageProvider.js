@@ -1,8 +1,28 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.state.LocalStorageProvider
  * A Provider implementation which saves and retrieves state via the HTML5 localStorage object.
- * If the browser does not support local storage, an exception will be thrown upon instantiating
- * this class.
+ * If the browser does not support local storage, there will be no attempt to read the state.
+ * Before creating this class, a check should be made to {@link Ext.supports#LocalStorage}.
  */
 
 Ext.define('Ext.state.LocalStorageProvider', {
@@ -18,7 +38,11 @@ Ext.define('Ext.state.LocalStorageProvider', {
         var me = this;
         me.callParent(arguments);
         me.store = me.getStorageObject();
-        me.state = me.readLocalStorage();
+        if (me.store) {
+            me.state = me.readLocalStorage();
+        } else {
+            me.state = {};
+        }
     },
     
     readLocalStorage: function(){
@@ -57,16 +81,12 @@ Ext.define('Ext.state.LocalStorageProvider', {
     },
     
     getStorageObject: function(){
-        try {
-            var supports = 'localStorage' in window && window['localStorage'] !== null;
-            if (supports) {
-                return window.localStorage;
-            }
-        } catch (e) {
-            return false;
+        if (Ext.supports.LocalStorage) {
+            return window.localStorage;
         }
         //<debug>
         Ext.Error.raise('LocalStorage is not supported by the current browser');
         //</debug>
+        return false;
     }    
 });

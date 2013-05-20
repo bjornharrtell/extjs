@@ -120,18 +120,11 @@ Ext.define('Ext.chart.series.Line', {
 
     requires: ['Ext.chart.axis.Axis', 'Ext.chart.Shape', 'Ext.draw.Draw', 'Ext.fx.Anim'],
 
-    /* End Definitions */
-
+<span id='Ext-chart-series-Line-cfg-type'>    /* End Definitions */
+</span>
     type: 'line',
 
     alias: 'series.line',
-
-<span id='Ext-chart-series-Line-cfg-axis'>    /**
-</span>     * @cfg {String} axis
-     * The position of the axis to bind the values to. Possible values are 'left', 'bottom', 'top' and 'right'.
-     * You must explicitly set this value to bind the values of the line series to the ones in the axis, otherwise a
-     * relative scale will be used.
-     */
 
 <span id='Ext-chart-series-Line-cfg-selectionTolerance'>    /**
 </span>     * @cfg {Number} selectionTolerance
@@ -209,8 +202,8 @@ Ext.define('Ext.chart.series.Line', {
      */
     fill: false,
 
-    constructor: function(config) {
-        this.callParent(arguments);
+<span id='Ext-chart-series-Line-method-constructor'>    constructor: function(config) {
+</span>        this.callParent(arguments);
         var me = this,
             surface = me.chart.surface,
             shadow = me.chart.shadow,
@@ -254,8 +247,8 @@ Ext.define('Ext.chart.series.Line', {
         }
     },
 
-    // @private makes an average of points when there are more data points than pixels to be rendered.
-    shrink: function(xValues, yValues, size) {
+<span id='Ext-chart-series-Line-method-shrink'>    // @private makes an average of points when there are more data points than pixels to be rendered.
+</span>    shrink: function(xValues, yValues, size) {
         // Start at the 2nd point...
         var len = xValues.length,
             ratio = Math.floor(len / size),
@@ -315,7 +308,7 @@ Ext.define('Ext.chart.series.Line', {
             yValueMap = {},
             onbreak = false,
             storeIndices = [],
-            markerStyle = me.markerStyle,
+            markerStyle = Ext.apply({}, me.markerStyle),
             seriesStyle = me.seriesStyle,
             colorArrayStyle = me.colorArrayStyle,
             colorArrayLength = colorArrayStyle &amp;&amp; colorArrayStyle.length || 0,
@@ -324,6 +317,8 @@ Ext.define('Ext.chart.series.Line', {
             boundAxes = me.getAxesForXAndYFields(),
             boundXAxis = boundAxes.xAxis,
             boundYAxis = boundAxes.yAxis,
+            xAxisType = boundXAxis ? chartAxes.get(boundXAxis).type : '',
+            yAxisType = boundYAxis ? chartAxes.get(boundYAxis).type : '',
             shadows, shadow, shindex, fromPath, fill, fillPath, rendererAttributes,
             x, y, prevX, prevY, firstX, firstY, markerCount, i, j, ln, axis, ends, marker, markerAux, item, xValue,
             yValue, coords, xScale, yScale, minX, maxX, minY, maxY, line, animation, endMarkerStyle,
@@ -357,7 +352,7 @@ Ext.define('Ext.chart.series.Line', {
 
         //prepare style objects for line and markers
         endMarkerStyle = Ext.apply(markerStyle || {}, me.markerConfig, {
-            fill: me.seriesStyle.fill || colorArrayStyle[seriesIdx % colorArrayStyle.length]
+            fill: me.seriesStyle.fill || colorArrayStyle[me.themeIdx % colorArrayStyle.length]
         });
         type = endMarkerStyle.type;
         delete endMarkerStyle.type;
@@ -444,7 +439,9 @@ Ext.define('Ext.chart.series.Line', {
         for (i = 0, ln = data.length; i &lt; ln; i++) {
             record = data[i];
             xValue = record.get(me.xField);
-
+            if (xAxisType == 'Time' &amp;&amp; typeof xValue == &quot;string&quot;) {
+                xValue = Date.parse(xValue);
+            }
             // Ensure a value
             if (typeof xValue == 'string' || typeof xValue == 'object' &amp;&amp; !Ext.isDate(xValue)
                 //set as uniform distribution if the axis is a category axis.
@@ -458,6 +455,9 @@ Ext.define('Ext.chart.series.Line', {
 
             // Filter out values that don't fit within the pan/zoom buffer area
             yValue = record.get(me.yField);
+            if (yAxisType == 'Time' &amp;&amp; typeof yValue == &quot;string&quot;) {
+                yValue = Date.parse(yValue);
+            }
             //skip undefined values
             if (typeof yValue == 'undefined' || (typeof yValue == 'string' &amp;&amp; !yValue)) {
                 //&lt;debug warn&gt;
@@ -612,6 +612,7 @@ Ext.define('Ext.chart.series.Line', {
                 path: dummyPath,
                 stroke: endLineStyle.stroke || endLineStyle.fill
             }, endLineStyle || {}));
+            me
 
             //set configuration opacity
             me.line.setAttributes({
@@ -629,7 +630,7 @@ Ext.define('Ext.chart.series.Line', {
             });
             if (!endLineStyle.stroke &amp;&amp; colorArrayLength) {
                 me.line.setAttributes({
-                    stroke: colorArrayStyle[seriesIdx % colorArrayLength]
+                    stroke: colorArrayStyle[me.themeIdx % colorArrayLength]
                 }, true);
             }
             if (enableShadows) {
@@ -656,7 +657,7 @@ Ext.define('Ext.chart.series.Line', {
                 me.fillPath = surface.add({
                     group: group,
                     type: 'path',
-                    fill: endLineStyle.fill || colorArrayStyle[seriesIdx % colorArrayLength],
+                    fill: endLineStyle.fill || colorArrayStyle[me.themeIdx % colorArrayLength],
                     path: dummyPath
                 });
             }
@@ -708,7 +709,7 @@ Ext.define('Ext.chart.series.Line', {
                 me.onAnimate(me.fillPath, {
                     to: Ext.apply({}, {
                         path: fillPath,
-                        fill: endLineStyle.fill || colorArrayStyle[seriesIdx % colorArrayLength],
+                        fill: endLineStyle.fill || colorArrayStyle[me.themeIdx % colorArrayLength],
                         'stroke-width': 0,
                         opacity: fillOpacity
                     }, endLineStyle || {})
@@ -723,7 +724,7 @@ Ext.define('Ext.chart.series.Line', {
                         if (item) {
                             rendererAttributes = me.renderer(item, store.getAt(i), item._to, i, store);
                             me.onAnimate(item, {
-                                to: Ext.apply(rendererAttributes, endMarkerStyle || {})
+                                to: Ext.applyIf(rendererAttributes, endMarkerStyle || {})
                             });
                             item.show(true);
                         }
@@ -801,8 +802,8 @@ Ext.define('Ext.chart.series.Line', {
         me.fireEvent('draw', me);
     },
 
-    // @private called when a label is to be created.
-    onCreateLabel: function(storeItem, item, i, display) {
+<span id='Ext-chart-series-Line-method-onCreateLabel'>    // @private called when a label is to be created.
+</span>    onCreateLabel: function(storeItem, item, i, display) {
         var me = this,
             group = me.labelsGroup,
             config = me.label,
@@ -818,8 +819,8 @@ Ext.define('Ext.chart.series.Line', {
         }, endLabelStyle || {}));
     },
 
-    // @private called when a label is to be created.
-    onPlaceLabel: function(label, storeItem, item, i, display, animate) {
+<span id='Ext-chart-series-Line-method-onPlaceLabel'>    // @private called when a label is to be created.
+</span>    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {
         var me = this,
             chart = me.chart,
             resizing = chart.resizing,
@@ -833,7 +834,7 @@ Ext.define('Ext.chart.series.Line', {
             bb, width, height;
 
         label.setAttributes({
-            text: format(storeItem.get(field)),
+            text: format(storeItem.get(field), label, storeItem, item, i, display, animate, index),
             hidden: true
         }, true);
 
@@ -893,44 +894,51 @@ Ext.define('Ext.chart.series.Line', {
         }
     },
 
-    // @private Overriding highlights.js highlightItem method.
-    highlightItem: function() {
-        var me = this;
+<span id='Ext-chart-series-Line-method-highlightItem'>    // @private Overriding highlights.js highlightItem method.
+</span>    highlightItem: function() {
+        var me = this,
+            line = me.line;
+                
         me.callParent(arguments);
-        if (me.line &amp;&amp; !me.highlighted) {
-            if (!('__strokeWidth' in me.line)) {
-                me.line.__strokeWidth = parseFloat(me.line.attr['stroke-width']) || 0;
+        if (line &amp;&amp; !me.highlighted) {
+            if (!('__strokeWidth' in line)) {
+                line.__strokeWidth = parseFloat(line.attr['stroke-width']) || 0;
             }
-            if (me.line.__anim) {
-                me.line.__anim.paused = true;
+            if (line.__anim) {
+                line.__anim.paused = true;
             }
-            me.line.__anim = Ext.create('Ext.fx.Anim', {
-                target: me.line,
+            
+            line.__anim = new Ext.fx.Anim({
+                target: line,
                 to: {
-                    'stroke-width': me.line.__strokeWidth + 3
+                    'stroke-width': line.__strokeWidth + 3
                 }
             });
             me.highlighted = true;
         }
     },
 
-    // @private Overriding highlights.js unHighlightItem method.
-    unHighlightItem: function() {
-        var me = this;
+<span id='Ext-chart-series-Line-method-unHighlightItem'>    // @private Overriding highlights.js unHighlightItem method.
+</span>    unHighlightItem: function() {
+        var me = this,
+            line = me.line,
+            width;
+            
         me.callParent(arguments);
-        if (me.line &amp;&amp; me.highlighted) {
-            me.line.__anim = Ext.create('Ext.fx.Anim', {
-                target: me.line,
+        if (line &amp;&amp; me.highlighted) {
+            width = line.__strokeWidth || parseFloat(line.attr['stroke-width']) || 0;
+            line.__anim = new Ext.fx.Anim({
+                target: line,
                 to: {
-                    'stroke-width': me.line.__strokeWidth
+                    'stroke-width': width
                 }
             });
             me.highlighted = false;
         }
     },
 
-    // @private called when a callout needs to be placed.
-    onPlaceCallout : function(callout, storeItem, item, i, display, animate, index) {
+<span id='Ext-chart-series-Line-method-onPlaceCallout'>    // @private called when a callout needs to be placed.
+</span>    onPlaceCallout : function(callout, storeItem, item, i, display, animate, index) {
         if (!display) {
             return;
         }
@@ -1037,8 +1045,8 @@ Ext.define('Ext.chart.series.Line', {
         }
     },
 
-    isItemInPoint: function(x, y, item, i) {
-        var me = this,
+<span id='Ext-chart-series-Line-method-isItemInPoint'>    isItemInPoint: function(x, y, item, i) {
+</span>        var me = this,
             items = me.items,
             tolerance = me.selectionTolerance,
             result = null,
@@ -1078,8 +1086,8 @@ Ext.define('Ext.chart.series.Line', {
         return false;
     },
 
-    // @private toggle visibility of all series elements (markers, sprites).
-    toggleAll: function(show) {
+<span id='Ext-chart-series-Line-method-toggleAll'>    // @private toggle visibility of all series elements (markers, sprites).
+</span>    toggleAll: function(show) {
         var me = this,
             i, ln, shadow, shadows;
         if (!show) {
@@ -1109,13 +1117,13 @@ Ext.define('Ext.chart.series.Line', {
         }
     },
 
-    // @private hide all series elements (markers, sprites).
-    hideAll: function() {
+<span id='Ext-chart-series-Line-method-hideAll'>    // @private hide all series elements (markers, sprites).
+</span>    hideAll: function() {
         this.toggleAll(false);
     },
 
-    // @private hide all series elements (markers, sprites).
-    showAll: function() {
+<span id='Ext-chart-series-Line-method-showAll'>    // @private hide all series elements (markers, sprites).
+</span>    showAll: function() {
         this.toggleAll(true);
     }
 });

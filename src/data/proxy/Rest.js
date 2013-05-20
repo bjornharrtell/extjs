@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  *
@@ -99,26 +119,40 @@ Ext.define('Ext.data.proxy.Rest', {
     extend: 'Ext.data.proxy.Ajax',
     alternateClassName: 'Ext.data.RestProxy',
     alias : 'proxy.rest',
-    
+
+    /**
+     * @property {Object} actionMethods
+     * Mapping of action name to HTTP request method. These default to RESTful conventions for the 'create', 'read',
+     * 'update' and 'destroy' actions (which map to 'POST', 'GET', 'PUT' and 'DELETE' respectively). This object
+     * should not be changed except globally via {@link Ext#override Ext.override} - the {@link #getMethod} function
+     * can be overridden instead.
+     */
+    actionMethods: {
+        create : 'POST',
+        read   : 'GET',
+        update : 'PUT',
+        destroy: 'DELETE'
+    },
+
     /**
      * @cfg {Boolean} appendId
      * True to automatically append the ID of a Model instance when performing a request based on that single instance.
      * See Rest proxy intro docs for more details. Defaults to true.
      */
     appendId: true,
-    
+
     /**
      * @cfg {String} format
      * Optional data format to send to the server when making any request (e.g. 'json'). See the Rest proxy intro docs
      * for full details. Defaults to undefined.
      */
-    
+
     /**
      * @cfg {Boolean} batchActions
      * True to batch actions of a particular type when synchronizing the store. Defaults to false.
      */
     batchActions: false,
-    
+
     /**
      * Specialized version of buildUrl that incorporates the {@link #appendId} and {@link #format} options into the
      * generated url. Override this to provide further customizations, but remember to call the superclass buildUrl so
@@ -133,41 +167,25 @@ Ext.define('Ext.data.proxy.Rest', {
             format    = me.format,
             url       = me.getUrl(request),
             id        = record ? record.getId() : operation.id;
-        
-        if (me.appendId && id) {
+
+        if (me.appendId && (id != null)) {
             if (!url.match(/\/$/)) {
                 url += '/';
             }
-            
+
             url += id;
         }
-        
+
         if (format) {
             if (!url.match(/\.$/)) {
                 url += '.';
             }
-            
+
             url += format;
         }
-        
+
         request.url = url;
-        
+
         return me.callParent(arguments);
     }
-}, function() {
-    Ext.apply(this.prototype, {
-        /**
-         * @property {Object} actionMethods
-         * Mapping of action name to HTTP request method. These default to RESTful conventions for the 'create', 'read',
-         * 'update' and 'destroy' actions (which map to 'POST', 'GET', 'PUT' and 'DELETE' respectively). This object
-         * should not be changed except globally via {@link Ext#override Ext.override} - the {@link #getMethod} function
-         * can be overridden instead.
-         */
-        actionMethods: {
-            create : 'POST',
-            read   : 'GET',
-            update : 'PUT',
-            destroy: 'DELETE'
-        }
-    });
 });

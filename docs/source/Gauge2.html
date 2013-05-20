@@ -66,8 +66,6 @@
  * In this example we create a special Gauge axis to be used with the gauge visualization (describing half-circle markers), and also we're
  * setting a maximum, minimum and steps configuration options into the axis. The Gauge series configuration contains the store field to be bound to
  * the visual display and the color set to be used with the visualization.
- * 
- * @xtype gauge
  */
 Ext.define('Ext.chart.series.Gauge', {
 
@@ -75,13 +73,13 @@ Ext.define('Ext.chart.series.Gauge', {
 
     extend: 'Ext.chart.series.Series',
 
-    /* End Definitions */
-
+<span id='Ext-chart-series-Gauge-cfg-type'>    /* End Definitions */
+</span>
     type: &quot;gauge&quot;,
     alias: 'series.gauge',
 
-    rad: Math.PI / 180,
-
+<span id='Ext-chart-series-Gauge-property-rad'>    rad: Math.PI / 180,
+</span>
 <span id='Ext-chart-series-Gauge-cfg-highlightDuration'>    /**
 </span>     * @cfg {Number} highlightDuration
      * The duration for the pie slice highlight effect.
@@ -119,8 +117,8 @@ Ext.define('Ext.chart.series.Gauge', {
      */
     style: {},
     
-    constructor: function(config) {
-        this.callParent(arguments);
+<span id='Ext-chart-series-Gauge-method-constructor'>    constructor: function(config) {
+</span>        this.callParent(arguments);
         var me = this,
             chart = me.chart,
             surface = chart.surface,
@@ -166,24 +164,22 @@ Ext.define('Ext.chart.series.Gauge', {
         };
     },
     
-    // @private updates some onbefore render parameters.
-    initialize: function() {
+<span id='Ext-chart-series-Gauge-method-initialize'>    // @private updates some onbefore render parameters.
+</span>    initialize: function() {
         var me = this,
             store = me.chart.getChartStore(),
             data = store.data.items,
-            i, ln, rec;
-        //Add yFields to be used in Legend.js
+            label = me.label,
+            ln = data.length;
+          
         me.yField = [];
-        if (me.label.field) {
-            for (i = 0, ln = data.length; i &lt; ln; i++) {
-                rec = data[i];
-                me.yField.push(rec.get(me.label.field));
-            }
+        if (label &amp;&amp; label.field &amp;&amp; ln &gt; 0) {
+            me.yField.push(data[0].get(label.field));
         }
     },
 
-    // @private returns an object with properties for a Slice
-    getSegment: function(opt) {
+<span id='Ext-chart-series-Gauge-method-getSegment'>    // @private returns an object with properties for a Slice
+</span>    getSegment: function(opt) {
         var me = this,
             rad = me.rad,
             cos = Math.cos,
@@ -244,8 +240,8 @@ Ext.define('Ext.chart.series.Gauge', {
         }
     },
 
-    // @private utility function to calculate the middle point of a pie slice.
-    calcMiddle: function(item) {
+<span id='Ext-chart-series-Gauge-method-calcMiddle'>    // @private utility function to calculate the middle point of a pie slice.
+</span>    calcMiddle: function(item) {
         var me = this,
             rad = me.rad,
             slice = item.slice,
@@ -290,8 +286,6 @@ Ext.define('Ext.chart.series.Gauge', {
             seriesLabelStyle = me.seriesLabelStyle,
             colorArrayStyle = me.colorArrayStyle,
             colorArrayLength = colorArrayStyle &amp;&amp; colorArrayStyle.length || 0,
-            gutterX = chart.maxGutter[0],
-            gutterY = chart.maxGutter[1],
             cos = Math.cos,
             sin = Math.sin,
             rendererAttributes, centerX, centerY, slice, slices, sprite, value,
@@ -455,23 +449,23 @@ Ext.define('Ext.chart.series.Gauge', {
         this.drawSeries();
     },
 
-    // @private callback for when creating a label sprite.
-    onCreateLabel: function(storeItem, item, i, display) {},
+<span id='Ext-chart-series-Gauge-method-onCreateLabel'>    // @private callback for when creating a label sprite.
+</span>    onCreateLabel: function(storeItem, item, i, display) {},
 
-    // @private callback for when placing a label sprite.
-    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {},
+<span id='Ext-chart-series-Gauge-method-onPlaceLabel'>    // @private callback for when placing a label sprite.
+</span>    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {},
 
-    // @private callback for when placing a callout.
-    onPlaceCallout: function() {},
+<span id='Ext-chart-series-Gauge-method-onPlaceCallout'>    // @private callback for when placing a callout.
+</span>    onPlaceCallout: function() {},
 
-    // @private handles sprite animation for the series.
-    onAnimate: function(sprite, attr) {
+<span id='Ext-chart-series-Gauge-method-onAnimate'>    // @private handles sprite animation for the series.
+</span>    onAnimate: function(sprite, attr) {
         sprite.show();
         return this.callParent(arguments);
     },
 
-    isItemInPoint: function(x, y, item, i) {
-        var me = this,
+<span id='Ext-chart-series-Gauge-method-isItemInPoint'>    isItemInPoint: function(x, y, item, i) {
+</span>        var me = this,
             cx = me.centerX,
             cy = me.centerY,
             abs = Math.abs,
@@ -487,21 +481,13 @@ Ext.define('Ext.chart.series.Gauge', {
                              rho &gt;= item.startRho &amp;&amp; rho &lt;= item.endRho);
     },
     
-    // @private shows all elements in the series.
-    showAll: function() {
-        if (!isNaN(this._index)) {
-            this.__excludes[this._index] = false;
-            this.drawSeries();
-        }
-    },
-    
 <span id='Ext-chart-series-Gauge-method-getLegendColor'>    /**
 </span>     * Returns the color of the series (to be displayed as color for the series legend item).
      * @param item {Object} Info about the item; same format as returned by #getItemForPoint
      */
     getLegendColor: function(index) {
-        var me = this;
-        return me.colorArrayStyle[index % me.colorArrayStyle.length];
+        var colors = this.colorSet || this.colorArrayStyle;
+        return colors[index % colors.length];
     }
 });
 

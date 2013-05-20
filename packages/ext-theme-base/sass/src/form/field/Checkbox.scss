@@ -1,0 +1,16 @@
+.#{$prefix}form-cb {
+    vertical-align: top;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    &::-moz-focus-inner {
+        padding: 0;
+        border: 0;
+    }
+}
+
+@if $include-ie {
+    .#{$prefix}form-cb-label {
+        zoom: 1; // give the label element hasLayout so that IE will respect its line-height
+    }
+}

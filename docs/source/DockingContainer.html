@@ -24,9 +24,24 @@ Ext.define('Ext.container.DockingContainer', {
 
     requires: ['Ext.util.MixedCollection', 'Ext.Element' ],
 
-    /* End Definitions */
-
+<span id='Ext-container-DockingContainer-property-isDockingContainer'>    /* End Definitions */
+</span>
     isDockingContainer: true,
+    
+<span id='Ext-container-DockingContainer-event-dockedadd'>    /**
+</span>     * @event dockedadd
+     * Fires when any {@link Ext.Component} is added or inserted as a docked item.
+     * @param {Ext.panel.Panel} this
+     * @param {Ext.Component} component The component being added
+     * @param {Number} index The index at which the component will be added docked items collection
+     */
+    
+<span id='Ext-container-DockingContainer-event-dockedremove'>    /**
+</span>     * @event dockedremove
+     * Fires when any {@link Ext.Component} is removed from the docked items.
+     * @param {Ext.panel.Panel} this
+     * @param {Ext.Component} component The component being removed
+     */
 
 <span id='Ext-container-DockingContainer-cfg-defaultDockWeights'>    /**
 </span>     * @cfg {Object} defaultDockWeights
@@ -64,8 +79,8 @@ Ext.define('Ext.container.DockingContainer', {
         bottom: { render: 7, visual: 3 }
     },
 
-    // @private
-    // Values to decide which side of the body element docked items must go
+<span id='Ext-container-DockingContainer-property-dockOrder'>    // @private
+</span>    // Values to decide which side of the body element docked items must go
     // This overides any weight. A left/top will *always* sort before a right/bottom
     // regardless of any weight value. Weights sort at either side of the &quot;body&quot; dividing point.
     dockOrder: {
@@ -74,6 +89,12 @@ Ext.define('Ext.container.DockingContainer', {
         right: 1,
         bottom: 1
     },
+
+<span id='Ext-container-DockingContainer-property-horizontalDocks'>    /**
+</span>     * @private
+     * Number of dock 'left' and 'right' items.
+     */
+    horizontalDocks: 0,
 
 <span id='Ext-container-DockingContainer-method-addDocked'>    /**
 </span>     * Adds docked item(s) to the container.
@@ -95,14 +116,20 @@ Ext.define('Ext.container.DockingContainer', {
         for (; i &lt; length; i++) {
             item = items[i];
             item.dock = item.dock || 'top';
+            if (item.dock === 'left' || item.dock === 'right') {
+                me.horizontalDocks++;
+            }
 
             if (pos !== undefined) {
-                me.dockedItems.insert(pos + i, item);
+                i += pos;
+                me.dockedItems.insert(i, item);
             } else {
                 me.dockedItems.add(item);
             }
-            if (item.onAdded !== Ext.emptyFn) {
-                item.onAdded(me, i);
+            
+            item.onAdded(me, i);
+            if (me.hasListeners.dockedadd) {
+                me.fireEvent('dockedadd', me, item, i);
             }
             if (me.onDockedAdd !== Ext.emptyFn) {
                 me.onDockedAdd(item);
@@ -115,8 +142,8 @@ Ext.define('Ext.container.DockingContainer', {
         return items;
     },
 
-    destroyDockedItems: function(){
-        var dockedItems = this.dockedItems,
+<span id='Ext-container-DockingContainer-method-destroyDockedItems'>    destroyDockedItems: function(){
+</span>        var dockedItems = this.dockedItems,
             c;
 
         if (dockedItems) {
@@ -126,8 +153,8 @@ Ext.define('Ext.container.DockingContainer', {
         }
     },
 
-    doRenderDockedItems: function (out, renderData, after) {
-        // Careful! This method is bolted on to the frameTpl and renderTpl so all we get for
+<span id='Ext-container-DockingContainer-method-doRenderDockedItems'>    doRenderDockedItems: function (out, renderData, after) {
+</span>        // Careful! This method is bolted on to the frameTpl and renderTpl so all we get for
         // context is the renderData! The &quot;this&quot; pointer is either the frameTpl or the
         // renderTpl instance!
 
@@ -185,8 +212,8 @@ Ext.define('Ext.container.DockingContainer', {
         return dockedItems;
     },
 
-    getDockingRefItems: function(deep, containerItems) {
-        // deep fetches the docked items and their descendants using '*' and then '* *'
+<span id='Ext-container-DockingContainer-method-getDockingRefItems'>    getDockingRefItems: function(deep, containerItems) {
+</span>        // deep fetches the docked items and their descendants using '*' and then '* *'
         var selector = deep &amp;&amp; '*,* *',
             // start with only the top/left docked items (and maybe their children)
             dockedItems = this.getDockedItems(selector, true),
@@ -202,8 +229,8 @@ Ext.define('Ext.container.DockingContainer', {
         return dockedItems;
     },
 
-    initDockingItems: function() {
-        var me = this,
+<span id='Ext-container-DockingContainer-method-initDockingItems'>    initDockingItems: function() {
+</span>        var me = this,
             items = me.dockedItems;
 
         me.dockedItems = new Ext.util.AbstractMixedCollection(false, me.getComponentId);
@@ -215,7 +242,7 @@ Ext.define('Ext.container.DockingContainer', {
 <span id='Ext-container-DockingContainer-method-insertDocked'>    /**
 </span>     * Inserts docked item(s) to the panel at the indicated position.
      * @param {Number} pos The index at which the Component will be inserted
-     * @param {Object/Object[]} component. The Component or array of components to add. The components
+     * @param {Object/Object[]} component The Component or array of components to add. The components
      * must include a 'dock' paramater on each component to indicate where it should be docked ('top', 'right',
      * 'bottom', 'left').
      */
@@ -241,7 +268,7 @@ Ext.define('Ext.container.DockingContainer', {
 
 <span id='Ext-container-DockingContainer-method-removeDocked'>    /**
 </span>     * Removes the docked item from the panel.
-     * @param {Ext.Component} item. The Component to remove.
+     * @param {Ext.Component} item The Component to remove.
      * @param {Boolean} autoDestroy (optional) Destroy the component after removal.
      */
     removeDocked : function(item, autoDestroy) {
@@ -249,8 +276,12 @@ Ext.define('Ext.container.DockingContainer', {
             layout,
             hasLayout;
 
+        autoDestroy = autoDestroy === true || (autoDestroy !== false &amp;&amp; me.autoDestroy);
         if (!me.dockedItems.contains(item)) {
             return item;
+        }
+        if (item.dock === 'left' || item.dock === 'right') {
+            me.horizontalDocks--;
         }
 
         layout = me.componentLayout;
@@ -261,14 +292,19 @@ Ext.define('Ext.container.DockingContainer', {
         }
 
         me.dockedItems.remove(item);
-        item.onRemoved();
+        // destroying flag is true if the removal is taking place as part of destruction, OR if removal is intended to *cause* destruction
+        item.onRemoved(item.destroying || autoDestroy);
         me.onDockedRemove(item);
 
-        if (autoDestroy === true || (autoDestroy !== false &amp;&amp; me.autoDestroy)) {
+        if (autoDestroy) {
             item.destroy();
         } else if (hasLayout) {
             // not destroying, make any layout related removals
             layout.afterRemove(item);
+        }
+        
+        if (me.hasListeners.dockedremove) {
+            me.fireEvent('dockedremove', me, item);
         }
 
         if (!me.destroying &amp;&amp; !me.suspendLayout) {
@@ -278,8 +314,8 @@ Ext.define('Ext.container.DockingContainer', {
         return item;
     },
 
-    setupDockingRenderTpl: function (renderTpl) {
-        renderTpl.renderDockedItems = this.doRenderDockedItems;
+<span id='Ext-container-DockingContainer-method-setupDockingRenderTpl'>    setupDockingRenderTpl: function (renderTpl) {
+</span>        renderTpl.renderDockedItems = this.doRenderDockedItems;
     }
 });
 </pre>

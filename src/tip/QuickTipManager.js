@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides attractive and customizable tooltips for any element. The QuickTips
  * singleton is used to configure and manage tooltips globally for multiple elements
@@ -143,6 +163,10 @@ Ext.define('Ext.tip.QuickTipManager', (function() {
                 }
 
                 tip = Ext.create(className || 'Ext.tip.QuickTip', tipConfig);
+
+                // private.
+                // Need a globally accessble way of testing whether QuickTipsManager is both loaded AND initialized.
+                Ext.quickTipsActive = true;
             }
         },
 
@@ -158,7 +182,7 @@ Ext.define('Ext.tip.QuickTipManager', (function() {
         },
 
         // Protected method called by the dd classes
-        ddDisable : function(){
+        ddDisable : function() {
             // don't disable it if we don't need to
             if(tip && !disabled){
                 tip.disable();
@@ -166,7 +190,7 @@ Ext.define('Ext.tip.QuickTipManager', (function() {
         },
 
         // Protected method called by the dd classes
-        ddEnable : function(){
+        ddEnable : function() {
             // only enable it if it hasn't been disabled
             if(tip && !disabled){
                 tip.enable();

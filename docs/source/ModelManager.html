@@ -76,8 +76,8 @@ Ext.define('Ext.ModelManager', {
     
     singleton: true,
 
-    typeName: 'mtype',
-
+<span id='Ext-ModelManager-property-typeName'>    typeName: 'mtype',
+</span>
 <span id='Ext-ModelManager-property-associationStack'>    /**
 </span>     * Private stack of associations that must be created once their associated model has been defined
      * @property {Ext.data.association.Association[]} associationStack
@@ -145,8 +145,8 @@ Ext.define('Ext.ModelManager', {
     },
 
 <span id='Ext-ModelManager-method-getModel'>    /**
-</span>     * Returns the {@link Ext.data.Model} for a given model name
-     * @param {String/Object} id The id of the model or the model instance.
+</span>     * Returns the {@link Ext.data.Model} class for a given model name
+     * @param {String/Object} id The classname of the model or the model class itself.
      * @return {Ext.data.Model} a model class.
      */
     getModel: function(id) {

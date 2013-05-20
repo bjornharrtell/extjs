@@ -740,14 +740,6 @@
                     "name": "RowModel.js"
                 },
                 {
-                    "path": "../../src/selection/",
-                    "name": "CellModel.js"
-                },
-                {
-                    "path": "../../src/selection/",
-                    "name": "CheckboxModel.js"
-                },
-                {
                     "path": "../../src/grid/",
                     "name": "PagingScroller.js"
                 },
@@ -762,10 +754,6 @@
                 {
                     "path": "../../../platform/src/draw/engine/",
                     "name": "ImageExporter.js"
-                },
-                {
-                    "path": "../../src/view/",
-                    "name": "TableLayout.js"
                 },
                 {
                     "path": "../../src/view/",
@@ -800,6 +788,10 @@
                     "name": "ColumnLayout.js"
                 },
                 {
+                    "path": "../../src/grid/plugin/",
+                    "name": "HeaderResizer.js"
+                },
+                {
                     "path": "../../src/grid/",
                     "name": "LockingView.js"
                 },
@@ -814,10 +806,6 @@
                 {
                     "path": "../../src/",
                     "name": "FocusManager.js"
-                },
-                {
-                    "path": "../../../platform/src/",
-                    "name": "AbstractPlugin.js"
                 },
                 {
                     "path": "../../../platform/src/draw/",
@@ -870,10 +858,6 @@
                 {
                     "path": "../../src/menu/",
                     "name": "Menu.js"
-                },
-                {
-                    "path": "../../src/grid/plugin/",
-                    "name": "HeaderResizer.js"
                 },
                 {
                     "path": "../../../platform/src/draw/",

@@ -1,3 +1,119 @@
+/*
+ * Here is where we "activate" the DataView.
+ * We have decided that each node with the class "patient-source" encapsulates a single draggable
+ * object.
+ *
+ * So we inject code into the DragZone which, when passed a mousedown event, interrogates
+ * the event to see if it was within an element with the class "patient-source". If so, we
+ * return non-null drag data.
+ *
+ * Returning non-null drag data indicates that the mousedown event has begun a dragging process.
+ * The data must contain a property called "ddel" which is a DOM element which provides an image
+ * of the data being dragged. The actual node clicked on is not dragged, a proxy element is dragged.
+ * We can insert any other data into the data object, and this will be used by a cooperating DropZone
+ * to perform the drop operation.
+ */
+function initializePatientDragZone(v) {
+    v.dragZone = Ext.create('Ext.dd.DragZone', v.getEl(), {
+
+//      On receipt of a mousedown event, see if it is within a draggable element.
+//      Return a drag data object if so. The data object can contain arbitrary application
+//      data, but it should also contain a DOM element in the ddel property to provide
+//      a proxy to drag.
+        getDragData: function(e) {
+            var sourceEl = e.getTarget(v.itemSelector, 10), d;
+            if (sourceEl) {
+                d = sourceEl.cloneNode(true);
+                d.id = Ext.id();
+                return (v.dragData = {
+                    sourceEl: sourceEl,
+                    repairXY: Ext.fly(sourceEl).getXY(),
+                    ddel: d,
+                    patientData: v.getRecord(sourceEl).data
+                });
+            }
+        },
+
+//      Provide coordinates for the proxy to slide back to on failed drag.
+//      This is the original XY coordinates of the draggable element.
+        getRepairXY: function() {
+            return this.dragData.repairXY;
+        }
+    });
+}
+
+/*
+ * Here is where we "activate" the GridPanel.
+ * We have decided that the element with class "hospital-target" is the element which can receieve
+ * drop gestures. So we inject a method "getTargetFromEvent" into the DropZone. This is constantly called
+ * while the mouse is moving over the DropZone, and it returns the target DOM element if it detects that
+ * the mouse if over an element which can receieve drop gestures.
+ *
+ * Once the DropZone has been informed by getTargetFromEvent that it is over a target, it will then
+ * call several "onNodeXXXX" methods at various points. These include:
+ *
+ * onNodeEnter
+ * onNodeOut
+ * onNodeOver
+ * onNodeDrop
+ *
+ * We provide implementations of each of these to provide behaviour for these events.
+ */
+function initializeHospitalDropZone(v) {
+    var gridView = v,
+        grid = gridView.up('gridpanel');
+
+    grid.dropZone = Ext.create('Ext.dd.DropZone', v.el, {
+
+//      If the mouse is over a target node, return that node. This is
+//      provided as the "target" parameter in all "onNodeXXXX" node event handling functions
+        getTargetFromEvent: function(e) {
+            return e.getTarget('.hospital-target');
+        },
+
+//      On entry into a target node, highlight that node.
+        onNodeEnter : function(target, dd, e, data){
+            Ext.fly(target).addCls('hospital-target-hover');
+        },
+
+//      On exit from a target node, unhighlight that node.
+        onNodeOut : function(target, dd, e, data){
+            Ext.fly(target).removeCls('hospital-target-hover');
+        },
+
+//      While over a target node, return the default drop allowed class which
+//      places a "tick" icon into the drag proxy.
+        onNodeOver : function(target, dd, e, data){
+            return Ext.dd.DropZone.prototype.dropAllowed;
+        },
+
+//      On node drop, we can interrogate the target node to find the underlying
+//      application object that is the real target of the dragged data.
+//      In this case, it is a Record in the GridPanel's Store.
+//      We can use the data set up by the DragZone's getDragData method to read
+//      any data we decided to attach.
+        onNodeDrop : function(target, dd, e, data){
+            var rowBody = Ext.fly(target).findParent('.x-grid-rowbody-tr', null, false),
+                mainRow = rowBody.previousSibling,
+                h = gridView.getRecord(mainRow),
+                targetEl = Ext.get(target),
+                html = targetEl.dom.innerHTML;
+                
+            if (html == 'Drop Patient Here') {
+                html = data.patientData.name
+            } else {
+                html = data.patientData.name + ', ' + targetEl.dom.innerHTML;
+            }
+
+            targetEl.update(html);
+            Ext.Msg.alert('Drop gesture', 'Dropped patient ' + data.patientData.name +
+                ' on hospital ' + h.data.name);
+            return true;
+        }
+    });
+}
+
+
 Ext.require(['*']);
 
 Ext.onReady(function() {
@@ -154,11 +270,10 @@ Ext.onReady(function() {
         }],
         features: [{
             ftype:'rowbody',
-            rowBodyDivCls: 'hospital-target',
-            getAdditionalData: function() {
-                return Ext.apply(Ext.grid.feature.RowBody.prototype.getAdditionalData.apply(this, arguments), {
-                    rowBody: 'Drop Patient Here'
-                });
+            setup: function(rows, rowValues) {
+                Ext.grid.feature.RowBody.prototype.setup.apply(this, arguments);
+                rowValues.rowBody = 'Drop Patient Here';
+                rowValues.rowBodyDivCls = 'hospital-target';
             }
         }],
         viewConfig: {
@@ -186,111 +301,3 @@ Ext.onReady(function() {
         }, hospitalGrid ]
     });
 });
-
-/*
- * Here is where we "activate" the DataView.
- * We have decided that each node with the class "patient-source" encapsulates a single draggable
- * object.
- *
- * So we inject code into the DragZone which, when passed a mousedown event, interrogates
- * the event to see if it was within an element with the class "patient-source". If so, we
- * return non-null drag data.
- *
- * Returning non-null drag data indicates that the mousedown event has begun a dragging process.
- * The data must contain a property called "ddel" which is a DOM element which provides an image
- * of the data being dragged. The actual node clicked on is not dragged, a proxy element is dragged.
- * We can insert any other data into the data object, and this will be used by a cooperating DropZone
- * to perform the drop operation.
- */
-function initializePatientDragZone(v) {
-    v.dragZone = Ext.create('Ext.dd.DragZone', v.getEl(), {
-
-//      On receipt of a mousedown event, see if it is within a draggable element.
-//      Return a drag data object if so. The data object can contain arbitrary application
-//      data, but it should also contain a DOM element in the ddel property to provide
-//      a proxy to drag.
-        getDragData: function(e) {
-            var sourceEl = e.getTarget(v.itemSelector, 10), d;
-            if (sourceEl) {
-                d = sourceEl.cloneNode(true);
-                d.id = Ext.id();
-                return v.dragData = {
-                    sourceEl: sourceEl,
-                    repairXY: Ext.fly(sourceEl).getXY(),
-                    ddel: d,
-                    patientData: v.getRecord(sourceEl).data
-                };
-            }
-        },
-
-//      Provide coordinates for the proxy to slide back to on failed drag.
-//      This is the original XY coordinates of the draggable element.
-        getRepairXY: function() {
-            return this.dragData.repairXY;
-        }
-    });
-}
-
-/*
- * Here is where we "activate" the GridPanel.
- * We have decided that the element with class "hospital-target" is the element which can receieve
- * drop gestures. So we inject a method "getTargetFromEvent" into the DropZone. This is constantly called
- * while the mouse is moving over the DropZone, and it returns the target DOM element if it detects that
- * the mouse if over an element which can receieve drop gestures.
- *
- * Once the DropZone has been informed by getTargetFromEvent that it is over a target, it will then
- * call several "onNodeXXXX" methods at various points. These include:
- *
- * onNodeEnter
- * onNodeOut
- * onNodeOver
- * onNodeDrop
- *
- * We provide implementations of each of these to provide behaviour for these events.
- */
-function initializeHospitalDropZone(v) {
-    var gridView = v,
-        grid = gridView.up('gridpanel');
-
-    grid.dropZone = Ext.create('Ext.dd.DropZone', v.el, {
-
-//      If the mouse is over a target node, return that node. This is
-//      provided as the "target" parameter in all "onNodeXXXX" node event handling functions
-        getTargetFromEvent: function(e) {
-            return e.getTarget('.hospital-target');
-        },
-
-//      On entry into a target node, highlight that node.
-        onNodeEnter : function(target, dd, e, data){
-            Ext.fly(target).addCls('hospital-target-hover');
-        },
-
-//      On exit from a target node, unhighlight that node.
-        onNodeOut : function(target, dd, e, data){
-            Ext.fly(target).removeCls('hospital-target-hover');
-        },
-
-//      While over a target node, return the default drop allowed class which
-//      places a "tick" icon into the drag proxy.
-        onNodeOver : function(target, dd, e, data){
-            return Ext.dd.DropZone.prototype.dropAllowed;
-        },
-
-//      On node drop, we can interrogate the target node to find the underlying
-//      application object that is the real target of the dragged data.
-//      In this case, it is a Record in the GridPanel's Store.
-//      We can use the data set up by the DragZone's getDragData method to read
-//      any data we decided to attach.
-        onNodeDrop : function(target, dd, e, data){
-            var rowBody = Ext.fly(target).findParent('.x-grid-rowbody-tr', null, false),
-                mainRow = rowBody.previousSibling,
-                h = gridView.getRecord(mainRow),
-                targetEl = Ext.get(target);
-
-            targetEl.update(data.patientData.name + ', ' + targetEl.dom.innerHTML);
-            Ext.Msg.alert('Drop gesture', 'Dropped patient ' + data.patientData.name +
-                ' on hospital ' + h.data.name);
-            return true;
-        }
-    });
-}

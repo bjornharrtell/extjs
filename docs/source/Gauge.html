@@ -71,8 +71,8 @@ Ext.define('Ext.chart.axis.Gauge', {
 
     alias: 'axis.gauge',
 
-    drawAxis: function(init) {
-        var chart = this.chart,
+<span id='Ext-chart-axis-Gauge-method-drawAxis'>    drawAxis: function(init) {
+</span>        var chart = this.chart,
             surface = chart.surface,
             bbox = chart.chartBBox,
             centerX = bbox.x + (bbox.width / 2),
@@ -128,8 +128,8 @@ Ext.define('Ext.chart.axis.Gauge', {
         }
     },
 
-    drawTitle: function() {
-        var me = this,
+<span id='Ext-chart-axis-Gauge-method-drawTitle'>    drawTitle: function() {
+</span>        var me = this,
             chart = me.chart,
             surface = chart.surface,
             bbox = chart.chartBBox,
@@ -137,10 +137,10 @@ Ext.define('Ext.chart.axis.Gauge', {
             labelBBox;
 
         if (!labelSprite) {
-            me.titleSprite = labelSprite = surface.add({
+            me.titleSprite = labelSprite = surface.add(Ext.apply({
                 type: 'text',
                 zIndex: 2
-            });
+            }, me.axisTitleStyle, me.labelTitle));
         }
         labelSprite.setAttributes(Ext.apply({
             text: me.title
@@ -161,8 +161,8 @@ Ext.define('Ext.chart.axis.Gauge', {
         this.drawTitle();
     },
 
-    drawLabel: function() {
-        var chart = this.chart,
+<span id='Ext-chart-axis-Gauge-method-drawLabel'>    drawLabel: function() {
+</span>        var chart = this.chart,
             surface = chart.surface,
             bbox = chart.chartBBox,
             centerX = bbox.x + (bbox.width / 2),
@@ -179,7 +179,7 @@ Ext.define('Ext.chart.axis.Gauge', {
             cos = Math.cos,
             sin = Math.sin,
             labelConf = this.label,
-            renderer = labelConf.renderer || function(v) { return v; };
+            renderer = labelConf.renderer || Ext.identityFn;
 
         if (!this.labelArray) {
             //draw scale

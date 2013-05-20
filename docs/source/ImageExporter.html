@@ -39,6 +39,7 @@
  * **Important**: By default, chart data is sent to a server operated
  * by Sencha to do data processing. You may change this default by
  * setting the {@link #defaultUrl} of this class.
+ * In addition, please note that this service only creates PNG images.
  */
 Ext.define('Ext.draw.engine.ImageExporter', {
     singleton: true,
@@ -83,8 +84,8 @@ Ext.define('Ext.draw.engine.ImageExporter', {
      */
     svgParam: 'svg',
 
-    formCls: Ext.baseCSSPrefix + 'hide-display',
-
+<span id='Ext-draw-engine-ImageExporter-property-formCls'>    formCls: Ext.baseCSSPrefix + 'hide-display',
+</span>
 <span id='Ext-draw-engine-ImageExporter-method-generate'>    /**
 </span>     * Exports the surface to an image
      * @param {Ext.draw.Surface} surface The surface to export

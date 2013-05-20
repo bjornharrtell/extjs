@@ -21,12 +21,26 @@
 Ext.define('Ext.tree.ViewDragZone', {
     extend: 'Ext.view.DragZone',
 
-    isPreventDrag: function(e, record) {
-        return (record.get('allowDrag') === false) || !!e.getTarget(this.view.expanderSelector);
+<span id='Ext-tree-ViewDragZone-method-isPreventDrag'>    isPreventDrag: function(e, record) {
+</span>        return (record.get('allowDrag') === false) || !!e.getTarget(this.view.expanderSelector);
     },
-    
-    afterRepair: function() {
-        var me = this,
+
+<span id='Ext-tree-ViewDragZone-method-getDragText'>    getDragText: function() {
+</span>        var records = this.dragData.records,
+            count = records.length,
+            text = records[0].get(this.displayField),
+            suffix = 's';
+            
+        if (count === 1 &amp;&amp; text) {
+            return text;    
+        } else if (!text) {
+            suffix = '';
+        }
+        return Ext.String.format(this.dragText, count, suffix);
+    },
+
+<span id='Ext-tree-ViewDragZone-method-afterRepair'>    afterRepair: function() {
+</span>        var me = this,
             view = me.view,
             selectedRowCls = view.selectedItemCls,
             records = me.dragData.records,
@@ -34,7 +48,7 @@ Ext.define('Ext.tree.ViewDragZone', {
             rLen    = records.length,
             fly = Ext.fly,
             item;
-        
+
         if (Ext.enableFx &amp;&amp; me.repairHighlight) {
             // Roll through all records and highlight all the ones we attempted to drag.
             for (r = 0; r &lt; rLen; r++) {

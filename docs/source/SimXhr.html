@@ -22,20 +22,20 @@
  * {@link Ext.ux.ajax.Simlet} instance that provides the data.
  */
 Ext.define('Ext.ux.ajax.SimXhr', {
-    readyState: 0,
-
-    mgr: null,
-    simlet: null,
-
-    constructor: function (config) {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-property-readyState'>    readyState: 0,
+</span>
+<span id='Ext-ux-ajax-SimXhr-property-mgr'>    mgr: null,
+</span><span id='Ext-ux-ajax-SimXhr-property-simlet'>    simlet: null,
+</span>
+<span id='Ext-ux-ajax-SimXhr-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
 
         Ext.apply(me, config);
         me.requestHeaders = {};
     },
 
-    abort: function () {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-abort'>    abort: function () {
+</span>        var me = this;
 
         if (me.timer) {
             clearTimeout(me.timer);
@@ -44,21 +44,21 @@ Ext.define('Ext.ux.ajax.SimXhr', {
         me.aborted = true;
     },
 
-    getAllResponseHeaders: function () {
-        var headers = [];
+<span id='Ext-ux-ajax-SimXhr-method-getAllResponseHeaders'>    getAllResponseHeaders: function () {
+</span>        var headers = [];
         Ext.Object.each(this.responseHeaders, function (name, value) {
             headers.push(name + ': ' + value);
         });
         return headers.join('\x0d\x0a');
     },
 
-    getResponseHeader: function (header) {
-        var headers = this.responseHeaders;
+<span id='Ext-ux-ajax-SimXhr-method-getResponseHeader'>    getResponseHeader: function (header) {
+</span>        var headers = this.responseHeaders;
         return (headers &amp;&amp; headers[header]) || null;
     },
 
-    open: function (method, url, async, user, password) {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-open'>    open: function (method, url, async, user, password) {
+</span>        var me = this;
         me.method = method;
         me.url = url;
         me.async = async !== false;
@@ -68,19 +68,19 @@ Ext.define('Ext.ux.ajax.SimXhr', {
         me.setReadyState(1);
     },
 
-    overrideMimeType: function (mimeType) {
-        this.mimeType = mimeType;
+<span id='Ext-ux-ajax-SimXhr-method-overrideMimeType'>    overrideMimeType: function (mimeType) {
+</span>        this.mimeType = mimeType;
     },
 
-    schedule: function () {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-schedule'>    schedule: function () {
+</span>        var me = this;
         me.timer = setTimeout(function () {
             me.onTick();
         }, me.mgr.delay);
     },
 
-    send: function (body) {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-send'>    send: function (body) {
+</span>        var me = this;
 
         me.body = body;
 
@@ -91,24 +91,24 @@ Ext.define('Ext.ux.ajax.SimXhr', {
         }
     },
 
-    setReadyState: function (state) {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-setReadyState'>    setReadyState: function (state) {
+</span>        var me = this;
         if (me.readyState != state) {
             me.readyState = state;
             me.onreadystatechange();
         }
     },
 
-    setRequestHeader: function (header, value) {
-        this.requestHeaders[header] = value;
+<span id='Ext-ux-ajax-SimXhr-method-setRequestHeader'>    setRequestHeader: function (header, value) {
+</span>        this.requestHeaders[header] = value;
     },
 
-    // handlers
-
+<span id='Ext-ux-ajax-SimXhr-method-onreadystatechange'>    // handlers
+</span>
     onreadystatechange: Ext.emptyFn,
 
-    onComplete: function () {
-        var me = this,
+<span id='Ext-ux-ajax-SimXhr-method-onComplete'>    onComplete: function () {
+</span>        var me = this,
             callback;
 
         me.readyState = 4;
@@ -121,12 +121,12 @@ Ext.define('Ext.ux.ajax.SimXhr', {
         }
     },
 
-    onTick: function () {
-        var me = this;
+<span id='Ext-ux-ajax-SimXhr-method-onTick'>    onTick: function () {
+</span>        var me = this;
 
         me.timer = null;
         me.onComplete();
-        me.onreadystatechange();
+        me.onreadystatechange &amp;&amp; me.onreadystatechange();
     }
 });
 </pre>

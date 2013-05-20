@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Handles mapping key events to handling functions for an element or a Component. One KeyMap can be used for multiple
  * actions.
@@ -209,21 +229,59 @@ Ext.define('Ext.util.KeyMap', {
      * set no action is performed..
      */
     addBinding : function(binding){
-        var keyCode = binding.key,
-            processed = false,
-            key,
-            keys,
-            keyString,
+        var me = this,
+            keyCode = binding.key,
             i,
             len;
 
+        if (me.processing) {
+            me.bindings = bindings.slice(0);
+        }
+        
         if (Ext.isArray(binding)) {
             for (i = 0, len = binding.length; i < len; i++) {
-                this.addBinding(binding[i]);
+                me.addBinding(binding[i]);
             }
             return;
         }
 
+        me.bindings.push(Ext.apply({
+            keyCode: me.processKeys(keyCode)
+        }, binding));
+    },
+    
+    /**
+     * Remove a binding from this KeyMap.
+     * @param {Object} binding See {@link #addBinding for options}
+     */
+    removeBinding: function(binding){
+        var me = this,
+            bindings = me.bindings,
+            len = bindings.length,
+            i, item, keys;
+            
+        if (me.processing) {
+            me.bindings = bindings.slice(0);
+        }
+        
+        keys = me.processKeys(binding.key);
+        for (i = 0; i < len; ++i) {
+            item = bindings[i];
+            if (item.fn === binding.fn && item.scope === binding.scope) {
+                if (binding.alt == item.alt && binding.crtl == item.crtl && binding.shift == item.shift) {
+                    if (Ext.Array.equals(item.keyCode, keys)) {
+                        Ext.Array.erase(me.bindings, i, 1);
+                        return;
+                    }
+                }
+            }
+        }
+    },
+    
+    processKeys: function(keyCode){
+        var processed = false,
+            key, keys, keyString, len, i;
+            
         if (Ext.isString(keyCode)) {
             keys = [];
             keyString = keyCode.toUpperCase();
@@ -247,10 +305,7 @@ Ext.define('Ext.util.KeyMap', {
                 }
             }
         }
-
-        this.bindings.push(Ext.apply({
-            keyCode: keyCode
-        }, binding));
+        return keyCode;
     },
 
     /**
@@ -266,8 +321,8 @@ Ext.define('Ext.util.KeyMap', {
                 bindings, i, len,
                 target, contentEditable;
 
-            if (this.enabled) { //just in case
-                bindings = this.bindings;
+            if (me.enabled) { //just in case
+                bindings = me.bindings;
                 i = 0;
                 len = bindings.length;
 
@@ -291,9 +346,11 @@ Ext.define('Ext.util.KeyMap', {
                 if (!event.getKey) {
                     return event;
                 }
+                me.processing = true;
                 for(; i < len; ++i){
-                    this.processBinding(bindings[i], event);
+                    me.processBinding(bindings[i], event);
                 }
+                me.processing = false;
             }
         }
     }()),
@@ -307,9 +364,7 @@ Ext.define('Ext.util.KeyMap', {
      * the first parameter. Extra information from the event arguments may be injected into the event for use by the handler
      * functions before returning it.
      */
-    processEvent: function(event){
-        return event;
-    },
+    processEvent: Ext.identityFn,
 
     /**
      * Process a particular binding and fire the handler if necessary.
@@ -383,6 +438,35 @@ Ext.define('Ext.util.KeyMap', {
             keyCode = key;
         }
         this.addBinding({
+            key: keyCode,
+            shift: shift,
+            ctrl: ctrl,
+            alt: alt,
+            fn: fn,
+            scope: scope
+        });
+    },
+    
+    /**
+     * Shorthand for removing a single key listener.
+     *
+     * @param {Number/Number[]/Object} key Either the numeric key code, array of key codes or an object with the
+     * following options: `{key: (number or array), shift: (true/false), ctrl: (true/false), alt: (true/false)}`
+     * @param {Function} fn The function to call
+     * @param {Object} [scope] The scope (`this` reference) in which the function is executed.
+     * Defaults to the browser window.
+     */
+    un: function(key, fn, scope) {
+        var keyCode, shift, ctrl, alt;
+        if (Ext.isObject(key) && !Ext.isArray(key)) {
+            keyCode = key.key;
+            shift = key.shift;
+            ctrl = key.ctrl;
+            alt = key.alt;
+        } else {
+            keyCode = key;
+        }
+        this.removeBinding({
             key: keyCode,
             shift: shift,
             ctrl: ctrl,

@@ -19,7 +19,6 @@ Ext.define('Books.view.book.SideBar', {
                 deselectOnContainerClick: false
             },
             
-            store: '',
             itemSelector: '.product',
             tpl: [
                 '<div class="sidebar-title">Books</div>',

@@ -1,0 +1,19 @@
+.#{$prefix}action-col-cell .#{$prefix}grid-cell-inner {
+    // Assume 16px high action icon by default
+    // !important needed to override .x-tree-panel .x-grid-cell-inner's padding setting.
+    padding: floor(($grid-row-height - $grid-cell-border-width - 16) / 2) 2px 0 4px!important;
+}
+
+.#{$prefix}action-col-cell .#{$prefix}item-disabled {
+    @include opacity(0.3);
+}
+
+.#{$prefix}grid-with-row-lines .#{$prefix}action-col-cell .#{$prefix}grid-cell-inner {
+    padding-top: 1px;
+}
+
+.#{$prefix}action-col-icon {
+    height: $grid-actioncolumn-icon-height;
+    width: $grid-actioncolumn-icon-width;
+    cursor: $grid-actioncolumn-icon-cursor;
+}

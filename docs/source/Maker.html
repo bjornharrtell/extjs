@@ -20,17 +20,17 @@
  */
 Ext.define('Ext.ux.event.Maker', {
 
-    eventQueue: [],
+<span id='Ext-ux-event-Maker-property-eventQueue'>    eventQueue: [],
+</span>    
+<span id='Ext-ux-event-Maker-property-startAfter'>    startAfter: 500,
+</span>    
+<span id='Ext-ux-event-Maker-property-timerIncrement'>    timerIncrement: 500,
+</span>    
+<span id='Ext-ux-event-Maker-property-currentTiming'>    currentTiming: 0,
+</span>    
     
-    startAfter: 500,
-    
-    timerIncrement: 500,
-    
-    currentTiming: 0,
-    
-    
-    constructor: function(config) {
-        var me = this;
+<span id='Ext-ux-event-Maker-method-constructor'>    constructor: function(config) {
+</span>        var me = this;
         
         me.currentTiming = me.startAfter;
         

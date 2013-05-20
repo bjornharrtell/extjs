@@ -1,0 +1,25 @@
+/*misc*/
+.#{$prefix}webkit {
+    * {
+        &:focus {
+            outline:none !important;
+        }
+    }
+}
+
+// form items
+.#{$prefix}form-item {
+    vertical-align: top;
+    table-layout: fixed;
+}
+
+// Allow for positioned child elements, e.g. custom icons
+.#{$prefix}form-item-body {
+    position: relative;
+}
+
+.#{$prefix}form-form-item {
+    td {
+        border-top: 1px solid transparent;
+    }
+}

@@ -1,0 +1,20 @@
+.#{$prefix}grid-rowwrap {
+    border-width: $grid-row-wrap-border-width;
+    border-color: $grid-row-wrap-border-color;
+    border-style: $grid-row-wrap-border-style;
+    border-top-color: lighten($grid-row-wrap-border-color, 5);
+    overflow: hidden;
+}
+
+.#{$prefix}grid-rowwrap {
+    .#{$prefix}grid-cell,
+    .#{$prefix}grid-cell-inner {
+        border-width: 0;
+        background-color: transparent;
+    }
+}
+
+.#{$prefix}grid-row-focused .#{$prefix}grid-rowwrap .#{$prefix}grid-cell {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+}

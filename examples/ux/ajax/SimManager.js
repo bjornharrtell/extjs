@@ -75,7 +75,7 @@ Ext.define('Ext.ux.ajax.SimManager', {
     delay: 150,
 
     /**
-     * @prop {Boolean} ready
+     * @property {Boolean} ready
      * True once this singleton has initialized and applied its Ajax hooks.
      * @private
      */

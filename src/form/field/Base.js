@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -104,7 +124,7 @@ Ext.define('Ext.form.field.Base', {
             '<tpl if="disabled"> disabled="disabled"</tpl>',
             '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
             '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
-        ' class="{fieldCls} {typeCls} {editableCls}" autocomplete="off"/>',
+        ' class="{fieldCls} {typeCls} {editableCls} {inputCls}" autocomplete="off"/>',
         {
             disableFormats: true
         }
@@ -184,7 +204,7 @@ Ext.define('Ext.form.field.Base', {
      * the field's value to be checked for changes. If a change is detected, the {@link #change change event} will be
      * fired, followed by validation if the {@link #validateOnChange} option is enabled.
      *
-     * Defaults to ['change', 'propertychange'] in Internet Explorer, and ['change', 'input', 'textInput', 'keyup',
+     * Defaults to ['change', 'propertychange', 'keyup'] in Internet Explorer, and ['change', 'input', 'textInput', 'keyup',
      * 'dragdrop'] in other browsers. This catches all the ways that field values can be changed in most supported
      * browsers; the only known exceptions at the time of writing are:
      *
@@ -199,7 +219,7 @@ Ext.define('Ext.form.field.Base', {
      * such a task automatically.
      */
     checkChangeEvents: Ext.isIE && (!document.documentMode || document.documentMode < 9) ?
-                        ['change', 'propertychange'] :
+                        ['change', 'propertychange', 'keyup'] :
                         ['change', 'input', 'textInput', 'keyup', 'dragdrop'],
 
     /**
@@ -247,6 +267,11 @@ Ext.define('Ext.form.field.Base', {
     baseCls: Ext.baseCSSPrefix + 'field',
 
     maskOnDisable: false,
+    
+    // Instructs the layout to stretch the inputEl to 100% width when laying
+    // out under fixed conditions. Defaults to true for all fields except check/radio
+    // Doesn't seem worth it to introduce a whole new layout class just for this flag
+    stretchInputElFixed: true,
 
     // private
     initComponent : function() {
@@ -309,13 +334,7 @@ Ext.define('Ext.form.field.Base', {
         if (!me.name) {
             me.name = me.getInputId();
         }
-    },
-    
-    beforeRender: function(){
-        var me = this;
-            
-        me.callParent(arguments);
-        me.beforeLabelableRender(arguments);
+        // Add to protoEl before render
         if (me.readOnly) {
             me.addCls(me.readOnlyCls);
         }
@@ -351,6 +370,7 @@ Ext.define('Ext.form.field.Base', {
             fieldCls   : me.fieldCls,
             fieldStyle : me.getFieldStyle(),
             tabIdx     : me.tabIndex,
+            inputCls   : me.inputCls,
             typeCls    : Ext.baseCSSPrefix + 'form-' + (type === 'password' ? 'text' : type)
         }, me.subTplData);
 
@@ -359,18 +379,14 @@ Ext.define('Ext.form.field.Base', {
         return data;
     },
 
-    afterFirstLayout: function() {
-        this.callParent();
-        var el = this.inputEl;
-        if (el) {
-            el.selectable();
-        }
-    },
-
     applyRenderSelectors: function() {
         var me = this;
 
         me.callParent();
+
+        // This is added here rather than defined in Ext.form.Labelable since inputEl isn't related to Labelable.
+        // It's important to add inputEl to the childEls so it can be properly destroyed.
+        me.addChildEls('inputEl');
 
         /**
          * @property {Ext.Element} inputEl
@@ -413,15 +429,13 @@ Ext.define('Ext.form.field.Base', {
     },
 
     getFieldStyle: function() {
-        return 'width:100%;' + (Ext.isObject(this.fieldStyle) ? Ext.DomHelper.generateStyles(this.fieldStyle) : this.fieldStyle ||'');
+        return Ext.isObject(this.fieldStyle) ? Ext.DomHelper.generateStyles(this.fieldStyle) : this.fieldStyle ||'';
     },
 
     // private
     onRender : function() {
-        var me = this;
-        me.callParent(arguments);
-        me.onLabelableRender();
-        me.renderActiveError();
+        this.callParent(arguments);
+        this.renderActiveError();
     },
 
     getFocusEl: function() {
@@ -430,18 +444,6 @@ Ext.define('Ext.form.field.Base', {
 
     isFileUpload: function() {
         return this.inputType === 'file';
-    },
-
-    extractFileInput: function() {
-        var me = this,
-            fileInput = me.isFileUpload() ? me.inputEl.dom : null,
-            clone;
-        if (fileInput) {
-            clone = fileInput.cloneNode(true);
-            fileInput.parentNode.replaceChild(clone, fileInput);
-            me.inputEl = Ext.get(clone);
-        }
-        return fileInput;
     },
 
     // private override to use getSubmitValue() as a convenience
@@ -509,9 +511,7 @@ Ext.define('Ext.form.field.Base', {
      * @param {Object} value The value
      * @return {Object} The value to set
      */
-    transformRawValue: function(value) {
-        return value;
-    },
+    transformRawValue: Ext.identityFn,
 
     /**
      * Converts a mixed-type value to a raw representation suitable for displaying in the field. This allows controlling
@@ -545,10 +545,9 @@ Ext.define('Ext.form.field.Base', {
      *
      * @param {Object} rawValue
      * @return {Object} The converted value.
+     * @method
      */
-    rawToValue: function(rawValue) {
-        return rawValue;
-    },
+    rawToValue: Ext.identityFn,
 
     /**
      * Performs any necessary manipulation of a raw field value to prepare it for {@link #rawToValue conversion} and/or
@@ -557,10 +556,9 @@ Ext.define('Ext.form.field.Base', {
      *
      * @param {Object} value The unprocessed string value
      * @return {Object} The processed string value
+     * @method
      */
-    processRawValue: function(value) {
-        return value;
-    },
+    processRawValue: Ext.identityFn,
 
     /**
      * Returns the current data value of the field. The type of value returned is particular to the type of the
@@ -777,10 +775,13 @@ Ext.define('Ext.form.field.Base', {
     markInvalid : function(errors) {
         // Save the message and fire the 'invalid' event
         var me = this,
-            oldMsg = me.getActiveError();
+            oldMsg = me.getActiveError(),
+            active;
+            
         me.setActiveErrors(Ext.Array.from(errors));
-        if (oldMsg !== me.getActiveError()) {
-            me.updateLayout();
+        active = me.getActiveError();
+        if (oldMsg !== active) {
+            me.setError(active);
         }
     },
 
@@ -795,9 +796,33 @@ Ext.define('Ext.form.field.Base', {
         // Clear the message and fire the 'valid' event
         var me = this,
             hadError = me.hasActiveError();
+            
+        delete me.needsValidateOnEnable;
         me.unsetActiveError();
         if (hadError) {
-            me.updateLayout();
+            me.setError('');
+        }
+    },
+    
+    /**
+     * Set the current error state
+     * @private
+     * @param {String} error The error message to set
+     */
+    setError: function(active){
+        var me = this,
+            msgTarget = me.msgTarget,
+            prop;
+            
+        if (me.rendered) {
+            if (msgTarget == 'title' || msgTarget == 'qtip') {
+                if (me.rendered) {
+                    prop = msgTarget == 'qtip' ? 'data-errorqtip' : 'title';
+                }
+                me.getActionEl().dom.setAttribute(prop, active || '');
+            } else {
+                me.updateLayout();
+            }
         }
     },
 

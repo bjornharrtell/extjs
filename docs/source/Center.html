@@ -53,33 +53,33 @@ Ext.define('Ext.ux.layout.Center', {
     extend: 'Ext.layout.container.Fit',
     alias: 'layout.ux.center',
 
-    percentRe: /^\d+(?:\.\d+)?\%$/,
-
-    itemCls: 'ux-layout-center-item',
-
-    initLayout: function () {
-        this.callParent(arguments);
+<span id='Ext-ux-layout-Center-property-percentRe'>    percentRe: /^\d+(?:\.\d+)?\%$/,
+</span>
+<span id='Ext-ux-layout-Center-cfg-itemCls'>    itemCls: 'ux-layout-center-item',
+</span>
+<span id='Ext-ux-layout-Center-method-initLayout'>    initLayout: function () {
+</span>        this.callParent(arguments);
 
         this.owner.addCls('ux-layout-center');
     },
 
-    getItemSizePolicy: function (item) {
-        var policy = this.callParent(arguments);
+<span id='Ext-ux-layout-Center-method-getItemSizePolicy'>    getItemSizePolicy: function (item) {
+</span>        var policy = this.callParent(arguments);
         if (typeof item.width == 'number') {
             policy = this.sizePolicies[policy.setsHeight ? 2 : 0];
         }
         return policy;
     },
 
-    getPos: function (itemContext, info, dimension) {
-        var size = itemContext.props[dimension] + info.margins[dimension],
+<span id='Ext-ux-layout-Center-method-getPos'>    getPos: function (itemContext, info, dimension) {
+</span>        var size = itemContext.props[dimension] + info.margins[dimension],
             pos = Math.round((info.targetSize[dimension] - size) / 2);
 
         return Math.max(pos, 0);
     },
 
-    getSize: function (item, info, dimension) {
-        var ratio = item[dimension];
+<span id='Ext-ux-layout-Center-method-getSize'>    getSize: function (item, info, dimension) {
+</span>        var ratio = item[dimension];
 
         if (typeof ratio == 'string' &amp;&amp; this.percentRe.test(ratio)) {
             ratio = parseFloat(ratio) / 100;
@@ -90,26 +90,26 @@ Ext.define('Ext.ux.layout.Center', {
         return info.targetSize[dimension] * (ratio || 1) - info.margins[dimension];
     },
 
-    positionItemX: function (itemContext, info) {
-        var left = this.getPos(itemContext, info, 'width');
+<span id='Ext-ux-layout-Center-method-positionItemX'>    positionItemX: function (itemContext, info) {
+</span>        var left = this.getPos(itemContext, info, 'width');
 
         itemContext.setProp('x', left);
     },
 
-    positionItemY: function (itemContext, info) {
-        var top = this.getPos(itemContext, info, 'height');
+<span id='Ext-ux-layout-Center-method-positionItemY'>    positionItemY: function (itemContext, info) {
+</span>        var top = this.getPos(itemContext, info, 'height');
 
         itemContext.setProp('y', top);
     },
 
-    setItemHeight: function (itemContext, info) {
-        var height = this.getSize(itemContext.target, info, 'height');
+<span id='Ext-ux-layout-Center-method-setItemHeight'>    setItemHeight: function (itemContext, info) {
+</span>        var height = this.getSize(itemContext.target, info, 'height');
 
         itemContext.setHeight(height);
     },
 
-    setItemWidth: function (itemContext, info) {
-        var width = this.getSize(itemContext.target, info, 'width');
+<span id='Ext-ux-layout-Center-method-setItemWidth'>    setItemWidth: function (itemContext, info) {
+</span>        var width = this.getSize(itemContext.target, info, 'width');
 
         itemContext.setWidth(width);
     }

@@ -15,7 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-DomHelper'>/**
+  <pre class="prettyprint lang-js">//@tag dom,core
+//@define Ext.DomHelper
+
+//@define Ext.core.DomHelper
+
+<span id='Ext-DomHelper'>/**
 </span> * @class Ext.DomHelper
  * @extends Ext.dom.Helper
  * @alternateClassName Ext.core.DomHelper
@@ -149,7 +154,7 @@
  *     Ext.DomHelper.useDom = true; // force it to use DOM; reduces performance
  *
  */
-(function() {
+Ext.define('Ext.dom.Helper', (function() {
 
 // kill repeat to save bytes
 var afterbegin = 'afterbegin',
@@ -177,18 +182,23 @@ var afterbegin = 'afterbegin',
     };
 
 <span id='Ext-dom-Helper'>/**
-</span> * The actual class of which {@link Ext.DomHelper} is instance of.
+</span> * @class Ext.dom.Helper
+ * @extends Ext.dom.AbstractHelper
+ * @requires Ext.dom.AbstractElement
+ * 
+ * The actual class of which {@link Ext.DomHelper} is instance of.
  * 
  * Use singleton {@link Ext.DomHelper} instead.
  * 
  * @private
  */
-Ext.define('Ext.dom.Helper', {
+return {
     extend: 'Ext.dom.AbstractHelper',
+    requires:['Ext.dom.AbstractElement'],
 
-    tableRe: /^table|tbody|tr|td$/i,
+    tableRe: /^(?:table|thead|tbody|tr|td)$/i,
 
-    tableElRe: /td|tr|tbody/i,
+    tableElRe: /td|tr|tbody|thead/i,
 
 <span id='Ext-dom-Helper-property-useDom'>    /**
 </span>     * @property {Boolean} useDom
@@ -262,10 +272,13 @@ Ext.define('Ext.dom.Helper', {
         ns = el.nextSibling;
 
         if (ns) {
+            ns = el;
             el = document.createDocumentFragment();
+            
             while (ns) {
-                el.appendChild(ns);
-                ns = ns.nextSibling;
+                 nx = ns.nextSibling;
+                 el.appendChild(ns);
+                 ns = nx;
             }
         }
         return el;
@@ -296,7 +309,7 @@ Ext.define('Ext.dom.Helper', {
 
         if (tag == 'td' || (tag == 'tr' &amp;&amp; (be || ab))) {
             node = this.ieTable(4, trs, html, tre);
-        } else if ((tag == 'tbody' &amp;&amp; (be || ab)) ||
+        } else if (((tag == 'tbody' || tag == 'thead') &amp;&amp; (be || ab)) ||
                 (tag == 'tr' &amp;&amp; (bb || ae))) {
             node = this.ieTable(3, tbs, html, tbe);
         } else {
@@ -327,7 +340,6 @@ Ext.define('Ext.dom.Helper', {
 
     applyStyles: function(el, styles) {
         if (styles) {
-            el = Ext.fly(el);
             if (typeof styles == &quot;function&quot;) {
                 styles = styles.call();
             }
@@ -335,7 +347,7 @@ Ext.define('Ext.dom.Helper', {
                 styles = Ext.dom.Element.parseStyles(styles);
             }
             if (typeof styles == &quot;object&quot;) {
-                el.setStyle(styles);
+                Ext.fly(el, '_applyStyles').setStyle(styles);
             }
         }
     },
@@ -417,7 +429,16 @@ Ext.define('Ext.dom.Helper', {
             }
 
             if ((hashVal = fullPositionHash[where])) {
-                el.insertAdjacentHTML(hashVal[0], html);
+
+                if (Ext.global.MSApp &amp;&amp; Ext.global.MSApp.execUnsafeLocalFunction) {
+                    //ALLOW MS TO EXECUTE THIS CODE FOR NATIVE WINDOWS 8 DESKTOP APPS
+                    MSApp.execUnsafeLocalFunction(function () {
+                        el.insertAdjacentHTML(hashVal[0], html);
+                    });
+                } else {
+                    el.insertAdjacentHTML(hashVal[0], html);
+                }
+
                 return el[hashVal[1]];
             }
             // if (not IE and context element is an HTMLElement) or TextNode
@@ -480,13 +501,11 @@ Ext.define('Ext.dom.Helper', {
         return new Ext.Template(html);
     }
 
-}, function() {
+};
+})(), function() {
     Ext.ns('Ext.core');
     Ext.DomHelper = Ext.core.DomHelper = new this;
 });
-
-
-}());
 </pre>
 </body>
 </html>

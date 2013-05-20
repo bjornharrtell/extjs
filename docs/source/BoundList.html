@@ -23,19 +23,20 @@ Ext.define('Ext.layout.component.BoundList', {
     extend: 'Ext.layout.component.Auto',
     alias: 'layout.boundlist',
 
-    type: 'component',
-    
-    beginLayout: function(ownerContext) {
-        var me = this,
+<span id='Ext-layout-component-BoundList-property-type'>    type: 'component',
+</span>    
+<span id='Ext-layout-component-BoundList-method-beginLayout'>    beginLayout: function(ownerContext) {
+</span>        var me = this,
             owner = me.owner,
             toolbar = owner.pagingToolbar;
 
         me.callParent(arguments);
         
         if (owner.floating) {
-            ownerContext.savedXY = owner.el.getXY();
+            ownerContext.savedXY = owner.getXY();
             // move way offscreen to prevent any constraining
-            owner.el.setXY([-9999, -9999]);
+            // only move on the y axis to avoid triggering a horizontal scrollbar in rtl mode
+            owner.setXY([0, -9999]);
         }
         
         if (toolbar) {
@@ -44,8 +45,8 @@ Ext.define('Ext.layout.component.BoundList', {
         ownerContext.listContext = ownerContext.getEl('listEl');
     },
     
-    beginLayoutCycle: function(ownerContext){
-        var owner = this.owner;
+<span id='Ext-layout-component-BoundList-method-beginLayoutCycle'>    beginLayoutCycle: function(ownerContext){
+</span>        var owner = this.owner;
         
         this.callParent(arguments);
         if (ownerContext.heightModel.auto) {
@@ -57,36 +58,36 @@ Ext.define('Ext.layout.component.BoundList', {
         }
     },
 
-    getLayoutItems: function() {
-        var toolbar = this.owner.pagingToolbar;
+<span id='Ext-layout-component-BoundList-method-getLayoutItems'>    getLayoutItems: function() {
+</span>        var toolbar = this.owner.pagingToolbar;
         return toolbar ? [toolbar] : [];
     },
     
-    isValidParent: function() {
-        // this only ever gets called with the toolbar, since it's rendered inside we
+<span id='Ext-layout-component-BoundList-method-isValidParent'>    isValidParent: function() {
+</span>        // this only ever gets called with the toolbar, since it's rendered inside we
         // know the parent is always valid
         return true;
     },
 
-    finishedLayout: function(ownerContext) {
-        var xy = ownerContext.savedXY;
+<span id='Ext-layout-component-BoundList-method-finishedLayout'>    finishedLayout: function(ownerContext) {
+</span>        var xy = ownerContext.savedXY;
         
         this.callParent(arguments);
         if (xy) {
-            this.owner.el.setXY(xy);
+            this.owner.setXY(xy);
         }
     },
     
-    measureContentWidth: function(ownerContext) {
-        return this.owner.listEl.getWidth();
+<span id='Ext-layout-component-BoundList-method-measureContentWidth'>    measureContentWidth: function(ownerContext) {
+</span>        return this.owner.listEl.getWidth();
     },
     
-    measureContentHeight: function(ownerContext) {
-        return this.owner.listEl.getHeight();
+<span id='Ext-layout-component-BoundList-method-measureContentHeight'>    measureContentHeight: function(ownerContext) {
+</span>        return this.owner.listEl.getHeight();
     },
     
-    publishInnerHeight: function(ownerContext, height) {
-        var toolbar = ownerContext.toolbarContext,
+<span id='Ext-layout-component-BoundList-method-publishInnerHeight'>    publishInnerHeight: function(ownerContext, height) {
+</span>        var toolbar = ownerContext.toolbarContext,
             toolbarHeight = 0;
             
         if (toolbar) {
@@ -100,8 +101,8 @@ Ext.define('Ext.layout.component.BoundList', {
         }
     },
     
-    calculateOwnerHeightFromContentHeight: function(ownerContext){
-        var height = this.callParent(arguments),
+<span id='Ext-layout-component-BoundList-method-calculateOwnerHeightFromContentHeight'>    calculateOwnerHeightFromContentHeight: function(ownerContext){
+</span>        var height = this.callParent(arguments),
             toolbar = ownerContext.toolbarContext;
             
         if (toolbar) {

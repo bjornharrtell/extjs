@@ -71,5 +71,5 @@ Ext.onReady(function() {
         data: generateData()
     });    
     
-    
+    window.loadTask = new Ext.util.DelayedTask();
 });

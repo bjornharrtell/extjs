@@ -99,18 +99,49 @@ Ext.define('Ext.menu.CheckItem', {
      */
     checkChangeDisabled: false,
 
-    afterRender: function() {
-        var me = this;
-        me.callParent();
-        me.checked = !me.checked;
-        me.setChecked(!me.checked, true);
-        if (me.checkChangeDisabled) {
-            me.disableCheckChange();
-        }
-    },
+<span id='Ext-menu-CheckItem-property-childEls'>    childEls: [
+</span>        'itemEl', 'iconEl', 'textEl', 'checkEl'
+    ],
+    
+<span id='Ext-menu-CheckItem-property-showCheckbox'>    showCheckbox: true,
+</span>
+<span id='Ext-menu-CheckItem-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;tpl if=&quot;plain&quot;&gt;',
+            '{text}',
+        '&lt;tpl else&gt;',
+            '{%var showCheckbox = values.showCheckbox,',
+            '      rightCheckbox = showCheckbox &amp;&amp; values.hasIcon &amp;&amp; (values.iconAlign !== &quot;left&quot;), textCls = rightCheckbox ? &quot;' + Ext.baseCSSPrefix + 'right-check-item-text&quot; : &quot;&quot;;%}',
+            '&lt;a id=&quot;{id}-itemEl&quot; class=&quot;' + Ext.baseCSSPrefix + 'menu-item-link{childElCls}&quot; href=&quot;{href}&quot; &lt;tpl if=&quot;hrefTarget&quot;&gt;target=&quot;{hrefTarget}&quot;&lt;/tpl&gt; hidefocus=&quot;true&quot; unselectable=&quot;on&quot;',
+                '&lt;tpl if=&quot;tabIndex&quot;&gt;',
+                    ' tabIndex=&quot;{tabIndex}&quot;',
+                '&lt;/tpl&gt;',
+            '&gt;',
+                '{%if (values.hasIcon &amp;&amp; (values.iconAlign !== &quot;left&quot;)) {%}',
+                    '&lt;div role=&quot;img&quot; id=&quot;{id}-iconEl&quot; class=&quot;' + Ext.baseCSSPrefix + 'menu-item-icon {iconCls}',
+                        '{childElCls} {glyphCls}&quot; style=&quot;&lt;tpl if=&quot;icon&quot;&gt;background-image:url({icon});&lt;/tpl&gt;',
+                        '&lt;tpl if=&quot;glyph &amp;&amp; glyphFontFamily&quot;&gt;font-family:{glyphFontFamily};&lt;/tpl&gt;&quot;&gt;',
+                        '&lt;tpl if=&quot;glyph&quot;&gt;&amp;#{glyph};&lt;/tpl&gt;',
+                    '&lt;/div&gt;',
+                '{%} else if (showCheckbox){%}',
+                    '&lt;img id=&quot;{id}-checkEl&quot; src=&quot;{blank}&quot; class=&quot;' + Ext.baseCSSPrefix + 'menu-item-icon{childElCls}&quot; /&gt;',
+                '{%}%}',
+                '&lt;span id=&quot;{id}-textEl&quot; class=&quot;' + Ext.baseCSSPrefix + 'menu-item-text {[textCls]}{childElCls}&quot; &lt;tpl if=&quot;arrowCls&quot;&gt;style=&quot;margin-right: 17px;&quot;&lt;/tpl&gt; &gt;{text}&lt;/span&gt;',
 
-    initComponent: function() {
-        var me = this;
+                // CheckItem with an icon puts the icon on the right unless iconAlign=='left'
+                '{%if (rightCheckbox) {%}',
+                    '&lt;img id=&quot;{id}-checkEl&quot; src=&quot;{blank}&quot; class=&quot;' + Ext.baseCSSPrefix + 'menu-item-icon-right{childElCls}&quot; /&gt;',
+                '{%} else if (values.arrowCls) {%}',
+                    '&lt;img id=&quot;{id}-arrowEl&quot; src=&quot;{blank}&quot; class=&quot;{arrowCls}{childElCls}&quot;/&gt;',
+                '{%}%}',
+            '&lt;/a&gt;',
+        '&lt;/tpl&gt;'
+    ],
+
+<span id='Ext-menu-CheckItem-method-initComponent'>    initComponent: function() {
+</span>        var me = this;
+        
+        // coerce to bool straight away
+        me.checked = !!me.checked;
         me.addEvents(
 <span id='Ext-menu-CheckItem-event-beforecheckchange'>            /**
 </span>             * @event beforecheckchange
@@ -134,7 +165,7 @@ Ext.define('Ext.menu.CheckItem', {
         Ext.menu.Manager.registerCheckable(me);
 
         if (me.group) {
-            if (!me.iconCls) {
+            if (!(me.iconCls || me.icon || me.glyph)) {
                 me.iconCls = me.groupCls;
             }
             if (me.initialConfig.hideOnClick !== false) {
@@ -142,21 +173,36 @@ Ext.define('Ext.menu.CheckItem', {
             }
         }
     },
-
+    
+<span id='Ext-menu-CheckItem-method-beforeRender'>    beforeRender: function() {
+</span>        this.callParent();
+        this.renderData.showCheckbox = this.showCheckbox;
+    },
+    
+<span id='Ext-menu-CheckItem-method-afterRender'>    afterRender: function() {
+</span>        var me = this;
+        me.callParent();
+        me.checked = !me.checked;
+        me.setChecked(!me.checked, true);
+        if (me.checkChangeDisabled) {
+            me.disableCheckChange();
+        }
+    },
+    
 <span id='Ext-menu-CheckItem-method-disableCheckChange'>    /**
 </span>     * Disables just the checkbox functionality of this menu Item. If this menu item has a submenu, that submenu
      * will still be accessible
      */
     disableCheckChange: function() {
         var me = this,
-            iconEl = me.iconEl;
+            checkEl = me.checkEl;
 
-        if (iconEl) {
-            iconEl.addCls(me.disabledCls);
+        if (checkEl) {
+            checkEl.addCls(me.disabledCls);
         }
         // In some cases the checkbox will disappear until repainted
         // Happens in everything except IE9 strict, see: EXTJSIV-6412
-        if (!(Ext.isIE9 &amp;&amp; Ext.isStrict) &amp;&amp; me.rendered) {
+        if (!(Ext.isIE10p || (Ext.isIE9 &amp;&amp; Ext.isStrict)) &amp;&amp; me.rendered) {
             me.el.repaint();
         }
         me.checkChangeDisabled = true;
@@ -167,24 +213,24 @@ Ext.define('Ext.menu.CheckItem', {
      */
     enableCheckChange: function() {
         var me = this,
-            iconEl = me.iconEl;
+            checkEl = me.checkEl;
             
-        if (iconEl) {
-            iconEl.removeCls(me.disabledCls);
+        if (checkEl) {
+            checkEl.removeCls(me.disabledCls);
         }
         me.checkChangeDisabled = false;
     },
 
-    onClick: function(e) {
-        var me = this;
+<span id='Ext-menu-CheckItem-method-onClick'>    onClick: function(e) {
+</span>        var me = this;
         if(!me.disabled &amp;&amp; !me.checkChangeDisabled &amp;&amp; !(me.checked &amp;&amp; me.group)) {
             me.setChecked(!me.checked);
         }
         this.callParent([e]);
     },
 
-    onDestroy: function() {
-        Ext.menu.Manager.unregisterCheckable(this);
+<span id='Ext-menu-CheckItem-method-onDestroy'>    onDestroy: function() {
+</span>        Ext.menu.Manager.unregisterCheckable(this);
         this.callParent(arguments);
     },
 

@@ -29,8 +29,8 @@
  */
 Ext.define('Ext.util.TextMetrics', {
     statics: {
-        shared: null,
-<span id='Ext-util-TextMetrics-static-method-measure'>        /**
+<span id='Ext-util-TextMetrics-property-shared'>        shared: null,
+</span><span id='Ext-util-TextMetrics-static-method-measure'>        /**
 </span>         * Measures the size of the specified text
          * @param {String/HTMLElement} el The element, dom node or id from which to copy existing CSS styles
          * that can affect the size of the rendered text
@@ -75,7 +75,7 @@ Ext.define('Ext.util.TextMetrics', {
         this.el = Ext.get(bindTo);
         
         measure.position('absolute');
-        measure.setLeftTop(-1000, -1000);
+        measure.setLocalXY(-1000, -1000);
         measure.hide();
 
         if (fixedWidth) {

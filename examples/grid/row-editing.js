@@ -1,15 +1,9 @@
-Ext.Loader.setConfig({
-    enabled: true
-});
-Ext.Loader.setPath('Ext.ux', '../ux');
-
 Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
     'Ext.state.*',
-    'Ext.form.*',
-    'Ext.ux.CheckColumn'
+    'Ext.form.*'
 ]);
 
 Ext.onReady(function(){
@@ -34,6 +28,7 @@ Ext.onReady(function(){
             usedNames = {},
             data = [],
             s = new Date(2007, 0, 1),
+            eDate = Ext.Date,
             now = new Date(),
             getRandomInt = Ext.Number.randomInt,
 
@@ -51,14 +46,14 @@ Ext.onReady(function(){
             for (var i = 0; i < ecount; i++) {
                 var name = generateName();
                 data.push({
-                    start : Ext.Date.add(Ext.Date.clearTime(s, true), Ext.Date.DAY, getRandomInt(0, 27)),
+                    start : eDate.add(eDate.clearTime(s, true), eDate.DAY, getRandomInt(0, 27)),
                     name : name,
                     email: name.toLowerCase().replace(' ', '.') + '@sencha-test.com',
                     active: getRandomInt(0, 1),
                     salary: Math.floor(getRandomInt(35000, 85000) / 1000) * 1000
                 });
             }
-            s = Ext.Date.add(s, Ext.Date.MONTH, 1);
+            s = eDate.add(s, eDate.MONTH, 1);
         }
 
         return data;
@@ -154,7 +149,7 @@ Ext.onReady(function(){
                 var r = Ext.create('Employee', {
                     name: 'New Guy',
                     email: 'new@sencha-test.com',
-                    start: new Date(),
+                    start: Ext.Date.clearTime(new Date()),
                     salary: 50000,
                     active: true
                 });

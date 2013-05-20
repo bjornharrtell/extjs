@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-nl",
+    "type": "locale",
+    "locale": "nl",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

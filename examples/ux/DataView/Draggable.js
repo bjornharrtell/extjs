@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.DataView.Draggable
- * @extends Object
  * @author Ed Spencer
  *
 <pre><code>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">//@tag enterprise
+<span id='Ext-data-soap-Proxy'>/**
+</span> * The SOAP Proxy class is an {@link Ext.data.proxy.Ajax Ajax Proxy} to access v1.1 SOAP
+ * (Simple Object Access Protocol) services.  SOAP Proxy constructs a SOAP Envelope and 
+ * submits an AJAX request to load a SOAP response from the server.
+ * 
+ * For help getting started please refer to the [Soap Guide](#/guide/soap).
+ * @class Ext.data.soap.Proxy
+ */
+Ext.define('Ext.data.soap.Proxy', {
+    extend: 'Ext.data.proxy.Ajax',
+    alias: 'proxy.soap',
+
+    requires: [
+        'Ext.data.soap.Reader'
+    ],
+
+<span id='Ext-data-soap-Proxy-cfg-api'>    /**
+</span>     * @cfg {Object} api
+     * An object containing &quot;create&quot;, &quot;read&quot;, &quot;update&quot; and &quot;destroy&quot; properties that define
+     * SOAP operations for each CRUD action method. These operations will be appended to
+     * the {@link #url} as the {@link #operationParam} for each request type.
+     * 
+     *     api: {
+     *         create: undefined,
+     *         read: undefined,
+     *         update: undefined,
+     *         destroy: undefined
+     *     }
+     *     
+     * At least one operation is required, but additional operations do not need to be configured
+     * if they will not be used.  For example, if this proxy is only used for read operations
+     * the following configuration will be sufficient:
+     * 
+     *     api: {
+     *         read: 'Foo'
+     *     }
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-soapAction'>    /**
+</span>     * @cfg {Object} soapAction
+     * An object containing &quot;create&quot;, &quot;read&quot;, &quot;update&quot; and &quot;destroy&quot; properties that define
+     * the [SOAPAction](http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528) header
+     * for each CRUD action method. A soapAction must be specified for each operation
+     * configured in {@link #api}  Defaults to:
+     * 
+     *     soapAction: {
+     *         create: undefined,
+     *         read: undefined,
+     *         update: undefined,
+     *         destroy: undefined
+     *     }
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-operationParam'>    /**
+</span>     * @cfg {String} [operationParam='op']
+     * The name of the operation parameter to be appened to the SOAP endpoint url
+     */
+    operationParam: 'op',
+
+<span id='Ext-data-soap-Proxy-cfg-reader'>    /**
+</span>     * @cfg {Object/String/Ext.data.soap.Reader} [reader='soap']
+     * The {@link Ext.data.soap.Reader} to use to decode the server's response. This can
+     * either be a SOAP Reader instance, a SOAP Reader config object or 'soap'.
+     */
+    reader: 'soap',
+
+<span id='Ext-data-soap-Proxy-cfg-url'>    /**
+</span>     * @cfg {String} url
+     * The SOAP endpoint url that this proxy will use to request the SOAP data. This can
+     * be a proxied url to work around same-origin policy if the SOAP endpoint url is on
+     * a different domain from your application.
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-envelopeTpl'>    /**
+</span>     * @cfg [envelopeTpl=undefined]
+     * The template used to create the SOAP envelope.  Defaults to:
+     * 
+     *     [
+     *         '&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;',
+     *         '&lt;soap:Envelope xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;',
+     *             '{[values.bodyTpl.apply(values)]}',
+     *         '&lt;/soap:Envelope&gt;'
+     *     ]
+     */
+    envelopeTpl: [
+        '&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;',
+        '&lt;soap:Envelope xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;',
+            '{[values.bodyTpl.apply(values)]}',
+        '&lt;/soap:Envelope&gt;'
+    ],
+
+<span id='Ext-data-soap-Proxy-cfg-createBodyTpl'>    /**
+</span>     * @cfg {Ext.XTemplate/Array} createBodyTpl
+     * The template used to create the SOAP body for the &quot;create&quot; action. If not specified
+     * {@link #writeBodyTpl} will be used for the &quot;create&quot; action.
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-readBodyTpl'>    /**
+</span>     * @cfg {Ext.XTemplate/Array} [readBodyTpl=undefined]
+     * The template used to create the SOAP body for the &quot;read&quot; action.  Defaults to: 
+     * 
+     *     [
+     *         '&lt;soap:Body&gt;',
+     *             '&lt;{operation} xmlns=&quot;{targetNamespace}&quot;&gt;',
+     *                 '&lt;tpl foreach=&quot;params&quot;&gt;',
+     *                     '&lt;{$}&gt;{.}&lt;/{$}&gt;',
+     *                 '&lt;/tpl&gt;',
+     *             '&lt;/{operation}&gt;',
+     *         '&lt;/soap:Body&gt;'
+     *     ]
+     */
+    readBodyTpl: [
+        '&lt;soap:Body&gt;',
+            '&lt;{operation} xmlns=&quot;{targetNamespace}&quot;&gt;',
+                '&lt;tpl foreach=&quot;params&quot;&gt;',
+                    '&lt;{$}&gt;{.}&lt;/{$}&gt;',
+                '&lt;/tpl&gt;',
+            '&lt;/{operation}&gt;',
+        '&lt;/soap:Body&gt;'
+    ],
+
+<span id='Ext-data-soap-Proxy-cfg-updateBodyTpl'>    /**
+</span>     * @cfg {Ext.XTemplate/Array} updateBodyTpl
+     * The template used to create the SOAP body for the &quot;update&quot; action. If not specified
+     * {@link #writeBodyTpl} will be used for the &quot;update&quot; action.
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-destroyBodyTpl'>    /**
+</span>     * @cfg {Ext.XTemplate/Array} destroyBodyTpl
+     * The template used to create the SOAP body for the &quot;destroy&quot; action. If not specified
+     * {@link #writeBodyTpl} will be used for the &quot;destroy&quot; action.
+     */
+
+<span id='Ext-data-soap-Proxy-cfg-writeBodyTpl'>    /**
+</span>     * @cfg {Ext.XTemplate/Array} [writeBodyTpl=undefined]
+     * The default template used to create the SOAP body for write actions (create, update,
+     * and destroy). The individual body templates for each write action can be configured
+     * using {@link #createBodyTpl}, {@link #updateBodyTpl}, and {@link #destroyBodyTpl}.
+     * Defaults to:
+     * 
+     *     [
+     *          '&lt;soap:Body&gt;',
+     *              '&lt;{operation} xmlns=&quot;{targetNamespace}&quot;&gt;',
+     *                  '&lt;tpl for=&quot;records&quot;&gt;',
+     *                      '{% var recordName=values.modelName.split(&quot;.&quot;).pop(); %}',
+     *                      '&lt;{[recordName]}&gt;',
+     *                          '&lt;tpl for=&quot;fields&quot;&gt;',
+     *                              '&lt;{name}&gt;{[parent.get(values.name)]}&lt;/{name}&gt;',
+     *                          '&lt;/tpl&gt;',
+     *                      '&lt;/{[recordName]}&gt;',
+     *                  '&lt;/tpl&gt;',
+     *              '&lt;/{operation}&gt;',
+     *          '&lt;/soap:Body&gt;'
+     *      ]
+     */
+    writeBodyTpl: [
+        '&lt;soap:Body&gt;',
+            '&lt;{operation} xmlns=&quot;{targetNamespace}&quot;&gt;',
+                '&lt;tpl for=&quot;records&quot;&gt;',
+                    '{% var recordName=values.modelName.split(&quot;.&quot;).pop(); %}',
+                    '&lt;{[recordName]}&gt;',
+                        '&lt;tpl for=&quot;fields&quot;&gt;',
+                            '&lt;{name}&gt;{[parent.get(values.name)]}&lt;/{name}&gt;',
+                        '&lt;/tpl&gt;',
+                    '&lt;/{[recordName]}&gt;',
+                '&lt;/tpl&gt;',
+            '&lt;/{operation}&gt;',
+        '&lt;/soap:Body&gt;'
+    ],
+
+<span id='Ext-data-soap-Proxy-cfg-targetNamespace'>    /**
+</span>     * @cfg {String} targetNamespace
+     * namespace URI used by {@link #createBodyTpl}, {@link #readBodyTpl}, {@link #updateBodyTpl},
+     * and {@link #destroyBodyTpl} as the &quot;xmlns&quot; attribute for the operation element.
+     */
+    
+<span id='Ext-data-soap-Proxy-property-actionMethods'>    /**
+</span>     * @property {Object} actionMethods
+     * @readonly
+     * Mapping of action name to HTTP request method.  All SOAP actions are mapped to 'POST'
+     */
+    
+    constructor: function(config) {
+        this.callParent(arguments);
+        this.api = config.api || {};
+        this.soapAction = config.soapAction || {};
+    },
+
+<span id='Ext-data-soap-Proxy-method-doRequest'>    doRequest: function(operation, callback, scope) {
+</span>        var me = this,
+            XTemplate = Ext.XTemplate,
+            action = operation.action,
+            soapOperation = me.api[action],
+            params = Ext.applyIf(operation.params || {}, me.extraParams || {}),
+            bodyTplName = action + 'BodyTpl',
+            xmlData = XTemplate.getTpl(me, 'envelopeTpl').apply({
+                operation: soapOperation,
+                targetNamespace: me.targetNamespace,
+                params: params,
+                records: operation.records,
+                bodyTpl: XTemplate.getTpl(me, me[bodyTplName] ? bodyTplName : 'writeBodyTpl')
+            }),
+            request = new Ext.data.Request({
+                url: me.url + '?' + me.operationParam + '=' + soapOperation,
+                method: 'POST',
+                action: action,
+                operation: operation,
+                xmlData: xmlData,
+                headers: Ext.apply({
+                    SOAPAction: me.soapAction[action]
+                }, me.headers),
+                timeout: me.timeout,
+                scope: me,
+                disableCaching: false // explicitly set it to false, ServerProxy handles caching
+            });
+
+        request.callback = me.createRequestCallback(request, operation, callback, scope);
+
+        Ext.Ajax.request(request);
+                
+        return request;
+    }
+});
+</pre>
+</body>
+</html>

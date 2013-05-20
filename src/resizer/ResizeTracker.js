@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Private utility class for Ext.resizer.Resizer.
  * @private
@@ -60,7 +80,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
 
     onBeforeStart: function(e) {
         // record the startBox
-        this.startBox = this.el.getBox();
+        this.startBox = this.target.getBox();
     },
 
     /**
@@ -80,7 +100,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
         me.proxy.show();
         return me.proxy;
     },
-    
+
     /**
      * Create a proxy for this resizer
      * @param {Ext.Component/Ext.Element} target The target
@@ -88,23 +108,16 @@ Ext.define('Ext.resizer.ResizeTracker', {
      */
     createProxy: function(target){
         var proxy,
-            cls = this.proxyCls,
-            renderTo;
-            
+            cls = this.proxyCls;
+
         if (target.isComponent) {
             proxy = target.getProxy().addCls(cls);
         } else {
-            renderTo = Ext.getBody();
-            if (Ext.scopeResetCSS) {
-                renderTo = Ext.getBody().createChild({
-                    cls: Ext.resetCls
-                });
-            }
             proxy = target.createProxy({
                 tag: 'div',
                 cls: cls,
                 id: target.id + '-rzproxy'
-            }, renderTo);
+            }, Ext.getBody());
         }
         proxy.removeCls(Ext.baseCSSPrefix + 'proxy-el');
         return proxy;
@@ -149,6 +162,8 @@ Ext.define('Ext.resizer.ResizeTracker', {
             axis, // 1 = x, 2 = y, 3 = x and y.
             newBox,
             newHeight, newWidth;
+
+        region = me.convertRegionName(region);
 
         switch (region) {
             case 'south':
@@ -313,27 +328,14 @@ Ext.define('Ext.resizer.ResizeTracker', {
     },
 
     resize: function(box, direction, atEnd) {
-        var target = this.getResizeTarget(atEnd);
-        if (target.isComponent) {
-            target.setSize(box.width, box.height);
-            if (target.floating) {
-                target.setPagePosition(box.x, box.y);
-            }
-        } else {
-            target.setBox(box);
-        }
+        var me = this,
+            target = me.getResizeTarget(atEnd);
+
+        target.setBox(box);
 
         // update the originalTarget if it was wrapped, and the target passed in was the wrap el.
-        target = this.originalTarget;
-        if (target && (this.dynamic || atEnd)) {
-            if (target.isComponent) {
-                target.setSize(box.width, box.height);
-                if (target.floating) {
-                    target.setPagePosition(box.x, box.y);
-                }
-            } else {
-                target.setBox(box);
-            }
+        if (me.originalTarget && (me.dynamic || atEnd)) {
+            me.originalTarget.setBox(box);
         }
     },
 
@@ -342,5 +344,9 @@ Ext.define('Ext.resizer.ResizeTracker', {
         if (this.proxy) {
             this.proxy.hide();
         }
+    },
+
+    convertRegionName: function(name) {
+        return name;
     }
 });

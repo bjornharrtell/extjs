@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-fr_CA",
+    "type": "locale",
+    "locale": "fr_CA",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

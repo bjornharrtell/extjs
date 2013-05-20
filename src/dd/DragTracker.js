@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A DragTracker listens for drag events on an Element and fires events at the start and end of the drag,
  * as well as during the drag. This is useful for components such as {@link Ext.slider.Multi}, where there is
@@ -125,7 +145,7 @@ Ext.define('Ext.dd.DragTracker', {
              * drag operation begins after either the mouse has been moved by {@link #tolerance} pixels,
              * or after the {@link #autoStart} timer fires.
              *
-             * Return false to veto the drag operation.
+             * Return `false` to veto the drag operation.
              *
              * @param {Object} this
              * @param {Object} e event object
@@ -196,7 +216,7 @@ Ext.define('Ext.dd.DragTracker', {
      */
     initEl: function(el) {
         var me = this;
-        
+
         me.el = Ext.get(el);
 
         // The delegate option may also be an element on which to listen
@@ -211,23 +231,22 @@ Ext.define('Ext.dd.DragTracker', {
 
         // Add a mousedown listener which reacts only on the elements targeted by the delegate config.
         // We process mousedown to begin tracking.
-        me.mon(me.handle, {
-            mousedown: me.onMouseDown,
+        me.handleListeners = {
+            scope: me,
             delegate: me.delegate,
-            scope: me
-        });
+            mousedown: me.onMouseDown
+        };
 
         // If configured to do so, track mouse entry and exit into the target (or delegate).
         // The mouseover and mouseout CANNOT be replaced with mouseenter and mouseleave
         // because delegate cannot work with those pseudoevents. Entry/exit checking is done in the handler.
         if (me.trackOver || me.overCls) {
-            me.mon(me.handle, {
+            Ext.apply(me.handleListeners, {
                 mouseover: me.onMouseOver,
-                mouseout: me.onMouseOut,
-                delegate: me.delegate,
-                scope: me
+                mouseout: me.onMouseOut
             });
         }
+        me.mon(me.handle, me.handleListeners);
     },
 
     disable: function() {
@@ -239,8 +258,15 @@ Ext.define('Ext.dd.DragTracker', {
     },
 
     destroy : function() {
-        this.clearListeners();
-        delete this.el;
+        var me = this;
+
+        if (me.active) {
+            // endDrag has a mandatory event parameter
+            me.endDrag({});
+        }
+        me.clearListeners();
+        me.mun(me.handle, me.handleListeners);
+        me.el = me.handle = null;
     },
 
     // When the pointer enters a tracking element, fire a mouseover if the mouse entered from outside.
@@ -262,7 +288,7 @@ Ext.define('Ext.dd.DragTracker', {
     // This is mouseleave functionality, but we cannot use mouseleave because we are using "delegate" to filter mouse targets
     onMouseOut: function(e) {
         var me = this;
-        
+
         if (me.mouseIsDown) {
             me.mouseIsOut = true;
         } else {
@@ -276,7 +302,7 @@ Ext.define('Ext.dd.DragTracker', {
     onMouseDown: function(e, target){
         var me = this,
             el;
-        
+
         // If this is disabled, or the mousedown has been processed by an upstream DragTracker, return
         if (me.disabled ||e.dragTracked) {
             return;
@@ -299,7 +325,7 @@ Ext.define('Ext.dd.DragTracker', {
 
         // Flag for downstream DragTracker instances that the mouse is being tracked.
         e.dragTracked = true;
-        
+
         // See Ext.dd.DragDropManager::handleMouseDown
         el = me.el.dom;
         if (Ext.isIE && el.setCapture) {
@@ -357,12 +383,12 @@ Ext.define('Ext.dd.DragTracker', {
             me.onMouseOut(e);
         }
         e.preventDefault();
-        
+
         // See Ext.dd.DragDropManager::handleMouseDown
         if (Ext.isIE && document.releaseCapture) {
             document.releaseCapture();
         }
-        
+
         me.fireEvent('mouseup', me, e);
         me.endDrag(e);
     },
@@ -480,7 +506,7 @@ Ext.define('Ext.dd.DragTracker', {
      */
     getConstrainRegion: function() {
         var me = this;
-        
+
         if (me.constrainTo) {
             if (me.constrainTo instanceof Ext.util.Region) {
                 return me.constrainTo;
@@ -513,7 +539,7 @@ Ext.define('Ext.dd.DragTracker', {
      *    based upon the current mouse position, and then coerced into the constrainRegion. The returned
      *    mouse position is then adjusted by the same delta as was used to coerce the region.\
      *
-     * @param constrainMode {String} (Optional) If omitted the true mouse position is returned. May be passed
+     * @param {String} constrainMode (Optional) If omitted the true mouse position is returned. May be passed
      * as `point` or `dragTarget`. See above.
      * @returns {Number[]} The `X, Y` offset from the mousedown point, optionally constrained.
      */

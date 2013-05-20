@@ -71,6 +71,7 @@ Ext.onReady(function(){
            wait:true,
            waitConfig: {interval:200},
            icon:'ext-mb-download', //custom class in msg-box.html
+           iconHeight: 50,
            animateTarget: 'mb7'
        });
         setTimeout(function(){
@@ -117,9 +118,9 @@ Ext.onReady(function(){
 
     function showResult(btn){
         Ext.example.msg('Button Click', 'You clicked the {0} button', btn);
-    };
+    }
 
     function showResultText(btn, text){
         Ext.example.msg('Button Click', 'You clicked the {0} button and entered the text "{1}".', btn, text);
-    };
+    }
 });

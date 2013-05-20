@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @private
  */
@@ -12,12 +32,12 @@ Ext.define('Ext.grid.ViewDropZone', {
             store = view.getStore(),
             index, records, i, len;
 
-        // If the copy flag is set, create a copy of the Models with the same IDs
+        // If the copy flag is set, create a copy of the models
         if (data.copy) {
             records = data.records;
             data.records = [];
             for (i = 0, len = records.length; i < len; i++) {
-                data.records.push(records[i].copy(records[i].getId()));
+                data.records.push(records[i].copy());
             }
         } else {
             /*
@@ -29,13 +49,20 @@ Ext.define('Ext.grid.ViewDropZone', {
             data.view.store.remove(data.records, data.view === view);
         }
 
-        index = store.indexOf(record);
+        if (record && position) {
+            index = store.indexOf(record);
 
-        // 'after', or undefined (meaning a drop at index -1 on an empty View)...
-        if (position !== 'before') {
-            index++;
+            // 'after', or undefined (meaning a drop at index -1 on an empty View)...
+            if (position !== 'before') {
+                index++;
+            }
+            store.insert(index, data.records);
         }
-        store.insert(index, data.records);
+        // No position specified - append.
+        else {
+            store.add(data.records);
+        }
+
         view.getSelectionModel().select(data.records);
     }
 });

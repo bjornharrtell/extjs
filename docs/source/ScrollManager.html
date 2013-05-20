@@ -40,8 +40,8 @@ Ext.define('Ext.dd.ScrollManager', {
         'Ext.dd.DragDropManager'
     ],
 
-    constructor: function() {
-        var ddm = Ext.dd.DragDropManager;
+<span id='Ext-dd-ScrollManager-method-constructor'>    constructor: function() {
+</span>        var ddm = Ext.dd.DragDropManager;
         ddm.fireEvents = Ext.Function.createSequence(ddm.fireEvents, this.onFire, this);
         ddm.stopDrag = Ext.Function.createSequence(ddm.stopDrag, this.onStop, this);
         this.doScroll = Ext.Function.bind(this.doScroll, this);
@@ -51,20 +51,20 @@ Ext.define('Ext.dd.ScrollManager', {
         this.proc = {};
     },
 
-    onStop: function(e){
-        var sm = Ext.dd.ScrollManager;
+<span id='Ext-dd-ScrollManager-method-onStop'>    onStop: function(e){
+</span>        var sm = Ext.dd.ScrollManager;
         sm.dragEl = null;
         sm.clearProc();
     },
 
-    triggerRefresh: function() {
-        if (this.ddmInstance.dragCurrent) {
+<span id='Ext-dd-ScrollManager-method-triggerRefresh'>    triggerRefresh: function() {
+</span>        if (this.ddmInstance.dragCurrent) {
             this.ddmInstance.refreshCache(this.ddmInstance.dragCurrent.groups);
         }
     },
 
-    doScroll: function() {
-        if (this.ddmInstance.dragCurrent) {
+<span id='Ext-dd-ScrollManager-method-doScroll'>    doScroll: function() {
+</span>        if (this.ddmInstance.dragCurrent) {
             var proc   = this.proc,
                 procEl = proc.el,
                 ddScrollConfig = proc.el.ddScrollConfig,
@@ -80,8 +80,8 @@ Ext.define('Ext.dd.ScrollManager', {
         }
     },
 
-    clearProc: function() {
-        var proc = this.proc;
+<span id='Ext-dd-ScrollManager-method-clearProc'>    clearProc: function() {
+</span>        var proc = this.proc;
         if (proc.id) {
             clearInterval(proc.id);
         }
@@ -90,8 +90,8 @@ Ext.define('Ext.dd.ScrollManager', {
         proc.dir = &quot;&quot;;
     },
 
-    startProc: function(el, dir) {
-        this.clearProc();
+<span id='Ext-dd-ScrollManager-method-startProc'>    startProc: function(el, dir) {
+</span>        this.clearProc();
         this.proc.el = el;
         this.proc.dir = dir;
         var group = el.ddScrollConfig ? el.ddScrollConfig.ddGroup : undefined,
@@ -104,8 +104,8 @@ Ext.define('Ext.dd.ScrollManager', {
         }
     },
 
-    onFire: function(e, isDrop) {
-        if (isDrop || !this.ddmInstance.dragCurrent) {
+<span id='Ext-dd-ScrollManager-method-onFire'>    onFire: function(e, isDrop) {
+</span>        if (isDrop || !this.ddmInstance.dragCurrent) {
             return;
         }
         if (!this.dragEl || this.dragEl != this.ddmInstance.dragCurrent) {

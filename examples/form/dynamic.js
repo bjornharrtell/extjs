@@ -1,8 +1,14 @@
+Ext.Loader.setConfig({
+    enabled: true
+});
+Ext.Loader.setPath('Ext.ux', '../ux');
+
 Ext.require([
     //'Ext.form.*',
     //'Ext.layout.container.Column',
     //'Ext.tab.Panel'
-    '*'
+    '*',
+    'Ext.ux.DataTip'
 ]);
 
 Ext.onReady(function() {
@@ -31,42 +37,56 @@ Ext.onReady(function() {
             msgTarget: 'side',
             labelWidth: 75
         },
+        plugins: {
+            ptype: 'datatip'
+        },
         defaultType: 'textfield',
         items: [{
             fieldLabel: 'First Name',
             afterLabelTextTpl: required,
             name: 'first',
-            allowBlank: false
+            allowBlank: false,
+            tooltip: 'Enter your first name'
         },{
             fieldLabel: 'Last Name',
             afterLabelTextTpl: required,
             name: 'last',
-            allowBlank: false
+            allowBlank: false,
+            tooltip: 'Enter your last name'
         },{
             fieldLabel: 'Company',
-            name: 'company'
+            name: 'company',
+            tooltip: "Enter your employer's name"
         }, {
             fieldLabel: 'Email',
             afterLabelTextTpl: required,
             name: 'email',
             allowBlank: false,
-            vtype:'email'
+            vtype:'email',
+            tooltip: 'Enter your email address'
         }, {
             fieldLabel: 'DOB',
             name: 'dob',
-            xtype: 'datefield'
+            xtype: 'datefield',
+            tooltip: 'Enter your date of birth'
         }, {
             fieldLabel: 'Age',
             name: 'age',
             xtype: 'numberfield',
             minValue: 0,
-            maxValue: 100
+            maxValue: 100,
+            tooltip: 'Enter your age'
         }, {
             xtype: 'timefield',
             fieldLabel: 'Time',
             name: 'time',
             minValue: '8:00am',
-            maxValue: '6:00pm'
+            maxValue: '6:00pm',
+            tooltip: 'Enter a time',
+            plugins: {
+                ptype: 'datatip',
+                tpl: 'Select time {date:date("G:i")}'
+            }
         }],
 
         buttons: [{
@@ -412,7 +432,6 @@ Ext.onReady(function() {
             xtype:'tabpanel',
             plain:true,
             activeTab: 0,
-            height:235,
             defaults:{
                 bodyPadding: 10
             },

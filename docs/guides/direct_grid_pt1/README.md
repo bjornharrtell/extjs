@@ -22,7 +22,7 @@ You will need:
 For the best debugging experience I recommend Firefox with the Firebug add-on.
 
 ### 1.2 What is Ext Grid?
-A grid in Ext JS is "essentially a supercharged `<table>`" to quote [its documentation](http://docs.sencha.com/ext-js/4-0/#!/api/Ext.grid.Panel). It allows you to manipulate data by sorting and filtering, and to fetch new data in, so it's much more dynamic than your run-of-the-mill table. As you can imagine, this allows you to do some pretty cool things.
+A grid in Ext JS is "essentially a supercharged `<table>`" to quote {@link Ext.grid.Panel its documentation}. It allows you to manipulate data by sorting and filtering, and to fetch new data in, so it's much more dynamic than your run-of-the-mill table. As you can imagine, this allows you to do some pretty cool things.
 
 ### 1.3 What is Ext Direct?
 Good question, Ext Direct provides a way to communicate between the browser and server using less code than traditional methods (i.e. PHP) to actually _do_ stuff with your data.
@@ -32,7 +32,7 @@ There are a number of benefits to using Ext Direct to handle your data:
 
 *   It's platform agnostic, so it doesn't matter whether you're using PHP, Java or C\# to serve the data.
 *   You can serve _as much_ data as you want, with no negative client-side impacts.
-*   It has [3 types of 'providers'](http://docs.sencha.com/ext-js/4-0/#!/api/Ext.direct.Manager), that communicate with the server in different ways, we will be using the `RemotingProvider`.
+*   It has {@link Ext.direct.Manager 3 types of 'providers'}, that communicate with the server in different ways, we will be using the `RemotingProvider`.
 *   It can bundle your AJAX requests into a single request (by default, all those sent in the first 10ms) and so the server only has to send back one response.
 
 Now that we've all been persuaded, lets get to building it.
@@ -121,7 +121,7 @@ grid.js
 		});
 	});
 
-Once the DOM is ready we use `Ext.create` to make a new grid. A grid requires a store, otherwise it won't have a purpose (and it's never nice to have no purpose, is it?), so we give it a store that uses the model we defined earlier with the name of 'PersonalInfo'; and use the proxy type `direct` to tell it that we'll be using Ext Direct. A proxy tells the application how we'll be communicating with the store, there are many different types which you can find more information on [in the documentation](http://docs.sencha.com/ext-js/4-0/#/api/Ext.data.proxy.Proxy).
+Once the DOM is ready we use `Ext.create` to make a new grid. A grid requires a store, otherwise it won't have a purpose (and it's never nice to have no purpose, is it?), so we give it a store that uses the model we defined earlier with the name of 'PersonalInfo'; and use the proxy type `direct` to tell it that we'll be using Ext Direct. A proxy tells the application how we'll be communicating with the store, there are many different types which you can find more information on {@link Ext.data.proxy.Proxy in the documentation}.
 
 We then gave the grid a single column (wrapped in an array as we'll be adding more later) with the properties of width and text. The only part that may be unfamiliar here is `dataIndex`, this is what binds the column with the store so it has to be the same name. After that, everything should be self-explanatory apart from `renderTo: Ext.getBody()`, this is a function that gets the body of the document and will attach the grid to it. Remember that we wrap it all in the `onReady` function? That is so that we don't try to attach it to `<body>` before `<body>` exists!
 
@@ -450,7 +450,7 @@ Give it a refresh and&hellip; congratulations! You now have a fully populated gr
 
 V. Conclusion
 -------------
-In this tutorial, we've learnt the basics of how to utilize Ext Direct while getting experience with how to create Ext grids as well as writing some pretty advanced PHP. Take some time to experiment with other configuration options by [looking at the documentation](http://docs.sencha.com/ext-js/4-0/#!/api) and getting a feel for what can be achieved and what customizations can be made.
+In this tutorial, we've learnt the basics of how to utilize Ext Direct while getting experience with how to create Ext grids as well as writing some pretty advanced PHP. Take some time to experiment with other configuration options by [looking at the documentation](#!/api) and getting a feel for what can be achieved and what customizations can be made.
 
 For reference, [here are the working source files](guides/direct_grid_pt1/reference-files.zip).
 

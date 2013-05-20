@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-app-domain-Direct'>/**
+</span> * This class implements the Ext.Direct event domain. All classes extending from
+ * {@link Ext.direct.Provider} are included in this domain. The selectors are simply provider
+ * id's or the wildcard &quot;*&quot; to match any provider.
+ *
+ * @protected
+ */
+
+Ext.define('Ext.app.domain.Direct', {
+    extend: 'Ext.app.EventDomain',
+    singleton: true,
+    
+    requires: [
+        'Ext.direct.Provider'
+    ],
+    
+<span id='Ext-app-domain-Direct-property-type'>    type: 'direct',
+</span><span id='Ext-app-domain-Direct-cfg-idProperty'>    idProperty: 'id',
+</span>    
+<span id='Ext-app-domain-Direct-method-constructor'>    constructor: function() {
+</span>        var me = this;
+        
+        me.callParent();
+        me.monitor(Ext.direct.Provider);
+    }
+});
+</pre>
+</body>
+</html>

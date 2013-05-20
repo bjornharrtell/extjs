@@ -45,19 +45,19 @@
  */
 Ext.define('Ext.slider.Tip', {
     extend: 'Ext.tip.Tip',
-    minWidth: 10,
-    alias: 'widget.slidertip',
+<span id='Ext-slider-Tip-cfg-minWidth'>    minWidth: 10,
+</span>    alias: 'widget.slidertip',
     
 <span id='Ext-slider-Tip-cfg-offsets'>    /**
 </span>     * @cfg {Array} [offsets=null]
-     * Offsets for aligning the tip to the slider. See {@link Ext.dom.Element#alignTo}. Default values
+     * Offsets for aligning the tip to the slider. See {@link Ext.util.Positionable#alignTo}. Default values
      * for offsets are provided by specifying the {@link #position} config.
      */
     offsets : null,
     
 <span id='Ext-slider-Tip-cfg-align'>    /**
 </span>     * @cfg {String} [align=null]
-     * Alignment configuration for the tip to the slider. See {@link Ext.dom.Element#alignTo}. Default
+     * Alignment configuration for the tip to the slider. See {@link Ext.util.Positionable#alignTo}. Default
      * values for alignment are provided by specifying the {@link #position} config.
      */
     align: null,
@@ -71,14 +71,14 @@ Ext.define('Ext.slider.Tip', {
      */
     position: '',
     
-    defaultVerticalPosition: 'left',
-    
-    defaultHorizontalPosition: 'top',
-
-    isSliderTip: true,
-
-    init: function(slider) {
-        var me = this,
+<span id='Ext-slider-Tip-property-defaultVerticalPosition'>    defaultVerticalPosition: 'left',
+</span>    
+<span id='Ext-slider-Tip-property-defaultHorizontalPosition'>    defaultHorizontalPosition: 'top',
+</span>
+<span id='Ext-slider-Tip-property-isSliderTip'>    isSliderTip: true,
+</span>
+<span id='Ext-slider-Tip-method-init'>    init: function(slider) {
+</span>        var me = this,
             align,
             offsets;
         

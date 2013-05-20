@@ -31,20 +31,20 @@ Ext.define('Ext.ux.event.RecorderManager', {
         'Ext.ux.event.Player'
     ],
 
-    layout: 'fit',
-    buttonAlign: 'left',
-
-    eventsToIgnore: {
-        mousemove: 1,
+<span id='Ext-ux-event-RecorderManager-cfg-layout'>    layout: 'fit',
+</span><span id='Ext-ux-event-RecorderManager-cfg-buttonAlign'>    buttonAlign: 'left',
+</span>
+<span id='Ext-ux-event-RecorderManager-property-eventsToIgnore'>    eventsToIgnore: {
+</span>        mousemove: 1,
         mouseover: 1,
         mouseout: 1
     },
 
-    bodyBorder: false,
-    playSpeed: 1,
-
-    initComponent: function () {
-        var me = this;
+<span id='Ext-ux-event-RecorderManager-cfg-bodyBorder'>    bodyBorder: false,
+</span><span id='Ext-ux-event-RecorderManager-property-playSpeed'>    playSpeed: 1,
+</span>
+<span id='Ext-ux-event-RecorderManager-method-initComponent'>    initComponent: function () {
+</span>        var me = this;
 
         me.recorder = new Ext.ux.event.Recorder({
             attachTo: me.attachTo,
@@ -132,8 +132,8 @@ Ext.define('Ext.ux.event.RecorderManager', {
         me.callParent();
     },
 
-    makeRecordButtonMenu: function () {
-        var ret = [],
+<span id='Ext-ux-event-RecorderManager-method-makeRecordButtonMenu'>    makeRecordButtonMenu: function () {
+</span>        var ret = [],
             subs = {},
             eventsToRec = this.recorder.eventsToRecord,
             ignoredEvents = this.eventsToIgnore;
@@ -181,17 +181,17 @@ Ext.define('Ext.ux.event.RecorderManager', {
         return ret;
     },
 
-    getEventView: function () {
-        return this.down('#eventView');
+<span id='Ext-ux-event-RecorderManager-method-getEventView'>    getEventView: function () {
+</span>        return this.down('#eventView');
     },
 
-    onClear: function () {
-        var view = this.getEventView();
+<span id='Ext-ux-event-RecorderManager-method-onClear'>    onClear: function () {
+</span>        var view = this.getEventView();
         view.setValue('');
     },
 
-    onPlay: function () {
-        var me = this,
+<span id='Ext-ux-event-RecorderManager-method-onPlay'>    onPlay: function () {
+</span>        var me = this,
             view = me.getEventView(),
             events = view.getValue();
 
@@ -213,22 +213,22 @@ Ext.define('Ext.ux.event.RecorderManager', {
         }
     },
 
-    onPlayStop: function () {
-        this.player = null;
+<span id='Ext-ux-event-RecorderManager-method-onPlayStop'>    onPlayStop: function () {
+</span>        this.player = null;
         this.syncBtnUI();
     },
 
-    onPlaySpeed: function (menuitem) {
-        this.playSpeed = menuitem.speed;
+<span id='Ext-ux-event-RecorderManager-method-onPlaySpeed'>    onPlaySpeed: function (menuitem) {
+</span>        this.playSpeed = menuitem.speed;
     },
 
-    onRecord: function () {
-        this.recorder.start();
+<span id='Ext-ux-event-RecorderManager-method-onRecord'>    onRecord: function () {
+</span>        this.recorder.start();
         this.syncBtnUI();
     },
 
-    onStop: function () {
-        var me = this;
+<span id='Ext-ux-event-RecorderManager-method-onStop'>    onStop: function () {
+</span>        var me = this;
 
         if (me.player) {
             me.player.stop();
@@ -240,8 +240,8 @@ Ext.define('Ext.ux.event.RecorderManager', {
         me.updateEvents();
     },
 
-    syncBtnUI: function () {
-        var me = this,
+<span id='Ext-ux-event-RecorderManager-method-syncBtnUI'>    syncBtnUI: function () {
+</span>        var me = this,
             idle = !me.player &amp;&amp; !me.recorder.active;
 
         Ext.each(me.query('[whenIdle]'), function (btn) {
@@ -255,8 +255,8 @@ Ext.define('Ext.ux.event.RecorderManager', {
         view.setReadOnly(!idle);
     },
 
-    stringifyEvents: function (events) {
-        var line,
+<span id='Ext-ux-event-RecorderManager-method-stringifyEvents'>    stringifyEvents: function (events) {
+</span>        var line,
             lines = [];
 
         Ext.each(events, function (ev) {
@@ -279,8 +279,8 @@ Ext.define('Ext.ux.event.RecorderManager', {
         return '[\n' + lines.join(',\n') + '\n]';
     },
 
-    updateEvents: function () {
-        var me = this,
+<span id='Ext-ux-event-RecorderManager-method-updateEvents'>    updateEvents: function () {
+</span>        var me = this,
             text = me.stringifyEvents(me.recorder.getRecordedEvents()),
             view = me.getEventView();
 

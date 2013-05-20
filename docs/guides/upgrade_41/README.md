@@ -35,6 +35,9 @@ Code for containers:
 
     renderTpl: '{%this.renderContainer(out,values)%}'
 
+## Panels
+
+To create a Panel with no header, configure it with `header: false`. This supercedes the `preventHeader` config option.
 
 ## callParent calls overridden method
 
@@ -157,13 +160,24 @@ scrolling.
 XTemplates now accept `<tpl elseif>` and  `<tpl else>` tags between `<tpl if>` and `</tpl>`
 
 XTemplates now evaluate embedded script fragments as "scriptlets" using "{% code %}". The code is executed, but nothing
-is placed into the template’s output stream.
+is placed into the template's output stream.
+
+XTemplate's `<tpl for="">` iteration template can now iterate over a `MixedCollection`, and within the loop,
+`values` references an entry in the collection.
 
 ## Grid plugins
 
-Certain Sencha-supplied Grid plugins and Features may now be used with lockable grids. The non-locked columns of a
-lockable grid may be edited using a row or cell editor. The grouping Features divide into two to work on both sides of
-the lockable grid and stay synchronized.
+Certain Sencha-supplied Grid plugins and Features may now be used with lockable grids. Plugins and Features
+are cloned and distributed to both sides of the grid.
+
+Both sides of a lockable grid may be edited using the `CellEditing` plugin.
+
+Grouping Features on both sides of a lockable grid stay synchronized. 
+
+To enable this, plugins and Features *must* extend their respective base classes `Ext.AbstractPlugin` and `Ext.grid.feature.Feature`
+and any implemented constructor *must* use `callParent` so that the configuration can be saved for the clone method to use.
+
+Note that `RowEditing` may *not* be used with lockable grids.
 
 See the `examples/grid/locking-group-summary-grid.html` example in your SDK for an example.
 

@@ -26,7 +26,7 @@ Ext.onReady(function() {
             }],
             proxy: {
                 type: 'direct',
-                directFn: TestAction.getGrid
+                directFn: 'TestAction.getGrid'
             }
         },
         columns: [{

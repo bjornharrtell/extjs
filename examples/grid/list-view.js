@@ -56,8 +56,10 @@ Ext.onReady(function(){
 
     // little bit of feedback
     listView.on('selectionchange', function(view, nodes){
-        var l = nodes.length;
-        var s = l != 1 ? 's' : '';
-        listView.setTitle('Simple ListView <i>('+l+' item'+s+' selected)</i>');
+        var len = nodes.length,
+            suffix = len === 1 ? '' : 's',
+            str = 'Simple ListView <i>({0} item{1} selected)</i>';
+            
+        listView.setTitle(Ext.String.format(str, len, suffix));
     });
 });

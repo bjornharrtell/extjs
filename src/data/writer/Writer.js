@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  *
@@ -11,6 +31,15 @@
  * Writers are not needed for any kind of local storage - whether via a {@link Ext.data.proxy.WebStorage Web Storage
  * proxy} (see {@link Ext.data.proxy.LocalStorage localStorage} and {@link Ext.data.proxy.SessionStorage
  * sessionStorage}) or just in memory via a {@link Ext.data.proxy.Memory MemoryProxy}.
+ * 
+ * # Dates
+ * Before sending dates to the server, they can be formatted using one of the {@link Ext.Date} formats.
+ * These formats can be specified both on the field and the writer itself. In terms of precedence, from highest to lowest:
+ * 
+ * -  {@link #dateFormat Writer.dateFormat} The writer dateFormat will always have the highest precedence
+ * -  {@link Ext.data.Field#dateWriteFormat} The dateWriteFormat will be used if no format is specified on the writer
+ * -  {@link Ext.data.Field#dateFormat Field.dateFormat}/{@link Ext.data.Field#dateReadFormat Field.dateReadFormat} 
+ * Finally, if none of the above options are specified the field will be formatted using the format that was used to read the date from the server.
  */
 Ext.define('Ext.data.writer.Writer', {
     alias: 'writer.base',
@@ -22,6 +51,12 @@ Ext.define('Ext.data.writer.Writer', {
      * modified. Note that any fields that have {@link Ext.data.Field#persist} set to false will still be ignored.
      */
     writeAllFields: true,
+    
+    /**
+     * @cfg {String} dateFormat
+     * This is used for each field of type date in the model to format the value before
+     * it is sent to the server.
+     */
     
     /**
      * @cfg {String} nameProperty
@@ -54,6 +89,18 @@ Ext.define('Ext.data.writer.Writer', {
      * If the value is not present, the field name will always be used.
      */
     nameProperty: 'name',
+    
+    /**
+     * @cfg {Boolean} [writeRecordId]
+     * By default, each record's id is always included in the output for non-phantom records since in most
+     * cases the id will be required on the server to process the record action. This is helpful since the id
+     * will normally not be modified, and so would not be sent to the server unless {@link #writeAllFields}
+     * was explicitly enabled.
+     * 
+     * However, there are cases where it is not desirable for the record id to be passed in the data directly.
+     * For example, when using a RESTful API the record id would typically be appended to the url instead.
+     */
+    writeRecordId: true,
 
     /*
      * @property {Boolean} isWriter
@@ -98,16 +145,15 @@ Ext.define('Ext.data.writer.Writer', {
     getRecordData: function(record, operation) {
         var isPhantom = record.phantom === true,
             writeAll = this.writeAllFields || isPhantom,
-            nameProperty = this.nameProperty,
             fields = record.fields,
             fieldItems = fields.items,
             data = {},
             clientIdProperty = record.clientIdProperty,
             changes,
-            name,
             field,
             key,
             value,
+            mappedIdProperty,
             f, fLen;
 
         if (writeAll) {
@@ -116,15 +162,7 @@ Ext.define('Ext.data.writer.Writer', {
             for (f = 0; f < fLen; f++) {
                 field = fieldItems[f];
                 if (field.persist) {
-                    name = field[nameProperty] || field.name;
-                    value = record.get(field.name);
-                    if (field.serialize) {
-                        data[name] = field.serialize(value, record);
-                    } else if (field.type === Ext.data.Types.DATE && field.dateFormat) {
-                        data[name] = Ext.Date.format(value, field.dateFormat);
-                    } else {
-                        data[name] = value;
-                    }
+                    this.writeValue(data, field, record);
                 }
             }
         } else {
@@ -134,15 +172,7 @@ Ext.define('Ext.data.writer.Writer', {
                 if (changes.hasOwnProperty(key)) {
                     field = fields.get(key);
                     if (field.persist) {
-                        name = field[nameProperty] || field.name;
-                        value = record.get(field.name);
-                        if (field.serialize) {
-                            data[name] = field.serialize(value, record);
-                        } else if (field.type === Ext.data.Types.DATE && field.dateFormat) {
-                            data[name] = Ext.Date.format(value, field.dateFormat);
-                        } else {
-                            data[name] = value;
-                        }
+                        this.writeValue(data, field, record);
                     }
                 }
             }
@@ -153,11 +183,26 @@ Ext.define('Ext.data.writer.Writer', {
                 // The server can then return the clientId with each record so the operation can match the server records with the client records
                 data[clientIdProperty] = record.internalId;
             }
-        } else {
-            // always include the id for non phantoms
-            data[record.idProperty] = record.getId();
+        } else if (this.writeRecordId) {
+            // Make sure that if a mapping is in place the mapped id name is used instead of the default field name. 
+            mappedIdProperty = fields.get(record.idProperty)[this.nameProperty] || record.idProperty;
+            data[mappedIdProperty] = record.getId();
         }
 
         return data;
+    },
+    
+    writeValue: function(data, field, record){
+        var name = field[this.nameProperty] || field.name,
+            dateFormat = this.dateFormat || field.dateWriteFormat || field.dateFormat,
+            value = record.get(field.name);
+            
+        if (field.serialize) {
+            data[name] = field.serialize(value, record);
+        } else if (field.type === Ext.data.Types.DATE && dateFormat && Ext.isDate(value)) {
+            data[name] = Ext.Date.format(value, dateFormat);
+        } else {
+            data[name] = value;
+        }
     }
 });

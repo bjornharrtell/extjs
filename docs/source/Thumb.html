@@ -66,19 +66,19 @@ Ext.define('Ext.slider.Thumb', {
         me.onRender();
     },
     
-    onRender: function() {
-        if (this.disabled) {
+<span id='Ext-slider-Thumb-method-onRender'>    onRender: function() {
+</span>        if (this.disabled) {
             this.disable();
         }
         this.initEvents();
     },
 
-    getElConfig: function() {
-        var me = this,
+<span id='Ext-slider-Thumb-method-getElConfig'>    getElConfig: function() {
+</span>        var me = this,
             slider = me.slider,
             style = {};
 
-        style[slider.vertical ? 'bottom' : 'left'] = slider.calculateThumbPosition(slider.normalizeValue(me.value)) + '%';
+        style[slider.vertical ? 'bottom' : slider.horizontalProp] = slider.calculateThumbPosition(slider.normalizeValue(me.value)) + '%';
         return {
             style: style,
             id  : this.id,
@@ -91,8 +91,10 @@ Ext.define('Ext.slider.Thumb', {
      * move the thumb
      */
     move: function(v, animate) {
-        var el = this.el,
-            styleProp = this.slider.vertical ? 'bottom' : 'left',
+        var me = this,
+            el = me.el,
+            slider = me.slider,
+            styleProp = slider.vertical ? 'bottom' : slider.horizontalProp,
             to,
             from;
 
@@ -199,13 +201,15 @@ Ext.define('Ext.slider.Thumb', {
      * to the thumb and fires the 'dragstart' event
      */
     onDragStart: function(e){
-        var me = this;
+        var me = this,
+            slider = me.slider;
 
+        slider.onDragStart(me, e);
         me.el.addCls(Ext.baseCSSPrefix + 'slider-thumb-drag');
         me.dragging = me.slider.dragging = true;
         me.dragStartValue = me.value;
 
-        me.slider.fireEvent('dragstart', me.slider, e, me);
+        slider.fireEvent('dragstart', slider, e, me);
     },
 
 <span id='Ext-slider-Thumb-method-onDrag'>    /**
@@ -240,8 +244,8 @@ Ext.define('Ext.slider.Thumb', {
         }
     },
 
-    getValueFromTracker: function() {
-        var slider = this.slider,
+<span id='Ext-slider-Thumb-method-getValueFromTracker'>    getValueFromTracker: function() {
+</span>        var slider = this.slider,
             trackPoint = slider.getTrackpoint(this.tracker.getXY());
 
         // If dragged out of range, value will be undefined
@@ -260,6 +264,7 @@ Ext.define('Ext.slider.Thumb', {
             slider = me.slider,
             value  = me.value;
 
+        slider.onDragEnd(me, e);
         me.el.removeCls(Ext.baseCSSPrefix + 'slider-thumb-drag');
 
         me.dragging = slider.dragging = false;
@@ -270,8 +275,8 @@ Ext.define('Ext.slider.Thumb', {
         }
     },
 
-    destroy: function() {
-        Ext.destroy(this.tracker);
+<span id='Ext-slider-Thumb-method-destroy'>    destroy: function() {
+</span>        Ext.destroy(this.tracker);
     }
 });
 </pre>

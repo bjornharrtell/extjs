@@ -59,10 +59,16 @@ Ext.define('Ext.grid.RowNumberer', {
      */
     draggable: false,
 
-    align: 'right',
+<span id='Ext-grid-RowNumberer-property-autoLock'>    // Flag to Lockable to move instances of this column to the locked side.
+</span>    autoLock: true,
 
-    constructor : function(config){
+<span id='Ext-grid-RowNumberer-cfg-lockable'>    // May not be moved from its preferred locked side when grid is enableLocking:true
+</span>    lockable: false,
 
+<span id='Ext-grid-RowNumberer-cfg-align'>    align: 'right',
+</span>
+<span id='Ext-grid-RowNumberer-method-constructor'>    constructor : function(config){
+</span>
         // Copy the prototype's default width setting into an instance property to provide
         // a default width which will not be overridden by AbstractContainer.applyDefaults use of Ext.applyIf
         this.width = this.width;
@@ -73,22 +79,23 @@ Ext.define('Ext.grid.RowNumberer', {
         }
     },
 
-    // private
-    resizable: false,
-    hideable: false,
-    menuDisabled: true,
-    dataIndex: '',
-    cls: Ext.baseCSSPrefix + 'row-numberer',
-    rowspan: undefined,
-
-    // private
-    renderer: function(value, metaData, record, rowIdx, colIdx, store) {
-        if (this.rowspan){
-            metaData.cellAttr = 'rowspan=&quot;'+this.rowspan+'&quot;';
+<span id='Ext-grid-RowNumberer-cfg-resizable'>    // private
+</span>    resizable: false,
+<span id='Ext-grid-RowNumberer-cfg-hideable'>    hideable: false,
+</span><span id='Ext-grid-RowNumberer-cfg-menuDisabled'>    menuDisabled: true,
+</span><span id='Ext-grid-RowNumberer-cfg-dataIndex'>    dataIndex: '',
+</span><span id='Ext-grid-RowNumberer-cfg-cls'>    cls: Ext.baseCSSPrefix + 'row-numberer',
+</span><span id='Ext-grid-RowNumberer-property-rowspan'>    rowspan: undefined,
+</span>
+<span id='Ext-grid-RowNumberer-method-renderer'>    // private
+</span>    renderer: function(value, metaData, record, rowIdx, colIdx, store) {
+        var rowspan = this.rowspan;
+        if (rowspan) {
+            metaData.tdAttr = 'rowspan=&quot;' + rowspan + '&quot;';
         }
 
         metaData.tdCls = Ext.baseCSSPrefix + 'grid-cell-special';
-        return store.indexOfTotal(record) + 1;
+        return rowIdx + 1;
     }
 });
 </pre>

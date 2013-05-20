@@ -15,29 +15,27 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-ux-SlidingPager-method-constructor'><span id='Ext-ux-SlidingPager'>/**
-</span></span>* @class Ext.ux.SlidingPager
-* @extends Object
-* Plugin for PagingToolbar which replaces the textfield input with a slider
-* @constructor
-* Create a new ItemSelector
-* @param {Object} config Configuration options
-*/
+  <pre class="prettyprint lang-js"><span id='Ext-ux-SlidingPager'>/**
+</span> * Plugin for PagingToolbar which replaces the textfield input with a slider
+ */
 Ext.define('Ext.ux.SlidingPager', {
-    extend: 'Object',
     requires: [
         'Ext.slider.Single',
         'Ext.slider.Tip'
     ],
 
+<span id='Ext-ux-SlidingPager-method-constructor'>    /**
+</span>     * Creates new SlidingPager.
+     * @param {Object} config Configuration options
+     */
     constructor : function(config) {
         if (config) {
             Ext.apply(this, config);
         }
     },
 
-    init : function(pbar){
-        var idx = pbar.items.indexOf(pbar.child(&quot;#inputItem&quot;)),
+<span id='Ext-ux-SlidingPager-method-init'>    init : function(pbar){
+</span>        var idx = pbar.items.indexOf(pbar.child(&quot;#inputItem&quot;)),
             slider;
 
         Ext.each(pbar.items.getRange(idx - 2, idx + 2), function(c){

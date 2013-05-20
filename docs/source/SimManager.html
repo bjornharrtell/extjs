@@ -92,18 +92,18 @@ Ext.define('Ext.ux.ajax.SimManager', {
     delay: 150,
 
 <span id='Ext-ux-ajax-SimManager-property-ready'>    /**
-</span>     * @prop {Boolean} ready
+</span>     * @property {Boolean} ready
      * True once this singleton has initialized and applied its Ajax hooks.
      * @private
      */
     ready: false,
 
-    constructor: function () {
-        this.simlets = {};
+<span id='Ext-ux-ajax-SimManager-method-constructor'>    constructor: function () {
+</span>        this.simlets = {};
     },
 
-    getSimlet: function (url) {
-        // Strip down to base URL (no query parameters or hash):
+<span id='Ext-ux-ajax-SimManager-method-getSimlet'>    getSimlet: function (url) {
+</span>        // Strip down to base URL (no query parameters or hash):
         var me = this,
             index = url.indexOf('?');
 
@@ -117,8 +117,8 @@ Ext.define('Ext.ux.ajax.SimManager', {
         return me.simlets[url] || me.defaultSimlet;
     },
 
-    getXhr: function (method, url, options, async) {
-        var simlet = this.getSimlet(url);
+<span id='Ext-ux-ajax-SimManager-method-getXhr'>    getXhr: function (method, url, options, async) {
+</span>        var simlet = this.getSimlet(url);
 
         if (simlet) {
             return simlet.openRequest(method, url, options, async);
@@ -191,8 +191,8 @@ Ext.define('Ext.ux.ajax.SimManager', {
         return me;
     },
 
-    openRequest: function (method, url, async) {
-        var opt = {
+<span id='Ext-ux-ajax-SimManager-method-openRequest'>    openRequest: function (method, url, async) {
+</span>        var opt = {
             method: method,
             url: url
         };

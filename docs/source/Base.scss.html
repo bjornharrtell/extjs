@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}form-field {
+    color: $form-field-color;
+}
+
+.#{$prefix}form-item,
+.#{$prefix}form-field {
+    font: $form-field-font;
+}
+
+input.#{$prefix}form-invalid-field,
+textarea.#{$prefix}form-invalid-field {
+    background-color: $form-field-invalid-background-color;
+    @if $form-field-invalid-background-image != null {
+        background-image: theme-background-image($form-field-invalid-background-image);
+        background-repeat: $form-field-invalid-background-repeat;
+        background-position: $form-field-invalid-background-position;
+    }
+    border-color: $form-field-invalid-border-color;
+}
+
+@if $form-field-disabled-opacity != 1 {
+    .#{$prefix}item-disabled .#{$prefix}form-item-label,
+    .#{$prefix}item-disabled .#{$prefix}form-field,
+    .#{$prefix}item-disabled .#{$prefix}form-display-field,
+    .#{$prefix}item-disabled .#{$prefix}form-cb-label,
+    .#{$prefix}item-disabled .#{$prefix}form-trigger {
+        @include opacity($form-field-disabled-opacity);
+    }
+}</pre>
+</body>
+</html>

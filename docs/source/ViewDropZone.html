@@ -21,20 +21,20 @@
 Ext.define('Ext.grid.ViewDropZone', {
     extend: 'Ext.view.DropZone',
 
-    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
-    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
-
-    handleNodeDrop : function(data, record, position) {
-        var view = this.view,
+<span id='Ext-grid-ViewDropZone-property-indicatorHtml'>    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
+</span><span id='Ext-grid-ViewDropZone-property-indicatorCls'>    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
+</span>
+<span id='Ext-grid-ViewDropZone-method-handleNodeDrop'>    handleNodeDrop : function(data, record, position) {
+</span>        var view = this.view,
             store = view.getStore(),
             index, records, i, len;
 
-        // If the copy flag is set, create a copy of the Models with the same IDs
+        // If the copy flag is set, create a copy of the models
         if (data.copy) {
             records = data.records;
             data.records = [];
             for (i = 0, len = records.length; i &lt; len; i++) {
-                data.records.push(records[i].copy(records[i].getId()));
+                data.records.push(records[i].copy());
             }
         } else {
             /*
@@ -46,13 +46,20 @@ Ext.define('Ext.grid.ViewDropZone', {
             data.view.store.remove(data.records, data.view === view);
         }
 
-        index = store.indexOf(record);
+        if (record &amp;&amp; position) {
+            index = store.indexOf(record);
 
-        // 'after', or undefined (meaning a drop at index -1 on an empty View)...
-        if (position !== 'before') {
-            index++;
+            // 'after', or undefined (meaning a drop at index -1 on an empty View)...
+            if (position !== 'before') {
+                index++;
+            }
+            store.insert(index, data.records);
         }
-        store.insert(index, data.records);
+        // No position specified - append.
+        else {
+            store.add(data.records);
+        }
+
         view.getSelectionModel().select(data.records);
     }
 });</pre>

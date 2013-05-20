@@ -49,7 +49,7 @@ Ext.onReady(function() {
         "name": "St Michael's Alley",
         "cuisine": "Californian"
     }, {
-        "name": "Coconuts Caribbean Restaurant &amp; Bar",
+        "name": "Coconuts Caribbean Restaurant & Bar",
         "cuisine": "Caribbean"
     }, {
         "name": "Mango Caribbean Cafe",
@@ -76,7 +76,7 @@ Ext.onReady(function() {
         "name": "Starbucks",
         "cuisine": "Coffee"
     }, {
-        "name": "Rose &amp; Crown",
+        "name": "Rose & Crown",
         "cuisine": "English"
     }, {
         "name": "Bistro Maxine",

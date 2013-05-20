@@ -23,8 +23,8 @@ Ext.define('Ext.grid.plugin.HeaderReorderer', {
     requires: ['Ext.grid.header.DragZone', 'Ext.grid.header.DropZone'],
     alias: 'plugin.gridheaderreorderer',
 
-    init: function(headerCt) {
-        this.headerCt = headerCt;
+<span id='Ext-grid-plugin-HeaderReorderer-method-init'>    init: function(headerCt) {
+</span>        this.headerCt = headerCt;
         headerCt.on({
             render: this.onHeaderCtRender,
             single: true,
@@ -40,8 +40,8 @@ Ext.define('Ext.grid.plugin.HeaderReorderer', {
         Ext.destroy(this.dragZone, this.dropZone);
     },
 
-    onHeaderCtRender: function() {
-        var me = this;
+<span id='Ext-grid-plugin-HeaderReorderer-method-onHeaderCtRender'>    onHeaderCtRender: function() {
+</span>        var me = this;
         
         me.dragZone = new Ext.grid.header.DragZone(me.headerCt);
         me.dropZone = new Ext.grid.header.DropZone(me.headerCt);
@@ -50,15 +50,15 @@ Ext.define('Ext.grid.plugin.HeaderReorderer', {
         }
     },
     
-    enable: function() {
-        this.disabled = false;
+<span id='Ext-grid-plugin-HeaderReorderer-method-enable'>    enable: function() {
+</span>        this.disabled = false;
         if (this.dragZone) {
             this.dragZone.enable();
         }
     },
     
-    disable: function() {
-        this.disabled = true;
+<span id='Ext-grid-plugin-HeaderReorderer-method-disable'>    disable: function() {
+</span>        this.disabled = true;
         if (this.dragZone) {
             this.dragZone.disable();
         }

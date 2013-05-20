@@ -208,16 +208,27 @@ Ext.define('Ext.data.association.HasOne', {
      */
     createSetter: function() {
         var me              = this,
-            ownerModel      = me.ownerModel,
-            foreignKey      = me.foreignKey;
+            foreignKey      = me.foreignKey,
+            instanceName = me.instanceName;
 
         //'this' refers to the Model instance inside this function
         return function(value, options, scope) {
-            if (value &amp;&amp; value.isModel) {
-                value = value.getId();
+            // If we were passed a record, the value to set is the key of that record.
+            var setByRecord = value &amp;&amp; value.isModel,
+                valueToSet = setByRecord ? value.getId() : value;
+
+            // Setter was passed a record.
+            if (setByRecord) {
+                this[instanceName] = value;
             }
-            
-            this.set(foreignKey, value);
+
+            // Otherwise, if the key of foreign record !== passed value, delete the cached foreign record
+            else if (this[instanceName] instanceof Ext.data.Model &amp;&amp; !this.isEqual(this.get(foreignKey), valueToSet)) {
+                delete this[instanceName];
+            }
+
+            // Set the forign key value
+            this.set(foreignKey, valueToSet);
 
             if (Ext.isFunction(options)) {
                 options = {

@@ -109,6 +109,6 @@ Ext.define('Ext.ux.ajax.SimXhr', {
 
         me.timer = null;
         me.onComplete();
-        me.onreadystatechange();
+        me.onreadystatechange && me.onreadystatechange();
     }
 });

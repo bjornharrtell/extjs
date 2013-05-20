@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  * 
@@ -10,11 +30,8 @@ Ext.define('Ext.tab.Tab', {
     alias: 'widget.tab',
 
     requires: [
-        'Ext.layout.component.Tab',
         'Ext.util.KeyNav'
     ],
-
-    componentLayout: 'tab',
 
     /**
      * @property {Boolean} isTab
@@ -115,6 +132,8 @@ Ext.define('Ext.tab.Tab', {
         if (me.card) {
             me.setCard(me.card);
         }
+
+        me.overCls = ['over', me.position + '-over'];
     },
 
     getTemplateArgs: function() {
@@ -135,6 +154,10 @@ Ext.define('Ext.tab.Tab', {
         me.callParent();
         
         me.addClsWithUI(me.position);
+
+        if (me.active) {
+            me.addClsWithUI([me.activeCls, me.position + '-' + me.activeCls]);
+        }
 
         // Set all the state classNames, as they need to include the UI
         // me.disabledCls = me.getClsWithUIs('disabled');
@@ -162,6 +185,8 @@ Ext.define('Ext.tab.Tab', {
     onRender: function() {
         var me = this;
 
+        me.setElOrientation();
+
         me.callParent(arguments);
 
         me.keyNav = new Ext.util.KeyNav(me.el, {
@@ -169,6 +194,14 @@ Ext.define('Ext.tab.Tab', {
             del: me.onDeleteKey,
             scope: me
         });
+    },
+
+    setElOrientation: function() {
+        var position = this.position;
+
+        if (position === 'left' || position === 'right') {
+            this.el.setVertical(position === 'right' ? 90 : 270);
+        }
     },
 
     // inherit docs
@@ -282,6 +315,7 @@ Ext.define('Ext.tab.Tab', {
         me.setText(me.title || card.title);
         me.setIconCls(me.iconCls || card.iconCls);
         me.setIcon(me.icon || card.icon);
+        me.setGlyph(me.glyph || card.glyph);
     },
 
     /**

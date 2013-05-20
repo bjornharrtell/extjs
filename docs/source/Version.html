@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Version'>/**
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require ../Ext.js
+
+<span id='Ext-Version'>/**
 </span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
  * @docauthor Jacky Nguyen &lt;jacky@sencha.com&gt;
  * @class Ext.Version
@@ -45,7 +48,8 @@
 (function() {
 
 // Current core version
-var version = '4.1.1', Version;
+// also fix Ext-more.js
+var version = '4.2.0', Version;
     Ext.Version = Version = Ext.extend(Object, {
 
 <span id='Ext-Version-method-constructor'>        /**

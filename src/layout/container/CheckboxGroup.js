@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This layout implements the column arrangement for {@link Ext.form.CheckboxGroup} and {@link Ext.form.RadioGroup}.
  * It groups the component's sub-items into columns based on the component's
@@ -17,13 +37,16 @@ Ext.define('Ext.layout.container.CheckboxGroup', {
     autoFlex: true,
 
     type: 'checkboxgroup',
+    
+    createsInnerCt: true,
 
     childEls: [
         'innerCt'
     ],
 
     renderTpl: [
-        '<table id="{ownerId}-innerCt" role="presentation" style="{tableStyle}"><tbody><tr>',
+        '<table id="{ownerId}-innerCt" class="' + Ext.baseCSSPrefix + 'table-plain" cellpadding="0"',
+            'role="presentation" style="{tableStyle}"><tbody><tr>',
             '<tpl for="columns">',
                 '<td class="{parent.colCls}" valign="top" style="{style}">',
                     '{% this.renderColumn(out,parent,xindex-1) %}',
@@ -137,7 +160,7 @@ Ext.define('Ext.layout.container.CheckboxGroup', {
 
         // The columnNodes are widthed using their own width attributes, we just need to wait
         // for all children to have arranged themselves in that width, and then collect our height.
-        if (!ownerContext.getDomProp('containerChildrenDone')) {
+        if (!ownerContext.getDomProp('containerChildrenSizeDone')) {
             me.done = false;
         } else {
             targetContext = ownerContext.innerCtContext;

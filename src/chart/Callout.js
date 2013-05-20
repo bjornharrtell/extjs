@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.chart.Callout
  * A mixin providing callout functionality for Ext.chart.series.Series.
@@ -30,7 +50,7 @@ Ext.define('Ext.chart.Callout', {
             config = me.callouts,
             styles = config.styles,
             group = me.calloutsArray,
-            store = me.chart.store,
+            store = me.chart.getChartStore(),
             len = store.getCount(),
             ratio = items.length / len,
             previouslyPlacedCallouts = [],
@@ -49,7 +69,7 @@ Ext.define('Ext.chart.Callout', {
                 label = group[count];
                 storeItem = store.getAt(i);
                 
-                display = config.filter(storeItem);
+                display = (!config.filter || config.filter(storeItem));
                 
                 if (!display && !label) {
                     count++;
@@ -77,7 +97,9 @@ Ext.define('Ext.chart.Callout', {
                         }
                     }
                 }
-                config.renderer(label, storeItem);
+                if (config && config.renderer) {
+                    config.renderer(label, storeItem);
+                }
                 me.onPlaceCallout(label, storeItem, item, i, display, animate,
                                   j, count, previouslyPlacedCallouts);
                 previouslyPlacedCallouts.push(label);
@@ -91,9 +113,9 @@ Ext.define('Ext.chart.Callout', {
         var me = this,
             group = me.calloutsGroup,
             config = me.callouts,
-            styles = config.styles,
-            width = styles.width,
-            height = styles.height,
+            styles = (config ? config.styles : undefined),
+            width = (styles ? styles.width : 0),
+            height = (styles ? styles.height : 0),
             chart = me.chart,
             surface = chart.surface,
             calloutObj = {

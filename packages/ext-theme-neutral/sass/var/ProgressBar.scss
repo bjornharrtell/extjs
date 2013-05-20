@@ -1,0 +1,20 @@
+$progress-height: 20px !default;
+
+//borders
+$progress-border-color: $base-color !default;
+$progress-border-width: 1px !default;
+$progress-border-radius: 0 !default;
+
+//backgrounds
+$progress-background-color: $base-color !default;
+
+//bar
+$progress-bar-background-color: $base-color !default;
+$progress-bar-background-gradient: null !default;
+
+//text
+$progress-text-color-front: #fff !default;
+$progress-text-color-back: #000 !default;
+$progress-text-text-align: center !default;
+$progress-text-font-size: $font-size !default;
+$progress-text-font-weight: bold !default;

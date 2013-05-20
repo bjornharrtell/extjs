@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.data.association.HasOne
  * 
@@ -191,16 +211,27 @@ Ext.define('Ext.data.association.HasOne', {
      */
     createSetter: function() {
         var me              = this,
-            ownerModel      = me.ownerModel,
-            foreignKey      = me.foreignKey;
+            foreignKey      = me.foreignKey,
+            instanceName = me.instanceName;
 
         //'this' refers to the Model instance inside this function
         return function(value, options, scope) {
-            if (value && value.isModel) {
-                value = value.getId();
+            // If we were passed a record, the value to set is the key of that record.
+            var setByRecord = value && value.isModel,
+                valueToSet = setByRecord ? value.getId() : value;
+
+            // Setter was passed a record.
+            if (setByRecord) {
+                this[instanceName] = value;
             }
-            
-            this.set(foreignKey, value);
+
+            // Otherwise, if the key of foreign record !== passed value, delete the cached foreign record
+            else if (this[instanceName] instanceof Ext.data.Model && !this.isEqual(this.get(foreignKey), valueToSet)) {
+                delete this[instanceName];
+            }
+
+            // Set the forign key value
+            this.set(foreignKey, valueToSet);
 
             if (Ext.isFunction(options)) {
                 options = {

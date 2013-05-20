@@ -3,9 +3,33 @@ Ext.require(['Ext.Window', 'Ext.fx.target.Sprite', 'Ext.layout.container.Fit', '
 
 Ext.onReady(function () {
     
-    var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
+    var seriesConfig = function(field) {
+        return {
+            type: 'radar',
+            xField: 'name',
+            yField: field,
+            showInLegend: true,
+            showMarkers: true,
+            markerConfig: {
+                radius: 5,
+                size: 5
+            },
+            tips: {
+                trackMouse: true,
+                width: 100,
+                height: 28,
+                renderer: function(storeItem, item) {
+                    this.setTitle(storeItem.get('name') + ': ' + storeItem.get(field));
+                }
+            },
+            style: {
+                'stroke-width': 2,
+                fill: 'none'
+            }
+        }
+    },
+
+    chart = Ext.create('Ext.chart.Chart', {
             style: 'background:#fff',
             theme: 'Category2',
             animate: true,
@@ -21,49 +45,11 @@ Ext.onReady(function () {
                     display: true
                 }
             }],
-            series: [{
-                type: 'radar',
-                xField: 'name',
-                yField: 'data1',
-                showInLegend: true,
-                showMarkers: true,
-                markerConfig: {
-                    radius: 5,
-                    size: 5
-                },
-                style: {
-                    'stroke-width': 2,
-                    fill: 'none'
-                }
-            },{
-                type: 'radar',
-                xField: 'name',
-                yField: 'data2',
-                showInLegend: true,
-                showMarkers: true,
-                markerConfig: {
-                    radius: 5,
-                    size: 5
-                },
-                style: {
-                    'stroke-width': 2,
-                    fill: 'none'
-                }
-            },{
-                type: 'radar',
-                xField: 'name',
-                yField: 'data3',
-                showMarkers: true,
-                showInLegend: true,
-                markerConfig: {
-                    radius: 5,
-                    size: 5
-                },
-                style: {
-                    'stroke-width': 2,
-                    fill: 'none'
-                }
-            }]
+            series: [
+                seriesConfig('data1'),
+                seriesConfig('data2'),
+                seriesConfig('data3')
+            ]
         });
 
     var win = Ext.create('Ext.Window', {
@@ -92,14 +78,16 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData());
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData());
+                });
             }
         }, {
             enableToggle: true,
             pressed: true,
             text: 'Animate',
             toggleHandler: function(btn, pressed) {
-                var chart = Ext.getCmp('chartCmp');
                 chart.animate = pressed ? { easing: 'ease', duration: 500 } : false;
             }
         }],

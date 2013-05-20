@@ -25,9 +25,10 @@ Ext.define('Ext.chart.theme.Base', {
 
     requires: ['Ext.chart.theme.Theme'],
 
-    /* End Definitions */
-
+<span id='Ext-chart-theme-Base-method-constructor'>    /* End Definitions */
+</span>
     constructor: function(config) {
+        var ident = Ext.identityFn;
         Ext.chart.theme.call(this, config, {
             background: false,
             axis: {
@@ -39,28 +40,28 @@ Ext.define('Ext.chart.theme.Base', {
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelRight: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelBottom: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelLeft: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisTitleTop: {
                 font: 'bold 18px Arial',

@@ -35,15 +35,73 @@
  *         // other options
  *         features: [groupingFeature]
  *     });
- * 
+ *
+ * ## Writing Features
+ *
+ * A Feature may add new DOM structure within the structure of a grid.
+ *
+ * A grid is essentially a `&lt;table&gt;` element. A {@link Ext.view.Table TableView} instance uses three {@link Ext.XTemplate XTemplates}
+ * to render the grid, `tableTpl`, `rowTpl`, `cellTpl`.
+ *
+ * * A {@link Ext.view.Table TableView} uses its `tableTpl` to emit the `&lt;table&gt;` and `&lt;tbody&gt;` HTML tags into its output stream. It also emits a `&lt;thead&gt;` which contains a
+ * sizing row. To ender the rows, it invokes {@link Ext.view.Table#renderRows} passing the `rows` member of its data object.
+ *
+ * The `tableTpl`'s data object Looks like this:
+ *     {
+ *         view: owningTableView,
+ *         rows: recordsToRender,
+ *         viewStartIndex: indexOfFirstRecordInStore,
+ *         tableStyle: styleString
+ *     }
+ *
+ * * A {@link Ext.view.Table TableView} uses its `rowTpl` to emit a `&lt;tr&gt;` HTML tag to its output stream. To render cells,
+ * it invokes {@link Ext.view.Table#renderCell} passing the `rows` member of its data object.
+ *
+ * The `rowTpl`'s data object looks like this:
+ *
+ *     {
+ *         view:        owningTableView,
+ *         record:      recordToRender,
+ *         recordIndex: indexOfRecordInStore,
+ *         columns:     arrayOfColumnDefinitions,
+ *         itemClasses: arrayOfClassNames, // For outermost row in case of wrapping
+ *         rowClasses:  arrayOfClassNames,  // For internal data bearing row in case of wrapping
+ *         rowStyle:    styleString
+ *     }
+ *
+ * * A {@link Ext.view.Table TableView} uses its `cellTpl` to emit a `&lt;td&gt;` HTML tag to its output stream.
+ *
+ * The `cellTpl's` data object looks like this:
+ *
+ *     {
+ *         record: recordToRender
+ *         column: columnToRender;
+ *         recordIndex: indexOfRecordInStore,
+ *         columnIndex: columnIndex,
+ *         align: columnAlign,
+ *         tdCls: classForCell
+ *     }
+ *
+ * A Feature may inject its own tableTpl or rowTpl or cellTpl into the {@link Ext.view.Table TableView}'s rendering by
+ * calling {@link Ext.view.Table#addTableTpl} or {@link Ext.view.Table#addRowTpl} or {@link Ext.view.Table#addCellTpl}.
+ *
+ * The passed XTemplate is added *upstream* of the default template for the table element in a link list of XTemplates which contribute
+ * to the element's HTML. It may emit appropriate HTML strings into the output stream *around* a call to
+ *
+ *     this.nextTpl.apply(values, out, parent);
+ *
+ * This passes the current value context, output stream and the parent value context to the next XTemplate in the list.
+ *
  * @abstract
  */
 Ext.define('Ext.grid.feature.Feature', {
     extend: 'Ext.util.Observable',
     alias: 'feature.feature',
-
-    /*
-     * @property {Boolean} isFeature
+    
+<span id='Ext-grid-feature-Feature-property-wrapsItem'>    wrapsItem: false,
+</span>
+<span id='Ext-grid-feature-Feature-property-isFeature'>    /*
+</span>     * @property {Boolean} isFeature
      * `true` in this class to identify an object as an instantiated Feature, or subclass thereof.
      */
     isFeature: true,
@@ -84,26 +142,20 @@ Ext.define('Ext.grid.feature.Feature', {
      * Reference to the grid panel
      */
     grid: null,
-
-<span id='Ext-grid-feature-Feature-property-collectData'>    /**
-</span>     * Most features will not modify the data returned to the view.
-     * This is limited to one feature that manipulates the data per grid view.
-     */
-    collectData: false,
     
-    constructor: function(config) {
-        this.initialConfig = config;
+<span id='Ext-grid-feature-Feature-method-constructor'>    constructor: function(config) {
+</span>        this.initialConfig = config;
         this.callParent(arguments);
     },
 
-    clone: function() {
-        return new this.self(this.initialConfig);
+<span id='Ext-grid-feature-Feature-method-clone'>    clone: function() {
+</span>        return new this.self(this.initialConfig);
     },
 
-    init: Ext.emptyFn,
-
-    getFeatureTpl: function() {
-        return '';
+<span id='Ext-grid-feature-Feature-method-init'>    init: Ext.emptyFn,
+</span>    
+<span id='Ext-grid-feature-Feature-method-destroy'>    destroy: function(){
+</span>        this.clearListeners();
     },
 
 <span id='Ext-grid-feature-Feature-method-getFireEventArgs'>    /**
@@ -120,53 +172,9 @@ Ext.define('Ext.grid.feature.Feature', {
     getFireEventArgs: function(eventName, view, featureTarget, e) {
         return [eventName, view, featureTarget, e];
     },
-
-<span id='Ext-grid-feature-Feature-method-attachEvents'>    /**
-</span>     * Approriate place to attach events to the view, selectionmodel, headerCt, etc
-     * @template
-     */
-    attachEvents: function() {
-
-    },
-
-    getFragmentTpl: Ext.emptyFn,
-
-<span id='Ext-grid-feature-Feature-method-mutateMetaRowTpl'>    /**
-</span>     * Allows a feature to mutate the metaRowTpl.
-     * The array received as a single argument can be manipulated to add things
-     * on the end/begining of a particular row.
-     * @param {Array} metaRowTplArray A String array to be used constructing an {@link Ext.XTemplate XTemplate}
-     * to render the rows. This Array may be changed to provide extra DOM structure.
-     * @template
-     */
-    mutateMetaRowTpl: Ext.emptyFn,
-
-<span id='Ext-grid-feature-Feature-method-getMetaRowTplFragments'>    /**
-</span>     * Allows a feature to inject member methods into the metaRowTpl. This is
-     * important for embedding functionality which will become part of the proper
-     * row tpl.
-     * @template
-     */
-    getMetaRowTplFragments: function() {
-        return {};
-    },
-
-    getTableFragments: function() {
-        return {};
-    },
-
-<span id='Ext-grid-feature-Feature-method-getAdditionalData'>    /**
-</span>     * Provide additional data to the prepareData call within the grid view.
-     * @param {Object} data The data for this particular record.
-     * @param {Number} idx The row index for this record.
-     * @param {Ext.data.Model} record The record instance
-     * @param {Object} orig The original result from the prepareData call to massage.
-     * @template
-     */
-    getAdditionalData: function(data, idx, record, orig) {
-        return {};
-    },
-
+    
+<span id='Ext-grid-feature-Feature-method-vetoEvent'>    vetoEvent: Ext.emptyFn,
+</span>
 <span id='Ext-grid-feature-Feature-method-enable'>    /**
 </span>     * Enables the feature.
      */

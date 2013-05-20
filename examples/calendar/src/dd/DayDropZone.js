@@ -3,6 +3,9 @@
  */
 Ext.define('Ext.calendar.dd.DayDropZone', {
     extend: 'Ext.calendar.dd.DropZone',
+    requires: [
+        'Ext.calendar.util.Date'
+    ],
 
     ddGroup: 'DayViewDD',
 
@@ -67,7 +70,7 @@ Ext.define('Ext.calendar.dd.DayDropZone', {
                     box.y = n.timeBox.y;
                 }
                 dt = Ext.Date.format(n.date, 'n/j g:ia');
-                box.x = n.el.getLeft();
+                box.x = n.el.getX();
 
                 this.shim(n.date, box);
                 text = this.moveText;
@@ -76,7 +79,7 @@ Ext.define('Ext.calendar.dd.DayDropZone', {
                 if (!this.resizeDt) {
                     this.resizeDt = n.date;
                 }
-                box.x = dayCol.getLeft();
+                box.x = dayCol.getX();
                 box.height = Math.ceil(Math.abs(e.xy[1] - box.y) / n.timeBox.height) * n.timeBox.height;
                 if (e.xy[1] < box.y) {
                     box.y -= box.height;
@@ -105,12 +108,13 @@ Ext.define('Ext.calendar.dd.DayDropZone', {
 
     shim: function(dt, box) {
         Ext.each(this.shims,
-        function(shim) {
-            if (shim) {
-                shim.isActive = false;
-                shim.hide();
+            function(shim) {
+                if (shim) {
+                    shim.isActive = false;
+                    shim.hide();
+                }
             }
-        });
+        );
 
         var shim = this.shims[0];
         if (!shim) {
@@ -121,6 +125,7 @@ Ext.define('Ext.calendar.dd.DayDropZone', {
         shim.isActive = true;
         shim.show();
         shim.setBox(box);
+        this.DDMInstance.notifyOccluded = true;
     },
 
     onNodeDrop: function(n, dd, e, data) {

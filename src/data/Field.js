@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @author Ed Spencer
  *
@@ -259,15 +279,56 @@ Ext.define('Ext.data.Field', {
     /**
      * @cfg {String} dateFormat
      *
-     * Used when converting received data into a Date when the {@link #type} is specified as `"date"`.
+     * Serves as a default for the {@link #dateReadFormat} and {@link #dateWriteFormat} config options. This
+     * will be used in place of those other configurations if not specified.
      * 
-     * The format dtring is also used when serializing Date fields for use by {@link Ext.data.writer.Writer Writers}.
-     *
      * A format string for the {@link Ext.Date#parse Ext.Date.parse} function, or "timestamp" if the value provided by
      * the Reader is a UNIX timestamp, or "time" if the value provided by the Reader is a javascript millisecond
      * timestamp. See {@link Ext.Date}.
+     * 
+     * It is quite important to note that while this config is optional, it will default to using the base
+     * JavaScript Date object's `parse` function if not specified, rather than {@link Ext.Date#parse Ext.Date.parse}.
+     * This can cause unexpected issues, especially when converting between timezones, or when converting dates that
+     * do not have a timezone specified. The behavior of the native `Date.parse` is implementation-specific, and
+     * depending on the value of the date string, it might return the UTC date or the local date. __For this reason
+     * it is strongly recommended that you always specify an explicit date format when parsing dates.__
      */
     dateFormat: null,
+    
+    /**
+     * @cfg {String} dateReadFormat
+     * Used when converting received data into a Date when the {@link #type} is specified as `"date"`.
+     * This configuration takes precedence over {@link #dateFormat}.
+     * See {@link #dateFormat} for more information.
+     */
+    dateReadFormat: null,
+    
+    /** 
+     * @cfg {String} dateWriteFormat
+     * Used to provide a custom format when serializing dates with a {@link Ext.data.writer.Writer}.
+     * If this is not specified, the {@link #dateFormat} will be used. See the {@link Ext.data.writer.Writer} 
+     * docs for more information on writing dates. 
+     *
+     * **Note that to use a {@link Ext.data.JsonWriter JsonWriter} to send Microsoft format "JSON" dates, which are in fact
+     * invalid JSON, it is not possible to use the standard date serialization pathway or
+     * {@link Ext#USE_NATIVE_JSON native browser JSON production}.**
+     *
+     * To use a {@link Ext.data.JsonWriter JsonWriter} to write dates in a JSON packet in the form `"\/Date(1357372800000)\/"`
+     * configure the field like this:
+     *
+     *    {
+     *        type: 'date',
+     *        dateFormat: 'MS',             // To parse incoming dates from server correctly
+     *        serialize: Ext.identityFn     // An ExtJS-supplied function which returns the arg unchanged
+     *    }
+     *
+     * Then override ExtJS's JSON date serialize function:
+     *
+     *    Ext.JSON.encodeDate = function (d) {
+     *        return '"' + Ext.Date.format(d, 'MS') + '"';
+     *    };
+     */
+    dateWriteFormat: null,
     
     /**
      * @cfg {Boolean} useNull
@@ -324,7 +385,7 @@ Ext.define('Ext.data.Field', {
     mapping: null,
 
     /**
-     * @cfg {Function} sortType
+     * @cfg {Function/String} sortType
      *
      * A function which converts a Field's value to a comparable value in order to ensure correct sort ordering.
      * Predefined functions are provided in {@link Ext.data.SortTypes}. A custom sort example:
@@ -344,6 +405,8 @@ Ext.define('Ext.data.Field', {
      *           default: return 3;
      *        }
      *     }
+     *
+     * May also be set to a String value, corresponding to one of the named sort types in {@link Ext.data.SortTypes}.
      */
     sortType : null,
 

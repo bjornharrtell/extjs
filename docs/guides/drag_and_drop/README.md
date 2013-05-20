@@ -217,7 +217,7 @@ Drag and drop can be a can be applied to mostly everything in the Ext JS framewo
 
 Today, we learned how to implement end to end drag and drop of DOM nodes using the first-level drag and drop implementation classes. From a high-level, we defined and discussed what drag and drop is and how to think about it in terms of the framework. We also learned that the drag and drop classes can be grouped by drag or drop behaviors and whether or not they support single or multiple drag or drop operations. While implementing this behavior, we illustrated that the dd classes help make some of the behavioral decisions, and that we are responsible for coding the end-behaviors. We hope you've enjoyed this thorough look at some fundamental drag and drop operations with DOM nodes. We look forward to bringing you more articles about this topic in the future.
 
-<small class="author">
+<div><small class="author">
 <p>Written by Jay Garcia</p>
 <p>Author of Ext JS in Action and Sencha Touch in Action, Jay Garcia has been an evangelist of Sencha-based JavaScript frameworks since 2006. Jay is also Co-Founder and CTO of Modus Create, a digital agency focused on leveraging top talent to develop high quality Sencha-based applications. Modus Create is a Sencha Premier partner.</p>
-</small>
+</small></div>

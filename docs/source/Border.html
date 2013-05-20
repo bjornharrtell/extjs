@@ -88,12 +88,12 @@ Ext.define('Ext.layout.container.Border', {
     alternateClassName: 'Ext.layout.BorderLayout',
 
 
-    targetCls: Ext.baseCSSPrefix + 'border-layout-ct',
-
-    itemCls: [Ext.baseCSSPrefix + 'border-item', Ext.baseCSSPrefix + 'box-item'],
-
-    type: 'border',
-
+<span id='Ext-layout-container-Border-property-targetCls'>    targetCls: Ext.baseCSSPrefix + 'border-layout-ct',
+</span>
+<span id='Ext-layout-container-Border-cfg-itemCls'>    itemCls: [Ext.baseCSSPrefix + 'border-item', Ext.baseCSSPrefix + 'box-item'],
+</span>
+<span id='Ext-layout-container-Border-property-type'>    type: 'border',
+</span>
 <span id='Ext-layout-container-Border-cfg-split'>    /**
 </span>     * @cfg {Boolean} split
      * This configuration option is to be applied to the **child `items`** managed by this layout.
@@ -127,8 +127,8 @@ Ext.define('Ext.layout.container.Border', {
      */
     padding: undefined,
 
-    percentageRe: /(\d+)%/,
-
+<span id='Ext-layout-container-Border-property-percentageRe'>    percentageRe: /(\d+)%/,
+</span>
 <span id='Ext-layout-container-Border-property-axisProps'>    /**
 </span>     * Reused meta-data objects that describe axis properties.
      * @private
@@ -152,8 +152,8 @@ Ext.define('Ext.layout.container.Border', {
         }
     },
 
-    // @private
-    centerRegion: null,
+<span id='Ext-layout-container-Border-property-centerRegion'>    // @private
+</span>    centerRegion: null,
 
 <span id='Ext-layout-container-Border-property-collapseDirections'>    /**
 </span>     * Maps from region name to collapseDirection for panel.
@@ -166,12 +166,12 @@ Ext.define('Ext.layout.container.Border', {
         west: 'left'
     },
 
-    manageMargins: true,
-
-    panelCollapseAnimate: true,
-
-    panelCollapseMode: 'placeholder',
-
+<span id='Ext-layout-container-Border-property-manageMargins'>    manageMargins: true,
+</span>
+<span id='Ext-layout-container-Border-property-panelCollapseAnimate'>    panelCollapseAnimate: true,
+</span>
+<span id='Ext-layout-container-Border-property-panelCollapseMode'>    panelCollapseMode: 'placeholder',
+</span>
 <span id='Ext-layout-container-Border-cfg-regionWeights'>    /**
 </span>     * @cfg {Object} regionWeights
      * The default weights to assign to regions in the border layout. These values are
@@ -271,7 +271,7 @@ Ext.define('Ext.layout.container.Border', {
         if (center) {
             target = center.target;
 
-            if (placeholder = target.placeholderFor) {
+            if ((placeholder = target.placeholderFor)) {
                 if (!centerFlex &amp;&amp; isVert === placeholder.collapsedVertical()) {
                     // The center region is a placeholder, collapsed in this axis
                     centerFlex = 0;
@@ -297,8 +297,8 @@ Ext.define('Ext.layout.container.Border', {
         }, props);
     },
 
-    beginLayout: function (ownerContext) {
-        var me = this,
+<span id='Ext-layout-container-Border-method-beginLayout'>    beginLayout: function (ownerContext) {
+</span>        var me = this,
             items = me.getLayoutItems(),
             pad = me.padding,
             type = typeof pad,
@@ -322,6 +322,7 @@ Ext.define('Ext.layout.container.Border', {
             item = items[i];
             collapseTarget = me.getSplitterTarget(item);
             if (collapseTarget) {
+                doShow = undefined;
                 hidden = !!item.hidden;
                 if (!collapseTarget.split) {
                     if (collapseTarget.isCollapsingOrExpanding) {
@@ -381,8 +382,8 @@ Ext.define('Ext.layout.container.Border', {
         me.setupSplitterNeighbors(items);
     },
 
-    calculate: function (ownerContext) {
-        var me = this,
+<span id='Ext-layout-container-Border-method-calculate'>    calculate: function (ownerContext) {
+</span>        var me = this,
             containerSize = me.getContainerSize(ownerContext),
             childItems = ownerContext.childItems,
             length = childItems.length,
@@ -568,12 +569,53 @@ Ext.define('Ext.layout.container.Border', {
         }
     },
 
-    getPlaceholder: function (comp) {
-        return comp.getPlaceholder &amp;&amp; comp.getPlaceholder();
+<span id='Ext-layout-container-Border-method-getLayoutItems'>    getLayoutItems: function() {
+</span>        var owner = this.owner,
+            ownerItems = (owner &amp;&amp; owner.items &amp;&amp; owner.items.items) || [],
+            length = ownerItems.length,
+            items = [],
+            i = 0,
+            ownerItem, placeholderFor;
+
+        for (; i &lt; length; i++) {
+            ownerItem = ownerItems[i];
+            placeholderFor = ownerItem.placeholderFor;
+            // There are a couple of scenarios where we do NOT want an item to
+            // be included in the layout items:
+            //
+            // 1. If the item is floated. This can happen when a region's header
+            // is clicked to &quot;float&quot; the item, then another region's header or
+            // is clicked quickly before the first floated region has had a
+            // chance to slide out. When this happens, the second click triggers
+            // a layout, the purpose of which is to determine what the size of the 
+            // second region will be after it is floated, so it can be animated
+            // to that size. In this case the existing floated item should not be
+            // included in the layout items because it will not be visible once
+            // it's slideout animation has completed.
+            //
+            // 2. If the item is a placeholder for a panel that is currently
+            // being expanded. Similar to scenario 1, a second layout can be
+            // triggered by another panel being expanded/collapsed/floated before
+            // the first panel has finished it's expand animation. If this is the
+            // case we do not want the placeholder to be included in the layout
+            // items because it will not be once the panel has finished expanding.
+            //
+            // If the component is hidden, we need none of these shenanigans
+            if (ownerItem.hidden || ((!ownerItem.floated || ownerItem.isCollapsingOrExpanding === 2) &amp;&amp;
+                !(placeholderFor &amp;&amp; placeholderFor.isCollapsingOrExpanding === 2))) {
+                items.push(ownerItem);
+            } 
+        }
+
+        return items;
     },
 
-    getSplitterTarget: function (splitter) {
-        var collapseTarget = splitter.collapseTarget;
+<span id='Ext-layout-container-Border-method-getPlaceholder'>    getPlaceholder: function (comp) {
+</span>        return comp.getPlaceholder &amp;&amp; comp.getPlaceholder();
+    },
+
+<span id='Ext-layout-container-Border-method-getSplitterTarget'>    getSplitterTarget: function (splitter) {
+</span>        var collapseTarget = splitter.collapseTarget;
 
         if (collapseTarget &amp;&amp; collapseTarget.collapsed) {
             return collapseTarget.placeholder || collapseTarget;
@@ -582,12 +624,12 @@ Ext.define('Ext.layout.container.Border', {
         return collapseTarget;
     },
 
-    isItemBoxParent: function (itemContext) {
-        return true;
+<span id='Ext-layout-container-Border-method-isItemBoxParent'>    isItemBoxParent: function (itemContext) {
+</span>        return true;
     },
 
-    isItemShrinkWrap: function (item) {
-        return true;
+<span id='Ext-layout-container-Border-method-isItemShrinkWrap'>    isItemShrinkWrap: function (item) {
+</span>        return true;
     },
 
     //----------------------------------
@@ -677,13 +719,13 @@ Ext.define('Ext.layout.container.Border', {
         }
     },
 
-    onDestroy: function() {
-        this.centerRegion = null;
+<span id='Ext-layout-container-Border-method-onDestroy'>    onDestroy: function() {
+</span>        this.centerRegion = null;
         this.callParent();
     },
 
-    onRemove: function (item) {
-        var me = this,
+<span id='Ext-layout-container-Border-method-onRemove'>    onRemove: function (item) {
+</span>        var me = this,
             region = item.region,
             splitter = item.splitter;
 
@@ -705,8 +747,8 @@ Ext.define('Ext.layout.container.Border', {
         me.callParent(arguments);
     },
 
-    //----------------------------------
-    // Misc
+<span id='Ext-layout-container-Border-property-regionFlags'>    //----------------------------------
+</span>    // Misc
 
     regionFlags: {
         center: { isCenter: true, isHorz: false, isVert: false },
@@ -718,8 +760,8 @@ Ext.define('Ext.layout.container.Border', {
         east: { isCenter: false, isHorz: true, isVert: false }
     },
 
-    setupSplitterNeighbors: function (items) {
-        var edgeRegions = {
+<span id='Ext-layout-container-Border-method-setupSplitterNeighbors'>    setupSplitterNeighbors: function (items) {
+</span>        var edgeRegions = {
                 //north: null,
                 //south: null,
                 //east: null,
@@ -786,23 +828,29 @@ Ext.define('Ext.layout.container.Border', {
         west:   [ 'west',  'north', 'south' ]
     },
 
-    sizePolicies: {
-        vert: {
+<span id='Ext-layout-container-Border-property-sizePolicies'>    sizePolicies: {
+</span>        vert: {
+            readsWidth: 0,
+            readsHeight: 1,
             setsWidth: 1,
             setsHeight: 0
         },
         horz: {
+            readsWidth: 1,
+            readsHeight: 0,
             setsWidth: 0,
             setsHeight: 1
         },
         flexAll: {
+            readsWidth: 0,
+            readsHeight: 0,
             setsWidth: 1,
             setsHeight: 1
         }
     },
 
-    getItemSizePolicy: function (item) {
-        var me = this,
+<span id='Ext-layout-container-Border-method-getItemSizePolicy'>    getItemSizePolicy: function (item) {
+</span>        var me = this,
             policies = this.sizePolicies,
             collapseTarget, size, policy, placeholderFor;
 

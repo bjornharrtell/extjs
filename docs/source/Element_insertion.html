@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.rtl.dom.Element_insertion', {
+    override: 'Ext.dom.Element',
+
+    wrap: function() {
+        var parent = this.parent(),
+            rtlCls = Ext.baseCSSPrefix + 'rtl',
+            ltrCls = Ext.baseCSSPrefix + 'ltr',
+            wrapEl = this.callParent(arguments),
+            cls;
+
+        // if the parentNode of the element being wrapped has the &quot;x-rtl&quot; or &quot;x-ltr&quot; css
+        // class, then add that class to the wrapper as well.  This ensures that descendant
+        // and child selectors still apply e.g. &quot;.x-rtl &gt; .x-foo&quot; or &quot;.x-ltr .x-foo&quot;
+        if (parent.hasCls(rtlCls)) {
+            cls = rtlCls;
+        } else if (parent.hasCls(ltrCls)) {
+            cls = ltrCls;
+        }
+
+        if (cls) {
+            // superclass method may return dom, so use fly() to access the wrap el
+            Ext.fly(wrapEl, '_wrap').addCls(cls);
+        }
+
+        return wrapEl;
+    }
+});</pre>
+</body>
+</html>

@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Simple helper class for easily creating image components. This renders an image tag to
  * the DOM with the configured src.
@@ -33,6 +53,8 @@ Ext.define('Ext.Img', {
 
     autoEl: 'img',
 
+    baseCls: Ext.baseCSSPrefix + 'img',
+
     /**
      * @cfg {String} src
      * The image src.
@@ -46,20 +68,55 @@ Ext.define('Ext.Img', {
     alt: '',
 
     /**
+     * @cfg {String} title
+     * Specifies addtional information about the image.
+     */
+    title: '',
+
+    /**
      * @cfg {String} imgCls
      * Optional CSS classes to add to the img element.
      */
     imgCls: '',
 
+    /**
+     * @cfg {Number/String} glyph
+     * A numeric unicode character code to serve as the image.  If this option is used
+     * The image will be rendered using a div with innerHTML set to the html entity
+     * for the given character code.  The default font-family for glyphs can be set
+     * globally using {@link Ext#setGlyphFontFamily Ext.setGlyphFontFamily()}. Alternatively,
+     * this config option accepts a string with the charCode and font-family separated by
+     * the `@` symbol. For example '65@My Font Family'.
+     */
+
+    initComponent: function() {
+        if (this.glyph) {
+            this.autoEl = 'div';
+        }
+        this.callParent();
+    },
+
     getElConfig: function() {
         var me = this,
             config = me.callParent(),
-            img;
+            glyphFontFamily = Ext._glyphFontFamily,
+            glyph = me.glyph,
+            img, glyphParts;
 
         // It is sometimes helpful (like in a panel header icon) to have the img wrapped
         // by a div. If our autoEl is not 'img' then we just add an img child to the el.
         if (me.autoEl == 'img') {
             img = config;
+        } else if (me.glyph) {
+            if (typeof glyph === 'string') {
+                glyphParts = glyph.split('@');
+                glyph = glyphParts[0];
+                glyphFontFamily = glyphParts[1];
+            }
+            config.html = '&#' + glyph + ';';
+            if (glyphFontFamily) {
+                config.style = 'font-family:' + glyphFontFamily;
+            }
         } else {
             config.cn = [img = {
                 tag: 'img',
@@ -67,13 +124,19 @@ Ext.define('Ext.Img', {
             }];
         }
 
-        if (me.imgCls) {
-            img.cls = (img.cls ? img.cls + ' ' : '') + me.imgCls;
+        if (img) {
+            if (me.imgCls) {
+                img.cls = (img.cls ? img.cls + ' ' : '') + me.imgCls;
+            }
+
+            img.src = me.src || Ext.BLANK_IMAGE_URL;
         }
 
-        img.src = me.src || Ext.BLANK_IMAGE_URL;
         if (me.alt) {
-            img.alt = me.alt;
+            (img || config).alt = me.alt;
+        }
+        if (me.title) {
+            (img || config).title = me.title;
         }
 
         return config;
@@ -107,6 +170,27 @@ Ext.define('Ext.Img', {
 
         if (imgEl) {
             imgEl.dom.src = src || Ext.BLANK_IMAGE_URL;
+        }
+    },
+
+    setGlyph: function(glyph) {
+        var me = this,
+            glyphFontFamily = Ext._glyphFontFamily,
+            glyphParts, dom;
+
+        if (glyph != me.glyph) {
+            if (typeof glyph === 'string') {
+                glyphParts = glyph.split('@');
+                glyph = glyphParts[0];
+                glyphFontFamily = glyphParts[1];
+            }
+
+            dom = me.el.dom;
+
+            dom.innerHTML = '&#' + glyph + ';';
+            if (glyphFontFamily) {
+                dom.style = 'font-family:' + glyphFontFamily;
+            }
         }
     }
 });

@@ -15,7 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-dom-CompositeElementLite'>/**
+  <pre class="prettyprint lang-js">//@tag dom,core
+<span id='Ext-dom-CompositeElementLite'>/**
 </span> * This class encapsulates a *collection* of DOM elements, providing methods to filter members, or to perform collective
  * actions upon the whole set.
  *
@@ -37,7 +38,7 @@
 Ext.define('Ext.dom.CompositeElementLite', {
     alternateClassName: 'Ext.CompositeElementLite',
 
-    requires: ['Ext.dom.Element'],
+    requires: ['Ext.dom.Element', 'Ext.dom.Query'],
 
     statics: {
 <span id='Ext-dom-CompositeElementLite-method-importElementMethods'>        /**
@@ -64,8 +65,8 @@ Ext.define('Ext.dom.CompositeElementLite', {
         }
     },
 
-    constructor: function(elements, root) {
-<span id='Ext-dom-CompositeElementLite-property-elements'>        /**
+<span id='Ext-dom-CompositeElementLite-method-constructor'>    constructor: function(elements, root) {
+</span><span id='Ext-dom-CompositeElementLite-property-elements'>        /**
 </span>         * @property {HTMLElement[]} elements
          * The Array of DOM elements which this CompositeElement encapsulates.
          *
@@ -105,14 +106,14 @@ Ext.define('Ext.dom.CompositeElementLite', {
      */
     isComposite: true,
 
-    // private
-    getElement: function(el) {
+<span id='Ext-dom-CompositeElementLite-method-getElement'>    // private
+</span>    getElement: function(el) {
         // Set the shared flyweight dom property to the current element
         return this.el.attach(el);
     },
 
-    // private
-    transformElement: function(el) {
+<span id='Ext-dom-CompositeElementLite-method-transformElement'>    // private
+</span>    transformElement: function(el) {
         return Ext.getDom(el);
     },
 
@@ -155,8 +156,8 @@ Ext.define('Ext.dom.CompositeElementLite', {
         return this;
     },
 
-    invoke: function(fn, args) {
-        var elements = this.elements,
+<span id='Ext-dom-CompositeElementLite-method-invoke'>    invoke: function(fn, args) {
+</span>        var elements = this.elements,
             ln = elements.length,
             element,
             i;
@@ -188,8 +189,18 @@ Ext.define('Ext.dom.CompositeElementLite', {
         return out;
     },
 
-    // fixes scope with flyweight
-    addListener: function(eventName, handler, scope, opt) {
+<span id='Ext-dom-CompositeElementLite-method-slice'>    /**
+</span>     * Gets a range nodes.
+     * @param {Number} start (optional) The index of the first node in the range
+     * @param {Number} end (optional) The index of the last node in the range
+     * @return {HTMLElement[]} An array of nodes
+     */
+    slice: function() {
+        return this.elements.slice.apply(this.elements, arguments);
+    },
+
+<span id='Ext-dom-CompositeElementLite-method-addListener'>    // fixes scope with flyweight
+</span>    addListener: function(eventName, handler, scope, opt) {
         var els = this.elements,
                 len = els.length,
                 i, e;
@@ -242,6 +253,10 @@ Ext.define('Ext.dom.CompositeElementLite', {
         me.elements = [];
         me.add(els);
         return me;
+    },
+
+<span id='Ext-dom-CompositeElementLite-method-insert'>    insert: function(index, nodes) {
+</span>        Ext.Array.insert(this.elements, index, nodes);
     },
 
 <span id='Ext-dom-CompositeElementLite-method-filter'>    /**
@@ -318,14 +333,24 @@ Ext.define('Ext.dom.CompositeElementLite', {
     },
 
 <span id='Ext-dom-CompositeElementLite-method-clear'>    /**
-</span>     * Removes all elements.
+</span>     * Removes all elements from this Composite.
+     * @param {Boolean} [removeDom] True to also remove the elements from the document.
      */
-    clear: function() {
+    clear: function(removeDom) {
+        var me  = this,
+            els = me.elements,
+            i = els.length - 1;
+        
+        if (removeDom) {
+            for (; i &gt;= 0; i--) {
+                Ext.removeNode(els[i]);
+            }
+        }
         this.elements = [];
     },
 
-    addElements: function(els, root) {
-        if (!els) {
+<span id='Ext-dom-CompositeElementLite-method-addElements'>    addElements: function(els, root) {
+</span>        if (!els) {
             return this;
         }
 
@@ -361,7 +386,7 @@ Ext.define('Ext.dom.CompositeElementLite', {
     },
 
 <span id='Ext-dom-CompositeElementLite-method-contains'>    /**
-</span>     * Returns true if this composite contains the passed element
+</span>     * Returns true if this composite contains the passed element.
      * @param {String/HTMLElement/Ext.Element/Number} el The id of an element, or an Ext.Element, or an HtmlElement to
      * find within the composite collection.
      * @return {Boolean}
@@ -374,7 +399,7 @@ Ext.define('Ext.dom.CompositeElementLite', {
 </span>     * Removes the specified element(s).
      * @param {String/HTMLElement/Ext.Element/Number} el The id of an element, the Element itself, the index of the
      * element in this composite or an array of any of those.
-     * @param {Boolean} [removeDom] True to also remove the element from the document
+     * @param {Boolean} [removeDom] True to also remove the element from the document.
      * @return {Ext.dom.CompositeElement} this
      */
     removeElement: function(keys, removeDom) {

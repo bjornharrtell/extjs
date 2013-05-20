@@ -1,0 +1,12 @@
+.x-panel p {
+    margin: 0;
+}
+
+.tab-cont {
+    float: left;
+    margin: 0 15px 15px 0;
+}
+
+.tab-icon {
+    background-image: url(../shared/icons/fam/application_view_list.png);
+}

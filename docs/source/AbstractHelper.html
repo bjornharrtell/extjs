@@ -15,22 +15,26 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-dom-AbstractHelper'>/**
+  <pre class="prettyprint lang-js">//@tag dom,core
+//@require AbstractQuery.js
+
+<span id='Ext-dom-AbstractHelper'>/**
 </span> * Abstract base class for {@link Ext.dom.Helper}.
  * @private
  */
 Ext.define('Ext.dom.AbstractHelper', {
-    emptyTags : /^(?:br|frame|hr|img|input|link|meta|range|spacer|wbr|area|param|col)$/i,
-    confRe : /(?:tag|children|cn|html|tpl|tplData)$/i,
-    endRe : /end/i,
+<span id='Ext-dom-AbstractHelper-property-emptyTags'>    emptyTags : /^(?:br|frame|hr|img|input|link|meta|range|spacer|wbr|area|param|col)$/i,
+</span><span id='Ext-dom-AbstractHelper-property-confRe'>    confRe : /^(?:tag|children|cn|html|tpl|tplData)$/i,
+</span><span id='Ext-dom-AbstractHelper-property-endRe'>    endRe : /end/i,
+</span><span id='Ext-dom-AbstractHelper-property-styleSepRe'>    styleSepRe: /\s*(?::|;)\s*/,
+</span>
+<span id='Ext-dom-AbstractHelper-property-attributeTransform'>    // Since cls &amp; for are reserved words, we need to transform them
+</span>    attributeTransform: { cls : 'class', htmlFor : 'for' },
 
-    // Since cls &amp; for are reserved words, we need to transform them
-    attributeTransform: { cls : 'class', htmlFor : 'for' },
-
-    closeTags: {},
-
-    decamelizeName : (function () {
-        var camelCaseRe = /([a-z])([A-Z])/g,
+<span id='Ext-dom-AbstractHelper-property-closeTags'>    closeTags: {},
+</span>
+<span id='Ext-dom-AbstractHelper-property-decamelizeName'>    decamelizeName : (function () {
+</span>        var camelCaseRe = /([a-z])([A-Z])/g,
             cache = {};
 
         function decamel (match, p1, p2) {
@@ -42,11 +46,12 @@ Ext.define('Ext.dom.AbstractHelper', {
         };
     }()),
 
-    generateMarkup: function(spec, buffer) {
-        var me = this,
+<span id='Ext-dom-AbstractHelper-method-generateMarkup'>    generateMarkup: function(spec, buffer) {
+</span>        var me = this,
+            specType = typeof spec,
             attr, val, tag, i, closeTags;
 
-        if (typeof spec == &quot;string&quot;) {
+        if (specType == &quot;string&quot; || specType == &quot;number&quot;) {
             buffer.push(spec);
         } else if (Ext.isArray(spec)) {
             for (i = 0; i &lt; spec.length; i++) {
@@ -163,16 +168,15 @@ Ext.define('Ext.dom.AbstractHelper', {
     applyStyles: function(el, styles) {
         if (styles) {
             var i = 0,
-                len,
-                style;
+                len;
 
-            el = Ext.fly(el);
+            el = Ext.fly(el, '_applyStyles');
             if (typeof styles == 'function') {
                 styles = styles.call();
             }
-            if (typeof styles == 'string'){
-                styles = Ext.util.Format.trim(styles).split(/\s*(?::|;)\s*/);
-                for(len = styles.length; i &lt; len;){
+            if (typeof styles == 'string') {
+                styles = Ext.util.Format.trim(styles).split(this.styleSepRe);
+                for (len = styles.length; i &lt; len;) {
                     el.setStyle(styles[i++], styles[i++]);
                 }
             } else if (Ext.isObject(styles)) {
@@ -200,12 +204,10 @@ Ext.define('Ext.dom.AbstractHelper', {
      */
     insertHtml: function(where, el, html) {
         var hash = {},
-            hashVal,
             setStart,
             range,
             frag,
-            rangeEl,
-            rs;
+            rangeEl;
 
         where = where.toLowerCase();
 
@@ -299,8 +301,8 @@ Ext.define('Ext.dom.AbstractHelper', {
         return returnElement ? Ext.get(el.firstChild) : el.firstChild;
     },
 
-    doInsert: function(el, o, returnElement, pos, sibling, append) {
-        var newNode = this.insertHtml(pos, Ext.getDom(el), this.markup(o));
+<span id='Ext-dom-AbstractHelper-method-doInsert'>    doInsert: function(el, o, returnElement, pos, sibling, append) {
+</span>        var newNode = this.insertHtml(pos, Ext.getDom(el), this.markup(o));
         return returnElement ? Ext.get(newNode, true) : newNode;
     }
 

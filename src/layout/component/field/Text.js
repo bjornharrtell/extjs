@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Layout class for {@link Ext.form.field.Text} fields. Handles sizing the input field.
  * @private
@@ -12,12 +32,10 @@ Ext.define('Ext.layout.component.field.Text', {
     canGrowWidth: true,
 
     beginLayoutCycle: function(ownerContext) {
-        var me = this;
-        
-        me.callParent(arguments);
+        this.callParent(arguments);
         
         // Clear height, in case a previous layout cycle stretched it.
-        if (ownerContext.shrinkWrap) {
+        if (ownerContext.heightModel.shrinkWrap) {
             ownerContext.inputContext.el.setStyle('height', '');
         }
     },
@@ -62,14 +80,17 @@ Ext.define('Ext.layout.component.field.Text', {
             ieInputWidthAdjustment = me.ieInputWidthAdjustment;
 
         if (ieInputWidthAdjustment) {
-            // adjust for IE 6/7 strict content-box model
-            // RTL: This might have to be padding-left unless the senses of the padding styles switch when in RTL mode.
-            me.owner.bodyEl.setStyle('padding-right', ieInputWidthAdjustment + 'px');
+            me.adjustIEInputPadding(ownerContext);
             if(suffix === 'px') {
                 width -= ieInputWidthAdjustment;
             }
         }
 
         me.callParent(arguments);
+    },
+
+    adjustIEInputPadding: function(ownerContext) {
+        // adjust for IE 6/7 strict content-box model
+        this.owner.bodyEl.setStyle('padding-right', this.ieInputWidthAdjustment + 'px');
     }
 });

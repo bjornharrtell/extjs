@@ -5,7 +5,7 @@ Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
-    'Ext.grid.PagingScroller'
+    'Ext.grid.plugin.BufferedRenderer'
 ]);
 
 Ext.onReady(function(){

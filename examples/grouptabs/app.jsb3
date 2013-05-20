@@ -358,6 +358,22 @@
                     "name": "SessionStorage.js"
                 },
                 {
+                    "path": "../../../platform/src/data/reader/",
+                    "name": "Reader.js"
+                },
+                {
+                    "path": "../../../platform/src/data/reader/",
+                    "name": "Json.js"
+                },
+                {
+                    "path": "../../../platform/src/data/reader/",
+                    "name": "Array.js"
+                },
+                {
+                    "path": "../../../platform/src/data/reader/",
+                    "name": "Xml.js"
+                },
+                {
                     "path": "../../src/tree/plugin/",
                     "name": "TreeViewDragDrop.js"
                 },
@@ -426,34 +442,6 @@
                     "name": "Property.js"
                 },
                 {
-                    "path": "../../../platform/src/direct/",
-                    "name": "Manager.js"
-                },
-                {
-                    "path": "../../../platform/src/data/proxy/",
-                    "name": "Direct.js"
-                },
-                {
-                    "path": "../../src/dd/",
-                    "name": "DragDropManager.js"
-                },
-                {
-                    "path": "../../../platform/src/",
-                    "name": "XTemplateCompiler.js"
-                },
-                {
-                    "path": "../../../platform/src/",
-                    "name": "XTemplate.js"
-                },
-                {
-                    "path": "../../../platform/src/data/reader/",
-                    "name": "Reader.js"
-                },
-                {
-                    "path": "../../../platform/src/data/reader/",
-                    "name": "Json.js"
-                },
-                {
                     "path": "../../../platform/src/data/",
                     "name": "Store.js"
                 },
@@ -467,11 +455,11 @@
                 },
                 {
                     "path": "../../../platform/src/data/",
-                    "name": "BufferStore.js"
+                    "name": "ArrayStore.js"
                 },
                 {
                     "path": "../../../platform/src/data/",
-                    "name": "DirectStore.js"
+                    "name": "BufferStore.js"
                 },
                 {
                     "path": "../../../platform/src/data/",
@@ -482,20 +470,32 @@
                     "name": "NodeStore.js"
                 },
                 {
-                    "path": "../../../platform/src/data/reader/",
-                    "name": "Array.js"
-                },
-                {
-                    "path": "../../../platform/src/data/",
-                    "name": "ArrayStore.js"
-                },
-                {
-                    "path": "../../../platform/src/data/reader/",
-                    "name": "Xml.js"
-                },
-                {
                     "path": "../../../platform/src/data/",
                     "name": "XmlStore.js"
+                },
+                {
+                    "path": "../../../platform/src/direct/",
+                    "name": "Manager.js"
+                },
+                {
+                    "path": "../../../platform/src/data/proxy/",
+                    "name": "Direct.js"
+                },
+                {
+                    "path": "../../../platform/src/data/",
+                    "name": "DirectStore.js"
+                },
+                {
+                    "path": "../../src/dd/",
+                    "name": "DragDropManager.js"
+                },
+                {
+                    "path": "../../../platform/src/",
+                    "name": "XTemplateCompiler.js"
+                },
+                {
+                    "path": "../../../platform/src/",
+                    "name": "XTemplate.js"
                 },
                 {
                     "path": "../../../platform/src/layout/",
@@ -1204,18 +1204,6 @@
                 {
                     "path": "../../src/resizer/",
                     "name": "BorderSplitterTracker.js"
-                },
-                {
-                    "path": "../../src/selection/",
-                    "name": "CellModel.js"
-                },
-                {
-                    "path": "../../src/selection/",
-                    "name": "CheckboxModel.js"
-                },
-                {
-                    "path": "../../src/view/",
-                    "name": "TableLayout.js"
                 },
                 {
                     "path": "../../src/view/",

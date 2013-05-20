@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Component layout for Ext.form.FieldSet components
  * @private
@@ -7,6 +27,8 @@ Ext.define('Ext.layout.component.FieldSet', {
     alias: ['layout.fieldset'],
 
     type: 'fieldset',
+    
+    defaultCollapsedWidth: 100,
 
     beforeLayoutCycle: function (ownerContext) {
         if (ownerContext.target.collapsed) {
@@ -25,14 +47,28 @@ Ext.define('Ext.layout.component.FieldSet', {
         //
         if (target.collapsed) {
             ownerContext.setContentHeight(0);
+            // if we're collapsed, ignore a minHeight because it's likely going to
+            // be greater than the collapsed height
+            ownerContext.restoreMinHeight = target.minHeight;
+            delete target.minHeight;
 
             // If we are also shrinkWrap width, we must provide a contentWidth (since the
             // container layout is not going to run).
             //
             if (ownerContext.widthModel.shrinkWrap) {
                 lastSize = target.lastComponentSize;
-                ownerContext.setContentWidth((lastSize && lastSize.contentWidth) || 100);
+                ownerContext.setContentWidth((lastSize && lastSize.contentWidth) || this.defaultCollapsedWidth);
             }
+        }
+    },
+    
+    finishedLayout: function(ownerContext) {
+        var owner = this.owner,
+            restore = ownerContext.restoreMinHeight;
+             
+        this.callParent(arguments);
+        if (restore) {
+            owner.minHeight = restore;
         }
     },
 
@@ -40,8 +76,15 @@ Ext.define('Ext.layout.component.FieldSet', {
         var border = ownerContext.getBorderInfo(),
             legend = ownerContext.target.legend;
             
-        // Height of fieldset is content height plus top border width (which is either the legend height or top border width) plus bottom border width
-        return ownerContext.getProp('contentHeight') + ownerContext.getPaddingInfo().height + (legend ? legend.getHeight() : border.top) + border.bottom;
+        // Height of fieldset is content height plus top border width (which is either the
+        // legend height or top border width) plus bottom border width
+        return ownerContext.getProp('contentHeight') +
+               ownerContext.getPaddingInfo().height +
+               // In IE8m and IEquirks the top padding is on the body el
+               ((Ext.isIEQuirks || Ext.isIE8m) ?
+                   ownerContext.bodyContext.getPaddingInfo().top : 0) +
+               (legend ? legend.getHeight() : border.top) +
+               border.bottom;
     },
 
     publishInnerHeight: function (ownerContext, height) {
@@ -57,9 +100,6 @@ Ext.define('Ext.layout.component.FieldSet', {
 
     getLayoutItems : function() {
         var legend = this.owner.legend;
-        if (legend) {
-            return [legend];
-        }
-        return [];
+        return legend ? [legend] : [];
     }
 });

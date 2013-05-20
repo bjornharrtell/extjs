@@ -22,8 +22,8 @@
 Ext.define('Ext.draw.SpriteDD', {
     extend: 'Ext.dd.DragSource',
 
-    constructor : function(sprite, cfg){
-        var me = this,
+<span id='Ext-draw-SpriteDD-method-constructor'>    constructor : function(sprite, cfg){
+</span>        var me = this,
             el = sprite.el;
         me.sprite = sprite;
         me.el = el;
@@ -32,15 +32,15 @@ Ext.define('Ext.draw.SpriteDD', {
         me.sprite.setStyle('cursor', 'move');
     },
 
-    showFrame: Ext.emptyFn,
-    createFrame : Ext.emptyFn,
-
-    getDragEl : function(e){
-        return this.el;
+<span id='Ext-draw-SpriteDD-method-showFrame'>    showFrame: Ext.emptyFn,
+</span><span id='Ext-draw-SpriteDD-method-createFrame'>    createFrame : Ext.emptyFn,
+</span>
+<span id='Ext-draw-SpriteDD-method-getDragEl'>    getDragEl : function(e){
+</span>        return this.el;
     },
     
-    getRegion: function() {
-        var me = this,
+<span id='Ext-draw-SpriteDD-method-getRegion'>    getRegion: function() {
+</span>        var me = this,
             el = me.el,
             pos, x1, x2, y1, y2, t, r, b, l, bbox, sprite;
         
@@ -63,8 +63,8 @@ Ext.define('Ext.draw.SpriteDD', {
         return new Ext.util.Region(y1, x2, y2, x1);
     },
 
-    /*
-      TODO(nico): Cumulative translations in VML are handled
+<span id='Ext-draw-SpriteDD-method-startDrag'>    /*
+</span>      TODO(nico): Cumulative translations in VML are handled
       differently than in SVG. While in SVG we specify the translation
       relative to the original x, y position attributes, in VML the translation
       is a delta between the last position of the object (modified by the last
@@ -80,8 +80,8 @@ Ext.define('Ext.draw.SpriteDD', {
         me.prev = me.sprite.surface.transformToViewBox(x, y);
     },
 
-    onDrag: function(e) {
-        var xy = e.getXY(),
+<span id='Ext-draw-SpriteDD-method-onDrag'>    onDrag: function(e) {
+</span>        var xy = e.getXY(),
             me = this,
             sprite = me.sprite,
             attr = sprite.attr, dx, dy;
@@ -97,8 +97,8 @@ Ext.define('Ext.draw.SpriteDD', {
         me.prev = xy;
     },
 
-    setDragElPos: function () {
-        // Disable automatic DOM move in DD that spoils layout of VML engine.
+<span id='Ext-draw-SpriteDD-method-setDragElPos'>    setDragElPos: function () {
+</span>        // Disable automatic DOM move in DD that spoils layout of VML engine.
         return false;
     }
 });</pre>

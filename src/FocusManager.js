@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * The FocusManager is responsible for globally:
  *
@@ -171,22 +191,6 @@ Ext.define('Ext.FocusManager', {
 
         // Setup some ComponentQuery pseudos
         Ext.apply(CQ.pseudos, {
-            focusable: function(cmps) {
-                var len = cmps.length,
-                    results = [],
-                    i = 0,
-                    c;
-
-                for (; i < len; i++) {
-                    c = cmps[i];
-                    if (c.isFocusable()) {
-                        results.push(c);
-                    }
-                }
-
-                return results;
-            },
-
             // Return the single next focusable sibling from the current idx in either direction (step -1 or 1)
             nextFocus: function(cmps, idx, step) {
                 step = step || 1;
@@ -288,7 +292,7 @@ Ext.define('Ext.FocusManager', {
      * Enables the FocusManager by turning on all automatic focus management and keyboard navigation
      * @param {Boolean/Object} options Either `true`/`false` to turn on the focus frame, or an object
      * with the following options:
-     * @param {Boolean} [focusFrame=false] `true` to show the focus frame around a component when it is focused.
+     * @param {Boolean} [options.focusFrame=false] `true` to show the focus frame around a component when it is focused.
      */
     enable: function(options) {
         var me = this;
@@ -330,8 +334,7 @@ Ext.define('Ext.FocusManager', {
     },
 
     getRootComponents: function() {
-        var me = this,
-            CQ = Ext.ComponentQuery,
+        var CQ = Ext.ComponentQuery,
             inline = CQ.query(':focusable:root:not([floating])'),
             floating = CQ.query(':focusable:root[floating]');
 
@@ -380,7 +383,7 @@ Ext.define('Ext.FocusManager', {
                 style: 'top: -100px; left: -100px;'
             });
             me.focusFrame.setVisibilityMode(Ext.Element.DISPLAY);
-            me.focusFrame.hide().setLeftTop(0, 0);
+            me.focusFrame.hide().setLocalXY(0, 0);
         }
     },
 
@@ -544,7 +547,6 @@ Ext.define('Ext.FocusManager', {
         var me = this,
             cls,
             ff,
-            fw,
             box,
             bt,
             bl,
@@ -566,7 +568,9 @@ Ext.define('Ext.FocusManager', {
         if (me.shouldShowFocusFrame(cmp)) {
             cls = '.' + me.focusFrameCls + '-';
             ff = me.focusFrame;
-            box = focusEl.getPageBox();
+            
+            // focusEl may in fact be a descendant component to which to delegate focus
+            box = (focusEl.dom ? focusEl : focusEl.el).getBox();
 
             // Size the focus frame's t/b/l/r according to the box
             // This leaves a hole in the middle of the frame so user
@@ -580,10 +584,10 @@ Ext.define('Ext.FocusManager', {
             fl = ff.child(cls + 'left');
             fr = ff.child(cls + 'right');
 
-            ft.setWidth(bw).setLeftTop(bl, bt);
-            fb.setWidth(bw).setLeftTop(bl, bt + bh - 2);
-            fl.setHeight(bh - 2).setLeftTop(bl, bt + 2);
-            fr.setHeight(bh - 2).setLeftTop(bl + bw - 2, bt + 2);
+            ft.setWidth(bw).setLocalXY(bl, bt);
+            fb.setWidth(bw).setLocalXY(bl, bt + bh - 2);
+            fl.setHeight(bh - 2).setLocalXY(bl, bt + 2);
+            fr.setHeight(bh - 2).setLocalXY(bl + bw - 2, bt + 2);
 
             ff.show();
         }
@@ -687,9 +691,7 @@ Ext.define('Ext.FocusManager', {
 
     shouldShowFocusFrame: function(cmp) {
         var me = this,
-            opts = me.options || {},
-            cmpFocusEl = cmp.getFocusEl(),
-            cmpFocusElTag = Ext.getDom(cmpFocusEl).tagName;
+            opts = me.options || {};
 
         // Do not show a focus frame if
         // 1. We are configured not to.

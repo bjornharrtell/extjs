@@ -30,21 +30,15 @@ Ext.define('Ext.chart.series.Cartesian', {
 
     /* End Definitions */
 
-<span id='Ext-chart-series-Cartesian-property-xField'>    /**
-</span>     * The field used to access the x axis value from the items from the data
-     * source.
-     *
-     * @cfg xField
-     * @type String
+<span id='Ext-chart-series-Cartesian-cfg-xField'>    /**
+</span>     * @cfg {String} xField
+     * The name of the data Model field corresponding to the x-axis value.
      */
     xField: null,
 
-<span id='Ext-chart-series-Cartesian-property-yField'>    /**
-</span>     * The field used to access the y-axis value from the items from the data
-     * source.
-     *
-     * @cfg yField
-     * @type String
+<span id='Ext-chart-series-Cartesian-cfg-yField'>    /**
+</span>     * @cfg {String/String[]} yField
+     * The name(s) of the data Model field(s) corresponding to the y-axis value(s).
      */
     yField: null,
 
@@ -57,8 +51,8 @@ Ext.define('Ext.chart.series.Cartesian', {
      */
     axis: 'left',
 
-    getLegendLabels: function() {
-        var me = this,
+<span id='Ext-chart-series-Cartesian-method-getLegendLabels'>    getLegendLabels: function() {
+</span>        var me = this,
             labels = [],
             fields, i, ln,
             combinations = me.combinations,
@@ -116,8 +110,8 @@ Ext.define('Ext.chart.series.Cartesian', {
         return this.getYValueAccessors().length;
     },
 
-    combine: function(index1, index2) {
-        var me = this,
+<span id='Ext-chart-series-Cartesian-method-combine'>    combine: function(index1, index2) {
+</span>        var me = this,
             accessors = me.getYValueAccessors(),
             accessor1 = accessors[index1],
             accessor2 = accessors[index2];
@@ -131,8 +125,8 @@ Ext.define('Ext.chart.series.Cartesian', {
         me.callParent([index1, index2]);
     },
 
-    clearCombinations: function() {
-        // Clear combined accessors, they'll get regenerated on next call to getYValueAccessors
+<span id='Ext-chart-series-Cartesian-method-clearCombinations'>    clearCombinations: function() {
+</span>        // Clear combined accessors, they'll get regenerated on next call to getYValueAccessors
         delete this.yValueAccessors;
         this.callParent();
     },
@@ -171,12 +165,13 @@ Ext.define('Ext.chart.series.Cartesian', {
             chart = me.chart,
             store = chart.getChartStore(),
             data = store.data.items,
+            count = me.getRecordCount(),
             i, ln, record,
             min, max,
             xField = me.xField,
             xValue;
 
-        if (me.getRecordCount() &gt; 0) {
+        if (count &gt; 0) {
             min = Infinity;
             max = -min;
                 
@@ -189,6 +184,15 @@ Ext.define('Ext.chart.series.Cartesian', {
                 if (xValue &lt; min) {
                     min = xValue;
                 }
+            }
+            
+            // If we made no progress, treat it like a category axis
+            if (min == Infinity) {
+                min = 0;
+            }
+            
+            if (max == -Infinity) {
+                max = count - 1;
             }
         } else {
             min = max = 0;
@@ -206,6 +210,7 @@ Ext.define('Ext.chart.series.Cartesian', {
             chart = me.chart,
             store = chart.getChartStore(),
             data = store.data.items,
+            count = me.getRecordCount(),
             i, ln, record,
             stacked = me.stacked,
             min, max,
@@ -232,7 +237,7 @@ Ext.define('Ext.chart.series.Cartesian', {
             }
         }
 
-        if (me.getRecordCount() &gt; 0) {
+        if (count &gt; 0) {
             min = Infinity;
             max = -min;
             
@@ -252,14 +257,23 @@ Ext.define('Ext.chart.series.Cartesian', {
                     me.eachYValue(record, eachYValue);
                 }
             }
+            
+            // If we made no progress, treat it like a category axis
+            if (min == Infinity) {
+                min = 0;
+            }
+            
+            if (max == -Infinity) {
+                max = count - 1;
+            }
         } else {
             min = max = 0;
         }
         return [min, max];
     },
 
-    getAxesForXAndYFields: function() {
-        var me = this,
+<span id='Ext-chart-series-Cartesian-method-getAxesForXAndYFields'>    getAxesForXAndYFields: function() {
+</span>        var me = this,
             axes = me.chart.axes,
             axis = [].concat(me.axis),
             yFields = {}, yFieldList = [].concat(me.yField),

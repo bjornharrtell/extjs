@@ -24,21 +24,21 @@ Ext.define('Ext.chart.TipSurface', {
 
     extend: 'Ext.draw.Component',
 
-    /* End Definitions */
-
+<span id='Ext-chart-TipSurface-property-spriteArray'>    /* End Definitions */
+</span>
     spriteArray: false,
-    renderFirst: true,
-
-    constructor: function(config) {
-        this.callParent([config]);
+<span id='Ext-chart-TipSurface-property-renderFirst'>    renderFirst: true,
+</span>
+<span id='Ext-chart-TipSurface-method-constructor'>    constructor: function(config) {
+</span>        this.callParent([config]);
         if (config.sprites) {
             this.spriteArray = [].concat(config.sprites);
             delete config.sprites;
         }
     },
 
-    onRender: function() {
-        var me = this,
+<span id='Ext-chart-TipSurface-method-onRender'>    onRender: function() {
+</span>        var me = this,
             i = 0,
             l = 0,
             sp,

@@ -1,0 +1,107 @@
+/**
+ * @class Ext.panel.Panel
+ */
+
+// TODO: Change value to $include-default-uis !default;
+$include-panel-uis: true;
+
+// ===============================
+// ========= BASE PANEL ==========
+// ===============================
+$panel-border-radius: null !default;
+$panel-border-width: 1px !default;
+$panel-base-color: $base-color !default;
+$panel-border-color: $panel-base-color !default;
+
+/**
+ * @var {$border-width-threshold}
+ * The maximum width a Panel's border can be before resizer handles are embedded into the borders using negative absolute positions.
+ *
+ * This defaults to 2, so that in the classic theme which uses 1 pixel borders, resize handles are in the content area
+ * within the border as they always have been.
+ *
+ * In the Neptune theme, the handles are embedded into the 5 pixel wide borders of any framed panel.
+ */
+$border-width-threshold: 2 !default;
+
+// ===============================
+// ========= PANEL BODY ==========
+// ===============================
+$panel-body-border-style: solid !default;
+$panel-body-background-color: #fff !default;
+$panel-body-color: #000 !default;
+$panel-body-border-color: $panel-border-color !default;
+$panel-body-border-width: 1px !default;
+$panel-body-font-size: $font-size !default;
+$panel-body-font-weight: normal !default;
+
+// ===============================
+// ======== PANEL TOOLS ==========
+// ===============================
+$panel-tool-spacing: 4px !default;
+$panel-tool-background-image: 'tools/tool-sprites' !default;
+
+// ===============================
+// ======== PANEL HEADER =========
+// ===============================
+$panel-header-border-width: $panel-border-width !default;
+$panel-header-border-style: solid !default;
+
+//padding
+$panel-header-padding: 4px 5px !default;
+
+//fonts
+$panel-header-font-size: $font-size !default;
+$panel-header-line-height: 16px !default;
+$panel-header-font-weight: bold !default;
+$panel-header-font-family: $font-family !default;
+$panel-header-text-transform: none !default;
+$panel-header-text-padding: 0 !default;
+
+//background
+$panel-header-background-gradient: null !default;
+
+$panel-header-border-color: $panel-border-color !default;
+$panel-header-inner-border-color: #fff !default;
+$panel-header-inner-border-width: 0 !default;
+$panel-header-color: $color !default;
+$panel-header-background-color: $panel-base-color !default;
+
+//icon
+$panel-header-icon-width: 16px !default;
+$panel-header-icon-height: 16px !default;
+$panel-header-icon-spacing: 4px !default;
+$panel-header-icon-background-position: center center !default;
+$panel-header-glyph-color: $panel-header-color !default;
+$panel-header-glyph-opacity: .5 !default;
+
+// ===============================
+// ======== FRAMED PANEL =========
+// ===============================
+$panel-frame-base-color: $panel-base-color !default;
+
+$panel-frame-border-radius: 4px !default;
+$panel-frame-border-width: 1px !default;
+$panel-frame-border-style: solid !default;
+$panel-frame-padding: 4px !default;
+
+$panel-frame-background-color: #fff !default;
+$panel-frame-border-color: $panel-border-color !default;
+$panel-frame-body-border-width: 1px !default;
+$panel-frame-header-border-width: $panel-header-border-width !default;
+$panel-frame-header-inner-border-color: #fff !default;
+$panel-frame-header-inner-border-width: 0 !default;
+$panel-frame-header-padding: $panel-header-padding !default;
+
+// ghost panel
+$panel-ghost-opacity: 0.50 !default;
+
+$panel-background-stretch-top: bottom !default;
+$panel-background-stretch-bottom: top !default;
+$panel-background-stretch-right: left !default;
+$panel-background-stretch-left: right !default;
+
+$panel-include-border-management-rules: false !default;
+
+$panel-wrap-border-color: $panel-border-color !default;
+$panel-wrap-border-width: 1px !default;

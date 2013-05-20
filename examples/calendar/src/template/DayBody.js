@@ -11,6 +11,9 @@
  */
 Ext.define('Ext.calendar.template.DayBody', {
     extend: 'Ext.XTemplate',
+    requires: [
+        'Ext.calendar.util.Date'
+    ],
     
     constructor: function(config){
         

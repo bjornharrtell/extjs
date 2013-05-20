@@ -53,17 +53,22 @@ Ext.define('Ext.ux.desktop.StartMenu', {
             dock: 'right',
             cls: 'ux-start-menu-toolbar',
             vertical: true,
-            width: 100
+            width: 100,
+            listeners: {
+                add: function(tb, c) {
+                    c.on({
+                        click: function() {
+                            me.hide();
+                        }
+                    });
+                }
+            }
         }, me.toolConfig));
 
         me.toolbar.layout.align = 'stretch';
         me.addDocked(me.toolbar);
 
         delete me.toolItems;
-
-        me.on('deactivate', function () {
-            me.hide();
-        });
     },
 
     addMenuItem: function() {
@@ -74,28 +79,5 @@ Ext.define('Ext.ux.desktop.StartMenu', {
     addToolItem: function() {
         var cmp = this.toolbar;
         cmp.add.apply(cmp, arguments);
-    },
-
-    showBy: function(cmp, pos, off) {
-        var me = this;
-
-        if (me.floating && cmp) {
-            me.layout.autoSize = true;
-            me.show();
-
-            // Component or Element
-            cmp = cmp.el || cmp;
-
-            // Convert absolute to floatParent-relative coordinates if necessary.
-            var xy = me.el.getAlignToXY(cmp, pos || me.defaultAlign, off);
-            if (me.floatParent) {
-                var r = me.floatParent.getTargetEl().getViewRegion();
-                xy[0] -= r.x;
-                xy[1] -= r.y;
-            }
-            me.showAt(xy);
-            me.doConstrain();
-        }
-        return me;
     }
 }); // StartMenu

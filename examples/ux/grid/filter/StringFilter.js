@@ -1,6 +1,4 @@
 /**
- * @class Ext.ux.grid.filter.StringFilter
- * @extends Ext.ux.grid.filter.Filter
  * Filter by a configurable Ext.form.field.Text
  * <p><b><u>Example Usage:</u></b></p>
  * <pre><code>
@@ -42,8 +40,10 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
     init : function (config) {
         Ext.applyIf(config, {
             enableKeyEvents: true,
-            iconCls: this.iconCls,
-            hideLabel: true,
+            labelCls: 'ux-rangemenu-icon ' + this.iconCls,
+            hideEmptyLabel: false,
+            labelSeparator: '',
+            labelWidth: 29,
             listeners: {
                 scope: this,
                 keyup: this.onInputKeyUp,
@@ -57,6 +57,7 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
 
         this.inputItem = Ext.create('Ext.form.field.Text', config);
         this.menu.add(this.inputItem);
+        this.menu.showSeparator = false;
         this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
     },
 
@@ -80,7 +81,6 @@ Ext.define('Ext.ux.grid.filter.StringFilter', {
     },
 
     /**
-     * @private
      * Template method that is to return <tt>true</tt> if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}

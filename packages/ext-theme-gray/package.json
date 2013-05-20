@@ -1,0 +1,11 @@
+{
+    "name": "ext-theme-gray",
+    "type": "THEME",
+    "version": "4.2.0.663",
+    "compatVersion": "4.2.0",
+    "extend": "ext-theme-classic",
+    "requires": [{
+		"name": "ext-theme-classic",
+		"version": "4.2.0.663"
+	}]
+}

@@ -6,10 +6,14 @@ Ext.require([
 Ext.onReady(function(){
     Ext.define('Book',{
         extend: 'Ext.data.Model',
+        proxy: {
+            type: 'ajax',
+            reader: 'xml'
+        },
         fields: [
             // set up the fields mapping into the xml doc
             // The first needs mapping, the others are very basic
-            {name: 'Author', mapping: 'ItemAttributes > Author'},
+            {name: 'Author', mapping: '@author.name'},
             'Title', 'Manufacturer', 'ProductGroup'
         ]
     });
@@ -34,13 +38,13 @@ Ext.onReady(function(){
     });
 
     // create the grid
-    var grid = Ext.create('Ext.grid.Panel', {
+    Ext.create('Ext.grid.Panel', {
         store: store,
         columns: [
-            {text: "Author", flex: 1, dataIndex: 'Author', sortable: true},
-            {text: "Title", width: 180, dataIndex: 'Title', sortable: true},
-            {text: "Manufacturer", width: 115, dataIndex: 'Manufacturer', sortable: true},
-            {text: "Product Group", width: 100, dataIndex: 'ProductGroup', sortable: true}
+            {text: "Author", flex: 1, dataIndex: 'Author'},
+            {text: "Title", width: 180, dataIndex: 'Title'},
+            {text: "Manufacturer", width: 115, dataIndex: 'Manufacturer'},
+            {text: "Product Group", width: 100, dataIndex: 'ProductGroup'}
         ],
         renderTo:'example-grid',
         width: 540,

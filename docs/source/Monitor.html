@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-perf-Monitor'>/**
+  <pre class="prettyprint lang-js">//@tag extras,core
+//@require Accumulator.js
+
+<span id='Ext-perf-Monitor'>/**
 </span> * @class Ext.perf.Monitor
  * @singleton
  * @private
@@ -28,13 +31,13 @@ Ext.define('Ext.perf.Monitor', {
         'Ext.perf.Accumulator'
     ],
 
-    constructor: function () {
-        this.accumulators = [];
+<span id='Ext-perf-Monitor-method-constructor'>    constructor: function () {
+</span>        this.accumulators = [];
         this.accumulatorsByName = {};
     },
 
-    calibrate: function () {
-        var accum = new Ext.perf.Accumulator('$'),
+<span id='Ext-perf-Monitor-method-calibrate'>    calibrate: function () {
+</span>        var accum = new Ext.perf.Accumulator('$'),
             total = accum.total,
             getTimestamp = Ext.perf.Accumulator.getTimestamp,
             count = 0,
@@ -55,8 +58,8 @@ Ext.define('Ext.perf.Monitor', {
         return (endTime - startTime) / count;
     },
 
-    get: function (name) {
-        var me = this,
+<span id='Ext-perf-Monitor-method-get'>    get: function (name) {
+</span>        var me = this,
             accum = me.accumulatorsByName[name];
 
         if (!accum) {
@@ -67,16 +70,16 @@ Ext.define('Ext.perf.Monitor', {
         return accum;
     },
 
-    enter: function (name) {
-        return this.get(name).enter();
+<span id='Ext-perf-Monitor-method-enter'>    enter: function (name) {
+</span>        return this.get(name).enter();
     },
 
-    monitor: function (name, fn, scope) {
-        this.get(name).monitor(fn, scope);
+<span id='Ext-perf-Monitor-method-monitor'>    monitor: function (name, fn, scope) {
+</span>        this.get(name).monitor(fn, scope);
     },
 
-    report: function () {
-        var me = this,
+<span id='Ext-perf-Monitor-method-report'>    report: function () {
+</span>        var me = this,
             accumulators = me.accumulators,
             calibration = me.calibrate();
 
@@ -92,8 +95,8 @@ Ext.define('Ext.perf.Monitor', {
         });
     },
 
-    getData: function (all) {
-        var ret = {},
+<span id='Ext-perf-Monitor-method-getData'>    getData: function (all) {
+</span>        var ret = {},
             accumulators = this.accumulators;
 
         Ext.each(accumulators, function (accum) {
@@ -105,8 +108,8 @@ Ext.define('Ext.perf.Monitor', {
         return ret;
     },
 
-    reset: function(){
-        Ext.each(this.accumulators, function(accum){
+<span id='Ext-perf-Monitor-method-reset'>    reset: function(){
+</span>        Ext.each(this.accumulators, function(accum){
             var me = accum;
             me.count = me.childCount = me.depth = me.maxDepth = 0;
             me.pure = {
@@ -122,8 +125,8 @@ Ext.define('Ext.perf.Monitor', {
         });
     },
 
-    updateGC: function () {
-        var accumGC = this.accumulatorsByName.GC,
+<span id='Ext-perf-Monitor-method-updateGC'>    updateGC: function () {
+</span>        var accumGC = this.accumulatorsByName.GC,
             toolbox = Ext.senchaToolbox,
             bucket;
 
@@ -140,8 +143,8 @@ Ext.define('Ext.perf.Monitor', {
         }
     },
 
-    watchGC: function () {
-        Ext.perf.getTimestamp(); // initializes SenchaToolbox (if available)
+<span id='Ext-perf-Monitor-method-watchGC'>    watchGC: function () {
+</span>        Ext.perf.getTimestamp(); // initializes SenchaToolbox (if available)
 
         var toolbox = Ext.senchaToolbox;
 
@@ -151,8 +154,8 @@ Ext.define('Ext.perf.Monitor', {
         }
     },
 
-    setup: function (config) {
-        if (!config) {
+<span id='Ext-perf-Monitor-method-setup'>    setup: function (config) {
+</span>        if (!config) {
             config = {
                 /*insertHtml: {
                     'Ext.dom.Helper': 'insertHtml'

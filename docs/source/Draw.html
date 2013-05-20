@@ -27,16 +27,16 @@ Ext.define('Ext.draw.Draw', {
 
     requires: ['Ext.draw.Color'],
 
-    /* End Definitions */
-
+<span id='Ext-draw-Draw-property-pathToStringRE'>    /* End Definitions */
+</span>
     pathToStringRE: /,?([achlmqrstvxz]),?/gi,
-    pathCommandRE: /([achlmqstvz])[\s,]*((-?\d*\.?\d*(?:e[-+]?\d+)?\s*,?\s*)+)/ig,
-    pathValuesRE: /(-?\d*\.?\d*(?:e[-+]?\d+)?)\s*,?\s*/ig,
-    stopsRE: /^(\d+%?)$/,
-    radian: Math.PI / 180,
-
-    availableAnimAttrs: {
-        along: &quot;along&quot;,
+<span id='Ext-draw-Draw-property-pathCommandRE'>    pathCommandRE: /([achlmqstvz])[\s,]*((-?\d*\.?\d*(?:e[-+]?\d+)?\s*,?\s*)+)/ig,
+</span><span id='Ext-draw-Draw-property-pathValuesRE'>    pathValuesRE: /(-?\d*\.?\d*(?:e[-+]?\d+)?)\s*,?\s*/ig,
+</span><span id='Ext-draw-Draw-property-stopsRE'>    stopsRE: /^(\d+%?)$/,
+</span><span id='Ext-draw-Draw-property-radian'>    radian: Math.PI / 180,
+</span>
+<span id='Ext-draw-Draw-property-availableAnimAttrs'>    availableAnimAttrs: {
+</span>        along: &quot;along&quot;,
         blur: null,
         &quot;clip-rect&quot;: &quot;csv&quot;,
         cx: null,
@@ -61,8 +61,8 @@ Ext.define('Ext.draw.Draw', {
         y: null
     },
 
-    is: function(o, type) {
-        type = String(type).toLowerCase();
+<span id='Ext-draw-Draw-method-is'>    is: function(o, type) {
+</span>        type = String(type).toLowerCase();
         return (type == &quot;object&quot; &amp;&amp; o === Object(o)) ||
             (type == &quot;undefined&quot; &amp;&amp; typeof o == type) ||
             (type == &quot;null&quot; &amp;&amp; o === null) ||
@@ -70,13 +70,13 @@ Ext.define('Ext.draw.Draw', {
             (Object.prototype.toString.call(o).toLowerCase().slice(8, -1)) == type;
     },
 
-    ellipsePath: function(sprite) {
-        var attr = sprite.attr;
+<span id='Ext-draw-Draw-method-ellipsePath'>    ellipsePath: function(sprite) {
+</span>        var attr = sprite.attr;
         return Ext.String.format(&quot;M{0},{1}A{2},{3},0,1,1,{0},{4}A{2},{3},0,1,1,{0},{1}z&quot;, attr.x, attr.y - attr.ry, attr.rx, attr.ry, attr.y + attr.ry);
     },
 
-    rectPath: function(sprite) {
-        var attr = sprite.attr;
+<span id='Ext-draw-Draw-method-rectPath'>    rectPath: function(sprite) {
+</span>        var attr = sprite.attr;
         if (attr.radius) {
             return Ext.String.format(&quot;M{0},{1}l{2},0a{3},{3},0,0,1,{3},{3}l0,{5}a{3},{3},0,0,1,{4},{3}l{6},0a{3},{3},0,0,1,{4},{4}l0,{7}a{3},{3},0,0,1,{3},{4}z&quot;, attr.x + attr.radius, attr.y, attr.width - attr.radius * 2, attr.radius, -attr.radius, attr.height - attr.radius * 2, attr.radius * 2 - attr.width, attr.radius * 2 - attr.height);
         }
@@ -85,18 +85,18 @@ Ext.define('Ext.draw.Draw', {
         }
     },
 
-    // To be deprecated, converts itself (an arrayPath) to a proper SVG path string
-    path2string: function () {
+<span id='Ext-draw-Draw-method-path2string'>    // To be deprecated, converts itself (an arrayPath) to a proper SVG path string
+</span>    path2string: function () {
         return this.join(&quot;,&quot;).replace(Ext.draw.Draw.pathToStringRE, &quot;$1&quot;);
     },
 
-    // Convert the passed arrayPath to a proper SVG path string (d attribute)
-    pathToString: function(arrayPath) {
+<span id='Ext-draw-Draw-method-pathToString'>    // Convert the passed arrayPath to a proper SVG path string (d attribute)
+</span>    pathToString: function(arrayPath) {
         return arrayPath.join(&quot;,&quot;).replace(Ext.draw.Draw.pathToStringRE, &quot;$1&quot;);
     },
 
-    parsePathString: function (pathString) {
-        if (!pathString) {
+<span id='Ext-draw-Draw-method-parsePathString'>    parsePathString: function (pathString) {
+</span>        if (!pathString) {
             return null;
         }
         var paramCounts = {a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0},
@@ -129,8 +129,8 @@ Ext.define('Ext.draw.Draw', {
         return data;
     },
 
-    mapPath: function (path, matrix) {
-        if (!matrix) {
+<span id='Ext-draw-Draw-method-mapPath'>    mapPath: function (path, matrix) {
+</span>        if (!matrix) {
             return path;
         }
         var x, y, i, ii, j, jj, pathi;
@@ -147,8 +147,8 @@ Ext.define('Ext.draw.Draw', {
         return path;
     },
 
-    pathClone: function(pathArray) {
-        var res = [],
+<span id='Ext-draw-Draw-method-pathClone'>    pathClone: function(pathArray) {
+</span>        var res = [],
             j, jj, i, ii;
         if (!this.is(pathArray, &quot;array&quot;) || !this.is(pathArray &amp;&amp; pathArray[0], &quot;array&quot;)) { // rough assumption
             pathArray = this.parsePathString(pathArray);
@@ -163,8 +163,8 @@ Ext.define('Ext.draw.Draw', {
         return res;
     },
 
-    pathToAbsolute: function (pathArray) {
-        if (!this.is(pathArray, &quot;array&quot;) || !this.is(pathArray &amp;&amp; pathArray[0], &quot;array&quot;)) { // rough assumption
+<span id='Ext-draw-Draw-method-pathToAbsolute'>    pathToAbsolute: function (pathArray) {
+</span>        if (!this.is(pathArray, &quot;array&quot;) || !this.is(pathArray &amp;&amp; pathArray[0], &quot;array&quot;)) { // rough assumption
             pathArray = this.parsePathString(pathArray);
         }
         var res = [],
@@ -258,8 +258,8 @@ Ext.define('Ext.draw.Draw', {
         return res;
     },
 
-    // TO BE DEPRECATED
-    pathToRelative: function (pathArray) {
+<span id='Ext-draw-Draw-method-pathToRelative'>    // TO BE DEPRECATED
+</span>    pathToRelative: function (pathArray) {
         if (!this.is(pathArray, &quot;array&quot;) || !this.is(pathArray &amp;&amp; pathArray[0], &quot;array&quot;)) {
             pathArray = this.parsePathString(pathArray);
         }
@@ -344,8 +344,8 @@ Ext.define('Ext.draw.Draw', {
         return res;
     },
 
-    // Returns a path converted to a set of curveto commands
-    path2curve: function (path) {
+<span id='Ext-draw-Draw-method-path2curve'>    // Returns a path converted to a set of curveto commands
+</span>    path2curve: function (path) {
         var me = this,
             points = me.pathToAbsolute(path),
             ln = points.length,
@@ -374,8 +374,8 @@ Ext.define('Ext.draw.Draw', {
         return points;
     },
     
-    interpolatePaths: function (path, path2) {
-        var me = this,
+<span id='Ext-draw-Draw-method-interpolatePaths'>    interpolatePaths: function (path, path2) {
+</span>        var me = this,
             p = me.pathToAbsolute(path),
             p2 = me.pathToAbsolute(path2),
             attrs = {x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null},
@@ -426,8 +426,8 @@ Ext.define('Ext.draw.Draw', {
         return [p, p2];
     },
     
-    //Returns any path command as a curveto command based on the attrs passed
-    command2curve: function (pathCommand, d) {
+<span id='Ext-draw-Draw-method-command2curve'>    //Returns any path command as a curveto command based on the attrs passed
+</span>    command2curve: function (pathCommand, d) {
         var me = this;
         if (!pathCommand) {
             return [&quot;C&quot;, d.x, d.y, d.x, d.y, d.x, d.y];
@@ -472,8 +472,8 @@ Ext.define('Ext.draw.Draw', {
         return pathCommand;
     },
 
-    quadratic2curve: function (x1, y1, ax, ay, x2, y2) {
-        var _13 = 1 / 3,
+<span id='Ext-draw-Draw-method-quadratic2curve'>    quadratic2curve: function (x1, y1, ax, ay, x2, y2) {
+</span>        var _13 = 1 / 3,
             _23 = 2 / 3;
         return [
                 _13 * x1 + _23 * ax,
@@ -485,16 +485,16 @@ Ext.define('Ext.draw.Draw', {
             ];
     },
     
-    rotate: function (x, y, rad) {
-        var cos = Math.cos(rad),
+<span id='Ext-draw-Draw-method-rotate'>    rotate: function (x, y, rad) {
+</span>        var cos = Math.cos(rad),
             sin = Math.sin(rad),
             X = x * cos - y * sin,
             Y = x * sin + y * cos;
         return {x: X, y: Y};
     },
 
-    arc2curve: function (x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
-        // for more information of where this Math came from visit:
+<span id='Ext-draw-Draw-method-arc2curve'>    arc2curve: function (x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+</span>        // for more information of where this Math came from visit:
         // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
         var me = this,
             PI = Math.PI,
@@ -508,7 +508,7 @@ Ext.define('Ext.draw.Draw', {
             msqrt = math.sqrt,
             mabs = math.abs,
             masin = math.asin,
-            xy, cos, sin, x, y, h, rx2, ry2, k, cx, cy, f1, f2, df, c1, s1, c2, s2,
+            xy, x, y, h, rx2, ry2, k, cx, cy, f1, f2, df, c1, s1, c2, s2,
             t, hx, hy, m1, m2, m3, m4, newres, i, ln, f2old, x2old, y2old;
         if (!recursive) {
             xy = me.rotate(x1, y1, -rad);
@@ -517,8 +517,6 @@ Ext.define('Ext.draw.Draw', {
             xy = me.rotate(x2, y2, -rad);
             x2 = xy.x;
             y2 = xy.y;
-            cos = mcos(radian * angle);
-            sin = msin(radian * angle);
             x = (x1 - x2) / 2;
             y = (y1 - y2) / 2;
             h = (x * x) / (rx * rx) + (y * y) / (ry * ry);
@@ -595,8 +593,8 @@ Ext.define('Ext.draw.Draw', {
         }
     },
 
-    // TO BE DEPRECATED
-    rotateAndTranslatePath: function (sprite) {
+<span id='Ext-draw-Draw-method-rotateAndTranslatePath'>    // TO BE DEPRECATED
+</span>    rotateAndTranslatePath: function (sprite) {
         var alpha = sprite.rotation.degrees,
             cx = sprite.rotation.x,
             cy = sprite.rotation.y,
@@ -633,8 +631,8 @@ Ext.define('Ext.draw.Draw', {
         return res;
     },
 
-    // TO BE DEPRECATED
-    rotatePoint: function (x, y, alpha, cx, cy) {
+<span id='Ext-draw-Draw-method-rotatePoint'>    // TO BE DEPRECATED
+</span>    rotatePoint: function (x, y, alpha, cx, cy) {
         if (!alpha) {
             return {
                 x: x,
@@ -654,8 +652,8 @@ Ext.define('Ext.draw.Draw', {
         };
     },
 
-    pathDimensions: function (path) {
-        if (!path || !(path + &quot;&quot;)) {
+<span id='Ext-draw-Draw-method-pathDimensions'>    pathDimensions: function (path) {
+</span>        if (!path || !(path + &quot;&quot;)) {
             return {x: 0, y: 0, width: 0, height: 0};
         }
         path = this.path2curve(path);
@@ -665,7 +663,7 @@ Ext.define('Ext.draw.Draw', {
             Y = [],
             i = 0,
             ln = path.length,
-            p, xmin, ymin, dim;
+            p, xmin, ymin, xmax, ymax, dim;
         for (; i &lt; ln; i++) {
             p = path[i];
             if (p[0] == &quot;M&quot;) {
@@ -684,21 +682,23 @@ Ext.define('Ext.draw.Draw', {
         }
         xmin = Math.min.apply(0, X);
         ymin = Math.min.apply(0, Y);
+        xmax = Math.max.apply(0, X);
+        ymax = Math.max.apply(0, Y);
         return {
-            x: xmin,
-            y: ymin,
+            x: Math.round(xmin),
+            y: Math.round(ymin),
             path: path,
-            width: Math.max.apply(0, X) - xmin,
-            height: Math.max.apply(0, Y) - ymin
+            width: Math.round(xmax - xmin),
+            height: Math.round(ymax - ymin)
         };
     },
 
-    intersectInside: function(path, cp1, cp2) {
-        return (cp2[0] - cp1[0]) * (path[1] - cp1[1]) &gt; (cp2[1] - cp1[1]) * (path[0] - cp1[0]);
+<span id='Ext-draw-Draw-method-intersectInside'>    intersectInside: function(path, cp1, cp2) {
+</span>        return (cp2[0] - cp1[0]) * (path[1] - cp1[1]) &gt; (cp2[1] - cp1[1]) * (path[0] - cp1[0]);
     },
 
-    intersectIntersection: function(s, e, cp1, cp2) {
-        var p = [],
+<span id='Ext-draw-Draw-method-intersectIntersection'>    intersectIntersection: function(s, e, cp1, cp2) {
+</span>        var p = [],
             dcx = cp1[0] - cp2[0],
             dcy = cp1[1] - cp2[1],
             dpx = s[0] - e[0],
@@ -712,13 +712,13 @@ Ext.define('Ext.draw.Draw', {
         return p;
     },
 
-    intersect: function(subjectPolygon, clipPolygon) {
-        var me = this,
+<span id='Ext-draw-Draw-method-intersect'>    intersect: function(subjectPolygon, clipPolygon) {
+</span>        var me = this,
             i = 0,
             ln = clipPolygon.length,
             cp1 = clipPolygon[ln - 1],
             outputList = subjectPolygon,
-            cp2, s, e, point, ln2, inputList, j;
+            cp2, s, e, ln2, inputList, j;
         for (; i &lt; ln; ++i) {
             cp2 = clipPolygon[i];
             inputList = outputList;
@@ -744,8 +744,8 @@ Ext.define('Ext.draw.Draw', {
         return outputList;
     },
     
-    bezier : function (a, b, c, d, x) {
-        if (x === 0) {
+<span id='Ext-draw-Draw-method-bezier'>    bezier : function (a, b, c, d, x) {
+</span>        if (x === 0) {
             return a;
         } 
         else if (x === 1) {
@@ -757,8 +757,8 @@ Ext.define('Ext.draw.Draw', {
         return d3 * (a + r * (3 * b + r * (3 * c + d * r)));
     },
     
-    bezierDim : function (a, b, c, d) {
-        var points = [], r,
+<span id='Ext-draw-Draw-method-bezierDim'>    bezierDim : function (a, b, c, d) {
+</span>        var points = [], r,
             A, top, C, delta, bottom, s,
             min, max, i;
         // The min and max happens on boundary or b' == 0
@@ -805,8 +805,8 @@ Ext.define('Ext.draw.Draw', {
         return [min, max];
     },
     
-    curveDim: function (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
-        var x = this.bezierDim(p1x, c1x, c2x, p2x),
+<span id='Ext-draw-Draw-method-curveDim'>    curveDim: function (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
+</span>        var x = this.bezierDim(p1x, c1x, c2x, p2x),
             y = this.bezierDim(p1y, c1y, c2y, p2y);
         return {
             min: {
@@ -911,8 +911,8 @@ Ext.define('Ext.draw.Draw', {
         };
     },
 
-    /* Smoothing function for a path.  Converts a path into cubic beziers.  Value defines the divider of the distance between points.
-     * Defaults to a value of 4.
+<span id='Ext-draw-Draw-method-smooth'>    /* Smoothing function for a path.  Converts a path into cubic beziers.  Value defines the divider of the distance between points.
+</span>     * Defaults to a value of 4.
      */
     smooth: function (originalPath, value) {
         var path = this.path2curve(originalPath),
@@ -926,8 +926,6 @@ Ext.define('Ext.draw.Draw', {
             beg = 1,
             mx = x,
             my = y,
-            cx = 0,
-            cy = 0,
             pathi,
             pathil,
             pathim,
@@ -950,8 +948,6 @@ Ext.define('Ext.draw.Draw', {
                 while (path[j][0] != &quot;C&quot;) {
                     j++;
                 }
-                cx = path[j][5];
-                cy = path[j][6];
                 newp.push([&quot;M&quot;, mx, my]);
                 beg = newp.length;
                 x = mx;
@@ -979,8 +975,8 @@ Ext.define('Ext.draw.Draw', {
         return newp;
     },
 
-    findDotAtSegment: function (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
-        var t1 = 1 - t;
+<span id='Ext-draw-Draw-method-findDotAtSegment'>    findDotAtSegment: function (p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y, t) {
+</span>        var t1 = 1 - t;
         return {
             x: Math.pow(t1, 3) * p1x + Math.pow(t1, 2) * 3 * t * c1x + t1 * 3 * t * t * c2x + Math.pow(t, 3) * p2x,
             y: Math.pow(t1, 3) * p1y + Math.pow(t1, 2) * 3 * t * c1y + t1 * 3 * t * t * c2y + Math.pow(t, 3) * p2y
@@ -998,8 +994,9 @@ Ext.define('Ext.draw.Draw', {
             level = Math.floor(Math.log(step) / Math.LN10) + 1,
             m = Math.pow(10, level),
             cur,
+            floor,
             modulo = Math.round((step % m) * Math.pow(10, 2 - level)),
-            interval = [[0, 15], [20, 4], [30, 2], [40, 4], [50, 9], [60, 4], [70, 2], [80, 4], [100, 15]],
+            interval = [[0, 15], [10, 1], [20, 4], [25, 2], [50, 9], [100, 15]],
             stepCount = 0,
             value,
             weight,
@@ -1007,9 +1004,13 @@ Ext.define('Ext.draw.Draw', {
             topValue,
             topWeight = 1e9,
             ln = interval.length;
-        cur = from = Math.floor(from / m) * m;
+
+        floor = Math.floor(from / m) * m;
+        if (from == floor &amp;&amp; floor &gt; 0) {
+            floor = Math.floor((from - (m/10)) / m) * m;
+        }
         
-        if(prettyNumbers){
+        if (prettyNumbers) {
             for (i = 0; i &lt; ln; i++) {
                 value = interval[i][0];
                 weight = (value - modulo) &lt; 0 ? 1e6 : (value - modulo) / interval[i][1];
@@ -1019,12 +1020,31 @@ Ext.define('Ext.draw.Draw', {
                 }
             }
             step = Math.floor(step * Math.pow(10, -level)) * Math.pow(10, level) + topValue * Math.pow(10, level - 2);
-            while (cur &lt; to) {
-                cur += step;
-                stepCount++;
+
+            if (from &lt; 0 &amp;&amp; to &gt;= 0) {
+                cur = 0;
+                while (cur &gt; from) {
+                    cur -= step;
+                    stepCount++;
+                }
+                from = +cur.toFixed(10);
+
+                cur = 0;
+                while (cur &lt; to) {
+                    cur += step;
+                    stepCount++;
+                }
+                to = +cur.toFixed(10);
+            } else {
+                cur = from = floor;
+                while (cur &lt; to) {
+                    cur += step;
+                    stepCount++;
+                }
             }
             to = +cur.toFixed(10);
-        }else{
+        } else {
+            from = floor;
             stepCount = stepsMax;
         }
         
@@ -1044,27 +1064,29 @@ Ext.define('Ext.draw.Draw', {
      * @param {Date} from The minimum value in the data
      * @param {Date} to The maximum value in the data
      * @param {Number} stepsMax The maximum number of ticks
-     * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values
-     *        and will not be adjusted
+     * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values and will not be adjusted
+     *
      * @return {Object} The calculated step and ends info; properties are:
-     *     - from: The result start value, which may be lower than the original start value
-     *     - to: The result end value, which may be higher than the original end value
-     *     - step: The value size of each step
-     *     - steps: The number of steps. NOTE: the steps may not divide the from/to range perfectly evenly;
-     *              there may be a smaller distance between the last step and the end value than between prior
-     *              steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
-     *              the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
-     *              `from` to find the correct point for each tick.
+     * - from: The result start value, which may be lower than the original start value
+     * - to: The result end value, which may be higher than the original end value
+     * - step: The fixed value size of each step, or undefined if the steps are not fixed.
+     * - steps: The number of steps if the steps are fixed, or an array of step values.
+     
+     * NOTE: Even when the steps have a fixed value, they may not divide the from/to range perfectly evenly;
+     * there may be a smaller distance between the last step and the end value than between prior
+     * steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
+     * the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
+     * `from` to find the correct point for each tick.
      */
     snapEndsByDate: function (from, to, stepsMax, lockEnds) {
         var selectedStep = false,
             scales       = [
-                [Ext.Date.MILLI, [1, 2, 3, 5, 10, 20, 30, 50, 100, 200, 300, 500]],
-                [Ext.Date.SECOND, [1, 2, 3, 5, 10, 15, 30]],
-                [Ext.Date.MINUTE, [1, 2, 3, 5, 10, 20, 30]],
+                [Ext.Date.MILLI, [1, 2, 5, 10, 20, 50, 100, 200, 250, 500]],
+                [Ext.Date.SECOND, [1, 2, 5, 10, 15, 30]],
+                [Ext.Date.MINUTE, [1, 2, 5, 10, 15, 30]],
                 [Ext.Date.HOUR, [1, 2, 3, 4, 6, 12]],
-                [Ext.Date.DAY, [1, 2, 3, 7, 14]],
-                [Ext.Date.MONTH, [1, 2, 3, 4, 6]]
+                [Ext.Date.DAY, [1, 2, 7, 14]],
+                [Ext.Date.MONTH, [1, 2, 3, 6]]
             ],
             sLen         = scales.length,
             stop         = false,
@@ -1095,86 +1117,188 @@ Ext.define('Ext.draw.Draw', {
 <span id='Ext-draw-Draw-method-snapEndsByDateAndStep'>    /**
 </span>     * snapEndsByDateAndStep is a utility method to deduce an appropriate tick configuration for the data set of given
      * feature and specific step size.
+     *
      * @param {Date} from The minimum value in the data
      * @param {Date} to The maximum value in the data
-     * @param {Array} step An array with two components: The first is the unit of the step (day, month, year, etc). The second one is the number of units for the step (1, 2, etc.).
+     * @param {Array} step An array with two components: The first is the unit of the step (day, month, year, etc). 
+     * The second is the number of units for the step (1, 2, etc.).
+     * If the number is an integer, it represents the number of units for the step ([Ext.Date.DAY, 2] means &quot;Every other day&quot;).
+     * If the number is a fraction, it represents the number of steps per unit ([Ext.Date.DAY, 1/2] means &quot;Twice a day&quot;).
+     * If the unit is the month, the steps may be adjusted depending on the month. For instance [Ext.Date.MONTH, 1/3], which means &quot;Three times a month&quot;,
+     * generates steps on the 1st, the 10th and the 20th of every month regardless of whether a month has 28 days or 31 days. The steps are generated
+     * as follows:
+     * - [Ext.Date.MONTH, n]: on the current date every 'n' months, maxed to the number of days in the month.
+     * - [Ext.Date.MONTH, 1/2]: on the 1st and 15th of every month.
+     * - [Ext.Date.MONTH, 1/3]: on the 1st, 10th and 20th of every month.
+     * - [Ext.Date.MONTH, 1/4]: on the 1st, 8th, 15th and 22nd of every month.
      * @param {Boolean} lockEnds If true, the 'from' and 'to' parameters will be used as fixed end values
      *        and will not be adjusted
+     *
+     * @return {Object} The calculated step and ends info; properties are:
+     * - from: The result start value, which may be lower than the original start value
+     * - to: The result end value, which may be higher than the original end value
+     * - step: The fixed value size of each step, or undefined if the steps are not fixed.
+     * - steps: The number of steps if the steps are fixed, or an array of step values.
+     
+     * NOTE: Even when the steps have a fixed value, they may not divide the from/to range perfectly evenly;
+     * there may be a smaller distance between the last step and the end value than between prior
+     * steps, particularly when the `endsLocked` param is true. Therefore it is best to not use
+     * the `steps` result when finding the axis tick points, instead use the `step`, `to`, and
+     * `from` to find the correct point for each tick.
      */
+
     snapEndsByDateAndStep: function(from, to, step, lockEnds) {
         var fromStat = [from.getFullYear(), from.getMonth(), from.getDate(),
                 from.getHours(), from.getMinutes(), from.getSeconds(), from.getMilliseconds()],
-            steps = 0, testFrom, testTo;
+            steps, testFrom, testTo, date, year, month, day, fractionalMonth,
+            stepUnit = step[0], stepValue = step[1];
         if (lockEnds) {
             testFrom = from;
         } else {
-            switch (step[0]) {
+            switch (stepUnit) {
                 case Ext.Date.MILLI:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            fromStat[4], fromStat[5], Math.floor(fromStat[6] / step[1]) * step[1]);
+                            fromStat[4], fromStat[5], Math.floor(fromStat[6] / stepValue) * stepValue);
                     break;
                 case Ext.Date.SECOND:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            fromStat[4], Math.floor(fromStat[5] / step[1]) * step[1], 0);
+                            fromStat[4], Math.floor(fromStat[5] / stepValue) * stepValue, 0);
                     break;
                 case Ext.Date.MINUTE:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2], fromStat[3],
-                            Math.floor(fromStat[4] / step[1]) * step[1], 0, 0);
+                            Math.floor(fromStat[4] / stepValue) * stepValue, 0, 0);
                     break;
                 case Ext.Date.HOUR:
                     testFrom = new Date(fromStat[0], fromStat[1], fromStat[2],
-                            Math.floor(fromStat[3] / step[1]) * step[1], 0, 0, 0);
+                            Math.floor(fromStat[3] / stepValue) * stepValue, 0, 0, 0);
                     break;
                 case Ext.Date.DAY:
                     testFrom = new Date(fromStat[0], fromStat[1],
-                            Math.floor(fromStat[2] - 1 / step[1]) * step[1] + 1, 0, 0, 0, 0);
+                            Math.floor((fromStat[2] - 1) / stepValue) * stepValue + 1, 0, 0, 0, 0);
                     break;
                 case Ext.Date.MONTH:
-                    testFrom = new Date(fromStat[0], Math.floor(fromStat[1] / step[1]) * step[1], 1, 0, 0, 0, 0);
+                    testFrom = new Date(fromStat[0], Math.floor(fromStat[1] / stepValue) * stepValue, 1, 0, 0, 0, 0);
                     break;
                 default: // Ext.Date.YEAR
-                    testFrom = new Date(Math.floor(fromStat[0] / step[1]) * step[1], 0, 1, 0, 0, 0, 0);
+                    testFrom = new Date(Math.floor(fromStat[0] / stepValue) * stepValue, 0, 1, 0, 0, 0, 0);
                     break;
             }
         }
 
-        testTo = testFrom;
+        fractionalMonth = ((stepUnit === Ext.Date.MONTH) &amp;&amp; (stepValue == 1/2 || stepValue == 1/3 || stepValue == 1/4));
+        steps = (fractionalMonth ? [] : 0);
+
         // TODO(zhangbei) : We can do it better somehow...
+        testTo = new Date(testFrom);
         while (testTo &lt; to) {
-            testTo = Ext.Date.add(testTo, step[0], step[1]);
-            steps++;
+            if (fractionalMonth) {
+                date = new Date(testTo);
+                year = date.getFullYear();
+                month = date.getMonth();
+                day = date.getDate();
+                switch(stepValue) {
+                    case 1/2:   // the 1st and 15th of every month
+                        if (day &gt;= 15) {
+                            day = 1;
+                            if (++month &gt; 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            day = 15;
+                        }
+                        break;
+
+                    case 1/3:   // the 1st, 10th and 20th of every month
+                        if (day &gt;= 20) {
+                            day = 1;
+                            if (++month &gt; 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            if (day &gt;= 10) {
+                                day = 20
+                            }
+                            else {
+                                day = 10;
+                            }
+                        }
+                        break;
+
+                    case 1/4:   // the 1st, 8th, 15th and 22nd of every month
+                        if (day &gt;= 22) {
+                            day = 1;
+                            if (++month &gt; 11) {
+                                year++;
+                            }
+                        }
+                        else {
+                            if (day &gt;= 15) {
+                                day = 22
+                            }
+                            else {
+                                if (day &gt;= 8) {
+                                    day = 15
+                                }
+                                else {
+                                    day = 8;
+                                }
+                            }
+                        }
+                        break;
+                }
+                testTo.setYear(year);
+                testTo.setMonth(month);
+                testTo.setDate(day);
+                steps.push(new Date(testTo));
+            }
+            else {
+                testTo = Ext.Date.add(testTo, stepUnit, stepValue);                
+                steps++;
+            }
         }
 
         if (lockEnds) {
             testTo = to;
         }
-        return {
-            from : +testFrom,
-            to : +testTo,
-            step : (testTo - testFrom) / steps,
-            steps : steps
-        };
+        
+        if (fractionalMonth) {
+            return {
+                from : +testFrom,
+                to : +testTo,
+                steps : steps   // array of steps
+            };            
+        }
+        else {
+            return {
+                from : +testFrom,
+                to : +testTo,
+                step : (testTo - testFrom) / steps,
+                steps : steps   // number of steps
+            };            
+        }
     },
 
-    sorter: function (a, b) {
-        return a.offset - b.offset;
+<span id='Ext-draw-Draw-method-sorter'>    sorter: function (a, b) {
+</span>        return a.offset - b.offset;
     },
 
-    rad: function(degrees) {
-        return degrees % 360 * Math.PI / 180;
+<span id='Ext-draw-Draw-method-rad'>    rad: function(degrees) {
+</span>        return degrees % 360 * Math.PI / 180;
     },
 
-    degrees: function(radian) {
-        return radian * 180 / Math.PI % 360;
+<span id='Ext-draw-Draw-method-degrees'>    degrees: function(radian) {
+</span>        return radian * 180 / Math.PI % 360;
     },
 
-    withinBox: function(x, y, bbox) {
-        bbox = bbox || {};
+<span id='Ext-draw-Draw-method-withinBox'>    withinBox: function(x, y, bbox) {
+</span>        bbox = bbox || {};
         return (x &gt;= bbox.x &amp;&amp; x &lt;= (bbox.x + bbox.width) &amp;&amp; y &gt;= bbox.y &amp;&amp; y &lt;= (bbox.y + bbox.height));
     },
 
-    parseGradient: function(gradient) {
-        var me = this,
+<span id='Ext-draw-Draw-method-parseGradient'>    parseGradient: function(gradient) {
+</span>        var me = this,
             type = gradient.type || 'linear',
             angle = gradient.angle || 0,
             radian = me.radian,

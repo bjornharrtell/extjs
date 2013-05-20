@@ -1,0 +1,10 @@
+.#{$prefix}form-display-field {
+    font: $form-display-field-font;
+    color: $form-display-field-color;
+    line-height: $form-field-height;
+    @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
+        .#{$prefix}toolbar-item & {
+            line-height: $form-toolbar-field-height;
+        }
+    }
+}

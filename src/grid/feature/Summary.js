@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This feature is used to place a summary row at the bottom of the grid. If using a grouping, 
  * see {@link Ext.grid.feature.GroupingSummary}. There are 2 aspects to calculating the summaries, 
@@ -39,8 +59,10 @@
  *     });
  *     
  *     Ext.create('Ext.grid.Panel', {
- *         width: 200,
- *         height: 140,
+ *         width: 400,
+ *         height: 200,
+ *         title: 'Summary Test',
+ *         style: 'padding: 20px',
  *         renderTo: document.body,
  *         features: [{
  *             ftype: 'summary'
@@ -76,92 +98,196 @@
  *     });
  */
 Ext.define('Ext.grid.feature.Summary', {
-    
+
     /* Begin Definitions */
-    
+
     extend: 'Ext.grid.feature.AbstractSummary',
-    
+
     alias: 'feature.summary',
-    
-    /* End Definitions */
-    
+
     /**
-     * Gets any fragments needed for the template.
-     * @private
-     * @return {Object} The fragments
+     * @cfg {String} dock
+     * Configure `'top'` or `'bottom'` top create a fixed summary row either above or below the scrollable table.
+     *
      */
-    getFragmentTpl: function() {
-        // this gets called before render, so we'll setup the data here.
-        this.summaryData = this.generateSummaryData(); 
-        return this.getSummaryFragments();
+    dock: undefined,
+
+    dockedSummaryCls: Ext.baseCSSPrefix + 'docked-summary',
+
+    panelBodyCls: Ext.baseCSSPrefix + 'summary-',
+
+    init: function(grid) {
+        var me = this,
+            view = me.view;
+
+        me.callParent(arguments);
+
+        if (me.dock) {
+            grid.headerCt.on({
+                afterlayout: me.onStoreUpdate,
+                scope: me
+            });
+            grid.on({
+                beforerender: function() {
+                    me.summaryBar = grid.addDocked({
+                        childEls: ['innerCt'],
+                        renderTpl: [
+                            '<div id="{id}-innerCt">',
+                                '<table cellpadding="0" class="' + me.summaryTableCls + '">',
+                                    '<tr class="' + me.summaryRowCls + '"></tr>',
+                                '</table>',
+                            '</div>'
+                        ],
+                        style: 'overflow:hidden',
+                        itemId: 'summaryBar',
+                        cls: [ me.dockedSummaryCls, me.dockedSummaryCls + '-' + me.dock ],
+                        xtype: 'component',
+                        dock: me.dock,
+                        weight: 10000000
+                    })[0];
+                },
+                afterrender: function() {
+                    grid.body.addCls(me.panelBodyCls + me.dock);
+                    view.mon(view.el, {
+                        scroll: me.onViewScroll,
+                        scope: me
+                    });
+                    me.onStoreUpdate();
+                },
+                single: true
+            });
+
+            // Stretch the innerCt of the summary bar upon headerCt layout
+            grid.headerCt.afterComponentLayout = Ext.Function.createSequence(grid.headerCt.afterComponentLayout, function() {
+                me.summaryBar.innerCt.setWidth(this.getFullWidth() + Ext.getScrollbarSize().width);
+            });
+        } else {
+            me.view.addFooterFn(me.renderTFoot);
+        }
+
+        grid.on({
+            columnmove: me.onStoreUpdate,
+            scope: me
+        });
+
+        // On change of data, we have to update the docked summary.
+        view.mon(view.store, {
+            update: me.onStoreUpdate,
+            datachanged: me.onStoreUpdate,
+            scope: me
+        });
     },
-    
-    /**
-     * Overrides the closeRows method on the template so we can include our own custom
-     * footer.
-     * @private
-     * @return {Object} The custom fragments
-     */
-    getTableFragments: function(){
-        if (this.showSummaryRow) {
-            return {
-                closeRows: this.closeRows
-            };
+
+    renderTFoot: function(values, out) {
+        var view = values.view,
+            me = view.findFeature('summary');
+
+        if (me.showSummaryRow) {
+            out.push('<tfoot>');
+            me.outputSummaryRecord(me.createSummaryRecord(view), values, out);
+            out.push('</tfoot>');
         }
     },
     
-    /**
-     * Provide our own custom footer for the grid.
-     * @private
-     * @return {String} The custom footer
-     */
-    closeRows: function() {
-        return '</tpl>{[this.printSummaryRow()]}';
+    vetoEvent: function(record, row, rowIndex, e) {
+        return !e.getTarget(this.summaryRowSelector);
     },
-    
-    /**
-     * Gets the data for printing a template row
-     * @private
-     * @param {Number} index The index in the template
-     * @return {Array} The template values
-     */
-    getPrintData: function(index){
-        var me = this,
-            columns = me.view.headerCt.getColumnsForTpl(),
-            i = 0,
-            length = columns.length,
-            data = [],
-            active = me.summaryData,
-            column;
-            
-        for (; i < length; ++i) {
+
+    onViewScroll: function() {
+        this.summaryBar.el.dom.scrollLeft = this.view.el.dom.scrollLeft;
+    },
+
+    createSummaryRecord: function(view) {
+        var columns = view.headerCt.getVisibleGridColumns(),
+            info = {
+                records: view.store.getRange()
+            },
+            colCount = columns.length, i, column,
+            summaryRecord = this.summaryRecord || (this.summaryRecord = new view.store.model(null, view.id + '-summary-record'));
+
+        // Set the summary field values
+        summaryRecord.beginEdit();
+        for (i = 0; i < colCount; i++) {
             column = columns[i];
-            column.gridSummaryValue = this.getColumnValue(column, active);
-            data.push(column);
+
+            // In summary records, if there's no dataIndex, then the value in regular rows must come from a renderer.
+            // We set the data value in using the column ID.
+            if (!column.dataIndex) {
+                column.dataIndex = column.id;
+            }
+
+            summaryRecord.set(column.dataIndex, this.getSummary(view.store, column.summaryType, column.dataIndex, info));
         }
-        return data;
+        summaryRecord.endEdit(true);
+        // It's not dirty
+        summaryRecord.commit(true);
+        summaryRecord.isSummary = true;
+
+        return summaryRecord;
     },
-    
-    /**
-     * Generates all of the summary data to be used when processing the template
-     * @private
-     * @return {Object} The summary data
-     */
-    generateSummaryData: function(){
+
+    onStoreUpdate: function() {
         var me = this,
-            data = {},
-            store = me.view.store,
-            columns = me.view.headerCt.getColumnsForTpl(),
-            i = 0,
-            length = columns.length,
-            fieldData,
-            key,
-            comp;
-            
-        for (i = 0, length = columns.length; i < length; ++i) {
-            comp = Ext.getCmp(columns[i].id);
-            data[comp.id] = me.getSummary(store, comp.summaryType, comp.dataIndex, false);
+            view = me.view,
+            record = me.createSummaryRecord(view),
+            newRowDom = view.createRowElement(record, -1),
+            oldRowDom, partner,
+            p;
+
+        if (!view.rendered) {
+            return;
         }
-        return data;
+        
+        // Summary row is inside the docked summaryBar Component
+        if (me.dock) {
+            oldRowDom = me.summaryBar.el.down('.' + me.summaryRowCls, true);
+        }
+        // Summary row is a regular row in a THEAD inside the View.
+        // Downlinked through the summary record's ID'
+        else {
+            oldRowDom = me.view.getNode(record);
+        }
+        
+        if (oldRowDom) {
+            p = oldRowDom.parentNode;
+            p.insertBefore(newRowDom, oldRowDom);
+            p.removeChild(oldRowDom);
+
+            partner = me.lockingPartner;
+            // For locking grids...
+            // Update summary on other side (unless we have been called from the other side)
+            if (partner && partner.grid.rendered && !me.calledFromLockingPartner) {
+                partner.calledFromLockingPartner = true;
+                partner.onStoreUpdate();
+                partner.calledFromLockingPartner = false;
+            }
+        }
+        // If docked, the updated row will need sizing because it's outside the View
+        if (me.dock) {
+            me.onColumnHeaderLayout();
+        }
+    },
+
+    // Synchronize column widths in the docked summary Component
+    onColumnHeaderLayout: function() {
+        var view = this.view,
+            columns = view.headerCt.getGridColumns(),
+            column,
+            len = columns.length, i,
+            summaryEl = this.summaryBar.el,
+            el;
+
+        for (i = 0; i < len; i++) {
+            column = columns[i];
+            el = summaryEl.down(view.getCellSelector(column));
+            if (el) {
+                if (column.hidden) {
+                    el.setDisplayed(false);
+                } else {
+                    el.setDisplayed(true);
+                    el.setWidth(column.width || (column.lastBox ? column.lastBox.width : 100));
+                }
+            }
+        }
     }
 });

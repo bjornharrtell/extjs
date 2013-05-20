@@ -16,9 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-GMapPanel'>/**
-</span> * @class Ext.ux.GMapPanel
- * @extends Ext.Panel
- * @author Shea Frederick
+</span> * @author Shea Frederick
  */
 Ext.define('Ext.ux.GMapPanel', {
     extend: 'Ext.panel.Panel',
@@ -27,8 +25,8 @@ Ext.define('Ext.ux.GMapPanel', {
     
     requires: ['Ext.window.MessageBox'],
     
-    initComponent : function(){
-        Ext.applyIf(this,{
+<span id='Ext-ux-GMapPanel-method-initComponent'>    initComponent : function(){
+</span>        Ext.applyIf(this,{
             plain: true,
             gmapType: 'map',
             border: false
@@ -37,8 +35,8 @@ Ext.define('Ext.ux.GMapPanel', {
         this.callParent();        
     },
     
-    afterFirstLayout : function(){
-        var center = this.center;
+<span id='Ext-ux-GMapPanel-method-afterFirstLayout'>    afterFirstLayout : function(){
+</span>        var center = this.center;
         this.callParent();       
         
         if (center) {
@@ -53,8 +51,9 @@ Ext.define('Ext.ux.GMapPanel', {
               
     },
     
-    createMap: function(center, marker) {
-        options = Ext.apply({}, this.mapOptions);
+<span id='Ext-ux-GMapPanel-method-createMap'>    createMap: function(center, marker) {
+</span>        var options = Ext.apply({}, this.mapOptions);
+        
         options = Ext.applyIf(options, {
             zoom: 14,
             center: center,
@@ -68,10 +67,11 @@ Ext.define('Ext.ux.GMapPanel', {
         }
         
         Ext.each(this.markers, this.addMarker, this);
+        this.fireEvent('mapready', this, this.gmap);
     },
     
-    addMarker: function(marker) {
-        marker = Ext.apply({
+<span id='Ext-ux-GMapPanel-method-addMarker'>    addMarker: function(marker) {
+</span>        marker = Ext.apply({
             map: this.gmap
         }, marker);
         
@@ -85,28 +85,28 @@ Ext.define('Ext.ux.GMapPanel', {
         return o;
     },
     
-    lookupCode : function(addr, marker) {
-        this.geocoder = new google.maps.Geocoder();
+<span id='Ext-ux-GMapPanel-method-lookupCode'>    lookupCode : function(addr, marker) {
+</span>        this.geocoder = new google.maps.Geocoder();
         this.geocoder.geocode({
             address: addr
         }, Ext.Function.bind(this.onLookupComplete, this, [marker], true));
     },
     
-    onLookupComplete: function(data, response, marker){
-        if (response != 'OK') {
+<span id='Ext-ux-GMapPanel-method-onLookupComplete'>    onLookupComplete: function(data, response, marker){
+</span>        if (response != 'OK') {
             Ext.MessageBox.alert('Error', 'An error occured: &quot;' + response + '&quot;');
             return;
         }
         this.createMap(data[0].geometry.location, marker);
     },
     
-    afterComponentLayout : function(w, h){
-        this.callParent(arguments);
+<span id='Ext-ux-GMapPanel-method-afterComponentLayout'>    afterComponentLayout : function(w, h){
+</span>        this.callParent(arguments);
         this.redraw();
     },
     
-    redraw: function(){
-        var map = this.gmap;
+<span id='Ext-ux-GMapPanel-method-redraw'>    redraw: function(){
+</span>        var map = this.gmap;
         if (map) {
             google.maps.event.trigger(map, 'resize');
         }

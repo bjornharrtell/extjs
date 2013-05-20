@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.rtl.layout.container.boxOverflow.Scroller', {
+    override: 'Ext.layout.container.boxOverflow.Scroller',
+    
+    scrollLeft: function(internal) {
+        var me = this,
+            layout = me.layout;
+        
+        if (layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
+            if (internal) {
+                me.scrollBy(me.scrollIncrement, false);
+            } else {
+                me.scrollRight(true);
+            }
+        } else {
+            me.callParent();
+        }
+    },
+
+    scrollRight: function(internal) {
+        var me = this,
+            layout = me.layout;
+        
+        if (layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
+            if (internal) {
+                me.scrollBy(-me.scrollIncrement, false);
+            } else {
+                me.scrollLeft(true);
+            }
+        } else {
+            me.callParent();
+        }
+    },
+    
+    atExtremeBefore: function(internal) {
+        var layout = this.layout;
+        
+        if (!internal &amp;&amp; layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
+            return this.atExtremeAfter(true);
+        } else {
+            return this.callParent();
+        }
+    },
+    
+    atExtremeAfter: function(internal) {
+        var layout = this.layout;
+        
+        if (!internal &amp;&amp; layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
+            return this.atExtremeBefore(true);
+        } else {
+            return this.callParent();
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -62,41 +62,41 @@ Ext.define('Ext.button.Split', {
 </span>     * @cfg {Function} arrowHandler
      * A function called when the arrow button is clicked (can be used instead of click event)
      * @cfg {Ext.button.Split} arrowHandler.this
-     * @cfg {Event} arrowHandler.e The click event
+     * @cfg {Event} arrowHandler.e The click event.
      */
 <span id='Ext-button-Split-cfg-arrowTooltip'>    /**
 </span>     * @cfg {String} arrowTooltip
-     * The title attribute of the arrow
+     * The title attribute of the arrow.
      */
 
-    // private
-    arrowCls      : 'split',
-    split         : true,
-
-    // private
-    initComponent : function(){
+<span id='Ext-button-Split-cfg-arrowCls'>    // @private
+</span>    arrowCls      : 'split',
+<span id='Ext-button-Split-property-split'>    split         : true,
+</span>
+<span id='Ext-button-Split-method-initComponent'>    // @private
+</span>    initComponent : function(){
         this.callParent();
 <span id='Ext-button-Split-event-arrowclick'>        /**
 </span>         * @event arrowclick
          * Fires when this button's arrow is clicked.
          * @param {Ext.button.Split} this
-         * @param {Event} e The click event
+         * @param {Event} e The click event.
          */
         this.addEvents(&quot;arrowclick&quot;);
     },
 
 <span id='Ext-button-Split-method-setArrowHandler'>    /**
 </span>     * Sets this button's arrow click handler.
-     * @param {Function} handler The function to call when the arrow is clicked
-     * @param {Object} scope (optional) Scope for the function passed above
+     * @param {Function} handler The function to call when the arrow is clicked.
+     * @param {Object} scope (optional) Scope for the function passed above.
      */
     setArrowHandler : function(handler, scope){
         this.arrowHandler = handler;
         this.scope = scope;
     },
 
-    // private
-    onClick : function(e, t) {
+<span id='Ext-button-Split-method-onClick'>    // @private
+</span>    onClick : function(e, t) {
         var me = this;
         
         e.preventDefault();

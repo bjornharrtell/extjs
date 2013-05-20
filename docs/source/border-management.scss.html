@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">@mixin border-management($parent-cls, $border-width, $border-color) {
+    .#{$prefix}#{$parent-cls}-outer-border-l {
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-b {
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-bl {
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-r {
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-rl {
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-rb {
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-rbl {
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-t {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-tl {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-tb {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-tbl {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-tr {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-trl {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+        border-left-color: left($border-color) !important;
+        border-left-width: left($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-trb {
+        border-top-color: top($border-color) !important;
+        border-top-width: top($border-width) !important;
+        border-right-color: right($border-color) !important;
+        border-right-width: right($border-width) !important;
+        border-bottom-color: bottom($border-color) !important;
+        border-bottom-width: bottom($border-width) !important;
+    }
+    .#{$prefix}#{$parent-cls}-outer-border-trbl {
+        border-color: $border-color !important;
+        border-width: $border-width !important;
+    }
+}</pre>
+</body>
+</html>

@@ -5,8 +5,6 @@ Ext.onReady(function () {
     store1.loadData(generateData(8));
 
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             style: 'background:#fff',
             animate: true,
             theme: 'Category1',
@@ -77,14 +75,16 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData(8));
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData(8));
+                });
             }
         }, {
             enableToggle: true,
             pressed: true,
             text: 'Animate',
             toggleHandler: function(btn, pressed) {
-                var chart = Ext.getCmp('chartCmp');
                 chart.animate = pressed ? { easing: 'ease', duration: 500 } : false;
             }
         }],

@@ -49,9 +49,10 @@ pre.code{
 }
 #msg-div {
     position:absolute;
-    left:35%;
+    left:50%;
     top:10px;
-    width:300px;
+    width:400px;
+    margin-left:-200px;
     z-index:20000;
 }
 #msg-div .msg {

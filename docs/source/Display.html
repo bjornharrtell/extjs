@@ -54,8 +54,8 @@ Ext.define('Ext.form.field.Display', {
     alias: 'widget.displayfield',
     requires: ['Ext.util.Format', 'Ext.XTemplate'],
     alternateClassName: ['Ext.form.DisplayField', 'Ext.form.Display'],
-    fieldSubTpl: [
-        '&lt;div id=&quot;{id}&quot;',
+<span id='Ext-form-field-Display-cfg-fieldSubTpl'>    fieldSubTpl: [
+</span>        '&lt;div id=&quot;{id}&quot;',
         '&lt;tpl if=&quot;fieldStyle&quot;&gt; style=&quot;{fieldStyle}&quot;&lt;/tpl&gt;', 
         ' class=&quot;{fieldCls}&quot;&gt;{value}&lt;/div&gt;',
         {
@@ -89,28 +89,28 @@ Ext.define('Ext.form.field.Display', {
 
     validateOnChange: false,
 
-    initEvents: Ext.emptyFn,
-
-    submitValue: false,
-    
-    isDirty: function(){
-        return false;
+<span id='Ext-form-field-Display-method-initEvents'>    initEvents: Ext.emptyFn,
+</span>
+<span id='Ext-form-field-Display-cfg-submitValue'>    submitValue: false,
+</span>    
+<span id='Ext-form-field-Display-method-isDirty'>    isDirty: function(){
+</span>        return false;
     },
 
-    isValid: function() {
-        return true;
+<span id='Ext-form-field-Display-method-isValid'>    isValid: function() {
+</span>        return true;
     },
 
-    validate: function() {
-        return true;
+<span id='Ext-form-field-Display-method-validate'>    validate: function() {
+</span>        return true;
     },
 
-    getRawValue: function() {
-        return this.rawValue;
+<span id='Ext-form-field-Display-method-getRawValue'>    getRawValue: function() {
+</span>        return this.rawValue;
     },
 
-    setRawValue: function(value) {
-        var me = this,
+<span id='Ext-form-field-Display-method-setRawValue'>    setRawValue: function(value) {
+</span>        var me = this,
             display;
             
         value = Ext.value(value, '');
@@ -138,8 +138,8 @@ Ext.define('Ext.form.field.Display', {
         return display;
     },
         
-    getSubTplData: function() {
-        var ret = this.callParent(arguments);
+<span id='Ext-form-field-Display-method-getSubTplData'>    getSubTplData: function() {
+</span>        var ret = this.callParent(arguments);
 
         ret.value = this.getDisplayValue();
 

@@ -1,0 +1,10 @@
+{
+    "name": "ext-locale-en_AU",
+    "type": "locale",
+    "locale": "en_AU",
+    "creator": "anonymous",
+    "version": "4.2.0",
+    "compatVersion": "4.2.0",
+    "local": true,
+    "requires": []
+}

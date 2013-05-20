@@ -18,7 +18,6 @@ Ext.onReady(function(){
             flex: 1,
             margins: '0 2 0 0',
             title: 'Load raw html',
-            styleHtmlContent: true,
             bodyPadding: 5,
             loader: {
                 autoLoad: true,
@@ -54,6 +53,7 @@ Ext.onReady(function(){
                 items: [' ',{
                     fieldLabel: '# to load',
                     labelWidth: 60,
+                    inputWidth: 60,
                     xtype: 'numberfield',
                     value: 5,
                     minValue: 1,

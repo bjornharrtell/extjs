@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * This class provides a container DD instance that allows dropping on multiple child target nodes.
  *
@@ -246,14 +266,19 @@ Ext.define('Ext.dd.DropZone', {
      * @template
      */
     notifyDrop : function(dd, e, data){
-        if(this.lastOverNode){
-            this.onNodeOut(this.lastOverNode, dd, e, data);
-            this.lastOverNode = null;
+        var me = this,
+            n = me.getTargetFromEvent(e),
+            result = n ?
+                me.onNodeDrop(n, dd, e, data) :
+                me.onContainerDrop(dd, e, data);
+
+        // Exit the overNode upon drop.
+        // Must do this after dropping because exiting a node may perform actions which invalidate a drop.
+        if (me.lastOverNode) {
+            me.onNodeOut(me.lastOverNode, dd, e, data);
+            me.lastOverNode = null;
         }
-        var n = this.getTargetFromEvent(e);
-        return n ?
-            this.onNodeDrop(n, dd, e, data) :
-            this.onContainerDrop(dd, e, data);
+        return result;
     },
 
     // private

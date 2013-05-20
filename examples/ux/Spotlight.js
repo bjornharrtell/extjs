@@ -1,5 +1,4 @@
 /**
- * @class Ext.ux.Spotlight
  * UX used to provide a spotlight around a specified component/element.
  */
 Ext.define('Ext.ux.Spotlight', {

@@ -15,63 +15,64 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Layer'>/**
+  <pre class="prettyprint lang-js"><span id='Ext-dom-Layer'>/**
 </span> * An extended {@link Ext.Element} object that supports a shadow and shim, constrain to viewport and
  * automatic maintaining of shadow/shim positions.
  */
-Ext.define('Ext.Layer', {
+Ext.define('Ext.dom.Layer', {
     extend: 'Ext.Element',
     uses: ['Ext.Shadow'],
+    alternateClassName: 'Ext.Layer',
 
-<span id='Ext-Layer-cfg-shim'>    /**
+<span id='Ext-dom-Layer-cfg-shim'>    /**
 </span>     * @cfg {Boolean} [shim=true]
      * False to disable the iframe shim in browsers which need one.
      */
 
-<span id='Ext-Layer-cfg-shadow'>    /**
+<span id='Ext-dom-Layer-cfg-shadow'>    /**
 </span>     * @cfg {String/Boolean} [shadow=false]
      * True to automatically create an {@link Ext.Shadow}, or a string indicating the
      * shadow's display {@link Ext.Shadow#mode}. False to disable the shadow.
      */
 
-<span id='Ext-Layer-cfg-dh'>    /**
+<span id='Ext-dom-Layer-cfg-dh'>    /**
 </span>     * @cfg {Object} [dh={tag: 'div', cls: 'x-layer'}]
      * DomHelper object config to create element with.
      */
 
-<span id='Ext-Layer-cfg-constrain'>    /**
+<span id='Ext-dom-Layer-cfg-constrain'>    /**
 </span>     * @cfg {Boolean} [constrain=true]
      * False to disable constrain to viewport.
      */
 
-<span id='Ext-Layer-cfg-cls'>    /**
+<span id='Ext-dom-Layer-cfg-cls'>    /**
 </span>     * @cfg {String} cls
      * CSS class to add to the element
      */
 
-<span id='Ext-Layer-cfg-zindex'>    /**
+<span id='Ext-dom-Layer-cfg-zindex'>    /**
 </span>     * @cfg {Number} [zindex=11000]
      * Starting z-index.
      */
 
-<span id='Ext-Layer-cfg-shadowOffset'>    /**
+<span id='Ext-dom-Layer-cfg-shadowOffset'>    /**
 </span>     * @cfg {Number} [shadowOffset=4]
      * Number of pixels to offset the shadow
      */
 
-<span id='Ext-Layer-cfg-useDisplay'>    /**
+<span id='Ext-dom-Layer-cfg-useDisplay'>    /**
 </span>     * @cfg {Boolean} [useDisplay=false]
      * Defaults to use css offsets to hide the Layer. Specify &lt;tt&gt;true&lt;/tt&gt;
      * to use css style &lt;tt&gt;'display:none;'&lt;/tt&gt; to hide the Layer.
      */
 
-<span id='Ext-Layer-cfg-visibilityCls'>    /**
+<span id='Ext-dom-Layer-cfg-visibilityCls'>    /**
 </span>     * @cfg {String} visibilityCls
      * The CSS class name to add in order to hide this Layer if this layer
      * is configured with &lt;code&gt;{@link #hideMode}: 'asclass'&lt;/code&gt;
      */
 
-<span id='Ext-Layer-cfg-hideMode'>    /**
+<span id='Ext-dom-Layer-cfg-hideMode'>    /**
 </span>     * @cfg {String} hideMode
      * A String which specifies how this Layer will be hidden.
      * Values may be:
@@ -85,12 +86,17 @@ Ext.define('Ext.Layer', {
 
     // shims are shared among layer to keep from having 100 iframes
     statics: {
-        shims: []
-    },
+<span id='Ext-dom-Layer-property-shims'>        shims: []
+</span>    },
     
-    isLayer: true,
+<span id='Ext-dom-Layer-property-isLayer'>    isLayer: true,
+</span>
+<span id='Ext-dom-Layer-property-localXYNames'>    localXYNames: {
+</span>        get: 'getLocalXY',
+        set: 'setLocalXY'
+    },
 
-<span id='Ext-Layer-method-constructor'>    /**
+<span id='Ext-dom-Layer-method-constructor'>    /**
 </span>     * Creates new Layer.
      * @param {Object} [config] An object with config options.
      * @param {String/HTMLElement} [existingEl] Uses an existing DOM element.
@@ -102,7 +108,13 @@ Ext.define('Ext.Layer', {
             dh = Ext.DomHelper,
             cp = config.parentEl,
             pel = cp ? Ext.getDom(cp) : document.body,
-        hm = config.hideMode;
+            hm = config.hideMode,
+            cls = Ext.baseCSSPrefix + (config.fixed &amp;&amp; !(Ext.isIE6 || Ext.isIEQuirks) ? 'fixed-layer' : 'layer');
+
+        // set an &quot;el&quot; property that references &quot;this&quot;.  This allows
+        // Ext.util.Positionable methods to operate on this.el.dom since it
+        // gets mixed into both Element and Component
+        me.el = me;
 
         if (existingEl) {
             me.dom = Ext.getDom(existingEl);
@@ -110,10 +122,10 @@ Ext.define('Ext.Layer', {
         if (!me.dom) {
             me.dom = dh.append(pel, config.dh || {
                 tag: 'div',
-                cls: Ext.baseCSSPrefix + 'layer' // primarily to give el 'position:absolute'
+                cls: cls // primarily to give el 'position:absolute' or, if fixed, 'position:fixed'
             });
         } else {
-            me.addCls(Ext.baseCSSPrefix + 'layer');
+            me.addCls(cls);
             if (!me.dom.parentNode) {
                 pel.appendChild(me.dom);
             }
@@ -150,7 +162,8 @@ Ext.define('Ext.Layer', {
             me.shadowOffset = config.shadowOffset || 4;
             me.shadow = new Ext.Shadow({
                 offset: me.shadowOffset,
-                mode: config.shadow
+                mode: config.shadow,
+                fixed: config.fixed
             });
             me.disableShadow();
         } else {
@@ -164,12 +177,12 @@ Ext.define('Ext.Layer', {
         }
     },
 
-    getZIndex: function() {
-        return parseInt((this.getShim() || this).getStyle('z-index'), 10);
+<span id='Ext-dom-Layer-method-getZIndex'>    getZIndex: function() {
+</span>        return parseInt((this.getShim() || this).getStyle('z-index'), 10);
     },
 
-    getShim: function() {
-        var me = this,
+<span id='Ext-dom-Layer-method-getShim'>    getShim: function() {
+</span>        var me = this,
             shim, pn;
 
         if (!me.useShim) {
@@ -191,8 +204,8 @@ Ext.define('Ext.Layer', {
         return me.shim;
     },
 
-    hideShim: function() {
-        var me = this;
+<span id='Ext-dom-Layer-method-hideShim'>    hideShim: function() {
+</span>        var me = this;
         
         if (me.shim) {
             me.shim.setDisplayed(false);
@@ -201,8 +214,8 @@ Ext.define('Ext.Layer', {
         }
     },
 
-    disableShadow: function() {
-        var me = this;
+<span id='Ext-dom-Layer-method-disableShadow'>    disableShadow: function() {
+</span>        var me = this;
         
         if (me.shadow &amp;&amp; !me.shadowDisabled) {
             me.shadowDisabled = true;
@@ -212,8 +225,8 @@ Ext.define('Ext.Layer', {
         }
     },
 
-    enableShadow: function(show) {
-        var me = this;
+<span id='Ext-dom-Layer-method-enableShadow'>    enableShadow: function(show) {
+</span>        var me = this;
         
         if (me.shadow &amp;&amp; me.shadowDisabled) {
             me.shadowDisabled = false;
@@ -225,7 +238,7 @@ Ext.define('Ext.Layer', {
         }
     },
 
-<span id='Ext-Layer-method-sync'>    /**
+<span id='Ext-dom-Layer-method-sync'>    /**
 </span>     * @private
      * Synchronize this Layer's associated elements, the shadow, and possibly the shim.
      *
@@ -239,12 +252,13 @@ Ext.define('Ext.Layer', {
         var me = this,
             shadow = me.shadow,
             shadowPos, shimStyle, shadowSize,
-            shim, l, t, w, h, shimIndex;
+            shim, xy, x, y, w, h, shimIndex;
 
         if (!me.updating &amp;&amp; me.isVisible() &amp;&amp; (shadow || me.useShim)) {
             shim = me.getShim();
-            l = me.getLocalX();
-            t = me.getLocalY();
+            xy = me[me.localXYNames.get]();
+            x = xy[0];
+            y = xy[1];
             w = me.dom.offsetWidth;
             h = me.dom.offsetHeight;
 
@@ -252,7 +266,7 @@ Ext.define('Ext.Layer', {
                 if (doShow &amp;&amp; !shadow.isVisible()) {
                     shadow.show(me);
                 } else {
-                    shadow.realign(l, t, w, h);
+                    shadow.realign(x, y, w, h);
                 }
                 if (shim) {
                     // TODO: Determine how the shims zIndex is above the layer zIndex at this point
@@ -278,7 +292,7 @@ Ext.define('Ext.Layer', {
                         shimStyle.height = (shadowSize.height) + 'px';
                     } else {
                         shim.setSize(w, h);
-                        shim.setLeftTop(l, t);
+                        shim[me.localXYNames.set](x, y);
                     }
                 }
             } else if (shim) {
@@ -289,38 +303,38 @@ Ext.define('Ext.Layer', {
                 }
                 shim.show();
                 shim.setSize(w, h);
-                shim.setLeftTop(l, t);
+                shim[me.localXYNames.set](x, y);
             }
         }
         return me;
     },
 
-    remove: function() {
-        this.hideUnders();
+<span id='Ext-dom-Layer-method-remove'>    remove: function() {
+</span>        this.hideUnders();
         this.callParent();
     },
 
-    // private
-    beginUpdate: function() {
+<span id='Ext-dom-Layer-method-beginUpdate'>    // @private
+</span>    beginUpdate: function() {
         this.updating = true;
     },
 
-    // private
-    endUpdate: function() {
+<span id='Ext-dom-Layer-method-endUpdate'>    // @private
+</span>    endUpdate: function() {
         this.updating = false;
         this.sync(true);
     },
 
-    // private
-    hideUnders: function() {
+<span id='Ext-dom-Layer-method-hideUnders'>    // @private
+</span>    hideUnders: function() {
         if (this.shadow) {
             this.shadow.hide();
         }
         this.hideShim();
     },
 
-    // private
-    constrainXY: function() {
+<span id='Ext-dom-Layer-method-constrainXY'>    // @private
+</span>    constrainXY: function() {
         if (this.constrain) {
             var vw = Ext.Element.getViewWidth(),
                 vh = Ext.Element.getViewHeight(),
@@ -358,12 +372,12 @@ Ext.define('Ext.Layer', {
         return this;
     },
 
-    getConstrainOffset: function() {
-        return this.shadowOffset;
+<span id='Ext-dom-Layer-method-getConstrainOffset'>    getConstrainOffset: function() {
+</span>        return this.shadowOffset;
     },
 
-    // overridden Element method
-    setVisible: function(visible, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setVisible'>    // overridden Element method
+</span>    setVisible: function(visible, animate, duration, callback, easing) {
         var me = this,
             cb;
 
@@ -388,43 +402,58 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-    // private
-    beforeFx: function() {
+<span id='Ext-dom-Layer-method-beforeFx'>    // @private
+</span>    beforeFx: function() {
         this.beforeAction();
         return this.callParent(arguments);
     },
 
-    // private
-    afterFx: function() {
+<span id='Ext-dom-Layer-method-afterFx'>    // @private
+</span>    afterFx: function() {
         this.callParent(arguments);
         this.sync(this.isVisible());
     },
 
-    // private
-    beforeAction: function() {
+<span id='Ext-dom-Layer-method-beforeAction'>    // @private
+</span>    beforeAction: function() {
         if (!this.updating &amp;&amp; this.shadow) {
             this.shadow.hide();
         }
     },
 
-    // overridden Element method
-    setLeft: function(left) {
+<span id='Ext-dom-Layer-method-setLeft'>    // overridden Element method
+</span>    setLeft: function(left) {
         this.callParent(arguments);
         return this.sync();
     },
 
-    setTop: function(top) {
-        this.callParent(arguments);
+<span id='Ext-dom-Layer-method-setTop'>    setTop: function(top) {
+</span>        this.callParent(arguments);
         return this.sync();
     },
 
-    setLeftTop: function(left, top) {
-        this.callParent(arguments);
+<span id='Ext-dom-Layer-method-setLeftTop'>    setLeftTop: function(left, top) {
+</span>        this.callParent(arguments);
         return this.sync();
     },
 
-    setXY: function(xy, animate, duration, callback, easing) {
-        var me = this;
+<span id='Ext-dom-Layer-method-setLocalX'>    setLocalX: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-dom-Layer-method-setLocalXY'>    setLocalXY: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-dom-Layer-method-setLocalY'>    setLocalY: function() {
+</span>        this.callParent(arguments);
+        return this.sync();
+    },
+
+<span id='Ext-dom-Layer-method-setXY'>    setXY: function(xy, animate, duration, callback, easing) {
+</span>        var me = this;
         
         // Callback will restore shadow state and call the passed callback
         callback = me.createCB(callback);
@@ -438,8 +467,8 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-    // private
-    createCB: function(callback) {
+<span id='Ext-dom-Layer-method-createCB'>    // @private
+</span>    createCB: function(callback) {
         var me = this,
             showShadow = me.shadow &amp;&amp; me.shadow.isVisible();
 
@@ -452,20 +481,20 @@ Ext.define('Ext.Layer', {
         };
     },
 
-    // overridden Element method
-    setX: function(x, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setX'>    // overridden Element method
+</span>    setX: function(x, animate, duration, callback, easing) {
         this.setXY([x, this.getY()], animate, duration, callback, easing);
         return this;
     },
 
-    // overridden Element method
-    setY: function(y, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setY'>    // overridden Element method
+</span>    setY: function(y, animate, duration, callback, easing) {
         this.setXY([this.getX(), y], animate, duration, callback, easing);
         return this;
     },
 
-    // overridden Element method
-    setSize: function(w, h, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setSize'>    // overridden Element method
+</span>    setSize: function(w, h, animate, duration, callback, easing) {
         var me = this;
         
         // Callback will restore shadow state and call the passed callback
@@ -479,8 +508,8 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-    // overridden Element method
-    setWidth: function(w, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setWidth'>    // overridden Element method
+</span>    setWidth: function(w, animate, duration, callback, easing) {
         var me = this;
         
         // Callback will restore shadow state and call the passed callback
@@ -494,8 +523,8 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-    // overridden Element method
-    setHeight: function(h, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setHeight'>    // overridden Element method
+</span>    setHeight: function(h, animate, duration, callback, easing) {
         var me = this;
         
         // Callback will restore shadow state and call the passed callback
@@ -509,8 +538,8 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-    // overridden Element method
-    setBounds: function(x, y, width, height, animate, duration, callback, easing) {
+<span id='Ext-dom-Layer-method-setBounds'>    // overridden Element method
+</span>    setBounds: function(x, y, width, height, animate, duration, callback, easing) {
         var me = this;
         
         // Callback will restore shadow state and call the passed callback
@@ -527,7 +556,7 @@ Ext.define('Ext.Layer', {
         return me;
     },
 
-<span id='Ext-Layer-method-setZIndex'>    /**
+<span id='Ext-dom-Layer-method-setZIndex'>    /**
 </span>     * Sets the z-index of this layer and adjusts any shadow and shim z-indexes. The layer
      * z-index is automatically incremented depending upon the presence of a shim or a
      * shadow in so that it always shows above those two associated elements.
@@ -551,8 +580,8 @@ Ext.define('Ext.Layer', {
         return me.setStyle('z-index', zindex);
     },
     
-    onOpacitySet: function(opacity){
-        var shadow = this.shadow;
+<span id='Ext-dom-Layer-method-onOpacitySet'>    onOpacitySet: function(opacity){
+</span>        var shadow = this.shadow;
         if (shadow) {
             shadow.setOpacity(opacity);
         }

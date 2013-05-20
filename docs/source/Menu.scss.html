@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}menu {
+    outline: none;
+}
+
+.#{$prefix}menu-item {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+// &quot;Foreign&quot; Components (such as form fields) put inside a Menu get this class.
+.#{$prefix}menu-item-cmp {
+
+    // Ensure labels are centered when in menus which enlarge the height of a Labelable Component
+    .#{$prefix}field-label-cell {
+        vertical-align: middle;
+    }
+    @if $menu-component-margin != null {
+        margin: $menu-component-margin;
+    }
+}
+
+.#{$prefix}menu-icon-separator {
+    position: absolute;
+    top: 0px;
+    z-index: 0;
+    height: 100%;
+    overflow: hidden;
+    .#{$prefix}menu-plain &amp; {
+        display: none;
+    }
+}
+
+.#{$prefix}menu-item-link {
+    text-decoration: none;
+    outline: 0;
+    zoom: 1;
+}
+
+@if $include-ie {
+    .#{$prefix}menu-item-text {
+        zoom: 1;
+    }
+}
+
+.#{$prefix}menu-item-icon,
+.#{$prefix}menu-item-icon-right,
+.#{$prefix}menu-item-arrow {
+    position: absolute;
+    text-align: center;
+}</pre>
+</body>
+</html>

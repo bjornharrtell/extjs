@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.data.JsonP
  * @singleton
@@ -81,7 +101,7 @@ Ext.define('Ext.data.JsonP', {
      * </ul>
      * @return {Object} request An object containing the request details.
      */
-    request: function(options){
+    request: function(options) {
         options = Ext.apply({}, options);
 
         //<debug>
@@ -97,17 +117,21 @@ Ext.define('Ext.data.JsonP', {
             callbackName = options.callbackName || 'callback' + id,
             callbackKey = options.callbackKey || me.callbackKey,
             timeout = Ext.isDefined(options.timeout) ? options.timeout : me.timeout,
-            params = Ext.apply({}, options.params),
+            params = options.params || {},
             url = options.url,
             name = Ext.name,
             request,
             script;
 
-        params[callbackKey] = name + '.data.JsonP.' + callbackName;
-        if (disableCaching) {
+
+        // Add cachebuster param unless it has already been done
+        if (disableCaching && !params[cacheParam]) {
             params[cacheParam] = new Date().getTime();
+        } else {
+            params = options.params;
         }
 
+        params[callbackKey] = name + '.data.JsonP.' + callbackName;
         script = me.createScript(url, params, options);
 
         me.requests[id] = request = {
@@ -230,6 +254,7 @@ Ext.define('Ext.data.JsonP', {
             Ext.callback(request.success, request.scope, [result]);
         }
         Ext.callback(request.callback, request.scope, [success, result, request.errorType]);
+        Ext.EventManager.idleEvent.fire();
     },
 
     /**

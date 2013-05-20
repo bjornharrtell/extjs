@@ -48,8 +48,10 @@ Ext.define('Ext.Img', {
     extend: 'Ext.Component',
     alias: ['widget.image', 'widget.imagecomponent'],
 
-    autoEl: 'img',
-
+<span id='Ext-Img-cfg-autoEl'>    autoEl: 'img',
+</span>
+<span id='Ext-Img-cfg-baseCls'>    baseCls: Ext.baseCSSPrefix + 'img',
+</span>
 <span id='Ext-Img-cfg-src'>    /**
 </span>     * @cfg {String} src
      * The image src.
@@ -62,21 +64,56 @@ Ext.define('Ext.Img', {
      */
     alt: '',
 
+<span id='Ext-Img-cfg-title'>    /**
+</span>     * @cfg {String} title
+     * Specifies addtional information about the image.
+     */
+    title: '',
+
 <span id='Ext-Img-cfg-imgCls'>    /**
 </span>     * @cfg {String} imgCls
      * Optional CSS classes to add to the img element.
      */
     imgCls: '',
 
-    getElConfig: function() {
-        var me = this,
+<span id='Ext-Img-cfg-glyph'>    /**
+</span>     * @cfg {Number/String} glyph
+     * A numeric unicode character code to serve as the image.  If this option is used
+     * The image will be rendered using a div with innerHTML set to the html entity
+     * for the given character code.  The default font-family for glyphs can be set
+     * globally using {@link Ext#setGlyphFontFamily Ext.setGlyphFontFamily()}. Alternatively,
+     * this config option accepts a string with the charCode and font-family separated by
+     * the `@` symbol. For example '65@My Font Family'.
+     */
+
+    initComponent: function() {
+        if (this.glyph) {
+            this.autoEl = 'div';
+        }
+        this.callParent();
+    },
+
+<span id='Ext-Img-method-getElConfig'>    getElConfig: function() {
+</span>        var me = this,
             config = me.callParent(),
-            img;
+            glyphFontFamily = Ext._glyphFontFamily,
+            glyph = me.glyph,
+            img, glyphParts;
 
         // It is sometimes helpful (like in a panel header icon) to have the img wrapped
         // by a div. If our autoEl is not 'img' then we just add an img child to the el.
         if (me.autoEl == 'img') {
             img = config;
+        } else if (me.glyph) {
+            if (typeof glyph === 'string') {
+                glyphParts = glyph.split('@');
+                glyph = glyphParts[0];
+                glyphFontFamily = glyphParts[1];
+            }
+            config.html = '&amp;#' + glyph + ';';
+            if (glyphFontFamily) {
+                config.style = 'font-family:' + glyphFontFamily;
+            }
         } else {
             config.cn = [img = {
                 tag: 'img',
@@ -84,20 +121,26 @@ Ext.define('Ext.Img', {
             }];
         }
 
-        if (me.imgCls) {
-            img.cls = (img.cls ? img.cls + ' ' : '') + me.imgCls;
+        if (img) {
+            if (me.imgCls) {
+                img.cls = (img.cls ? img.cls + ' ' : '') + me.imgCls;
+            }
+
+            img.src = me.src || Ext.BLANK_IMAGE_URL;
         }
 
-        img.src = me.src || Ext.BLANK_IMAGE_URL;
         if (me.alt) {
-            img.alt = me.alt;
+            (img || config).alt = me.alt;
+        }
+        if (me.title) {
+            (img || config).title = me.title;
         }
 
         return config;
     },
 
-    onRender: function () {
-        var me = this,
+<span id='Ext-Img-method-onRender'>    onRender: function () {
+</span>        var me = this,
             el;
 
         me.callParent(arguments);
@@ -106,8 +149,8 @@ Ext.define('Ext.Img', {
         me.imgEl = (me.autoEl == 'img') ? el : el.getById(me.id + '-img');
     },
 
-    onDestroy: function () {
-        Ext.destroy(this.imgEl);
+<span id='Ext-Img-method-onDestroy'>    onDestroy: function () {
+</span>        Ext.destroy(this.imgEl);
         this.imgEl = null;
         this.callParent();
     },
@@ -124,6 +167,27 @@ Ext.define('Ext.Img', {
 
         if (imgEl) {
             imgEl.dom.src = src || Ext.BLANK_IMAGE_URL;
+        }
+    },
+
+<span id='Ext-Img-method-setGlyph'>    setGlyph: function(glyph) {
+</span>        var me = this,
+            glyphFontFamily = Ext._glyphFontFamily,
+            glyphParts, dom;
+
+        if (glyph != me.glyph) {
+            if (typeof glyph === 'string') {
+                glyphParts = glyph.split('@');
+                glyph = glyphParts[0];
+                glyphFontFamily = glyphParts[1];
+            }
+
+            dom = me.el.dom;
+
+            dom.innerHTML = '&amp;#' + glyph + ';';
+            if (glyphFontFamily) {
+                dom.style = 'font-family:' + glyphFontFamily;
+            }
         }
     }
 });</pre>

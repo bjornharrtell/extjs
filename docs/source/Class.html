@@ -15,7 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Class'>/**
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require Base.js
+
+<span id='Ext-Class'>/**
 </span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
  * @docauthor Jacky Nguyen &lt;jacky@sencha.com&gt;
  * @class Ext.Class
@@ -90,21 +93,23 @@
     Ext.apply(ExtClass, {
 <span id='Ext-Class-method-onBeforeCreated'>        /**
 </span>         * @private
-         * @param Class
-         * @param data
-         * @param hooks
          */
         onBeforeCreated: function(Class, data, hooks) {
+            //&lt;debug&gt;
+            Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, '&gt;&gt; Ext.Class#onBeforeCreated', arguments);
+            //&lt;/debug&gt;
+        
             Class.addMembers(data);
 
             hooks.onCreated.call(Class, Class);
+            
+            //&lt;debug&gt;
+            Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, '&lt;&lt; Ext.Class#onBeforeCreated', arguments);
+            //&lt;/debug&gt;
         },
 
 <span id='Ext-Class-method-create'>        /**
 </span>         * @private
-         * @param Class
-         * @param classData
-         * @param onClassCreated
          */
         create: function(Class, data) {
             var name, i;
@@ -127,9 +132,6 @@
 
 <span id='Ext-Class-method-process'>        /**
 </span>         * @private
-         * @param Class
-         * @param data
-         * @param onCreated
          */
         process: function(Class, data, onCreated) {
             var preprocessorStack = data.preprocessors || ExtClass.defaultPreprocessors,
@@ -139,7 +141,7 @@
                 },
                 preprocessors = [],
                 preprocessor, preprocessorsProperties,
-                i, ln, j, subLn, preprocessorProperty, process;
+                i, ln, j, subLn, preprocessorProperty;
 
             delete data.preprocessors;
 
@@ -175,18 +177,19 @@
             this.doProcess(Class, data, hooks);
         },
         
-        doProcess: function(Class, data, hooks){
+        doProcess: function(Class, data, hooks) {
             var me = this,
-                preprocessor = hooks.preprocessors.shift();
+                preprocessors = hooks.preprocessors,
+                preprocessor = preprocessors.shift(),
+                doProcess = me.doProcess;
 
-            if (!preprocessor) {
-                hooks.onBeforeCreated.apply(me, arguments);
-                return;
+            for ( ; preprocessor ; preprocessor = preprocessors.shift()) {
+                // Returning false signifies an asynchronous preprocessor - it will call doProcess when we can continue
+                if (preprocessor.call(me, Class, data, hooks, doProcess) === false) {
+                    return;
+                }
             }
-
-            if (preprocessor.call(me, Class, data, hooks, me.doProcess) !== false) {
-                me.doProcess(Class, data, hooks);
-            }
+            hooks.onBeforeCreated.apply(me, arguments);
         },
 
 <span id='Ext-Class-property-preprocessors'>        /** @private */
@@ -372,7 +375,11 @@
      *         say: function(text) { this.callParent([&quot;print &quot;+text]); }
      *     });
      */
-    ExtClass.registerPreprocessor('extend', function(Class, data) {
+    ExtClass.registerPreprocessor('extend', function(Class, data, hooks) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#extendPreProcessor', arguments);
+        //&lt;/debug&gt;
+        
         var Base = Ext.Base,
             basePrototype = Base.prototype,
             extend = data.extend,
@@ -427,6 +434,10 @@
      *     var dellComputer = Computer.factory('Dell');
      */
     ExtClass.registerPreprocessor('statics', function(Class, data) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#staticsPreprocessor', arguments);
+        //&lt;/debug&gt;
+        
         Class.addStatics(data.statics);
 
         delete data.statics;
@@ -440,6 +451,10 @@
      * Otherwise just like {@link #statics} but subclasses inherit these methods.
      */
     ExtClass.registerPreprocessor('inheritableStatics', function(Class, data) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#inheritableStaticsPreprocessor', arguments);
+        //&lt;/debug&gt;
+        
         Class.addInheritableStatics(data.inheritableStatics);
 
         delete data.inheritableStatics;
@@ -471,8 +486,22 @@
      *     iPhone.getPrice(); // 500;
      *     iPhone.getOperatingSystem(); // 'iOS'
      *     iPhone.getHasTouchScreen(); // true;
+     *
+     * NOTE for when configs are reference types, the getter and setter methods do not make copies.
+     *
+     * For example, when a config value is set, the reference is stored on the instance. All instances that set
+     * the same reference type will share it.
+     *
+     * In the case of the getter, the value with either come from the prototype if the setter was never called or from
+     * the instance as the last value passed to the setter.
+     *
+     * For some config properties, the value passed to the setter is transformed prior to being stored on the instance.
      */
     ExtClass.registerPreprocessor('config', function(Class, data) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#configPreProcessor', arguments);
+        //&lt;/debug&gt;
+        
         var config = data.config,
             prototype = Class.prototype;
 
@@ -602,12 +631,20 @@
      * through special `mixins` property.
      */
     ExtClass.registerPreprocessor('mixins', function(Class, data, hooks) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#mixinsPreprocessor', arguments);
+        //&lt;/debug&gt;
+        
         var mixins = data.mixins,
             name, mixin, i, ln;
 
         delete data.mixins;
 
         Ext.Function.interceptBefore(hooks, 'onCreated', function() {
+            //&lt;debug&gt;
+            Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#mixinsPreprocessor#beforeCreated', arguments);
+            //&lt;/debug&gt;
+        
             if (mixins instanceof Array) {
                 for (i = 0,ln = mixins.length; i &lt; ln; i++) {
                     mixin = mixins[i];
@@ -630,6 +667,10 @@
     //&lt;feature classSystem.backwardsCompatible&gt;
     // Backwards compatible
     Ext.extend = function(Class, Parent, members) {
+        //&lt;debug&gt;
+        Ext.classSystemMonitor &amp;&amp; Ext.classSystemMonitor(Class, 'Ext.Class#extend-backwards-compatible', arguments);
+        //&lt;/debug&gt;
+            
         if (arguments.length === 2 &amp;&amp; Ext.isObject(Parent)) {
             members = Parent;
             Parent = Class;
@@ -678,7 +719,6 @@
         return cls;
     };
     //&lt;/feature&gt;
-
 }());
 </pre>
 </body>

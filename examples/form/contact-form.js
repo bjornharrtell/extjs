@@ -5,10 +5,10 @@ Ext.require([
 
 Ext.onReady(function() {
 
-    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>';
-    var win;
+    var required = '<span style="color:red;font-weight:bold" data-qtip="Required">*</span>',
+        win;
 
-    Ext.QuickTips.init();
+    Ext.tip.QuickTipManager.init();
 
     function showContactForm() {
         if (!win) {
@@ -28,7 +28,7 @@ Ext.onReady(function() {
                 items: [{
                     xtype: 'fieldcontainer',
                     fieldLabel: 'Your Name',
-                    labelStyle: 'font-weight:bold;padding:0',
+                    labelStyle: 'font-weight:bold;padding:0;',
                     layout: 'hbox',
                     defaultType: 'textfield',
 
@@ -39,6 +39,7 @@ Ext.onReady(function() {
                     items: [{
                         flex: 1,
                         name: 'firstName',
+                        itemId: 'firstName',
                         afterLabelTextTpl: required,
                         fieldLabel: 'First',
                         allowBlank: false
@@ -101,10 +102,13 @@ Ext.onReady(function() {
                 closeAction: 'hide',
                 width: 400,
                 height: 400,
+                minWidth: 300,
+                minHeight: 300,
                 layout: 'fit',
                 resizable: true,
                 modal: true,
-                items: form
+                items: form,
+                defaultFocus: 'firstName'
             });
         }
         win.show();
@@ -117,13 +121,16 @@ Ext.onReady(function() {
         bodyPadding: 20,
 
         items: [{
+            margin: '0 0 20 0',
             xtype: 'component',
             html: 'Thank you for visiting our site! We welcome your feedback; please click the button below to ' +
-                  'send us a message. We will respond to your inquiry as quickly as possible.',
-            style: 'margin-bottom: 20px;'
+                  'send us a message. We will respond to your inquiry as quickly as possible.'
         }, {
             xtype: 'container',
-            style: 'text-align:center',
+            layout: {
+                type: 'hbox',
+                pack: 'center'
+            },
             items: [{
                 xtype: 'button',
                 cls: 'contactBtn',

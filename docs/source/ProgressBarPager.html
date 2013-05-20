@@ -15,14 +15,10 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-ux-ProgressBarPager-method-constructor'><span id='Ext-ux-ProgressBarPager'>/**
-</span></span>* @class Ext.ux.ProgressBarPager
-* @extends Object
-* Plugin for displaying a progressbar inside of a paging toolbar instead of plain text
-* @constructor
-* Create a new ProgressBarPager
-* @param {Object} config Configuration options
-*/
+  <pre class="prettyprint lang-js"><span id='Ext-ux-ProgressBarPager'>/**
+</span> * Plugin for displaying a progressbar inside of a paging toolbar
+ * instead of plain text.
+ */
 Ext.define('Ext.ux.ProgressBarPager', {
 
     requires: ['Ext.ProgressBar'],
@@ -44,14 +40,18 @@ Ext.define('Ext.ux.ProgressBarPager', {
 		duration: 1000,
 		easing: 'bounceOut'	
 	},	
-    
+
+<span id='Ext-ux-ProgressBarPager-method-constructor'>    /**
+</span>     * Creates new ProgressBarPager.
+     * @param {Object} config Configuration options
+     */
     constructor : function(config) {
         if (config) {
             Ext.apply(this, config);
         }
     },
-    //public
-    init : function (parent) {
+<span id='Ext-ux-ProgressBarPager-method-init'>    //public
+</span>    init : function (parent) {
         var displayItem;
         if (parent.displayInfo) {
             this.parent = parent;
@@ -82,8 +82,8 @@ Ext.define('Ext.ux.ProgressBarPager', {
             Ext.apply(parent, this.parentOverrides);
         }
     },
-    // private
-    // This method handles the click for the progress bar
+<span id='Ext-ux-ProgressBarPager-method-handleProgressBarClick'>    // private
+</span>    // This method handles the click for the progress bar
     handleProgressBarClick : function(e){
         var parent = this.parent,
             displayItem = parent.displayItem,
@@ -96,8 +96,8 @@ Ext.define('Ext.ux.ProgressBarPager', {
         parent.store.loadPage(newPage);
     },
 
-    // private, overriddes
-    parentOverrides  : {
+<span id='Ext-ux-ProgressBarPager-property-parentOverrides'>    // private, overriddes
+</span>    parentOverrides  : {
         // private
         // This method updates the information via the progress bar.
         updateInfo : function(){

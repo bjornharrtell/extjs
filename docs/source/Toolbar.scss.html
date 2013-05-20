@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}toolbar-text {
+    white-space: nowrap;
+}
+
+.#{$prefix}toolbar-separator {
+    display: block;
+    font-size: 1px;
+    overflow: hidden;
+    cursor: default;
+    border: 0;
+    width: 0;
+    height: 0;
+    line-height: 0px;
+}
+
+@if $include-ie {
+    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}toolbar .#{$prefix}toolbar-separator-horizontal {
+        width: 2px;
+    }
+}
+
+.#{$prefix}toolbar-scroller {
+    padding-left: 0;
+}
+
+//plain toolbars have no border
+//by default they get no color, so they are transparent. IE6 doesnt support transparent borders
+//so we must set the width to 0.
+.#{$prefix}toolbar-plain {
+    border: 0;
+}</pre>
+</body>
+</html>

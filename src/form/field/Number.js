@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
  *
@@ -205,29 +225,11 @@ Ext.define('Ext.form.field.Number', {
     autoStripChars: false,
 
     initComponent: function() {
-        var me = this,
-            allowed;
-
+        var me = this;
         me.callParent();
 
         me.setMinValue(me.minValue);
         me.setMaxValue(me.maxValue);
-
-        // Build regexes for masking and stripping based on the configured options
-        if (me.disableKeyFilter !== true) {
-            allowed = me.baseChars + '';
-            if (me.allowDecimals) {
-                allowed += me.decimalSeparator;
-            }
-            if (me.minValue < 0) {
-                allowed += '-';
-            }
-            allowed = Ext.String.escapeRegex(allowed);
-            me.maskRe = new RegExp('[' + allowed + ']');
-            if (me.autoStripChars) {
-                me.stripCharsRe = new RegExp('[^' + allowed + ']', 'gi');
-            }
-        }
     },
 
     /**
@@ -308,10 +310,21 @@ Ext.define('Ext.form.field.Number', {
     toggleSpinners: function(){
         var me = this,
             value = me.getValue(),
-            valueIsNull = value === null;
-            
-        me.setSpinUpEnabled(valueIsNull || value < me.maxValue);
-        me.setSpinDownEnabled(valueIsNull || value > me.minValue);
+            valueIsNull = value === null,
+            enabled;
+        
+        // If it's disabled, only allow it to be re-enabled if we are
+        // the ones who are disabling it.
+        if (me.spinUpEnabled || me.spinUpDisabledByToggle) {
+            enabled = valueIsNull || value < me.maxValue;
+            me.setSpinUpEnabled(enabled, true);
+        }
+        
+        
+        if (me.spinDownEnabled || me.spinDownDisabledByToggle) {
+            enabled = valueIsNull || value > me.minValue;
+            me.setSpinDownEnabled(enabled, true);
+        }
     },
 
     /**
@@ -319,8 +332,27 @@ Ext.define('Ext.form.field.Number', {
      * @param {Number} value The minimum value
      */
     setMinValue : function(value) {
-        this.minValue = Ext.Number.from(value, Number.NEGATIVE_INFINITY);
-        this.toggleSpinners();
+        var me = this,
+            allowed;
+        
+        me.minValue = Ext.Number.from(value, Number.NEGATIVE_INFINITY);
+        me.toggleSpinners();
+        
+        // Build regexes for masking and stripping based on the configured options
+        if (me.disableKeyFilter !== true) {
+            allowed = me.baseChars + '';
+            if (me.allowDecimals) {
+                allowed += me.decimalSeparator;
+            }
+            if (me.minValue < 0) {
+                allowed += '-';
+            }
+            allowed = Ext.String.escapeRegex(allowed);
+            me.maskRe = new RegExp('[' + allowed + ']');
+            if (me.autoStripChars) {
+                me.stripCharsRe = new RegExp('[^' + allowed + ']', 'gi');
+            }
+        }
     },
 
     /**
@@ -363,18 +395,52 @@ Ext.define('Ext.form.field.Number', {
             me.setValue(v);
         }
     },
+    
+    setSpinUpEnabled: function(enabled, /* private */ internal){
+        this.callParent(arguments);
+        if (!internal) {
+            delete this.spinUpDisabledByToggle;
+        } else {
+            this.spinUpDisabledByToggle = !enabled;
+        }
+    },
 
     onSpinUp: function() {
         var me = this;
+            
         if (!me.readOnly) {
-            me.setValue(Ext.Number.constrain(me.getValue() + me.step, me.minValue, me.maxValue));
+            me.setSpinValue(Ext.Number.constrain(me.getValue() + me.step, me.minValue, me.maxValue));
         }
+    },
+    
+    setSpinDownEnabled: function(enabled, /* private */ internal){
+        this.callParent(arguments);
+        if (!internal) {
+            delete this.spinDownDisabledByToggle;
+        } else {
+            this.spinDownDisabledByToggle = !enabled;
+        }   
     },
 
     onSpinDown: function() {
         var me = this;
+        
         if (!me.readOnly) {
-            me.setValue(Ext.Number.constrain(me.getValue() - me.step, me.minValue, me.maxValue));
+            me.setSpinValue(Ext.Number.constrain(me.getValue() - me.step, me.minValue, me.maxValue));
         }
+    },
+    
+    setSpinValue: function(value) {
+        var me = this,
+            len;
+            
+        if (me.enforceMaxLength) {
+            // We need to round the value here, otherwise we could end up with a
+            // very long number (think 0.1 + 0.2)
+            if (me.fixPrecision(value).toString().length > me.maxLength) {
+                return;
+            }
+        }
+        me.setValue(value);
     }
 });

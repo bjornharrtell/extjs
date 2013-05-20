@@ -64,8 +64,8 @@ Ext.define('Ext.FocusManager', {
 
     focusElementCls: Ext.baseCSSPrefix + 'focus-element',
 
-    focusFrameCls: Ext.baseCSSPrefix + 'focus-frame',
-
+<span id='Ext-FocusManager-property-focusFrameCls'>    focusFrameCls: Ext.baseCSSPrefix + 'focus-frame',
+</span>
 <span id='Ext-FocusManager-property-whitelist'>    /**
 </span>     * @property {String[]} whitelist
      * A list of xtypes that should ignore certain navigation input keys and
@@ -86,8 +86,8 @@ Ext.define('Ext.FocusManager', {
         'textfield'
     ],
 
-    constructor: function(config) {
-        var me = this,
+<span id='Ext-FocusManager-method-constructor'>    constructor: function(config) {
+</span>        var me = this,
             CQ = Ext.ComponentQuery;
 
         me.mixins.observable.constructor.call(me, config);
@@ -188,22 +188,6 @@ Ext.define('Ext.FocusManager', {
 
         // Setup some ComponentQuery pseudos
         Ext.apply(CQ.pseudos, {
-            focusable: function(cmps) {
-                var len = cmps.length,
-                    results = [],
-                    i = 0,
-                    c;
-
-                for (; i &lt; len; i++) {
-                    c = cmps[i];
-                    if (c.isFocusable()) {
-                        results.push(c);
-                    }
-                }
-
-                return results;
-            },
-
             // Return the single next focusable sibling from the current idx in either direction (step -1 or 1)
             nextFocus: function(cmps, idx, step) {
                 step = step || 1;
@@ -273,8 +257,8 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    clearComponent: function(cmp) {
-        clearTimeout(this.cmpFocusDelay);
+<span id='Ext-FocusManager-method-clearComponent'>    clearComponent: function(cmp) {
+</span>        clearTimeout(this.cmpFocusDelay);
         if (!cmp.isDestroyed) {
             cmp.blur();
         }
@@ -305,7 +289,7 @@ Ext.define('Ext.FocusManager', {
 </span>     * Enables the FocusManager by turning on all automatic focus management and keyboard navigation
      * @param {Boolean/Object} options Either `true`/`false` to turn on the focus frame, or an object
      * with the following options:
-     * @param {Boolean} [focusFrame=false] `true` to show the focus frame around a component when it is focused.
+     * @param {Boolean} [options.focusFrame=false] `true` to show the focus frame around a component when it is focused.
      */
     enable: function(options) {
         var me = this;
@@ -333,8 +317,8 @@ Ext.define('Ext.FocusManager', {
         me.fireEvent('enable', me);
     },
 
-    focusLast: function(e) {
-        var me = this;
+<span id='Ext-FocusManager-method-focusLast'>    focusLast: function(e) {
+</span>        var me = this;
 
         if (me.isWhitelisted(me.focusedCmp)) {
             return true;
@@ -346,9 +330,8 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    getRootComponents: function() {
-        var me = this,
-            CQ = Ext.ComponentQuery,
+<span id='Ext-FocusManager-method-getRootComponents'>    getRootComponents: function() {
+</span>        var CQ = Ext.ComponentQuery,
             inline = CQ.query(':focusable:root:not([floating])'),
             floating = CQ.query(':focusable:root[floating]');
 
@@ -361,8 +344,8 @@ Ext.define('Ext.FocusManager', {
         return floating.concat(inline);
     },
 
-    initDOM: function(options) {
-        var me = this,
+<span id='Ext-FocusManager-method-initDOM'>    initDOM: function(options) {
+</span>        var me = this,
             cls = me.focusFrameCls,
             needListeners = Ext.ComponentQuery.query('{getFocusEl()}:not([focusListenerAdded])'),
             i = 0, len = needListeners.length;
@@ -397,18 +380,18 @@ Ext.define('Ext.FocusManager', {
                 style: 'top: -100px; left: -100px;'
             });
             me.focusFrame.setVisibilityMode(Ext.Element.DISPLAY);
-            me.focusFrame.hide().setLeftTop(0, 0);
+            me.focusFrame.hide().setLocalXY(0, 0);
         }
     },
 
-    isWhitelisted: function(cmp) {
-        return cmp &amp;&amp; Ext.Array.some(this.whitelist, function(x) {
+<span id='Ext-FocusManager-method-isWhitelisted'>    isWhitelisted: function(cmp) {
+</span>        return cmp &amp;&amp; Ext.Array.some(this.whitelist, function(x) {
             return cmp.isXType(x);
         });
     },
 
-    navigateIn: function(e) {
-        var me = this,
+<span id='Ext-FocusManager-method-navigateIn'>    navigateIn: function(e) {
+</span>        var me = this,
             focusedCmp = me.focusedCmp,
             defaultRoot,
             firstChild;
@@ -449,8 +432,8 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    navigateOut: function(e) {
-        var me = this,
+<span id='Ext-FocusManager-method-navigateOut'>    navigateOut: function(e) {
+</span>        var me = this,
             parent;
 
         if (!me.focusedCmp || !(parent = me.focusedCmp.up(':focusable'))) {
@@ -465,8 +448,8 @@ Ext.define('Ext.FocusManager', {
         return true;
     },
 
-    navigateSiblings: function(e, source, parent) {
-        var me = this,
+<span id='Ext-FocusManager-method-navigateSiblings'>    navigateSiblings: function(e, source, parent) {
+</span>        var me = this,
             src = source || me,
             key = e.getKey(),
             EO = Ext.EventObject,
@@ -507,8 +490,8 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    onComponentBlur: function(cmp, e) {
-        var me = this;
+<span id='Ext-FocusManager-method-onComponentBlur'>    onComponentBlur: function(cmp, e) {
+</span>        var me = this;
 
         if (me.focusedCmp === cmp) {
             me.previousFocusedCmp = cmp;
@@ -520,8 +503,8 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    onComponentFocus: function(cmp, e) {
-        var me = this,
+<span id='Ext-FocusManager-method-onComponentFocus'>    onComponentFocus: function(cmp, e) {
+</span>        var me = this,
             chain = me.focusChain,
             parent;
 
@@ -557,11 +540,10 @@ Ext.define('Ext.FocusManager', {
         me.focusTask.delay(10, null, null, [cmp, cmp.getFocusEl()]);
     },
 
-    handleComponentFocus: function(cmp, focusEl) {
-        var me = this,
+<span id='Ext-FocusManager-method-handleComponentFocus'>    handleComponentFocus: function(cmp, focusEl) {
+</span>        var me = this,
             cls,
             ff,
-            fw,
             box,
             bt,
             bl,
@@ -583,7 +565,9 @@ Ext.define('Ext.FocusManager', {
         if (me.shouldShowFocusFrame(cmp)) {
             cls = '.' + me.focusFrameCls + '-';
             ff = me.focusFrame;
-            box = focusEl.getPageBox();
+            
+            // focusEl may in fact be a descendant component to which to delegate focus
+            box = (focusEl.dom ? focusEl : focusEl.el).getBox();
 
             // Size the focus frame's t/b/l/r according to the box
             // This leaves a hole in the middle of the frame so user
@@ -597,10 +581,10 @@ Ext.define('Ext.FocusManager', {
             fl = ff.child(cls + 'left');
             fr = ff.child(cls + 'right');
 
-            ft.setWidth(bw).setLeftTop(bl, bt);
-            fb.setWidth(bw).setLeftTop(bl, bt + bh - 2);
-            fl.setHeight(bh - 2).setLeftTop(bl, bt + 2);
-            fr.setHeight(bh - 2).setLeftTop(bl + bw - 2, bt + 2);
+            ft.setWidth(bw).setLocalXY(bl, bt);
+            fb.setWidth(bw).setLocalXY(bl, bt + bh - 2);
+            fl.setHeight(bh - 2).setLocalXY(bl, bt + 2);
+            fr.setHeight(bh - 2).setLocalXY(bl + bw - 2, bt + 2);
 
             ff.show();
         }
@@ -608,8 +592,8 @@ Ext.define('Ext.FocusManager', {
         me.fireEvent('componentfocus', me, cmp, me.previousFocusedCmp);
     },
 
-    onComponentHide: function(cmp) {
-        var me = this,
+<span id='Ext-FocusManager-method-onComponentHide'>    onComponentHide: function(cmp) {
+</span>        var me = this,
             cmpHadFocus = false,
             focusedCmp = me.focusedCmp,
             parent;
@@ -630,12 +614,12 @@ Ext.define('Ext.FocusManager', {
         }
     },
 
-    onComponentDestroy: function() {
-
+<span id='Ext-FocusManager-method-onComponentDestroy'>    onComponentDestroy: function() {
+</span>
     },
 
-    removeDOM: function() {
-        var me = this;
+<span id='Ext-FocusManager-method-removeDOM'>    removeDOM: function() {
+</span>        var me = this;
 
         // If we are still enabled globally, or there are still subscribers
         // then we will halt here, since our DOM stuff is still being used
@@ -665,8 +649,8 @@ Ext.define('Ext.FocusManager', {
         Ext.Array.remove(me.whitelist, xtype);
     },
 
-    setupSubscriberKeys: function(container, keys) {
-        var me = this,
+<span id='Ext-FocusManager-method-setupSubscriberKeys'>    setupSubscriberKeys: function(container, keys) {
+</span>        var me = this,
             el = container.getFocusEl(),
             scope = keys.scope,
             handlers = {
@@ -702,11 +686,9 @@ Ext.define('Ext.FocusManager', {
         return new Ext.util.KeyNav(el, handlers);
     },
 
-    shouldShowFocusFrame: function(cmp) {
-        var me = this,
-            opts = me.options || {},
-            cmpFocusEl = cmp.getFocusEl(),
-            cmpFocusElTag = Ext.getDom(cmpFocusEl).tagName;
+<span id='Ext-FocusManager-method-shouldShowFocusFrame'>    shouldShowFocusFrame: function(cmp) {
+</span>        var me = this,
+            opts = me.options || {};
 
         // Do not show a focus frame if
         // 1. We are configured not to.

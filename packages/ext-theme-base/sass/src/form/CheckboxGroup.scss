@@ -1,0 +1,6 @@
+table.#{$prefix}form-checkboxgroup {
+    // remove the bottom margin from checkbox group, becuase the fields inside have bottom margin
+    // we include the tag name in the selector to increase specificity over the rule
+    // that applies the bottom margin to form-items in the neutral theme
+    margin: 0;
+}

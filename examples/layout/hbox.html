@@ -1,12 +1,12 @@
 <html>
 <head>
     <title>HBox Layout</title>
-    <link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css" />
     <link rel="stylesheet" type="text/css" href="../shared/example.css" />
 
     <!-- GC -->
 
-    <script type="text/javascript" src="../../ext-all.js"></script>
+    <script type="text/javascript" src="../../examples/shared/include-ext.js"></script>
+    <script type="text/javascript" src="../../examples/shared/options-toolbar.js"></script>
 
     <style type="text/css">
         html, body {
@@ -20,45 +20,45 @@
 
         Ext.onReady(function() {
             var currentName,
-                viewport;
-            var replace = function(config, name) {
-                var btns = Ext.getCmp('btns');
-                if (name && name != currentName) {
-                    currentName = name;
-                    btns.remove(0);
-                    btns.add(Ext.apply(config));
-                }
-            };
+                panelCache = [],
+                panel,
+                replace = function(config, name) {
+                    var btns = Ext.getCmp('btns');
+                    if (name && name != currentName) {
+                        currentName = name;
+                        if (btns.items.length) {
+                            btns.remove(0, false);
+                        } else {
+                            btns.body.innerHTML = '';
+                        }
+                        config.border = false,
+                        panel = panelCache[name] || (panelCache[name] = Ext.widget('panel', config));
+                        btns.add(panel);
+                    }
+                };
 
-            viewport = Ext.create('Ext.Viewport', {
+            Ext.create('Ext.Viewport', {
                 layout:'border',
 
                 items: [{
                     id:'btns',
                     region:'north',
-                    baseCls:'x-plain',
                     split: true,
                     height: 100,
                     minHeight: 75,
                     maxHeight: 150,
                     layout:'fit',
                     margins: '5 5 0 5',
-                    items: {
-                        baseCls: 'x-plain',
-                        html: '<p style="padding:10px;color:#556677;">Select a configuration below:</p>'
-                    }
+                    html: '<p style="padding:10px;color:#556677;">Select a configuration below:</p>'
                }, {
                     region:'center',
                     margins: '0 5 5 5',
                     layout:'anchor',
 
-                    items:[{
-                        anchor:'100%',
-                        baseCls:'x-plain',
-                        layout: {
-                            type: 'hbox',
-                            padding: 10
-                        },
+                    dockedItems:[{
+                        xtype: 'toolbar',
+                        enableOverflow: true,
+                        dock: 'top',
                         defaults:{
                             margins:'0 5 0 0',
                             pressed: false,
@@ -199,12 +199,9 @@
                             }
                         }]
                     },{
-                        anchor:'100%',
-                        baseCls:'x-plain',
-                        layout: {
-                            type: 'hbox',
-                            padding: '0 10 10'
-                        },
+                        xtype: 'toolbar',
+                        enableOverflow: true,
+                        dock: 'top',
                         defaults:{
                             margins:'0 5 0 0',
                             pressed: false,

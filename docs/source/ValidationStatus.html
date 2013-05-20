@@ -59,146 +59,168 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
      */
     submitText : 'Saving...',
     
-    // private
-    init : function(sb){
-        sb.on('render', function(){
-            this.statusBar = sb;
-            this.monitor = true;
-            this.errors = Ext.create('Ext.util.MixedCollection');
-            this.listAlign = (sb.statusAlign === 'right' ? 'br-tr?' : 'bl-tl?');
-            
-            if (this.form) {
-                this.formPanel = Ext.getCmp(this.form);
-                this.basicForm = this.formPanel.getForm();
-                this.startMonitoring();
-                this.basicForm.on('beforeaction', function(f, action){
-                    if(action.type === 'submit'){
-                        // Ignore monitoring while submitting otherwise the field validation
-                        // events cause the status message to reset too early
-                        this.monitor = false;
-                    }
-                }, this);
-                var startMonitor = function(){
-                    this.monitor = true;
-                };
-                this.basicForm.on('actioncomplete', startMonitor, this);
-                this.basicForm.on('actionfailed', startMonitor, this);
-            }
-        }, this, {single:true});
+<span id='Ext-ux-statusbar-ValidationStatus-method-init'>    // private
+</span>    init : function(sb) {
+        var me = this;
+
+        me.statusBar = sb;
         sb.on({
-            scope: this,
-            afterlayout:{
-                single: true,
-                fn: function(){
-                    // Grab the statusEl after the first layout.
-                    sb.statusEl.getEl().on('click', this.onStatusClick, this, {buffer:200});
-                } 
-            }, 
-            beforedestroy:{
-                single: true,
-                fn: this.onDestroy
-            } 
+            single: true,
+            scope: me,
+            render: me.onStatusbarRender,
+            beforedestroy: me.destroy
+        });
+        sb.on({
+            click: {
+                element: 'el',
+                fn: me.onStatusClick,
+                scope: me,
+                buffer: 200
+            }
         });
     },
+
+<span id='Ext-ux-statusbar-ValidationStatus-method-onStatusbarRender'>    onStatusbarRender: function(sb) {
+</span>        var me = this,
+            startMonitor = function() {
+                me.monitor = true;
+            };
+
+        me.monitor = true;
+        me.errors = Ext.create('Ext.util.MixedCollection');
+        me.listAlign = (sb.statusAlign === 'right' ? 'br-tr?' : 'bl-tl?');
+
+        if (me.form) {
+            me.formPanel = Ext.getCmp(me.form);
+            me.basicForm = me.formPanel.getForm();
+            me.startMonitoring();
+            me.basicForm.on('beforeaction', function(f, action) {
+                if (action.type === 'submit') {
+                    // Ignore monitoring while submitting otherwise the field validation
+                    // events cause the status message to reset too early
+                    me.monitor = false;
+                }
+            });
+            me.basicForm.on('actioncomplete', startMonitor);
+            me.basicForm.on('actionfailed', startMonitor);
+        }
+   },
     
-    // private
-    startMonitoring : function() {
-        this.basicForm.getFields().each(function(f){
+<span id='Ext-ux-statusbar-ValidationStatus-method-startMonitoring'>    // private
+</span>    startMonitoring : function() {
+        this.basicForm.getFields().each(function(f) {
             f.on('validitychange', this.onFieldValidation, this);
         }, this);
     },
     
-    // private
-    stopMonitoring : function(){
-        this.basicForm.getFields().each(function(f){
+<span id='Ext-ux-statusbar-ValidationStatus-method-stopMonitoring'>    // private
+</span>    stopMonitoring : function() {
+        this.basicForm.getFields().each(function(f) {
             f.un('validitychange', this.onFieldValidation, this);
         }, this);
     },
     
-    // private
-    onDestroy : function(){
+<span id='Ext-ux-statusbar-ValidationStatus-method-onDestroy'>    // private
+</span>    onDestroy : function() {
         this.stopMonitoring();
         this.statusBar.statusEl.un('click', this.onStatusClick, this);
         this.callParent(arguments);
     },
     
-    // private
-    onFieldValidation : function(f, isValid){
-        if (!this.monitor) {
+<span id='Ext-ux-statusbar-ValidationStatus-method-onFieldValidation'>    // private
+</span>    onFieldValidation : function(f, isValid) {
+        var me = this,
+            msg;
+
+        if (!me.monitor) {
             return false;
         }
-        var msg = f.getErrors()[0];
+        msg = f.getErrors()[0];
         if (msg) {
-            this.errors.add(f.id, {field:f, msg:msg});
+            me.errors.add(f.id, {field:f, msg:msg});
         } else {
-            this.errors.removeAtKey(f.id);
+            me.errors.removeAtKey(f.id);
         }
         this.updateErrorList();
-        if(this.errors.getCount() &gt; 0) {
-            if(this.statusBar.getText() !== this.showText){
-                this.statusBar.setStatus({text:this.showText, iconCls:this.errorIconCls});
+        if (me.errors.getCount() &gt; 0) {
+            if (me.statusBar.getText() !== me.showText) {
+                me.statusBar.setStatus({
+                    text: me.showText,
+                    iconCls: me.errorIconCls
+                });
             }
-        }else{
-            this.statusBar.clearStatus().setIcon(this.validIconCls);
+        } else {
+            me.statusBar.clearStatus().setIcon(me.validIconCls);
         }
     },
-    
-    // private
-    updateErrorList : function(){
-        if(this.errors.getCount() &gt; 0){
-         var msg = '&lt;ul&gt;';
-         this.errors.each(function(err){
-             msg += ('&lt;li id=&quot;x-err-'+ err.field.id +'&quot;&gt;&lt;a href=&quot;#&quot;&gt;' + err.msg + '&lt;/a&gt;&lt;/li&gt;');
-         }, this);
-         this.getMsgEl().update(msg+'&lt;/ul&gt;');
-        }else{
-            this.getMsgEl().update('');
+
+<span id='Ext-ux-statusbar-ValidationStatus-method-updateErrorList'>    // private
+</span>    updateErrorList : function() {
+        var me = this,
+            msg,
+            msgEl = me.getMsgEl();
+
+        if (me.errors.getCount() &gt; 0) {
+            msg = ['&lt;ul&gt;'];
+            this.errors.each(function(err) {
+                msg.push('&lt;li id=&quot;x-err-', err.field.id, '&quot;&gt;&lt;a href=&quot;#&quot;&gt;', err.msg, '&lt;/a&gt;&lt;/li&gt;');
+            });
+            msg.push('&lt;/ul&gt;');
+            msgEl.update(msg.join(''));
+        } else {
+            msgEl.update('');
         }
         // reset msgEl size
-        this.getMsgEl().setSize('auto', 'auto');
+        msgEl.setSize('auto', 'auto');
     },
     
-    // private
-    getMsgEl : function(){
-        if(!this.msgEl){
-            this.msgEl = Ext.DomHelper.append(Ext.getBody(), {
-                cls: this.errorListCls
+<span id='Ext-ux-statusbar-ValidationStatus-method-getMsgEl'>    // private
+</span>    getMsgEl : function() {
+        var me = this,
+            msgEl = me.msgEl,
+            t;
+
+        if (!msgEl) {
+            msgEl = me.msgEl = Ext.DomHelper.append(Ext.getBody(), {
+                cls: me.errorListCls
             }, true);
-            this.msgEl.hide();
-            this.msgEl.on('click', function(e){
-                var t = e.getTarget('li', 10, true);
-                if(t){
+            msgEl.hide();
+            msgEl.on('click', function(e) {
+                t = e.getTarget('li', 10, true);
+                if (t) {
                     Ext.getCmp(t.id.split('x-err-')[1]).focus();
-                    this.hideErrors();
+                    me.hideErrors();
                 }
-            }, this, {stopEvent:true}); // prevent anchor click navigation
+            }, null, {stopEvent: true}); // prevent anchor click navigation
         }
-        return this.msgEl;
+        return msgEl;
     },
     
-    // private
-    showErrors : function(){
-        this.updateErrorList();
-        this.getMsgEl().alignTo(this.statusBar.getEl(), this.listAlign).slideIn('b', {duration: 300, easing:'easeOut'});
-        this.statusBar.setText(this.hideText);
-        this.formPanel.el.on('click', this.hideErrors, this, {single:true}); // hide if the user clicks directly into the form
+<span id='Ext-ux-statusbar-ValidationStatus-method-showErrors'>    // private
+</span>    showErrors : function() {
+        var me = this;
+
+        me.updateErrorList();
+        me.getMsgEl().alignTo(me.statusBar.getEl(), me.listAlign).slideIn('b', {duration: 300, easing: 'easeOut'});
+        me.statusBar.setText(me.hideText);
+        me.formPanel.body.on('click', me.hideErrors, me, {single:true}); // hide if the user clicks directly into the form
     },
-    
-    // private
-    hideErrors : function(){
+
+<span id='Ext-ux-statusbar-ValidationStatus-method-hideErrors'>    // private
+</span>    hideErrors : function() {
         var el = this.getMsgEl();
-        if(el.isVisible()){
-         el.slideOut('b', {duration: 300, easing:'easeIn'});
-         this.statusBar.setText(this.showText);
+        if (el.isVisible()) {
+            el.slideOut('b', {duration: 300, easing: 'easeIn'});
+            this.statusBar.setText(this.showText);
         }
-        this.formPanel.el.un('click', this.hideErrors, this);
+        this.formPanel.body.un('click', this.hideErrors, this);
     },
     
-    // private
-    onStatusClick : function(){
-        if(this.getMsgEl().isVisible()){
+<span id='Ext-ux-statusbar-ValidationStatus-method-onStatusClick'>    // private
+</span>    onStatusClick : function() {
+        if (this.getMsgEl().isVisible()) {
             this.hideErrors();
-        }else if(this.errors.getCount() &gt; 0){
+        } else if (this.errors.getCount() &gt; 0) {
             this.showErrors();
         }
     }

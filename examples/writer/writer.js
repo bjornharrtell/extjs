@@ -182,6 +182,10 @@ Ext.define('Writer.Grid', {
                 text: 'ID',
                 width: 40,
                 sortable: true,
+                resizable: false,
+                draggable: false,
+                hideable: false,
+                menuDisabled: true,
                 dataIndex: 'id'
             }, {
                 header: 'Email',
@@ -361,7 +365,7 @@ Ext.onReady(function(){
     var main = Ext.create('Ext.container.Container', {
         padding: '0 0 0 20',
         width: 500,
-        height: 450,
+        height: Ext.themeName === 'neptune' ? 500 : 450,
         renderTo: document.body,
         layout: {
             type: 'vbox',
@@ -370,7 +374,7 @@ Ext.onReady(function(){
         items: [{
             itemId: 'form',
             xtype: 'writerform',
-            height: 150,
+            manageHeight: false,
             margins: '0 0 10 0',
             listeners: {
                 create: function(form, data){

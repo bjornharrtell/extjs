@@ -4,30 +4,32 @@ Ext.require(['Ext.Window', 'Ext.fx.target.Sprite', 'Ext.layout.container.Fit', '
 Ext.onReady(function () {
     var textArea;
     
-    Ext.chart.theme.White = Ext.extend(Ext.chart.theme.Base, {
-        constructor: function() {
-           Ext.chart.theme.White.superclass.constructor.call(this, {
+    Ext.define('Ext.chart.theme.CustomBlue', {
+        extend: 'Ext.chart.theme.Base',
+        
+        constructor: function(config) {
+            var titleLabel = {
+                font: 'bold 18px Arial'
+            }, axisLabel = {
+                fill: 'rgb(8,69,148)',
+                font: '12px Arial',
+                spacing: 2,
+                padding: 5
+            };
+            
+            this.callParent([Ext.apply({
                axis: {
-                   stroke: 'rgb(8,69,148)',
-                   'stroke-width': 1
+                   stroke: '#084594'
                },
-               axisLabel: {
-                   fill: 'rgb(8,69,148)',
-                   font: '12px Arial',
-                   'font-family': '"Arial',
-                   spacing: 2,
-                   padding: 5,
-                   renderer: function(v) { return v; }
-               },
-               axisTitle: {
-                  font: 'bold 18px Arial'
-               }
-           });
+               axisLabelLeft: axisLabel,
+               axisLabelBottom: axisLabel,
+               axisTitleLeft: titleLabel,
+               axisTitleBottom: titleLabel
+           }, config)]);
         }
     });
+    
     var chart = Ext.create('Ext.chart.Chart', {
-            id: 'chartCmp',
-            xtype: 'chart',
             animate: true,
             shadow: true,
             store: store1,
@@ -47,7 +49,7 @@ Ext.onReady(function () {
                 fields: ['name'],
                 title: 'Month of the Year'
             }],
-            theme: 'White',
+            theme: 'CustomBlue',
             background: {
               gradient: {
                 id: 'backgroundGradient',
@@ -87,7 +89,7 @@ Ext.onReady(function () {
             }]
         });
         
-    var win = Ext.create('Ext.Window', {
+    var win = Ext.create('Ext.window.Window', {
         width: 800,
         height: 600,
         minHeight: 400,
@@ -95,7 +97,7 @@ Ext.onReady(function () {
         hidden: false,
         maximizable: true,
         title: 'Bar Chart',
-        renderTo: Ext.getBody(),
+        autoShow: true,
         layout: 'fit',
         tbar: [{
             text: 'Save Chart',
@@ -111,7 +113,10 @@ Ext.onReady(function () {
         }, {
             text: 'Reload Data',
             handler: function() {
-                store1.loadData(generateData());
+                // Add a short delay to prevent fast sequential clicks
+                window.loadTask.delay(100, function() {
+                    store1.loadData(generateData());
+                });
             }
         }],
         items: chart

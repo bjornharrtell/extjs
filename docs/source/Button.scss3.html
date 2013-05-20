@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-button-Button'>/**
+</span> * @class Ext.button.Button
+ */
+
+$button-arrow-width: 12px !default;
+$button-arrow-height: 12px !default;
+$button-split-width: 14px !default;
+$button-split-height: 14px !default;
+$button-icon-spacing: 4px !default;
+
+$button-small-border-radius: 3px !default;
+$button-small-border-width: 1px !default;
+$button-small-padding: 2px !default;
+$button-small-text-padding: 4px !default;
+$button-small-font-size: ceil($font-size * .9) !default; //11px
+$button-small-font-size-over: $button-small-font-size !default;
+$button-small-font-size-focus: $button-small-font-size-over !default;
+$button-small-font-size-pressed: $button-small-font-size !default;
+$button-small-font-size-disabled: $button-small-font-size !default;
+$button-small-font-weight: normal !default;
+$button-small-font-weight-over: $button-small-font-weight !default;
+$button-small-font-weight-focus: $button-small-font-weight-over !default;
+$button-small-font-weight-pressed: $button-small-font-weight !default;
+$button-small-font-weight-disabled: $button-small-font-weight !default;
+$button-small-font-family: $font-family !default;
+$button-small-font-family-over: $button-small-font-family !default;
+$button-small-font-family-focus: $button-small-font-family-over !default;
+$button-small-font-family-pressed: $button-small-font-family !default;
+$button-small-font-family-disabled: $button-small-font-family !default;
+$button-small-icon-size: 16px !default;
+$button-small-arrow-width: $button-arrow-width !default;
+$button-small-arrow-height: $button-arrow-height !default;
+$button-small-split-width: $button-split-width !default;
+$button-small-split-height: $button-split-height !default;
+
+$button-medium-border-radius: 3px !default;
+$button-medium-border-width: 1px !default;
+$button-medium-padding: 3px !default;
+$button-medium-text-padding: 3px !default;
+$button-medium-font-size: $font-size !default; //11px
+$button-medium-font-size-over: $button-medium-font-size !default;
+$button-medium-font-size-focus: $button-medium-font-size-over !default;
+$button-medium-font-size-pressed: $button-medium-font-size !default;
+$button-medium-font-size-disabled: $button-medium-font-size !default;
+$button-medium-font-weight: normal !default;
+$button-medium-font-weight-over: $button-medium-font-weight !default;
+$button-medium-font-weight-focus: $button-medium-font-weight-over !default;
+$button-medium-font-weight-pressed: $button-medium-font-weight !default;
+$button-medium-font-weight-disabled: $button-medium-font-weight !default;
+$button-medium-font-family: $font-family !default;
+$button-medium-font-family-over: $button-medium-font-family !default;
+$button-medium-font-family-focus: $button-medium-font-family-over !default;
+$button-medium-font-family-pressed: $button-medium-font-family !default;
+$button-medium-font-family-disabled: $button-medium-font-family !default;
+$button-medium-icon-size: 24px !default;
+$button-medium-arrow-width: $button-arrow-width !default;
+$button-medium-arrow-height: $button-arrow-height !default;
+$button-medium-split-width: $button-split-width !default;
+$button-medium-split-height: $button-split-height !default;
+
+$button-large-border-radius: 3px !default;
+$button-large-border-width: 1px !default;
+$button-large-padding: 3px !default;
+$button-large-text-padding: 3px !default;
+$button-large-font-size: $font-size !default; //11px
+$button-large-font-size-over: $button-large-font-size !default;
+$button-large-font-size-focus: $button-large-font-size-over !default;
+$button-large-font-size-pressed: $button-large-font-size !default;
+$button-large-font-size-disabled: $button-large-font-size !default;
+$button-large-font-weight: normal !default;
+$button-large-font-weight-over: $button-large-font-weight !default;
+$button-large-font-weight-focus: $button-large-font-weight-over !default;
+$button-large-font-weight-pressed: $button-large-font-weight !default;
+$button-large-font-weight-disabled: $button-large-font-weight !default;
+$button-large-font-family: $font-family !default;
+$button-large-font-family-over: $button-large-font-family !default;
+$button-large-font-family-focus: $button-large-font-family-over !default;
+$button-large-font-family-pressed: $button-large-font-family !default;
+$button-large-font-family-disabled: $button-large-font-family !default;
+$button-large-icon-size: 32px !default;
+$button-large-arrow-width: $button-arrow-width !default;
+$button-large-arrow-height: $button-arrow-height !default;
+$button-large-split-width: $button-split-width !default;
+$button-large-split-height: $button-split-height !default;
+
+//base colors for the default button
+$button-default-base-color: $base-color !default;
+$button-default-base-color-over: $button-default-base-color !default;
+$button-default-base-color-focus: $button-default-base-color-over !default;
+$button-default-base-color-pressed: $button-default-base-color !default;
+$button-default-base-color-disabled: $base-color !default;
+
+$button-default-border-color: $base-color !default;
+$button-default-border-color-over: $base-color !default;
+$button-default-border-color-focus: $base-color !default;
+$button-default-border-color-pressed: $base-color !default;
+$button-default-border-color-disabled: $base-color !default;
+
+$button-default-background-color: $button-default-base-color !default;
+$button-default-background-color-over: $button-default-base-color-over !default;
+$button-default-background-color-focus: $button-default-background-color-over !default;
+$button-default-background-color-pressed: $button-default-base-color-pressed !default;
+$button-default-background-color-disabled: null !default;
+
+$button-default-background-gradient: 'glossy-button' !default;
+$button-default-background-gradient-over: 'glossy-button-over' !default;
+$button-default-background-gradient-focus: $button-default-background-gradient-over !default;
+$button-default-background-gradient-pressed: 'glossy-button-pressed' !default;
+$button-default-background-gradient-disabled: 'glossy-button-disabled' !default;
+
+$button-default-background-gradient-color-stops: null !default;
+$button-default-background-gradient-color-stops-over: $button-default-background-gradient-color-stops !default;
+$button-default-background-gradient-color-stops-focus: $button-default-background-gradient-color-stops-over !default;
+$button-default-background-gradient-color-stops-pressed: $button-default-background-gradient-color-stops !default;
+$button-default-background-gradient-color-stops-disabled: $button-default-background-gradient-color-stops !default;
+
+$button-default-color: #000 !default;
+$button-default-color-over: $button-default-color !default;
+$button-default-color-focus: $button-default-color-over !default;
+$button-default-color-pressed: $button-default-color !default;
+$button-default-color-disabled: $button-default-color !default;
+$button-default-glyph-color: $button-default-color !default;
+$button-default-glyph-opacity: .5 !default;
+
+$button-toolbar-border-color: $base-color !default;
+$button-toolbar-border-color-over: $button-toolbar-border-color !default;
+$button-toolbar-border-color-focus: $button-toolbar-border-color-over !default;
+$button-toolbar-border-color-pressed: $button-toolbar-border-color !default;
+$button-toolbar-border-color-disabled: $button-toolbar-border-color !default;
+
+$button-toolbar-background-color: $base-color !default;
+$button-toolbar-background-color-over: $button-toolbar-background-color !default;
+$button-toolbar-background-color-focus: $button-toolbar-background-color-over !default;
+$button-toolbar-background-color-pressed: $button-toolbar-background-color !default;
+$button-toolbar-background-color-disabled: $button-toolbar-background-color !default;
+
+$button-toolbar-background-gradient: 'glossy-button' !default;
+$button-toolbar-background-gradient-over: 'glossy-button-over' !default;
+$button-toolbar-background-gradient-focus: $button-toolbar-background-gradient-over !default;
+$button-toolbar-background-gradient-pressed: 'glossy-button-pressed' !default;
+$button-toolbar-background-gradient-disabled: 'glossy-button-disabled' !default;
+
+$button-toolbar-color: #000 !default;
+$button-toolbar-color-over: $button-toolbar-color !default;
+$button-toolbar-color-focus: $button-toolbar-color-over !default;
+$button-toolbar-color-pressed: $button-toolbar-color !default;
+$button-toolbar-color-disabled: $button-toolbar-color !default;
+$button-toolbar-glyph-color: $button-toolbar-color !default;
+$button-toolbar-glyph-opacity: .5 !default;
+
+<span id='Ext-button-Button-css_var-S-button-include-ui-menu-arrows'>/**
+</span> * @var {boolean} $button-include-ui-menu-arrows
+ * True to use a different image url for the menu button arrows for each button UI
+ */
+$button-include-ui-menu-arrows: false !default;
+
+<span id='Ext-button-Button-css_var-S-button-include-ui-split-arrows'>/**
+</span> * @var {boolean} $button-include-ui-split-arrows
+ * True to use a different image url for the split button arrows for each button UI
+ */
+$button-include-ui-split-arrows: false !default;
+
+<span id='Ext-button-Button-css_var-S-button-include-split-over-arrows'>/**
+</span> * @var {boolean} $button-include-split-over-arrows
+ * True to include different split arrows for buttons' hover state.
+ */
+$button-include-split-over-arrows: false !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-include-split-noline-arrows'>/**
+</span> * @var {boolean} $button-toolbar-include-split-noline-arrows
+ * True to include &quot;noline&quot; split arrows for toolbar buttons in their default state.
+ */
+$button-toolbar-include-split-noline-arrows: false !default;
+
+<span id='Ext-button-Button-css_var-S-button-opacity-disabled'>/**
+</span> * @var {number} $button-opacity-disabled
+ * opacity to apply to the button's main element when the buton is disabled
+ */
+$button-opacity-disabled: .5 !default;
+
+<span id='Ext-button-Button-css_var-S-button-inner-opacity-disabled'>/**
+</span> * @var {number} $button-inner-opacity-disabled
+ * opacity to apply to the button's inner elements (icon and text) when the buton is disabled
+ */
+$button-inner-opacity-disabled: 1 !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-opacity-disabled'>/**
+</span> * @var {number} $button-toolbar-opacity-disabled
+ * opacity to apply to the toolbar button's main element when the buton is disabled
+ */
+$button-toolbar-opacity-disabled: .5 !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-inner-opacity-disabled'>/**
+</span> * @var {number} $button-toolbar-inner-opacity-disabled
+ * opacity to apply to the toolbar button's inner elements (icon and text) when the buton is disabled
+ */
+$button-toolbar-inner-opacity-disabled: 1 !default;</pre>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.#{$prefix}grid-editor {
+    // Align checkbox input
+    .#{$prefix}form-cb-wrap {
+        text-align: center;
+    }
+
+    .#{$prefix}form-text {
+        font: $grid-editor-font;
+    }
+}

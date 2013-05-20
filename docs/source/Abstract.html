@@ -64,20 +64,20 @@ Ext.define('Ext.chart.axis.Abstract', {
         me.labelGroup = me.chart.surface.getGroup(me.axisId + &quot;-labels&quot;);
     },
 
-    alignment: null,
-    grid: false,
-    steps: 10,
-    x: 0,
-    y: 0,
-    minValue: 0,
-    maxValue: 0,
-
-    getId: function() {
-        return this.axisId || (this.axisId = Ext.id(null, 'ext-axis-'));
+<span id='Ext-chart-axis-Abstract-property-alignment'>    alignment: null,
+</span><span id='Ext-chart-axis-Abstract-property-grid'>    grid: false,
+</span><span id='Ext-chart-axis-Abstract-property-steps'>    steps: 10,
+</span><span id='Ext-chart-axis-Abstract-property-x'>    x: 0,
+</span><span id='Ext-chart-axis-Abstract-property-y'>    y: 0,
+</span><span id='Ext-chart-axis-Abstract-property-minValue'>    minValue: 0,
+</span><span id='Ext-chart-axis-Abstract-property-maxValue'>    maxValue: 0,
+</span>
+<span id='Ext-chart-axis-Abstract-method-getId'>    getId: function() {
+</span>        return this.axisId || (this.axisId = Ext.id(null, 'ext-axis-'));
     },
 
-    /*
-      Called to process a view i.e to make aggregation and filtering over
+<span id='Ext-chart-axis-Abstract-method-processView'>    /*
+</span>      Called to process a view i.e to make aggregation and filtering over
       a store creating a substore to be used to render the axis. Since many axes
       may do different things on the data and we want the final result of all these
       operations to be rendered we need to call processView on all axes before drawing
@@ -85,9 +85,9 @@ Ext.define('Ext.chart.axis.Abstract', {
     */
     processView: Ext.emptyFn,
 
-    drawAxis: Ext.emptyFn,
-    addDisplayAndLabels: Ext.emptyFn
-});
+<span id='Ext-chart-axis-Abstract-method-drawAxis'>    drawAxis: Ext.emptyFn,
+</span><span id='Ext-chart-axis-Abstract-method-addDisplayAndLabels'>    addDisplayAndLabels: Ext.emptyFn
+</span>});
 </pre>
 </body>
 </html>

@@ -116,8 +116,8 @@ Ext.define('Ext.util.ClickRepeater', {
      */
     stopDefault : false,
 
-    timer : 0,
-
+<span id='Ext-util-ClickRepeater-property-timer'>    timer : 0,
+</span>
 <span id='Ext-util-ClickRepeater-method-enable'>    /**
 </span>     * Enables the repeater and allows events to fire.
      */
@@ -126,7 +126,7 @@ Ext.define('Ext.util.ClickRepeater', {
             this.el.on('mousedown', this.handleMouseDown, this);
             // IE versions will detect clicks as in sequence as dblclicks
             // if they happen in quick succession
-            if (Ext.isIE &amp;&amp; !(Ext.isStrict &amp;&amp; Ext.isIE9)){
+            if (Ext.isIE &amp;&amp; !(Ext.isIE10p || (Ext.isStrict &amp;&amp; Ext.isIE9))){
                 this.el.on('dblclick', this.handleDblClick, this);
             }
             if(this.preventDefault || this.stopDefault){
@@ -159,8 +159,8 @@ Ext.define('Ext.util.ClickRepeater', {
         this[disabled ? 'disable' : 'enable']();
     },
 
-    eventOptions: function(e){
-        if(this.preventDefault){
+<span id='Ext-util-ClickRepeater-method-eventOptions'>    eventOptions: function(e){
+</span>        if(this.preventDefault){
             e.preventDefault();
         }
         if(this.stopDefault){
@@ -168,23 +168,23 @@ Ext.define('Ext.util.ClickRepeater', {
         }
     },
 
-    // private
-    destroy : function() {
+<span id='Ext-util-ClickRepeater-method-destroy'>    // @private
+</span>    destroy : function() {
         this.disable(true);
         Ext.destroy(this.el);
         this.clearListeners();
     },
 
-    handleDblClick : function(e){
-        clearTimeout(this.timer);
+<span id='Ext-util-ClickRepeater-method-handleDblClick'>    handleDblClick : function(e){
+</span>        clearTimeout(this.timer);
         this.el.blur();
 
         this.fireEvent(&quot;mousedown&quot;, this, e);
         this.fireEvent(&quot;click&quot;, this, e);
     },
 
-    // private
-    handleMouseDown : function(e){
+<span id='Ext-util-ClickRepeater-method-handleMouseDown'>    // @private
+</span>    handleMouseDown : function(e){
         clearTimeout(this.timer);
         this.el.blur();
         if(this.pressedCls){
@@ -210,8 +210,8 @@ Ext.define('Ext.util.ClickRepeater', {
         this.timer =  Ext.defer(this.click, this.delay || this.interval, this, [e]);
     },
 
-    // private
-    click : function(e){
+<span id='Ext-util-ClickRepeater-method-click'>    // @private
+</span>    click : function(e){
         this.fireEvent(&quot;click&quot;, this, e);
         this.timer =  Ext.defer(this.click, this.accelerate ?
             this.easeOutExpo(Ext.Date.getElapsed(this.mousedownTime),
@@ -221,12 +221,12 @@ Ext.define('Ext.util.ClickRepeater', {
             this.interval, this, [e]);
     },
 
-    easeOutExpo : function (t, b, c, d) {
-        return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
+<span id='Ext-util-ClickRepeater-method-easeOutExpo'>    easeOutExpo : function (t, b, c, d) {
+</span>        return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
     },
 
-    // private
-    handleMouseOut : function(){
+<span id='Ext-util-ClickRepeater-method-handleMouseOut'>    // @private
+</span>    handleMouseOut : function(){
         clearTimeout(this.timer);
         if(this.pressedCls){
             this.el.removeCls(this.pressedCls);
@@ -234,8 +234,8 @@ Ext.define('Ext.util.ClickRepeater', {
         this.el.on(&quot;mouseover&quot;, this.handleMouseReturn, this);
     },
 
-    // private
-    handleMouseReturn : function(){
+<span id='Ext-util-ClickRepeater-method-handleMouseReturn'>    // @private
+</span>    handleMouseReturn : function(){
         this.el.un(&quot;mouseover&quot;, this.handleMouseReturn, this);
         if(this.pressedCls){
             this.el.addCls(this.pressedCls);
@@ -243,8 +243,8 @@ Ext.define('Ext.util.ClickRepeater', {
         this.click();
     },
 
-    // private
-    handleMouseUp : function(e){
+<span id='Ext-util-ClickRepeater-method-handleMouseUp'>    // @private
+</span>    handleMouseUp : function(e){
         clearTimeout(this.timer);
         this.el.un(&quot;mouseover&quot;, this.handleMouseReturn, this);
         this.el.un(&quot;mouseout&quot;, this.handleMouseOut, this);

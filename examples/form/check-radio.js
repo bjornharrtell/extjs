@@ -94,8 +94,7 @@ Ext.onReady(function(){
         title: 'Checkbox Groups (initially collapsed)',
         layout: 'anchor',
         defaults: {
-            anchor: '100%',
-            labelStyle: 'padding-left:4px;'
+            anchor: '100%'
         },
         collapsible: true,
         collapsed: true,
@@ -219,9 +218,6 @@ Ext.onReady(function(){
         // in this section we use the form layout that will aggregate all of the fields
         // into a single table, rather than one table per field.
         layout: 'form',
-        defaults: {
-            labelStyle: 'padding-left:4px;'
-        },
         collapsible: true,
         items: [{
             xtype: 'textfield',
@@ -323,7 +319,8 @@ Ext.onReady(function(){
         title: 'Check/Radio Groups Example',
         frame: true,
         fieldDefaults: {
-            labelWidth: 110
+            labelWidth: 110,
+            labelStyle: 'color:green;padding-left:4px'
         },
         width: 600,
         renderTo:'form-ct',

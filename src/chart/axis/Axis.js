@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * @class Ext.chart.axis.Axis
  *
@@ -61,7 +81,8 @@ Ext.define('Ext.chart.axis.Axis', {
      * You can set specific options for the grid configuration for odd and/or even lines/rows.
      * Since the rows being drawn are rectangle sprites, you can set to an odd or even property
      * all styles that apply to {@link Ext.draw.Sprite}. For more information on all the style
-     * properties you can set please take a look at {@link Ext.draw.Sprite}. Some useful style properties are `opacity`, `fill`, `stroke`, `stroke-width`, etc.
+     * properties you can set please take a look at {@link Ext.draw.Sprite}. Some useful style 
+     * properties are `opacity`, `fill`, `stroke`, `stroke-width`, etc.
      *
      * The possible values for a grid option are then *true*, *false*, or an object with `{ odd, even }` properties
      * where each property contains a sprite style descriptor object that is defined in {@link Ext.draw.Sprite}.
@@ -144,6 +165,8 @@ Ext.define('Ext.chart.axis.Axis', {
     adjustEnd: true,
 
     majorTickSteps: false,
+    
+    nullGutters: { lower: 0, upper: 0, verticalAxis: undefined },
 
     // @private
     applyData: Ext.emptyFn,
@@ -155,11 +178,11 @@ Ext.define('Ext.chart.axis.Axis', {
             data = store.data.items,
             series = chart.series.items,
             position = me.position,
-            boundedAxes,
+            axes,
             seriesClasses = Ext.chart.series,
             aggregations = [],
             min = Infinity, max = -Infinity,
-            vertical = me.position === 'left' || me.position === 'right',
+            vertical = me.position === 'left' || me.position === 'right' || me.position === 'radial',
             i, ln, ln2, j, k, dataLength = data.length, aggregates,
             countedFields = {},
             allFields = {},
@@ -178,10 +201,9 @@ Ext.define('Ext.chart.axis.Axis', {
             if (!series[i].getAxesForXAndYFields) {
                 continue;
             }
-
-            boundedAxes = series[i].getAxesForXAndYFields();
-            if (boundedAxes.xAxis && boundedAxes.xAxis !== position && boundedAxes.yAxis && boundedAxes.yAxis !== position) {
-                // If the series explicitly exclude current Axis, then exit.
+            axes = series[i].getAxesForXAndYFields();
+            if (axes.xAxis && axes.xAxis !== position && axes.yAxis && axes.yAxis !== position) {
+                // The series doesn't use this axis.
                 continue;
             }
 
@@ -233,7 +255,8 @@ Ext.define('Ext.chart.axis.Axis', {
                 }
                 aggregations.push({
                     fields: fieldMap,
-                    value: 0
+                    positiveValue: 0,
+                    negativeValue: 0
                 });
             } else {
 
@@ -252,10 +275,14 @@ Ext.define('Ext.chart.axis.Axis', {
         for (i = 0; i < dataLength; i++) {
             record = data[i];
             for (k = 0; k < aggregations.length; k++) {
-                aggregations[k].value = 0;
+                aggregations[k].positiveValue = 0;
+                aggregations[k].negativeValue = 0;
             }
             for (field in allFields) {
                 value = record.get(field);
+                if (me.type == 'Time' && typeof value == "string") {
+                    value = Date.parse(value);
+                }
                 if (isNaN(value)) {
                     continue;
                 }
@@ -272,13 +299,25 @@ Ext.define('Ext.chart.axis.Axis', {
                 }
                 for (k = 0; k < aggregations.length; k++) {
                     if (aggregations[k].fields[field]) {
-                        aggregations[k].value += value;
-                        // If any aggregation is actually hit, then the min value should be at most 0.
-                        if (min > 0) {
-                            min = 0;
-                        }
-                        if (max < aggregations[k].value) {
-                            max = aggregations[k].value;
+
+                        if (value >= 0) {
+                            aggregations[k].positiveValue += value;
+                            if (max < aggregations[k].positiveValue) {
+                                max = aggregations[k].positiveValue;
+                            }
+                            // If any aggregation is actually hit, then the min value should be at most 0.
+                            if (min > 0) {
+                                min = 0;
+                            }
+                        } else {
+                            aggregations[k].negativeValue += value;
+                            if (min > aggregations[k].negativeValue) {
+                                min = aggregations[k].negativeValue;
+                            }
+                            // If any aggregation is actually hit, then the max value should be at least 0.
+                            if (max < 0) {
+                                max = 0;
+                            }
                         }
                     }
                 }
@@ -292,8 +331,17 @@ Ext.define('Ext.chart.axis.Axis', {
             min = me.prevMin || 0;
         }
 
+        if (typeof min === 'number') {
+            min = Ext.Number.correctFloat(min);
+        }
+         
+        if (typeof max === 'number') {
+            max = Ext.Number.correctFloat(max);
+        }
+        
         //normalize min max for snapEnds.
-        if (min != max && (max != Math.floor(max))) {
+        if (min != max && (max != Math.floor(max) || min != Math.floor(min))) {
+            min = Math.floor(min);
             max = Math.floor(max) + 1;
         }
 
@@ -307,7 +355,8 @@ Ext.define('Ext.chart.axis.Axis', {
 
         if (min >= max) {
             // snapEnds will return NaN if max >= min;
-            max = min + 1;
+            min = Math.floor(min);
+            max = min + 1;                
         }
 
         return {min: min, max: max};
@@ -352,6 +401,7 @@ Ext.define('Ext.chart.axis.Axis', {
         return out;
     },
 
+
     /**
      * Renders the axis into the screen and updates its position.
      */
@@ -360,124 +410,183 @@ Ext.define('Ext.chart.axis.Axis', {
             i, 
             x = me.x,
             y = me.y,
-            gutterX = me.chart.maxGutter[0],
-            gutterY = me.chart.maxGutter[1],
             dashSize = me.dashSize,
-            subDashesX = me.minorTickSteps || 0,
-            subDashesY = me.minorTickSteps || 0,
             length = me.length,
             position = me.position,
+            verticalAxis = (position == 'left' || position == 'right'),
             inflections = [],
-            calcLabels = false,
+            calcLabels = (me.isNumericAxis),
             stepCalcs = me.applyData(),
             step = stepCalcs.step,
             steps = stepCalcs.steps,
+            stepsArray = Ext.isArray(steps),
             from = stepCalcs.from,
             to = stepCalcs.to,
+            // If we have a single item, to - from will be 0.
+            axisRange = (to - from) || 1,
             trueLength,
             currentX,
             currentY,
             path,
-            dashesX,
-            dashesY,
-            delta;
+            subDashesX = me.minorTickSteps || 0,
+            subDashesY = me.minorTickSteps || 0,
+            dashesX = Math.max(subDashesX + 1, 0),
+            dashesY = Math.max(subDashesY + 1, 0),
+            dashDirection = (position == 'left' || position == 'top' ? -1 : 1),
+            dashLength = dashSize * dashDirection,
+            series = me.chart.series.items,
+            firstSeries = series[0],
+            gutters = firstSeries ? firstSeries.nullGutters : me.nullGutters,
+            padding,
+            subDashes,
+            subDashValue,
+            delta = 0,
+            stepCount = 0,
+            tick, axes, ln, val, begin, end;
 
-        //If no steps are specified
-        //then don't draw the axis. This generally happens
-        //when an empty store.
-        if (me.hidden || isNaN(step) || (from > to)) {
+        me.from = from;
+        me.to = to;
+        
+        // If there is nothing to show, then leave. 
+        if (me.hidden || (from > to)) {
             return;
         }
 
-        me.from = stepCalcs.from;
-        me.to = stepCalcs.to;
+        // If no steps are specified (for instance if the store is empty), then leave.
+        if ((stepsArray && (steps.length == 0)) || (!stepsArray && isNaN(step))) {
+            return;
+        }
 
-        if (position == 'left' || position == 'right') {
-            currentX = Math.floor(x) + 0.5;
-            path = ["M", currentX, y, "l", 0, -length];
-            trueLength = length - (gutterY * 2);
+        if (stepsArray) {
+            // Clean the array of steps:
+            // First remove the steps that are out of bounds.
+            steps = Ext.Array.filter(steps, function(elem, index, array) {
+                return (+elem > +me.from && +elem < +me.to);
+            }, this);
+
+            // Then add bounds on each side.
+            steps = Ext.Array.union([me.from], steps, [me.to]);
         }
         else {
-            currentY = Math.floor(y) + 0.5;
-            path = ["M", x, currentY, "l", length, 0];
-            trueLength = length - (gutterX * 2);
+            // Build the array of steps out of the fixed-value 'step'.
+            steps = new Array;
+            for (val = +me.from; val < +me.to; val += step) {
+                steps.push(val);
+            }
+            steps.push(+me.to);
         }
+        stepCount = steps.length;
 
-        // Supports the case that we have only 1 record.
-        delta = steps && trueLength / steps;
-        dashesX = Math.max(subDashesX + 1, 0);
-        dashesY = Math.max(subDashesY + 1, 0);
-        if (me.type == 'Numeric' || me.type == 'Time') {
-            calcLabels = true;
-            me.labels = [stepCalcs.from];
-        }
 
-        if (position == 'right' || position == 'left') {
-            currentY = y - gutterY;
-            currentX = x - ((position == 'left') * dashSize * 2);
-            while (currentY >= y - gutterY - trueLength) {
-                path.push("M", currentX, Math.floor(currentY) + 0.5, "l", dashSize * 2 + 1, 0);
-                if (currentY != y - gutterY) {
-                    for (i = 1; i < dashesY; i++) {
-                        path.push("M", currentX + dashSize, Math.floor(currentY + delta * i / dashesY) + 0.5, "l", dashSize + 1, 0);
+        // Get the gutters for this series
+        for (i = 0, ln = series.length; i < ln; i++) {
+            if (series[i].seriesIsHidden) {
+                continue;
+            }
+            if (!series[i].getAxesForXAndYFields) {
+                continue;
+            }
+            axes = series[i].getAxesForXAndYFields();
+            if (!axes.xAxis || !axes.yAxis || (axes.xAxis === position) || (axes.yAxis === position)) {
+                gutters = series[i].getGutters();
+                if ((gutters.verticalAxis !== undefined) && (gutters.verticalAxis != verticalAxis)) {
+                    // This series has gutters that don't apply to the direction of this axis
+                    // (for instance, gutters for Bars apply to the vertical axis while gutters  
+                    // for Columns apply to the horizontal axis). Since there is no gutter, the 
+                    // padding is all that is left to take into account.
+                    padding = series[i].getPadding();
+                    if (verticalAxis) {
+                        gutters = { lower: padding.bottom, upper: padding.top, verticalAxis: true };
+                    } else {
+                        gutters = { lower: padding.left, upper: padding.right, verticalAxis: false };
                     }
                 }
-                inflections.push([ Math.floor(x), Math.floor(currentY) ]);
-                currentY -= delta;
-
-                if (calcLabels) {
-                    me.labels.push(me.labels[me.labels.length - 1] + step);
-                }
-
-                if (delta === 0) {
-                    break;
-                }
-            }
-            if (Math.round(currentY + delta - (y - gutterY - trueLength))) {
-                path.push("M", currentX, Math.floor(y - length + gutterY) + 0.5, "l", dashSize * 2 + 1, 0);
-                for (i = 1; i < dashesY; i++) {
-                    path.push("M", currentX + dashSize, Math.floor(y - length + gutterY + delta * i / dashesY) + 0.5, "l", dashSize + 1, 0);
-                }
-                inflections.push([ Math.floor(x), Math.floor(currentY) ]);
-                if (calcLabels) {
-                    me.labels.push(me.labels[me.labels.length - 1] + step);
-                }
-            }
-        } else {
-            currentX = x + gutterX;
-            currentY = y - ((position == 'top') * dashSize * 2);
-            while (currentX <= x + gutterX + trueLength) {
-                path.push("M", Math.floor(currentX) + 0.5, currentY, "l", 0, dashSize * 2 + 1);
-                if (currentX != x + gutterX) {
-                    for (i = 1; i < dashesX; i++) {
-                        path.push("M", Math.floor(currentX - delta * i / dashesX) + 0.5, currentY, "l", 0, dashSize + 1);
-                    }
-                }
-                inflections.push([ Math.floor(currentX), Math.floor(y) ]);
-                currentX += delta;
-                if (calcLabels) {
-                    me.labels.push(me.labels[me.labels.length - 1] + step);
-                }
-                if (delta === 0) {
-                    break;
-                }
-            }
-            if (Math.round(currentX - delta - (x + gutterX + trueLength))) {
-                path.push("M", Math.floor(x + length - gutterX) + 0.5, currentY, "l", 0, dashSize * 2 + 1);
-                for (i = 1; i < dashesX; i++) {
-                    path.push("M", Math.floor(x + length - gutterX - delta * i / dashesX) + 0.5, currentY, "l", 0, dashSize + 1);
-                }
-                inflections.push([ Math.floor(currentX), Math.floor(y) ]);
-                if (calcLabels) {
-                    me.labels.push(me.labels[me.labels.length - 1] + step);
-                }
+                break;
             }
         }
 
-        // the label on index "inflections.length-1" is the last label that gets rendered
+        // Draw the major ticks
+
         if (calcLabels) {
-            me.labels[inflections.length - 1] = +(me.labels[inflections.length - 1]).toFixed(10);
+            me.labels = [];
         }
+
+        if (gutters) {
+            if (verticalAxis) {
+                currentX = Math.floor(x);
+                path = ["M", currentX + 0.5, y, "l", 0, -length];
+                trueLength = length - (gutters.lower + gutters.upper);
+
+                for (tick = 0; tick < stepCount; tick++) {
+                    currentY = y - gutters.lower - (steps[tick] - steps[0]) * trueLength / axisRange;
+                    path.push("M", currentX, Math.floor(currentY) + 0.5, "l", dashLength * 2, 0);
+
+                    inflections.push([ currentX, Math.floor(currentY) ]);
+
+                    if (calcLabels) {
+                        me.labels.push(steps[tick]);
+                    }
+                }
+            } else {
+                currentY = Math.floor(y);
+                path = ["M", x, currentY + 0.5, "l", length, 0];
+                trueLength = length - (gutters.lower + gutters.upper);
+
+                for (tick = 0; tick < stepCount; tick++) {
+                    currentX = x + gutters.lower + (steps[tick] - steps[0]) * trueLength / axisRange;
+                    path.push("M", Math.floor(currentX) + 0.5, currentY, "l", 0, dashLength * 2 + 1);
+
+                    inflections.push([ Math.floor(currentX), currentY ]);
+
+                    if (calcLabels) {
+                        me.labels.push(steps[tick]);
+                    }
+                }
+            }
+        }
+
+
+        // Draw the minor ticks
+
+        // If 'minorTickSteps' is...
+        // - A number: it contains the number of minor ticks between 2 major ticks.
+        // - An array with 2 numbers: it contains a date interval like [Ext.Date.DAY,2].
+        // - An array with a single number: it contains the value of a minor tick.
+        subDashes = (verticalAxis ? subDashesY : subDashesX);
+        if (Ext.isArray(subDashes)) {
+            if (subDashes.length == 2) {
+                subDashValue = +Ext.Date.add(new Date(), subDashes[0], subDashes[1]) - Date.now();
+            } else {
+                subDashValue = subDashes[0];
+            }
+        }
+        else {
+            if (Ext.isNumber(subDashes) && subDashes > 0) {
+                subDashValue = step / (subDashes + 1);
+            }
+        }
+
+        if (gutters && subDashValue) {
+            for (tick = 0; tick < stepCount - 1; tick++) {
+                begin = +steps[tick];
+                end = +steps[tick+1];
+                if (verticalAxis) {
+                    for (value = begin + subDashValue; value < end; value += subDashValue) {
+                        currentY = y - gutters.lower - (value - steps[0]) * trueLength / axisRange;
+                        path.push("M", currentX, Math.floor(currentY) + 0.5, "l", dashLength, 0);
+                    }
+                }
+                else {
+                    for (value = begin + subDashValue; value < end; value += subDashValue) {
+                        currentX = x + gutters.upper + (value - steps[0]) * trueLength / axisRange;
+                        path.push("M", Math.floor(currentX) + 0.5, currentY, "l", 0, dashLength + 1);
+                    }
+                }
+            }            
+        }
+
+
+        // Render
 
         if (!me.axis) {
             me.axis = me.chart.surface.add(Ext.apply({
@@ -508,15 +617,15 @@ Ext.define('Ext.chart.axis.Axis', {
             inflections = me.inflections,
             ln = inflections.length - ((odd || even) ? 0 : 1),
             position = me.position,
-            gutter = me.chart.maxGutter,
+            maxGutters = me.chart.maxGutters,
             width = me.width - 2,
             point, prevPoint,
             i = 1,
             path = [], styles, lineWidth, dlineWidth,
             oddPath = [], evenPath = [];
 
-        if ((gutter[1] !== 0 && (position == 'left' || position == 'right')) ||
-            (gutter[0] !== 0 && (position == 'top' || position == 'bottom'))) {
+        if (((maxGutters.bottom !== 0 || maxGutters.top !== 0) && (position == 'left' || position == 'right')) ||
+            ((maxGutters.left !== 0 || maxGutters.right !== 0) && (position == 'top' || position == 'bottom'))) {
             i = 0;
             ln++;
         }
@@ -694,6 +803,7 @@ Ext.define('Ext.chart.axis.Axis', {
             max = Math.max,
             axes = me.chart.axes,
             insetPadding = me.chart.insetPadding,
+            gutters = me.chart.maxGutters,
             position = me.position,
             inflections = me.inflections,
             ln = inflections.length,
@@ -720,7 +830,7 @@ Ext.define('Ext.chart.axis.Axis', {
             bbox = textLabel._bbox;
             maxHeight = max(maxHeight, bbox.height + me.dashSize + me.label.padding);
             x = floor(point[0] - (ratio ? bbox.height : bbox.width) / 2);
-            if (adjustEnd && me.chart.maxGutter[0] == 0) {
+            if (adjustEnd && gutters.left == 0 && gutters.right == 0) {
                 if (i == 0 && !hasLeft) {
                     x = point[0];
                 }
@@ -772,7 +882,7 @@ Ext.define('Ext.chart.axis.Axis', {
             floor = Math.floor,
             ceil = Math.ceil,
             axes = me.chart.axes,
-            gutterY = me.chart.maxGutter[1],
+            gutters = me.chart.maxGutters,
             bbox, point, prevLabel, prevLabelId,
             hasTop = axes.findIndex('position', 'top') != -1,
             hasBottom = axes.findIndex('position', 'bottom') != -1,
@@ -788,12 +898,12 @@ Ext.define('Ext.chart.axis.Axis', {
 
             maxWidth = max(maxWidth, bbox.width + me.dashSize + me.label.padding);
             y = point[1];
-            if (adjustEnd && gutterY < bbox.height / 2) {
+            if (adjustEnd && (gutters.bottom + gutters.top) < bbox.height / 2) {
                 if (i == last && !hasTop) {
                     y = Math.max(y, me.y - me.length + ceil(bbox.height / 2) - insetPadding);
                 }
                 else if (i == 0 && !hasBottom) {
-                    y = me.y + gutterY - floor(bbox.height / 2);
+                    y = me.y + gutters.bottom - floor(bbox.height / 2);
                 }
             }
             if (position == 'left') {

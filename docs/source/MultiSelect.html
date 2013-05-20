@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-form-MultiSelect'>/**
-</span> * A control that allows selection of multiple items in a list
+</span> * A control that allows selection of multiple items in a list.
  */
 Ext.define('Ext.ux.form.MultiSelect', {
     
@@ -34,8 +34,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
     
     uses: ['Ext.view.DragZone', 'Ext.view.DropZone'],
     
-    layout: 'fit',
-    
+<span id='Ext-ux-form-MultiSelect-cfg-layout'>    layout: 'anchor',
+</span>    
 <span id='Ext-ux-form-MultiSelect-cfg-dragGroup'>    /**
 </span>     * @cfg {String} [dragGroup=&quot;&quot;] The ddgroup name for the MultiSelect DragZone.
      */
@@ -60,7 +60,7 @@ Ext.define('Ext.ux.form.MultiSelect', {
      */
 
 <span id='Ext-ux-form-MultiSelect-cfg-appendOnly'>    /**
-</span>     * @cfg {String} [appendOnly=false] True if the list should only allow append drops when drag/drop is enabled.
+</span>     * @cfg {String} [appendOnly=false] `true` if the list should only allow append drops when drag/drop is enabled.
      * This is useful for lists which are sorted.
      */
     appendOnly: false,
@@ -75,7 +75,7 @@ Ext.define('Ext.ux.form.MultiSelect', {
      */
 
 <span id='Ext-ux-form-MultiSelect-cfg-allowBlank'>    /**
-</span>     * @cfg {Boolean} [allowBlank=true] False to require at least one item in the list to be selected, true to allow no
+</span>     * @cfg {Boolean} [allowBlank=true] `false` to require at least one item in the list to be selected, `true` to allow no
      * selection.
      */
     allowBlank: true,
@@ -107,17 +107,24 @@ Ext.define('Ext.ux.form.MultiSelect', {
      * Validation message displayed when {@link #maxSelections} is not met
      * The {0} token will be replaced by the value of {@link #maxSelections}.
      */
-    maxSelectionsText: 'Minimum {0} item(s) required',
+    maxSelectionsText: 'Maximum {0} item(s) required',
 
 <span id='Ext-ux-form-MultiSelect-cfg-delimiter'>    /**
 </span>     * @cfg {String} [delimiter=&quot;,&quot;] The string used to delimit the selected values when {@link #getSubmitValue submitting}
      * the field as part of a form. If you wish to have the selected values submitted as separate
-     * parameters rather than a single delimited parameter, set this to &lt;tt&gt;null&lt;/tt&gt;.
+     * parameters rather than a single delimited parameter, set this to `null`.
      */
     delimiter: ',',
+    
+<span id='Ext-ux-form-MultiSelect-cfg-String'>    /**
+</span>     * @cfg String [dragText=&quot;{0} Item{1}&quot;] The text to show while dragging items.
+     * {0} will be replaced by the number of items. {1} will be replaced by the plural
+     * form if there is more than 1 item.
+     */
+    dragText: '{0} Item{1}',
 
 <span id='Ext-ux-form-MultiSelect-cfg-store'>    /**
-</span>     * @cfg {Ext.data.Store/Array} store The data source to which this MultiSelect is bound (defaults to &lt;tt&gt;undefined&lt;/tt&gt;).
+</span>     * @cfg {Ext.data.Store/Array} store The data source to which this MultiSelect is bound (defaults to `undefined`).
      * Acceptable values for this property are:
      * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
      * &lt;li&gt;&lt;b&gt;any {@link Ext.data.Store Store} subclass&lt;/b&gt;&lt;/li&gt;
@@ -162,40 +169,49 @@ Ext.define('Ext.ux.form.MultiSelect', {
         me.addEvents('drop');    
     },
     
-    setupItems: function() {
-        var me = this;
-        
+<span id='Ext-ux-form-MultiSelect-method-setupItems'>    setupItems: function() {
+</span>        var me = this;
+
         me.boundList = Ext.create('Ext.view.BoundList', Ext.apply({
+            anchor: 'none 100%',
             deferInitialRefresh: false,
-            border: false,
+            border: 1,
             multiSelect: true,
             store: me.store,
             displayField: me.displayField,
             disabled: me.disabled
         }, me.listConfig));
-        
         me.boundList.getSelectionModel().on('selectionchange', me.onSelectChange, me);
+        
+        // Only need to wrap the BoundList in a Panel if we have a title.
+        if (!me.title) {
+            return me.boundList;
+        }
+
+        // Wrap to add a title
+        me.boundList.border = false;
         return {
             border: true,
-            layout: 'fit',
+            anchor: 'none 100%',
+            layout: 'anchor',
             title: me.title,
             tbar: me.tbar,
             items: me.boundList
         };
     },
-    
-    onSelectChange: function(selModel, selections){
-        if (!this.ignoreSelectChange) {
+
+<span id='Ext-ux-form-MultiSelect-method-onSelectChange'>    onSelectChange: function(selModel, selections){
+</span>        if (!this.ignoreSelectChange) {
             this.setValue(selections);
         }    
     },
     
-    getSelected: function(){
-        return this.boundList.getSelectionModel().getSelection();
+<span id='Ext-ux-form-MultiSelect-method-getSelected'>    getSelected: function(){
+</span>        return this.boundList.getSelectionModel().getSelection();
     },
     
-    // compare array values
-    isEqual: function(v1, v2) {
+<span id='Ext-ux-form-MultiSelect-method-isEqual'>    // compare array values
+</span>    isEqual: function(v1, v2) {
         var fromArray = Ext.Array.from,
             i = 0, 
             len;
@@ -217,14 +233,18 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return true;
     },
     
-    afterRender: function(){
-        var me = this;
+<span id='Ext-ux-form-MultiSelect-method-afterRender'>    afterRender: function(){
+</span>        var me = this,
+            records;
         
         me.callParent();
         if (me.selectOnRender) {
-            ++me.ignoreSelectChange;
-            me.boundList.getSelectionModel().select(me.getRecordsForValue(me.value));
-            --me.ignoreSelectChange;
+            records = me.getRecordsForValue(me.value);
+            if (records.length) {
+                ++me.ignoreSelectChange;
+                me.boundList.getSelectionModel().select(records);
+                --me.ignoreSelectChange;
+            }
             delete me.toSelect;
         }    
         
@@ -236,7 +256,7 @@ Ext.define('Ext.ux.form.MultiSelect', {
             me.dragZone = Ext.create('Ext.view.DragZone', {
                 view: me.boundList,
                 ddGroup: me.dragGroup,
-                dragText: '{0} Item{1}'
+                dragText: me.dragText
             });
         }
         if (me.droppable || me.dropGroup){
@@ -264,8 +284,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
         }
     },
     
-    isValid : function() {
-        var me = this,
+<span id='Ext-ux-form-MultiSelect-method-isValid'>    isValid : function() {
+</span>        var me = this,
             disabled = me.disabled,
             validate = me.forceValidation || !disabled;
             
@@ -273,8 +293,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return validate ? me.validateValue(me.value) : disabled;
     },
     
-    validateValue: function(value) {
-        var me = this,
+<span id='Ext-ux-form-MultiSelect-method-validateValue'>    validateValue: function(value) {
+</span>        var me = this,
             errors = me.getErrors(value),
             isValid = Ext.isEmpty(errors);
             
@@ -289,8 +309,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return isValid;
     },
     
-    markInvalid : function(errors) {
-        // Save the message and fire the 'invalid' event
+<span id='Ext-ux-form-MultiSelect-method-markInvalid'>    markInvalid : function(errors) {
+</span>        // Save the message and fire the 'invalid' event
         var me = this,
             oldMsg = me.getActiveError();
         me.setActiveErrors(Ext.Array.from(errors));
@@ -302,7 +322,7 @@ Ext.define('Ext.ux.form.MultiSelect', {
 <span id='Ext-ux-form-MultiSelect-method-clearInvalid'>    /**
 </span>     * Clear any invalid styles/messages for this field.
      *
-     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
+     * __Note:__ this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `true`
      * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
      * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
      */
@@ -316,8 +336,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
         }
     },
     
-    getSubmitData: function() {
-        var me = this,
+<span id='Ext-ux-form-MultiSelect-method-getSubmitData'>    getSubmitData: function() {
+</span>        var me = this,
             data = null,
             val;
         if (!me.disabled &amp;&amp; me.submitValue &amp;&amp; !me.isFileUpload()) {
@@ -333,22 +353,22 @@ Ext.define('Ext.ux.form.MultiSelect', {
 <span id='Ext-ux-form-MultiSelect-method-getSubmitValue'>    /**
 </span>     * Returns the value that would be included in a standard form submit for this field.
      *
-     * @return {String} The value to be submitted, or null.
+     * @return {String} The value to be submitted, or `null`.
      */
     getSubmitValue: function() {
         var me = this,
             delimiter = me.delimiter,
             val = me.getValue();
-            
+        
         return Ext.isString(delimiter) ? val.join(delimiter) : val;
     },
     
-    getValue: function(){
-        return this.value;
+<span id='Ext-ux-form-MultiSelect-method-getValue'>    getValue: function(){
+</span>        return this.value || [];
     },
     
-    getRecordsForValue: function(value){
-        var me = this,
+<span id='Ext-ux-form-MultiSelect-method-getRecordsForValue'>    getRecordsForValue: function(value){
+</span>        var me = this,
             records = [],
             all = me.store.getRange(),
             valueField = me.valueField,
@@ -370,8 +390,8 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return records;
     },
     
-    setupValue: function(value){
-        var delimiter = this.delimiter,
+<span id='Ext-ux-form-MultiSelect-method-setupValue'>    setupValue: function(value){
+</span>        var delimiter = this.delimiter,
             valueField = this.valueField,
             i = 0,
             out,
@@ -398,13 +418,14 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return out;
     },
     
-    setValue: function(value){
-        var me = this,
-            selModel = me.boundList.getSelectionModel();
+<span id='Ext-ux-form-MultiSelect-method-setValue'>    setValue: function(value){
+</span>        var me = this,
+            selModel = me.boundList.getSelectionModel(),
+            store = me.store;
 
         // Store not loaded yet - we cannot set the value
-        if (!me.store.getCount()) {
-            me.store.on({
+        if (!store.getCount()) {
+            store.on({
                 load: Ext.Function.bind(me.setValue, me, [value]),
                 single: true
             });
@@ -424,28 +445,28 @@ Ext.define('Ext.ux.form.MultiSelect', {
         }
     },
     
-    clearValue: function(){
-        this.setValue([]);    
+<span id='Ext-ux-form-MultiSelect-method-clearValue'>    clearValue: function(){
+</span>        this.setValue([]);    
     },
     
-    onEnable: function(){
-        var list = this.boundList;
+<span id='Ext-ux-form-MultiSelect-method-onEnable'>    onEnable: function(){
+</span>        var list = this.boundList;
         this.callParent();
         if (list) {
             list.enable();
         }
     },
     
-    onDisable: function(){
-        var list = this.boundList;
+<span id='Ext-ux-form-MultiSelect-method-onDisable'>    onDisable: function(){
+</span>        var list = this.boundList;
         this.callParent();
         if (list) {
             list.disable();
         }
     },
     
-    getErrors : function(value) {
-        var me = this,
+<span id='Ext-ux-form-MultiSelect-method-getErrors'>    getErrors : function(value) {
+</span>        var me = this,
             format = Ext.String.format,
             errors = [],
             numSelected;
@@ -465,16 +486,16 @@ Ext.define('Ext.ux.form.MultiSelect', {
         return errors;
     },
     
-    onDestroy: function(){
-        var me = this;
+<span id='Ext-ux-form-MultiSelect-method-onDestroy'>    onDestroy: function(){
+</span>        var me = this;
         
         me.bindStore(null);
         Ext.destroy(me.dragZone, me.dropZone);
         me.callParent();
     },
     
-    onBindStore: function(store){
-        var boundList = this.boundList;
+<span id='Ext-ux-form-MultiSelect-method-onBindStore'>    onBindStore: function(store){
+</span>        var boundList = this.boundList;
         
         if (boundList) {
             boundList.bindStore(store);

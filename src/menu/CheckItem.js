@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A menu item that contains a togglable checkbox by default, but that can also be a part of a radio group.
  *
@@ -82,18 +102,49 @@ Ext.define('Ext.menu.CheckItem', {
      */
     checkChangeDisabled: false,
 
-    afterRender: function() {
-        var me = this;
-        me.callParent();
-        me.checked = !me.checked;
-        me.setChecked(!me.checked, true);
-        if (me.checkChangeDisabled) {
-            me.disableCheckChange();
-        }
-    },
+    childEls: [
+        'itemEl', 'iconEl', 'textEl', 'checkEl'
+    ],
+    
+    showCheckbox: true,
+
+    renderTpl: [
+        '<tpl if="plain">',
+            '{text}',
+        '<tpl else>',
+            '{%var showCheckbox = values.showCheckbox,',
+            '      rightCheckbox = showCheckbox && values.hasIcon && (values.iconAlign !== "left"), textCls = rightCheckbox ? "' + Ext.baseCSSPrefix + 'right-check-item-text" : "";%}',
+            '<a id="{id}-itemEl" class="' + Ext.baseCSSPrefix + 'menu-item-link{childElCls}" href="{href}" <tpl if="hrefTarget">target="{hrefTarget}"</tpl> hidefocus="true" unselectable="on"',
+                '<tpl if="tabIndex">',
+                    ' tabIndex="{tabIndex}"',
+                '</tpl>',
+            '>',
+                '{%if (values.hasIcon && (values.iconAlign !== "left")) {%}',
+                    '<div role="img" id="{id}-iconEl" class="' + Ext.baseCSSPrefix + 'menu-item-icon {iconCls}',
+                        '{childElCls} {glyphCls}" style="<tpl if="icon">background-image:url({icon});</tpl>',
+                        '<tpl if="glyph && glyphFontFamily">font-family:{glyphFontFamily};</tpl>">',
+                        '<tpl if="glyph">&#{glyph};</tpl>',
+                    '</div>',
+                '{%} else if (showCheckbox){%}',
+                    '<img id="{id}-checkEl" src="{blank}" class="' + Ext.baseCSSPrefix + 'menu-item-icon{childElCls}" />',
+                '{%}%}',
+                '<span id="{id}-textEl" class="' + Ext.baseCSSPrefix + 'menu-item-text {[textCls]}{childElCls}" <tpl if="arrowCls">style="margin-right: 17px;"</tpl> >{text}</span>',
+
+                // CheckItem with an icon puts the icon on the right unless iconAlign=='left'
+                '{%if (rightCheckbox) {%}',
+                    '<img id="{id}-checkEl" src="{blank}" class="' + Ext.baseCSSPrefix + 'menu-item-icon-right{childElCls}" />',
+                '{%} else if (values.arrowCls) {%}',
+                    '<img id="{id}-arrowEl" src="{blank}" class="{arrowCls}{childElCls}"/>',
+                '{%}%}',
+            '</a>',
+        '</tpl>'
+    ],
 
     initComponent: function() {
         var me = this;
+        
+        // coerce to bool straight away
+        me.checked = !!me.checked;
         me.addEvents(
             /**
              * @event beforecheckchange
@@ -117,7 +168,7 @@ Ext.define('Ext.menu.CheckItem', {
         Ext.menu.Manager.registerCheckable(me);
 
         if (me.group) {
-            if (!me.iconCls) {
+            if (!(me.iconCls || me.icon || me.glyph)) {
                 me.iconCls = me.groupCls;
             }
             if (me.initialConfig.hideOnClick !== false) {
@@ -125,21 +176,36 @@ Ext.define('Ext.menu.CheckItem', {
             }
         }
     },
-
+    
+    beforeRender: function() {
+        this.callParent();
+        this.renderData.showCheckbox = this.showCheckbox;
+    },
+    
+    afterRender: function() {
+        var me = this;
+        me.callParent();
+        me.checked = !me.checked;
+        me.setChecked(!me.checked, true);
+        if (me.checkChangeDisabled) {
+            me.disableCheckChange();
+        }
+    },
+    
     /**
      * Disables just the checkbox functionality of this menu Item. If this menu item has a submenu, that submenu
      * will still be accessible
      */
     disableCheckChange: function() {
         var me = this,
-            iconEl = me.iconEl;
+            checkEl = me.checkEl;
 
-        if (iconEl) {
-            iconEl.addCls(me.disabledCls);
+        if (checkEl) {
+            checkEl.addCls(me.disabledCls);
         }
         // In some cases the checkbox will disappear until repainted
         // Happens in everything except IE9 strict, see: EXTJSIV-6412
-        if (!(Ext.isIE9 && Ext.isStrict) && me.rendered) {
+        if (!(Ext.isIE10p || (Ext.isIE9 && Ext.isStrict)) && me.rendered) {
             me.el.repaint();
         }
         me.checkChangeDisabled = true;
@@ -150,10 +216,10 @@ Ext.define('Ext.menu.CheckItem', {
      */
     enableCheckChange: function() {
         var me = this,
-            iconEl = me.iconEl;
+            checkEl = me.checkEl;
             
-        if (iconEl) {
-            iconEl.removeCls(me.disabledCls);
+        if (checkEl) {
+            checkEl.removeCls(me.disabledCls);
         }
         me.checkChangeDisabled = false;
     },

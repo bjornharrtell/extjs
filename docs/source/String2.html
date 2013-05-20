@@ -15,10 +15,13 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-String'>/**
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require ../version/Version.js
+
+<span id='Ext-String'>/**
 </span> * @class Ext.String
  *
- * A collection of useful static methods to deal with strings
+ * A collection of useful static methods to deal with strings.
  * @singleton
  */
 
@@ -39,16 +42,107 @@ Ext.String = (function() {
         },
         htmlDecodeReplaceFn = function(match, capture) {
             return (capture in entityToChar) ? entityToChar[capture] : String.fromCharCode(parseInt(capture.substr(2), 10));
+        },
+        boundsCheck = function(s, other){
+            if (s === null || s === undefined || other === null || other === undefined) {
+                return false;
+            }
+            
+            return other.length &lt;= s.length; 
         };
 
     return {
+        
+<span id='Ext-String-method-insert'>        /**
+</span>         * Inserts a substring into a string.
+         * @param {String} s The original string.
+         * @param {String} value The substring to insert.
+         * @param {Number} index The index to insert the substring. Negative indexes will insert from the end of
+         * the string. Example: 
+         *
+         *     Ext.String.insert(&quot;abcdefg&quot;, &quot;h&quot;, -1); // abcdefhg
+         *
+         * @return {String} The value with the inserted substring
+         */
+        insert: function(s, value, index) {
+            if (!s) {
+                return value;
+            }
+            
+            if (!value) {
+                return s;
+            }
+            
+            var len = s.length;
+            
+            if (!index &amp;&amp; index !== 0) {
+                index = len;
+            }
+            
+            if (index &lt; 0) {
+                index *= -1;
+                if (index &gt;= len) {
+                    // negative overflow, insert at start
+                    index = 0;
+                } else {
+                    index = len - index;
+                }
+            }
+            
+            if (index === 0) {
+                s = value + s;
+            } else if (index &gt;= s.length) {
+                s += value;
+            } else {
+                s = s.substr(0, index) + value + s.substr(index);
+            }
+            return s;
+        },
+        
+<span id='Ext-String-method-startsWith'>        /**
+</span>         * Checks if a string starts with a substring
+         * @param {String} s The original string
+         * @param {String} start The substring to check
+         * @param {Boolean} [ignoreCase=false] True to ignore the case in the comparison
+         */
+        startsWith: function(s, start, ignoreCase){
+            var result = boundsCheck(s, start);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    start = start.toLowerCase();
+                }
+                result = s.lastIndexOf(start, 0) === 0;
+            }
+            return result;
+        },
+        
+<span id='Ext-String-method-endsWith'>        /**
+</span>         * Checks if a string ends with a substring
+         * @param {String} s The original string
+         * @param {String} start The substring to check
+         * @param {Boolean} [ignoreCase=false] True to ignore the case in the comparison
+         */
+        endsWith: function(s, end, ignoreCase){
+            var result = boundsCheck(s, end);
+            
+            if (result) {
+                if (ignoreCase) {
+                    s = s.toLowerCase();
+                    end = end.toLowerCase();
+                }
+                result = s.indexOf(end, s.length - end.length) !== -1;
+            }
+            return result;
+        },
 
 <span id='Ext-String-method-createVarName'>        /**
-</span>         * Converts a string of characters into a legal, parseable Javascript `var` name as long as the passed
+</span>         * Converts a string of characters into a legal, parse-able JavaScript `var` name as long as the passed
          * string contains at least one alphabetic character. Non alphanumeric characters, and *leading* non alphabetic
          * characters will be removed.
          * @param {String} s A string to be converted into a `var` name.
-         * @return {String} A legal Javascript `var` name.
+         * @return {String} A legal JavaScript `var` name.
          */
         createVarName: function(s) {
             return s.replace(varReplace, '');
@@ -56,8 +150,8 @@ Ext.String = (function() {
 
 <span id='Ext-String-method-htmlEncode'>        /**
 </span>         * Convert certain characters (&amp;, &lt;, &gt;, ', and &quot;) to their HTML character equivalents for literal display in web pages.
-         * @param {String} value The string to encode
-         * @return {String} The encoded text
+         * @param {String} value The string to encode.
+         * @return {String} The encoded text.
          * @method
          */
         htmlEncode: function(value) {
@@ -66,8 +160,8 @@ Ext.String = (function() {
 
 <span id='Ext-String-method-htmlDecode'>        /**
 </span>         * Convert certain characters (&amp;, &lt;, &gt;, ', and &quot;) from their HTML character equivalents.
-         * @param {String} value The string to decode
-         * @return {String} The decoded text
+         * @param {String} value The string to decode.
+         * @return {String} The decoded text.
          * @method
          */
         htmlDecode: function(value) {
@@ -89,10 +183,10 @@ Ext.String = (function() {
          *      });
          *      var s = Ext.String.htmlEncode(&quot;A string with entities: èÜçñ&quot;);
          *
-         * Note: the values of the character entites defined on this object are expected
+         * __Note:__ the values of the character entities defined on this object are expected
          * to be single character values.  As such, the actual values represented by the
-         * characters are sensitive to the character encoding of the javascript source
-         * file when defined in string literal form. Script tasgs referencing server
+         * characters are sensitive to the character encoding of the JavaScript source
+         * file when defined in string literal form. Script tags referencing server
          * resources with character entities must ensure that the 'charset' attribute
          * of the script node is consistent with the actual character encoding of the
          * server resource.
@@ -153,13 +247,13 @@ Ext.String = (function() {
 
 <span id='Ext-String-method-trim'>        /**
 </span>         * Trims whitespace from either end of a string, leaving spaces within the string intact.  Example:
-         * @example
-    var s = '  foo bar  ';
-    alert('-' + s + '-');         //alerts &quot;- foo bar -&quot;
-    alert('-' + Ext.String.trim(s) + '-');  //alerts &quot;-foo bar-&quot;
-
-         * @param {String} string The string to escape
-         * @return {String} The trimmed string
+         *
+         *     var s = '  foo bar  ';
+         *     alert('-' + s + '-');                   //alerts &quot;- foo bar -&quot;
+         *     alert('-' + Ext.String.trim(s) + '-');  //alerts &quot;-foo bar-&quot;
+         *
+         * @param {String} string The string to trim.
+         * @return {String} The trimmed string.
          */
         trim: function(string) {
             return string.replace(trimRegex, &quot;&quot;);
@@ -175,7 +269,7 @@ Ext.String = (function() {
         },
 
 <span id='Ext-String-method-uncapitalize'>        /**
-</span>         * Uncapitalize the given string
+</span>         * Uncapitalize the given string.
          * @param {String} string
          * @return {String}
          */
@@ -184,11 +278,11 @@ Ext.String = (function() {
         },
 
 <span id='Ext-String-method-ellipsis'>        /**
-</span>         * Truncate a string and add an ellipsis ('...') to the end if it exceeds the specified length
-         * @param {String} value The string to truncate
-         * @param {Number} length The maximum length to allow before truncating
-         * @param {Boolean} word True to try to find a common word break
-         * @return {String} The converted text
+</span>         * Truncate a string and add an ellipsis ('...') to the end if it exceeds the specified length.
+         * @param {String} value The string to truncate.
+         * @param {Number} length The maximum length to allow before truncating.
+         * @param {Boolean} [word=false] `true` to try to find a common word break.
+         * @return {String} The converted text.
          */
         ellipsis: function(value, len, word) {
             if (value &amp;&amp; value.length &gt; len) {
@@ -205,7 +299,7 @@ Ext.String = (function() {
         },
 
 <span id='Ext-String-method-escapeRegex'>        /**
-</span>         * Escapes the passed string for use in a regular expression
+</span>         * Escapes the passed string for use in a regular expression.
          * @param {String} string
          * @return {String}
          */
@@ -227,17 +321,17 @@ Ext.String = (function() {
          * is compared to the current string, and if they are equal, the other value that was passed in is returned.  If
          * they are already different, the first value passed in is returned.  Note that this method returns the new value
          * but does not change the current string.
-         * &lt;pre&gt;&lt;code&gt;
-        // alternate sort directions
-        sort = Ext.String.toggle(sort, 'ASC', 'DESC');
-
-        // instead of conditional logic:
-        sort = (sort == 'ASC' ? 'DESC' : 'ASC');
-           &lt;/code&gt;&lt;/pre&gt;
-         * @param {String} string The current string
-         * @param {String} value The value to compare to the current string
-         * @param {String} other The new value to use if the string already equals the first value passed in
-         * @return {String} The new value
+         *
+         *     // alternate sort directions
+         *     sort = Ext.String.toggle(sort, 'ASC', 'DESC');
+         *
+         *     // instead of conditional logic:
+         *     sort = (sort === 'ASC' ? 'DESC' : 'ASC');
+         *
+         * @param {String} string The current string.
+         * @param {String} value The value to compare to the current string.
+         * @param {String} other The new value to use if the string already equals the first value passed in.
+         * @return {String} The new value.
          */
         toggle: function(string, value, other) {
             return string === value ? other : value;
@@ -247,14 +341,13 @@ Ext.String = (function() {
 </span>         * Pads the left side of a string with a specified character.  This is especially useful
          * for normalizing number and date strings.  Example usage:
          *
-         * &lt;pre&gt;&lt;code&gt;
-    var s = Ext.String.leftPad('123', 5, '0');
-    // s now contains the string: '00123'
-           &lt;/code&gt;&lt;/pre&gt;
-         * @param {String} string The original string
-         * @param {Number} size The total length of the output string
-         * @param {String} character (optional) The character with which to pad the original string (defaults to empty string &quot; &quot;)
-         * @return {String} The padded string
+         *     var s = Ext.String.leftPad('123', 5, '0');
+         *     // s now contains the string: '00123'
+         *
+         * @param {String} string The original string.
+         * @param {Number} size The total length of the output string.
+         * @param {String} [character=' '] (optional) The character with which to pad the original string.
+         * @return {String} The padded string.
          */
         leftPad: function(string, size, character) {
             var result = String(string);
@@ -268,15 +361,15 @@ Ext.String = (function() {
 <span id='Ext-String-method-format'>        /**
 </span>         * Allows you to define a tokenized string and pass an arbitrary number of arguments to replace the tokens.  Each
          * token must be unique, and must increment in the format {0}, {1}, etc.  Example usage:
-         * &lt;pre&gt;&lt;code&gt;
-    var cls = 'my-class', text = 'Some text';
-    var s = Ext.String.format('&amp;lt;div class=&quot;{0}&quot;&gt;{1}&amp;lt;/div&gt;', cls, text);
-    // s now contains the string: '&amp;lt;div class=&quot;my-class&quot;&gt;Some text&amp;lt;/div&gt;'
-           &lt;/code&gt;&lt;/pre&gt;
-         * @param {String} string The tokenized string to be formatted
-         * @param {String} value1 The value to replace token {0}
-         * @param {String} value2 Etc...
-         * @return {String} The formatted string
+         *
+         *     var cls = 'my-class',
+         *         text = 'Some text';
+         *     var s = Ext.String.format('&lt;div class=&quot;{0}&quot;&gt;{1}&lt;/div&gt;', cls, text);
+         *     // s now contains the string: '&lt;div class=&quot;my-class&quot;&gt;Some text&lt;/div&gt;'
+         *
+         * @param {String} string The tokenized string to be formatted.
+         * @param {Mixed...} values The values to replace tokens `{0}`, `{1}`, etc in order.
+         * @return {String} The formatted string.
          */
         format: function(format) {
             var args = Ext.Array.toArray(arguments, 1);
@@ -286,7 +379,7 @@ Ext.String = (function() {
         },
 
 <span id='Ext-String-method-repeat'>        /**
-</span>         * Returns a string with a specified number of repititions a given string pattern.
+</span>         * Returns a string with a specified number of repetitions a given string pattern.
          * The pattern be separated by a different string.
          *
          *      var s = Ext.String.repeat('---', 4); // = '------------'
@@ -297,6 +390,9 @@ Ext.String = (function() {
          * @param {String} sep An option string to separate each pattern.
          */
         repeat: function(pattern, count, sep) {
+            if (count &lt; 1) {
+                count = 0;
+            }
             for (var buf = [], i = count; i--; ) {
                 buf.push(pattern);
             }
@@ -319,29 +415,29 @@ Ext.String = (function() {
 }());
 
 // initialize the default encode / decode entities
-Ext.String.resetCharacterEntities();
-
-<span id='Ext-method-htmlEncode'>/**
-</span> * Old alias to {@link Ext.String#htmlEncode}
+<span id='Ext-method-htmlEncode'>Ext.String.resetCharacterEntities();
+</span>
+/**
+ * Old alias to {@link Ext.String#htmlEncode}
  * @deprecated Use {@link Ext.String#htmlEncode} instead
  * @method
  * @member Ext
  * @inheritdoc Ext.String#htmlEncode
  */
-Ext.htmlEncode = Ext.String.htmlEncode;
+<span id='Ext-method-htmlDecode'>Ext.htmlEncode = Ext.String.htmlEncode;
+</span>
 
-
-<span id='Ext-method-htmlDecode'>/**
-</span> * Old alias to {@link Ext.String#htmlDecode}
+/**
+ * Old alias to {@link Ext.String#htmlDecode}
  * @deprecated Use {@link Ext.String#htmlDecode} instead
  * @method
  * @member Ext
  * @inheritdoc Ext.String#htmlDecode
  */
-Ext.htmlDecode = Ext.String.htmlDecode;
-
-<span id='Ext-method-urlAppend'>/**
-</span> * Old alias to {@link Ext.String#urlAppend}
+<span id='Ext-method-urlAppend'>Ext.htmlDecode = Ext.String.htmlDecode;
+</span>
+/**
+ * Old alias to {@link Ext.String#urlAppend}
  * @deprecated Use {@link Ext.String#urlAppend} instead
  * @method
  * @member Ext

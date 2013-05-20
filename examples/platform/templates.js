@@ -1,4 +1,4 @@
-Ext.require('widget.panel');
+Ext.require('Ext.panel.Panel');
 
 Ext.onReady(function(){
     var data = {
@@ -20,54 +20,45 @@ Ext.onReady(function(){
         }]
     };
 
-    Ext.create('Ext.Panel', {
+    new Ext.panel.Panel({
         width: 300,
         renderTo: 'template-example',
-        style: "margin:15px",
-        bodyStyle: "padding:5px;font-size:11px;",
+        margin: 15,
+        bodyPadding: 5,
         title: 'Basic Template',
+        tpl: [
+            '<p>Name: {name}</p>',
+            '<p>Company: {company}</p>',
+            '<p>Location: {city}, {state}</p>'
+        ],
         tbar: [{
             text: 'Apply Template',
-            listeners: {
-                click: function() {
-                    var panel = this.up("panel"),
-                        tpl = Ext.create('Ext.Template', 
-                            '<p>Name: {name}</p>',
-                            '<p>Company: {company}</p>',
-                            '<p>Location: {city}, {state}</p>'
-                        );
-
-                    tpl.overwrite(panel.body, data);
-                    panel.doComponentLayout();
-                }
+            handler: function() {
+                this.up('panel').update(data);
             }
         }],
         html: '<p><i>Apply the template to see results here</i></p>'
     });
 
-    Ext.create('Ext.Panel', {
+    new Ext.panel.Panel({
         width: 300,
         renderTo: 'xtemplate-example',
-        style: "margin:15px",
-        bodyStyle: "padding:5px;font-size:11px;",
+        margin: 15,
+        bodyPadding: 5,
         title: 'XTemplate',
+        tpl: [
+            '<p>Name: {name}</p>',
+            '<p>Company: {company}</p>',
+            '<p>Location: {city}, {state}</p>',
+            '<p>Kids: ',
+            '<tpl for="kids" if="age &eq;%eq; \'Abe Elias\'>',
+                '<tpl if="age &gt; 1"><p>{#}. {parent.name}\'s kid - {name}</p></tpl>',
+            '</tpl></p>'
+        ],
         tbar: [{
             text: 'Apply Template',
-            listeners: {
-                click: function() {
-                    var panel = this.up('panel'),
-                        tpl =Ext.create('Ext.XTemplate',
-                            '<p>Name: {name}</p>',
-                            '<p>Company: {company}</p>',
-                            '<p>Location: {city}, {state}</p>',
-                            '<p>Kids: ',
-                            '<tpl for="kids" if="age &eq;%eq; \'Abe Elias\'>',
-                                '<tpl if="age &gt; 1"><p>{#}. {parent.name}\'s kid - {name}</p></tpl>',
-                            '</tpl></p>'
-                        );
-                    tpl.overwrite(panel.body, data);
-                    panel.doComponentLayout();
-                }
+            handler: function() {
+                this.up('panel').update(data);
             }
         }],
         html: '<p><i>Apply the template to see results here</i></p>'

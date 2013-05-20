@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * The Draw Component is a surface in which sprites can be rendered. The Draw Component
  * manages and holds an {@link Ext.draw.Surface} instance where
@@ -330,7 +350,10 @@ Ext.define('Ext.draw.Component', {
 
         // ensure we remove any listeners to prevent duplicate events since we refire them below
         delete cfg.listeners;
-        surface = Ext.draw.Surface.create(cfg);
+        if (!cfg.gradients) {
+            cfg.gradients = me.gradients;
+        }
+        surface = Ext.draw.Surface.create(cfg, me.enginePriority);
         if (!surface) {
             // In case we cannot create a surface, return false so we can stop
             return false;

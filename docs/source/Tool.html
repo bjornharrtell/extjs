@@ -54,9 +54,15 @@ Ext.define('Ext.panel.Tool', {
     requires: ['Ext.tip.QuickTipManager'],
     alias: 'widget.tool',
 
-    baseCls: Ext.baseCSSPrefix + 'tool',
-    disabledCls: Ext.baseCSSPrefix + 'tool-disabled',
-    
+<span id='Ext-panel-Tool-property-isTool'>    /**
+</span>     * @property {Boolean} isTool
+     * `true` in this class to identify an object as an instantiated Tool, or subclass thereof.
+     */
+    isTool: true,
+
+<span id='Ext-panel-Tool-cfg-baseCls'>    baseCls: Ext.baseCSSPrefix + 'tool',
+</span><span id='Ext-panel-Tool-cfg-disabledCls'>    disabledCls: Ext.baseCSSPrefix + 'tool-disabled',
+</span>    
 <span id='Ext-panel-Tool-cfg-toolPressedCls'>    /**
 </span>     * @cfg
      * @private
@@ -68,14 +74,15 @@ Ext.define('Ext.panel.Tool', {
      */
     toolOverCls: Ext.baseCSSPrefix + 'tool-over',
 
-    ariaRole: 'button',
-
-    childEls: [
-        'toolEl'
+<span id='Ext-panel-Tool-property-ariaRole'>    ariaRole: 'button',
+</span>
+<span id='Ext-panel-Tool-property-childEls'>    childEls: [
+</span>        'toolEl'
     ],
 
-    renderTpl: [
-        '&lt;img id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-{type}&quot; role=&quot;presentation&quot;/&gt;'
+<span id='Ext-panel-Tool-cfg-renderTpl'>    renderTpl: [
+</span>        '&lt;img id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-img {baseCls}-{type}' +
+            '{childElCls}&quot; role=&quot;presentation&quot;/&gt;'
     ],
 
 <span id='Ext-panel-Tool-cfg-handler'>    /**
@@ -139,12 +146,13 @@ Ext.define('Ext.panel.Tool', {
      * Specify as false to allow click event to propagate.
      */
     stopEvent: true,
-    
-    height: 15,
-    width: 15,
 
-    //&lt;debug&gt;
-    _toolTypes: {
+<span id='Ext-panel-Tool-cfg-height'>    // Tool size is fixed so that Box layout can avoid measurements.
+</span>    height: 15,
+<span id='Ext-panel-Tool-cfg-width'>    width: 15,
+</span>
+<span id='Ext-panel-Tool-property-_toolTypes'>    //&lt;debug&gt;
+</span>    _toolTypes: {
         close:1,
         collapse:1,
         down:1,
@@ -171,8 +179,8 @@ Ext.define('Ext.panel.Tool', {
         unpin:1,
         up:1
     },
-    //&lt;/debug&gt;
-
+<span id='Ext-panel-Tool-method-initComponent'>    //&lt;/debug&gt;
+</span>
     initComponent: function() {
         var me = this;
         me.addEvents(
@@ -202,37 +210,38 @@ Ext.define('Ext.panel.Tool', {
         // alias qtip, should use tooltip since it's what we have in the docs
         me.tooltip = me.tooltip || me.qtip;
         me.callParent();
-        me.on({
-            element: 'toolEl',
+    },
+
+<span id='Ext-panel-Tool-method-afterRender'>    // inherit docs
+</span>    afterRender: function() {
+        var me = this,
+            attr;
+
+        me.callParent(arguments);
+
+        me.el.on({
             click: me.onClick,
             mousedown: me.onMouseDown,
             mouseover: me.onMouseOver,
             mouseout: me.onMouseOut,
             scope: me
         });
-    },
 
-    // inherit docs
-    afterRender: function() {
-        var me = this,
-            attr;
-
-        me.callParent(arguments);
         if (me.tooltip) {
-            if (Ext.isObject(me.tooltip)) {
+            if (Ext.quickTipsActive &amp;&amp; Ext.isObject(me.tooltip)) {
                 Ext.tip.QuickTipManager.register(Ext.apply({
                     target: me.id
                 }, me.tooltip));
             }
             else {
                 attr = me.tooltipType == 'qtip' ? 'data-qtip' : 'title';
-                me.toolEl.dom.setAttribute(attr, me.tooltip);
+                me.el.dom.setAttribute(attr, me.tooltip);
             }
         }
     },
 
-    getFocusEl: function() {
-        return this.el;
+<span id='Ext-panel-Tool-method-getFocusEl'>    getFocusEl: function() {
+</span>        return this.el;
     },
 
 <span id='Ext-panel-Tool-method-setType'>    /**
@@ -241,22 +250,19 @@ Ext.define('Ext.panel.Tool', {
      * @return {Ext.panel.Tool} this
      */
     setType: function(type) {
-        var me = this;
+        var me = this,
+            oldType = me.type;
 
         me.type = type;
         if (me.rendered) {
-            me.toolEl.dom.className = me.baseCls + '-' + type;
+            if (oldType) {
+                me.toolEl.removeCls(me.baseCls + '-' + oldType);
+            }
+            me.toolEl.addCls(me.baseCls + '-' + type);
+        } else {
+            me.renderData.type = type;
         }
         return me;
-    },
-
-<span id='Ext-panel-Tool-method-bindTo'>    /**
-</span>     * Binds this tool to a component.
-     * @private
-     * @param {Ext.Component} component The component
-     */
-    bindTo: function(component) {
-        this.owner = component;
     },
 
 <span id='Ext-panel-Tool-method-onClick'>    /**
@@ -266,13 +272,11 @@ Ext.define('Ext.panel.Tool', {
      * @param {HTMLElement} target The target element
      */
     onClick: function(e, target) {
-        var me = this,
-            owner;
+        var me = this;
 
         if (me.disabled) {
             return false;
         }
-        owner = me.owner || me.ownerCt;
 
         //remove the pressed + over class
         me.el.removeCls(me.toolPressedCls);
@@ -282,14 +286,14 @@ Ext.define('Ext.panel.Tool', {
             e.stopEvent();
         }
 
-        Ext.callback(me.handler, me.scope || me, [e, target, owner, me]);
+        Ext.callback(me.handler, me.scope || me, [e, target, me.ownerCt, me]);
         me.fireEvent('click', me, e);
         return true;
     },
 
-    // inherit docs
-    onDestroy: function(){
-        if (Ext.isObject(this.tooltip)) {
+<span id='Ext-panel-Tool-method-onDestroy'>    // inherit docs
+</span>    onDestroy: function(){
+        if (Ext.quickTipsActive &amp;&amp; Ext.isObject(this.tooltip)) {
             Ext.tip.QuickTipManager.unregister(this.id);
         }
         this.callParent();

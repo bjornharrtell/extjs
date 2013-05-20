@@ -5,36 +5,35 @@ Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
-    'Ext.grid.PagingScroller',
+    'Ext.grid.plugin.BufferedRenderer',
     'Ext.ux.form.SearchField'
 ]);
 
 Ext.onReady(function(){
     Ext.define('ForumThread', {
         extend: 'Ext.data.Model',
-        fields: [
-            {
+        fields: [{
             name: 'title',
             mapping: 'topic_title'
-            }, {
+        }, {
             name: 'forumtitle',
             mapping: 'forum_title'
-            }, {
+        }, {
             name: 'forumid',
             type: 'int'
-            }, {
+        }, {
             name: 'username',
             mapping: 'author'
-            }, {
+        }, {
                 name: 'replycount', 
                 mapping: 'reply_count',
                 type: 'int'
-            }, {
+        }, {
                 name: 'lastpost', 
                 mapping: 'post_time', 
                 type: 'date', 
                 dateFormat: 'timestamp'
-            },
+        },
             'lastposter', 'excerpt', 'topic_id'
         ],
         idProperty: 'post_id'
@@ -120,7 +119,8 @@ Ext.onReady(function(){
         },
         multiSelect: true,
         viewConfig: {
-            trackOver: false
+            trackOver: false,
+            emptyText: '<h1 style="margin:20px">No matching results</h1>'
         },
         // grid columns
         columns:[{

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="KitchenSink" default=".help">
+    <!--
+    The build-impl.xml file imported here contains the guts of the build process. It is
+    a great idea to read that file to understand how the process works, but it is best to
+    limit your changes to this file.
+    -->
+    <import file="${basedir}/.sencha/app/build-impl.xml"/>
+
+    <!--
+    The following targets can be provided to inject logic before and/or after key steps
+    of the build process:
+
+        The "init-local" target is used to initialize properties that may be personalized
+        for the local machine.
+
+            <target name="-before-init-local"/>
+            <target name="-after-init-local"/>
+
+        The "clean" target is used to clean build output from the build.dir.
+
+            <target name="-before-clean"/>
+            <target name="-after-clean"/>
+
+        The general "init" target is used to initialize all other properties, including
+        those provided by Sencha Cmd.
+
+            <target name="-before-init"/>
+            <target name="-after-init"/>
+        
+        The "page" target performs the call to Sencha Cmd to build the 'all-classes.js' file.
+
+            <target name="-before-page"/>
+            <target name="-after-page"/>
+
+        The "build" target performs the call to Sencha Cmd to build the application.
+
+            <target name="-before-build"/>
+            <target name="-after-build"/>
+    -->
+
+    <target name="-after-build" depends="init">
+        <copy todir="${build.dir}/lib/" overwrite="true">
+            <fileset dir="${app.dir}/lib/" includes="**/*"/>
+        </copy>
+        <copy file="${build.dir}/index.html" tofile="${build.dir}/index-quirks.html">
+            <filterchain>
+                <headfilter lines="-1" skip="1"/>
+            </filterchain>
+        </copy>
+    </target>
+
+    <!--regenerate the example page to pick up changes to relative path to packages-->
+    <target name="-before-capture">
+        <local name="pkg.rel.path"/>
+        <local name="fwk.rel.path"/>
+        <local name="fwk.rel.path.actual"/>
+        <x-get-relative-path
+            from="${app.dir}"
+            to="${workspace.packages.dir}"
+            property="pkg.rel.path"
+            />
+        <x-get-relative-path
+            from="${app.dir}"
+            to="${framework.dir}"
+            property="fwk.rel.path"
+            />
+            <if>
+                <isset property="sencha.is.sdk.repo"/>
+                <then>
+                    <property name="fwk.rel.path.actual" value="${fwk.rel.path}/extjs"/>
+                </then>
+                <else>
+                    <property name="fwk.rel.path.actual" value="${fwk.rel.path}"/>
+                </else>
+            </if>
+        
+        <x-generate file="${framework.config.dir}/templates/App/sass/example/theme.html.tpl.merge"
+                    tofile="${app.example.dir}/theme.html" 
+                    store="${app.config.dir}/codegen"
+                    basedir="${app.dir}">
+            <param name="appName" value="${app.name}"/>
+            <param name="frameworkPath" value="${fwk.rel.path.actual}"/>
+            <param name="packagesRelPath" value="${pkg.rel.path}"/>
+        </x-generate>
+    </target>
+
+    <!--
+    ***************************************************************************
+    Custom tagets
+    ***************************************************************************
+    -->
+
+    <!-- Neptune is last to restore the proper content of bootstrap.css -->
+    <target name="build-all"
+            depends="build-access,build-classic,build-gray,build-neptune"/>
+
+    <target name="build-access" depends="init">
+        <echo>Build Kitchen Sink - Accessibility Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-access"/>
+            app
+            build
+        </x-sencha-command>
+    </target>
+
+    <target name="build-classic" depends="init">
+        <echo>Build Kitchen Sink - Classic Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-classic"/>
+            app
+            build
+        </x-sencha-command>
+    </target>
+
+    <target name="build-gray" depends="init">
+        <echo>Build Kitchen Sink - Gray Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-gray"/>
+            app
+            build
+        </x-sencha-command>
+    </target>
+
+    <target name="build-neptune" depends="init">
+        <echo>Build Kitchen Sink - Neptune Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-neptune"/>
+            app
+            build
+        </x-sencha-command>
+    </target>
+
+    <target name="clean-all"
+            depends="clean-access,clean-classic,clean-gray,clean-neptune"/>
+
+    <target name="clean-access" depends="init">
+        <echo>Clean Kitchen Sink - Accessibility Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-access"/>
+            ant
+            clean
+        </x-sencha-command>
+    </target>
+
+    <target name="clean-classic" depends="init">
+        <echo>Clean Kitchen Sink - Classic Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-classic"/>
+            ant
+            clean
+        </x-sencha-command>
+    </target>
+
+    <target name="clean-gray" depends="init">
+        <echo>Clean Kitchen Sink - Gray Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-gray"/>
+            ant
+            clean
+        </x-sencha-command>
+    </target>
+
+    <target name="clean-neptune" depends="init">
+        <echo>Clean Kitchen Sink - Neptune Theme</echo>
+        <x-sencha-command dir="${basedir}" inheritall="false">
+            <property name="app.theme" value="ext-theme-neptune"/>
+            ant
+            clean
+        </x-sencha-command>
+    </target>
+
+</project>

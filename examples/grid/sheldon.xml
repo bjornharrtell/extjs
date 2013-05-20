@@ -21,127 +21,116 @@
         <Request>
             <IsValid>True</IsValid>
             <ItemSearchRequest>
-                <Author>Sidney Sheldon</Author>
                 <SearchIndex>Books</SearchIndex>
             </ItemSearchRequest>
         </Request>
         <TotalResults>203</TotalResults>
         <TotalPages>21</TotalPages>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446355453</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446355453%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446355453%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>Master of the Game</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446613657</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446613657%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446613657%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>Are You Afraid of the Dark?</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446357421</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446357421%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446357421%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>If Tomorrow Comes</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446607207</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446607207%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446607207%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Vision</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>Tell Me Your Dreams</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446357448</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446357448%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446357448%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>Bloodline</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446532673</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446532673%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446532673%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>The Other Side of Me</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446356573</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446356573%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446356573%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>A Stranger in the Mirror</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0060198346</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0060198346%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0060198346%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>William Morrow &amp; Company</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>The Sky Is Falling</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446354732</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446354732%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446354732%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>Nothing Lasts Forever</Title>
             </ItemAttributes>
         </Item>
-        <Item>
+        <Item author.name="Sidney Sheldon">
             <ASIN>0446341916</ASIN>
             <DetailPageURL>
                 http://www.amazon.com/gp/redirect.html%3FASIN=0446341916%26tag=ws%26lcode=xm2%26cID=2025%26ccmID=165953%26location=/o/ASIN/0446341916%253FSubscriptionId=1A7XKHR5BYD0WPJVQEG2
             </DetailPageURL>
             <ItemAttributes>
-                <Author>Sidney Sheldon</Author>
                 <Manufacturer>Warner Books</Manufacturer>
                 <ProductGroup>Book</ProductGroup>
                 <Title>The Naked Face</Title>

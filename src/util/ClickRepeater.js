@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * A wrapper class which can be applied to any element. Fires a "click" event while the
  * mouse is pressed. The interval between firings may be specified in the config but
@@ -109,7 +129,7 @@ Ext.define('Ext.util.ClickRepeater', {
             this.el.on('mousedown', this.handleMouseDown, this);
             // IE versions will detect clicks as in sequence as dblclicks
             // if they happen in quick succession
-            if (Ext.isIE && !(Ext.isStrict && Ext.isIE9)){
+            if (Ext.isIE && !(Ext.isIE10p || (Ext.isStrict && Ext.isIE9))){
                 this.el.on('dblclick', this.handleDblClick, this);
             }
             if(this.preventDefault || this.stopDefault){
@@ -151,7 +171,7 @@ Ext.define('Ext.util.ClickRepeater', {
         }
     },
 
-    // private
+    // @private
     destroy : function() {
         this.disable(true);
         Ext.destroy(this.el);
@@ -166,7 +186,7 @@ Ext.define('Ext.util.ClickRepeater', {
         this.fireEvent("click", this, e);
     },
 
-    // private
+    // @private
     handleMouseDown : function(e){
         clearTimeout(this.timer);
         this.el.blur();
@@ -193,7 +213,7 @@ Ext.define('Ext.util.ClickRepeater', {
         this.timer =  Ext.defer(this.click, this.delay || this.interval, this, [e]);
     },
 
-    // private
+    // @private
     click : function(e){
         this.fireEvent("click", this, e);
         this.timer =  Ext.defer(this.click, this.accelerate ?
@@ -208,7 +228,7 @@ Ext.define('Ext.util.ClickRepeater', {
         return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
     },
 
-    // private
+    // @private
     handleMouseOut : function(){
         clearTimeout(this.timer);
         if(this.pressedCls){
@@ -217,7 +237,7 @@ Ext.define('Ext.util.ClickRepeater', {
         this.el.on("mouseover", this.handleMouseReturn, this);
     },
 
-    // private
+    // @private
     handleMouseReturn : function(){
         this.el.un("mouseover", this.handleMouseReturn, this);
         if(this.pressedCls){
@@ -226,7 +246,7 @@ Ext.define('Ext.util.ClickRepeater', {
         this.click();
     },
 
-    // private
+    // @private
     handleMouseUp : function(e){
         clearTimeout(this.timer);
         this.el.un("mouseover", this.handleMouseReturn, this);

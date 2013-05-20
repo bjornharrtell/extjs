@@ -20,10 +20,10 @@
  */
 Ext.define('Ext.view.DragZone', {
     extend: 'Ext.dd.DragZone',
-    containerScroll: false,
-
-    constructor: function(config) {
-        var me = this,
+<span id='Ext-view-DragZone-cfg-containerScroll'>    containerScroll: false,
+</span>
+<span id='Ext-view-DragZone-method-constructor'>    constructor: function(config) {
+</span>        var me = this,
             view,
             ownerCt,
             el;
@@ -61,43 +61,37 @@ Ext.define('Ext.view.DragZone', {
         me.ddel.addCls(Ext.baseCSSPrefix + 'grid-dd-wrap');
     },
 
-    init: function(id, sGroup, config) {
-        this.initTarget(id, sGroup, config);
+<span id='Ext-view-DragZone-method-init'>    init: function(id, sGroup, config) {
+</span>        this.initTarget(id, sGroup, config);
         this.view.mon(this.view, {
             itemmousedown: this.onItemMouseDown,
             scope: this
         });
     },
 
-    onValidDrop: function(target, e, id) {
-        this.callParent();
+<span id='Ext-view-DragZone-method-onValidDrop'>    onValidDrop: function(target, e, id) {
+</span>        this.callParent();
         // focus the view that the node was dropped onto so that keynav will be enabled.
         target.el.focus();
     },
-    
-    onItemMouseDown: function(view, record, item, index, e) {
-        if (!this.isPreventDrag(e, record, item, index)) {
+
+<span id='Ext-view-DragZone-method-onItemMouseDown'>    onItemMouseDown: function(view, record, item, index, e) {
+</span>        if (!this.isPreventDrag(e, record, item, index)) {
             // Since handleMouseDown prevents the default behavior of the event, which
             // is to focus the view, we focus the view now.  This ensures that the view
             // remains focused if the drag is cancelled, or if no drag occurs.
             this.view.focus();
             this.handleMouseDown(e);
-
-            // If we want to allow dragging of multi-selections, then veto the following handlers (which, in the absence of ctrlKey, would deselect)
-            // if the mousedowned record is selected
-            if (view.getSelectionModel().selectionMode == 'MULTI' &amp;&amp; !e.ctrlKey &amp;&amp; view.getSelectionModel().isSelected(record)) {
-                return false;
-            }
         }
     },
 
-    // private template method
-    isPreventDrag: function(e) {
+<span id='Ext-view-DragZone-method-isPreventDrag'>    // private template method
+</span>    isPreventDrag: function(e) {
         return false;
     },
 
-    getDragData: function(e) {
-        var view = this.view,
+<span id='Ext-view-DragZone-method-getDragData'>    getDragData: function(e) {
+</span>        var view = this.view,
             item = e.getTarget(view.getItemSelector());
 
         if (item) {
@@ -113,13 +107,12 @@ Ext.define('Ext.view.DragZone', {
         }
     },
 
-    onInitDrag: function(x, y) {
-        var me = this,
+<span id='Ext-view-DragZone-method-onInitDrag'>    onInitDrag: function(x, y) {
+</span>        var me = this,
             data = me.dragData,
             view = data.view,
             selectionModel = view.getSelectionModel(),
-            record = view.getRecord(data.item),
-            e = data.event;
+            record = view.getRecord(data.item);
 
         // Update the selection to match what would have been selected if the user had
         // done a full click on the target node rather than starting a drag from it
@@ -134,13 +127,13 @@ Ext.define('Ext.view.DragZone', {
         return true;
     },
 
-    getDragText: function() {
-        var count = this.dragData.records.length;
+<span id='Ext-view-DragZone-method-getDragText'>    getDragText: function() {
+</span>        var count = this.dragData.records.length;
         return Ext.String.format(this.dragText, count, count == 1 ? '' : 's');
     },
 
-    getRepairXY : function(e, data){
-        return data ? data.fromPosition : false;
+<span id='Ext-view-DragZone-method-getRepairXY'>    getRepairXY : function(e, data){
+</span>        return data ? data.fromPosition : false;
     }
 });</pre>
 </body>

@@ -23,21 +23,9 @@ Ext.define('Ext.form.CheckboxManager', {
     extend: 'Ext.util.MixedCollection',
     singleton: true,
 
-    getByName: function(name) {
-        return this.filterBy(function(item) {
-            return item.name == name;
-        });
-    },
-
-    getWithValue: function(name, value) {
-        return this.filterBy(function(item) {
-            return item.name == name &amp;&amp; item.inputValue == value;
-        });
-    },
-
-    getChecked: function(name) {
-        return this.filterBy(function(item) {
-            return item.name == name &amp;&amp; item.checked;
+<span id='Ext-form-CheckboxManager-method-getByName'>    getByName: function(name, formId) {
+</span>        return this.filterBy(function(item) {
+            return item.name == name &amp;&amp; item.getFormId() == formId;
         });
     }
 });

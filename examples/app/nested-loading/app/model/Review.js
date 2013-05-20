@@ -3,6 +3,7 @@
  */
 Ext.define('Books.model.Review', {
     extend: 'Ext.data.Model',
+    requires: ['Ext.data.association.HasMany', 'Ext.data.association.BelongsTo'],
 
     fields: [
         'product_id',

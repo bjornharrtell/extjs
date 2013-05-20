@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Number'>/**
+  <pre class="prettyprint lang-js">//@tag foundation,core
+//@require String.js
+//@define Ext.Number
+
+<span id='Ext-Number'>/**
 </span> * @class Ext.Number
  *
  * A collection of useful static methods to deal with numbers
@@ -177,6 +181,19 @@ Ext.Number = new function() {
          */
         randomInt: function (from, to) {
            return math.floor(math.random() * (to - from + 1) + from);
+        },
+        
+<span id='Ext-Number-method-correctFloat'>        /**
+</span>         * Corrects floating point numbers that overflow to a non-precise
+         * value because of their floating nature, for example `0.1 + 0.2`
+         * @param {Number} The number
+         * @return {Number} The correctly rounded number
+         */
+        correctFloat: function(n) {
+            // This is to correct the type of errors where 2 floats end with
+            // a long string of decimals, eg 0.1 + 0.2. When they overflow in this
+            // manner, they usually go to 15-16 decimals, so we cut it off at 14.
+            return parseFloat(n.toPrecision(14));
         }
     });
 

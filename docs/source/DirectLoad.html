@@ -92,10 +92,10 @@ Ext.define('Ext.form.action.DirectLoad', {
     alternateClassName: 'Ext.form.Action.DirectLoad',
     alias: 'formaction.directload',
 
-    type: 'directload',
-
-    run: function() {
-        var me = this,
+<span id='Ext-form-action-DirectLoad-property-type'>    type: 'directload',
+</span>
+<span id='Ext-form-action-DirectLoad-method-run'>    run: function() {
+</span>        var me = this,
             form = me.form,
             fn = form.api.load,
             method = fn.directCfg.method,
@@ -105,15 +105,15 @@ Ext.define('Ext.form.action.DirectLoad', {
         fn.apply(window, args);
     },
 
-    // Direct actions have already been processed and therefore
-    // we can directly set the result; Direct Actions do not have
+<span id='Ext-form-action-DirectLoad-method-processResponse'>    // Direct actions have already been processed and therefore
+</span>    // we can directly set the result; Direct Actions do not have
     // a this.response property.
     processResponse: function(result) {
         return (this.result = result);
     },
 
-    onComplete: function(data, response) {
-        if (data) {
+<span id='Ext-form-action-DirectLoad-method-onComplete'>    onComplete: function(data, response) {
+</span>        if (data) {
             this.onSuccess(data);
         } else {
             this.onFailure(null);

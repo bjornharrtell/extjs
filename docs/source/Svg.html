@@ -26,16 +26,16 @@ Ext.define('Ext.draw.engine.Svg', {
 
     requires: ['Ext.draw.Draw', 'Ext.draw.Sprite', 'Ext.draw.Matrix', 'Ext.Element'],
 
-    /* End Definitions */
-
+<span id='Ext-draw-engine-Svg-property-engine'>    /* End Definitions */
+</span>
     engine: 'Svg',
 
-    trimRe: /^\s+|\s+$/g,
-    spacesRe: /\s+/,
-    xlink: &quot;http:/&quot; + &quot;/www.w3.org/1999/xlink&quot;,
-
-    translateAttrs: {
-        radius: &quot;r&quot;,
+<span id='Ext-draw-engine-Svg-property-trimRe'>    trimRe: /^\s+|\s+$/g,
+</span><span id='Ext-draw-engine-Svg-property-spacesRe'>    spacesRe: /\s+/,
+</span><span id='Ext-draw-engine-Svg-property-xlink'>    xlink: &quot;http:/&quot; + &quot;/www.w3.org/1999/xlink&quot;,
+</span>
+<span id='Ext-draw-engine-Svg-property-translateAttrs'>    translateAttrs: {
+</span>        radius: &quot;r&quot;,
         radiusX: &quot;rx&quot;,
         radiusY: &quot;ry&quot;,
         path: &quot;d&quot;,
@@ -45,10 +45,10 @@ Ext.define('Ext.draw.engine.Svg', {
         strokeLinejoin: &quot;stroke-linejoin&quot;
     },
 
-    parsers: {},
-
-    minDefaults: {
-        circle: {
+<span id='Ext-draw-engine-Svg-property-parsers'>    parsers: {},
+</span>
+<span id='Ext-draw-engine-Svg-property-minDefaults'>    minDefaults: {
+</span>        circle: {
             cx: 0,
             cy: 0,
             r: 0,
@@ -119,8 +119,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    createSvgElement: function(type, attrs) {
-        var el = this.domRef.createElementNS(&quot;http:/&quot; + &quot;/www.w3.org/2000/svg&quot;, type),
+<span id='Ext-draw-engine-Svg-method-createSvgElement'>    createSvgElement: function(type, attrs) {
+</span>        var el = this.domRef.createElementNS(&quot;http:/&quot; + &quot;/www.w3.org/2000/svg&quot;, type),
             key;
         if (attrs) {
             for (key in attrs) {
@@ -130,8 +130,8 @@ Ext.define('Ext.draw.engine.Svg', {
         return el;
     },
 
-    createSpriteElement: function(sprite) {
-        // Create svg element and append to the DOM.
+<span id='Ext-draw-engine-Svg-method-createSpriteElement'>    createSpriteElement: function(sprite) {
+</span>        // Create svg element and append to the DOM.
         var el = this.createSvgElement(sprite.type);
         el.id = sprite.id;
         if (el.style) {
@@ -150,8 +150,8 @@ Ext.define('Ext.draw.engine.Svg', {
         return el;
     },
     
-    getBBoxText: function (sprite) {
-        var bbox = {},
+<span id='Ext-draw-engine-Svg-method-getBBoxText'>    getBBoxText: function (sprite) {
+</span>        var bbox = {},
             bb, height, width, i, ln, el;
 
         if (sprite &amp;&amp; sprite.el) {
@@ -176,28 +176,28 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    hide: function() {
-        Ext.get(this.el).hide();
+<span id='Ext-draw-engine-Svg-method-hide'>    hide: function() {
+</span>        Ext.get(this.el).hide();
     },
 
-    show: function() {
-        Ext.get(this.el).show();
+<span id='Ext-draw-engine-Svg-method-show'>    show: function() {
+</span>        Ext.get(this.el).show();
     },
 
-    hidePrim: function(sprite) {
-        this.addCls(sprite, Ext.baseCSSPrefix + 'hide-visibility');
+<span id='Ext-draw-engine-Svg-method-hidePrim'>    hidePrim: function(sprite) {
+</span>        this.addCls(sprite, Ext.baseCSSPrefix + 'hide-visibility');
     },
 
-    showPrim: function(sprite) {
-        this.removeCls(sprite, Ext.baseCSSPrefix + 'hide-visibility');
+<span id='Ext-draw-engine-Svg-method-showPrim'>    showPrim: function(sprite) {
+</span>        this.removeCls(sprite, Ext.baseCSSPrefix + 'hide-visibility');
     },
 
-    getDefs: function() {
-        return this._defs || (this._defs = this.createSvgElement(&quot;defs&quot;));
+<span id='Ext-draw-engine-Svg-method-getDefs'>    getDefs: function() {
+</span>        return this._defs || (this._defs = this.createSvgElement(&quot;defs&quot;));
     },
 
-    transform: function(sprite, matrixOnly) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-transform'>    transform: function(sprite, matrixOnly) {
+</span>        var me = this,
             matrix = new Ext.draw.Matrix(),
             transforms = sprite.transformations,
             transformsLength = transforms.length,
@@ -223,8 +223,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    setSize: function(width, height) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-setSize'>    setSize: function(width, height) {
+</span>        var me = this,
             el = me.el;
         
         width = +width || me.width;
@@ -260,23 +260,23 @@ Ext.define('Ext.draw.engine.Svg', {
         };
     },
 
-    onRemove: function(sprite) {
-        if (sprite.el) {
+<span id='Ext-draw-engine-Svg-method-onRemove'>    onRemove: function(sprite) {
+</span>        if (sprite.el) {
             sprite.el.destroy();
             delete sprite.el;
         }
         this.callParent(arguments);
     },
     
-    setViewBox: function(x, y, width, height) {
-        if (isFinite(x) &amp;&amp; isFinite(y) &amp;&amp; isFinite(width) &amp;&amp; isFinite(height)) {
+<span id='Ext-draw-engine-Svg-method-setViewBox'>    setViewBox: function(x, y, width, height) {
+</span>        if (isFinite(x) &amp;&amp; isFinite(y) &amp;&amp; isFinite(width) &amp;&amp; isFinite(height)) {
             this.callParent(arguments);
             this.el.dom.setAttribute(&quot;viewBox&quot;, [x, y, width, height].join(&quot; &quot;));
         }
     },
 
-    render: function (container) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-render'>    render: function (container) {
+</span>        var me = this,
             width,
             height,
             el,
@@ -345,21 +345,21 @@ Ext.define('Ext.draw.engine.Svg', {
         me.renderAll();
     },
 
-    // private
-    onMouseEnter: function(e) {
+<span id='Ext-draw-engine-Svg-method-onMouseEnter'>    // private
+</span>    onMouseEnter: function(e) {
         if (this.el.parent().getRegion().contains(e.getPoint())) {
             this.fireEvent('mouseenter', e);
         }
     },
 
-    // private
-    onMouseLeave: function(e) {
+<span id='Ext-draw-engine-Svg-method-onMouseLeave'>    // private
+</span>    onMouseLeave: function(e) {
         if (!this.el.parent().getRegion().contains(e.getPoint())) {
             this.fireEvent('mouseleave', e);
         }
     },
-    // @private - Normalize a delegated single event from the main container to each sprite and sprite group
-    processEvent: function(name, e) {
+<span id='Ext-draw-engine-Svg-method-processEvent'>    // @private - Normalize a delegated single event from the main container to each sprite and sprite group
+</span>    processEvent: function(name, e) {
         var target = e.getTarget(),
             surface = this.surface,
             sprite;
@@ -375,8 +375,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    /* @private - Wrap SVG text inside a tspan to allow for line wrapping.  In addition this normallizes
-     * the baseline for text the vertical middle of the text to be the same as VML.
+<span id='Ext-draw-engine-Svg-method-tuneText'>    /* @private - Wrap SVG text inside a tspan to allow for line wrapping.  In addition this normallizes
+</span>     * the baseline for text the vertical middle of the text to be the same as VML.
      */
     tuneText: function (sprite, attrs) {
         var el = sprite.el.dom,
@@ -414,8 +414,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    setText: function(sprite, textString) {
-         var me = this,
+<span id='Ext-draw-engine-Svg-method-setText'>    setText: function(sprite, textString) {
+</span>         var me = this,
              el = sprite.el.dom,
              tspans = [],
              height, tspan, text, i, ln, texts;
@@ -437,12 +437,12 @@ Ext.define('Ext.draw.engine.Svg', {
         return tspans;
     },
 
-    renderAll: function() {
-        this.items.each(this.renderItem, this);
+<span id='Ext-draw-engine-Svg-method-renderAll'>    renderAll: function() {
+</span>        this.items.each(this.renderItem, this);
     },
 
-    renderItem: function (sprite) {
-        if (!this.el) {
+<span id='Ext-draw-engine-Svg-method-renderItem'>    renderItem: function (sprite) {
+</span>        if (!this.el) {
             return;
         }
         if (!sprite.el) {
@@ -459,13 +459,13 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    redraw: function(sprite) {
-        sprite.dirty = sprite.zIndexDirty = true;
+<span id='Ext-draw-engine-Svg-method-redraw'>    redraw: function(sprite) {
+</span>        sprite.dirty = sprite.zIndexDirty = true;
         this.renderItem(sprite);
     },
 
-    applyAttrs: function (sprite) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-applyAttrs'>    applyAttrs: function (sprite) {
+</span>        var me = this,
             el = sprite.el,
             group = sprite.group,
             sattr = sprite.attr,
@@ -567,8 +567,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    setClip: function(sprite, params) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-setClip'>    setClip: function(sprite, params) {
+</span>        var me = this,
             rect = params[&quot;clip-rect&quot;],
             clipEl, clipPath;
         if (rect) {
@@ -617,14 +617,14 @@ Ext.define('Ext.draw.engine.Svg', {
         sprite.zIndexDirty = false;
     },
 
-    createItem: function (config) {
-        var sprite = new Ext.draw.Sprite(config);
+<span id='Ext-draw-engine-Svg-method-createItem'>    createItem: function (config) {
+</span>        var sprite = new Ext.draw.Sprite(config);
         sprite.surface = this;
         return sprite;
     },
 
-    addGradient: function(gradient) {
-        gradient = Ext.draw.Draw.parseGradient(gradient);
+<span id='Ext-draw-engine-Svg-method-addGradient'>    addGradient: function(gradient) {
+</span>        gradient = Ext.draw.Draw.parseGradient(gradient);
         var me = this,
             ln = gradient.stops.length,
             vector = gradient.vector,
@@ -680,8 +680,8 @@ Ext.define('Ext.draw.engine.Svg', {
         return className &amp;&amp; (' ' + (sprite.el.dom.getAttribute('class') || '') + ' ').indexOf(' ' + className + ' ') != -1;
     },
 
-    addCls: function(sprite, className) {
-        var el = sprite.el,
+<span id='Ext-draw-engine-Svg-method-addCls'>    addCls: function(sprite, className) {
+</span>        var el = sprite.el,
             i,
             len,
             v,
@@ -706,8 +706,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    removeCls: function(sprite, className) {
-        var me = this,
+<span id='Ext-draw-engine-Svg-method-removeCls'>    removeCls: function(sprite, className) {
+</span>        var me = this,
             el = sprite.el,
             curCls =  el.getAttribute('class') || '',
             i, idx, len, cls, elClasses;
@@ -730,8 +730,8 @@ Ext.define('Ext.draw.engine.Svg', {
         }
     },
 
-    destroy: function() {
-        var me = this;
+<span id='Ext-draw-engine-Svg-method-destroy'>    destroy: function() {
+</span>        var me = this;
         
         me.callParent();
         if (me.el) {

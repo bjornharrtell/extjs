@@ -16,12 +16,9 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-ux-Spotlight'>/**
-</span> * @class Ext.ux.Spotlight
- * UX used to provide a spotlight around a specified component/element.
+</span> * UX used to provide a spotlight around a specified component/element.
  */
 Ext.define('Ext.ux.Spotlight', {
-    extend: 'Object',
-
 <span id='Ext-ux-Spotlight-property-baseCls'>    /**
 </span>     * @private
      * The baseCls for the spotlight elements
@@ -52,8 +49,8 @@ Ext.define('Ext.ux.Spotlight', {
      */
     active: false,
     
-    constructor: function(config){
-        Ext.apply(this, config);
+<span id='Ext-ux-Spotlight-method-constructor'>    constructor: function(config){
+</span>        Ext.apply(this, config);
     },
 
 <span id='Ext-ux-Spotlight-method-createElements'>    /**

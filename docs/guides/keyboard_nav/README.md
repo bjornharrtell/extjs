@@ -99,7 +99,7 @@ You'll notice that there are many regions to our Ext application: North, South, 
         scope: myObject
     });
 
-The first property, `key` is the numeric keycode that maps a key. A useful document that maps which numbers correlate to which keys can be [found here](ext-js/4-0/source/EventObject.html). The next two, `ctrl` and `shift`, specify if the respective key is required to be held down to activate the function. In our case ctrl does, so ctrl+Enter will invoke `myHandler`. `fn` is the function to be called. This can either be inline or a reference to a function. Finally, `scope` defines where this `KeyMap` will be effective.
+The first property, `key` is the numeric keycode that maps a key. A useful document that maps which numbers correlate to which keys can be {@link Ext.EventObject found here}. The next two, `ctrl` and `shift`, specify if the respective key is required to be held down to activate the function. In our case ctrl does, so ctrl+Enter will invoke `myHandler`. `fn` is the function to be called. This can either be inline or a reference to a function. Finally, `scope` defines where this `KeyMap` will be effective.
 
 `KeyMap` is versatile in that it allows you to specify either one key that carries out a function or an array of keys that carry out the same function. If we wanted a number of keys to invoke `myHandler` we'd write it like `key: [10, 13]`.
 

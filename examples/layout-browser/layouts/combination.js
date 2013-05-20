@@ -208,6 +208,7 @@ function getCombinationLayouts() {
                 title: 'New Email',
                 layout: 'fit',
                 frame: true,
+                border: false,
                 items: {
                     xtype: 'form',
                     layout:'absolute',
@@ -236,8 +237,9 @@ function getCombinationLayouts() {
                     },{
                         x: 55,
                         y: 27,
+                        width: 69,
                         xtype: 'button',
-                        text: 'Contacts...'
+                        text: 'Contacts'
                     },{
                         x: 127,
                         y: 27,
@@ -268,9 +270,8 @@ function getCombinationLayouts() {
                 dockedItems: [
                     {
                         xtype: 'toolbar',
-                        ignoreParentFrame: true,
-                        ignoreBorderManagement: true,
-                        cls: 'absolute-form-toolbar',
+                        border: false,
+                        cls: 'absolute-form-panel-body',
                         items: [
                             {
                                  text: 'Send',

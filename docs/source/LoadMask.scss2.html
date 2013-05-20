@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}mask {
+    @include opacity($loadmask-opacity);
+    background: $loadmask-background-color;
+    @if ($loadmask-cursor != null) {
+        cursor: $loadmask-cursor;
+    }
+}
+
+.#{$prefix}mask-msg {
+    padding: $loadmask-msg-padding;
+    @if $loadmask-msg-border-width != 0 {
+        border-style: $loadmask-msg-border-style;
+        border-width: $loadmask-msg-border-width;
+        border-color: $loadmask-msg-border-color;
+    }
+    @if $loadmask-msg-border-radius != 0 {
+        @include border-radius($loadmask-msg-border-radius);
+    }
+
+    @if $loadmask-msg-background-gradient {
+        @if $supports-gradients or $compile-all {
+            @include background-gradient($loadmask-msg-background-color, $loadmask-msg-background-gradient);
+        }
+    } @else {
+        background: $loadmask-msg-background-color;
+    }
+}
+
+.#{$prefix}mask-msg-inner {
+    padding: $loadmask-msg-inner-padding;
+    @if $loadmask-msg-inner-border-width != 0 {
+        border-style: $loadmask-msg-inner-border-style;
+        border-width: $loadmask-msg-inner-border-width;
+        border-color: $loadmask-msg-inner-border-color;
+    }
+    background-color: $loadmask-msg-inner-background-color;
+    color: $loadmask-msg-inner-color;
+    font: $loadmask-msg-inner-font;
+}
+
+.#{$prefix}mask-msg-text {
+    padding: $loadmask-msg-text-padding;
+    //if an icon is defined show it
+    @if $loadmask-msg-inner-icon != null {
+        background-image: theme-background-image($loadmask-msg-inner-icon, 'gif');
+        background-repeat: no-repeat;
+        background-position: $loadmask-msg-inner-icon-position;
+    }
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}mask-msg-text {
+        padding: rtl($loadmask-msg-text-padding);
+
+        @if $loadmask-msg-inner-icon != null {
+            $loadmask-msg-icon-position-x: x($loadmask-msg-inner-icon-position);
+            @if $loadmask-msg-icon-position-x != center {
+                @if $loadmask-msg-icon-position-x == right {
+                    $loadmask-msg-icon-position-x: 0;
+                } @else {
+                    $loadmask-msg-icon-position-x: right;
+                }
+                background-position: $loadmask-msg-icon-position-x y($loadmask-msg-inner-icon-position);
+            }
+        }
+    }
+}</pre>
+</body>
+</html>

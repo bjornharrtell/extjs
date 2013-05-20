@@ -1,3 +1,23 @@
+/*
+This file is part of Ext JS 4.2
+
+Copyright (c) 2011-2013 Sencha Inc
+
+Contact:  http://www.sencha.com/contact
+
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
+
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
+
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
+
+Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+*/
 /**
  * Provides default colors for non-specified things. Should be sub-classed when creating new themes.
  * @private
@@ -11,6 +31,7 @@ Ext.define('Ext.chart.theme.Base', {
     /* End Definitions */
 
     constructor: function(config) {
+        var ident = Ext.identityFn;
         Ext.chart.theme.call(this, config, {
             background: false,
             axis: {
@@ -22,28 +43,28 @@ Ext.define('Ext.chart.theme.Base', {
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelRight: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelBottom: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisLabelLeft: {
                 fill: '#444',
                 font: '12px Arial, Helvetica, sans-serif',
                 spacing: 2,
                 padding: 5,
-                renderer: function(v) { return v; }
+                renderer: ident
             },
             axisTitleTop: {
                 font: 'bold 18px Arial',

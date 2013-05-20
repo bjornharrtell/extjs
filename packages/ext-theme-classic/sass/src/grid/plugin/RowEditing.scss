@@ -1,0 +1,22 @@
+.#{$prefix}grid-row-editor {
+    .#{$prefix}form-text {
+        padding: 0 $grid-row-editor-field-padding-horizontal;
+    }
+    .#{$prefix}form-display-field {
+        padding-top: 1px;
+    }
+}
+
+@if $include-ie {
+    .#{$prefix}ie {
+        .#{$prefix}grid-row-editor .#{$prefix}form-text {
+            padding-left: $grid-row-editor-field-padding-horizontal + 1;
+        }
+    }
+}
+
+@if $include-opera {
+    .#{$prefix}opera .#{$prefix}grid-row-editor .#{$prefix}form-text {
+        padding-left: $grid-row-editor-field-padding-horizontal + 1;
+    }
+}

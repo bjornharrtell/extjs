@@ -8,7 +8,8 @@ Ext.onReady(function() {
         text: 'With Ext JS 4.0 Drawing',
         textStyle: {
             fill: '#000',
-            font: '18px Arial'
+            'font-size': '18px',
+            'font-family': 'Arial'
         }
     });
 
@@ -20,7 +21,8 @@ Ext.onReady(function() {
         text: 'Creating a rotated Text component',
         textStyle: {
             fill: '#000',
-            font: '18px Arial'
+            'font-size': '18px',
+            'font-family': 'Arial'
         }
     });
 
@@ -37,7 +39,8 @@ Ext.onReady(function() {
         textStyle: {
             padding: 20,
             fill: '#000',
-            font: '18px Arial',
+            'font-size': '18px',
+            'font-family': 'Arial',
             y: 50
         }
     });

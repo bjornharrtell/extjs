@@ -98,7 +98,7 @@ Ext.define('Ext.ux.BoxReorderer', {
             layout = me.container.getLayout(),
             names = layout.names,
             dd;
-
+            
         // Create a DD instance. Poke the handlers in.
         // TODO: Ext5's DD classes should apply config to themselves.
         // TODO: Ext5's DD classes should not use init internally because it collides with use as a plugin
@@ -123,8 +123,8 @@ Ext.define('Ext.ux.BoxReorderer', {
         // Decide which dimension we are measuring, and which measurement metric defines
         // the *start* of the box depending upon orientation.
         dd.dim = names.width;
-        dd.startAttr = names.left;
-        dd.endAttr = names.right;
+        dd.startAttr = names.beforeX;
+        dd.endAttr = names.afterX;
     },
 
     getDragCmp: function(e) {
@@ -153,14 +153,14 @@ Ext.define('Ext.ux.BoxReorderer', {
             me.startIndex = me.curIndex = container.items.indexOf(me.dragCmp);
 
             // Start position of dragged Component
-            cmpBox = cmpEl.getPageBox();
+            cmpBox = cmpEl.getBox();
 
             // Last tracked start position
             me.lastPos = cmpBox[this.startAttr];
 
             // Calculate constraints depending upon orientation
             // Calculate offset from mouse to dragEl position
-            containerBox = container.el.getPageBox();
+            containerBox = container.el.getBox();
             if (me.dim === 'width') {
                 me.minX = containerBox.left;
                 me.maxX = containerBox.right - cmpBox.width;
@@ -344,7 +344,7 @@ Ext.define('Ext.ux.BoxReorderer', {
     getNewIndex: function(pointerPos) {
         var me = this,
             dragEl = me.getDragEl(),
-            dragBox = Ext.fly(dragEl).getPageBox(),
+            dragBox = Ext.fly(dragEl).getBox(),
             targetEl,
             targetBox,
             targetMidpoint,
@@ -360,7 +360,7 @@ Ext.define('Ext.ux.BoxReorderer', {
 
             // Only look for a drop point if this found item is an item according to our selector
             if (targetEl.is(me.reorderer.itemSelector)) {
-                targetBox = targetEl.getPageBox();
+                targetBox = targetEl.getBox();
                 targetMidpoint = targetBox[me.startAttr] + (targetBox[me.dim] >> 1);
                 if (i < me.curIndex) {
                     if ((dragBox[me.startAttr] < lastPos) && (dragBox[me.startAttr] < (targetMidpoint - 5))) {

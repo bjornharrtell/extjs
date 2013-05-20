@@ -1013,6 +1013,28 @@
  *     myVar = x.valueOf();      //assigns -424713600000 to myVar
  *
  * @return {Number} Date represented as milliseconds.
+ */
+
+// ECMAScript 5 methods
+
+<span id='Date-method-toJSON'>/**
+</span> * @method toJSON
+ * Returns a JSON representation of the Date object.
+ *
+ * Date instances refer to a specific point in time. Calling `toJSON()`
+ * returns a JSON formatted string representing the Date object's
+ * value.  This method is generally intended to, by default, usefully
+ * serialize Date objects during JSON serialization.
+ *
+ *     var jsonDate = (new Date()).toJSON();
+ *     var backToDate = new Date(jsonDate);
+ *
+ *     console.log(&quot;Serialized date object: &quot; + jsonDate);
+ *     // Serialized date object: 2013-01-17T12:59:08.449Z
+ *
+ * **NOTE:** This method is part of the ECMAScript 5 standard.
+ *
+ * @return {String} Date value in `YYYY-MM-DDTHH-MM-SS.MMMZ` format.
  */</pre>
 </body>
 </html>

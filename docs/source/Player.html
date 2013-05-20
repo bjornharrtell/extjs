@@ -127,12 +127,12 @@ Ext.define('Ext.ux.event.Player', {
      */
     speed: 1.0,
 
-    stallTime: 0,
-
-    tagPathRegEx: /(\w+)(?:\[(\d+)\])?/,
-    
-    constructor: function (config) {
-        var me = this;
+<span id='Ext-ux-event-Player-property-stallTime'>    stallTime: 0,
+</span>
+<span id='Ext-ux-event-Player-property-tagPathRegEx'>    tagPathRegEx: /(\w+)(?:\[(\d+)\])?/,
+</span>    
+<span id='Ext-ux-event-Player-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
         
         me.callParent(arguments);
 
@@ -198,13 +198,13 @@ Ext.define('Ext.ux.event.Player', {
         return el;
     },
 
-    getTimeIndex: function () {
-        var t = this.getTimestamp() - this.stallTime;
+<span id='Ext-ux-event-Player-method-getTimeIndex'>    getTimeIndex: function () {
+</span>        var t = this.getTimestamp() - this.stallTime;
         return t * this.speed;
     },
 
-    makeToken: function (eventDescriptor, signal) {
-        var me = this,
+<span id='Ext-ux-event-Player-method-makeToken'>    makeToken: function (eventDescriptor, signal) {
+</span>        var me = this,
             t0;
 
         eventDescriptor[signal] = true;
@@ -264,8 +264,8 @@ Ext.define('Ext.ux.event.Player', {
         return queue[index] || null;
     },
 
-    replaceEvent: function (index, events) {
-        for (var t, i = 0, n = events.length; i &lt; n; ++i) {
+<span id='Ext-ux-event-Player-method-replaceEvent'>    replaceEvent: function (index, events) {
+</span>        for (var t, i = 0, n = events.length; i &lt; n; ++i) {
             if (i) {
                 t = events[i-1];
                 delete t.afterplay;
@@ -317,7 +317,7 @@ Ext.define('Ext.ux.event.Player', {
 <span id='Ext-ux-event-Player-method-processKeyFrame'>    /**
 </span>     * This method is called when a keyframe is reached. This will fire the keyframe event.
      * If the keyframe has been handled, true is returned. Otherwise, false is returned.
-     * @param {Object} The event descriptor of the keyframe.
+     * @param {Object} eventDescriptor The event descriptor of the keyframe.
      * @return {Boolean} True if the keyframe was handled, false if not.
      */
     processKeyFrame: function (eventDescriptor) {
@@ -335,14 +335,14 @@ Ext.define('Ext.ux.event.Player', {
 <span id='Ext-ux-event-Player-method-injectEvent'>    /**
 </span>     * Called to inject the given event on the specified target.
      * @param {HTMLElement} target The target of the event.
-     * @param {Ext.EventObject} The event to inject.
+     * @param {Ext.EventObject} event The event to inject.
      */
     injectEvent: function (target, event) {
         event.injectEvent(target);
     },
 
-    playEvent: function (eventDescriptor) {
-        var me = this,
+<span id='Ext-ux-event-Player-method-playEvent'>    playEvent: function (eventDescriptor) {
+</span>        var me = this,
             target = me.getElementFromXPath(eventDescriptor.target),
             event;
 
@@ -365,8 +365,8 @@ Ext.define('Ext.ux.event.Player', {
         return me.playEventHook(eventDescriptor, 'afterplay');
     },
 
-    playEventHook: function (eventDescriptor, hookName) {
-        var me = this,
+<span id='Ext-ux-event-Player-method-playEventHook'>    playEventHook: function (eventDescriptor, hookName) {
+</span>        var me = this,
             doneName = hookName + '.done',
             firedName = hookName + '.fired',
             hook = eventDescriptor[hookName];
@@ -384,15 +384,15 @@ Ext.define('Ext.ux.event.Player', {
         return true;
     },
 
-    schedule: function () {
-        var me = this;
+<span id='Ext-ux-event-Player-method-schedule'>    schedule: function () {
+</span>        var me = this;
         if (!me.timer) {
             me.timer = setTimeout(me.timerFn, 10);
         }
     },
 
-    translateEvent: function (eventDescriptor, target) {
-        var me = this,
+<span id='Ext-ux-event-Player-method-translateEvent'>    translateEvent: function (eventDescriptor, target) {
+</span>        var me = this,
             event = me.eventObject,
             modKeys = eventDescriptor.modKeys || '',
             xy;
@@ -417,8 +417,8 @@ Ext.define('Ext.ux.event.Player', {
         return event;
     },
 
-    //---------------------------------
-    // Driver overrides
+<span id='Ext-ux-event-Player-method-onStart'>    //---------------------------------
+</span>    // Driver overrides
 
     onStart: function () {
         var me = this;
@@ -427,8 +427,8 @@ Ext.define('Ext.ux.event.Player', {
         me.schedule();
     },
 
-    onStop: function () {
-        var me = this;
+<span id='Ext-ux-event-Player-method-onStop'>    onStop: function () {
+</span>        var me = this;
 
         if (me.timer) {
             clearTimeout(me.timer);
@@ -439,8 +439,8 @@ Ext.define('Ext.ux.event.Player', {
         }
     },
 
-    //---------------------------------
-
+<span id='Ext-ux-event-Player-method-onTick'>    //---------------------------------
+</span>
     onTick: function () {
         var me = this;
 

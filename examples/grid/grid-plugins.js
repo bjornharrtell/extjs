@@ -1,12 +1,10 @@
 Ext.Loader.setConfig({
     enabled: true
 });
-Ext.Loader.setPath('Ext.ux', '../ux');
 
 Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
-    'Ext.ux.RowExpander',
     'Ext.selection.CheckboxModel'
 ]);
 
@@ -47,7 +45,7 @@ Ext.onReady(function(){
         ['McDonald\'s Corporation',36.76,0.86,2.40,'9/1 12:00am', 'Food'],
         ['Merck & Co., Inc.',40.96,0.41,1.01,'9/1 12:00am', 'Medical'],
         ['Microsoft Corporation',25.84,0.14,0.54,'9/1 12:00am', 'Computer'],
-        ['Pfizer Inc',27.96,0.4,1.45,'9/1 12:00am', 'Services', 'Medical'],
+        ['Pfizer Inc',27.96,0.4,1.45,'9/1 12:00am', 'Medical'],
         ['The Coca-Cola Company',45.07,0.26,0.58,'9/1 12:00am', 'Food'],
         ['The Home Depot, Inc.',34.64,0.35,1.02,'9/1 12:00am', 'Retail'],
         ['The Procter & Gamble Company',61.91,0.01,0.02,'9/1 12:00am', 'Manufacturing'],
@@ -87,29 +85,37 @@ Ext.onReady(function(){
             {text: "% Change", dataIndex: 'pctChange'},
             {text: "Last Updated", renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
         ],
+        enableLocking: true,
         width: 600,
         height: 300,
         plugins: [{
             ptype: 'rowexpander',
-            rowBodyTpl : [
-                '<p><b>Company:</b> {company}</p><br>',
-                '<p><b>Summary:</b> {desc}</p>'
-            ]
+            rowBodyTpl : new Ext.XTemplate(
+                '<p><b>Company:</b> {company}</p>',
+                '<p><b>Change:</b> {change:this.formatChange}</p><br>',
+                '<p><b>Summary:</b> {desc}</p>',
+            {
+                formatChange: function(v){
+                    var color = v >= 0 ? 'green' : 'red';
+                    return '<span style="color: ' + color + ';">' + Ext.util.Format.usMoney(v) + '</span>';
+                }
+            })
         }],
         collapsible: true,
         animCollapse: false,
-        title: 'Expander Rows in a Collapsible Grid',
+        title: 'Expander Rows in a Collapsible Grid with lockable columns',
         iconCls: 'icon-grid',
+        margin: '0 0 20 0',
         renderTo: Ext.getBody()
     });
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Grid 2
     ////////////////////////////////////////////////////////////////////////////////////////
-    var sm = Ext.create('Ext.selection.CheckboxModel');
     var grid2 = Ext.create('Ext.grid.Panel', {
+        id: 'grid2',
         store: getLocalStore(),
-        selModel: sm,
+        selType: 'checkboxmodel',
         columns: [
             {text: "Company", width: 200, dataIndex: 'company'},
             {text: "Price", renderer: Ext.util.Format.usMoney, dataIndex: 'price'},
@@ -123,6 +129,7 @@ Ext.onReady(function(){
         frame: true,
         title: 'Framed with Checkbox Selection and Horizontal Scrolling',
         iconCls: 'icon-grid',
+        margin: '0 0 20 0',
         renderTo: Ext.getBody()
     });
 
@@ -144,6 +151,7 @@ Ext.onReady(function(){
         height:300,
         title:'Grid with Numbered Rows',
         iconCls:'icon-grid',
+        margin: '0 0 20 0',
         renderTo: Ext.getBody()
     });
 
@@ -153,7 +161,7 @@ Ext.onReady(function(){
     var selModel = Ext.create('Ext.selection.CheckboxModel', {
         listeners: {
             selectionchange: function(sm, selections) {
-                grid4.down('#removeButton').setDisabled(selections.length == 0);
+                grid4.down('#removeButton').setDisabled(selections.length === 0);
             }
         }
     });

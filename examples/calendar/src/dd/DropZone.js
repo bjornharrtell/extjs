@@ -6,7 +6,7 @@ Ext.define('Ext.calendar.dd.DropZone', {
     extend: 'Ext.dd.DropZone',
     
     requires: [
-        'Ext.Layer',
+        'Ext.calendar.util.Date',
         'Ext.calendar.data.EventMappings'
     ],
 
@@ -47,6 +47,7 @@ Ext.define('Ext.calendar.dd.DropZone', {
 
     shim: function(start, end) {
         this.currWeek = -1;
+        this.DDMInstance.notifyOccluded = true;
         var dt = Ext.Date.clone(start),
             i = 0,
             shim,
@@ -131,6 +132,7 @@ Ext.define('Ext.calendar.dd.DropZone', {
                 shim.hide();
             }
         });
+        this.DDMInstance.notifyOccluded = false;
     },
 
     onContainerOver: function(dd, e, data) {

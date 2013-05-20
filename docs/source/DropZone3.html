@@ -21,11 +21,11 @@
 Ext.define('Ext.view.DropZone', {
     extend: 'Ext.dd.DropZone',
 
-    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
-    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
-
-    constructor: function(config) {
-        var me = this;
+<span id='Ext-view-DropZone-property-indicatorHtml'>    indicatorHtml: '&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-left&quot;&gt;&lt;/div&gt;&lt;div class=&quot;' + Ext.baseCSSPrefix + 'grid-drop-indicator-right&quot;&gt;&lt;/div&gt;',
+</span><span id='Ext-view-DropZone-property-indicatorCls'>    indicatorCls: Ext.baseCSSPrefix + 'grid-drop-indicator',
+</span>
+<span id='Ext-view-DropZone-method-constructor'>    constructor: function(config) {
+</span>        var me = this;
         Ext.apply(me, config);
 
         // Create a ddGroup unless one has been configured.
@@ -43,8 +43,8 @@ Ext.define('Ext.view.DropZone', {
         me.callParent([me.view.el]);
     },
 
-//  Fire an event through the client DataView. Lock this DropZone during the event processing so that
-//  its data does not become corrupted by processing mouse events.
+<span id='Ext-view-DropZone-method-fireViewEvent'>//  Fire an event through the client DataView. Lock this DropZone during the event processing so that
+</span>//  its data does not become corrupted by processing mouse events.
     fireViewEvent: function() {
         var me = this,
             result;
@@ -55,8 +55,8 @@ Ext.define('Ext.view.DropZone', {
         return result;
     },
 
-    getTargetFromEvent : function(e) {
-        var node = e.getTarget(this.view.getItemSelector()),
+<span id='Ext-view-DropZone-method-getTargetFromEvent'>    getTargetFromEvent : function(e) {
+</span>        var node = e.getTarget(this.view.getItemSelector()),
             mouseY, nodeList, testNode, i, len, box;
 
 //      Not over a row node: The content may be narrower than the View's encapsulating element, so return the closest.
@@ -74,8 +74,8 @@ Ext.define('Ext.view.DropZone', {
         return node;
     },
 
-    getIndicator: function() {
-        var me = this;
+<span id='Ext-view-DropZone-method-getIndicator'>    getIndicator: function() {
+</span>        var me = this;
 
         if (!me.indicator) {
             me.indicator = new Ext.Component({
@@ -89,8 +89,8 @@ Ext.define('Ext.view.DropZone', {
         return me.indicator;
     },
 
-    getPosition: function(e, node) {
-        var y      = e.getXY()[1],
+<span id='Ext-view-DropZone-method-getPosition'>    getPosition: function(e, node) {
+</span>        var y      = e.getXY()[1],
             region = Ext.fly(node).getRegion(),
             pos;
 
@@ -116,14 +116,14 @@ Ext.define('Ext.view.DropZone', {
         }
         var view = this.view,
             recordIndex = view.indexOf(record),
-            nodeBefore = view.getNode(recordIndex + offset),
+            nodeBefore = view.getNode(recordIndex + offset, true),
             recordBefore = nodeBefore ? view.getRecord(nodeBefore) : null;
 
         return recordBefore &amp;&amp; Ext.Array.contains(records, recordBefore);
     },
 
-    positionIndicator: function(node, data, e) {
-        var me = this,
+<span id='Ext-view-DropZone-method-positionIndicator'>    positionIndicator: function(node, data, e) {
+</span>        var me = this,
             view = me.view,
             pos = me.getPosition(e, node),
             overRecord = view.getRecord(node),
@@ -153,15 +153,15 @@ Ext.define('Ext.view.DropZone', {
         }
     },
 
-    invalidateDrop: function() {
-        if (this.valid) {
+<span id='Ext-view-DropZone-method-invalidateDrop'>    invalidateDrop: function() {
+</span>        if (this.valid) {
             this.valid = false;
             this.getIndicator().hide();
         }
     },
 
-    // The mouse is over a View node
-    onNodeOver: function(node, dragZone, e, data) {
+<span id='Ext-view-DropZone-method-onNodeOver'>    // The mouse is over a View node
+</span>    onNodeOver: function(node, dragZone, e, data) {
         var me = this;
 
         if (!Ext.Array.contains(data.records, me.view.getRecord(node))) {
@@ -170,46 +170,45 @@ Ext.define('Ext.view.DropZone', {
         return me.valid ? me.dropAllowed : me.dropNotAllowed;
     },
 
-    // Moved out of the DropZone without dropping.
-    // Remove drop position indicator
+<span id='Ext-view-DropZone-method-notifyOut'>    // Moved out of the DropZone without dropping.
+</span>    // Remove drop position indicator
     notifyOut: function(node, dragZone, e, data) {
         var me = this;
 
         me.callParent(arguments);
-        delete me.overRecord;
-        delete me.currentPosition;
+        me.overRecord = me.currentPosition = null
+        me.valid = false;
         if (me.indicator) {
             me.indicator.hide();
         }
     },
 
-    // The mouse is past the end of all nodes (or there are no nodes)
-    onContainerOver : function(dd, e, data) {
+<span id='Ext-view-DropZone-method-onContainerOver'>    // The mouse is past the end of all nodes (or there are no nodes)
+</span>    onContainerOver : function(dd, e, data) {
         var me = this,
             view = me.view,
-            count = view.store.getCount();
+            count = view.dataSource.getCount();
 
         // There are records, so position after the last one
         if (count) {
-            me.positionIndicator(view.getNode(count - 1), data, e);
+            me.positionIndicator(view.all.last(), data, e);
         }
 
         // No records, position the indicator at the top
         else {
-            delete me.overRecord;
-            delete me.currentPosition;
+            me.overRecord = me.currentPosition = null;
             me.getIndicator().setWidth(Ext.fly(view.el).getWidth()).showAt(0, 0);
             me.valid = true;
         }
         return me.dropAllowed;
     },
 
-    onContainerDrop : function(dd, e, data) {
-        return this.onNodeDrop(dd, null, e, data);
+<span id='Ext-view-DropZone-method-onContainerDrop'>    onContainerDrop : function(dd, e, data) {
+</span>        return this.onNodeDrop(dd, null, e, data);
     },
 
-    onNodeDrop: function(node, dragZone, e, data) {
-        var me = this,
+<span id='Ext-view-DropZone-method-onNodeDrop'>    onNodeDrop: function(targetNode, dragZone, e, data) {
+</span>        var me = this,
             dropHandled = false,
  
             // Create a closure to perform the operation which the event handler may use.
@@ -223,7 +222,7 @@ Ext.define('Ext.view.DropZone', {
                     me.invalidateDrop();
                     me.handleNodeDrop(data, me.overRecord, me.currentPosition);
                     dropHandled = true;
-                    me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+                    me.fireViewEvent('drop', targetNode, data, me.overRecord, me.currentPosition);
                 },
  
                 cancelDrop: function() {
@@ -234,7 +233,7 @@ Ext.define('Ext.view.DropZone', {
             performOperation = false;
  
         if (me.valid) {
-            performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, dropHandlers);
+            performOperation = me.fireViewEvent('beforedrop', targetNode, data, me.overRecord, me.currentPosition, dropHandlers);
             if (dropHandlers.wait) {
                 return;
             }
@@ -249,8 +248,8 @@ Ext.define('Ext.view.DropZone', {
         return performOperation;
     },
     
-    destroy: function(){
-        Ext.destroy(this.indicator);
+<span id='Ext-view-DropZone-method-destroy'>    destroy: function(){
+</span>        Ext.destroy(this.indicator);
         delete this.indicator;
         this.callParent();
     }
