@@ -1,20 +1,23 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
-<div id="cls-Ext.data.Api"></div>/**
- * @class Ext.data.Api
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">
+<span id='Ext-data-Api'>/**
+</span> * @class Ext.data.Api
  * @extends Object
  * Ext.data.Api is a singleton designed to manage the data API including methods
  * for validating a developer's DataProxy API.  Defines variables for CRUD actions
@@ -25,22 +28,22 @@
 Ext.data.Api = (function() {
 
     // private validActions.  validActions is essentially an inverted hash of Ext.data.Api.actions, where value becomes the key.
-    // Some methods in this singleton (e.g.: getActions, getVerb) will loop through actions with the code <code>for (var verb in this.actions)</code>
+    // Some methods in this singleton (e.g.: getActions, getVerb) will loop through actions with the code &lt;code&gt;for (var verb in this.actions)&lt;/code&gt;
     // For efficiency, some methods will first check this hash for a match.  Those methods which do acces validActions will cache their result here.
     // We cannot pre-define this hash since the developer may over-ride the actions at runtime.
     var validActions = {};
 
     return {
-        <div id="prop-Ext.data.Api-actions"></div>/**
-         * Defined actions corresponding to remote actions:
-         * <pre><code>
+<span id='Ext-data-Api-property-actions'>        /**
+</span>         * Defined actions corresponding to remote actions:
+         * &lt;pre&gt;&lt;code&gt;
 actions: {
     create  : 'create',  // Text representing the remote-action to create records on server.
     read    : 'read',    // Text representing the remote-action to read/load data from server.
     update  : 'update',  // Text representing the remote-action to update records on server.
     destroy : 'destroy'  // Text representing the remote-action to destroy records on server.
 }
-         * </code></pre>
+         * &lt;/code&gt;&lt;/pre&gt;
          * @property actions
          * @type Object
          */
@@ -51,18 +54,18 @@ actions: {
             destroy : 'destroy'
         },
 
-        <div id="prop-Ext.data.Api-restActions"></div>/**
-         * Defined {CRUD action}:{HTTP method} pairs to associate HTTP methods with the
+<span id='Ext-data-Api-property-restActions'>        /**
+</span>         * Defined {CRUD action}:{HTTP method} pairs to associate HTTP methods with the
          * corresponding actions for {@link Ext.data.DataProxy#restful RESTful proxies}.
          * Defaults to:
-         * <pre><code>
+         * &lt;pre&gt;&lt;code&gt;
 restActions : {
     create  : 'POST',
     read    : 'GET',
     update  : 'PUT',
     destroy : 'DELETE'
 },
-         * </code></pre>
+         * &lt;/code&gt;&lt;/pre&gt;
          */
         restActions : {
             create  : 'POST',
@@ -71,8 +74,8 @@ restActions : {
             destroy : 'DELETE'
         },
 
-        <div id="method-Ext.data.Api-isAction"></div>/**
-         * Returns true if supplied action-name is a valid API action defined in <code>{@link #actions}</code> constants
+<span id='Ext-data-Api-method-isAction'>        /**
+</span>         * Returns true if supplied action-name is a valid API action defined in &lt;code&gt;{@link #actions}&lt;/code&gt; constants
          * @param {String} action Action to test for availability.
          * @return {Boolean}
          */
@@ -80,18 +83,18 @@ restActions : {
             return (Ext.data.Api.actions[action]) ? true : false;
         },
 
-        <div id="method-Ext.data.Api-getVerb"></div>/**
-         * Returns the actual CRUD action KEY "create", "read", "update" or "destroy" from the supplied action-name.  This method is used internally and shouldn't generally
+<span id='Ext-data-Api-method-getVerb'>        /**
+</span>         * Returns the actual CRUD action KEY &quot;create&quot;, &quot;read&quot;, &quot;update&quot; or &quot;destroy&quot; from the supplied action-name.  This method is used internally and shouldn't generally
          * need to be used directly.  The key/value pair of Ext.data.Api.actions will often be identical but this is not necessarily true.  A developer can override this naming
-         * convention if desired.  However, the framework internally calls methods based upon the KEY so a way of retreiving the the words "create", "read", "update" and "destroy" is
+         * convention if desired.  However, the framework internally calls methods based upon the KEY so a way of retreiving the the words &quot;create&quot;, &quot;read&quot;, &quot;update&quot; and &quot;destroy&quot; is
          * required.  This method will cache discovered KEYS into the private validActions hash.
          * @param {String} name The runtime name of the action.
-         * @return {String||null} returns the action-key, or verb of the user-action or null if invalid.
+         * @return {String/null} returns the action-key, or verb of the user-action or null if invalid.
          * @nodoc
          */
         getVerb : function(name) {
             if (validActions[name]) {
-                return validActions[name];  // <-- found in cache.  return immediately.
+                return validActions[name];  // &lt;-- found in cache.  return immediately.
             }
             for (var verb in this.actions) {
                 if (this.actions[verb] === name) {
@@ -102,14 +105,14 @@ restActions : {
             return (validActions[name] !== undefined) ? validActions[name] : null;
         },
 
-        <div id="method-Ext.data.Api-isValid"></div>/**
-         * Returns true if the supplied API is valid; that is, check that all keys match defined actions
+<span id='Ext-data-Api-method-isValid'>        /**
+</span>         * Returns true if the supplied API is valid; that is, check that all keys match defined actions
          * otherwise returns an array of mistakes.
          * @return {String[]|true}
          */
         isValid : function(api){
             var invalid = [];
-            var crud = this.actions; // <-- cache a copy of the actions.
+            var crud = this.actions; // &lt;-- cache a copy of the actions.
             for (var action in api) {
                 if (!(action in crud)) {
                     invalid.push(action);
@@ -118,9 +121,9 @@ restActions : {
             return (!invalid.length) ? true : invalid;
         },
 
-        <div id="method-Ext.data.Api-hasUniqueUrl"></div>/**
-         * Returns true if the supplied verb upon the supplied proxy points to a unique url in that none of the other api-actions
-         * point to the same url.  The question is important for deciding whether to insert the "xaction" HTTP parameter within an
+<span id='Ext-data-Api-method-hasUniqueUrl'>        /**
+</span>         * Returns true if the supplied verb upon the supplied proxy points to a unique url in that none of the other api-actions
+         * point to the same url.  The question is important for deciding whether to insert the &quot;xaction&quot; HTTP parameter within an
          * Ajax request.  This method is used internally and shouldn't generally need to be called directly.
          * @param {Ext.data.DataProxy} proxy
          * @param {String} verb
@@ -137,15 +140,15 @@ restActions : {
             return unique;
         },
 
-        <div id="method-Ext.data.Api-prepare"></div>/**
-         * This method is used internally by <tt>{@link Ext.data.DataProxy DataProxy}</tt> and should not generally need to be used directly.
+<span id='Ext-data-Api-method-prepare'>        /**
+</span>         * This method is used internally by &lt;tt&gt;{@link Ext.data.DataProxy DataProxy}&lt;/tt&gt; and should not generally need to be used directly.
          * Each action of a DataProxy api can be initially defined as either a String or an Object.  When specified as an object,
          * one can explicitly define the HTTP method (GET|POST) to use for each CRUD action.  This method will prepare the supplied API, setting
-         * each action to the Object form.  If your API-actions do not explicitly define the HTTP method, the "method" configuration-parameter will
+         * each action to the Object form.  If your API-actions do not explicitly define the HTTP method, the &quot;method&quot; configuration-parameter will
          * be used.  If the method configuration parameter is not specified, POST will be used.
-         <pre><code>
+         &lt;pre&gt;&lt;code&gt;
 new Ext.data.HttpProxy({
-    method: "POST",     // <-- default HTTP method when not specified.
+    method: &quot;POST&quot;,     // &lt;-- default HTTP method when not specified.
     api: {
         create: 'create.php',
         load: 'read.php',
@@ -163,13 +166,13 @@ new Ext.data.HttpProxy({
         save: 'update.php'
     }
 });
-        </code></pre>
+        &lt;/code&gt;&lt;/pre&gt;
          *
          * @param {Ext.data.DataProxy} proxy
          */
         prepare : function(proxy) {
             if (!proxy.api) {
-                proxy.api = {}; // <-- No api?  create a blank one.
+                proxy.api = {}; // &lt;-- No api?  create a blank one.
             }
             for (var verb in this.actions) {
                 var action = this.actions[verb];
@@ -183,8 +186,8 @@ new Ext.data.HttpProxy({
             }
         },
 
-        <div id="method-Ext.data.Api-restify"></div>/**
-         * Prepares a supplied Proxy to be RESTful.  Sets the HTTP method for each api-action to be one of
+<span id='Ext-data-Api-method-restify'>        /**
+</span>         * Prepares a supplied Proxy to be RESTful.  Sets the HTTP method for each api-action to be one of
          * GET, POST, PUT, DELETE according to the defined {@link #restActions}.
          * @param {Ext.data.DataProxy} proxy
          */
@@ -224,20 +227,20 @@ new Ext.data.HttpProxy({
                         break;
                 }
                 if (res.success === true) {
-                    this.fireEvent("write", this, action, res.data, res, rs, o.request.arg);
+                    this.fireEvent(&quot;write&quot;, this, action, res.data, res, rs, o.request.arg);
                 } else {
                     this.fireEvent('exception', this, 'remote', action, o, res, rs);
                 }
                 o.request.callback.call(o.request.scope, res.data, res, res.success);
 
-                return false;   // <-- false to prevent intercepted function from running.
+                return false;   // &lt;-- false to prevent intercepted function from running.
             }, proxy);
         }
     };
 })();
 
-<div id="method-Ext.data.Api-Response"></div>/**
- * Ext.data.Response
+<span id='Ext-data-Response'>/**
+</span> * Ext.data.Response
  * Experimental.  Do not use directly.
  */
 Ext.data.Response = function(params, response) {
@@ -269,28 +272,28 @@ Ext.data.Response.prototype = {
     }
 };
 
-<div id="cls-Ext.data.Api.Error"></div>/**
- * @class Ext.data.Api.Error
+<span id='Ext-data-Api-Error'>/**
+</span> * @class Ext.data.Api.Error
  * @extends Ext.Error
  * Error class for Ext.data.Api errors
  */
 Ext.data.Api.Error = Ext.extend(Ext.Error, {
-    constructor : function(message, arg) {
-        this.arg = arg;
+<span id='Ext-data-Api-Error-method-constructor'>    constructor : function(message, arg) {
+</span>        this.arg = arg;
         Ext.Error.call(this, message);
     },
-    name: 'Ext.data.Api'
-});
+<span id='Ext-data-Api-Error-property-name'>    name: 'Ext.data.Api'
+</span>});
 Ext.apply(Ext.data.Api.Error.prototype, {
     lang: {
         'action-url-undefined': 'No fallback url defined for this action.  When defining a DataProxy api, please be sure to define an url for each CRUD action in Ext.data.Api.actions or define a default url in addition to your api-configuration.',
         'invalid': 'received an invalid API-configuration.  Please ensure your proxy API-configuration contains only the actions defined in Ext.data.Api.actions',
         'invalid-url': 'Invalid url.  Please review your proxy configuration.',
-        'execute': 'Attempted to execute an unknown action.  Valid API actions are defined in Ext.data.Api.actions"'
+        'execute': 'Attempted to execute an unknown action.  Valid API actions are defined in Ext.data.Api.actions&quot;'
     }
 });
 
 
-</pre>    
+</pre>
 </body>
 </html>

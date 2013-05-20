@@ -1,18 +1,21 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-/*
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
  * These classes are derivatives of the similarly named classes in the YUI Library.
  * The original license:
  * Copyright (c) 2006, Yahoo! Inc. All rights reserved.
@@ -25,43 +28,43 @@
 var Event=Ext.EventManager;
 var Dom=Ext.lib.Dom;
 
-<div id="cls-Ext.dd.DragDrop"></div>/**
- * @class Ext.dd.DragDrop
+<span id='Ext-dd-DragDrop-method-constructor'><span id='Ext-dd-DragDrop'>/**
+</span></span> * @class Ext.dd.DragDrop
  * Defines the interface and base operation of items that that can be
  * dragged or can be drop targets.  It was designed to be extended, overriding
  * the event handlers for startDrag, onDrag, onDragOver and onDragOut.
  * Up to three html elements can be associated with a DragDrop instance:
- * <ul>
- * <li>linked element: the element that is passed into the constructor.
+ * &lt;ul&gt;
+ * &lt;li&gt;linked element: the element that is passed into the constructor.
  * This is the element which defines the boundaries for interaction with
- * other DragDrop objects.</li>
- * <li>handle element(s): The drag operation only occurs if the element that
+ * other DragDrop objects.&lt;/li&gt;
+ * &lt;li&gt;handle element(s): The drag operation only occurs if the element that
  * was clicked matches a handle element.  By default this is the linked
  * element, but there are times that you will want only a portion of the
  * linked element to initiate the drag operation, and the setHandleElId()
- * method provides a way to define this.</li>
- * <li>drag element: this represents the element that would be moved along
+ * method provides a way to define this.&lt;/li&gt;
+ * &lt;li&gt;drag element: this represents the element that would be moved along
  * with the cursor during a drag operation.  By default, this is the linked
  * element itself as in {@link Ext.dd.DD}.  setDragElId() lets you define
  * a separate element that would be moved, as in {@link Ext.dd.DDProxy}.
- * </li>
- * </ul>
+ * &lt;/li&gt;
+ * &lt;/ul&gt;
  * This class should not be instantiated until the onload event to ensure that
  * the associated elements are available.
  * The following would define a DragDrop obj that would interact with any
- * other DragDrop obj in the "group1" group:
- * <pre>
- *  dd = new Ext.dd.DragDrop("div1", "group1");
- * </pre>
+ * other DragDrop obj in the &quot;group1&quot; group:
+ * &lt;pre&gt;
+ *  dd = new Ext.dd.DragDrop(&quot;div1&quot;, &quot;group1&quot;);
+ * &lt;/pre&gt;
  * Since none of the event handlers have been implemented, nothing would
  * actually happen if you were to run the code above.  Normally you would
  * override this class or one of the default implementations, but you can
  * also override the methods you want on an instance of the class...
- * <pre>
+ * &lt;pre&gt;
  *  dd.onDragDrop = function(e, id) {
- *  &nbsp;&nbsp;alert("dd was dropped on " + id);
+ *  &amp;nbsp;&amp;nbsp;alert(&quot;dd was dropped on &quot; + id);
  *  }
- * </pre>
+ * &lt;/pre&gt;
  * @constructor
  * @param {String} id of the element that is linked to this instance
  * @param {String} sGroup the group of related DragDrop objects
@@ -77,17 +80,17 @@ Ext.dd.DragDrop = function(id, sGroup, config) {
 
 Ext.dd.DragDrop.prototype = {
 
-    <div id="prop-Ext.dd.DragDrop-ignoreSelf"></div>/**
-     * Set to false to enable a DragDrop object to fire drag events while dragging
+<span id='Ext-dd-DragDrop-property-ignoreSelf'>    /**
+</span>     * Set to false to enable a DragDrop object to fire drag events while dragging
      * over its own Element. Defaults to true - DragDrop objects do not by default
      * fire drag events to themselves.
      * @property ignoreSelf
      * @type Boolean
      */
 
-    <div id="prop-Ext.dd.DragDrop-id"></div>/**
-     * The id of the element associated with this object.  This is what we
-     * refer to as the "linked element" because the size and position of
+<span id='Ext-dd-DragDrop-property-id'>    /**
+</span>     * The id of the element associated with this object.  This is what we
+     * refer to as the &quot;linked element&quot; because the size and position of
      * this element is used to determine when the drag and drop objects have
      * interacted.
      * @property id
@@ -95,15 +98,15 @@ Ext.dd.DragDrop.prototype = {
      */
     id: null,
 
-    <div id="prop-Ext.dd.DragDrop-config"></div>/**
-     * Configuration attributes passed into the constructor
+<span id='Ext-dd-DragDrop-property-config'>    /**
+</span>     * Configuration attributes passed into the constructor
      * @property config
      * @type object
      */
     config: null,
 
-    /**
-     * The id of the element that will be dragged.  By default this is same
+<span id='Ext-dd-DragDrop-property-dragElId'>    /**
+</span>     * The id of the element that will be dragged.  By default this is same
      * as the linked element, but could be changed to another element. Ex:
      * Ext.dd.DDProxy
      * @property dragElId
@@ -112,8 +115,8 @@ Ext.dd.DragDrop.prototype = {
      */
     dragElId: null,
 
-    /**
-     * The ID of the element that initiates the drag operation.  By default
+<span id='Ext-dd-DragDrop-property-handleElId'>    /**
+</span>     * The ID of the element that initiates the drag operation.  By default
      * this is the linked element, but could be changed to be a child of this
      * element.  This lets us do things like only starting the drag when the
      * header element within the linked html element is clicked.
@@ -123,39 +126,39 @@ Ext.dd.DragDrop.prototype = {
      */
     handleElId: null,
 
-    <div id="prop-Ext.dd.DragDrop-invalidHandleTypes"></div>/**
-     * An object who's property names identify HTML tags to be considered invalid as drag handles.
+<span id='Ext-dd-DragDrop-property-invalidHandleTypes'>    /**
+</span>     * An object who's property names identify HTML tags to be considered invalid as drag handles.
      * A non-null property value identifies the tag as invalid. Defaults to the 
-     * following value which prevents drag operations from being initiated by &lt;a> elements:<pre><code>
+     * following value which prevents drag operations from being initiated by &amp;lt;a&gt; elements:&lt;pre&gt;&lt;code&gt;
 {
-    A: "A"
-}</code></pre>
+    A: &quot;A&quot;
+}&lt;/code&gt;&lt;/pre&gt;
      * @property invalidHandleTypes
      * @type Object
      */
     invalidHandleTypes: null,
 
-    <div id="prop-Ext.dd.DragDrop-invalidHandleIds"></div>/**
-     * An object who's property names identify the IDs of elements to be considered invalid as drag handles.
+<span id='Ext-dd-DragDrop-property-invalidHandleIds'>    /**
+</span>     * An object who's property names identify the IDs of elements to be considered invalid as drag handles.
      * A non-null property value identifies the ID as invalid. For example, to prevent
-     * dragging from being initiated on element ID "foo", use:<pre><code>
+     * dragging from being initiated on element ID &quot;foo&quot;, use:&lt;pre&gt;&lt;code&gt;
 {
     foo: true
-}</code></pre>
+}&lt;/code&gt;&lt;/pre&gt;
      * @property invalidHandleIds
      * @type Object
      */
     invalidHandleIds: null,
 
-    <div id="prop-Ext.dd.DragDrop-invalidHandleClasses"></div>/**
-     * An Array of CSS class names for elements to be considered in valid as drag handles.
+<span id='Ext-dd-DragDrop-property-invalidHandleClasses'>    /**
+</span>     * An Array of CSS class names for elements to be considered in valid as drag handles.
      * @property invalidHandleClasses
      * @type Array
      */
     invalidHandleClasses: null,
 
-    /**
-     * The linked element's absolute X position at the time the drag was
+<span id='Ext-dd-DragDrop-property-startPageX'>    /**
+</span>     * The linked element's absolute X position at the time the drag was
      * started
      * @property startPageX
      * @type int
@@ -163,8 +166,8 @@ Ext.dd.DragDrop.prototype = {
      */
     startPageX: 0,
 
-    /**
-     * The linked element's absolute X position at the time the drag was
+<span id='Ext-dd-DragDrop-property-startPageY'>    /**
+</span>     * The linked element's absolute X position at the time the drag was
      * started
      * @property startPageY
      * @type int
@@ -172,8 +175,8 @@ Ext.dd.DragDrop.prototype = {
      */
     startPageY: 0,
 
-    <div id="prop-Ext.dd.DragDrop-groups"></div>/**
-     * The group defines a logical collection of DragDrop objects that are
+<span id='Ext-dd-DragDrop-property-groups'>    /**
+</span>     * The group defines a logical collection of DragDrop objects that are
      * related.  Instances only get events when interacting with other
      * DragDrop object in the same group.  This lets us define multiple
      * groups using a single DragDrop subclass if we want.
@@ -182,8 +185,8 @@ Ext.dd.DragDrop.prototype = {
      */
     groups: null,
 
-    /**
-     * Individual drag/drop instances can be locked.  This will prevent
+<span id='Ext-dd-DragDrop-property-locked'>    /**
+</span>     * Individual drag/drop instances can be locked.  This will prevent
      * onmousedown start drag.
      * @property locked
      * @type boolean
@@ -191,110 +194,110 @@ Ext.dd.DragDrop.prototype = {
      */
     locked: false,
 
-    <div id="method-Ext.dd.DragDrop-lock"></div>/**
-     * Lock this instance
+<span id='Ext-dd-DragDrop-method-lock'>    /**
+</span>     * Lock this instance
      * @method lock
      */
     lock: function() {
         this.locked = true;
     },
 
-    <div id="prop-Ext.dd.DragDrop-moveOnly"></div>/**
-     * When set to true, other DD objects in cooperating DDGroups do not receive
+<span id='Ext-dd-DragDrop-property-moveOnly'>    /**
+</span>     * When set to true, other DD objects in cooperating DDGroups do not receive
      * notification events when this DD object is dragged over them. Defaults to false.
      * @property moveOnly
      * @type boolean
      */
     moveOnly: false,
 
-    <div id="method-Ext.dd.DragDrop-unlock"></div>/**
-     * Unlock this instace
+<span id='Ext-dd-DragDrop-method-unlock'>    /**
+</span>     * Unlock this instace
      * @method unlock
      */
     unlock: function() {
         this.locked = false;
     },
 
-    <div id="prop-Ext.dd.DragDrop-isTarget"></div>/**
-     * By default, all instances can be a drop target.  This can be disabled by
+<span id='Ext-dd-DragDrop-property-isTarget'>    /**
+</span>     * By default, all instances can be a drop target.  This can be disabled by
      * setting isTarget to false.
      * @property isTarget
      * @type boolean
      */
     isTarget: true,
 
-    <div id="prop-Ext.dd.DragDrop-padding"></div>/**
-     * The padding configured for this drag and drop object for calculating
+<span id='Ext-dd-DragDrop-property-padding'>    /**
+</span>     * The padding configured for this drag and drop object for calculating
      * the drop zone intersection with this object.
      * @property padding
      * @type int[] An array containing the 4 padding values: [top, right, bottom, left]
      */
     padding: null,
 
-    /**
-     * Cached reference to the linked element
+<span id='Ext-dd-DragDrop-property-_domRef'>    /**
+</span>     * Cached reference to the linked element
      * @property _domRef
      * @private
      */
     _domRef: null,
 
-    /**
-     * Internal typeof flag
+<span id='Ext-dd-DragDrop-property-__ygDragDrop'>    /**
+</span>     * Internal typeof flag
      * @property __ygDragDrop
      * @private
      */
     __ygDragDrop: true,
 
-    /**
-     * Set to true when horizontal contraints are applied
+<span id='Ext-dd-DragDrop-property-constrainX'>    /**
+</span>     * Set to true when horizontal contraints are applied
      * @property constrainX
      * @type boolean
      * @private
      */
     constrainX: false,
 
-    /**
-     * Set to true when vertical contraints are applied
+<span id='Ext-dd-DragDrop-property-constrainY'>    /**
+</span>     * Set to true when vertical contraints are applied
      * @property constrainY
      * @type boolean
      * @private
      */
     constrainY: false,
 
-    /**
-     * The left constraint
+<span id='Ext-dd-DragDrop-property-minX'>    /**
+</span>     * The left constraint
      * @property minX
      * @type int
      * @private
      */
     minX: 0,
 
-    /**
-     * The right constraint
+<span id='Ext-dd-DragDrop-property-maxX'>    /**
+</span>     * The right constraint
      * @property maxX
      * @type int
      * @private
      */
     maxX: 0,
 
-    /**
-     * The up constraint
+<span id='Ext-dd-DragDrop-property-minY'>    /**
+</span>     * The up constraint
      * @property minY
      * @type int
      * @private
      */
     minY: 0,
 
-    /**
-     * The down constraint
+<span id='Ext-dd-DragDrop-property-maxY'>    /**
+</span>     * The down constraint
      * @property maxY
      * @type int
      * @private
      */
     maxY: 0,
 
-    <div id="prop-Ext.dd.DragDrop-maintainOffset"></div>/**
-     * Maintain offsets when we resetconstraints.  Set to true when you want
+<span id='Ext-dd-DragDrop-property-maintainOffset'>    /**
+</span>     * Maintain offsets when we resetconstraints.  Set to true when you want
      * the position of the element relative to its parent to stay the same
      * when the page changes
      *
@@ -303,8 +306,8 @@ Ext.dd.DragDrop.prototype = {
      */
     maintainOffset: false,
 
-    <div id="prop-Ext.dd.DragDrop-xTicks"></div>/**
-     * Array of pixel locations the element will snap to if we specified a
+<span id='Ext-dd-DragDrop-property-xTicks'>    /**
+</span>     * Array of pixel locations the element will snap to if we specified a
      * horizontal graduation/interval.  This array is generated automatically
      * when you define a tick interval.
      * @property xTicks
@@ -312,8 +315,8 @@ Ext.dd.DragDrop.prototype = {
      */
     xTicks: null,
 
-    <div id="prop-Ext.dd.DragDrop-yTicks"></div>/**
-     * Array of pixel locations the element will snap to if we specified a
+<span id='Ext-dd-DragDrop-property-yTicks'>    /**
+</span>     * Array of pixel locations the element will snap to if we specified a
      * vertical graduation/interval.  This array is generated automatically
      * when you define a tick interval.
      * @property yTicks
@@ -321,8 +324,8 @@ Ext.dd.DragDrop.prototype = {
      */
     yTicks: null,
 
-    <div id="prop-Ext.dd.DragDrop-primaryButtonOnly"></div>/**
-     * By default the drag and drop instance will only respond to the primary
+<span id='Ext-dd-DragDrop-property-primaryButtonOnly'>    /**
+</span>     * By default the drag and drop instance will only respond to the primary
      * button click (left button for a right-handed mouse).  Set to true to
      * allow drag and drop to start with any mouse click that is propogated
      * by the browser
@@ -331,15 +334,15 @@ Ext.dd.DragDrop.prototype = {
      */
     primaryButtonOnly: true,
 
-    <div id="prop-Ext.dd.DragDrop-available"></div>/**
-     * The available property is false until the linked dom element is accessible.
+<span id='Ext-dd-DragDrop-property-available'>    /**
+</span>     * The available property is false until the linked dom element is accessible.
      * @property available
      * @type boolean
      */
     available: false,
 
-    <div id="prop-Ext.dd.DragDrop-hasOuterHandles"></div>/**
-     * By default, drags can only be initiated if the mousedown occurs in the
+<span id='Ext-dd-DragDrop-property-hasOuterHandles'>    /**
+</span>     * By default, drags can only be initiated if the mousedown occurs in the
      * region the linked element is.  This is done in part to work around a
      * bug in some browsers that mis-report the mousedown if the previous
      * mouseup happened outside of the window.  This property is set to true
@@ -351,15 +354,15 @@ Ext.dd.DragDrop.prototype = {
      */
     hasOuterHandles: false,
 
-    /**
-     * Code that executes immediately before the startDrag event
+<span id='Ext-dd-DragDrop-method-b4StartDrag'>    /**
+</span>     * Code that executes immediately before the startDrag event
      * @method b4StartDrag
      * @private
      */
     b4StartDrag: function(x, y) { },
 
-    <div id="method-Ext.dd.DragDrop-startDrag"></div>/**
-     * Abstract method called after a drag/drop object is clicked
+<span id='Ext-dd-DragDrop-method-startDrag'>    /**
+</span>     * Abstract method called after a drag/drop object is clicked
      * and the drag or mousedown time thresholds have beeen met.
      * @method startDrag
      * @param {int} X click location
@@ -367,23 +370,23 @@ Ext.dd.DragDrop.prototype = {
      */
     startDrag: function(x, y) { /* override this */ },
 
-    /**
-     * Code that executes immediately before the onDrag event
+<span id='Ext-dd-DragDrop-method-b4Drag'>    /**
+</span>     * Code that executes immediately before the onDrag event
      * @method b4Drag
      * @private
      */
     b4Drag: function(e) { },
 
-    <div id="method-Ext.dd.DragDrop-onDrag"></div>/**
-     * Abstract method called during the onMouseMove event while dragging an
+<span id='Ext-dd-DragDrop-method-onDrag'>    /**
+</span>     * Abstract method called during the onMouseMove event while dragging an
      * object.
      * @method onDrag
      * @param {Event} e the mousemove event
      */
     onDrag: function(e) { /* override this */ },
 
-    <div id="method-Ext.dd.DragDrop-onDragEnter"></div>/**
-     * Abstract method called when this element fist begins hovering over
+<span id='Ext-dd-DragDrop-method-onDragEnter'>    /**
+</span>     * Abstract method called when this element fist begins hovering over
      * another DragDrop obj
      * @method onDragEnter
      * @param {Event} e the mousemove event
@@ -393,15 +396,15 @@ Ext.dd.DragDrop.prototype = {
      */
     onDragEnter: function(e, id) { /* override this */ },
 
-    /**
-     * Code that executes immediately before the onDragOver event
+<span id='Ext-dd-DragDrop-method-b4DragOver'>    /**
+</span>     * Code that executes immediately before the onDragOver event
      * @method b4DragOver
      * @private
      */
     b4DragOver: function(e) { },
 
-    <div id="method-Ext.dd.DragDrop-onDragOver"></div>/**
-     * Abstract method called when this element is hovering over another
+<span id='Ext-dd-DragDrop-method-onDragOver'>    /**
+</span>     * Abstract method called when this element is hovering over another
      * DragDrop obj
      * @method onDragOver
      * @param {Event} e the mousemove event
@@ -411,15 +414,15 @@ Ext.dd.DragDrop.prototype = {
      */
     onDragOver: function(e, id) { /* override this */ },
 
-    /**
-     * Code that executes immediately before the onDragOut event
+<span id='Ext-dd-DragDrop-method-b4DragOut'>    /**
+</span>     * Code that executes immediately before the onDragOut event
      * @method b4DragOut
      * @private
      */
     b4DragOut: function(e) { },
 
-    <div id="method-Ext.dd.DragDrop-onDragOut"></div>/**
-     * Abstract method called when we are no longer hovering over an element
+<span id='Ext-dd-DragDrop-method-onDragOut'>    /**
+</span>     * Abstract method called when we are no longer hovering over an element
      * @method onDragOut
      * @param {Event} e the mousemove event
      * @param {String|DragDrop[]} id In POINT mode, the element
@@ -428,15 +431,15 @@ Ext.dd.DragDrop.prototype = {
      */
     onDragOut: function(e, id) { /* override this */ },
 
-    /**
-     * Code that executes immediately before the onDragDrop event
+<span id='Ext-dd-DragDrop-method-b4DragDrop'>    /**
+</span>     * Code that executes immediately before the onDragDrop event
      * @method b4DragDrop
      * @private
      */
     b4DragDrop: function(e) { },
 
-    <div id="method-Ext.dd.DragDrop-onDragDrop"></div>/**
-     * Abstract method called when this item is dropped on another DragDrop
+<span id='Ext-dd-DragDrop-method-onDragDrop'>    /**
+</span>     * Abstract method called when this item is dropped on another DragDrop
      * obj
      * @method onDragDrop
      * @param {Event} e the mouseup event
@@ -446,85 +449,85 @@ Ext.dd.DragDrop.prototype = {
      */
     onDragDrop: function(e, id) { /* override this */ },
 
-    <div id="method-Ext.dd.DragDrop-onInvalidDrop"></div>/**
-     * Abstract method called when this item is dropped on an area with no
+<span id='Ext-dd-DragDrop-method-onInvalidDrop'>    /**
+</span>     * Abstract method called when this item is dropped on an area with no
      * drop target
      * @method onInvalidDrop
      * @param {Event} e the mouseup event
      */
     onInvalidDrop: function(e) { /* override this */ },
 
-    /**
-     * Code that executes immediately before the endDrag event
+<span id='Ext-dd-DragDrop-method-b4EndDrag'>    /**
+</span>     * Code that executes immediately before the endDrag event
      * @method b4EndDrag
      * @private
      */
     b4EndDrag: function(e) { },
 
-    <div id="method-Ext.dd.DragDrop-endDrag"></div>/**
-     * Fired when we are done dragging the object
+<span id='Ext-dd-DragDrop-method-endDrag'>    /**
+</span>     * Fired when we are done dragging the object
      * @method endDrag
      * @param {Event} e the mouseup event
      */
     endDrag: function(e) { /* override this */ },
 
-    /**
-     * Code executed immediately before the onMouseDown event
+<span id='Ext-dd-DragDrop-method-b4MouseDown'>    /**
+</span>     * Code executed immediately before the onMouseDown event
      * @method b4MouseDown
      * @param {Event} e the mousedown event
      * @private
      */
     b4MouseDown: function(e) {  },
 
-    <div id="method-Ext.dd.DragDrop-onMouseDown"></div>/**
-     * Event handler that fires when a drag/drop obj gets a mousedown
+<span id='Ext-dd-DragDrop-method-onMouseDown'>    /**
+</span>     * Event handler that fires when a drag/drop obj gets a mousedown
      * @method onMouseDown
      * @param {Event} e the mousedown event
      */
     onMouseDown: function(e) { /* override this */ },
 
-    <div id="method-Ext.dd.DragDrop-onMouseUp"></div>/**
-     * Event handler that fires when a drag/drop obj gets a mouseup
+<span id='Ext-dd-DragDrop-method-onMouseUp'>    /**
+</span>     * Event handler that fires when a drag/drop obj gets a mouseup
      * @method onMouseUp
      * @param {Event} e the mouseup event
      */
     onMouseUp: function(e) { /* override this */ },
 
-    <div id="method-Ext.dd.DragDrop-onAvailable"></div>/**
-     * Override the onAvailable method to do what is needed after the initial
+<span id='Ext-dd-DragDrop-method-onAvailable'>    /**
+</span>     * Override the onAvailable method to do what is needed after the initial
      * position was determined.
      * @method onAvailable
      */
     onAvailable: function () {
     },
 
-    <div id="prop-Ext.dd.DragDrop-defaultPadding"></div>/**
-     * Provides default constraint padding to "constrainTo" elements (defaults to {left: 0, right:0, top:0, bottom:0}).
+<span id='Ext-dd-DragDrop-property-defaultPadding'>    /**
+</span>     * Provides default constraint padding to &quot;constrainTo&quot; elements (defaults to {left: 0, right:0, top:0, bottom:0}).
      * @type Object
      */
     defaultPadding : {left:0, right:0, top:0, bottom:0},
 
-    <div id="method-Ext.dd.DragDrop-constrainTo"></div>/**
-     * Initializes the drag drop object's constraints to restrict movement to a certain element.
+<span id='Ext-dd-DragDrop-method-constrainTo'>    /**
+</span>     * Initializes the drag drop object's constraints to restrict movement to a certain element.
  *
  * Usage:
- <pre><code>
- var dd = new Ext.dd.DDProxy("dragDiv1", "proxytest",
-                { dragElId: "existingProxyDiv" });
+ &lt;pre&gt;&lt;code&gt;
+ var dd = new Ext.dd.DDProxy(&quot;dragDiv1&quot;, &quot;proxytest&quot;,
+                { dragElId: &quot;existingProxyDiv&quot; });
  dd.startDrag = function(){
-     this.constrainTo("parent-id");
+     this.constrainTo(&quot;parent-id&quot;);
  };
- </code></pre>
+ &lt;/code&gt;&lt;/pre&gt;
  * Or you can initalize it using the {@link Ext.Element} object:
- <pre><code>
- Ext.get("dragDiv1").initDDProxy("proxytest", {dragElId: "existingProxyDiv"}, {
+ &lt;pre&gt;&lt;code&gt;
+ Ext.get(&quot;dragDiv1&quot;).initDDProxy(&quot;proxytest&quot;, {dragElId: &quot;existingProxyDiv&quot;}, {
      startDrag : function(){
-         this.constrainTo("parent-id");
+         this.constrainTo(&quot;parent-id&quot;);
      }
  });
- </code></pre>
+ &lt;/code&gt;&lt;/pre&gt;
      * @param {Mixed} constrainTo The element to constrain to.
-     * @param {Object/Number} pad (optional) Pad provides a way to specify "padding" of the constraints,
+     * @param {Object/Number} pad (optional) Pad provides a way to specify &quot;padding&quot; of the constraints,
      * and can be either a number for symmetrical padding (4 would be equal to {left:4, right:4, top:4, bottom:4}) or
      * an object containing the sides to pad. For example: {right:10, bottom:10}
      * @param {Boolean} inContent (optional) Constrain the draggable in the content box of the element (inside padding and borders)
@@ -561,8 +564,8 @@ Ext.dd.DragDrop.prototype = {
         );
     },
 
-    <div id="method-Ext.dd.DragDrop-getEl"></div>/**
-     * Returns a reference to the linked element
+<span id='Ext-dd-DragDrop-method-getEl'>    /**
+</span>     * Returns a reference to the linked element
      * @method getEl
      * @return {HTMLElement} the html element
      */
@@ -574,8 +577,8 @@ Ext.dd.DragDrop.prototype = {
         return this._domRef;
     },
 
-    <div id="method-Ext.dd.DragDrop-getDragEl"></div>/**
-     * Returns a reference to the actual element to drag.  By default this is
+<span id='Ext-dd-DragDrop-method-getDragEl'>    /**
+</span>     * Returns a reference to the actual element to drag.  By default this is
      * the same as the html element, but it can be assigned to another
      * element. An example of this can be found in Ext.dd.DDProxy
      * @method getDragEl
@@ -585,8 +588,8 @@ Ext.dd.DragDrop.prototype = {
         return Ext.getDom(this.dragElId);
     },
 
-    <div id="method-Ext.dd.DragDrop-init"></div>/**
-     * Sets up the DragDrop object.  Must be called in the constructor of any
+<span id='Ext-dd-DragDrop-method-init'>    /**
+</span>     * Sets up the DragDrop object.  Must be called in the constructor of any
      * Ext.dd.DragDrop subclass
      * @method init
      * @param id the id of the linked element
@@ -595,12 +598,12 @@ Ext.dd.DragDrop.prototype = {
      */
     init: function(id, sGroup, config) {
         this.initTarget(id, sGroup, config);
-        Event.on(this.id, "mousedown", this.handleMouseDown, this);
-        // Event.on(this.id, "selectstart", Event.preventDefault);
+        Event.on(this.id, &quot;mousedown&quot;, this.handleMouseDown, this);
+        // Event.on(this.id, &quot;selectstart&quot;, Event.preventDefault);
     },
 
-    <div id="method-Ext.dd.DragDrop-initTarget"></div>/**
-     * Initializes Targeting functionality only... the object does not
+<span id='Ext-dd-DragDrop-method-initTarget'>    /**
+</span>     * Initializes Targeting functionality only... the object does not
      * get a mousedown handler.
      * @method initTarget
      * @param id the id of the linked element
@@ -619,7 +622,7 @@ Ext.dd.DragDrop.prototype = {
 
         // assume that we have an element reference instead of an id if the
         // parameter is not a string
-        if (typeof id !== "string") {
+        if (typeof id !== &quot;string&quot;) {
             id = Ext.id(id);
         }
 
@@ -627,7 +630,7 @@ Ext.dd.DragDrop.prototype = {
         this.id = id;
 
         // add to an interaction group
-        this.addToGroup((sGroup) ? sGroup : "default");
+        this.addToGroup((sGroup) ? sGroup : &quot;default&quot;);
 
         // We don't want to register this as the handle with the manager
         // so we just set the id rather than calling the setter.
@@ -637,7 +640,7 @@ Ext.dd.DragDrop.prototype = {
         this.setDragElId(id);
 
         // by default, clicked anchors will not start drag operations.
-        this.invalidHandleTypes = { A: "A" };
+        this.invalidHandleTypes = { A: &quot;A&quot; };
         this.invalidHandleIds = {};
         this.invalidHandleClasses = [];
 
@@ -646,8 +649,8 @@ Ext.dd.DragDrop.prototype = {
         this.handleOnAvailable();
     },
 
-    <div id="method-Ext.dd.DragDrop-applyConfig"></div>/**
-     * Applies the configuration parameters that were passed into the constructor.
+<span id='Ext-dd-DragDrop-method-applyConfig'>    /**
+</span>     * Applies the configuration parameters that were passed into the constructor.
      * This is supposed to happen at each level through the inheritance chain.  So
      * a DDProxy implentation will execute apply config on DDProxy, DD, and
      * DragDrop in order to get all of the parameters that are available in
@@ -665,8 +668,8 @@ Ext.dd.DragDrop.prototype = {
 
     },
 
-    /**
-     * Executed when the linked element is available
+<span id='Ext-dd-DragDrop-method-handleOnAvailable'>    /**
+</span>     * Executed when the linked element is available
      * @method handleOnAvailable
      * @private
      */
@@ -676,8 +679,8 @@ Ext.dd.DragDrop.prototype = {
         this.onAvailable();
     },
 
-     <div id="method-Ext.dd.DragDrop-setPadding"></div>/**
-     * Configures the padding for the target zone in px.  Effectively expands
+<span id='Ext-dd-DragDrop-method-setPadding'>     /**
+</span>     * Configures the padding for the target zone in px.  Effectively expands
      * (or reduces) the virtual object size for targeting calculations.
      * Supports css-style shorthand; if only one parameter is passed, all sides
      * will have that padding, and if only two are passed, the top and bottom
@@ -690,17 +693,17 @@ Ext.dd.DragDrop.prototype = {
      */
     setPadding: function(iTop, iRight, iBot, iLeft) {
         // this.padding = [iLeft, iRight, iTop, iBot];
-        if (!iRight && 0 !== iRight) {
+        if (!iRight &amp;&amp; 0 !== iRight) {
             this.padding = [iTop, iTop, iTop, iTop];
-        } else if (!iBot && 0 !== iBot) {
+        } else if (!iBot &amp;&amp; 0 !== iBot) {
             this.padding = [iTop, iRight, iTop, iRight];
         } else {
             this.padding = [iTop, iRight, iBot, iLeft];
         }
     },
 
-    <div id="method-Ext.dd.DragDrop-setInitPosition"></div>/**
-     * Stores the initial placement of the linked element.
+<span id='Ext-dd-DragDrop-method-setInitPosition'>    /**
+</span>     * Stores the initial placement of the linked element.
      * @method setInitPosition
      * @param {int} diffX   the X offset, default 0
      * @param {int} diffY   the Y offset, default 0
@@ -726,8 +729,8 @@ Ext.dd.DragDrop.prototype = {
         this.setStartPosition(p);
     },
 
-    /**
-     * Sets the start position of the element.  This is set when the obj
+<span id='Ext-dd-DragDrop-method-setStartPosition'>    /**
+</span>     * Sets the start position of the element.  This is set when the obj
      * is initialized, the reset when a drag is started.
      * @method setStartPosition
      * @param pos current position (from previous lookup)
@@ -741,8 +744,8 @@ Ext.dd.DragDrop.prototype = {
         this.startPageY = p[1];
     },
 
-    <div id="method-Ext.dd.DragDrop-addToGroup"></div>/**
-     * Add this instance to a group of related drag/drop objects.  All
+<span id='Ext-dd-DragDrop-method-addToGroup'>    /**
+</span>     * Add this instance to a group of related drag/drop objects.  All
      * instances belong to at least one group, and can belong to as many
      * groups as needed.
      * @method addToGroup
@@ -753,8 +756,8 @@ Ext.dd.DragDrop.prototype = {
         this.DDM.regDragDrop(this, sGroup);
     },
 
-    <div id="method-Ext.dd.DragDrop-removeFromGroup"></div>/**
-     * Remove's this instance from the supplied interaction group
+<span id='Ext-dd-DragDrop-method-removeFromGroup'>    /**
+</span>     * Remove's this instance from the supplied interaction group
      * @method removeFromGroup
      * @param {string}  sGroup  The group to drop
      */
@@ -766,8 +769,8 @@ Ext.dd.DragDrop.prototype = {
         this.DDM.removeDDFromGroup(this, sGroup);
     },
 
-    <div id="method-Ext.dd.DragDrop-setDragElId"></div>/**
-     * Allows you to specify that an element other than the linked element
+<span id='Ext-dd-DragDrop-method-setDragElId'>    /**
+</span>     * Allows you to specify that an element other than the linked element
      * will be moved with the cursor during a drag
      * @method setDragElId
      * @param id {string} the id of the element that will be used to initiate the drag
@@ -776,8 +779,8 @@ Ext.dd.DragDrop.prototype = {
         this.dragElId = id;
     },
 
-    <div id="method-Ext.dd.DragDrop-setHandleElId"></div>/**
-     * Allows you to specify a child of the linked element that should be
+<span id='Ext-dd-DragDrop-method-setHandleElId'>    /**
+</span>     * Allows you to specify a child of the linked element that should be
      * used to initiate the drag operation.  An example of this would be if
      * you have a content div with text and links.  Clicking anywhere in the
      * content area would normally start the drag operation.  Use this method
@@ -788,36 +791,36 @@ Ext.dd.DragDrop.prototype = {
      * initiate the drag.
      */
     setHandleElId: function(id) {
-        if (typeof id !== "string") {
+        if (typeof id !== &quot;string&quot;) {
             id = Ext.id(id);
         }
         this.handleElId = id;
         this.DDM.regHandle(this.id, id);
     },
 
-    <div id="method-Ext.dd.DragDrop-setOuterHandleElId"></div>/**
-     * Allows you to set an element outside of the linked element as a drag
+<span id='Ext-dd-DragDrop-method-setOuterHandleElId'>    /**
+</span>     * Allows you to set an element outside of the linked element as a drag
      * handle
      * @method setOuterHandleElId
      * @param id the id of the element that will be used to initiate the drag
      */
     setOuterHandleElId: function(id) {
-        if (typeof id !== "string") {
+        if (typeof id !== &quot;string&quot;) {
             id = Ext.id(id);
         }
-        Event.on(id, "mousedown",
+        Event.on(id, &quot;mousedown&quot;,
                 this.handleMouseDown, this);
         this.setHandleElId(id);
 
         this.hasOuterHandles = true;
     },
 
-    <div id="method-Ext.dd.DragDrop-unreg"></div>/**
-     * Remove all drag and drop hooks for this element
+<span id='Ext-dd-DragDrop-method-unreg'>    /**
+</span>     * Remove all drag and drop hooks for this element
      * @method unreg
      */
     unreg: function() {
-        Event.un(this.id, "mousedown",
+        Event.un(this.id, &quot;mousedown&quot;,
                 this.handleMouseDown);
         this._domRef = null;
         this.DDM._remove(this);
@@ -827,8 +830,8 @@ Ext.dd.DragDrop.prototype = {
         this.unreg();
     },
 
-    <div id="method-Ext.dd.DragDrop-isLocked"></div>/**
-     * Returns true if this instance is locked, or the drag drop mgr is locked
+<span id='Ext-dd-DragDrop-method-isLocked'>    /**
+</span>     * Returns true if this instance is locked, or the drag drop mgr is locked
      * (meaning that all drag/drop is disabled on the page.)
      * @method isLocked
      * @return {boolean} true if this obj or all drag/drop is locked, else
@@ -838,15 +841,15 @@ Ext.dd.DragDrop.prototype = {
         return (this.DDM.isLocked() || this.locked);
     },
 
-    /**
-     * Fired when this object is clicked
+<span id='Ext-dd-DragDrop-method-handleMouseDown'>    /**
+</span>     * Fired when this object is clicked
      * @method handleMouseDown
      * @param {Event} e
      * @param {Ext.dd.DragDrop} oDD the clicked dd object (this dd obj)
      * @private
      */
     handleMouseDown: function(e, oDD){
-        if (this.primaryButtonOnly && e.button != 0) {
+        if (this.primaryButtonOnly &amp;&amp; e.button != 0) {
             return;
         }
 
@@ -857,7 +860,7 @@ Ext.dd.DragDrop.prototype = {
         this.DDM.refreshCache(this.groups);
 
         var pt = new Ext.lib.Point(Ext.lib.Event.getPageX(e), Ext.lib.Event.getPageY(e));
-        if (!this.hasOuterHandles && !this.DDM.isOverTarget(pt, this) )  {
+        if (!this.hasOuterHandles &amp;&amp; !this.DDM.isOverTarget(pt, this) )  {
         } else {
             if (this.clickValidator(e)) {
 
@@ -869,7 +872,16 @@ Ext.dd.DragDrop.prototype = {
 
                 this.DDM.handleMouseDown(e, this);
 
-                this.DDM.stopEvent(e);
+                if (this.preventDefault || this.stopPropagation) {
+                    if (this.preventDefault) {
+                        e.preventDefault();
+                    }
+                    if (this.stopPropagation) {
+                        e.stopPropagation();
+                    }
+                } else {
+                    this.DDM.stopEvent(e);
+                }
             } else {
 
 
@@ -879,13 +891,13 @@ Ext.dd.DragDrop.prototype = {
 
     clickValidator: function(e) {
         var target = e.getTarget();
-        return ( this.isValidHandleChild(target) &&
+        return ( this.isValidHandleChild(target) &amp;&amp;
                     (this.id == this.handleElId ||
                         this.DDM.handleWasClicked(target, this.id)) );
     },
 
-    <div id="method-Ext.dd.DragDrop-addInvalidHandleType"></div>/**
-     * Allows you to specify a tag name that should not start a drag operation
+<span id='Ext-dd-DragDrop-method-addInvalidHandleType'>    /**
+</span>     * Allows you to specify a tag name that should not start a drag operation
      * when clicked.  This is designed to facilitate embedding links within a
      * drag handle that do something other than start the drag.
      * @method addInvalidHandleType
@@ -896,21 +908,21 @@ Ext.dd.DragDrop.prototype = {
         this.invalidHandleTypes[type] = type;
     },
 
-    <div id="method-Ext.dd.DragDrop-addInvalidHandleId"></div>/**
-     * Lets you to specify an element id for a child of a drag handle
+<span id='Ext-dd-DragDrop-method-addInvalidHandleId'>    /**
+</span>     * Lets you to specify an element id for a child of a drag handle
      * that should not initiate a drag
      * @method addInvalidHandleId
      * @param {string} id the element id of the element you wish to ignore
      */
     addInvalidHandleId: function(id) {
-        if (typeof id !== "string") {
+        if (typeof id !== &quot;string&quot;) {
             id = Ext.id(id);
         }
         this.invalidHandleIds[id] = id;
     },
 
-    <div id="method-Ext.dd.DragDrop-addInvalidHandleClass"></div>/**
-     * Lets you specify a css class of elements that will not initiate a drag
+<span id='Ext-dd-DragDrop-method-addInvalidHandleClass'>    /**
+</span>     * Lets you specify a css class of elements that will not initiate a drag
      * @method addInvalidHandleClass
      * @param {string} cssClass the class of the elements you wish to ignore
      */
@@ -918,8 +930,8 @@ Ext.dd.DragDrop.prototype = {
         this.invalidHandleClasses.push(cssClass);
     },
 
-    <div id="method-Ext.dd.DragDrop-removeInvalidHandleType"></div>/**
-     * Unsets an excluded tag name set by addInvalidHandleType
+<span id='Ext-dd-DragDrop-method-removeInvalidHandleType'>    /**
+</span>     * Unsets an excluded tag name set by addInvalidHandleType
      * @method removeInvalidHandleType
      * @param {string} tagName the type of element to unexclude
      */
@@ -929,34 +941,34 @@ Ext.dd.DragDrop.prototype = {
         delete this.invalidHandleTypes[type];
     },
 
-    <div id="method-Ext.dd.DragDrop-removeInvalidHandleId"></div>/**
-     * Unsets an invalid handle id
+<span id='Ext-dd-DragDrop-method-removeInvalidHandleId'>    /**
+</span>     * Unsets an invalid handle id
      * @method removeInvalidHandleId
      * @param {string} id the id of the element to re-enable
      */
     removeInvalidHandleId: function(id) {
-        if (typeof id !== "string") {
+        if (typeof id !== &quot;string&quot;) {
             id = Ext.id(id);
         }
         delete this.invalidHandleIds[id];
     },
 
-    <div id="method-Ext.dd.DragDrop-removeInvalidHandleClass"></div>/**
-     * Unsets an invalid css class
+<span id='Ext-dd-DragDrop-method-removeInvalidHandleClass'>    /**
+</span>     * Unsets an invalid css class
      * @method removeInvalidHandleClass
      * @param {string} cssClass the class of the element(s) you wish to
      * re-enable
      */
     removeInvalidHandleClass: function(cssClass) {
-        for (var i=0, len=this.invalidHandleClasses.length; i<len; ++i) {
+        for (var i=0, len=this.invalidHandleClasses.length; i&lt;len; ++i) {
             if (this.invalidHandleClasses[i] == cssClass) {
                 delete this.invalidHandleClasses[i];
             }
         }
     },
 
-    <div id="method-Ext.dd.DragDrop-isValidHandleChild"></div>/**
-     * Checks the tag exclusion list to see if this click should be ignored
+<span id='Ext-dd-DragDrop-method-isValidHandleChild'>    /**
+</span>     * Checks the tag exclusion list to see if this click should be ignored
      * @method isValidHandleChild
      * @param {HTMLElement} node the HTMLElement to evaluate
      * @return {boolean} true if this is a valid tag type, false if not
@@ -964,17 +976,17 @@ Ext.dd.DragDrop.prototype = {
     isValidHandleChild: function(node) {
 
         var valid = true;
-        // var n = (node.nodeName == "#text") ? node.parentNode : node;
+        // var n = (node.nodeName == &quot;#text&quot;) ? node.parentNode : node;
         var nodeName;
         try {
             nodeName = node.nodeName.toUpperCase();
         } catch(e) {
             nodeName = node.nodeName;
         }
-        valid = valid && !this.invalidHandleTypes[nodeName];
-        valid = valid && !this.invalidHandleIds[node.id];
+        valid = valid &amp;&amp; !this.invalidHandleTypes[nodeName];
+        valid = valid &amp;&amp; !this.invalidHandleIds[node.id];
 
-        for (var i=0, len=this.invalidHandleClasses.length; valid && i<len; ++i) {
+        for (var i=0, len=this.invalidHandleClasses.length; valid &amp;&amp; i&lt;len; ++i) {
             valid = !Ext.fly(node).hasClass(this.invalidHandleClasses[i]);
         }
 
@@ -983,8 +995,8 @@ Ext.dd.DragDrop.prototype = {
 
     },
 
-    /**
-     * Create the array of horizontal tick marks if an interval was specified
+<span id='Ext-dd-DragDrop-method-setXTicks'>    /**
+</span>     * Create the array of horizontal tick marks if an interval was specified
      * in setXConstraint().
      * @method setXTicks
      * @private
@@ -995,14 +1007,14 @@ Ext.dd.DragDrop.prototype = {
 
         var tickMap = {};
 
-        for (var i = this.initPageX; i >= this.minX; i = i - iTickSize) {
+        for (var i = this.initPageX; i &gt;= this.minX; i = i - iTickSize) {
             if (!tickMap[i]) {
                 this.xTicks[this.xTicks.length] = i;
                 tickMap[i] = true;
             }
         }
 
-        for (i = this.initPageX; i <= this.maxX; i = i + iTickSize) {
+        for (i = this.initPageX; i &lt;= this.maxX; i = i + iTickSize) {
             if (!tickMap[i]) {
                 this.xTicks[this.xTicks.length] = i;
                 tickMap[i] = true;
@@ -1012,8 +1024,8 @@ Ext.dd.DragDrop.prototype = {
         this.xTicks.sort(this.DDM.numericSort) ;
     },
 
-    /**
-     * Create the array of vertical tick marks if an interval was specified in
+<span id='Ext-dd-DragDrop-method-setYTicks'>    /**
+</span>     * Create the array of vertical tick marks if an interval was specified in
      * setYConstraint().
      * @method setYTicks
      * @private
@@ -1024,14 +1036,14 @@ Ext.dd.DragDrop.prototype = {
 
         var tickMap = {};
 
-        for (var i = this.initPageY; i >= this.minY; i = i - iTickSize) {
+        for (var i = this.initPageY; i &gt;= this.minY; i = i - iTickSize) {
             if (!tickMap[i]) {
                 this.yTicks[this.yTicks.length] = i;
                 tickMap[i] = true;
             }
         }
 
-        for (i = this.initPageY; i <= this.maxY; i = i + iTickSize) {
+        for (i = this.initPageY; i &lt;= this.maxY; i = i + iTickSize) {
             if (!tickMap[i]) {
                 this.yTicks[this.yTicks.length] = i;
                 tickMap[i] = true;
@@ -1041,8 +1053,8 @@ Ext.dd.DragDrop.prototype = {
         this.yTicks.sort(this.DDM.numericSort) ;
     },
 
-    <div id="method-Ext.dd.DragDrop-setXConstraint"></div>/**
-     * By default, the element can be dragged any place on the screen.  Use
+<span id='Ext-dd-DragDrop-method-setXConstraint'>    /**
+</span>     * By default, the element can be dragged any place on the screen.  Use
      * this method to limit the horizontal travel of the element.  Pass in
      * 0,0 for the parameters if you want to lock the drag to the y axis.
      * @method setXConstraint
@@ -1064,8 +1076,8 @@ Ext.dd.DragDrop.prototype = {
         this.constrainX = true;
     },
 
-    <div id="method-Ext.dd.DragDrop-clearConstraints"></div>/**
-     * Clears any constraints applied to this instance.  Also clears ticks
+<span id='Ext-dd-DragDrop-method-clearConstraints'>    /**
+</span>     * Clears any constraints applied to this instance.  Also clears ticks
      * since they can't exist independent of a constraint at this time.
      * @method clearConstraints
      */
@@ -1075,8 +1087,8 @@ Ext.dd.DragDrop.prototype = {
         this.clearTicks();
     },
 
-    <div id="method-Ext.dd.DragDrop-clearTicks"></div>/**
-     * Clears any tick interval defined for this instance
+<span id='Ext-dd-DragDrop-method-clearTicks'>    /**
+</span>     * Clears any tick interval defined for this instance
      * @method clearTicks
      */
     clearTicks: function() {
@@ -1086,8 +1098,8 @@ Ext.dd.DragDrop.prototype = {
         this.yTickSize = 0;
     },
 
-    <div id="method-Ext.dd.DragDrop-setYConstraint"></div>/**
-     * By default, the element can be dragged any place on the screen.  Set
+<span id='Ext-dd-DragDrop-method-setYConstraint'>    /**
+</span>     * By default, the element can be dragged any place on the screen.  Set
      * this to limit the vertical travel of the element.  Pass in 0,0 for the
      * parameters if you want to lock the drag to the x axis.
      * @method setYConstraint
@@ -1108,8 +1120,8 @@ Ext.dd.DragDrop.prototype = {
 
     },
 
-    <div id="method-Ext.dd.DragDrop-resetConstraints"></div>/**
-     * resetConstraints must be called if you manually reposition a dd element.
+<span id='Ext-dd-DragDrop-method-resetConstraints'>    /**
+</span>     * resetConstraints must be called if you manually reposition a dd element.
      * @method resetConstraints
      * @param {boolean} maintainOffset
      */
@@ -1140,8 +1152,8 @@ Ext.dd.DragDrop.prototype = {
         }
     },
 
-    /**
-     * Normally the drag element is moved pixel by pixel, but we can specify
+<span id='Ext-dd-DragDrop-method-getTick'>    /**
+</span>     * Normally the drag element is moved pixel by pixel, but we can specify
      * that it move a number of pixels at a time.  This method resolves the
      * location when we have it set up like this.
      * @method getTick
@@ -1155,17 +1167,17 @@ Ext.dd.DragDrop.prototype = {
             // If tick interval is not defined, it is effectively 1 pixel,
             // so we return the value passed to us.
             return val;
-        } else if (tickArray[0] >= val) {
+        } else if (tickArray[0] &gt;= val) {
             // The value is lower than the first tick, so we return the first
             // tick.
             return tickArray[0];
         } else {
-            for (var i=0, len=tickArray.length; i<len; ++i) {
+            for (var i=0, len=tickArray.length; i&lt;len; ++i) {
                 var next = i + 1;
-                if (tickArray[next] && tickArray[next] >= val) {
+                if (tickArray[next] &amp;&amp; tickArray[next] &gt;= val) {
                     var diff1 = val - tickArray[i];
                     var diff2 = tickArray[next] - val;
-                    return (diff2 > diff1) ? tickArray[i] : tickArray[next];
+                    return (diff2 &gt; diff1) ? tickArray[i] : tickArray[next];
                 }
             }
 
@@ -1175,13 +1187,13 @@ Ext.dd.DragDrop.prototype = {
         }
     },
 
-    <div id="method-Ext.dd.DragDrop-toString"></div>/**
-     * toString method
+<span id='Ext-dd-DragDrop-method-toString'>    /**
+</span>     * toString method
      * @method toString
      * @return {string} string representation of the dd obj
      */
     toString: function() {
-        return ("DragDrop " + this.id);
+        return (&quot;DragDrop &quot; + this.id);
     }
 
 };
@@ -1199,8 +1211,8 @@ Ext.dd.DragDrop.prototype = {
 // existing drag and drop instances.
 if (!Ext.dd.DragDropMgr) {
 
-<div id="cls-Ext.dd.DragDropMgr"></div>/**
- * @class Ext.dd.DragDropMgr
+<span id='Ext-dd-DragDropMgr'>/**
+</span> * @class Ext.dd.DragDropMgr
  * DragDropMgr is a singleton that tracks the element interaction for
  * all DragDrop items in the window.  Generally, you will not call
  * this class directly, but it does have helper methods that could
@@ -1213,143 +1225,141 @@ Ext.dd.DragDropMgr = function() {
 
     return {
 
-        /**
-         * Two dimensional Array of registered DragDrop objects.  The first
+<span id='Ext-dd-DragDropMgr-property-ids'>        /**
+</span>         * Two dimensional Array of registered DragDrop objects.  The first
          * dimension is the DragDrop item group, the second the DragDrop
          * object.
          * @property ids
          * @type String[]
          * @private
-         * @static
          */
         ids: {},
 
-        /**
-         * Array of element ids defined as drag handles.  Used to determine
+<span id='Ext-dd-DragDropMgr-property-handleIds'>        /**
+</span>         * Array of element ids defined as drag handles.  Used to determine
          * if the element that generated the mousedown event is actually the
          * handle and not the html element itself.
          * @property handleIds
          * @type String[]
          * @private
-         * @static
          */
         handleIds: {},
 
-        /**
-         * the DragDrop object that is currently being dragged
+<span id='Ext-dd-DragDropMgr-property-dragCurrent'>        /**
+</span>         * the DragDrop object that is currently being dragged
          * @property dragCurrent
          * @type DragDrop
          * @private
-         * @static
          **/
         dragCurrent: null,
 
-        /**
-         * the DragDrop object(s) that are being hovered over
+<span id='Ext-dd-DragDropMgr-property-dragOvers'>        /**
+</span>         * the DragDrop object(s) that are being hovered over
          * @property dragOvers
          * @type Array
          * @private
-         * @static
          */
         dragOvers: {},
 
-        /**
-         * the X distance between the cursor and the object being dragged
+<span id='Ext-dd-DragDropMgr-property-deltaX'>        /**
+</span>         * the X distance between the cursor and the object being dragged
          * @property deltaX
          * @type int
          * @private
-         * @static
          */
         deltaX: 0,
 
-        /**
-         * the Y distance between the cursor and the object being dragged
+<span id='Ext-dd-DragDropMgr-property-deltaY'>        /**
+</span>         * the Y distance between the cursor and the object being dragged
          * @property deltaY
          * @type int
          * @private
-         * @static
          */
         deltaY: 0,
 
-        <div id="prop-Ext.dd.DragDropMgr-preventDefault"></div>/**
-         * Flag to determine if we should prevent the default behavior of the
+<span id='Ext-dd-DragDropMgr-property-preventDefault'>        /**
+</span>         * Flag to determine if we should prevent the default behavior of the
          * events we define. By default this is true, but this can be set to
          * false if you need the default behavior (not recommended)
          * @property preventDefault
          * @type boolean
-         * @static
          */
         preventDefault: true,
 
-        <div id="prop-Ext.dd.DragDropMgr-stopPropagation"></div>/**
-         * Flag to determine if we should stop the propagation of the events
+<span id='Ext-dd-DragDropMgr-property-stopPropagation'>        /**
+</span>         * Flag to determine if we should stop the propagation of the events
          * we generate. This is true by default but you may want to set it to
          * false if the html element contains other features that require the
          * mouse click.
          * @property stopPropagation
          * @type boolean
-         * @static
          */
         stopPropagation: true,
 
-        /**
-         * Internal flag that is set to true when drag and drop has been
+<span id='Ext-dd-DragDropMgr-property-initialized'>        /**
+</span>         * Internal flag that is set to true when drag and drop has been
          * intialized
          * @property initialized
          * @private
-         * @static
          */
         initialized: false,
 
-        /**
-         * All drag and drop can be disabled.
+<span id='Ext-dd-DragDropMgr-property-locked'>        /**
+</span>         * All drag and drop can be disabled.
          * @property locked
          * @private
-         * @static
          */
         locked: false,
 
-        /**
-         * Called the first time an element is registered.
+<span id='Ext-dd-DragDropMgr-method-init'>        /**
+</span>         * Called the first time an element is registered.
          * @method init
          * @private
-         * @static
          */
         init: function() {
             this.initialized = true;
         },
 
-        <div id="prop-Ext.dd.DragDropMgr-POINT"></div>/**
-         * In point mode, drag and drop interaction is defined by the
+<span id='Ext-dd-DragDropMgr-property-POINT'>        /**
+</span>         * In point mode, drag and drop interaction is defined by the
          * location of the cursor during the drag/drop
          * @property POINT
          * @type int
-         * @static
          */
         POINT: 0,
 
-        <div id="prop-Ext.dd.DragDropMgr-INTERSECT"></div>/**
-         * In intersect mode, drag and drop interaction is defined by the
+<span id='Ext-dd-DragDropMgr-property-INTERSECT'>        /**
+</span>         * In intersect mode, drag and drop interaction is defined by the
          * overlap of two or more drag and drop objects.
          * @property INTERSECT
          * @type int
-         * @static
          */
         INTERSECT: 1,
 
-        <div id="prop-Ext.dd.DragDropMgr-mode"></div>/**
-         * The current drag and drop mode.  Default: POINT
+<span id='Ext-dd-DragDropMgr-property-mode'>        /**
+</span>         * The current drag and drop mode.  Default: POINT
          * @property mode
          * @type int
-         * @static
          */
         mode: 0,
+        
+<span id='Ext-dd-DragDropMgr-property-notifyOccluded'>        /**
+</span>         * @property {Boolean} [notifyOccluded=false]
+         * This config is only provided to provide old, usually unwanted drag/drop behaviour.
+         *
+         * From ExtJS 4.1.0 onwards, when drop targets are contained in floating, absolutely positioned elements
+         * such as in {@link Ext.window.Window Windows}, which may overlap each other, `over` and `drop` events
+         * are only delivered to the topmost drop target at the mouse position.
+         *
+         * If all targets below that in zIndex order should also receive notifications, set
+         * `notifyOccluded` to `true`.
+         */
+        notifyOccluded: false,
 
-        /**
-         * Runs method on all drag and drop objects
+<span id='Ext-dd-DragDropMgr-method-_execOnAll'>        /**
+</span>         * Runs method on all drag and drop objects
          * @method _execOnAll
          * @private
-         * @static
          */
         _execOnAll: function(sMethod, args) {
             for (var i in this.ids) {
@@ -1363,139 +1373,125 @@ Ext.dd.DragDropMgr = function() {
             }
         },
 
-        /**
-         * Drag and drop initialization.  Sets up the global event handlers
+<span id='Ext-dd-DragDropMgr-method-_onLoad'>        /**
+</span>         * Drag and drop initialization.  Sets up the global event handlers
          * @method _onLoad
          * @private
-         * @static
          */
         _onLoad: function() {
 
             this.init();
 
 
-            Event.on(document, "mouseup",   this.handleMouseUp, this, true);
-            Event.on(document, "mousemove", this.handleMouseMove, this, true);
-            Event.on(window,   "unload",    this._onUnload, this, true);
-            Event.on(window,   "resize",    this._onResize, this, true);
-            // Event.on(window,   "mouseout",    this._test);
+            Event.on(document, &quot;mouseup&quot;,   this.handleMouseUp, this, true);
+            Event.on(document, &quot;mousemove&quot;, this.handleMouseMove, this, true);
+            Event.on(window,   &quot;unload&quot;,    this._onUnload, this, true);
+            Event.on(window,   &quot;resize&quot;,    this._onResize, this, true);
+            // Event.on(window,   &quot;mouseout&quot;,    this._test);
 
         },
 
-        /**
-         * Reset constraints on all drag and drop objs
+<span id='Ext-dd-DragDropMgr-method-_onResize'>        /**
+</span>         * Reset constraints on all drag and drop objs
          * @method _onResize
          * @private
-         * @static
          */
         _onResize: function(e) {
-            this._execOnAll("resetConstraints", []);
+            this._execOnAll(&quot;resetConstraints&quot;, []);
         },
 
-        <div id="method-Ext.dd.DragDropMgr-lock"></div>/**
-         * Lock all drag and drop functionality
+<span id='Ext-dd-DragDropMgr-method-lock'>        /**
+</span>         * Lock all drag and drop functionality
          * @method lock
-         * @static
          */
         lock: function() { this.locked = true; },
 
-        <div id="method-Ext.dd.DragDropMgr-unlock"></div>/**
-         * Unlock all drag and drop functionality
+<span id='Ext-dd-DragDropMgr-method-unlock'>        /**
+</span>         * Unlock all drag and drop functionality
          * @method unlock
-         * @static
          */
         unlock: function() { this.locked = false; },
 
-        <div id="method-Ext.dd.DragDropMgr-isLocked"></div>/**
-         * Is drag and drop locked?
+<span id='Ext-dd-DragDropMgr-method-isLocked'>        /**
+</span>         * Is drag and drop locked?
          * @method isLocked
          * @return {boolean} True if drag and drop is locked, false otherwise.
-         * @static
          */
         isLocked: function() { return this.locked; },
 
-        /**
-         * Location cache that is set for all drag drop objects when a drag is
+<span id='Ext-dd-DragDropMgr-property-locationCache'>        /**
+</span>         * Location cache that is set for all drag drop objects when a drag is
          * initiated, cleared when the drag is finished.
          * @property locationCache
          * @private
-         * @static
          */
         locationCache: {},
 
-        <div id="prop-Ext.dd.DragDropMgr-useCache"></div>/**
-         * Set useCache to false if you want to force object the lookup of each
+<span id='Ext-dd-DragDropMgr-property-useCache'>        /**
+</span>         * Set useCache to false if you want to force object the lookup of each
          * drag and drop linked element constantly during a drag.
          * @property useCache
          * @type boolean
-         * @static
          */
         useCache: true,
 
-        <div id="prop-Ext.dd.DragDropMgr-clickPixelThresh"></div>/**
-         * The number of pixels that the mouse needs to move after the
+<span id='Ext-dd-DragDropMgr-property-clickPixelThresh'>        /**
+</span>         * The number of pixels that the mouse needs to move after the
          * mousedown before the drag is initiated.  Default=3;
          * @property clickPixelThresh
          * @type int
-         * @static
          */
         clickPixelThresh: 3,
 
-        <div id="prop-Ext.dd.DragDropMgr-clickTimeThresh"></div>/**
-         * The number of milliseconds after the mousedown event to initiate the
+<span id='Ext-dd-DragDropMgr-property-clickTimeThresh'>        /**
+</span>         * The number of milliseconds after the mousedown event to initiate the
          * drag if we don't get a mouseup event. Default=350
          * @property clickTimeThresh
          * @type int
-         * @static
          */
         clickTimeThresh: 350,
 
-        /**
-         * Flag that indicates that either the drag pixel threshold or the
+<span id='Ext-dd-DragDropMgr-property-dragThreshMet'>        /**
+</span>         * Flag that indicates that either the drag pixel threshold or the
          * mousdown time threshold has been met
          * @property dragThreshMet
          * @type boolean
          * @private
-         * @static
          */
         dragThreshMet: false,
 
-        /**
-         * Timeout used for the click time threshold
+<span id='Ext-dd-DragDropMgr-property-clickTimeout'>        /**
+</span>         * Timeout used for the click time threshold
          * @property clickTimeout
          * @type Object
          * @private
-         * @static
          */
         clickTimeout: null,
 
-        /**
-         * The X position of the mousedown event stored for later use when a
+<span id='Ext-dd-DragDropMgr-property-startX'>        /**
+</span>         * The X position of the mousedown event stored for later use when a
          * drag threshold is met.
          * @property startX
          * @type int
          * @private
-         * @static
          */
         startX: 0,
 
-        /**
-         * The Y position of the mousedown event stored for later use when a
+<span id='Ext-dd-DragDropMgr-property-startY'>        /**
+</span>         * The Y position of the mousedown event stored for later use when a
          * drag threshold is met.
          * @property startY
          * @type int
          * @private
-         * @static
          */
         startY: 0,
 
-        <div id="method-Ext.dd.DragDropMgr-regDragDrop"></div>/**
-         * Each DragDrop instance must be registered with the DragDropMgr.
+<span id='Ext-dd-DragDropMgr-method-regDragDrop'>        /**
+</span>         * Each DragDrop instance must be registered with the DragDropMgr.
          * This is executed in DragDrop.init()
          * @method regDragDrop
          * @param {DragDrop} oDD the DragDrop object to register
          * @param {String} sGroup the name of the group this element belongs to
-         * @static
          */
         regDragDrop: function(oDD, sGroup) {
             if (!this.initialized) { this.init(); }
@@ -1506,12 +1502,11 @@ Ext.dd.DragDropMgr = function() {
             this.ids[sGroup][oDD.id] = oDD;
         },
 
-        /**
-         * Removes the supplied dd instance from the supplied group. Executed
+<span id='Ext-dd-DragDropMgr-method-removeDDFromGroup'>        /**
+</span>         * Removes the supplied dd instance from the supplied group. Executed
          * by DragDrop.removeFromGroup, so don't call this function directly.
          * @method removeDDFromGroup
          * @private
-         * @static
          */
         removeDDFromGroup: function(oDD, sGroup) {
             if (!this.ids[sGroup]) {
@@ -1519,35 +1514,33 @@ Ext.dd.DragDropMgr = function() {
             }
 
             var obj = this.ids[sGroup];
-            if (obj && obj[oDD.id]) {
+            if (obj &amp;&amp; obj[oDD.id]) {
                 delete obj[oDD.id];
             }
         },
 
-        /**
-         * Unregisters a drag and drop item.  This is executed in
+<span id='Ext-dd-DragDropMgr-method-_remove'>        /**
+</span>         * Unregisters a drag and drop item.  This is executed in
          * DragDrop.unreg, use that method instead of calling this directly.
          * @method _remove
          * @private
-         * @static
          */
         _remove: function(oDD) {
             for (var g in oDD.groups) {
-                if (g && this.ids[g] && this.ids[g][oDD.id]) {
+                if (g &amp;&amp; this.ids[g] &amp;&amp; this.ids[g][oDD.id]) {
                     delete this.ids[g][oDD.id];
                 }
             }
             delete this.handleIds[oDD.id];
         },
 
-        <div id="method-Ext.dd.DragDropMgr-regHandle"></div>/**
-         * Each DragDrop handle element must be registered.  This is done
+<span id='Ext-dd-DragDropMgr-method-regHandle'>        /**
+</span>         * Each DragDrop handle element must be registered.  This is done
          * automatically when executing DragDrop.setHandleElId()
          * @method regHandle
          * @param {String} sDDId the DragDrop id this element is a handle for
          * @param {String} sHandleId the id of the element that is the drag
          * handle
-         * @static
          */
         regHandle: function(sDDId, sHandleId) {
             if (!this.handleIds[sDDId]) {
@@ -1556,27 +1549,25 @@ Ext.dd.DragDropMgr = function() {
             this.handleIds[sDDId][sHandleId] = sHandleId;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-isDragDrop"></div>/**
-         * Utility function to determine if a given element has been
+<span id='Ext-dd-DragDropMgr-method-isDragDrop'>        /**
+</span>         * Utility function to determine if a given element has been
          * registered as a drag drop item.
          * @method isDragDrop
          * @param {String} id the element id to check
          * @return {boolean} true if this element is a DragDrop item,
          * false otherwise
-         * @static
          */
         isDragDrop: function(id) {
             return ( this.getDDById(id) ) ? true : false;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getRelated"></div>/**
-         * Returns the drag and drop instances that are in all groups the
+<span id='Ext-dd-DragDropMgr-method-getRelated'>        /**
+</span>         * Returns the drag and drop instances that are in all groups the
          * passed in instance belongs to.
          * @method getRelated
          * @param {DragDrop} p_oDD the obj to get related data for
          * @param {boolean} bTargetsOnly if true, only return targetable objs
          * @return {DragDrop[]} the related instances
-         * @static
          */
         getRelated: function(p_oDD, bTargetsOnly) {
             var oDDs = [];
@@ -1595,19 +1586,18 @@ Ext.dd.DragDropMgr = function() {
             return oDDs;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-isLegalTarget"></div>/**
-         * Returns true if the specified dd target is a legal target for
+<span id='Ext-dd-DragDropMgr-method-isLegalTarget'>        /**
+</span>         * Returns true if the specified dd target is a legal target for
          * the specifice drag obj
          * @method isLegalTarget
          * @param {DragDrop} oDD the drag obj
          * @param {DragDrop} oTargetDD the target
          * @return {boolean} true if the target is a legal target for the
          * dd obj
-         * @static
          */
         isLegalTarget: function (oDD, oTargetDD) {
             var targets = this.getRelated(oDD, true);
-            for (var i=0, len=targets.length;i<len;++i) {
+            for (var i=0, len=targets.length;i&lt;len;++i) {
                 if (targets[i].id == oTargetDD.id) {
                     return true;
                 }
@@ -1616,41 +1606,38 @@ Ext.dd.DragDropMgr = function() {
             return false;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-isTypeOfDD"></div>/**
-         * My goal is to be able to transparently determine if an object is
+<span id='Ext-dd-DragDropMgr-method-isTypeOfDD'>        /**
+</span>         * My goal is to be able to transparently determine if an object is
          * typeof DragDrop, and the exact subclass of DragDrop.  typeof
-         * returns "object", oDD.constructor.toString() always returns
-         * "DragDrop" and not the name of the subclass.  So for now it just
+         * returns &quot;object&quot;, oDD.constructor.toString() always returns
+         * &quot;DragDrop&quot; and not the name of the subclass.  So for now it just
          * evaluates a well-known variable in DragDrop.
          * @method isTypeOfDD
          * @param {Object} the object to evaluate
          * @return {boolean} true if typeof oDD = DragDrop
-         * @static
          */
         isTypeOfDD: function (oDD) {
-            return (oDD && oDD.__ygDragDrop);
+            return (oDD &amp;&amp; oDD.__ygDragDrop);
         },
 
-        <div id="method-Ext.dd.DragDropMgr-isHandle"></div>/**
-         * Utility function to determine if a given element has been
+<span id='Ext-dd-DragDropMgr-method-isHandle'>        /**
+</span>         * Utility function to determine if a given element has been
          * registered as a drag drop handle for the given Drag Drop object.
          * @method isHandle
          * @param {String} id the element id to check
          * @return {boolean} true if this element is a DragDrop handle, false
          * otherwise
-         * @static
          */
         isHandle: function(sDDId, sHandleId) {
-            return ( this.handleIds[sDDId] &&
+            return ( this.handleIds[sDDId] &amp;&amp;
                             this.handleIds[sDDId][sHandleId] );
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getDDById"></div>/**
-         * Returns the DragDrop instance for a given id
+<span id='Ext-dd-DragDropMgr-method-getDDById'>        /**
+</span>         * Returns the DragDrop instance for a given id
          * @method getDDById
          * @param {String} id the id of the DragDrop object
          * @return {DragDrop} the drag drop object, null if it is not found
-         * @static
          */
         getDDById: function(id) {
             for (var i in this.ids) {
@@ -1661,14 +1648,13 @@ Ext.dd.DragDropMgr = function() {
             return null;
         },
 
-        /**
-         * Fired after a registered DragDrop object gets the mousedown event.
+<span id='Ext-dd-DragDropMgr-method-handleMouseDown'>        /**
+</span>         * Fired after a registered DragDrop object gets the mousedown event.
          * Sets up the events required to track the object being dragged
          * @method handleMouseDown
          * @param {Event} e the event
          * @param oDD the DragDrop object being dragged
          * @private
-         * @static
          */
         handleMouseDown: function(e, oDD) {
             if(Ext.QuickTips){
@@ -1702,13 +1688,12 @@ Ext.dd.DragDropMgr = function() {
                     this.clickTimeThresh );
         },
 
-        <div id="method-Ext.dd.DragDropMgr-startDrag"></div>/**
-         * Fired when either the drag pixel threshol or the mousedown hold
+<span id='Ext-dd-DragDropMgr-method-startDrag'>        /**
+</span>         * Fired when either the drag pixel threshol or the mousedown hold
          * time threshold has been met.
          * @method startDrag
          * @param x {int} the X position of the original mousedown
          * @param y {int} the Y position of the original mousedown
-         * @static
          */
         startDrag: function(x, y) {
             clearTimeout(this.clickTimeout);
@@ -1719,13 +1704,12 @@ Ext.dd.DragDropMgr = function() {
             this.dragThreshMet = true;
         },
 
-        /**
-         * Internal function to handle the mouseup event.  Will be invoked
+<span id='Ext-dd-DragDropMgr-method-handleMouseUp'>        /**
+</span>         * Internal function to handle the mouseup event.  Will be invoked
          * from the context of the document.
          * @method handleMouseUp
          * @param {Event} e the event
          * @private
-         * @static
          */
         handleMouseUp: function(e) {
 
@@ -1748,12 +1732,11 @@ Ext.dd.DragDropMgr = function() {
             this.stopEvent(e);
         },
 
-        <div id="method-Ext.dd.DragDropMgr-stopEvent"></div>/**
-         * Utility to stop event propagation and event default, if these
+<span id='Ext-dd-DragDropMgr-method-stopEvent'>        /**
+</span>         * Utility to stop event propagation and event default, if these
          * features are turned on.
          * @method stopEvent
          * @param {Event} e the event as returned by this.getEvent()
-         * @static
          */
         stopEvent: function(e){
             if(this.stopPropagation) {
@@ -1765,13 +1748,12 @@ Ext.dd.DragDropMgr = function() {
             }
         },
 
-        /**
-         * Internal function to clean up event handlers after the drag
+<span id='Ext-dd-DragDropMgr-method-stopDrag'>        /**
+</span>         * Internal function to clean up event handlers after the drag
          * operation is complete
          * @method stopDrag
          * @param {Event} e the event
          * @private
-         * @static
          */
         stopDrag: function(e) {
             // Fire the drag end event for the item that was dragged
@@ -1788,8 +1770,8 @@ Ext.dd.DragDropMgr = function() {
             this.dragOvers = {};
         },
 
-        /**
-         * Internal function to handle the mousemove event.  Will be invoked
+<span id='Ext-dd-DragDropMgr-method-handleMouseMove'>        /**
+</span>         * Internal function to handle the mousemove event.  Will be invoked
          * from the context of the html element.
          *
          * @TODO figure out what we can do about mouse events lost when the
@@ -1800,7 +1782,6 @@ Ext.dd.DragDropMgr = function() {
          * @method handleMouseMove
          * @param {Event} e the event
          * @private
-         * @static
          */
         handleMouseMove: function(e) {
             if (! this.dragCurrent) {
@@ -1809,7 +1790,7 @@ Ext.dd.DragDropMgr = function() {
             // var button = e.which || e.button;
 
             // check for IE mouseup outside of page boundary
-            if (Ext.isIE && (e.button !== 0 && e.button !== 1 && e.button !== 2)) {
+            if (Ext.isIE &amp;&amp; (e.button !== 0 &amp;&amp; e.button !== 1 &amp;&amp; e.button !== 2)) {
                 this.stopEvent(e);
                 return this.handleMouseUp(e);
             }
@@ -1817,8 +1798,8 @@ Ext.dd.DragDropMgr = function() {
             if (!this.dragThreshMet) {
                 var diffX = Math.abs(this.startX - e.getPageX());
                 var diffY = Math.abs(this.startY - e.getPageY());
-                if (diffX > this.clickPixelThresh ||
-                            diffY > this.clickPixelThresh) {
+                if (diffX &gt; this.clickPixelThresh ||
+                            diffY &gt; this.clickPixelThresh) {
                     this.startDrag(this.startX, this.startY);
                 }
             }
@@ -1836,144 +1817,209 @@ Ext.dd.DragDropMgr = function() {
             return true;
         },
 
-        /**
-         * Iterates over all of the DragDrop elements to find ones we are
+<span id='Ext-dd-DragDropMgr-method-fireEvents'>        /**
+</span>         * Iterates over all of the DragDrop elements to find ones we are
          * hovering over or dropping on
          * @method fireEvents
          * @param {Event} e the event
          * @param {boolean} isDrop is this a drop op or a mouseover op?
          * @private
-         * @static
          */
         fireEvents: function(e, isDrop) {
-            var dc = this.dragCurrent;
+            var me = this,
+                dragCurrent = me.dragCurrent,
+                mousePoint = e.getPoint(),
+                overTarget,
+                overTargetEl,
+                allTargets = [],
+                oldOvers  = [],  // cache the previous dragOver array
+                outEvts   = [],
+                overEvts  = [],
+                dropEvts  = [],
+                enterEvts = [],
+                needsSort,
+                i,
+                len,
+                sGroup;
 
             // If the user did the mouse up outside of the window, we could
             // get here even though we have ended the drag.
-            if (!dc || dc.isLocked()) {
+            if (!dragCurrent || dragCurrent.isLocked()) {
                 return;
             }
 
-            var pt = e.getPoint();
-
-            // cache the previous dragOver array
-            var oldOvers = [];
-
-            var outEvts   = [];
-            var overEvts  = [];
-            var dropEvts  = [];
-            var enterEvts = [];
-
             // Check to see if the object(s) we were hovering over is no longer
             // being hovered over so we can fire the onDragOut event
-            for (var i in this.dragOvers) {
+            for (i in me.dragOvers) {
+                overTarget = me.dragOvers[i];
 
-                var ddo = this.dragOvers[i];
-
-                if (! this.isTypeOfDD(ddo)) {
+                if (! me.isTypeOfDD(overTarget)) {
                     continue;
                 }
 
-                if (! this.isOverTarget(pt, ddo, this.mode)) {
-                    outEvts.push( ddo );
+                if (! this.isOverTarget(mousePoint, overTarget, me.mode)) {
+                    outEvts.push( overTarget );
                 }
 
                 oldOvers[i] = true;
-                delete this.dragOvers[i];
+                delete me.dragOvers[i];
             }
 
-            for (var sGroup in dc.groups) {
+            // Collect all targets which are members of the same ddGoups that the dragCurrent is a member of, and which may recieve mouseover and drop notifications.
+            // This is preparatory to seeing which one(s) we are currently over
+            // Begin by iterating through the ddGroups of which the dragCurrent is a member
+            for (sGroup in dragCurrent.groups) {
 
-                if ("string" != typeof sGroup) {
+                if (&quot;string&quot; != typeof sGroup) {
                     continue;
                 }
 
-                for (i in this.ids[sGroup]) {
-                    var oDD = this.ids[sGroup][i];
-                    if (! this.isTypeOfDD(oDD)) {
-                        continue;
-                    }
+                // Loop over the registered members of each group, testing each as a potential target
+                for (i in me.ids[sGroup]) {
+                    overTarget = me.ids[sGroup][i];
 
-                    if (oDD.isTarget && !oDD.isLocked() && ((oDD != dc) || (dc.ignoreSelf === false))) {
-                        if (this.isOverTarget(pt, oDD, this.mode)) {
-                            // look for drop interactions
-                            if (isDrop) {
-                                dropEvts.push( oDD );
-                            // look for drag enter and drag over interactions
-                            } else {
+                    // The target is valid if it is a DD type
+                    // And it's got a DOM element
+                    // And it's configured to be a drop target
+                    // And it's not locked
+                    // And it's either not the dragCurrent, or, if it is, tha dragCurrent is configured to not ignore itself.
+                    if (me.isTypeOfDD(overTarget) &amp;&amp;
+                        (overTargetEl = overTarget.getEl()) &amp;&amp;
+                        (overTarget.isTarget) &amp;&amp;
+                        (!overTarget.isLocked()) &amp;&amp;
+                        ((overTarget != dragCurrent) || (dragCurrent.ignoreSelf === false))) {
 
-                                // initial drag over: dragEnter fires
-                                if (!oldOvers[oDD.id]) {
-                                    enterEvts.push( oDD );
-                                // subsequent drag overs: dragOver fires
-                                } else {
-                                    overEvts.push( oDD );
-                                }
-
-                                this.dragOvers[oDD.id] = oDD;
-                            }
+                        // Only sort by zIndex if there were some which had a floating zIndex value
+                        if ((overTarget.zIndex = me.getZIndex(overTargetEl)) !== -1) {
+                            needsSort = true;
                         }
+                        allTargets.push(overTarget);
                     }
                 }
             }
 
-            if (this.mode) {
-                if (outEvts.length) {
-                    dc.b4DragOut(e, outEvts);
-                    dc.onDragOut(e, outEvts);
-                }
+            // If there were floating targets, sort the highest zIndex to the top
+            if (needsSort) {
+                allTargets.sort(me.byZIndex);
+            }
 
+            // Loop through possible targets, notifying the one(s) we are over.
+            // Usually we only deliver events to the topmost.
+            for (i = 0, len = allTargets.length; i &lt; len; i++) {
+                overTarget = allTargets[i];
+
+                // If we are over the overTarget, queue it up to recieve an event of whatever type we are handling
+                if (me.isOverTarget(mousePoint, overTarget, me.mode)) {
+                    // look for drop interactions
+                    if (isDrop) {
+                        dropEvts.push( overTarget );
+                    // look for drag enter and drag over interactions
+                    } else {
+                        // initial drag over: dragEnter fires
+                        if (!oldOvers[overTarget.id]) {
+                            enterEvts.push( overTarget );
+                        // subsequent drag overs: dragOver fires
+                        } else {
+                            overEvts.push( overTarget );
+                        }
+                        me.dragOvers[overTarget.id] = overTarget;
+                    }
+
+                    // Unless this DragDropManager has been explicitly configured to deliver events to multiple targets, then we are done.
+                    if (!me.notifyOccluded) {
+                        break;
+                    }
+                }
+            }
+
+            if (me.mode) {
+                if (outEvts.length) {
+                    dragCurrent.b4DragOut(e, outEvts);
+                    dragCurrent.onDragOut(e, outEvts);
+                }
+    
                 if (enterEvts.length) {
-                    dc.onDragEnter(e, enterEvts);
+                    dragCurrent.onDragEnter(e, enterEvts);
                 }
 
                 if (overEvts.length) {
-                    dc.b4DragOver(e, overEvts);
-                    dc.onDragOver(e, overEvts);
+                    dragCurrent.b4DragOver(e, overEvts);
+                    dragCurrent.onDragOver(e, overEvts);
                 }
 
                 if (dropEvts.length) {
-                    dc.b4DragDrop(e, dropEvts);
-                    dc.onDragDrop(e, dropEvts);
+                    dragCurrent.b4DragDrop(e, dropEvts);
+                    dragCurrent.onDragDrop(e, dropEvts);
                 }
 
             } else {
                 // fire dragout events
-                var len = 0;
-                for (i=0, len=outEvts.length; i<len; ++i) {
-                    dc.b4DragOut(e, outEvts[i].id);
-                    dc.onDragOut(e, outEvts[i].id);
+                for (i=0, len=outEvts.length; i&lt;len; ++i) {
+                    dragCurrent.b4DragOut(e, outEvts[i].id);
+                    dragCurrent.onDragOut(e, outEvts[i].id);
                 }
 
                 // fire enter events
-                for (i=0,len=enterEvts.length; i<len; ++i) {
+                for (i=0,len=enterEvts.length; i&lt;len; ++i) {
                     // dc.b4DragEnter(e, oDD.id);
-                    dc.onDragEnter(e, enterEvts[i].id);
+                    dragCurrent.onDragEnter(e, enterEvts[i].id);
                 }
 
                 // fire over events
-                for (i=0,len=overEvts.length; i<len; ++i) {
-                    dc.b4DragOver(e, overEvts[i].id);
-                    dc.onDragOver(e, overEvts[i].id);
-                }
+                for (i=0,len=overEvts.length; i&lt;len; ++i) {
+                    dragCurrent.b4DragOver(e, overEvts[i].id);
+                    dragCurrent.onDragOver(e, overEvts[i].id);
+                }   
 
                 // fire drop events
-                for (i=0, len=dropEvts.length; i<len; ++i) {
-                    dc.b4DragDrop(e, dropEvts[i].id);
-                    dc.onDragDrop(e, dropEvts[i].id);
+                for (i=0, len=dropEvts.length; i&lt;len; ++i) {
+                    dragCurrent.b4DragDrop(e, dropEvts[i].id);
+                    dragCurrent.onDragDrop(e, dropEvts[i].id);
                 }
 
             }
 
             // notify about a drop that did not find a target
-            if (isDrop && !dropEvts.length) {
-                dc.onInvalidDrop(e);
+            if (isDrop &amp;&amp; !dropEvts.length) {
+                dragCurrent.onInvalidDrop(e);
             }
+        },
+        
+<span id='Ext-dd-DragDropMgr-method-getZIndex'>        /**
+</span>         * @private
+         * Collects the z-index of the passed element, looking up the parentNode axis to find an absolutely positioned ancestor
+         * which is able to yield a z-index. If found to be not absolutely positionedm returns -1.
+         *
+         * This is used when sorting potential drop targets into z-index order so that only the topmost receives `over` and `drop` events.
+         *
+         * @return {Number} The z-index of the element, or of its topmost absolutely positioned ancestor. Returns -1 if the element is not
+         * absolutely positioned.
+         */
+        getZIndex: function(element) {
+            var body = document.body,
+                z,
+                zIndex = -1;
 
+            element = Ext.getDom(element);
+            while (element !== body) {
+                if (!isNaN(z = Number(Ext.fly(element).getStyle('zIndex')))) {
+                    zIndex = z;
+                }
+                element = element.parentNode;
+            }
+            return zIndex;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getBestMatch"></div>/**
-         * Helper function for getting the best match from the list of drag
+<span id='Ext-dd-DragDropMgr-method-byZIndex'>        /**
+</span>        * @private
+        * Utility method to pass to {@link Ext.Array#sort} when sorting potential drop targets by z-index.
+        */
+        byZIndex: function(d1, d2) {
+            return d1.zIndex &lt; d2.zIndex;
+        },
+
+<span id='Ext-dd-DragDropMgr-method-getBestMatch'>        /**
+</span>         * Helper function for getting the best match from the list of drag
          * and drop objects returned by the drag and drop events when we are
          * in INTERSECT mode.  It returns either the first object that the
          * cursor is over, or the object that has the greatest overlap with
@@ -1982,7 +2028,6 @@ Ext.dd.DragDropMgr = function() {
          * @param  {DragDrop[]} dds The array of drag and drop objects
          * targeted
          * @return {DragDrop}       The best single match
-         * @static
          */
         getBestMatch: function(dds) {
             var winner = null;
@@ -1998,7 +2043,7 @@ Ext.dd.DragDropMgr = function() {
                 winner = dds[0];
             } else {
                 // Loop through the targeted items
-                for (var i=0; i<len; ++i) {
+                for (var i=0; i&lt;len; ++i) {
                     var dd = dds[i];
                     // If the cursor is over the object, it wins.  If the
                     // cursor is over multiple matches, the first one we come
@@ -2009,7 +2054,7 @@ Ext.dd.DragDropMgr = function() {
                     // Otherwise the object with the most overlap wins
                     } else {
                         if (!winner ||
-                            winner.overlap.getArea() < dd.overlap.getArea()) {
+                            winner.overlap.getArea() &lt; dd.overlap.getArea()) {
                             winner = dd;
                         }
                     }
@@ -2019,34 +2064,33 @@ Ext.dd.DragDropMgr = function() {
             return winner;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-refreshCache"></div>/**
-         * Refreshes the cache of the top-left and bottom-right points of the
+<span id='Ext-dd-DragDropMgr-method-refreshCache'>        /**
+</span>         * Refreshes the cache of the top-left and bottom-right points of the
          * drag and drop objects in the specified group(s).  This is in the
          * format that is stored in the drag and drop instance, so typical
          * usage is:
-         * <code>
+         * &lt;code&gt;
          * Ext.dd.DragDropMgr.refreshCache(ddinstance.groups);
-         * </code>
+         * &lt;/code&gt;
          * Alternatively:
-         * <code>
+         * &lt;code&gt;
          * Ext.dd.DragDropMgr.refreshCache({group1:true, group2:true});
-         * </code>
+         * &lt;/code&gt;
          * @TODO this really should be an indexed array.  Alternatively this
          * method could accept both.
          * @method refreshCache
          * @param {Object} groups an associative array of groups to refresh
-         * @static
          */
         refreshCache: function(groups) {
             for (var sGroup in groups) {
-                if ("string" != typeof sGroup) {
+                if (&quot;string&quot; != typeof sGroup) {
                     continue;
                 }
                 for (var i in this.ids[sGroup]) {
                     var oDD = this.ids[sGroup][i];
 
                     if (this.isTypeOfDD(oDD)) {
-                    // if (this.isTypeOfDD(oDD) && oDD.isTarget) {
+                    // if (this.isTypeOfDD(oDD) &amp;&amp; oDD.isTarget) {
                         var loc = this.getLocation(oDD);
                         if (loc) {
                             this.locationCache[oDD.id] = loc;
@@ -2061,15 +2105,14 @@ Ext.dd.DragDropMgr = function() {
             }
         },
 
-        <div id="method-Ext.dd.DragDropMgr-verifyEl"></div>/**
-         * This checks to make sure an element exists and is in the DOM.  The
+<span id='Ext-dd-DragDropMgr-method-verifyEl'>        /**
+</span>         * This checks to make sure an element exists and is in the DOM.  The
          * main purpose is to handle cases where innerHTML is used to remove
          * drag and drop objects from the DOM.  IE provides an 'unspecified
          * error' when trying to access the offsetParent of such an element
          * @method verifyEl
          * @param {HTMLElement} el the element to check
          * @return {boolean} true if the element looks usable
-         * @static
          */
         verifyEl: function(el) {
             if (el) {
@@ -2089,8 +2132,8 @@ Ext.dd.DragDropMgr = function() {
             return false;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getLocation"></div>/**
-         * Returns a Region object containing the drag and drop element's position
+<span id='Ext-dd-DragDropMgr-method-getLocation'>        /**
+</span>         * Returns a Region object containing the drag and drop element's position
          * and size, including the padding configured for it
          * @method getLocation
          * @param {DragDrop} oDD the drag and drop object to get the
@@ -2098,7 +2141,6 @@ Ext.dd.DragDropMgr = function() {
          * @return {Ext.lib.Region} a Region object representing the total area
          *                             the element occupies, including any padding
          *                             the instance is configured for.
-         * @static
          */
         getLocation: function(oDD) {
             if (! this.isTypeOfDD(oDD)) {
@@ -2125,32 +2167,16 @@ Ext.dd.DragDropMgr = function() {
             b = y2 + oDD.padding[2];
             l = x1 - oDD.padding[3];
 
-            region = new Ext.lib.Region( t, r, b, l );
-            /*
-             * The code below is to ensure that large scrolling elements will
-             * only have their visible area recognized as a drop target, otherwise it 
-             * can potentially erronously register as a target when the element scrolls
-             * over the top of something below it.
-             */
-            el = Ext.get(el.parentNode);
-            while (el && region) {
-	            if (el.isScrollable()) {
-	                // check whether our element is visible in the view port:
-	                region = region.intersect(el.getRegion());
-	            }
-	            el = el.parent();
-            }
-            return region;
+            return new Ext.lib.Region( t, r, b, l );
         },
 
-        /**
-         * Checks the cursor location to see if it over the target
+<span id='Ext-dd-DragDropMgr-method-isOverTarget'>        /**
+</span>         * Checks the cursor location to see if it over the target
          * @method isOverTarget
          * @param {Ext.lib.Point} pt The point to evaluate
          * @param {DragDrop} oTarget the DragDrop object we are inspecting
          * @return {boolean} true if the mouse is over the target
          * @private
-         * @static
          */
         isOverTarget: function(pt, oTarget, intersect) {
             // use cache if available
@@ -2174,7 +2200,7 @@ Ext.dd.DragDropMgr = function() {
             // dragged element.
             var dc = this.dragCurrent;
             if (!dc || !dc.getTargetCoord ||
-                    (!intersect && !dc.constrainX && !dc.constrainY)) {
+                    (!intersect &amp;&amp; !dc.constrainX &amp;&amp; !dc.constrainY)) {
                 return oTarget.cursorIsOver;
             }
 
@@ -2202,24 +2228,22 @@ Ext.dd.DragDropMgr = function() {
             }
         },
 
-        /**
-         * unload event handler
+<span id='Ext-dd-DragDropMgr-method-_onUnload'>        /**
+</span>         * unload event handler
          * @method _onUnload
          * @private
-         * @static
          */
         _onUnload: function(e, me) {
-            Event.removeListener(document, "mouseup",   this.handleMouseUp, this);
-            Event.removeListener(document, "mousemove", this.handleMouseMove, this);
-            Event.removeListener(window,   "resize",    this._onResize, this);
+            Event.removeListener(document, &quot;mouseup&quot;,   this.handleMouseUp, this);
+            Event.removeListener(document, &quot;mousemove&quot;, this.handleMouseMove, this);
+            Event.removeListener(window,   &quot;resize&quot;,    this._onResize, this);
             Ext.dd.DragDropMgr.unregAll();
         },
 
-        /**
-         * Cleans up the drag and drop events and objects.
+<span id='Ext-dd-DragDropMgr-method-unregAll'>        /**
+</span>         * Cleans up the drag and drop events and objects.
          * @method unregAll
          * @private
-         * @static
          */
         unregAll: function() {
 
@@ -2228,7 +2252,7 @@ Ext.dd.DragDropMgr = function() {
                 this.dragCurrent = null;
             }
 
-            this._execOnAll("unreg", []);
+            this._execOnAll(&quot;unreg&quot;, []);
 
             for (var i in this.elementCache) {
                 delete this.elementCache[i];
@@ -2238,22 +2262,20 @@ Ext.dd.DragDropMgr = function() {
             this.ids = {};
         },
 
-        /**
-         * A cache of DOM elements
+<span id='Ext-dd-DragDropMgr-property-elementCache'>        /**
+</span>         * A cache of DOM elements
          * @property elementCache
          * @private
-         * @static
          */
         elementCache: {},
 
-        /**
-         * Get the wrapper for the DOM element specified
+<span id='Ext-dd-DragDropMgr-method-getElWrapper'>        /**
+</span>         * Get the wrapper for the DOM element specified
          * @method getElWrapper
          * @param {String} id the id of the element to get
          * @return {Ext.dd.DDM.ElementWrapper} the wrapped element
          * @private
          * @deprecated This wrapper isn't that useful
-         * @static
          */
         getElWrapper: function(id) {
             var oWrapper = this.elementCache[id];
@@ -2264,89 +2286,84 @@ Ext.dd.DragDropMgr = function() {
             return oWrapper;
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getElement"></div>/**
-         * Returns the actual DOM element
+<span id='Ext-dd-DragDropMgr-method-getElement'>        /**
+</span>         * Returns the actual DOM element
          * @method getElement
          * @param {String} id the id of the elment to get
          * @return {Object} The element
          * @deprecated use Ext.lib.Ext.getDom instead
-         * @static
          */
         getElement: function(id) {
             return Ext.getDom(id);
         },
 
-        <div id="method-Ext.dd.DragDropMgr-getCss"></div>/**
-         * Returns the style property for the DOM element (i.e.,
+<span id='Ext-dd-DragDropMgr-method-getCss'>        /**
+</span>         * Returns the style property for the DOM element (i.e.,
          * document.getElById(id).style)
          * @method getCss
          * @param {String} id the id of the elment to get
          * @return {Object} The style property of the element
          * @deprecated use Ext.lib.Dom instead
-         * @static
          */
         getCss: function(id) {
             var el = Ext.getDom(id);
             return (el) ? el.style : null;
         },
 
-        <div id="cls-Ext.dd.DragDropMgr.ElementWrapper"></div>/**
-         * Inner class for cached elements
+<span id='Ext-dd-DragDropMgr-ElementWrapper'>        /**
+</span>         * Inner class for cached elements
          * @class Ext.dd.DragDropMgr.ElementWrapper
          * @for DragDropMgr
          * @private
          * @deprecated
          */
         ElementWrapper: function(el) {
-                <div id="prop-Ext.dd.DragDropMgr.ElementWrapper-el"></div>/**
-                 * The element
+<span id='Ext-dd-DragDropMgr-ElementWrapper-property-el'>                /**
+</span>                 * The element
                  * @property el
                  */
                 this.el = el || null;
-                <div id="prop-Ext.dd.DragDropMgr.ElementWrapper-id"></div>/**
-                 * The element id
+<span id='Ext-dd-DragDropMgr-ElementWrapper-property-id'>                /**
+</span>                 * The element id
                  * @property id
                  */
-                this.id = this.el && el.id;
-                <div id="prop-Ext.dd.DragDropMgr.ElementWrapper-css"></div>/**
-                 * A reference to the style property
+                this.id = this.el &amp;&amp; el.id;
+<span id='Ext-dd-DragDropMgr-ElementWrapper-property-css'>                /**
+</span>                 * A reference to the style property
                  * @property css
                  */
-                this.css = this.el && el.style;
+                this.css = this.el &amp;&amp; el.style;
             },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-getPosX"></div>/**
-         * Returns the X position of an html element
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getPosX'>        /**
+</span>         * Returns the X position of an html element
          * @method getPosX
          * @param el the element for which to get the position
          * @return {int} the X coordinate
          * @for DragDropMgr
          * @deprecated use Ext.lib.Dom.getX instead
-         * @static
          */
         getPosX: function(el) {
             return Ext.lib.Dom.getX(el);
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-getPosY"></div>/**
-         * Returns the Y position of an html element
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getPosY'>        /**
+</span>         * Returns the Y position of an html element
          * @method getPosY
          * @param el the element for which to get the position
          * @return {int} the Y coordinate
          * @deprecated use Ext.lib.Dom.getY instead
-         * @static
          */
         getPosY: function(el) {
             return Ext.lib.Dom.getY(el);
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-swapNode"></div>/**
-         * Swap two nodes.  In IE, we use the native method, for others we
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-swapNode'>        /**
+</span>         * Swap two nodes.  In IE, we use the native method, for others we
          * emulate the IE behavior
          * @method swapNode
          * @param n1 the first node to swap
          * @param n2 the other node to swap
-         * @static
          */
         swapNode: function(n1, n2) {
             if (n1.swapNode) {
@@ -2366,15 +2383,14 @@ Ext.dd.DragDropMgr = function() {
             }
         },
 
-        /**
-         * Returns the current scroll position
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getScroll'>        /**
+</span>         * Returns the current scroll position
          * @method getScroll
          * @private
-         * @static
          */
         getScroll: function () {
             var t, l, dde=document.documentElement, db=document.body;
-            if (dde && (dde.scrollTop || dde.scrollLeft)) {
+            if (dde &amp;&amp; (dde.scrollTop || dde.scrollLeft)) {
                 t = dde.scrollTop;
                 l = dde.scrollLeft;
             } else if (db) {
@@ -2386,98 +2402,90 @@ Ext.dd.DragDropMgr = function() {
             return { top: t, left: l };
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-getStyle"></div>/**
-         * Returns the specified element style property
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getStyle'>        /**
+</span>         * Returns the specified element style property
          * @method getStyle
          * @param {HTMLElement} el          the element
          * @param {string}      styleProp   the style property
          * @return {string} The value of the style property
          * @deprecated use Ext.lib.Dom.getStyle
-         * @static
          */
         getStyle: function(el, styleProp) {
             return Ext.fly(el).getStyle(styleProp);
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-getScrollTop"></div>/**
-         * Gets the scrollTop
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getScrollTop'>        /**
+</span>         * Gets the scrollTop
          * @method getScrollTop
          * @return {int} the document's scrollTop
-         * @static
          */
         getScrollTop: function () {
             return this.getScroll().top;
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-getScrollLeft"></div>/**
-         * Gets the scrollLeft
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-getScrollLeft'>        /**
+</span>         * Gets the scrollLeft
          * @method getScrollLeft
          * @return {int} the document's scrollTop
-         * @static
          */
         getScrollLeft: function () {
             return this.getScroll().left;
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-moveToEl"></div>/**
-         * Sets the x/y position of an element to the location of the
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-moveToEl'>        /**
+</span>         * Sets the x/y position of an element to the location of the
          * target element.
          * @method moveToEl
          * @param {HTMLElement} moveEl      The element to move
          * @param {HTMLElement} targetEl    The position reference element
-         * @static
          */
         moveToEl: function (moveEl, targetEl) {
             var aCoord = Ext.lib.Dom.getXY(targetEl);
             Ext.lib.Dom.setXY(moveEl, aCoord);
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-numericSort"></div>/**
-         * Numeric array sort function
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-numericSort'>        /**
+</span>         * Numeric array sort function
          * @method numericSort
-         * @static
          */
         numericSort: function(a, b) {
             return (a - b);
         },
 
-        /**
-         * Internal counter
+<span id='Ext-dd-DragDropMgr-ElementWrapper-property-_timeoutCount'>        /**
+</span>         * Internal counter
          * @property _timeoutCount
          * @private
-         * @static
          */
         _timeoutCount: 0,
 
-        /**
-         * Trying to make the load order less important.  Without this we get
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-_addListeners'>        /**
+</span>         * Trying to make the load order less important.  Without this we get
          * an error if this file is loaded before the Event Utility.
          * @method _addListeners
          * @private
-         * @static
          */
         _addListeners: function() {
             var DDM = Ext.dd.DDM;
-            if ( Ext.lib.Event && document ) {
+            if ( Ext.lib.Event &amp;&amp; document ) {
                 DDM._onLoad();
             } else {
-                if (DDM._timeoutCount > 2000) {
+                if (DDM._timeoutCount &gt; 2000) {
                 } else {
                     setTimeout(DDM._addListeners, 10);
-                    if (document && document.body) {
+                    if (document &amp;&amp; document.body) {
                         DDM._timeoutCount += 1;
                     }
                 }
             }
         },
 
-        <div id="method-Ext.dd.DragDropMgr.ElementWrapper-handleWasClicked"></div>/**
-         * Recursively searches the immediate parent and all child nodes for
+<span id='Ext-dd-DragDropMgr-ElementWrapper-method-handleWasClicked'>        /**
+</span>         * Recursively searches the immediate parent and all child nodes for
          * the handle element in order to determine wheter or not it was
          * clicked.
          * @method handleWasClicked
          * @param node the html element to inspect
-         * @static
          */
         handleWasClicked: function(node, id) {
             if (this.isHandle(id, node.id)) {
@@ -2508,8 +2516,8 @@ Ext.dd.DDM._addListeners();
 
 }
 
-<div id="cls-Ext.dd.DD"></div>/**
- * @class Ext.dd.DD
+<span id='Ext-dd-DD-method-constructor'><span id='Ext-dd-DD'>/**
+</span></span> * @class Ext.dd.DD
  * A DragDrop implementation where the linked element follows the
  * mouse cursor during a drag.
  * @extends Ext.dd.DragDrop
@@ -2528,8 +2536,8 @@ Ext.dd.DD = function(id, sGroup, config) {
 
 Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
 
-    <div id="prop-Ext.dd.DD-scroll"></div>/**
-     * When set to true, the utility automatically tries to scroll the browser
+<span id='Ext-dd-DD-property-scroll'>    /**
+</span>     * When set to true, the utility automatically tries to scroll the browser
      * window when a drag and drop element is dragged near the viewport boundary.
      * Defaults to true.
      * @property scroll
@@ -2537,8 +2545,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
      */
     scroll: true,
 
-    <div id="method-Ext.dd.DD-autoOffset"></div>/**
-     * Sets the pointer offset to the distance between the linked element's top
+<span id='Ext-dd-DD-method-autoOffset'>    /**
+</span>     * Sets the pointer offset to the distance between the linked element's top
      * left corner and the location the element was clicked
      * @method autoOffset
      * @param {int} iPageX the X coordinate of the click
@@ -2550,8 +2558,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         this.setDelta(x, y);
     },
 
-    <div id="method-Ext.dd.DD-setDelta"></div>/**
-     * Sets the pointer offset.  You can call this directly to force the
+<span id='Ext-dd-DD-method-setDelta'>    /**
+</span>     * Sets the pointer offset.  You can call this directly to force the
      * offset to be in a particular location (e.g., pass in 0,0 to set it
      * to the center of the object)
      * @method setDelta
@@ -2563,8 +2571,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         this.deltaY = iDeltaY;
     },
 
-    <div id="method-Ext.dd.DD-setDragElPos"></div>/**
-     * Sets the drag element to the location of the mousedown or click event,
+<span id='Ext-dd-DD-method-setDragElPos'>    /**
+</span>     * Sets the drag element to the location of the mousedown or click event,
      * maintaining the cursor location relative to the location on the element
      * that was clicked.  Override this if you want to place the element in a
      * location other than where the cursor is.
@@ -2580,8 +2588,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         this.alignElWithMouse(el, iPageX, iPageY);
     },
 
-    <div id="method-Ext.dd.DD-alignElWithMouse"></div>/**
-     * Sets the element to the location of the mousedown or click event,
+<span id='Ext-dd-DD-method-alignElWithMouse'>    /**
+</span>     * Sets the element to the location of the mousedown or click event,
      * maintaining the cursor location relative to the location on the element
      * that was clicked.  Override this if you want to place the element in a
      * location other than where the cursor is.
@@ -2608,8 +2616,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         return oCoord;
     },
 
-    <div id="method-Ext.dd.DD-cachePosition"></div>/**
-     * Saves the most recent position so that we can reset the constraints and
+<span id='Ext-dd-DD-method-cachePosition'>    /**
+</span>     * Saves the most recent position so that we can reset the constraints and
      * tick marks on-demand.  We need to know this so that we can calculate the
      * number of pixels the element is offset from its original position.
      * @method cachePosition
@@ -2629,8 +2637,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         }
     },
 
-    /**
-     * Auto-scroll the window if the dragged object has been moved beyond the
+<span id='Ext-dd-DD-method-autoScroll'>    /**
+</span>     * Auto-scroll the window if the dragged object has been moved beyond the
      * visible window boundary.
      * @method autoScroll
      * @param {int} x the drag element's x position
@@ -2680,32 +2688,32 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
 
             // Scroll down if we are near the bottom of the visible page and the
             // obj extends below the crease
-            if ( bot > clientH && toBot < thresh ) {
+            if ( bot &gt; clientH &amp;&amp; toBot &lt; thresh ) {
                 window.scrollTo(sl, st + scrAmt);
             }
 
             // Scroll up if the window is scrolled down and the top of the object
             // goes above the top border
-            if ( y < st && st > 0 && y - st < thresh ) {
+            if ( y &lt; st &amp;&amp; st &gt; 0 &amp;&amp; y - st &lt; thresh ) {
                 window.scrollTo(sl, st - scrAmt);
             }
 
             // Scroll right if the obj is beyond the right border and the cursor is
             // near the border.
-            if ( right > clientW && toRight < thresh ) {
+            if ( right &gt; clientW &amp;&amp; toRight &lt; thresh ) {
                 window.scrollTo(sl + scrAmt, st);
             }
 
             // Scroll left if the window has been scrolled to the right and the obj
             // extends past the left border
-            if ( x < sl && sl > 0 && x - sl < thresh ) {
+            if ( x &lt; sl &amp;&amp; sl &gt; 0 &amp;&amp; x - sl &lt; thresh ) {
                 window.scrollTo(sl - scrAmt, st);
             }
         }
     },
 
-    /**
-     * Finds the location the element should be placed if we want to move
+<span id='Ext-dd-DD-method-getTargetCoord'>    /**
+</span>     * Finds the location the element should be placed if we want to move
      * it to where the mouse location less the click offset would place us.
      * @method getTargetCoord
      * @param {int} iPageX the X coordinate of the click
@@ -2718,13 +2726,13 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         var y = iPageY - this.deltaY;
 
         if (this.constrainX) {
-            if (x < this.minX) { x = this.minX; }
-            if (x > this.maxX) { x = this.maxX; }
+            if (x &lt; this.minX) { x = this.minX; }
+            if (x &gt; this.maxX) { x = this.maxX; }
         }
 
         if (this.constrainY) {
-            if (y < this.minY) { y = this.minY; }
-            if (y > this.maxY) { y = this.maxY; }
+            if (y &lt; this.minY) { y = this.minY; }
+            if (y &gt; this.maxY) { y = this.maxY; }
         }
 
         x = this.getTick(x, this.xTicks);
@@ -2734,8 +2742,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         return {x:x, y:y};
     },
 
-    <div id="method-Ext.dd.DD-applyConfig"></div>/**
-     * Sets up config options specific to this class. Overrides
+<span id='Ext-dd-DD-method-applyConfig'>    /**
+</span>     * Sets up config options specific to this class. Overrides
      * Ext.dd.DragDrop, but all versions of this method through the
      * inheritance chain are called
      */
@@ -2744,8 +2752,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
         this.scroll = (this.config.scroll !== false);
     },
 
-    <div id="method-Ext.dd.DD-b4MouseDown"></div>/**
-     * Event that fires prior to the onMouseDown event.  Overrides
+<span id='Ext-dd-DD-method-b4MouseDown'>    /**
+</span>     * Event that fires prior to the onMouseDown event.  Overrides
      * Ext.dd.DragDrop.
      */
     b4MouseDown: function(e) {
@@ -2754,8 +2762,8 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
                             e.getPageY());
     },
 
-    <div id="method-Ext.dd.DD-b4Drag"></div>/**
-     * Event that fires prior to the onDrag event.  Overrides
+<span id='Ext-dd-DD-method-b4Drag'>    /**
+</span>     * Event that fires prior to the onDrag event.  Overrides
      * Ext.dd.DragDrop.
      */
     b4Drag: function(e) {
@@ -2764,7 +2772,7 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
     },
 
     toString: function() {
-        return ("DD " + this.id);
+        return (&quot;DD &quot; + this.id);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -2795,14 +2803,14 @@ Ext.extend(Ext.dd.DD, Ext.dd.DragDrop, {
     */
 
 });
-<div id="cls-Ext.dd.DDProxy"></div>/**
- * @class Ext.dd.DDProxy
+<span id='Ext-dd-DDProxy-method-constructor'><span id='Ext-dd-DDProxy'>/**
+</span></span> * @class Ext.dd.DDProxy
  * A DragDrop implementation that inserts an empty, bordered div into
  * the document that follows the cursor during drag operations.  At the time of
  * the click, the frame div is resized to the dimensions of the linked html
  * element, and moved to the exact location of the linked element.
  *
- * References to the "frame" element refer to the single proxy element that
+ * References to the &quot;frame&quot; element refer to the single proxy element that
  * was created to be dragged in place of all DDProxy elements on the
  * page.
  *
@@ -2821,18 +2829,18 @@ Ext.dd.DDProxy = function(id, sGroup, config) {
     }
 };
 
-<div id="prop-Ext.dd.DDProxy-Ext.dd.DDProxy.dragElId"></div>/**
- * The default drag frame div id
+<span id='Ext-dd-DDProxy-static-property-Ext.dd.DDProxy.dragElId'>/**
+</span> * The default drag frame div id
  * @property Ext.dd.DDProxy.dragElId
  * @type String
  * @static
  */
-Ext.dd.DDProxy.dragElId = "ygddfdiv";
+Ext.dd.DDProxy.dragElId = &quot;ygddfdiv&quot;;
 
 Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
 
-    <div id="prop-Ext.dd.DDProxy-resizeFrame"></div>/**
-     * By default we resize the drag frame to be the same size as the element
+<span id='Ext-dd-DDProxy-property-resizeFrame'>    /**
+</span>     * By default we resize the drag frame to be the same size as the element
      * we want to drag (this is to get the frame effect).  We can turn it off
      * if we want a different behavior.
      * @property resizeFrame
@@ -2840,8 +2848,8 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
      */
     resizeFrame: true,
 
-    <div id="prop-Ext.dd.DDProxy-centerFrame"></div>/**
-     * By default the frame is positioned exactly where the drag element is, so
+<span id='Ext-dd-DDProxy-property-centerFrame'>    /**
+</span>     * By default the frame is positioned exactly where the drag element is, so
      * we use the cursor offset provided by Ext.dd.DD.  Another option that works only if
      * you do not have constraints on the obj is to have the drag frame centered
      * around the cursor.  Set centerFrame to true for this effect.
@@ -2850,8 +2858,8 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
      */
     centerFrame: false,
 
-    <div id="method-Ext.dd.DDProxy-createFrame"></div>/**
-     * Creates the proxy element if it does not yet exist
+<span id='Ext-dd-DDProxy-method-createFrame'>    /**
+</span>     * Creates the proxy element if it does not yet exist
      * @method createFrame
      */
     createFrame: function() {
@@ -2866,14 +2874,14 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
         var div = this.getDragEl();
 
         if (!div) {
-            div    = document.createElement("div");
+            div    = document.createElement(&quot;div&quot;);
             div.id = this.dragElId;
             var s  = div.style;
 
-            s.position   = "absolute";
-            s.visibility = "hidden";
-            s.cursor     = "move";
-            s.border     = "2px solid #aaa";
+            s.position   = &quot;absolute&quot;;
+            s.visibility = &quot;hidden&quot;;
+            s.cursor     = &quot;move&quot;;
+            s.border     = &quot;2px solid #aaa&quot;;
             s.zIndex     = 999;
 
             // appendChild can blow up IE if invoked prior to the window load event
@@ -2883,8 +2891,8 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
         }
     },
 
-    <div id="method-Ext.dd.DDProxy-initFrame"></div>/**
-     * Initialization for the drag frame element.  Must be called in the
+<span id='Ext-dd-DDProxy-method-initFrame'>    /**
+</span>     * Initialization for the drag frame element.  Must be called in the
      * constructor of all subclasses
      * @method initFrame
      */
@@ -2900,8 +2908,8 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
         this.setDragElId(this.config.dragElId || Ext.dd.DDProxy.dragElId);
     },
 
-    /**
-     * Resizes the drag frame to the dimensions of the clicked object, positions
+<span id='Ext-dd-DDProxy-method-showFrame'>    /**
+</span>     * Resizes the drag frame to the dimensions of the clicked object, positions
      * it over the object, and finally displays it
      * @method showFrame
      * @param {int} iPageX X click position
@@ -2925,8 +2933,8 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
         Ext.fly(dragEl).show();
     },
 
-    /**
-     * The proxy is automatically resized to the dimensions of the linked
+<span id='Ext-dd-DDProxy-method-_resizeProxy'>    /**
+</span>     * The proxy is automatically resized to the dimensions of the linked
      * element when a drag is initiated, unless resizeFrame is set to false
      * @method _resizeProxy
      * @private
@@ -2966,15 +2974,15 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
         var del = this.getDragEl();
 
         // Show the drag frame briefly so we can get its position
-        del.style.visibility = "";
+        del.style.visibility = &quot;&quot;;
 
         this.beforeMove();
         // Hide the linked element before the move to get around a Safari
         // rendering bug.
-        lel.style.visibility = "hidden";
+        lel.style.visibility = &quot;hidden&quot;;
         Ext.dd.DDM.moveToEl(lel, del);
-        del.style.visibility = "hidden";
-        lel.style.visibility = "";
+        del.style.visibility = &quot;hidden&quot;;
+        lel.style.visibility = &quot;&quot;;
 
         this.afterDrag();
     },
@@ -2988,12 +2996,12 @@ Ext.extend(Ext.dd.DDProxy, Ext.dd.DD, {
     },
 
     toString: function() {
-        return ("DDProxy " + this.id);
+        return (&quot;DDProxy &quot; + this.id);
     }
 
 });
-<div id="cls-Ext.dd.DDTarget"></div>/**
- * @class Ext.dd.DDTarget
+<span id='Ext-dd-DDTarget-method-constructor'><span id='Ext-dd-DDTarget'>/**
+</span></span> * @class Ext.dd.DDTarget
  * A DragDrop implementation that does not move, but can be a drop
  * target.  You would get the same result by simply omitting implementation
  * for the event callbacks, but this way we reduce the processing cost of the
@@ -3015,172 +3023,172 @@ Ext.dd.DDTarget = function(id, sGroup, config) {
 
 // Ext.dd.DDTarget.prototype = new Ext.dd.DragDrop();
 Ext.extend(Ext.dd.DDTarget, Ext.dd.DragDrop, {
-    <div id="method-Ext.dd.DDTarget-getDragEl"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-getDragEl'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     getDragEl: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-isValidHandleChild"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-isValidHandleChild'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     isValidHandleChild: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-startDrag"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-startDrag'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     startDrag: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-endDrag"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-endDrag'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     endDrag: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onDrag"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onDrag'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onDrag: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onDragDrop"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onDragDrop'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onDragDrop: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onDragEnter"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onDragEnter'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onDragEnter: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onDragOut"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onDragOut'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onDragOut: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onDragOver"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onDragOver'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onDragOver: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onInvalidDrop"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onInvalidDrop'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onInvalidDrop: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onMouseDown"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onMouseDown'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onMouseDown: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-onMouseUp"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-onMouseUp'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     onMouseUp: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setXConstraint"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setXConstraint'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setXConstraint: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setYConstraint"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setYConstraint'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setYConstraint: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-resetConstraints"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-resetConstraints'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     resetConstraints: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-clearConstraints"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-clearConstraints'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     clearConstraints: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-clearTicks"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-clearTicks'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     clearTicks: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setInitPosition"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setInitPosition'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setInitPosition: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setDragElId"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setDragElId'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setDragElId: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setHandleElId"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setHandleElId'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setHandleElId: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-setOuterHandleElId"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-setOuterHandleElId'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     setOuterHandleElId: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-addInvalidHandleClass"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-addInvalidHandleClass'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     addInvalidHandleClass: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-addInvalidHandleId"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-addInvalidHandleId'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     addInvalidHandleId: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-addInvalidHandleType"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-addInvalidHandleType'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     addInvalidHandleType: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-removeInvalidHandleClass"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-removeInvalidHandleClass'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     removeInvalidHandleClass: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-removeInvalidHandleId"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-removeInvalidHandleId'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     removeInvalidHandleId: Ext.emptyFn,
-    <div id="method-Ext.dd.DDTarget-removeInvalidHandleType"></div>/**
-     * @hide
+<span id='Ext-dd-DDTarget-method-removeInvalidHandleType'>    /**
+</span>     * @hide
      * Overridden and disabled. A DDTarget does not support being dragged.
      * @method
      */
     removeInvalidHandleType: Ext.emptyFn,
 
     toString: function() {
-        return ("DDTarget " + this.id);
+        return (&quot;DDTarget &quot; + this.id);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

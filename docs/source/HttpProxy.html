@@ -1,43 +1,46 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.data.HttpProxy"></div>/**
- * @class Ext.data.HttpProxy
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-HttpProxy-method-constructor'><span id='Ext-data-HttpProxy'>/**
+</span></span> * @class Ext.data.HttpProxy
  * @extends Ext.data.DataProxy
- * <p>An implementation of {@link Ext.data.DataProxy} that processes data requests within the same
- * domain of the originating page.</p>
- * <p><b>Note</b>: this class cannot be used to retrieve data from a domain other
+ * &lt;p&gt;An implementation of {@link Ext.data.DataProxy} that processes data requests within the same
+ * domain of the originating page.&lt;/p&gt;
+ * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: this class cannot be used to retrieve data from a domain other
  * than the domain from which the running page was served. For cross-domain requests, use a
- * {@link Ext.data.ScriptTagProxy ScriptTagProxy}.</p>
- * <p>Be aware that to enable the browser to parse an XML document, the server must set
- * the Content-Type header in the HTTP response to "<tt>text/xml</tt>".</p>
+ * {@link Ext.data.ScriptTagProxy ScriptTagProxy}.&lt;/p&gt;
+ * &lt;p&gt;Be aware that to enable the browser to parse an XML document, the server must set
+ * the Content-Type header in the HTTP response to &quot;&lt;tt&gt;text/xml&lt;/tt&gt;&quot;.&lt;/p&gt;
  * @constructor
  * @param {Object} conn
  * An {@link Ext.data.Connection} object, or options parameter to {@link Ext.Ajax#request}.
- * <p>Note that if this HttpProxy is being used by a {@link Ext.data.Store Store}, then the
- * Store's call to {@link #load} will override any specified <tt>callback</tt> and <tt>params</tt>
+ * &lt;p&gt;Note that if this HttpProxy is being used by a {@link Ext.data.Store Store}, then the
+ * Store's call to {@link #load} will override any specified &lt;tt&gt;callback&lt;/tt&gt; and &lt;tt&gt;params&lt;/tt&gt;
  * options. In this case, use the Store's {@link Ext.data.Store#events events} to modify parameters,
  * or react to loading events. The Store's {@link Ext.data.Store#baseParams baseParams} may also be
- * used to pass parameters known at instantiation time.</p>
- * <p>If an options parameter is passed, the singleton {@link Ext.Ajax} object will be used to make
- * the request.</p>
+ * used to pass parameters known at instantiation time.&lt;/p&gt;
+ * &lt;p&gt;If an options parameter is passed, the singleton {@link Ext.Ajax} object will be used to make
+ * the request.&lt;/p&gt;
  */
 Ext.data.HttpProxy = function(conn){
     Ext.data.HttpProxy.superclass.constructor.call(this, conn);
 
-    <div id="prop-Ext.data.HttpProxy-conn"></div>/**
-     * The Connection object (Or options parameter to {@link Ext.Ajax#request}) which this HttpProxy
+<span id='Ext-data-HttpProxy-property-conn'>    /**
+</span>     * The Connection object (Or options parameter to {@link Ext.Ajax#request}) which this HttpProxy
      * uses to make requests to the server. Properties of this object may be changed dynamically to
      * change the way data is requested.
      * @property
@@ -61,8 +64,8 @@ Ext.data.HttpProxy = function(conn){
 };
 
 Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
-    <div id="method-Ext.data.HttpProxy-getConnection"></div>/**
-     * Return the {@link Ext.data.Connection} object being used by this Proxy.
+<span id='Ext-data-HttpProxy-method-getConnection'>    /**
+</span>     * Return the {@link Ext.data.Connection} object being used by this Proxy.
      * @return {Connection} The Connection object. This object may be used to subscribe to events on
      * a finer-grained basis than the DataProxy events.
      */
@@ -70,8 +73,8 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         return this.useAjax ? Ext.Ajax : this.conn;
     },
 
-    <div id="method-Ext.data.HttpProxy-setUrl"></div>/**
-     * Used for overriding the url used for a single request.  Designed to be called during a beforeaction event.  Calling setUrl
+<span id='Ext-data-HttpProxy-method-setUrl'>    /**
+</span>     * Used for overriding the url used for a single request.  Designed to be called during a beforeaction event.  Calling setUrl
      * will override any urls set via the api configuration parameter.  Set the optional parameter makePermanent to set the url for
      * all subsequent requests.  If not set to makePermanent, the next request will use the same url or api configuration defined
      * in the initial proxy configuration.
@@ -89,8 +92,8 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         }
     },
 
-    <div id="method-Ext.data.HttpProxy-doRequest"></div>/**
-     * HttpProxy implementation of DataProxy#doRequest
+<span id='Ext-data-HttpProxy-method-doRequest'>    /**
+</span>     * HttpProxy implementation of DataProxy#doRequest
      * @param {String} action The crud action type (create, read, update, destroy)
      * @param {Ext.data.Record/Ext.data.Record[]} rs If action is load, rs will be null
      * @param {Object} params An object containing properties which are to be used as HTTP parameters
@@ -98,12 +101,12 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
      * @param {Ext.data.DataReader} reader The Reader object which converts the data
      * object into a block of Ext.data.Records.
      * @param {Function} callback
-     * <div class="sub-desc"><p>A function to be called after the request.
-     * The <tt>callback</tt> is passed the following arguments:<ul>
-     * <li><tt>r</tt> : Ext.data.Record[] The block of Ext.data.Records.</li>
-     * <li><tt>options</tt>: Options object from the action request</li>
-     * <li><tt>success</tt>: Boolean success indicator</li></ul></p></div>
-     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
+     * &lt;div class=&quot;sub-desc&quot;&gt;&lt;p&gt;A function to be called after the request.
+     * The &lt;tt&gt;callback&lt;/tt&gt; is passed the following arguments:&lt;ul&gt;
+     * &lt;li&gt;&lt;tt&gt;r&lt;/tt&gt; : Ext.data.Record[] The block of Ext.data.Records.&lt;/li&gt;
+     * &lt;li&gt;&lt;tt&gt;options&lt;/tt&gt;: Options object from the action request&lt;/li&gt;
+     * &lt;li&gt;&lt;tt&gt;success&lt;/tt&gt;: Boolean success indicator&lt;/li&gt;&lt;/ul&gt;&lt;/p&gt;&lt;/div&gt;
+     * @param {Object} scope The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
      * @protected
      */
@@ -138,13 +141,9 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
 
             Ext.applyIf(o, this.conn);
 
-            // If a currently running request is found for this action, abort it.
-            if (this.activeRequest[action]) {
-                ////
-                // Disabled aborting activeRequest while implementing REST.  activeRequest[action] will have to become an array
-                // TODO ideas anyone?
-                //
-                //Ext.Ajax.abort(this.activeRequest[action]);
+            // If a currently running read request is found, abort it
+            if (action == Ext.data.Api.actions.read &amp;&amp; this.activeRequest[action]) {
+                Ext.Ajax.abort(this.activeRequest[action]);
             }
             this.activeRequest[action] = Ext.Ajax.request(o);
         }else{
@@ -154,8 +153,8 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         this.conn.url = null;
     },
 
-    /**
-     * Returns a callback function for a request.  Note a special case is made for the
+<span id='Ext-data-HttpProxy-method-createCallback'>    /**
+</span>     * Returns a callback function for a request.  Note a special case is made for the
      * read action vs all the others.
      * @param {String} action [create|update|delete|load]
      * @param {Ext.data.Record[]} rs The Store-recordset being acted upon
@@ -182,8 +181,8 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         };
     },
 
-    <div id="method-Ext.data.HttpProxy-onRead"></div>/**
-     * Callback for read action
+<span id='Ext-data-HttpProxy-method-onRead'>    /**
+</span>     * Callback for read action
      * @param {String} action Action name as per {@link Ext.data.Api.actions#read}.
      * @param {Object} o The request transaction object
      * @param {Object} res The server response
@@ -222,8 +221,8 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         // NOTE reader.readResponse does not currently return Ext.data.Response
         o.request.callback.call(o.request.scope, result, o.request.arg, result.success);
     },
-    <div id="method-Ext.data.HttpProxy-onWrite"></div>/**
-     * Callback for write actions
+<span id='Ext-data-HttpProxy-method-onWrite'>    /**
+</span>     * Callback for write actions
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
      * @param {Object} res The server response
@@ -266,6 +265,6 @@ Ext.extend(Ext.data.HttpProxy, Ext.data.DataProxy, {
         }
         Ext.data.HttpProxy.superclass.destroy.call(this);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

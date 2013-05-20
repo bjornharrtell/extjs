@@ -1,27 +1,30 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.grid.PivotAxis"></div>/**
- * @class Ext.grid.PivotAxis
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-PivotAxis'>/**
+</span> * @class Ext.grid.PivotAxis
  * @extends Ext.Component
- * <p>PivotAxis is a class that supports a {@link Ext.grid.PivotGrid}. Each PivotGrid contains two PivotAxis instances - the left
+ * &lt;p&gt;PivotAxis is a class that supports a {@link Ext.grid.PivotGrid}. Each PivotGrid contains two PivotAxis instances - the left
  * axis and the top axis. Each PivotAxis defines an ordered set of dimensions, each of which should correspond to a field in a
- * Store's Record (see {@link Ext.grid.PivotGrid} documentation for further explanation).</p>
- * <p>Developers should have little interaction with the PivotAxis instances directly as most of their management is performed by
+ * Store's Record (see {@link Ext.grid.PivotGrid} documentation for further explanation).&lt;/p&gt;
+ * &lt;p&gt;Developers should have little interaction with the PivotAxis instances directly as most of their management is performed by
  * the PivotGrid. An exception is the dynamic reconfiguration of axes at run time - to achieve this we use PivotAxis's 
- * {@link #setDimensions} function and refresh the grid:</p>
-<pre><code>
+ * {@link #setDimensions} function and refresh the grid:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;
 var pivotGrid = new Ext.grid.PivotGrid({
     //some PivotGrid config here
 });
@@ -41,39 +44,39 @@ pivotGrid.leftAxis.setDimensions([
 ]);
 
 pivotGrid.view.refresh(true);
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  * This clears the previous dimensions on the axis and redraws the grid with the new dimensions.
  */
 Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
-    <div id="cfg-Ext.grid.PivotAxis-orientation"></div>/**
-     * @cfg {String} orientation One of 'vertical' or 'horizontal'. Defaults to horizontal
+<span id='Ext-grid-PivotAxis-cfg-orientation'>    /**
+</span>     * @cfg {String} orientation One of 'vertical' or 'horizontal'. Defaults to horizontal
      */
     orientation: 'horizontal',
     
-    <div id="cfg-Ext.grid.PivotAxis-defaultHeaderWidth"></div>/**
-     * @cfg {Number} defaultHeaderWidth The width to render each row header that does not have a width specified via 
+<span id='Ext-grid-PivotAxis-cfg-defaultHeaderWidth'>    /**
+</span>     * @cfg {Number} defaultHeaderWidth The width to render each row header that does not have a width specified via 
      {@link #getRowGroupHeaders}. Defaults to 80.
      */
     defaultHeaderWidth: 80,
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-cfg-paddingWidth'>    /**
+</span>     * @private
      * @cfg {Number} paddingWidth The amount of padding used by each cell.
      * TODO: From 4.x onwards this can be removed as it won't be needed. For now it is used to account for the differences between
      * the content box and border box measurement models
      */
     paddingWidth: 7,
     
-    <div id="method-Ext.grid.PivotAxis-setDimensions"></div>/**
-     * Updates the dimensions used by this axis
+<span id='Ext-grid-PivotAxis-method-setDimensions'>    /**
+</span>     * Updates the dimensions used by this axis
      * @param {Array} dimensions The new dimensions
      */
     setDimensions: function(dimensions) {
         this.dimensions = dimensions;
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-onRender'>    /**
+</span>     * @private
      * Builds the html table that contains the dimensions for this axis. This branches internally between vertical
      * and horizontal orientations because the table structure is slightly different in each case
      */
@@ -85,8 +88,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         this.el = Ext.DomHelper.overwrite(ct.dom, {tag: 'table', cn: rows}, true);
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-renderHorizontalRows'>    /**
+</span>     * @private
      * Specialised renderer for horizontal oriented axes
      * @return {Object} The HTML Domspec for a horizontal oriented axis
      */
@@ -96,12 +99,12 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
             rows     = [],
             cells, cols, colCount, i, j;
         
-        for (i = 0; i < rowCount; i++) {
+        for (i = 0; i &lt; rowCount; i++) {
             cells = [];
             cols  = headers[i].items;
             colCount = cols.length;
 
-            for (j = 0; j < colCount; j++) {
+            for (j = 0; j &lt; colCount; j++) {
                 cells.push({
                     tag: 'td',
                     html: cols[j].header,
@@ -118,8 +121,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         return rows;
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-renderVerticalRows'>    /**
+</span>     * @private
      * Specialised renderer for vertical oriented axes
      * @return {Object} The HTML Domspec for a vertical oriented axis
      */
@@ -130,12 +133,12 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
             rows     = [],
             rowCount, col, row, colWidth, i, j;
         
-        for (i = 0; i < colCount; i++) {
+        for (i = 0; i &lt; colCount; i++) {
             col = headers[i];
             colWidth = col.width || 80;
             rowCount = col.items.length;
             
-            for (j = 0; j < rowCount; j++) {
+            for (j = 0; j &lt; rowCount; j++) {
                 row = col.items[j];
                 
                 rowCells[row.start] = rowCells[row.start] || [];
@@ -149,7 +152,7 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         }
         
         rowCount = rowCells.length;
-        for (i = 0; i < rowCount; i++) {
+        for (i = 0; i &lt; rowCount; i++) {
             rows[i] = {
                 tag: 'tr',
                 cn : rowCells[i]
@@ -159,8 +162,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         return rows;
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-getTuples'>    /**
+</span>     * @private
      * Returns the set of all unique tuples based on the bound store and dimension definitions.
      * Internally we construct a new, temporary store to make use of the multi-sort capabilities of Store. In
      * 4.x this functionality should have been moved to MixedCollection so this step should not be needed.
@@ -177,7 +180,7 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
             length     = dimensions.length,
             i;
         
-        for (i = 0; i < length; i++) {
+        for (i = 0; i &lt; length; i++) {
             sorters.push({
                 field    : dimensions[i].dataIndex,
                 direction: dimensions[i].direction || 'ASC'
@@ -193,10 +196,10 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         
         length = records.length;
         
-        for (i = 0; i < length; i++) {
+        for (i = 0; i &lt; length; i++) {
             info = this.getRecordInfo(records[i]);
             data = info.data;
-            hash = "";
+            hash = &quot;&quot;;
             
             for (key in data) {
                 hash += data[key] + '---';
@@ -213,8 +216,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         return tuples;
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-getRecordInfo'>    /**
+</span>     * @private
      */
     getRecordInfo: function(record) {
         var dimensions = this.dimensions,
@@ -223,7 +226,7 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
             dimension, dataIndex, i;
         
         //get an object containing just the data we are interested in based on the configured dimensions
-        for (i = 0; i < length; i++) {
+        for (i = 0; i &lt; length; i++) {
             dimension = dimensions[i];
             dataIndex = dimension.dataIndex;
             
@@ -250,8 +253,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         };
     },
     
-    /**
-     * @private
+<span id='Ext-grid-PivotAxis-method-buildHeaders'>    /**
+</span>     * @private
      * Uses the calculated set of tuples to build an array of headers that can be rendered into a table using rowspan or
      * colspan. Basically this takes the set of tuples and spans any cells that run into one another, so if we had dimensions
      * of Person and Product and several tuples containing different Products for the same Person, those Products would be
@@ -267,13 +270,13 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
             headers    = [],
             tuple, rows, currentHeader, previousHeader, span, start, isLast, changed, i, j;
         
-        for (i = 0; i < colCount; i++) {
+        for (i = 0; i &lt; colCount; i++) {
             dimension = dimensions[i];
             rows  = [];
             span  = 0;
             start = 0;
             
-            for (j = 0; j < rowCount; j++) {
+            for (j = 0; j &lt; rowCount; j++) {
                 tuple  = tuples[j];
                 isLast = j == (rowCount - 1);
                 currentHeader = tuple.data[dimension.dataIndex];
@@ -284,8 +287,8 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
                  * changed (e.g. if the current dimension is Product and the previous was Person, we need to start
                  * a new cell if Product is the same but Person changed, so we check the previous dimension and tuple)
                  */
-                changed = previousHeader != undefined && previousHeader != currentHeader;
-                if (i > 0 && j > 0) {
+                changed = previousHeader != undefined &amp;&amp; previousHeader != currentHeader;
+                if (i &gt; 0 &amp;&amp; j &gt; 0) {
                     changed = changed || tuple.data[dimensions[i-1].dataIndex] != tuples[j-1].data[dimensions[i-1].dataIndex];
                 }
                 
@@ -326,6 +329,6 @@ Ext.grid.PivotAxis = Ext.extend(Ext.Component, {
         return headers;
     }
 });
-</pre>    
+</pre>
 </body>
 </html>

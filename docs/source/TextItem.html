@@ -1,39 +1,42 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.menu.TextItem"></div>/**
- * @class Ext.menu.TextItem
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-TextItem-method-constructor'><span id='Ext-menu-TextItem'>/**
+</span></span> * @class Ext.menu.TextItem
  * @extends Ext.menu.BaseItem
  * Adds a static text string to a menu, usually used as either a heading or group separator.
  * @constructor
  * Creates a new TextItem
  * @param {Object/String} config If config is a string, it is used as the text to display, otherwise it
- * is applied as a config object (and should contain a <tt>text</tt> property).
+ * is applied as a config object (and should contain a &lt;tt&gt;text&lt;/tt&gt; property).
  * @xtype menutextitem
  */
 Ext.menu.TextItem = Ext.extend(Ext.menu.BaseItem, {
-    <div id="cfg-Ext.menu.TextItem-text"></div>/**
-     * @cfg {String} text The text to display for this item (defaults to '')
+<span id='Ext-menu-TextItem-cfg-text'>    /**
+</span>     * @cfg {String} text The text to display for this item (defaults to '')
      */
-    <div id="cfg-Ext.menu.TextItem-hideOnClick"></div>/**
-     * @cfg {Boolean} hideOnClick True to hide the containing menu after this item is clicked (defaults to false)
+<span id='Ext-menu-TextItem-cfg-hideOnClick'>    /**
+</span>     * @cfg {Boolean} hideOnClick True to hide the containing menu after this item is clicked (defaults to false)
      */
     hideOnClick : false,
-    <div id="cfg-Ext.menu.TextItem-itemCls"></div>/**
-     * @cfg {String} itemCls The default CSS class to use for text items (defaults to "x-menu-text")
+<span id='Ext-menu-TextItem-cfg-itemCls'>    /**
+</span>     * @cfg {String} itemCls The default CSS class to use for text items (defaults to &quot;x-menu-text&quot;)
      */
-    itemCls : "x-menu-text",
+    itemCls : &quot;x-menu-text&quot;,
     
     constructor : function(config) {
         if (typeof config == 'string') {
@@ -44,15 +47,15 @@ Ext.menu.TextItem = Ext.extend(Ext.menu.BaseItem, {
         Ext.menu.TextItem.superclass.constructor.call(this, config);
     },
 
-    // private
-    onRender : function() {
-        var s = document.createElement("span");
+<span id='Ext-menu-TextItem-method-onRender'>    // private
+</span>    onRender : function() {
+        var s = document.createElement(&quot;span&quot;);
         s.className = this.itemCls;
         s.innerHTML = this.text;
         this.el = s;
         Ext.menu.TextItem.superclass.onRender.apply(this, arguments);
     }
 });
-Ext.reg('menutextitem', Ext.menu.TextItem);</pre>    
+Ext.reg('menutextitem', Ext.menu.TextItem);</pre>
 </body>
 </html>

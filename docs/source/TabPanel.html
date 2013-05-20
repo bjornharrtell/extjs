@@ -1,53 +1,56 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.TabPanel"></div>/**
- * @class Ext.TabPanel
- * <p>A basic tab container. TabPanels can be used exactly like a standard {@link Ext.Panel}
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-TabPanel-method-constructor'><span id='Ext-TabPanel'>/**
+</span></span> * @class Ext.TabPanel
+ * &lt;p&gt;A basic tab container. TabPanels can be used exactly like a standard {@link Ext.Panel}
  * for layout purposes, but also have special support for containing child Components
- * (<tt>{@link Ext.Container#items items}</tt>) that are managed using a
- * {@link Ext.layout.CardLayout CardLayout layout manager}, and displayed as separate tabs.</p>
+ * (&lt;tt&gt;{@link Ext.Container#items items}&lt;/tt&gt;) that are managed using a
+ * {@link Ext.layout.CardLayout CardLayout layout manager}, and displayed as separate tabs.&lt;/p&gt;
  *
- * <b>Note:</b> By default, a tab's close tool <i>destroys</i> the child tab Component
- * and all its descendants. This makes the child tab Component, and all its descendants <b>unusable</b>. To enable
- * re-use of a tab, configure the TabPanel with <b><code>{@link #autoDestroy autoDestroy: false}</code></b>.
+ * &lt;b&gt;Note:&lt;/b&gt; By default, a tab's close tool &lt;i&gt;destroys&lt;/i&gt; the child tab Component
+ * and all its descendants. This makes the child tab Component, and all its descendants &lt;b&gt;unusable&lt;/b&gt;. To enable
+ * re-use of a tab, configure the TabPanel with &lt;b&gt;&lt;code&gt;{@link #autoDestroy autoDestroy: false}&lt;/code&gt;&lt;/b&gt;.
  *
- * <p><b><u>TabPanel header/footer elements</u></b></p>
- * <p>TabPanels use their {@link Ext.Panel#header header} or {@link Ext.Panel#footer footer} element
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;TabPanel header/footer elements&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;TabPanels use their {@link Ext.Panel#header header} or {@link Ext.Panel#footer footer} element
  * (depending on the {@link #tabPosition} configuration) to accommodate the tab selector buttons.
  * This means that a TabPanel will not display any configured title, and will not display any
- * configured header {@link Ext.Panel#tools tools}.</p>
- * <p>To display a header, embed the TabPanel in a {@link Ext.Panel Panel} which uses
- * <b><tt>{@link Ext.Container#layout layout:'fit'}</tt></b>.</p>
+ * configured header {@link Ext.Panel#tools tools}.&lt;/p&gt;
+ * &lt;p&gt;To display a header, embed the TabPanel in a {@link Ext.Panel Panel} which uses
+ * &lt;b&gt;&lt;tt&gt;{@link Ext.Container#layout layout:'fit'}&lt;/tt&gt;&lt;/b&gt;.&lt;/p&gt;
  *
- * <p><b><u>Tab Events</u></b></p>
- * <p>There is no actual tab class &mdash; each tab is simply a {@link Ext.BoxComponent Component}
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Tab Events&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;There is no actual tab class &amp;mdash; each tab is simply a {@link Ext.BoxComponent Component}
  * such as a {@link Ext.Panel Panel}. However, when rendered in a TabPanel, each child Component
  * can fire additional events that only exist for tabs and are not available from other Components.
- * These events are:</p>
- * <div><ul class="mdetail-params">
- * <li><tt><b>{@link Ext.Panel#activate activate}</b></tt> : Fires when this Component becomes
- * the active tab.</li>
- * <li><tt><b>{@link Ext.Panel#deactivate deactivate}</b></tt> : Fires when the Component that
- * was the active tab becomes deactivated.</li>
- * <li><tt><b>{@link Ext.Panel#beforeclose beforeclose}</b></tt> : Fires when the user clicks on the close tool of a closeable tab.
- * May be vetoed by returning <code>false</code> from a handler.</li>
- * <li><tt><b>{@link Ext.Panel#close close}</b></tt> : Fires a closeable tab has been closed by the user.</li>
- * </ul></div>
- * <p><b><u>Creating TabPanels from Code</u></b></p>
- * <p>TabPanels can be created and rendered completely in code, as in this example:</p>
- * <pre><code>
+ * These events are:&lt;/p&gt;
+ * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.Panel#activate activate}&lt;/b&gt;&lt;/tt&gt; : Fires when this Component becomes
+ * the active tab.&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.Panel#deactivate deactivate}&lt;/b&gt;&lt;/tt&gt; : Fires when the Component that
+ * was the active tab becomes deactivated.&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.Panel#beforeclose beforeclose}&lt;/b&gt;&lt;/tt&gt; : Fires when the user clicks on the close tool of a closeable tab.
+ * May be vetoed by returning &lt;code&gt;false&lt;/code&gt; from a handler.&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.Panel#close close}&lt;/b&gt;&lt;/tt&gt; : Fires a closeable tab has been closed by the user.&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Creating TabPanels from Code&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;TabPanels can be created and rendered completely in code, as in this example:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
 var tabs = new Ext.TabPanel({
     renderTo: Ext.getBody(),
     activeTab: 0,
@@ -59,23 +62,23 @@ var tabs = new Ext.TabPanel({
         html: 'Another one'
     }]
 });
-</code></pre>
- * <p><b><u>Creating TabPanels from Existing Markup</u></b></p>
- * <p>TabPanels can also be rendered from pre-existing markup in a couple of ways.</p>
- * <div><ul class="mdetail-params">
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Creating TabPanels from Existing Markup&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;TabPanels can also be rendered from pre-existing markup in a couple of ways.&lt;/p&gt;
+ * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
  *
- * <li>Pre-Structured Markup</li>
- * <div class="sub-desc">
- * <p>A container div with one or more nested tab divs with class <tt>'x-tab'</tt> can be rendered entirely
- * from existing markup (See the {@link #autoTabs} example).</p>
- * </div>
+ * &lt;li&gt;Pre-Structured Markup&lt;/li&gt;
+ * &lt;div class=&quot;sub-desc&quot;&gt;
+ * &lt;p&gt;A container div with one or more nested tab divs with class &lt;tt&gt;'x-tab'&lt;/tt&gt; can be rendered entirely
+ * from existing markup (See the {@link #autoTabs} example).&lt;/p&gt;
+ * &lt;/div&gt;
  *
- * <li>Un-Structured Markup</li>
- * <div class="sub-desc">
- * <p>A TabPanel can also be rendered from markup that is not strictly structured by simply specifying by id
+ * &lt;li&gt;Un-Structured Markup&lt;/li&gt;
+ * &lt;div class=&quot;sub-desc&quot;&gt;
+ * &lt;p&gt;A TabPanel can also be rendered from markup that is not strictly structured by simply specifying by id
  * which elements should be the container and the tabs. Using this method tab content can be pulled from different
- * elements within the page by id regardless of page structure. For example:</p>
- * <pre><code>
+ * elements within the page by id regardless of page structure. For example:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
 var tabs = new Ext.TabPanel({
     renderTo: 'my-tabs',
     activeTab: 0,
@@ -86,16 +89,16 @@ var tabs = new Ext.TabPanel({
 });
 
 // Note that the tabs do not have to be nested within the container (although they can be)
-&lt;div id="my-tabs">&lt;/div>
-&lt;div id="tab1" class="x-hide-display">A simple tab&lt;/div>
-&lt;div id="tab2" class="x-hide-display">Another one&lt;/div>
-</code></pre>
- * Note that the tab divs in this example contain the class <tt>'x-hide-display'</tt> so that they can be rendered
- * deferred without displaying outside the tabs. You could alternately set <tt>{@link #deferredRender} = false </tt>
+&amp;lt;div id=&quot;my-tabs&quot;&gt;&amp;lt;/div&gt;
+&amp;lt;div id=&quot;tab1&quot; class=&quot;x-hide-display&quot;&gt;A simple tab&amp;lt;/div&gt;
+&amp;lt;div id=&quot;tab2&quot; class=&quot;x-hide-display&quot;&gt;Another one&amp;lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;
+ * Note that the tab divs in this example contain the class &lt;tt&gt;'x-hide-display'&lt;/tt&gt; so that they can be rendered
+ * deferred without displaying outside the tabs. You could alternately set &lt;tt&gt;{@link #deferredRender} = false &lt;/tt&gt;
  * to render all content tabs on page load.
- * </div>
+ * &lt;/div&gt;
  *
- * </ul></div>
+ * &lt;/ul&gt;&lt;/div&gt;
  *
  * @extends Ext.Panel
  * @constructor
@@ -103,104 +106,104 @@ var tabs = new Ext.TabPanel({
  * @xtype tabpanel
  */
 Ext.TabPanel = Ext.extend(Ext.Panel,  {
-    <div id="cfg-Ext.TabPanel-layoutOnTabChange"></div>/**
-     * @cfg {Boolean} layoutOnTabChange
+<span id='Ext-TabPanel-cfg-layoutOnTabChange'>    /**
+</span>     * @cfg {Boolean} layoutOnTabChange
      * Set to true to force a layout of the active tab when the tab is changed. Defaults to false.
-     * See {@link Ext.layout.CardLayout}.<code>{@link Ext.layout.CardLayout#layoutOnCardChange layoutOnCardChange}</code>.
+     * See {@link Ext.layout.CardLayout}.&lt;code&gt;{@link Ext.layout.CardLayout#layoutOnCardChange layoutOnCardChange}&lt;/code&gt;.
      */
-    <div id="cfg-Ext.TabPanel-tabCls"></div>/**
-     * @cfg {String} tabCls <b>This config option is used on <u>child Components</u> of ths TabPanel.</b> A CSS
+<span id='Ext-TabPanel-cfg-tabCls'>    /**
+</span>     * @cfg {String} tabCls &lt;b&gt;This config option is used on &lt;u&gt;child Components&lt;/u&gt; of ths TabPanel.&lt;/b&gt; A CSS
      * class name applied to the tab strip item representing the child Component, allowing special
      * styling to be applied.
      */
-    <div id="cfg-Ext.TabPanel-deferredRender"></div>/**
-     * @cfg {Boolean} deferredRender
-     * <p><tt>true</tt> by default to defer the rendering of child <tt>{@link Ext.Container#items items}</tt>
-     * to the browsers DOM until a tab is activated. <tt>false</tt> will render all contained
-     * <tt>{@link Ext.Container#items items}</tt> as soon as the {@link Ext.layout.CardLayout layout}
+<span id='Ext-TabPanel-cfg-deferredRender'>    /**
+</span>     * @cfg {Boolean} deferredRender
+     * &lt;p&gt;&lt;tt&gt;true&lt;/tt&gt; by default to defer the rendering of child &lt;tt&gt;{@link Ext.Container#items items}&lt;/tt&gt;
+     * to the browsers DOM until a tab is activated. &lt;tt&gt;false&lt;/tt&gt; will render all contained
+     * &lt;tt&gt;{@link Ext.Container#items items}&lt;/tt&gt; as soon as the {@link Ext.layout.CardLayout layout}
      * is rendered. If there is a significant amount of content or a lot of heavy controls being
-     * rendered into panels that are not displayed by default, setting this to <tt>true</tt> might
-     * improve performance.</p>
-     * <br><p>The <tt>deferredRender</tt> property is internally passed to the layout manager for
+     * rendered into panels that are not displayed by default, setting this to &lt;tt&gt;true&lt;/tt&gt; might
+     * improve performance.&lt;/p&gt;
+     * &lt;br&gt;&lt;p&gt;The &lt;tt&gt;deferredRender&lt;/tt&gt; property is internally passed to the layout manager for
      * TabPanels ({@link Ext.layout.CardLayout}) as its {@link Ext.layout.CardLayout#deferredRender}
-     * configuration value.</p>
-     * <br><p><b>Note</b>: leaving <tt>deferredRender</tt> as <tt>true</tt> means that the content
+     * configuration value.&lt;/p&gt;
+     * &lt;br&gt;&lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: leaving &lt;tt&gt;deferredRender&lt;/tt&gt; as &lt;tt&gt;true&lt;/tt&gt; means that the content
      * within an unactivated tab will not be available. For example, this means that if the TabPanel
      * is within a {@link Ext.form.FormPanel form}, then until a tab is activated, any Fields within
      * unactivated tabs will not be rendered, and will therefore not be submitted and will not be
      * available to either {@link Ext.form.BasicForm#getValues getValues} or
-     * {@link Ext.form.BasicForm#setValues setValues}.</p>
+     * {@link Ext.form.BasicForm#setValues setValues}.&lt;/p&gt;
      */
     deferredRender : true,
-    <div id="cfg-Ext.TabPanel-tabWidth"></div>/**
-     * @cfg {Number} tabWidth The initial width in pixels of each new tab (defaults to 120).
+<span id='Ext-TabPanel-cfg-tabWidth'>    /**
+</span>     * @cfg {Number} tabWidth The initial width in pixels of each new tab (defaults to 120).
      */
     tabWidth : 120,
-    <div id="cfg-Ext.TabPanel-minTabWidth"></div>/**
-     * @cfg {Number} minTabWidth The minimum width in pixels for each tab when {@link #resizeTabs} = true (defaults to 30).
+<span id='Ext-TabPanel-cfg-minTabWidth'>    /**
+</span>     * @cfg {Number} minTabWidth The minimum width in pixels for each tab when {@link #resizeTabs} = true (defaults to 30).
      */
     minTabWidth : 30,
-    <div id="cfg-Ext.TabPanel-resizeTabs"></div>/**
-     * @cfg {Boolean} resizeTabs True to automatically resize each tab so that the tabs will completely fill the
+<span id='Ext-TabPanel-cfg-resizeTabs'>    /**
+</span>     * @cfg {Boolean} resizeTabs True to automatically resize each tab so that the tabs will completely fill the
      * tab strip (defaults to false).  Setting this to true may cause specific widths that might be set per tab to
      * be overridden in order to fit them all into view (although {@link #minTabWidth} will always be honored).
      */
     resizeTabs : false,
-    <div id="cfg-Ext.TabPanel-enableTabScroll"></div>/**
-     * @cfg {Boolean} enableTabScroll True to enable scrolling to tabs that may be invisible due to overflowing the
+<span id='Ext-TabPanel-cfg-enableTabScroll'>    /**
+</span>     * @cfg {Boolean} enableTabScroll True to enable scrolling to tabs that may be invisible due to overflowing the
      * overall TabPanel width. Only available with tabPosition:'top' (defaults to false).
      */
     enableTabScroll : false,
-    <div id="cfg-Ext.TabPanel-scrollIncrement"></div>/**
-     * @cfg {Number} scrollIncrement The number of pixels to scroll each time a tab scroll button is pressed
-     * (defaults to <tt>100</tt>, or if <tt>{@link #resizeTabs} = true</tt>, the calculated tab width).  Only
-     * applies when <tt>{@link #enableTabScroll} = true</tt>.
+<span id='Ext-TabPanel-cfg-scrollIncrement'>    /**
+</span>     * @cfg {Number} scrollIncrement The number of pixels to scroll each time a tab scroll button is pressed
+     * (defaults to &lt;tt&gt;100&lt;/tt&gt;, or if &lt;tt&gt;{@link #resizeTabs} = true&lt;/tt&gt;, the calculated tab width).  Only
+     * applies when &lt;tt&gt;{@link #enableTabScroll} = true&lt;/tt&gt;.
      */
     scrollIncrement : 0,
-    <div id="cfg-Ext.TabPanel-scrollRepeatInterval"></div>/**
-     * @cfg {Number} scrollRepeatInterval Number of milliseconds between each scroll while a tab scroll button is
-     * continuously pressed (defaults to <tt>400</tt>).
+<span id='Ext-TabPanel-cfg-scrollRepeatInterval'>    /**
+</span>     * @cfg {Number} scrollRepeatInterval Number of milliseconds between each scroll while a tab scroll button is
+     * continuously pressed (defaults to &lt;tt&gt;400&lt;/tt&gt;).
      */
     scrollRepeatInterval : 400,
-    <div id="cfg-Ext.TabPanel-scrollDuration"></div>/**
-     * @cfg {Float} scrollDuration The number of milliseconds that each scroll animation should last (defaults
-     * to <tt>.35</tt>). Only applies when <tt>{@link #animScroll} = true</tt>.
+<span id='Ext-TabPanel-cfg-scrollDuration'>    /**
+</span>     * @cfg {Float} scrollDuration The number of milliseconds that each scroll animation should last (defaults
+     * to &lt;tt&gt;.35&lt;/tt&gt;). Only applies when &lt;tt&gt;{@link #animScroll} = true&lt;/tt&gt;.
      */
     scrollDuration : 0.35,
-    <div id="cfg-Ext.TabPanel-animScroll"></div>/**
-     * @cfg {Boolean} animScroll True to animate tab scrolling so that hidden tabs slide smoothly into view (defaults
-     * to <tt>true</tt>).  Only applies when <tt>{@link #enableTabScroll} = true</tt>.
+<span id='Ext-TabPanel-cfg-animScroll'>    /**
+</span>     * @cfg {Boolean} animScroll True to animate tab scrolling so that hidden tabs slide smoothly into view (defaults
+     * to &lt;tt&gt;true&lt;/tt&gt;).  Only applies when &lt;tt&gt;{@link #enableTabScroll} = true&lt;/tt&gt;.
      */
     animScroll : true,
-    <div id="cfg-Ext.TabPanel-tabPosition"></div>/**
-     * @cfg {String} tabPosition The position where the tab strip should be rendered (defaults to <tt>'top'</tt>).
-     * The only other supported value is <tt>'bottom'</tt>.  <b>Note</b>: tab scrolling is only supported for
-     * <tt>tabPosition: 'top'</tt>.
+<span id='Ext-TabPanel-cfg-tabPosition'>    /**
+</span>     * @cfg {String} tabPosition The position where the tab strip should be rendered (defaults to &lt;tt&gt;'top'&lt;/tt&gt;).
+     * The only other supported value is &lt;tt&gt;'bottom'&lt;/tt&gt;.  &lt;b&gt;Note&lt;/b&gt;: tab scrolling is only supported for
+     * &lt;tt&gt;tabPosition: 'top'&lt;/tt&gt;.
      */
     tabPosition : 'top',
-    <div id="cfg-Ext.TabPanel-baseCls"></div>/**
-     * @cfg {String} baseCls The base CSS class applied to the panel (defaults to <tt>'x-tab-panel'</tt>).
+<span id='Ext-TabPanel-cfg-baseCls'>    /**
+</span>     * @cfg {String} baseCls The base CSS class applied to the panel (defaults to &lt;tt&gt;'x-tab-panel'&lt;/tt&gt;).
      */
     baseCls : 'x-tab-panel',
-    <div id="cfg-Ext.TabPanel-autoTabs"></div>/**
-     * @cfg {Boolean} autoTabs
-     * <p><tt>true</tt> to query the DOM for any divs with a class of 'x-tab' to be automatically converted
-     * to tabs and added to this panel (defaults to <tt>false</tt>).  Note that the query will be executed within
+<span id='Ext-TabPanel-cfg-autoTabs'>    /**
+</span>     * @cfg {Boolean} autoTabs
+     * &lt;p&gt;&lt;tt&gt;true&lt;/tt&gt; to query the DOM for any divs with a class of 'x-tab' to be automatically converted
+     * to tabs and added to this panel (defaults to &lt;tt&gt;false&lt;/tt&gt;).  Note that the query will be executed within
      * the scope of the container element only (so that multiple tab panels from markup can be supported via this
-     * method).</p>
-     * <p>This method is only possible when the markup is structured correctly as a container with nested divs
-     * containing the class <tt>'x-tab'</tt>. To create TabPanels without these limitations, or to pull tab content
-     * from other elements on the page, see the example at the top of the class for generating tabs from markup.</p>
-     * <p>There are a couple of things to note when using this method:<ul>
-     * <li>When using the <tt>autoTabs</tt> config (as opposed to passing individual tab configs in the TabPanel's
-     * {@link #items} collection), you must use <tt>{@link #applyTo}</tt> to correctly use the specified <tt>id</tt>
-     * as the tab container. The <tt>autoTabs</tt> method <em>replaces</em> existing content with the TabPanel
-     * components.</li>
-     * <li>Make sure that you set <tt>{@link #deferredRender}: false</tt> so that the content elements for each
+     * method).&lt;/p&gt;
+     * &lt;p&gt;This method is only possible when the markup is structured correctly as a container with nested divs
+     * containing the class &lt;tt&gt;'x-tab'&lt;/tt&gt;. To create TabPanels without these limitations, or to pull tab content
+     * from other elements on the page, see the example at the top of the class for generating tabs from markup.&lt;/p&gt;
+     * &lt;p&gt;There are a couple of things to note when using this method:&lt;ul&gt;
+     * &lt;li&gt;When using the &lt;tt&gt;autoTabs&lt;/tt&gt; config (as opposed to passing individual tab configs in the TabPanel's
+     * {@link #items} collection), you must use &lt;tt&gt;{@link #applyTo}&lt;/tt&gt; to correctly use the specified &lt;tt&gt;id&lt;/tt&gt;
+     * as the tab container. The &lt;tt&gt;autoTabs&lt;/tt&gt; method &lt;em&gt;replaces&lt;/em&gt; existing content with the TabPanel
+     * components.&lt;/li&gt;
+     * &lt;li&gt;Make sure that you set &lt;tt&gt;{@link #deferredRender}: false&lt;/tt&gt; so that the content elements for each
      * tab will be rendered into the TabPanel immediately upon page load, otherwise they will not be transformed
-     * until each tab is activated and will be visible outside the TabPanel.</li>
-     * </ul>Example usage:</p>
-     * <pre><code>
+     * until each tab is activated and will be visible outside the TabPanel.&lt;/li&gt;
+     * &lt;/ul&gt;Example usage:&lt;/p&gt;
+     * &lt;pre&gt;&lt;code&gt;
 var tabs = new Ext.TabPanel({
     applyTo: 'my-tabs',
     activeTab: 0,
@@ -209,80 +212,80 @@ var tabs = new Ext.TabPanel({
 });
 
 // This markup will be converted to a TabPanel from the code above
-&lt;div id="my-tabs">
-    &lt;div class="x-tab" title="Tab 1">A simple tab&lt;/div>
-    &lt;div class="x-tab" title="Tab 2">Another one&lt;/div>
-&lt;/div>
-</code></pre>
+&amp;lt;div id=&quot;my-tabs&quot;&gt;
+    &amp;lt;div class=&quot;x-tab&quot; title=&quot;Tab 1&quot;&gt;A simple tab&amp;lt;/div&gt;
+    &amp;lt;div class=&quot;x-tab&quot; title=&quot;Tab 2&quot;&gt;Another one&amp;lt;/div&gt;
+&amp;lt;/div&gt;
+&lt;/code&gt;&lt;/pre&gt;
      */
     autoTabs : false,
-    <div id="cfg-Ext.TabPanel-autoTabSelector"></div>/**
-     * @cfg {String} autoTabSelector The CSS selector used to search for tabs in existing markup when
-     * <tt>{@link #autoTabs} = true</tt> (defaults to <tt>'div.x-tab'</tt>).  This can be any valid selector
+<span id='Ext-TabPanel-cfg-autoTabSelector'>    /**
+</span>     * @cfg {String} autoTabSelector The CSS selector used to search for tabs in existing markup when
+     * &lt;tt&gt;{@link #autoTabs} = true&lt;/tt&gt; (defaults to &lt;tt&gt;'div.x-tab'&lt;/tt&gt;).  This can be any valid selector
      * supported by {@link Ext.DomQuery#select}. Note that the query will be executed within the scope of this
      * tab panel only (so that multiple tab panels from markup can be supported on a page).
      */
     autoTabSelector : 'div.x-tab',
-    <div id="cfg-Ext.TabPanel-activeTab"></div>/**
-     * @cfg {String/Number} activeTab A string id or the numeric index of the tab that should be initially
+<span id='Ext-TabPanel-cfg-activeTab'>    /**
+</span>     * @cfg {String/Number} activeTab A string id or the numeric index of the tab that should be initially
      * activated on render (defaults to undefined).
      */
     activeTab : undefined,
-    <div id="cfg-Ext.TabPanel-tabMargin"></div>/**
-     * @cfg {Number} tabMargin The number of pixels of space to calculate into the sizing and scrolling of
+<span id='Ext-TabPanel-cfg-tabMargin'>    /**
+</span>     * @cfg {Number} tabMargin The number of pixels of space to calculate into the sizing and scrolling of
      * tabs. If you change the margin in CSS, you will need to update this value so calculations are correct
-     * with either <tt>{@link #resizeTabs}</tt> or scrolling tabs. (defaults to <tt>2</tt>)
+     * with either &lt;tt&gt;{@link #resizeTabs}&lt;/tt&gt; or scrolling tabs. (defaults to &lt;tt&gt;2&lt;/tt&gt;)
      */
     tabMargin : 2,
-    <div id="cfg-Ext.TabPanel-plain"></div>/**
-     * @cfg {Boolean} plain </tt>true</tt> to render the tab strip without a background container image
-     * (defaults to <tt>false</tt>).
+<span id='Ext-TabPanel-cfg-plain'>    /**
+</span>     * @cfg {Boolean} plain &lt;/tt&gt;true&lt;/tt&gt; to render the tab strip without a background container image
+     * (defaults to &lt;tt&gt;false&lt;/tt&gt;).
      */
     plain : false,
-    <div id="cfg-Ext.TabPanel-wheelIncrement"></div>/**
-     * @cfg {Number} wheelIncrement For scrolling tabs, the number of pixels to increment on mouse wheel
-     * scrolling (defaults to <tt>20</tt>).
+<span id='Ext-TabPanel-cfg-wheelIncrement'>    /**
+</span>     * @cfg {Number} wheelIncrement For scrolling tabs, the number of pixels to increment on mouse wheel
+     * scrolling (defaults to &lt;tt&gt;20&lt;/tt&gt;).
      */
     wheelIncrement : 20,
 
-    /*
-     * This is a protected property used when concatenating tab ids to the TabPanel id for internal uniqueness.
+<span id='Ext-TabPanel-property-idDelimiter'>    /*
+</span>     * This is a protected property used when concatenating tab ids to the TabPanel id for internal uniqueness.
      * It does not generally need to be changed, but can be if external code also uses an id scheme that can
      * potentially clash with this one.
      */
     idDelimiter : '__',
 
-    // private
-    itemCls : 'x-tab-item',
+<span id='Ext-TabPanel-cfg-itemCls'>    // private
+</span>    itemCls : 'x-tab-item',
 
-    // private config overrides
-    elements : 'body',
-    headerAsText : false,
-    frame : false,
-    hideBorders :true,
-
-    // private
-    initComponent : function(){
+<span id='Ext-TabPanel-cfg-elements'>    // private config overrides
+</span>    elements : 'body',
+<span id='Ext-TabPanel-cfg-headerAsText'>    headerAsText : false,
+</span><span id='Ext-TabPanel-cfg-frame'>    frame : false,
+</span><span id='Ext-TabPanel-cfg-hideBorders'>    hideBorders :true,
+</span>
+<span id='Ext-TabPanel-method-initComponent'>    // private
+</span>    initComponent : function(){
         this.frame = false;
         Ext.TabPanel.superclass.initComponent.call(this);
         this.addEvents(
-            <div id="event-Ext.TabPanel-beforetabchange"></div>/**
-             * @event beforetabchange
-             * Fires before the active tab changes. Handlers can <tt>return false</tt> to cancel the tab change.
+<span id='Ext-TabPanel-event-beforetabchange'>            /**
+</span>             * @event beforetabchange
+             * Fires before the active tab changes. Handlers can &lt;tt&gt;return false&lt;/tt&gt; to cancel the tab change.
              * @param {TabPanel} this
              * @param {Panel} newTab The tab being activated
              * @param {Panel} currentTab The current active tab
              */
             'beforetabchange',
-            <div id="event-Ext.TabPanel-tabchange"></div>/**
-             * @event tabchange
+<span id='Ext-TabPanel-event-tabchange'>            /**
+</span>             * @event tabchange
              * Fires after the active tab has changed.
              * @param {TabPanel} this
              * @param {Panel} tab The new active tab
              */
             'tabchange',
-            <div id="event-Ext.TabPanel-contextmenu"></div>/**
-             * @event contextmenu
+<span id='Ext-TabPanel-event-contextmenu'>            /**
+</span>             * @event contextmenu
              * Relays the contextmenu event from a tab selector element in the tab strip.
              * @param {TabPanel} this
              * @param {Panel} tab The target tab
@@ -290,11 +293,11 @@ var tabs = new Ext.TabPanel({
              */
             'contextmenu'
         );
-        <div id="cfg-Ext.TabPanel-layoutConfig"></div>/**
-         * @cfg {Object} layoutConfig
+<span id='Ext-TabPanel-cfg-layoutConfig'>        /**
+</span>         * @cfg {Object} layoutConfig
          * TabPanel implicitly uses {@link Ext.layout.CardLayout} as its layout manager.
-         * <code>layoutConfig</code> may be used to configure this layout manager.
-         * <code>{@link #deferredRender}</code> and <code>{@link #layoutOnTabChange}</code>
+         * &lt;code&gt;layoutConfig&lt;/code&gt; may be used to configure this layout manager.
+         * &lt;code&gt;{@link #deferredRender}&lt;/code&gt; and &lt;code&gt;{@link #layoutOnTabChange}&lt;/code&gt;
          * configured on the TabPanel will be applied as configs to the layout manager.
          */
         this.setLayout(new Ext.layout.CardLayout(Ext.apply({
@@ -315,8 +318,8 @@ var tabs = new Ext.TabPanel({
         this.initItems();
     },
 
-    // private
-    onRender : function(ct, position){
+<span id='Ext-TabPanel-method-onRender'>    // private
+</span>    onRender : function(ct, position){
         Ext.TabPanel.superclass.onRender.call(this, ct, position);
 
         if(this.plain){
@@ -334,25 +337,25 @@ var tabs = new Ext.TabPanel({
         this.strip = new Ext.Element(this.stripWrap.dom.firstChild);
 
         // create an empty span with class x-tab-strip-text to force the height of the header element when there's no tabs.
-        this.edge = this.strip.createChild({tag:'li', cls:'x-tab-edge', cn: [{tag: 'span', cls: 'x-tab-strip-text', cn: '&#160;'}]});
+        this.edge = this.strip.createChild({tag:'li', cls:'x-tab-edge', cn: [{tag: 'span', cls: 'x-tab-strip-text', cn: '&amp;#160;'}]});
         this.strip.createChild({cls:'x-clear'});
 
         this.body.addClass('x-tab-panel-body-'+this.tabPosition);
 
-        <div id="cfg-Ext.TabPanel-itemTpl"></div>/**
-         * @cfg {Template/XTemplate} itemTpl <p>(Optional) A {@link Ext.Template Template} or
+<span id='Ext-TabPanel-cfg-itemTpl'>        /**
+</span>         * @cfg {Template/XTemplate} itemTpl &lt;p&gt;(Optional) A {@link Ext.Template Template} or
          * {@link Ext.XTemplate XTemplate} which may be provided to process the data object returned from
-         * <tt>{@link #getTemplateArgs}</tt> to produce a clickable selector element in the tab strip.</p>
-         * <p>The main element created should be a <tt>&lt;li></tt> element. In order for a click event on
-         * a selector element to be connected to its item, it must take its <i>id</i> from the TabPanel's
-         * native <tt>{@link #getTemplateArgs}</tt>.</p>
-         * <p>The child element which contains the title text must be marked by the CSS class
-         * <tt>x-tab-strip-inner</tt>.</p>
-         * <p>To enable closability, the created element should contain an element marked by the CSS class
-         * <tt>x-tab-strip-close</tt>.</p>
-         * <p>If a custom <tt>itemTpl</tt> is supplied, it is the developer's responsibility to create CSS
-         * style rules to create the desired appearance.</p>
-         * Below is an example of how to create customized tab selector items:<pre><code>
+         * &lt;tt&gt;{@link #getTemplateArgs}&lt;/tt&gt; to produce a clickable selector element in the tab strip.&lt;/p&gt;
+         * &lt;p&gt;The main element created should be a &lt;tt&gt;&amp;lt;li&gt;&lt;/tt&gt; element. In order for a click event on
+         * a selector element to be connected to its item, it must take its &lt;i&gt;id&lt;/i&gt; from the TabPanel's
+         * native &lt;tt&gt;{@link #getTemplateArgs}&lt;/tt&gt;.&lt;/p&gt;
+         * &lt;p&gt;The child element which contains the title text must be marked by the CSS class
+         * &lt;tt&gt;x-tab-strip-inner&lt;/tt&gt;.&lt;/p&gt;
+         * &lt;p&gt;To enable closability, the created element should contain an element marked by the CSS class
+         * &lt;tt&gt;x-tab-strip-close&lt;/tt&gt;.&lt;/p&gt;
+         * &lt;p&gt;If a custom &lt;tt&gt;itemTpl&lt;/tt&gt; is supplied, it is the developer's responsibility to create CSS
+         * style rules to create the desired appearance.&lt;/p&gt;
+         * Below is an example of how to create customized tab selector items:&lt;pre&gt;&lt;code&gt;
 new Ext.TabPanel({
     renderTo: document.body,
     minTabWidth: 115,
@@ -362,19 +365,19 @@ new Ext.TabPanel({
     height: 250,
     defaults: {autoScroll:true},
     itemTpl: new Ext.XTemplate(
-    '&lt;li class="{cls}" id="{id}" style="overflow:hidden">',
-         '&lt;tpl if="closable">',
-            '&lt;a class="x-tab-strip-close">&lt;/a>',
-         '&lt;/tpl>',
-         '&lt;a class="x-tab-right" href="#" style="padding-left:6px">',
-            '&lt;em class="x-tab-left">',
-                '&lt;span class="x-tab-strip-inner">',
-                    '&lt;img src="{src}" style="float:left;margin:3px 3px 0 0">',
-                    '&lt;span style="margin-left:20px" class="x-tab-strip-text {iconCls}">{text} {extra}&lt;/span>',
-                '&lt;/span>',
-            '&lt;/em>',
-        '&lt;/a>',
-    '&lt;/li>'
+    '&amp;lt;li class=&quot;{cls}&quot; id=&quot;{id}&quot; style=&quot;overflow:hidden&quot;&gt;',
+         '&amp;lt;tpl if=&quot;closable&quot;&gt;',
+            '&amp;lt;a class=&quot;x-tab-strip-close&quot;&gt;&amp;lt;/a&gt;',
+         '&amp;lt;/tpl&gt;',
+         '&amp;lt;a class=&quot;x-tab-right&quot; href=&quot;#&quot; style=&quot;padding-left:6px&quot;&gt;',
+            '&amp;lt;em class=&quot;x-tab-left&quot;&gt;',
+                '&amp;lt;span class=&quot;x-tab-strip-inner&quot;&gt;',
+                    '&amp;lt;img src=&quot;{src}&quot; style=&quot;float:left;margin:3px 3px 0 0&quot;&gt;',
+                    '&amp;lt;span style=&quot;margin-left:20px&quot; class=&quot;x-tab-strip-text {iconCls}&quot;&gt;{text} {extra}&amp;lt;/span&gt;',
+                '&amp;lt;/span&gt;',
+            '&amp;lt;/em&gt;',
+        '&amp;lt;/a&gt;',
+    '&amp;lt;/li&gt;'
     ),
     getTemplateArgs: function(item) {
 //      Call the native method to collect the base data. Like the ID!
@@ -399,14 +402,14 @@ new Ext.TabPanel({
         extraText: 'Extra stuff in the tab button'
     }]
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
          */
         if(!this.itemTpl){
             var tt = new Ext.Template(
-                 '<li class="{cls}" id="{id}"><a class="x-tab-strip-close"></a>',
-                 '<a class="x-tab-right" href="#"><em class="x-tab-left">',
-                 '<span class="x-tab-strip-inner"><span class="x-tab-strip-text {iconCls}">{text}</span></span>',
-                 '</em></a></li>'
+                 '&lt;li class=&quot;{cls}&quot; id=&quot;{id}&quot;&gt;&lt;a class=&quot;x-tab-strip-close&quot;&gt;&lt;/a&gt;',
+                 '&lt;a class=&quot;x-tab-right&quot; href=&quot;#&quot;&gt;&lt;em class=&quot;x-tab-left&quot;&gt;',
+                 '&lt;span class=&quot;x-tab-strip-inner&quot;&gt;&lt;span class=&quot;x-tab-strip-text {iconCls}&quot;&gt;{text}&lt;/span&gt;&lt;/span&gt;',
+                 '&lt;/em&gt;&lt;/a&gt;&lt;/li&gt;'
             );
             tt.disableFormats = true;
             tt.compile();
@@ -416,8 +419,8 @@ new Ext.TabPanel({
         this.items.each(this.initTab, this);
     },
 
-    // private
-    afterRender : function(){
+<span id='Ext-TabPanel-method-afterRender'>    // private
+</span>    afterRender : function(){
         Ext.TabPanel.superclass.afterRender.call(this);
         if(this.autoTabs){
             this.readTabs(false);
@@ -429,8 +432,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    initEvents : function(){
+<span id='Ext-TabPanel-method-initEvents'>    // private
+</span>    initEvents : function(){
         Ext.TabPanel.superclass.initEvents.call(this);
         this.mon(this.strip, {
             scope: this,
@@ -442,8 +445,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    findTargets : function(e){
+<span id='Ext-TabPanel-method-findTargets'>    // private
+</span>    findTargets : function(e){
         var item = null,
             itemEl = e.getTarget('li:not(.x-tab-edge)', this.strip);
 
@@ -464,8 +467,8 @@ new Ext.TabPanel({
         };
     },
 
-    // private
-    onStripMouseDown : function(e){
+<span id='Ext-TabPanel-method-onStripMouseDown'>    // private
+</span>    onStripMouseDown : function(e){
         if(e.button !== 0){
             return;
         }
@@ -478,13 +481,13 @@ new Ext.TabPanel({
             }
             return;
         }
-        if(t.item && t.item != this.activeTab){
+        if(t.item &amp;&amp; t.item != this.activeTab){
             this.setActiveTab(t.item);
         }
     },
 
-    // private
-    onStripContextMenu : function(e){
+<span id='Ext-TabPanel-method-onStripContextMenu'>    // private
+</span>    onStripContextMenu : function(e){
         e.preventDefault();
         var t = this.findTargets(e);
         if(t.item){
@@ -492,9 +495,9 @@ new Ext.TabPanel({
         }
     },
 
-    <div id="method-Ext.TabPanel-readTabs"></div>/**
-     * True to scan the markup in this tab panel for <tt>{@link #autoTabs}</tt> using the
-     * <tt>{@link #autoTabSelector}</tt>
+<span id='Ext-TabPanel-method-readTabs'>    /**
+</span>     * True to scan the markup in this tab panel for &lt;tt&gt;{@link #autoTabs}&lt;/tt&gt; using the
+     * &lt;tt&gt;{@link #autoTabSelector}&lt;/tt&gt;
      * @param {Boolean} removeExisting True to remove existing tabs
      */
     readTabs : function(removeExisting){
@@ -504,7 +507,7 @@ new Ext.TabPanel({
             }, this);
         }
         var tabs = this.el.query(this.autoTabSelector);
-        for(var i = 0, len = tabs.length; i < len; i++){
+        for(var i = 0, len = tabs.length; i &lt; len; i++){
             var tab = tabs[i],
                 title = tab.getAttribute('title');
             tab.removeAttribute('title');
@@ -515,8 +518,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    initTab : function(item, index){
+<span id='Ext-TabPanel-method-initTab'>    // private
+</span>    initTab : function(item, index){
         var before = this.strip.dom.childNodes[index],
             p = this.getTemplateArgs(item),
             el = before ?
@@ -557,16 +560,16 @@ new Ext.TabPanel({
 
 
 
-    <div id="method-Ext.TabPanel-getTemplateArgs"></div>/**
-     * <p>Provides template arguments for rendering a tab selector item in the tab strip.</p>
-     * <p>This method returns an object hash containing properties used by the TabPanel's <tt>{@link #itemTpl}</tt>
+<span id='Ext-TabPanel-method-getTemplateArgs'>    /**
+</span>     * &lt;p&gt;Provides template arguments for rendering a tab selector item in the tab strip.&lt;/p&gt;
+     * &lt;p&gt;This method returns an object hash containing properties used by the TabPanel's &lt;tt&gt;{@link #itemTpl}&lt;/tt&gt;
      * to create a formatted, clickable tab selector element. The properties which must be returned
-     * are:</p><div class="mdetail-params"><ul>
-     * <li><b>id</b> : String<div class="sub-desc">A unique identifier which links to the item</div></li>
-     * <li><b>text</b> : String<div class="sub-desc">The text to display</div></li>
-     * <li><b>cls</b> : String<div class="sub-desc">The CSS class name</div></li>
-     * <li><b>iconCls</b> : String<div class="sub-desc">A CSS class to provide appearance for an icon.</div></li>
-     * </ul></div>
+     * are:&lt;/p&gt;&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;id&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;A unique identifier which links to the item&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;text&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The text to display&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;cls&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The CSS class name&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;iconCls&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;A CSS class to provide appearance for an icon.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      * @param {Ext.BoxComponent} item The {@link Ext.BoxComponent BoxComponent} for which to create a selector element in the tab strip.
      * @return {Object} An object hash containing the properties required to render the selector element.
      */
@@ -590,8 +593,8 @@ new Ext.TabPanel({
         };
     },
 
-    // private
-    onAdd : function(c){
+<span id='Ext-TabPanel-method-onAdd'>    // private
+</span>    onAdd : function(c){
         Ext.TabPanel.superclass.onAdd.call(this, c);
         if(this.rendered){
             var items = this.items;
@@ -600,8 +603,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    onBeforeAdd : function(item){
+<span id='Ext-TabPanel-method-onBeforeAdd'>    // private
+</span>    onBeforeAdd : function(item){
         var existing = item.events ? (this.items.containsKey(item.getItemId()) ? item : null) : this.items.get(item);
         if(existing){
             this.setActiveTab(item);
@@ -613,8 +616,8 @@ new Ext.TabPanel({
         item.border = (item.border === true);
     },
 
-    // private
-    onRemove : function(c){
+<span id='Ext-TabPanel-method-onRemove'>    // private
+</span>    onRemove : function(c){
         var te = Ext.get(c.tabEl);
         // check if the tabEl exists, it won't if the tab isn't rendered
         if(te){
@@ -633,7 +636,7 @@ new Ext.TabPanel({
             var next = this.stack.next();
             if(next){
                 this.setActiveTab(next);
-            }else if(this.items.getCount() > 0){
+            }else if(this.items.getCount() &gt; 0){
                 this.setActiveTab(0);
             }else{
                 this.setActiveTab(null);
@@ -644,16 +647,16 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    onBeforeShowItem : function(item){
+<span id='Ext-TabPanel-method-onBeforeShowItem'>    // private
+</span>    onBeforeShowItem : function(item){
         if(item != this.activeTab){
             this.setActiveTab(item);
             return false;
         }
     },
 
-    // private
-    onItemDisabled : function(item){
+<span id='Ext-TabPanel-method-onItemDisabled'>    // private
+</span>    onItemDisabled : function(item){
         var el = this.getTabEl(item);
         if(el){
             Ext.fly(el).addClass('x-item-disabled');
@@ -661,34 +664,36 @@ new Ext.TabPanel({
         this.stack.remove(item);
     },
 
-    // private
-    onItemEnabled : function(item){
+<span id='Ext-TabPanel-method-onItemEnabled'>    // private
+</span>    onItemEnabled : function(item){
         var el = this.getTabEl(item);
         if(el){
             Ext.fly(el).removeClass('x-item-disabled');
         }
     },
 
-    // private
-    onItemTitleChanged : function(item){
+<span id='Ext-TabPanel-method-onItemTitleChanged'>    // private
+</span>    onItemTitleChanged : function(item){
         var el = this.getTabEl(item);
         if(el){
             Ext.fly(el).child('span.x-tab-strip-text', true).innerHTML = item.title;
+            this.delegateUpdates();
         }
     },
 
-    //private
-    onItemIconChanged : function(item, iconCls, oldCls){
+<span id='Ext-TabPanel-method-onItemIconChanged'>    //private
+</span>    onItemIconChanged : function(item, iconCls, oldCls){
         var el = this.getTabEl(item);
         if(el){
             el = Ext.get(el);
             el.child('span.x-tab-strip-text').replaceClass(oldCls, iconCls);
             el[Ext.isEmpty(iconCls) ? 'removeClass' : 'addClass']('x-tab-with-icon');
+            this.delegateUpdates();
         }
     },
 
-    <div id="method-Ext.TabPanel-getTabEl"></div>/**
-     * Gets the DOM element for the tab strip item which activates the child panel with the specified
+<span id='Ext-TabPanel-method-getTabEl'>    /**
+</span>     * Gets the DOM element for the tab strip item which activates the child panel with the specified
      * ID. Access this to change the visual treatment of the item, for example by changing the CSS class name.
      * @param {Panel/Number/String} tab The tab component, or the tab's index, or the tabs id or itemId.
      * @return {HTMLElement} The DOM node
@@ -698,29 +703,29 @@ new Ext.TabPanel({
         return c ? c.tabEl : null;
     },
 
-    // private
-    onResize : function(){
+<span id='Ext-TabPanel-method-onResize'>    // private
+</span>    onResize : function(){
         Ext.TabPanel.superclass.onResize.apply(this, arguments);
         this.delegateUpdates();
     },
 
-    <div id="method-Ext.TabPanel-beginUpdate"></div>/**
-     * Suspends any internal calculations or scrolling while doing a bulk operation. See {@link #endUpdate}
+<span id='Ext-TabPanel-method-beginUpdate'>    /**
+</span>     * Suspends any internal calculations or scrolling while doing a bulk operation. See {@link #endUpdate}
      */
     beginUpdate : function(){
         this.suspendUpdates = true;
     },
 
-    <div id="method-Ext.TabPanel-endUpdate"></div>/**
-     * Resumes calculations and scrolling at the end of a bulk operation. See {@link #beginUpdate}
+<span id='Ext-TabPanel-method-endUpdate'>    /**
+</span>     * Resumes calculations and scrolling at the end of a bulk operation. See {@link #beginUpdate}
      */
     endUpdate : function(){
         this.suspendUpdates = false;
         this.delegateUpdates();
     },
 
-    <div id="method-Ext.TabPanel-hideTabStripItem"></div>/**
-     * Hides the tab strip item for the passed tab
+<span id='Ext-TabPanel-method-hideTabStripItem'>    /**
+</span>     * Hides the tab strip item for the passed tab
      * @param {Number/String/Panel} item The tab index, id or item
      */
     hideTabStripItem : function(item){
@@ -733,8 +738,8 @@ new Ext.TabPanel({
         this.stack.remove(item);
     },
 
-    <div id="method-Ext.TabPanel-unhideTabStripItem"></div>/**
-     * Unhides the tab strip item for the passed tab
+<span id='Ext-TabPanel-method-unhideTabStripItem'>    /**
+</span>     * Unhides the tab strip item for the passed tab
      * @param {Number/String/Panel} item The tab index, id or item
      */
     unhideTabStripItem : function(item){
@@ -746,35 +751,35 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    delegateUpdates : function(){
+<span id='Ext-TabPanel-method-delegateUpdates'>    // private
+</span>    delegateUpdates : function(){
         var rendered = this.rendered;
         if(this.suspendUpdates){
             return;
         }
-        if(this.resizeTabs && rendered){
+        if(this.resizeTabs &amp;&amp; rendered){
             this.autoSizeTabs();
         }
-        if(this.enableTabScroll && rendered){
+        if(this.enableTabScroll &amp;&amp; rendered){
             this.autoScrollTabs();
         }
     },
 
-    // private
-    autoSizeTabs : function(){
+<span id='Ext-TabPanel-method-autoSizeTabs'>    // private
+</span>    autoSizeTabs : function(){
         var count = this.items.length,
             ce = this.tabPosition != 'bottom' ? 'header' : 'footer',
             ow = this[ce].dom.offsetWidth,
             aw = this[ce].dom.clientWidth;
 
-        if(!this.resizeTabs || count < 1 || !aw){ // !aw for display:none
+        if(!this.resizeTabs || count &lt; 1 || !aw){ // !aw for display:none
             return;
         }
 
         var each = Math.max(Math.min(Math.floor((aw-4) / count) - this.tabMargin, this.tabWidth), this.minTabWidth); // -4 for float errors in IE
         this.lastTabWidth = each;
         var lis = this.strip.query('li:not(.x-tab-edge)');
-        for(var i = 0, len = lis.length; i < len; i++) {
+        for(var i = 0, len = lis.length; i &lt; len; i++) {
             var li = lis[i],
                 inner = Ext.fly(li).child('.x-tab-strip-inner', true),
                 tw = li.offsetWidth,
@@ -783,8 +788,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    adjustBodyWidth : function(w){
+<span id='Ext-TabPanel-method-adjustBodyWidth'>    // private
+</span>    adjustBodyWidth : function(w){
         if(this.header){
             this.header.setWidth(w);
         }
@@ -794,18 +799,18 @@ new Ext.TabPanel({
         return w;
     },
 
-    <div id="method-Ext.TabPanel-setActiveTab"></div>/**
-     * Sets the specified tab as the active tab. This method fires the {@link #beforetabchange} event which
-     * can <tt>return false</tt> to cancel the tab change.
+<span id='Ext-TabPanel-method-setActiveTab'>    /**
+</span>     * Sets the specified tab as the active tab. This method fires the {@link #beforetabchange} event which
+     * can &lt;tt&gt;return false&lt;/tt&gt; to cancel the tab change.
      * @param {String/Number} item
      * The id or tab Panel to activate. This parameter may be any of the following:
-     * <div><ul class="mdetail-params">
-     * <li>a <b><tt>String</tt></b> : representing the <code>{@link Ext.Component#itemId itemId}</code>
-     * or <code>{@link Ext.Component#id id}</code> of the child component </li>
-     * <li>a <b><tt>Number</tt></b> : representing the position of the child component
-     * within the <code>{@link Ext.Container#items items}</code> <b>property</b></li>
-     * </ul></div>
-     * <p>For additional information see {@link Ext.util.MixedCollection#get}.
+     * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
+     * &lt;li&gt;a &lt;b&gt;&lt;tt&gt;String&lt;/tt&gt;&lt;/b&gt; : representing the &lt;code&gt;{@link Ext.Component#itemId itemId}&lt;/code&gt;
+     * or &lt;code&gt;{@link Ext.Component#id id}&lt;/code&gt; of the child component &lt;/li&gt;
+     * &lt;li&gt;a &lt;b&gt;&lt;tt&gt;Number&lt;/tt&gt;&lt;/b&gt; : representing the position of the child component
+     * within the &lt;code&gt;{@link Ext.Container#items items}&lt;/code&gt; &lt;b&gt;property&lt;/b&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
+     * &lt;p&gt;For additional information see {@link Ext.util.MixedCollection#get}.
      */
     setActiveTab : function(item){
         item = this.getComponent(item);
@@ -840,18 +845,18 @@ new Ext.TabPanel({
         }
     },
 
-    <div id="method-Ext.TabPanel-getActiveTab"></div>/**
-     * Returns the Component which is the currently active tab. <b>Note that before the TabPanel
+<span id='Ext-TabPanel-method-getActiveTab'>    /**
+</span>     * Returns the Component which is the currently active tab. &lt;b&gt;Note that before the TabPanel
      * first activates a child Component, this method will return whatever was configured in the
-     * {@link #activeTab} config option.</b>
-     * @return {BoxComponent} The currently active child Component if one <i>is</i> active, or the {@link #activeTab} config value.
+     * {@link #activeTab} config option.&lt;/b&gt;
+     * @return {BoxComponent} The currently active child Component if one &lt;i&gt;is&lt;/i&gt; active, or the {@link #activeTab} config value.
      */
     getActiveTab : function(){
         return this.activeTab || null;
     },
 
-    <div id="method-Ext.TabPanel-getItem"></div>/**
-     * Gets the specified tab by id.
+<span id='Ext-TabPanel-method-getItem'>    /**
+</span>     * Gets the specified tab by id.
      * @param {String} id The tab id
      * @return {Panel} The tab
      */
@@ -859,8 +864,8 @@ new Ext.TabPanel({
         return this.getComponent(item);
     },
 
-    // private
-    autoScrollTabs : function(){
+<span id='Ext-TabPanel-method-autoScrollTabs'>    // private
+</span>    autoScrollTabs : function(){
         this.pos = this.tabPosition=='bottom' ? this.footer : this.header;
         var count = this.items.length,
             ow = this.pos.dom.offsetWidth,
@@ -871,10 +876,10 @@ new Ext.TabPanel({
             pos = this.getScrollPos(),
             l = this.edge.getOffsetsTo(this.stripWrap)[0] + pos;
 
-        if(!this.enableTabScroll || cw < 20){ // 20 to prevent display:none issues
+        if(!this.enableTabScroll || cw &lt; 20){ // 20 to prevent display:none issues
             return;
         }
-        if(count == 0 || l <= tw){
+        if(count == 0 || l &lt;= tw){
             // ensure the width is set if there's no tabs
             wd.scrollLeft = 0;
             wrap.setWidth(tw);
@@ -883,7 +888,7 @@ new Ext.TabPanel({
                 this.pos.removeClass('x-tab-scrolling');
                 this.scrollLeft.hide();
                 this.scrollRight.hide();
-                // See here: http://extjs.com/forum/showthread.php?t=49308&highlight=isSafari
+                // See here: http://extjs.com/forum/showthread.php?t=49308&amp;highlight=isSafari
                 if(Ext.isAir || Ext.isWebKit){
                     wd.style.marginLeft = '';
                     wd.style.marginRight = '';
@@ -892,14 +897,14 @@ new Ext.TabPanel({
         }else{
             if(!this.scrolling){
                 this.pos.addClass('x-tab-scrolling');
-                // See here: http://extjs.com/forum/showthread.php?t=49308&highlight=isSafari
+                // See here: http://extjs.com/forum/showthread.php?t=49308&amp;highlight=isSafari
                 if(Ext.isAir || Ext.isWebKit){
                     wd.style.marginLeft = '18px';
                     wd.style.marginRight = '18px';
                 }
             }
             tw -= wrap.getMargins('lr');
-            wrap.setWidth(tw > 20 ? tw : 20);
+            wrap.setWidth(tw &gt; 20 ? tw : 20);
             if(!this.scrolling){
                 if(!this.scrollLeft){
                     this.createScrollers();
@@ -909,7 +914,7 @@ new Ext.TabPanel({
                 }
             }
             this.scrolling = true;
-            if(pos > (l-tw)){ // ensure it stays within bounds
+            if(pos &gt; (l-tw)){ // ensure it stays within bounds
                 wd.scrollLeft = l-tw;
             }else{ // otherwise, make sure the active tab is still visible
                 this.scrollToTab(this.activeTab, false);
@@ -918,8 +923,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    createScrollers : function(){
+<span id='Ext-TabPanel-method-createScrollers'>    // private
+</span>    createScrollers : function(){
         this.pos.addClass('x-tab-scrolling-' + this.tabPosition);
         var h = this.stripWrap.dom.offsetHeight;
 
@@ -950,33 +955,33 @@ new Ext.TabPanel({
         this.scrollRight = sr;
     },
 
-    // private
-    getScrollWidth : function(){
+<span id='Ext-TabPanel-method-getScrollWidth'>    // private
+</span>    getScrollWidth : function(){
         return this.edge.getOffsetsTo(this.stripWrap)[0] + this.getScrollPos();
     },
 
-    // private
-    getScrollPos : function(){
+<span id='Ext-TabPanel-method-getScrollPos'>    // private
+</span>    getScrollPos : function(){
         return parseInt(this.stripWrap.dom.scrollLeft, 10) || 0;
     },
 
-    // private
-    getScrollArea : function(){
+<span id='Ext-TabPanel-method-getScrollArea'>    // private
+</span>    getScrollArea : function(){
         return parseInt(this.stripWrap.dom.clientWidth, 10) || 0;
     },
 
-    // private
-    getScrollAnim : function(){
+<span id='Ext-TabPanel-method-getScrollAnim'>    // private
+</span>    getScrollAnim : function(){
         return {duration:this.scrollDuration, callback: this.updateScrollButtons, scope: this};
     },
 
-    // private
-    getScrollIncrement : function(){
+<span id='Ext-TabPanel-method-getScrollIncrement'>    // private
+</span>    getScrollIncrement : function(){
         return this.scrollIncrement || (this.resizeTabs ? this.lastTabWidth+2 : 100);
     },
 
-    <div id="method-Ext.TabPanel-scrollToTab"></div>/**
-     * Scrolls to a particular tab if tab scrolling is enabled
+<span id='Ext-TabPanel-method-scrollToTab'>    /**
+</span>     * Scrolls to a particular tab if tab scrolling is enabled
      * @param {Panel} item The item to scroll to
      * @param {Boolean} animate True to enable animations
      */
@@ -990,23 +995,23 @@ new Ext.TabPanel({
             area = this.getScrollArea(),
             left = Ext.fly(el).getOffsetsTo(this.stripWrap)[0] + pos,
             right = left + el.offsetWidth;
-        if(left < pos){
+        if(left &lt; pos){
             this.scrollTo(left, animate);
-        }else if(right > (pos + area)){
+        }else if(right &gt; (pos + area)){
             this.scrollTo(right - area, animate);
         }
     },
 
-    // private
-    scrollTo : function(pos, animate){
+<span id='Ext-TabPanel-method-scrollTo'>    // private
+</span>    scrollTo : function(pos, animate){
         this.stripWrap.scrollTo('left', pos, animate ? this.getScrollAnim() : false);
         if(!animate){
             this.updateScrollButtons();
         }
     },
 
-    onWheel : function(e){
-        var d = e.getWheelDelta()*this.wheelIncrement*-1;
+<span id='Ext-TabPanel-method-onWheel'>    onWheel : function(e){
+</span>        var d = e.getWheelDelta()*this.wheelIncrement*-1;
         e.stopEvent();
 
         var pos = this.getScrollPos(),
@@ -1019,8 +1024,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    onScrollRight : function(){
+<span id='Ext-TabPanel-method-onScrollRight'>    // private
+</span>    onScrollRight : function(){
         var sw = this.getScrollWidth()-this.getScrollArea(),
             pos = this.getScrollPos(),
             s = Math.min(sw, pos + this.getScrollIncrement());
@@ -1029,8 +1034,8 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    onScrollLeft : function(){
+<span id='Ext-TabPanel-method-onScrollLeft'>    // private
+</span>    onScrollLeft : function(){
         var pos = this.getScrollPos(),
             s = Math.max(0, pos - this.getScrollIncrement());
         if(s != pos){
@@ -1038,75 +1043,75 @@ new Ext.TabPanel({
         }
     },
 
-    // private
-    updateScrollButtons : function(){
+<span id='Ext-TabPanel-method-updateScrollButtons'>    // private
+</span>    updateScrollButtons : function(){
         var pos = this.getScrollPos();
         this.scrollLeft[pos === 0 ? 'addClass' : 'removeClass']('x-tab-scroller-left-disabled');
-        this.scrollRight[pos >= (this.getScrollWidth()-this.getScrollArea()) ? 'addClass' : 'removeClass']('x-tab-scroller-right-disabled');
+        this.scrollRight[pos &gt;= (this.getScrollWidth()-this.getScrollArea()) ? 'addClass' : 'removeClass']('x-tab-scroller-right-disabled');
     },
 
-    // private
-    beforeDestroy : function() {
+<span id='Ext-TabPanel-method-beforeDestroy'>    // private
+</span>    beforeDestroy : function() {
         Ext.destroy(this.leftRepeater, this.rightRepeater);
         this.deleteMembers('strip', 'edge', 'scrollLeft', 'scrollRight', 'stripWrap');
         this.activeTab = null;
         Ext.TabPanel.superclass.beforeDestroy.apply(this);
     }
 
-    <div id="cfg-Ext.TabPanel-collapsible"></div>/**
-     * @cfg {Boolean} collapsible
+<span id='Ext-TabPanel-cfg-collapsible'>    /**
+</span>     * @cfg {Boolean} collapsible
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-header"></div>/**
-     * @cfg {String} header
+<span id='Ext-TabPanel-cfg-header'>    /**
+</span>     * @cfg {String} header
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-headerAsText"></div>/**
-     * @cfg {Boolean} headerAsText
+<span id='Ext-TabPanel-cfg-headerAsText'>    /**
+</span>     * @cfg {Boolean} headerAsText
      * @hide
      */
-    <div id="prop-Ext.TabPanel-header"></div>/**
-     * @property header
+<span id='Ext-TabPanel-property-header'>    /**
+</span>     * @property header
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-null"></div>/**
-     * @cfg title
+<span id='Ext-TabPanel-cfg-title'>    /**
+</span>     * @cfg title
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-tools"></div>/**
-     * @cfg {Array} tools
+<span id='Ext-TabPanel-cfg-tools'>    /**
+</span>     * @cfg {Array} tools
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-toolTemplate"></div>/**
-     * @cfg {Array} toolTemplate
+<span id='Ext-TabPanel-cfg-toolTemplate'>    /**
+</span>     * @cfg {Array} toolTemplate
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-hideCollapseTool"></div>/**
-     * @cfg {Boolean} hideCollapseTool
+<span id='Ext-TabPanel-cfg-hideCollapseTool'>    /**
+</span>     * @cfg {Boolean} hideCollapseTool
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-titleCollapse"></div>/**
-     * @cfg {Boolean} titleCollapse
+<span id='Ext-TabPanel-cfg-titleCollapse'>    /**
+</span>     * @cfg {Boolean} titleCollapse
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-collapsed"></div>/**
-     * @cfg {Boolean} collapsed
+<span id='Ext-TabPanel-cfg-collapsed'>    /**
+</span>     * @cfg {Boolean} collapsed
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-layout"></div>/**
-     * @cfg {String} layout
+<span id='Ext-TabPanel-cfg-layout'>    /**
+</span>     * @cfg {String} layout
      * @hide
      */
-    <div id="cfg-Ext.TabPanel-preventBodyReset"></div>/**
-     * @cfg {Boolean} preventBodyReset
+<span id='Ext-TabPanel-cfg-preventBodyReset'>    /**
+</span>     * @cfg {Boolean} preventBodyReset
      * @hide
      */
 });
 Ext.reg('tabpanel', Ext.TabPanel);
 
-<div id="method-Ext.TabPanel-activate"></div>/**
- * See {@link #setActiveTab}. Sets the specified tab as the active tab. This method fires
- * the {@link #beforetabchange} event which can <tt>return false</tt> to cancel the tab change.
+<span id='Ext-TabPanel-method-activate'>/**
+</span> * See {@link #setActiveTab}. Sets the specified tab as the active tab. This method fires
+ * the {@link #beforetabchange} event which can &lt;tt&gt;return false&lt;/tt&gt; to cancel the tab change.
  * @param {String/Panel} tab The id or tab Panel to activate
  * @method activate
  */
@@ -1118,14 +1123,14 @@ Ext.TabPanel.AccessStack = function(){
     return {
         add : function(item){
             items.push(item);
-            if(items.length > 10){
+            if(items.length &gt; 10){
                 items.shift();
             }
         },
 
         remove : function(item){
             var s = [];
-            for(var i = 0, len = items.length; i < len; i++) {
+            for(var i = 0, len = items.length; i &lt; len; i++) {
                 if(items[i] != item){
                     s.push(items[i]);
                 }
@@ -1138,6 +1143,6 @@ Ext.TabPanel.AccessStack = function(){
         }
     };
 };
-</pre>    
+</pre>
 </body>
 </html>

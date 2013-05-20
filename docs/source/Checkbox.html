@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.form.Checkbox"></div>/**
- * @class Ext.form.Checkbox
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-Checkbox-method-constructor'><span id='Ext-form-Checkbox'>/**
+</span></span> * @class Ext.form.Checkbox
  * @extends Ext.form.Field
  * Single checkbox field.  Can be used as a direct replacement for traditional checkbox fields.
  * @constructor
@@ -22,52 +25,52 @@
  * @xtype checkbox
  */
 Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
-    <div id="cfg-Ext.form.Checkbox-focusClass"></div>/**
-     * @cfg {String} focusClass The CSS class to use when the checkbox receives focus (defaults to undefined)
+<span id='Ext-form-Checkbox-cfg-focusClass'>    /**
+</span>     * @cfg {String} focusClass The CSS class to use when the checkbox receives focus (defaults to undefined)
      */
     focusClass : undefined,
-    <div id="cfg-Ext.form.Checkbox-fieldClass"></div>/**
-     * @cfg {String} fieldClass The default CSS class for the checkbox (defaults to 'x-form-field')
+<span id='Ext-form-Checkbox-cfg-fieldClass'>    /**
+</span>     * @cfg {String} fieldClass The default CSS class for the checkbox (defaults to 'x-form-field')
      */
     fieldClass : 'x-form-field',
-    <div id="cfg-Ext.form.Checkbox-checked"></div>/**
-     * @cfg {Boolean} checked <tt>true</tt> if the checkbox should render initially checked (defaults to <tt>false</tt>)
+<span id='Ext-form-Checkbox-cfg-checked'>    /**
+</span>     * @cfg {Boolean} checked &lt;tt&gt;true&lt;/tt&gt; if the checkbox should render initially checked (defaults to &lt;tt&gt;false&lt;/tt&gt;)
      */
     checked : false,
-    <div id="cfg-Ext.form.Checkbox-boxLabel"></div>/**
-     * @cfg {String} boxLabel The text that appears beside the checkbox
+<span id='Ext-form-Checkbox-cfg-boxLabel'>    /**
+</span>     * @cfg {String} boxLabel The text that appears beside the checkbox
      */
-    boxLabel: '&#160;',
-    <div id="cfg-Ext.form.Checkbox-autoCreate"></div>/**
-     * @cfg {String/Object} autoCreate A DomHelper element spec, or true for a default element spec (defaults to
+    boxLabel: '&amp;#160;',
+<span id='Ext-form-Checkbox-cfg-autoCreate'>    /**
+</span>     * @cfg {String/Object} autoCreate A DomHelper element spec, or true for a default element spec (defaults to
      * {tag: 'input', type: 'checkbox', autocomplete: 'off'})
      */
     defaultAutoCreate : { tag: 'input', type: 'checkbox', autocomplete: 'off'},
-    <div id="cfg-Ext.form.Checkbox-inputValue"></div>/**
-     * @cfg {String} inputValue The value that should go into the generated input element's value attribute
+<span id='Ext-form-Checkbox-cfg-inputValue'>    /**
+</span>     * @cfg {String} inputValue The value that should go into the generated input element's value attribute
      */
-    <div id="cfg-Ext.form.Checkbox-handler"></div>/**
-     * @cfg {Function} handler A function called when the {@link #checked} value changes (can be used instead of
+<span id='Ext-form-Checkbox-cfg-handler'>    /**
+</span>     * @cfg {Function} handler A function called when the {@link #checked} value changes (can be used instead of
      * handling the check event). The handler is passed the following parameters:
-     * <div class="mdetail-params"><ul>
-     * <li><b>checkbox</b> : Ext.form.Checkbox<div class="sub-desc">The Checkbox being toggled.</div></li>
-     * <li><b>checked</b> : Boolean<div class="sub-desc">The new checked state of the checkbox.</div></li>
-     * </ul></div>
+     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;checkbox&lt;/b&gt; : Ext.form.Checkbox&lt;div class=&quot;sub-desc&quot;&gt;The Checkbox being toggled.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;checked&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;The new checked state of the checkbox.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      */
-    <div id="cfg-Ext.form.Checkbox-scope"></div>/**
-     * @cfg {Object} scope An object to use as the scope ('this' reference) of the {@link #handler} function
+<span id='Ext-form-Checkbox-cfg-scope'>    /**
+</span>     * @cfg {Object} scope An object to use as the scope ('this' reference) of the {@link #handler} function
      * (defaults to this Checkbox).
      */
 
-    // private
-    actionMode : 'wrap',
+<span id='Ext-form-Checkbox-property-actionMode'>    // private
+</span>    actionMode : 'wrap',
 
-	// private
-    initComponent : function(){
+<span id='Ext-form-Checkbox-method-initComponent'>	// private
+</span>    initComponent : function(){
         Ext.form.Checkbox.superclass.initComponent.call(this);
         this.addEvents(
-            <div id="event-Ext.form.Checkbox-check"></div>/**
-             * @event check
+<span id='Ext-form-Checkbox-event-check'>            /**
+</span>             * @event check
              * Fires when the checkbox is checked or unchecked.
              * @param {Ext.form.Checkbox} this This checkbox
              * @param {Boolean} checked The new checked value
@@ -76,16 +79,16 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
         );
     },
 
-    // private
-    onResize : function(){
+<span id='Ext-form-Checkbox-method-onResize'>    // private
+</span>    onResize : function(){
         Ext.form.Checkbox.superclass.onResize.apply(this, arguments);
-        if(!this.boxLabel && !this.fieldLabel){
+        if(!this.boxLabel &amp;&amp; !this.fieldLabel){
             this.el.alignTo(this.wrap, 'c-c');
         }
     },
 
-    // private
-    initEvents : function(){
+<span id='Ext-form-Checkbox-method-initEvents'>    // private
+</span>    initEvents : function(){
         Ext.form.Checkbox.superclass.initEvents.call(this);
         this.mon(this.el, {
             scope: this,
@@ -94,21 +97,21 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
         });
     },
 
-    <div id="method-Ext.form.Checkbox-markInvalid"></div>/**
-     * @hide
+<span id='Ext-form-Checkbox-method-markInvalid'>    /**
+</span>     * @hide
      * Overridden and disabled. The editor element does not support standard valid/invalid marking.
      * @method
      */
     markInvalid : Ext.emptyFn,
-    <div id="method-Ext.form.Checkbox-clearInvalid"></div>/**
-     * @hide
+<span id='Ext-form-Checkbox-method-clearInvalid'>    /**
+</span>     * @hide
      * Overridden and disabled. The editor element does not support standard valid/invalid marking.
      * @method
      */
     clearInvalid : Ext.emptyFn,
 
-    // private
-    onRender : function(ct, position){
+<span id='Ext-form-Checkbox-method-onRender'>    // private
+</span>    onRender : function(ct, position){
         Ext.form.Checkbox.superclass.onRender.call(this, ct, position);
         if(this.inputValue !== undefined){
             this.el.dom.value = this.inputValue;
@@ -123,25 +126,25 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
             this.checked = this.el.dom.checked;
         }
         // Need to repaint for IE, otherwise positioning is broken
-        if (Ext.isIE && !Ext.isStrict) {
+        if (Ext.isIEQuirks) {
             this.wrap.repaint();
         }
         this.resizeEl = this.positionEl = this.wrap;
     },
 
-    // private
-    onDestroy : function(){
+<span id='Ext-form-Checkbox-method-onDestroy'>    // private
+</span>    onDestroy : function(){
         Ext.destroy(this.wrap);
         Ext.form.Checkbox.superclass.onDestroy.call(this);
     },
 
-    // private
-    initValue : function() {
+<span id='Ext-form-Checkbox-method-initValue'>    // private
+</span>    initValue : function() {
         this.originalValue = this.getValue();
     },
 
-    <div id="method-Ext.form.Checkbox-getValue"></div>/**
-     * Returns the checked state of the checkbox.
+<span id='Ext-form-Checkbox-method-getValue'>    /**
+</span>     * Returns the checked state of the checkbox.
      * @return {Boolean} True if checked, else false
      */
     getValue : function(){
@@ -151,18 +154,18 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
         return this.checked;
     },
 
-	// private
-    onClick : function(){
+<span id='Ext-form-Checkbox-method-onClick'>	// private
+</span>    onClick : function(){
         if(this.el.dom.checked != this.checked){
             this.setValue(this.el.dom.checked);
         }
     },
 
-    <div id="method-Ext.form.Checkbox-setValue"></div>/**
-     * Sets the checked state of the checkbox, fires the 'check' event, and calls a
-     * <code>{@link #handler}</code> (if configured).
+<span id='Ext-form-Checkbox-method-setValue'>    /**
+</span>     * Sets the checked state of the checkbox, fires the 'check' event, and calls a
+     * &lt;code&gt;{@link #handler}&lt;/code&gt; (if configured).
      * @param {Boolean/String} checked The following values will check the checkbox:
-     * <code>true, 'true', '1', or 'on'</code>. Any other value will uncheck the checkbox.
+     * &lt;code&gt;true, 'true', '1', or 'on'&lt;/code&gt;. Any other value will uncheck the checkbox.
      * @return {Ext.form.Field} this
      */
     setValue : function(v){
@@ -189,6 +192,6 @@ Ext.form.Checkbox = Ext.extend(Ext.form.Field,  {
     }
 });
 Ext.reg('checkbox', Ext.form.Checkbox);
-</pre>    
+</pre>
 </body>
 </html>

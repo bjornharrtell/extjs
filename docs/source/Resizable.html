@@ -1,26 +1,29 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Resizable"></div>/**
- * @class Ext.Resizable
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Resizable-method-constructor'><span id='Ext-Resizable'>/**
+</span></span> * @class Ext.Resizable
  * @extends Ext.util.Observable
- * <p>Applies drag handles to an element to make it resizable. The drag handles are inserted into the element
+ * &lt;p&gt;Applies drag handles to an element to make it resizable. The drag handles are inserted into the element
  * and positioned absolute. Some elements, such as a textarea or image, don't support this. To overcome that, you can wrap
- * the textarea in a div and set 'resizeChild' to true (or to the id of the element), <b>or</b> set wrap:true in your config and
- * the element will be wrapped for you automatically.</p>
- * <p>Here is the list of valid resize handles:</p>
- * <pre>
+ * the textarea in a div and set 'resizeChild' to true (or to the id of the element), &lt;b&gt;or&lt;/b&gt; set wrap:true in your config and
+ * the element will be wrapped for you automatically.&lt;/p&gt;
+ * &lt;p&gt;Here is the list of valid resize handles:&lt;/p&gt;
+ * &lt;pre&gt;
 Value   Description
 ------  -------------------
  'n'     north
@@ -32,9 +35,9 @@ Value   Description
  'se'    southeast
  'ne'    northeast
  'all'   all
-</pre>
- * <p>Here's an example showing the creation of a typical Resizable:</p>
- * <pre><code>
+&lt;/pre&gt;
+ * &lt;p&gt;Here's an example showing the creation of a typical Resizable:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
 var resizer = new Ext.Resizable('element-id', {
     handles: 'all',
     minWidth: 200,
@@ -44,9 +47,9 @@ var resizer = new Ext.Resizable('element-id', {
     pinned: true
 });
 resizer.on('resize', myHandler);
-</code></pre>
- * <p>To hide a particular handle, set its display to none in CSS, or through script:<br>
- * resizer.east.setDisplayed(false);</p>
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;To hide a particular handle, set its display to none in CSS, or through script:&lt;br&gt;
+ * resizer.east.setDisplayed(false);&lt;/p&gt;
  * @constructor
  * Create a new resizable component
  * @param {Mixed} el The id or element to resize
@@ -56,7 +59,7 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
 
     constructor: function(el, config){
         this.el = Ext.get(el);
-        if(config && config.wrap){
+        if(config &amp;&amp; config.wrap){
             config.resizeChild = this.el;
             this.el = this.el.wrap(typeof config.wrap == 'object' ? config.wrap : {cls:'xresizable-wrap'});
             this.el.id = this.el.dom.id = config.resizeChild.id + '-rzwrap';
@@ -67,16 +70,16 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
                 var csize = config.resizeChild.getSize();
                 this.el.setSize(csize.width, csize.height);
             }
-            if(config.pinned && !config.adjustments){
+            if(config.pinned &amp;&amp; !config.adjustments){
                 config.adjustments = 'auto';
             }
         }
 
-        <div id="prop-Ext.Resizable-proxy"></div>/**
-         * The proxy Element that is resized in place of the real Element during the resize operation.
+<span id='Ext-Resizable-property-proxy'>        /**
+</span>         * The proxy Element that is resized in place of the real Element during the resize operation.
          * This may be queried using {@link Ext.Element#getBox} to provide the new area to resize to.
          * Read only.
-         * @type Ext.Element.
+         * @type Ext.Element
          * @property proxy
          */
         this.proxy = this.el.createProxy({tag: 'div', cls: 'x-resizable-proxy', id: this.el.id + '-rzproxy'}, Ext.getBody());
@@ -91,7 +94,7 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
         // if the element isn't positioned, make it relative
         var position = this.el.getStyle('position');
-        if(position != 'absolute' && position != 'fixed'){
+        if(position != 'absolute' &amp;&amp; position != 'fixed'){
             this.el.setStyle('position', 'relative');
         }
         if(!this.handles){ // no handles passed, must be legacy style
@@ -105,8 +108,8 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
         var hs = this.handles.split(/\s*?[,;]\s*?| /);
         var ps = Ext.Resizable.positions;
-        for(var i = 0, len = hs.length; i < len; i++){
-            if(hs[i] && ps[hs[i]]){
+        for(var i = 0, len = hs.length; i &lt; len; i++){
+            if(hs[i] &amp;&amp; ps[hs[i]]){
                 var pos = ps[hs[i]];
                 this[pos] = new Ext.Resizable.Handle(this, pos, this.disableTrackOver, this.transparent, this.handleCls);
             }
@@ -131,7 +134,7 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         if(this.adjustments == 'auto'){
             var rc = this.resizeChild;
             var hw = this.west, he = this.east, hn = this.north, hs = this.south;
-            if(rc && (hw || hn)){
+            if(rc &amp;&amp; (hw || hn)){
                 rc.position('relative');
                 rc.setLeft(hw ? hw.el.getWidth() : 0);
                 rc.setTop(hn ? hn.el.getHeight() : 0);
@@ -152,15 +155,15 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
 
         this.addEvents(
-            <div id="event-Ext.Resizable-beforeresize"></div>/**
-             * @event beforeresize
+<span id='Ext-Resizable-event-beforeresize'>            /**
+</span>             * @event beforeresize
              * Fired before resize is allowed. Set {@link #enabled} to false to cancel resize.
              * @param {Ext.Resizable} this
              * @param {Ext.EventObject} e The mousedown event
              */
             'beforeresize',
-            <div id="event-Ext.Resizable-resize"></div>/**
-             * @event resize
+<span id='Ext-Resizable-event-resize'>            /**
+</span>             * @event resize
              * Fired after a resize.
              * @param {Ext.Resizable} this
              * @param {Number} width The new width
@@ -170,7 +173,7 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
             'resize'
         );
 
-        if(this.width !== null && this.height !== null){
+        if(this.width !== null &amp;&amp; this.height !== null){
             this.resizeTo(this.width, this.height);
         }else{
             this.updateChildSize();
@@ -181,129 +184,129 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         Ext.Resizable.superclass.constructor.call(this);
     },
 
-    <div id="cfg-Ext.Resizable-adjustments"></div>/**
-     * @cfg {Array/String} adjustments String 'auto' or an array [width, height] with values to be <b>added</b> to the
-     * resize operation's new size (defaults to <tt>[0, 0]</tt>)
+<span id='Ext-Resizable-cfg-adjustments'>    /**
+</span>     * @cfg {Array/String} adjustments String 'auto' or an array [width, height] with values to be &lt;b&gt;added&lt;/b&gt; to the
+     * resize operation's new size (defaults to &lt;tt&gt;[0, 0]&lt;/tt&gt;)
      */
     adjustments : [0, 0],
-    <div id="cfg-Ext.Resizable-animate"></div>/**
-     * @cfg {Boolean} animate True to animate the resize (not compatible with dynamic sizing, defaults to false)
+<span id='Ext-Resizable-cfg-animate'>    /**
+</span>     * @cfg {Boolean} animate True to animate the resize (not compatible with dynamic sizing, defaults to false)
      */
     animate : false,
-    <div id="cfg-Ext.Resizable-constrainTo"></div>/**
-     * @cfg {Mixed} constrainTo Constrain the resize to a particular element
+<span id='Ext-Resizable-cfg-constrainTo'>    /**
+</span>     * @cfg {Mixed} constrainTo Constrain the resize to a particular element
      */
-    <div id="cfg-Ext.Resizable-disableTrackOver"></div>/**
-     * @cfg {Boolean} disableTrackOver True to disable mouse tracking. This is only applied at config time. (defaults to false)
+<span id='Ext-Resizable-cfg-disableTrackOver'>    /**
+</span>     * @cfg {Boolean} disableTrackOver True to disable mouse tracking. This is only applied at config time. (defaults to false)
      */
     disableTrackOver : false,
-    <div id="cfg-Ext.Resizable-draggable"></div>/**
-     * @cfg {Boolean} draggable Convenience to initialize drag drop (defaults to false)
+<span id='Ext-Resizable-cfg-draggable'>    /**
+</span>     * @cfg {Boolean} draggable Convenience to initialize drag drop (defaults to false)
      */
     draggable: false,
-    <div id="cfg-Ext.Resizable-duration"></div>/**
-     * @cfg {Number} duration Animation duration if animate = true (defaults to 0.35)
+<span id='Ext-Resizable-cfg-duration'>    /**
+</span>     * @cfg {Number} duration Animation duration if animate = true (defaults to 0.35)
      */
     duration : 0.35,
-    <div id="cfg-Ext.Resizable-dynamic"></div>/**
-     * @cfg {Boolean} dynamic True to resize the element while dragging instead of using a proxy (defaults to false)
+<span id='Ext-Resizable-cfg-dynamic'>    /**
+</span>     * @cfg {Boolean} dynamic True to resize the element while dragging instead of using a proxy (defaults to false)
      */
     dynamic : false,
-    <div id="cfg-Ext.Resizable-easing"></div>/**
-     * @cfg {String} easing Animation easing if animate = true (defaults to <tt>'easingOutStrong'</tt>)
+<span id='Ext-Resizable-cfg-easing'>    /**
+</span>     * @cfg {String} easing Animation easing if animate = true (defaults to &lt;tt&gt;'easingOutStrong'&lt;/tt&gt;)
      */
     easing : 'easeOutStrong',
-    <div id="cfg-Ext.Resizable-enabled"></div>/**
-     * @cfg {Boolean} enabled False to disable resizing (defaults to true)
+<span id='Ext-Resizable-cfg-enabled'>    /**
+</span>     * @cfg {Boolean} enabled False to disable resizing (defaults to true)
      */
     enabled : true,
-    <div id="prop-Ext.Resizable-enabled"></div>/**
-     * @property enabled Writable. False if resizing is disabled.
+<span id='Ext-Resizable-property-enabled'>    /**
+</span>     * @property enabled Writable. False if resizing is disabled.
      * @type Boolean
      */
-    <div id="cfg-Ext.Resizable-handles"></div>/**
-     * @cfg {String} handles String consisting of the resize handles to display (defaults to undefined).
-     * Specify either <tt>'all'</tt> or any of <tt>'n s e w ne nw se sw'</tt>.
+<span id='Ext-Resizable-cfg-handles'>    /**
+</span>     * @cfg {String} handles String consisting of the resize handles to display (defaults to undefined).
+     * Specify either &lt;tt&gt;'all'&lt;/tt&gt; or any of &lt;tt&gt;'n s e w ne nw se sw'&lt;/tt&gt;.
      */
     handles : false,
-    <div id="cfg-Ext.Resizable-multiDirectional"></div>/**
-     * @cfg {Boolean} multiDirectional <b>Deprecated</b>.  Deprecated style of adding multi-direction resize handles.
+<span id='Ext-Resizable-cfg-multiDirectional'>    /**
+</span>     * @cfg {Boolean} multiDirectional &lt;b&gt;Deprecated&lt;/b&gt;.  Deprecated style of adding multi-direction resize handles.
      */
     multiDirectional : false,
-    <div id="cfg-Ext.Resizable-height"></div>/**
-     * @cfg {Number} height The height of the element in pixels (defaults to null)
+<span id='Ext-Resizable-cfg-height'>    /**
+</span>     * @cfg {Number} height The height of the element in pixels (defaults to null)
      */
     height : null,
-    <div id="cfg-Ext.Resizable-width"></div>/**
-     * @cfg {Number} width The width of the element in pixels (defaults to null)
+<span id='Ext-Resizable-cfg-width'>    /**
+</span>     * @cfg {Number} width The width of the element in pixels (defaults to null)
      */
     width : null,
-    <div id="cfg-Ext.Resizable-heightIncrement"></div>/**
-     * @cfg {Number} heightIncrement The increment to snap the height resize in pixels
-     * (only applies if <code>{@link #dynamic}==true</code>). Defaults to <tt>0</tt>.
+<span id='Ext-Resizable-cfg-heightIncrement'>    /**
+</span>     * @cfg {Number} heightIncrement The increment to snap the height resize in pixels
+     * (only applies if &lt;code&gt;{@link #dynamic}==true&lt;/code&gt;). Defaults to &lt;tt&gt;0&lt;/tt&gt;.
      */
     heightIncrement : 0,
-    <div id="cfg-Ext.Resizable-widthIncrement"></div>/**
-     * @cfg {Number} widthIncrement The increment to snap the width resize in pixels
-     * (only applies if <code>{@link #dynamic}==true</code>). Defaults to <tt>0</tt>.
+<span id='Ext-Resizable-cfg-widthIncrement'>    /**
+</span>     * @cfg {Number} widthIncrement The increment to snap the width resize in pixels
+     * (only applies if &lt;code&gt;{@link #dynamic}==true&lt;/code&gt;). Defaults to &lt;tt&gt;0&lt;/tt&gt;.
      */
     widthIncrement : 0,
-    <div id="cfg-Ext.Resizable-minHeight"></div>/**
-     * @cfg {Number} minHeight The minimum height for the element (defaults to 5)
+<span id='Ext-Resizable-cfg-minHeight'>    /**
+</span>     * @cfg {Number} minHeight The minimum height for the element (defaults to 5)
      */
     minHeight : 5,
-    <div id="cfg-Ext.Resizable-minWidth"></div>/**
-     * @cfg {Number} minWidth The minimum width for the element (defaults to 5)
+<span id='Ext-Resizable-cfg-minWidth'>    /**
+</span>     * @cfg {Number} minWidth The minimum width for the element (defaults to 5)
      */
     minWidth : 5,
-    <div id="cfg-Ext.Resizable-maxHeight"></div>/**
-     * @cfg {Number} maxHeight The maximum height for the element (defaults to 10000)
+<span id='Ext-Resizable-cfg-maxHeight'>    /**
+</span>     * @cfg {Number} maxHeight The maximum height for the element (defaults to 10000)
      */
     maxHeight : 10000,
-    <div id="cfg-Ext.Resizable-maxWidth"></div>/**
-     * @cfg {Number} maxWidth The maximum width for the element (defaults to 10000)
+<span id='Ext-Resizable-cfg-maxWidth'>    /**
+</span>     * @cfg {Number} maxWidth The maximum width for the element (defaults to 10000)
      */
     maxWidth : 10000,
-    <div id="cfg-Ext.Resizable-minX"></div>/**
-     * @cfg {Number} minX The minimum x for the element (defaults to 0)
+<span id='Ext-Resizable-cfg-minX'>    /**
+</span>     * @cfg {Number} minX The minimum x for the element (defaults to 0)
      */
     minX: 0,
-    <div id="cfg-Ext.Resizable-minY"></div>/**
-     * @cfg {Number} minY The minimum x for the element (defaults to 0)
+<span id='Ext-Resizable-cfg-minY'>    /**
+</span>     * @cfg {Number} minY The minimum x for the element (defaults to 0)
      */
     minY: 0,
-    <div id="cfg-Ext.Resizable-pinned"></div>/**
-     * @cfg {Boolean} pinned True to ensure that the resize handles are always visible, false to display them only when the
+<span id='Ext-Resizable-cfg-pinned'>    /**
+</span>     * @cfg {Boolean} pinned True to ensure that the resize handles are always visible, false to display them only when the
      * user mouses over the resizable borders. This is only applied at config time. (defaults to false)
      */
     pinned : false,
-    <div id="cfg-Ext.Resizable-preserveRatio"></div>/**
-     * @cfg {Boolean} preserveRatio True to preserve the original ratio between height
+<span id='Ext-Resizable-cfg-preserveRatio'>    /**
+</span>     * @cfg {Boolean} preserveRatio True to preserve the original ratio between height
      * and width during resize (defaults to false)
      */
     preserveRatio : false,
-    <div id="cfg-Ext.Resizable-resizeChild"></div>/**
-     * @cfg {Boolean/String/Element} resizeChild True to resize the first child, or id/element to resize (defaults to false)
+<span id='Ext-Resizable-cfg-resizeChild'>    /**
+</span>     * @cfg {Boolean/String/Element} resizeChild True to resize the first child, or id/element to resize (defaults to false)
      */
     resizeChild : false,
-    <div id="cfg-Ext.Resizable-transparent"></div>/**
-     * @cfg {Boolean} transparent True for transparent handles. This is only applied at config time. (defaults to false)
+<span id='Ext-Resizable-cfg-transparent'>    /**
+</span>     * @cfg {Boolean} transparent True for transparent handles. This is only applied at config time. (defaults to false)
      */
     transparent: false,
-    <div id="cfg-Ext.Resizable-resizeRegion"></div>/**
-     * @cfg {Ext.lib.Region} resizeRegion Constrain the resize to a particular region
+<span id='Ext-Resizable-cfg-resizeRegion'>    /**
+</span>     * @cfg {Ext.lib.Region} resizeRegion Constrain the resize to a particular region
      */
-    <div id="cfg-Ext.Resizable-wrap"></div>/**
-     * @cfg {Boolean} wrap True to wrap an element with a div if needed (required for textareas and images, defaults to false)
+<span id='Ext-Resizable-cfg-wrap'>    /**
+</span>     * @cfg {Boolean} wrap True to wrap an element with a div if needed (required for textareas and images, defaults to false)
      * in favor of the handles config option (defaults to false)
      */
-    <div id="cfg-Ext.Resizable-handleCls"></div>/**
-     * @cfg {String} handleCls A css class to add to each handle. Defaults to <tt>''</tt>.
+<span id='Ext-Resizable-cfg-handleCls'>    /**
+</span>     * @cfg {String} handleCls A css class to add to each handle. Defaults to &lt;tt&gt;''&lt;/tt&gt;.
      */
 
 
-    <div id="method-Ext.Resizable-resizeTo"></div>/**
-     * Perform a manual resize and fires the 'resize' event.
+<span id='Ext-Resizable-method-resizeTo'>    /**
+</span>     * Perform a manual resize and fires the 'resize' event.
      * @param {Number} width
      * @param {Number} height
      */
@@ -313,13 +316,13 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         this.fireEvent('resize', this, width, height, null);
     },
 
-    // private
-    startSizing : function(e, handle){
+<span id='Ext-Resizable-method-startSizing'>    // private
+</span>    startSizing : function(e, handle){
         this.fireEvent('beforeresize', this, e);
         if(this.enabled){ // 2nd enabled check in case disabled before beforeresize handler
 
             if(!this.overlay){
-                this.overlay = this.el.createProxy({tag: 'div', cls: 'x-resizable-overlay', html: '&#160;'}, Ext.getBody());
+                this.overlay = this.el.createProxy({tag: 'div', cls: 'x-resizable-overlay', html: '&amp;#160;'}, Ext.getBody());
                 this.overlay.unselectable();
                 this.overlay.enableDisplayMode('block');
                 this.overlay.on({
@@ -358,8 +361,8 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
     },
 
-    // private
-    onMouseDown : function(handle, e){
+<span id='Ext-Resizable-method-onMouseDown'>    // private
+</span>    onMouseDown : function(handle, e){
         if(this.enabled){
             e.stopEvent();
             this.activeHandle = handle;
@@ -367,8 +370,8 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
     },
 
-    // private
-    onMouseUp : function(e){
+<span id='Ext-Resizable-method-onMouseUp'>    // private
+</span>    onMouseUp : function(e){
         this.activeHandle = null;
         var size = this.resizeElement();
         this.resizing = false;
@@ -378,8 +381,8 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         this.fireEvent('resize', this, size.width, size.height, e);
     },
 
-    // private
-    updateChildSize : function(){
+<span id='Ext-Resizable-method-updateChildSize'>    // private
+</span>    updateChildSize : function(){
         if(this.resizeChild){
             var el = this.el;
             var child = this.resizeChild;
@@ -392,7 +395,7 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
             // The first call enables instant resizing and
             // the second call corrects scroll bars if they
             // exist
-            if(Ext.isIE){
+            if(Ext.isIE9m){
                 setTimeout(function(){
                     if(el.dom.offsetWidth){
                         var b = el.getSize(true);
@@ -403,15 +406,15 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         }
     },
 
-    // private
-    snap : function(value, inc, min){
+<span id='Ext-Resizable-method-snap'>    // private
+</span>    snap : function(value, inc, min){
         if(!inc || !value){
             return value;
         }
         var newValue = value;
         var m = value % inc;
-        if(m > 0){
-            if(m > (inc/2)){
+        if(m &gt; 0){
+            if(m &gt; (inc/2)){
                 newValue = value + (inc-m);
             }else{
                 newValue = value - m;
@@ -420,16 +423,16 @@ Ext.Resizable = Ext.extend(Ext.util.Observable, {
         return Math.max(min, newValue);
     },
 
-    <div id="method-Ext.Resizable-resizeElement"></div>/**
-     * <p>Performs resizing of the associated Element. This method is called internally by this
-     * class, and should not be called by user code.</p>
-     * <p>If a Resizable is being used to resize an Element which encapsulates a more complex UI
+<span id='Ext-Resizable-method-resizeElement'>    /**
+</span>     * &lt;p&gt;Performs resizing of the associated Element. This method is called internally by this
+     * class, and should not be called by user code.&lt;/p&gt;
+     * &lt;p&gt;If a Resizable is being used to resize an Element which encapsulates a more complex UI
      * component such as a Panel, this method may be overridden by specifying an implementation
      * as a config option to provide appropriate behaviour at the end of the resize operation on
-     * mouseup, for example resizing the Panel, and relaying the Panel's content.</p>
-     * <p>The new area to be resized to is available by examining the state of the {@link #proxy}
+     * mouseup, for example resizing the Panel, and relaying the Panel's content.&lt;/p&gt;
+     * &lt;p&gt;The new area to be resized to is available by examining the state of the {@link #proxy}
      * Element. Example:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 new Ext.Panel({
     title: 'Resize me',
     x: 100,
@@ -457,7 +460,7 @@ new Ext.Panel({
        }
     }
 }).show();
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      */
     resizeElement : function(){
         var box = this.proxy.getBox();
@@ -470,29 +473,29 @@ new Ext.Panel({
         if(!this.dynamic){
             this.proxy.hide();
         }
-        if(this.draggable && this.constrainTo){
+        if(this.draggable &amp;&amp; this.constrainTo){
             this.dd.resetConstraints();
             this.dd.constrainTo(this.constrainTo);
         }
         return box;
     },
 
-    // private
-    constrain : function(v, diff, m, mx){
-        if(v - diff < m){
+<span id='Ext-Resizable-method-constrain'>    // private
+</span>    constrain : function(v, diff, m, mx){
+        if(v - diff &lt; m){
             diff = v - m;
-        }else if(v - diff > mx){
+        }else if(v - diff &gt; mx){
             diff = v - mx;
         }
         return diff;
     },
 
-    // private
-    onMouseMove : function(e){
-        if(this.enabled && this.activeHandle){
+<span id='Ext-Resizable-method-onMouseMove'>    // private
+</span>    onMouseMove : function(e){
+        if(this.enabled &amp;&amp; this.activeHandle){
             try{// try catch so if something goes wrong the user doesn't get hung
 
-            if(this.resizeRegion && !this.resizeRegion.contains(e.getPoint())) {
+            if(this.resizeRegion &amp;&amp; !this.resizeRegion.contains(e.getPoint())) {
                 return;
             }
 
@@ -653,38 +656,38 @@ new Ext.Panel({
         }
     },
 
-    // private
-    handleOver : function(){
+<span id='Ext-Resizable-method-handleOver'>    // private
+</span>    handleOver : function(){
         if(this.enabled){
             this.el.addClass('x-resizable-over');
         }
     },
 
-    // private
-    handleOut : function(){
+<span id='Ext-Resizable-method-handleOut'>    // private
+</span>    handleOut : function(){
         if(!this.resizing){
             this.el.removeClass('x-resizable-over');
         }
     },
 
-    <div id="method-Ext.Resizable-getEl"></div>/**
-     * Returns the element this component is bound to.
+<span id='Ext-Resizable-method-getEl'>    /**
+</span>     * Returns the element this component is bound to.
      * @return {Ext.Element}
      */
     getEl : function(){
         return this.el;
     },
 
-    <div id="method-Ext.Resizable-getResizeChild"></div>/**
-     * Returns the resizeChild element (or null).
+<span id='Ext-Resizable-method-getResizeChild'>    /**
+</span>     * Returns the resizeChild element (or null).
      * @return {Ext.Element}
      */
     getResizeChild : function(){
         return this.resizeChild;
     },
 
-    <div id="method-Ext.Resizable-destroy"></div>/**
-     * Destroys this resizable. If the element was wrapped and
+<span id='Ext-Resizable-method-destroy'>    /**
+</span>     * Destroys this resizable. If the element was wrapped and
      * removeEl is not true then the element remains.
      * @param {Boolean} removeEl (optional) true to remove the element from the DOM
      */
@@ -695,7 +698,7 @@ new Ext.Panel({
 
         var ps = Ext.Resizable.positions;
         for(var k in ps){
-            if(typeof ps[k] != 'function' && this[ps[k]]){
+            if(typeof ps[k] != 'function' &amp;&amp; this[ps[k]]){
                 this[ps[k]].destroy();
             }
         }
@@ -707,8 +710,8 @@ new Ext.Panel({
         this.purgeListeners();
     },
 
-    syncHandleHeight : function(){
-        var h = this.el.getHeight(true);
+<span id='Ext-Resizable-method-syncHandleHeight'>    syncHandleHeight : function(){
+</span>        var h = this.el.getHeight(true);
         if(this.west){
             this.west.el.setHeight(h);
         }
@@ -776,6 +779,6 @@ Ext.Resizable.Handle = Ext.extend(Object, {
         this.el = null;
     }
 });
-</pre>    
+</pre>
 </body>
 </html>

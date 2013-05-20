@@ -1,50 +1,53 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Updater"></div>/**
- * @class Ext.Updater
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Updater-method-constructor'><span id='Ext-Updater'>/**
+</span></span> * @class Ext.Updater
  * @extends Ext.util.Observable
  * Provides AJAX-style update capabilities for Element objects.  Updater can be used to {@link #update}
  * an {@link Ext.Element} once, or you can use {@link #startAutoRefresh} to set up an auto-updating
- * {@link Ext.Element Element} on a specific interval.<br><br>
- * Usage:<br>
- * <pre><code>
- * var el = Ext.get("foo"); // Get Ext.Element object
+ * {@link Ext.Element Element} on a specific interval.&lt;br&gt;&lt;br&gt;
+ * Usage:&lt;br&gt;
+ * &lt;pre&gt;&lt;code&gt;
+ * var el = Ext.get(&quot;foo&quot;); // Get Ext.Element object
  * var mgr = el.getUpdater();
  * mgr.update({
-        url: "http://myserver.com/index.php",
+        url: &quot;http://myserver.com/index.php&quot;,
         params: {
-            param1: "foo",
-            param2: "bar"
+            param1: &quot;foo&quot;,
+            param2: &quot;bar&quot;
         }
  * });
  * ...
- * mgr.formUpdate("myFormId", "http://myserver.com/index.php");
- * <br>
+ * mgr.formUpdate(&quot;myFormId&quot;, &quot;http://myserver.com/index.php&quot;);
+ * &lt;br&gt;
  * // or directly (returns the same Updater instance)
- * var mgr = new Ext.Updater("myElementId");
- * mgr.startAutoRefresh(60, "http://myserver.com/index.php");
- * mgr.on("update", myFcnNeedsToKnow);
- * <br>
+ * var mgr = new Ext.Updater(&quot;myElementId&quot;);
+ * mgr.startAutoRefresh(60, &quot;http://myserver.com/index.php&quot;);
+ * mgr.on(&quot;update&quot;, myFcnNeedsToKnow);
+ * &lt;br&gt;
  * // short handed call directly from the element object
- * Ext.get("foo").load({
-        url: "bar.php",
+ * Ext.get(&quot;foo&quot;).load({
+        url: &quot;bar.php&quot;,
         scripts: true,
-        params: "param1=foo&amp;param2=bar",
-        text: "Loading Foo..."
+        params: &quot;param1=foo&amp;amp;param2=bar&quot;,
+        text: &quot;Loading Foo...&quot;
  * });
- * </code></pre>
+ * &lt;/code&gt;&lt;/pre&gt;
  * @constructor
  * Create new Updater directly.
  * @param {Mixed} el The element to update
@@ -53,15 +56,15 @@
  */
 Ext.UpdateManager = Ext.Updater = Ext.extend(Ext.util.Observable,
 function() {
-    var BEFOREUPDATE = "beforeupdate",
-        UPDATE = "update",
-        FAILURE = "failure";
+    var BEFOREUPDATE = &quot;beforeupdate&quot;,
+        UPDATE = &quot;update&quot;,
+        FAILURE = &quot;failure&quot;;
 
     // private
     function processSuccess(response){
         var me = this;
         me.transaction = null;
-        if (response.argument.form && response.argument.reset) {
+        if (response.argument.form &amp;&amp; response.argument.reset) {
             try { // put in try/catch since some older FF releases had problems with this
                 response.argument.form.reset();
             } catch(e){}
@@ -92,38 +95,38 @@ function() {
         constructor: function(el, forceNew){
             var me = this;
             el = Ext.get(el);
-            if(!forceNew && el.updateManager){
+            if(!forceNew &amp;&amp; el.updateManager){
                 return el.updateManager;
             }
-            <div id="prop-Ext.Updater-el"></div>/**
-             * The Element object
+<span id='Ext-Updater-property-el'>            /**
+</span>             * The Element object
              * @type Ext.Element
              */
             me.el = el;
-            <div id="prop-Ext.Updater-defaultUrl"></div>/**
-             * Cached url to use for refreshes. Overwritten every time update() is called unless "discardUrl" param is set to true.
+<span id='Ext-Updater-property-defaultUrl'>            /**
+</span>             * Cached url to use for refreshes. Overwritten every time update() is called unless &quot;discardUrl&quot; param is set to true.
              * @type String
              */
             me.defaultUrl = null;
 
             me.addEvents(
-                <div id="event-Ext.Updater-beforeupdate"></div>/**
-                 * @event beforeupdate
+<span id='Ext-Updater-event-beforeupdate'>                /**
+</span>                 * @event beforeupdate
                  * Fired before an update is made, return false from your handler and the update is cancelled.
                  * @param {Ext.Element} el
                  * @param {String/Object/Function} url
                  * @param {String/Object} params
                  */
                 BEFOREUPDATE,
-                <div id="event-Ext.Updater-update"></div>/**
-                 * @event update
+<span id='Ext-Updater-event-update'>                /**
+</span>                 * @event update
                  * Fired after successful update is made.
                  * @param {Ext.Element} el
                  * @param {Object} oResponseObject The response Object
                  */
                 UPDATE,
-                <div id="event-Ext.Updater-failure"></div>/**
-                 * @event failure
+<span id='Ext-Updater-event-failure'>                /**
+</span>                 * @event failure
                  * Fired on update failure.
                  * @param {Ext.Element} el
                  * @param {Object} oResponseObject The response Object
@@ -132,83 +135,83 @@ function() {
             );
 
             Ext.apply(me, Ext.Updater.defaults);
-            <div id="prop-Ext.Updater-sslBlankUrl"></div>/**
-             * Blank page URL to use with SSL file uploads (defaults to {@link Ext.Updater.defaults#sslBlankUrl}).
+<span id='Ext-Updater-property-sslBlankUrl'>            /**
+</span>             * Blank page URL to use with SSL file uploads (defaults to {@link Ext.Updater.defaults#sslBlankUrl}).
              * @property sslBlankUrl
              * @type String
              */
-            <div id="prop-Ext.Updater-disableCaching"></div>/**
-             * Whether to append unique parameter on get request to disable caching (defaults to {@link Ext.Updater.defaults#disableCaching}).
+<span id='Ext-Updater-property-disableCaching'>            /**
+</span>             * Whether to append unique parameter on get request to disable caching (defaults to {@link Ext.Updater.defaults#disableCaching}).
              * @property disableCaching
              * @type Boolean
              */
-            <div id="prop-Ext.Updater-indicatorText"></div>/**
-             * Text for loading indicator (defaults to {@link Ext.Updater.defaults#indicatorText}).
+<span id='Ext-Updater-property-indicatorText'>            /**
+</span>             * Text for loading indicator (defaults to {@link Ext.Updater.defaults#indicatorText}).
              * @property indicatorText
              * @type String
              */
-            <div id="prop-Ext.Updater-showLoadIndicator"></div>/**
-             * Whether to show indicatorText when loading (defaults to {@link Ext.Updater.defaults#showLoadIndicator}).
+<span id='Ext-Updater-property-showLoadIndicator'>            /**
+</span>             * Whether to show indicatorText when loading (defaults to {@link Ext.Updater.defaults#showLoadIndicator}).
              * @property showLoadIndicator
              * @type String
              */
-            <div id="prop-Ext.Updater-timeout"></div>/**
-             * Timeout for requests or form posts in seconds (defaults to {@link Ext.Updater.defaults#timeout}).
+<span id='Ext-Updater-property-timeout'>            /**
+</span>             * Timeout for requests or form posts in seconds (defaults to {@link Ext.Updater.defaults#timeout}).
              * @property timeout
              * @type Number
              */
-            <div id="prop-Ext.Updater-loadScripts"></div>/**
-             * True to process scripts in the output (defaults to {@link Ext.Updater.defaults#loadScripts}).
+<span id='Ext-Updater-property-loadScripts'>            /**
+</span>             * True to process scripts in the output (defaults to {@link Ext.Updater.defaults#loadScripts}).
              * @property loadScripts
              * @type Boolean
              */
 
-            <div id="prop-Ext.Updater-transaction"></div>/**
-             * Transaction object of the current executing transaction, or null if there is no active transaction.
+<span id='Ext-Updater-property-transaction'>            /**
+</span>             * Transaction object of the current executing transaction, or null if there is no active transaction.
              */
             me.transaction = null;
-            <div id="prop-Ext.Updater-refreshDelegate"></div>/**
-             * Delegate for refresh() prebound to "this", use myUpdater.refreshDelegate.createCallback(arg1, arg2) to bind arguments
+<span id='Ext-Updater-property-refreshDelegate'>            /**
+</span>             * Delegate for refresh() prebound to &quot;this&quot;, use myUpdater.refreshDelegate.createCallback(arg1, arg2) to bind arguments
              * @type Function
              */
             me.refreshDelegate = me.refresh.createDelegate(me);
-            <div id="prop-Ext.Updater-updateDelegate"></div>/**
-             * Delegate for update() prebound to "this", use myUpdater.updateDelegate.createCallback(arg1, arg2) to bind arguments
+<span id='Ext-Updater-property-updateDelegate'>            /**
+</span>             * Delegate for update() prebound to &quot;this&quot;, use myUpdater.updateDelegate.createCallback(arg1, arg2) to bind arguments
              * @type Function
              */
             me.updateDelegate = me.update.createDelegate(me);
-            <div id="prop-Ext.Updater-formUpdateDelegate"></div>/**
-             * Delegate for formUpdate() prebound to "this", use myUpdater.formUpdateDelegate.createCallback(arg1, arg2) to bind arguments
+<span id='Ext-Updater-property-formUpdateDelegate'>            /**
+</span>             * Delegate for formUpdate() prebound to &quot;this&quot;, use myUpdater.formUpdateDelegate.createCallback(arg1, arg2) to bind arguments
              * @type Function
              */
             me.formUpdateDelegate = (me.formUpdate || function(){}).createDelegate(me);
 
-            <div id="prop-Ext.Updater-renderer"></div>/**
-             * The renderer for this Updater (defaults to {@link Ext.Updater.BasicRenderer}).
+<span id='Ext-Updater-property-renderer'>            /**
+</span>             * The renderer for this Updater (defaults to {@link Ext.Updater.BasicRenderer}).
              */
             me.renderer = me.renderer || me.getDefaultRenderer();
 
             Ext.Updater.superclass.constructor.call(me);
         },
 
-        <div id="method-Ext.Updater-setRenderer"></div>/**
-         * Sets the content renderer for this Updater. See {@link Ext.Updater.BasicRenderer#render} for more details.
+<span id='Ext-Updater-method-setRenderer'>        /**
+</span>         * Sets the content renderer for this Updater. See {@link Ext.Updater.BasicRenderer#render} for more details.
          * @param {Object} renderer The object implementing the render() method
          */
         setRenderer : function(renderer){
             this.renderer = renderer;
         },
 
-        <div id="method-Ext.Updater-getRenderer"></div>/**
-         * Returns the current content renderer for this Updater. See {@link Ext.Updater.BasicRenderer#render} for more details.
+<span id='Ext-Updater-method-getRenderer'>        /**
+</span>         * Returns the current content renderer for this Updater. See {@link Ext.Updater.BasicRenderer#render} for more details.
          * @return {Object}
          */
         getRenderer : function(){
            return this.renderer;
         },
 
-        <div id="method-Ext.Updater-getDefaultRenderer"></div>/**
-         * This is an overrideable method which returns a reference to a default
+<span id='Ext-Updater-method-getDefaultRenderer'>        /**
+</span>         * This is an overrideable method which returns a reference to a default
          * renderer class if none is specified when creating the Ext.Updater.
          * Defaults to {@link Ext.Updater.BasicRenderer}
          */
@@ -216,78 +219,78 @@ function() {
             return new Ext.Updater.BasicRenderer();
         },
 
-        <div id="method-Ext.Updater-setDefaultUrl"></div>/**
-         * Sets the default URL used for updates.
+<span id='Ext-Updater-method-setDefaultUrl'>        /**
+</span>         * Sets the default URL used for updates.
          * @param {String/Function} defaultUrl The url or a function to call to get the url
          */
         setDefaultUrl : function(defaultUrl){
             this.defaultUrl = defaultUrl;
         },
 
-        <div id="method-Ext.Updater-getEl"></div>/**
-         * Get the Element this Updater is bound to
+<span id='Ext-Updater-method-getEl'>        /**
+</span>         * Get the Element this Updater is bound to
          * @return {Ext.Element} The element
          */
         getEl : function(){
             return this.el;
         },
 
-        <div id="method-Ext.Updater-update"></div>/**
-         * Performs an <b>asynchronous</b> request, updating this element with the response.
-         * If params are specified it uses POST, otherwise it uses GET.<br><br>
-         * <b>Note:</b> Due to the asynchronous nature of remote server requests, the Element
+<span id='Ext-Updater-method-update'>        /**
+</span>         * Performs an &lt;b&gt;asynchronous&lt;/b&gt; request, updating this element with the response.
+         * If params are specified it uses POST, otherwise it uses GET.&lt;br&gt;&lt;br&gt;
+         * &lt;b&gt;Note:&lt;/b&gt; Due to the asynchronous nature of remote server requests, the Element
          * will not have been fully updated when the function returns. To post-process the returned
-         * data, use the callback option, or an <b><code>update</code></b> event handler.
-         * @param {Object} options A config object containing any of the following options:<ul>
-         * <li>url : <b>String/Function</b><p class="sub-desc">The URL to request or a function which
-         * <i>returns</i> the URL (defaults to the value of {@link Ext.Ajax#url} if not specified).</p></li>
-         * <li>method : <b>String</b><p class="sub-desc">The HTTP method to
-         * use. Defaults to POST if the <code>params</code> argument is present, otherwise GET.</p></li>
-         * <li>params : <b>String/Object/Function</b><p class="sub-desc">The
+         * data, use the callback option, or an &lt;b&gt;&lt;code&gt;update&lt;/code&gt;&lt;/b&gt; event handler.
+         * @param {Object} options A config object containing any of the following options:&lt;ul&gt;
+         * &lt;li&gt;url : &lt;b&gt;String/Function&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The URL to request or a function which
+         * &lt;i&gt;returns&lt;/i&gt; the URL (defaults to the value of {@link Ext.Ajax#url} if not specified).&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;method : &lt;b&gt;String&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The HTTP method to
+         * use. Defaults to POST if the &lt;code&gt;params&lt;/code&gt; argument is present, otherwise GET.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;params : &lt;b&gt;String/Object/Function&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The
          * parameters to pass to the server (defaults to none). These may be specified as a url-encoded
          * string, or as an object containing properties which represent parameters,
-         * or as a function, which returns such an object.</p></li>
-         * <li>scripts : <b>Boolean</b><p class="sub-desc">If <code>true</code>
-         * any &lt;script&gt; tags embedded in the response text will be extracted
+         * or as a function, which returns such an object.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;scripts : &lt;b&gt;Boolean&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;If &lt;code&gt;true&lt;/code&gt;
+         * any &amp;lt;script&amp;gt; tags embedded in the response text will be extracted
          * and executed (defaults to {@link Ext.Updater.defaults#loadScripts}). If this option is specified,
-         * the callback will be called <i>after</i> the execution of the scripts.</p></li>
-         * <li>callback : <b>Function</b><p class="sub-desc">A function to
+         * the callback will be called &lt;i&gt;after&lt;/i&gt; the execution of the scripts.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;callback : &lt;b&gt;Function&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;A function to
          * be called when the response from the server arrives. The following
-         * parameters are passed:<ul>
-         * <li><b>el</b> : Ext.Element<p class="sub-desc">The Element being updated.</p></li>
-         * <li><b>success</b> : Boolean<p class="sub-desc">True for success, false for failure.</p></li>
-         * <li><b>response</b> : XMLHttpRequest<p class="sub-desc">The XMLHttpRequest which processed the update.</p></li>
-         * <li><b>options</b> : Object<p class="sub-desc">The config object passed to the update call.</p></li></ul>
-         * </p></li>
-         * <li>scope : <b>Object</b><p class="sub-desc">The scope in which
-         * to execute the callback (The callback's <code>this</code> reference.) If the
-         * <code>params</code> argument is a function, this scope is used for that function also.</p></li>
-         * <li>discardUrl : <b>Boolean</b><p class="sub-desc">By default, the URL of this request becomes
+         * parameters are passed:&lt;ul&gt;
+         * &lt;li&gt;&lt;b&gt;el&lt;/b&gt; : Ext.Element&lt;p class=&quot;sub-desc&quot;&gt;The Element being updated.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;success&lt;/b&gt; : Boolean&lt;p class=&quot;sub-desc&quot;&gt;True for success, false for failure.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;response&lt;/b&gt; : XMLHttpRequest&lt;p class=&quot;sub-desc&quot;&gt;The XMLHttpRequest which processed the update.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;options&lt;/b&gt; : Object&lt;p class=&quot;sub-desc&quot;&gt;The config object passed to the update call.&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;
+         * &lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;scope : &lt;b&gt;Object&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The scope in which
+         * to execute the callback (The callback's &lt;code&gt;this&lt;/code&gt; reference.) If the
+         * &lt;code&gt;params&lt;/code&gt; argument is a function, this scope is used for that function also.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;discardUrl : &lt;b&gt;Boolean&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;By default, the URL of this request becomes
          * the default URL for this Updater object, and will be subsequently used in {@link #refresh}
-         * calls.  To bypass this behavior, pass <code>discardUrl:true</code> (defaults to false).</p></li>
-         * <li>timeout : <b>Number</b><p class="sub-desc">The number of seconds to wait for a response before
-         * timing out (defaults to {@link Ext.Updater.defaults#timeout}).</p></li>
-         * <li>text : <b>String</b><p class="sub-desc">The text to use as the innerHTML of the
+         * calls.  To bypass this behavior, pass &lt;code&gt;discardUrl:true&lt;/code&gt; (defaults to false).&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;timeout : &lt;b&gt;Number&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The number of seconds to wait for a response before
+         * timing out (defaults to {@link Ext.Updater.defaults#timeout}).&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;text : &lt;b&gt;String&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;The text to use as the innerHTML of the
          * {@link Ext.Updater.defaults#indicatorText} div (defaults to 'Loading...').  To replace the entire div, not
-         * just the text, override {@link Ext.Updater.defaults#indicatorText} directly.</p></li>
-         * <li>nocache : <b>Boolean</b><p class="sub-desc">Only needed for GET
+         * just the text, override {@link Ext.Updater.defaults#indicatorText} directly.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;nocache : &lt;b&gt;Boolean&lt;/b&gt;&lt;p class=&quot;sub-desc&quot;&gt;Only needed for GET
          * requests, this option causes an extra, auto-generated parameter to be appended to the request
-         * to defeat caching (defaults to {@link Ext.Updater.defaults#disableCaching}).</p></li></ul>
-         * <p>
+         * to defeat caching (defaults to {@link Ext.Updater.defaults#disableCaching}).&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;
+         * &lt;p&gt;
          * For example:
-    <pre><code>
+    &lt;pre&gt;&lt;code&gt;
     um.update({
-        url: "your-url.php",
-        params: {param1: "foo", param2: "bar"}, // or a URL encoded string
+        url: &quot;your-url.php&quot;,
+        params: {param1: &quot;foo&quot;, param2: &quot;bar&quot;}, // or a URL encoded string
         callback: yourFunction,
         scope: yourObject, //(optional scope)
         discardUrl: true,
         nocache: true,
-        text: "Loading...",
+        text: &quot;Loading...&quot;,
         timeout: 60,
         scripts: false // Save time by avoiding RegExp execution.
     });
-    </code></pre>
+    &lt;/code&gt;&lt;/pre&gt;
          */
         update : function(url, params, callback, discardUrl){
             var me = this,
@@ -303,7 +306,7 @@ function() {
                     discardUrl = discardUrl || cfg.discardUrl;
                     callerScope = cfg.scope;
                     if(!Ext.isEmpty(cfg.nocache)){me.disableCaching = cfg.nocache;};
-                    if(!Ext.isEmpty(cfg.text)){me.indicatorText = '<div class="loading-indicator">'+cfg.text+"</div>";};
+                    if(!Ext.isEmpty(cfg.text)){me.indicatorText = '&lt;div class=&quot;loading-indicator&quot;&gt;'+cfg.text+&quot;&lt;/div&gt;&quot;;};
                     if(!Ext.isEmpty(cfg.scripts)){me.loadScripts = cfg.scripts;};
                     if(!Ext.isEmpty(cfg.timeout)){me.timeout = cfg.timeout;};
                 }
@@ -318,7 +321,7 @@ function() {
 
                 var o = Ext.apply({}, {
                     url : url,
-                    params: (Ext.isFunction(params) && callerScope) ? params.createDelegate(callerScope) : params,
+                    params: (Ext.isFunction(params) &amp;&amp; callerScope) ? params.createDelegate(callerScope) : params,
                     success: processSuccess,
                     failure: processFailure,
                     scope: me,
@@ -326,12 +329,12 @@ function() {
                     timeout: (me.timeout*1000),
                     disableCaching: me.disableCaching,
                     argument: {
-                        "options": cfg,
-                        "url": url,
-                        "form": null,
-                        "callback": callback,
-                        "scope": callerScope || window,
-                        "params": params
+                        &quot;options&quot;: cfg,
+                        &quot;url&quot;: url,
+                        &quot;form&quot;: null,
+                        &quot;callback&quot;: callback,
+                        &quot;scope&quot;: callerScope || window,
+                        &quot;params&quot;: params
                     }
                 }, cfg);
 
@@ -339,27 +342,27 @@ function() {
             }
         },
 
-        <div id="method-Ext.Updater-formUpdate"></div>/**
-         * <p>Performs an asynchronous form post, updating this element with the response. If the form has the attribute
-         * enctype="<a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form-data</a>", it assumes it's a file upload.
-         * Uses this.sslBlankUrl for SSL file uploads to prevent IE security warning.</p>
-         * <p>File uploads are not performed using normal "Ajax" techniques, that is they are <b>not</b>
+<span id='Ext-Updater-method-formUpdate'>        /**
+</span>         * &lt;p&gt;Performs an asynchronous form post, updating this element with the response. If the form has the attribute
+         * enctype=&quot;&lt;a href=&quot;http://www.faqs.org/rfcs/rfc2388.html&quot;&gt;multipart/form-data&lt;/a&gt;&quot;, it assumes it's a file upload.
+         * Uses this.sslBlankUrl for SSL file uploads to prevent IE security warning.&lt;/p&gt;
+         * &lt;p&gt;File uploads are not performed using normal &quot;Ajax&quot; techniques, that is they are &lt;b&gt;not&lt;/b&gt;
          * performed using XMLHttpRequests. Instead the form is submitted in the standard manner with the
-         * DOM <code>&lt;form></code> element temporarily modified to have its
-         * <a href="http://www.w3.org/TR/REC-html40/present/frames.html#adef-target">target</a> set to refer
-         * to a dynamically generated, hidden <code>&lt;iframe></code> which is inserted into the document
-         * but removed after the return data has been gathered.</p>
-         * <p>Be aware that file upload packets, sent with the content type <a href="http://www.faqs.org/rfcs/rfc2388.html">multipart/form-data</a>
+         * DOM &lt;code&gt;&amp;lt;form&gt;&lt;/code&gt; element temporarily modified to have its
+         * &lt;a href=&quot;http://www.w3.org/TR/REC-html40/present/frames.html#adef-target&quot;&gt;target&lt;/a&gt; set to refer
+         * to a dynamically generated, hidden &lt;code&gt;&amp;lt;iframe&gt;&lt;/code&gt; which is inserted into the document
+         * but removed after the return data has been gathered.&lt;/p&gt;
+         * &lt;p&gt;Be aware that file upload packets, sent with the content type &lt;a href=&quot;http://www.faqs.org/rfcs/rfc2388.html&quot;&gt;multipart/form-data&lt;/a&gt;
          * and some server technologies (notably JEE) may require some custom processing in order to
-         * retrieve parameter names and parameter values from the packet content.</p>
+         * retrieve parameter names and parameter values from the packet content.&lt;/p&gt;
          * @param {String/HTMLElement} form The form Id or form element
          * @param {String} url (optional) The url to pass the form to. If omitted the action attribute on the form will be used.
          * @param {Boolean} reset (optional) Whether to try to reset the form after the update
          * @param {Function} callback (optional) Callback when transaction is complete. The following
-         * parameters are passed:<ul>
-         * <li><b>el</b> : Ext.Element<p class="sub-desc">The Element being updated.</p></li>
-         * <li><b>success</b> : Boolean<p class="sub-desc">True for success, false for failure.</p></li>
-         * <li><b>response</b> : XMLHttpRequest<p class="sub-desc">The XMLHttpRequest which processed the update.</p></li></ul>
+         * parameters are passed:&lt;ul&gt;
+         * &lt;li&gt;&lt;b&gt;el&lt;/b&gt; : Ext.Element&lt;p class=&quot;sub-desc&quot;&gt;The Element being updated.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;success&lt;/b&gt; : Boolean&lt;p class=&quot;sub-desc&quot;&gt;True for success, false for failure.&lt;/p&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;response&lt;/b&gt; : XMLHttpRequest&lt;p class=&quot;sub-desc&quot;&gt;The XMLHttpRequest which processed the update.&lt;/p&gt;&lt;/li&gt;&lt;/ul&gt;
          */
         formUpdate : function(form, url, reset, callback){
             var me = this;
@@ -376,25 +379,25 @@ function() {
                     scope: me,
                     timeout: (me.timeout*1000),
                     argument: {
-                        "url": url,
-                        "form": form,
-                        "callback": callback,
-                        "reset": reset
+                        &quot;url&quot;: url,
+                        &quot;form&quot;: form,
+                        &quot;callback&quot;: callback,
+                        &quot;reset&quot;: reset
                     }
                 });
                 me.showLoading.defer(1, me);
             }
         },
 
-        <div id="method-Ext.Updater-startAutoRefresh"></div>/**
-         * Set this element to auto refresh.  Can be canceled by calling {@link #stopAutoRefresh}.
+<span id='Ext-Updater-method-startAutoRefresh'>        /**
+</span>         * Set this element to auto refresh.  Can be canceled by calling {@link #stopAutoRefresh}.
          * @param {Number} interval How often to update (in seconds).
          * @param {String/Object/Function} url (optional) The url for this request, a config object in the same format
          * supported by {@link #load}, or a function to call to get the url (defaults to the last used url).  Note that while
          * the url used in a load call can be reused by this method, other load config options will not be reused and must be
          * sepcified as part of a config object passed as this paramter if needed.
          * @param {String/Object} params (optional) The parameters to pass as either a url encoded string
-         * "&param1=1&param2=2" or as an object {param1: 1, param2: 2}
+         * &quot;&amp;param1=1&amp;param2=2&quot; or as an object {param1: 1, param2: 2}
          * @param {Function} callback (optional) Callback when transaction is complete - called with signature (oElement, bSuccess)
          * @param {Boolean} refreshNow (optional) Whether to execute the refresh now, or wait the interval
          */
@@ -409,8 +412,8 @@ function() {
             me.autoRefreshProcId = setInterval(me.update.createDelegate(me, [url || me.defaultUrl, params, callback, true]), interval * 1000);
         },
 
-        <div id="method-Ext.Updater-stopAutoRefresh"></div>/**
-         * Stop auto refresh on this element.
+<span id='Ext-Updater-method-stopAutoRefresh'>        /**
+</span>         * Stop auto refresh on this element.
          */
         stopAutoRefresh : function(){
             if(this.autoRefreshProcId){
@@ -419,15 +422,15 @@ function() {
             }
         },
 
-        <div id="method-Ext.Updater-isAutoRefreshing"></div>/**
-         * Returns true if the Updater is currently set to auto refresh its content (see {@link #startAutoRefresh}), otherwise false.
+<span id='Ext-Updater-method-isAutoRefreshing'>        /**
+</span>         * Returns true if the Updater is currently set to auto refresh its content (see {@link #startAutoRefresh}), otherwise false.
          */
         isAutoRefreshing : function(){
            return !!this.autoRefreshProcId;
         },
 
-        <div id="method-Ext.Updater-showLoading"></div>/**
-         * Display the element's "loading" state. By default, the element is updated with {@link #indicatorText}. This
+<span id='Ext-Updater-method-showLoading'>        /**
+</span>         * Display the element's &quot;loading&quot; state. By default, the element is updated with {@link #indicatorText}. This
          * method may be overridden to perform a custom action while this Updater is actively updating its contents.
          */
         showLoading : function(){
@@ -436,8 +439,8 @@ function() {
             }
         },
 
-        <div id="method-Ext.Updater-abort"></div>/**
-         * Aborts the currently executing transaction, if any.
+<span id='Ext-Updater-method-abort'>        /**
+</span>         * Aborts the currently executing transaction, if any.
          */
         abort : function(){
             if(this.transaction){
@@ -445,16 +448,16 @@ function() {
             }
         },
 
-        <div id="method-Ext.Updater-isUpdating"></div>/**
-         * Returns true if an update is in progress, otherwise false.
+<span id='Ext-Updater-method-isUpdating'>        /**
+</span>         * Returns true if an update is in progress, otherwise false.
          * @return {Boolean}
          */
         isUpdating : function(){
             return this.transaction ? Ext.Ajax.isLoading(this.transaction) : false;
         },
 
-        <div id="method-Ext.Updater-refresh"></div>/**
-         * Refresh the element with the last used url or defaultUrl. If there is no url, it returns immediately
+<span id='Ext-Updater-method-refresh'>        /**
+</span>         * Refresh the element with the last used url or defaultUrl. If there is no url, it returns immediately
          * @param {Function} callback (optional) Callback when transaction is complete - called with signature (oElement, bSuccess)
          */
         refresh : function(callback){
@@ -465,53 +468,53 @@ function() {
     };
 }());
 
-<div id="cls-Ext.Updater.defaults"></div>/**
- * @class Ext.Updater.defaults
+<span id='Ext-Updater-defaults'>/**
+</span> * @class Ext.Updater.defaults
  * The defaults collection enables customizing the default properties of Updater
  */
 Ext.Updater.defaults = {
-   <div id="prop-Ext.Updater.defaults-timeout"></div>/**
-     * Timeout for requests or form posts in seconds (defaults to 30 seconds).
+<span id='Ext-Updater-defaults-property-timeout'>   /**
+</span>     * Timeout for requests or form posts in seconds (defaults to 30 seconds).
      * @type Number
      */
     timeout : 30,
-    <div id="prop-Ext.Updater.defaults-disableCaching"></div>/**
-     * True to append a unique parameter to GET requests to disable caching (defaults to false).
+<span id='Ext-Updater-defaults-property-disableCaching'>    /**
+</span>     * True to append a unique parameter to GET requests to disable caching (defaults to false).
      * @type Boolean
      */
     disableCaching : false,
-    <div id="prop-Ext.Updater.defaults-showLoadIndicator"></div>/**
-     * Whether or not to show {@link #indicatorText} during loading (defaults to true).
+<span id='Ext-Updater-defaults-property-showLoadIndicator'>    /**
+</span>     * Whether or not to show {@link #indicatorText} during loading (defaults to true).
      * @type Boolean
      */
     showLoadIndicator : true,
-    <div id="prop-Ext.Updater.defaults-indicatorText"></div>/**
-     * Text for loading indicator (defaults to '&lt;div class="loading-indicator"&gt;Loading...&lt;/div&gt;').
+<span id='Ext-Updater-defaults-property-indicatorText'>    /**
+</span>     * Text for loading indicator (defaults to '&amp;lt;div class=&quot;loading-indicator&quot;&amp;gt;Loading...&amp;lt;/div&amp;gt;').
      * @type String
      */
-    indicatorText : '<div class="loading-indicator">Loading...</div>',
-     <div id="prop-Ext.Updater.defaults-loadScripts"></div>/**
-     * True to process scripts by default (defaults to false).
+    indicatorText : '&lt;div class=&quot;loading-indicator&quot;&gt;Loading...&lt;/div&gt;',
+<span id='Ext-Updater-defaults-property-loadScripts'>     /**
+</span>     * True to process scripts by default (defaults to false).
      * @type Boolean
      */
     loadScripts : false,
-    <div id="prop-Ext.Updater.defaults-sslBlankUrl"></div>/**
-    * Blank page URL to use with SSL file uploads (defaults to {@link Ext#SSL_SECURE_URL} if set, or "javascript:false").
+<span id='Ext-Updater-defaults-property-sslBlankUrl'>    /**
+</span>    * Blank page URL to use with SSL file uploads (defaults to {@link Ext#SSL_SECURE_URL} if set, or &quot;javascript:false&quot;).
     * @type String
     */
     sslBlankUrl : Ext.SSL_SECURE_URL
 };
 
 
-<div id="method-Ext.Updater-Updater.updateElement"></div>/**
- * Static convenience method. <b>This method is deprecated in favor of el.load({url:'foo.php', ...})</b>.
+<span id='Ext-Updater-static-method-updateElement'>/**
+</span> * Static convenience method. &lt;b&gt;This method is deprecated in favor of el.load({url:'foo.php', ...})&lt;/b&gt;.
  * Usage:
- * <pre><code>Ext.Updater.updateElement("my-div", "stuff.php");</code></pre>
+ * &lt;pre&gt;&lt;code&gt;Ext.Updater.updateElement(&quot;my-div&quot;, &quot;stuff.php&quot;);&lt;/code&gt;&lt;/pre&gt;
  * @param {Mixed} el The element to update
  * @param {String} url The url
  * @param {String/Object} params (optional) Url encoded param string or an object of name/value pairs
  * @param {Object} options (optional) A config object with any of the Updater properties you want to set - for
- * example: {disableCaching:true, indicatorText: "Loading data..."}
+ * example: {disableCaching:true, indicatorText: &quot;Loading data...&quot;}
  * @static
  * @deprecated
  * @member Ext.Updater
@@ -522,17 +525,17 @@ Ext.Updater.updateElement = function(el, url, params, options){
     um.update(url, params, options ? options.callback : null);
 };
 
-<div id="cls-Ext.Updater.BasicRenderer"></div>/**
- * @class Ext.Updater.BasicRenderer
- * <p>This class is a base class implementing a simple render method which updates an element using results from an Ajax request.</p>
- * <p>The BasicRenderer updates the element's innerHTML with the responseText. To perform a custom render (i.e. XML or JSON processing),
- * create an object with a conforming {@link #render} method and pass it to setRenderer on the Updater.</p>
+<span id='Ext-Updater-BasicRenderer'>/**
+</span> * @class Ext.Updater.BasicRenderer
+ * &lt;p&gt;This class is a base class implementing a simple render method which updates an element using results from an Ajax request.&lt;/p&gt;
+ * &lt;p&gt;The BasicRenderer updates the element's innerHTML with the responseText. To perform a custom render (i.e. XML or JSON processing),
+ * create an object with a conforming {@link #render} method and pass it to setRenderer on the Updater.&lt;/p&gt;
  */
 Ext.Updater.BasicRenderer = function(){};
 
 Ext.Updater.BasicRenderer.prototype = {
-    <div id="method-Ext.Updater.BasicRenderer-render"></div>/**
-     * This method is called when an Ajax response is received, and an Element needs updating.
+<span id='Ext-Updater-BasicRenderer-method-render'>    /**
+</span>     * This method is called when an Ajax response is received, and an Element needs updating.
      * @param {Ext.Element} el The element being rendered
      * @param {Object} xhr The XMLHttpRequest object
      * @param {Updater} updateManager The calling update manager
@@ -541,6 +544,6 @@ Ext.Updater.BasicRenderer.prototype = {
      render : function(el, response, updateManager, callback){
         el.update(response.responseText, updateManager.loadScripts, callback);
     }
-};</pre>    
+};</pre>
 </body>
 </html>

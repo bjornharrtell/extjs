@@ -1,18 +1,21 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-// private
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// private
 // This is a support class used internally by the Grid components
 Ext.grid.HeaderDragZone = Ext.extend(Ext.dd.DragZone, {
     maxDragWidth: 120,
@@ -20,7 +23,7 @@ Ext.grid.HeaderDragZone = Ext.extend(Ext.dd.DragZone, {
     constructor : function(grid, hd, hd2){
         this.grid = grid;
         this.view = grid.getView();
-        this.ddGroup = "gridHeader" + this.grid.getGridEl().id;
+        this.ddGroup = &quot;gridHeader&quot; + this.grid.getGridEl().id;
         Ext.grid.HeaderDragZone.superclass.constructor.call(this, hd);
         if(hd2){
             this.setHandleElId(Ext.id(hd));
@@ -44,7 +47,7 @@ Ext.grid.HeaderDragZone = Ext.extend(Ext.dd.DragZone, {
         this.view.headersDisabled = true;
         var clone = this.dragData.ddel.cloneNode(true);
         clone.id = Ext.id();
-        clone.style.width = Math.min(this.dragData.header.offsetWidth,this.maxDragWidth) + "px";
+        clone.style.width = Math.min(this.dragData.header.offsetWidth,this.maxDragWidth) + &quot;px&quot;;
         this.proxy.update(clone);
         return true;
     },
@@ -77,16 +80,16 @@ Ext.grid.HeaderDropZone = Ext.extend(Ext.dd.DropZone, {
         this.view = grid.getView();
         // split the proxies so they don't interfere with mouse events
         this.proxyTop = Ext.DomHelper.append(document.body, {
-            cls:"col-move-top", html:"&#160;"
+            cls:&quot;col-move-top&quot;, html:&quot;&amp;#160;&quot;
         }, true);
         this.proxyBottom = Ext.DomHelper.append(document.body, {
-            cls:"col-move-bottom", html:"&#160;"
+            cls:&quot;col-move-bottom&quot;, html:&quot;&amp;#160;&quot;
         }, true);
         this.proxyTop.hide = this.proxyBottom.hide = function(){
             this.setLeftTop(-100,-100);
-            this.setStyle("visibility", "hidden");
+            this.setStyle(&quot;visibility&quot;, &quot;hidden&quot;);
         };
-        this.ddGroup = "gridHeader" + this.grid.getGridEl().id;
+        this.ddGroup = &quot;gridHeader&quot; + this.grid.getGridEl().id;
         // temporarily disabled
         //Ext.dd.ScrollManager.register(this.view.scroller.dom);
         Ext.grid.HeaderDropZone.superclass.constructor.call(this, grid.getGridEl().dom);
@@ -130,12 +133,12 @@ Ext.grid.HeaderDropZone = Ext.extend(Ext.dd.DropZone, {
             px, 
             pt, 
             py = r.top + this.proxyOffsets[1];
-        if((r.right - x) <= (r.right-r.left)/2){
+        if((r.right - x) &lt;= (r.right-r.left)/2){
             px = r.right+this.view.borderWidth;
-            pt = "after";
+            pt = &quot;after&quot;;
         }else{
             px = r.left;
-            pt = "before";
+            pt = &quot;before&quot;;
         }
 
         if(this.grid.colModel.isFixed(this.view.getCellIndex(n))){
@@ -182,13 +185,13 @@ Ext.grid.HeaderDropZone = Ext.extend(Ext.dd.DropZone, {
             var cm = this.grid.colModel,
                 x = Ext.lib.Event.getPageX(e),
                 r = Ext.lib.Dom.getRegion(n.firstChild),
-                pt = (r.right - x) <= ((r.right-r.left)/2) ? "after" : "before",
+                pt = (r.right - x) &lt;= ((r.right-r.left)/2) ? &quot;after&quot; : &quot;before&quot;,
                 oldIndex = this.view.getCellIndex(h),
                 newIndex = this.view.getCellIndex(n);
-            if(pt == "after"){
+            if(pt == &quot;after&quot;){
                 newIndex++;
             }
-            if(oldIndex < newIndex){
+            if(oldIndex &lt; newIndex){
                 newIndex--;
             }
             cm.moveColumn(oldIndex, newIndex);
@@ -211,6 +214,6 @@ Ext.grid.GridView.ColumnDragZone = Ext.extend(Ext.grid.HeaderDragZone, {
     callHandleMouseDown : function(e){
         Ext.grid.GridView.ColumnDragZone.superclass.handleMouseDown.call(this, e);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

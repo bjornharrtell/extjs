@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.grid.RowSelectionModel"></div>/**
- * @class Ext.grid.RowSelectionModel
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-RowSelectionModel-method-constructor'><span id='Ext-grid-RowSelectionModel'>/**
+</span></span> * @class Ext.grid.RowSelectionModel
  * @extends Ext.grid.AbstractSelectionModel
  * The default SelectionModel used by {@link Ext.grid.GridPanel}.
  * It supports multiple selections and keyboard selection/navigation. The objects stored
@@ -23,9 +26,9 @@
  * @param {Object} config
  */
 Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
-    <div id="cfg-Ext.grid.RowSelectionModel-singleSelect"></div>/**
-     * @cfg {Boolean} singleSelect
-     * <tt>true</tt> to allow selection of only one row at a time (defaults to <tt>false</tt>
+<span id='Ext-grid-RowSelectionModel-cfg-singleSelect'>    /**
+</span>     * @cfg {Boolean} singleSelect
+     * &lt;tt&gt;true&lt;/tt&gt; to allow selection of only one row at a time (defaults to &lt;tt&gt;false&lt;/tt&gt;
      * allowing multiple selections)
      */
     singleSelect : false,
@@ -40,14 +43,14 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         this.lastActive = false;
 
         this.addEvents(
-	        <div id="event-Ext.grid.RowSelectionModel-selectionchange"></div>/**
-	         * @event selectionchange
+<span id='Ext-grid-RowSelectionModel-event-selectionchange'>	        /**
+</span>	         * @event selectionchange
 	         * Fires when the selection changes
 	         * @param {SelectionModel} this
 	         */
 	        'selectionchange',
-	        <div id="event-Ext.grid.RowSelectionModel-beforerowselect"></div>/**
-	         * @event beforerowselect
+<span id='Ext-grid-RowSelectionModel-event-beforerowselect'>	        /**
+</span>	         * @event beforerowselect
 	         * Fires before a row is selected, return false to cancel the selection.
 	         * @param {SelectionModel} this
 	         * @param {Number} rowIndex The index to be selected
@@ -55,16 +58,16 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
 	         * @param {Record} record The record to be selected
 	         */
 	        'beforerowselect',
-	        <div id="event-Ext.grid.RowSelectionModel-rowselect"></div>/**
-	         * @event rowselect
+<span id='Ext-grid-RowSelectionModel-event-rowselect'>	        /**
+</span>	         * @event rowselect
 	         * Fires when a row is selected.
 	         * @param {SelectionModel} this
 	         * @param {Number} rowIndex The selected index
 	         * @param {Ext.data.Record} r The selected record
 	         */
 	        'rowselect',
-	        <div id="event-Ext.grid.RowSelectionModel-rowdeselect"></div>/**
-	         * @event rowdeselect
+<span id='Ext-grid-RowSelectionModel-event-rowdeselect'>	        /**
+</span>	         * @event rowdeselect
 	         * Fires when a row is deselected.  To prevent deselection
 	         * {@link Ext.grid.AbstractSelectionModel#lock lock the selections}. 
 	         * @param {SelectionModel} this
@@ -76,15 +79,15 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         Ext.grid.RowSelectionModel.superclass.constructor.call(this);
     },
 
-    <div id="cfg-Ext.grid.RowSelectionModel-moveEditorOnEnter"></div>/**
-     * @cfg {Boolean} moveEditorOnEnter
-     * <tt>false</tt> to turn off moving the editor to the next row down when the enter key is pressed
+<span id='Ext-grid-RowSelectionModel-cfg-moveEditorOnEnter'>    /**
+</span>     * @cfg {Boolean} moveEditorOnEnter
+     * &lt;tt&gt;false&lt;/tt&gt; to turn off moving the editor to the next row down when the enter key is pressed
      * or the next row up when shift + enter keys are pressed.
      */
-    // private
-    initEvents : function(){
+<span id='Ext-grid-RowSelectionModel-method-initEvents'>    // private
+</span>    initEvents : function(){
 
-        if(!this.grid.enableDragDrop && !this.grid.enableDrag){
+        if(!this.grid.enableDragDrop &amp;&amp; !this.grid.enableDrag){
             this.grid.on('rowmousedown', this.handleMouseDown, this);
         }
 
@@ -102,14 +105,14 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         });
     },
     
-    onKeyPress : function(e, name){
-        var up = name == 'up',
+<span id='Ext-grid-RowSelectionModel-method-onKeyPress'>    onKeyPress : function(e, name){
+</span>        var up = name == 'up',
             method = up ? 'selectPrevious' : 'selectNext',
             add = up ? -1 : 1,
             last;
         if(!e.shiftKey || this.singleSelect){
             this[method](false);
-        }else if(this.last !== false && this.lastActive !== false){
+        }else if(this.last !== false &amp;&amp; this.lastActive !== false){
             last = this.last;
             this.selectRange(this.last,  this.lastActive + add);
             this.grid.getView().focusRow(this.lastActive);
@@ -121,8 +124,8 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         }
     },
 
-    // private
-    onRefresh : function(){
+<span id='Ext-grid-RowSelectionModel-method-onRefresh'>    // private
+</span>    onRefresh : function(){
         var ds = this.grid.store,
             s = this.getSelections(),
             i = 0,
@@ -131,7 +134,7 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
             
         this.silent = true;
         this.clearSelections(true);
-        for(; i < len; i++){
+        for(; i &lt; len; i++){
             r = s[i];
             if((index = ds.indexOfId(r.id)) != -1){
                 this.selectRow(index, true);
@@ -143,24 +146,24 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         this.silent = false;
     },
 
-    // private
-    onRemove : function(v, index, r){
+<span id='Ext-grid-RowSelectionModel-method-onRemove'>    // private
+</span>    onRemove : function(v, index, r){
         if(this.selections.remove(r) !== false){
             this.fireEvent('selectionchange', this);
         }
     },
 
-    // private
-    onRowUpdated : function(v, index, r){
+<span id='Ext-grid-RowSelectionModel-method-onRowUpdated'>    // private
+</span>    onRowUpdated : function(v, index, r){
         if(this.isSelected(r)){
             v.onRowSelect(index);
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectRecords"></div>/**
-     * Select records.
+<span id='Ext-grid-RowSelectionModel-method-selectRecords'>    /**
+</span>     * Select records.
      * @param {Array} records The records to select
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep existing selections
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep existing selections
      */
     selectRecords : function(records, keepExisting){
         if(!keepExisting){
@@ -169,38 +172,38 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         var ds = this.grid.store,
             i = 0,
             len = records.length;
-        for(; i < len; i++){
+        for(; i &lt; len; i++){
             this.selectRow(ds.indexOf(records[i]), true);
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-getCount"></div>/**
-     * Gets the number of selected rows.
+<span id='Ext-grid-RowSelectionModel-method-getCount'>    /**
+</span>     * Gets the number of selected rows.
      * @return {Number}
      */
     getCount : function(){
         return this.selections.length;
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectFirstRow"></div>/**
-     * Selects the first row in the grid.
+<span id='Ext-grid-RowSelectionModel-method-selectFirstRow'>    /**
+</span>     * Selects the first row in the grid.
      */
     selectFirstRow : function(){
         this.selectRow(0);
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectLastRow"></div>/**
-     * Select the last row.
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep existing selections
+<span id='Ext-grid-RowSelectionModel-method-selectLastRow'>    /**
+</span>     * Select the last row.
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep existing selections
      */
     selectLastRow : function(keepExisting){
         this.selectRow(this.grid.store.getCount() - 1, keepExisting);
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectNext"></div>/**
-     * Selects the row immediately following the last selected row.
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep existing selections
-     * @return {Boolean} <tt>true</tt> if there is a next row, else <tt>false</tt>
+<span id='Ext-grid-RowSelectionModel-method-selectNext'>    /**
+</span>     * Selects the row immediately following the last selected row.
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep existing selections
+     * @return {Boolean} &lt;tt&gt;true&lt;/tt&gt; if there is a next row, else &lt;tt&gt;false&lt;/tt&gt;
      */
     selectNext : function(keepExisting){
         if(this.hasNext()){
@@ -211,10 +214,10 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         return false;
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectPrevious"></div>/**
-     * Selects the row that precedes the last selected row.
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep existing selections
-     * @return {Boolean} <tt>true</tt> if there is a previous row, else <tt>false</tt>
+<span id='Ext-grid-RowSelectionModel-method-selectPrevious'>    /**
+</span>     * Selects the row that precedes the last selected row.
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep existing selections
+     * @return {Boolean} &lt;tt&gt;true&lt;/tt&gt; if there is a previous row, else &lt;tt&gt;false&lt;/tt&gt;
      */
     selectPrevious : function(keepExisting){
         if(this.hasPrevious()){
@@ -225,16 +228,16 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         return false;
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-hasNext"></div>/**
-     * Returns true if there is a next record to select
+<span id='Ext-grid-RowSelectionModel-method-hasNext'>    /**
+</span>     * Returns true if there is a next record to select
      * @return {Boolean}
      */
     hasNext : function(){
-        return this.last !== false && (this.last+1) < this.grid.store.getCount();
+        return this.last !== false &amp;&amp; (this.last+1) &lt; this.grid.store.getCount();
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-hasPrevious"></div>/**
-     * Returns true if there is a previous record to select
+<span id='Ext-grid-RowSelectionModel-method-hasPrevious'>    /**
+</span>     * Returns true if there is a previous record to select
      * @return {Boolean}
      */
     hasPrevious : function(){
@@ -242,28 +245,28 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
     },
 
 
-    <div id="method-Ext.grid.RowSelectionModel-getSelections"></div>/**
-     * Returns the selected records
+<span id='Ext-grid-RowSelectionModel-method-getSelections'>    /**
+</span>     * Returns the selected records
      * @return {Array} Array of selected records
      */
     getSelections : function(){
         return [].concat(this.selections.items);
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-getSelected"></div>/**
-     * Returns the first selected record.
+<span id='Ext-grid-RowSelectionModel-method-getSelected'>    /**
+</span>     * Returns the first selected record.
      * @return {Record}
      */
     getSelected : function(){
         return this.selections.itemAt(0);
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-each"></div>/**
-     * Calls the passed function with each selection. If the function returns
-     * <tt>false</tt>, iteration is stopped and this function returns
-     * <tt>false</tt>. Otherwise it returns <tt>true</tt>.
+<span id='Ext-grid-RowSelectionModel-method-each'>    /**
+</span>     * Calls the passed function with each selection. If the function returns
+     * &lt;tt&gt;false&lt;/tt&gt;, iteration is stopped and this function returns
+     * &lt;tt&gt;false&lt;/tt&gt;. Otherwise it returns &lt;tt&gt;true&lt;/tt&gt;.
      * @param {Function} fn The function to call upon each iteration. It is passed the selected {@link Ext.data.Record Record}.
-     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to this RowSelectionModel.
+     * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the function is executed. Defaults to this RowSelectionModel.
      * @return {Boolean} true if all selections were iterated
      */
     each : function(fn, scope){
@@ -271,7 +274,7 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
             i = 0,
             len = s.length;
             
-        for(; i < len; i++){
+        for(; i &lt; len; i++){
             if(fn.call(scope || this, s[i], i) === false){
                 return false;
             }
@@ -279,10 +282,10 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         return true;
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-clearSelections"></div>/**
-     * Clears all selections if the selection model
+<span id='Ext-grid-RowSelectionModel-method-clearSelections'>    /**
+</span>     * Clears all selections if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is not locked}.
-     * @param {Boolean} fast (optional) <tt>true</tt> to bypass the
+     * @param {Boolean} fast (optional) &lt;tt&gt;true&lt;/tt&gt; to bypass the
      * conditional checks and events described in {@link #deselectRow}.
      */
     clearSelections : function(fast){
@@ -303,8 +306,8 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
     },
 
 
-    <div id="method-Ext.grid.RowSelectionModel-selectAll"></div>/**
-     * Selects all rows if the selection model
+<span id='Ext-grid-RowSelectionModel-method-selectAll'>    /**
+</span>     * Selects all rows if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is not locked}. 
      */
     selectAll : function(){
@@ -312,31 +315,31 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
             return;
         }
         this.selections.clear();
-        for(var i = 0, len = this.grid.store.getCount(); i < len; i++){
+        for(var i = 0, len = this.grid.store.getCount(); i &lt; len; i++){
             this.selectRow(i, true);
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-hasSelection"></div>/**
-     * Returns <tt>true</tt> if there is a selection.
+<span id='Ext-grid-RowSelectionModel-method-hasSelection'>    /**
+</span>     * Returns &lt;tt&gt;true&lt;/tt&gt; if there is a selection.
      * @return {Boolean}
      */
     hasSelection : function(){
-        return this.selections.length > 0;
+        return this.selections.length &gt; 0;
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-isSelected"></div>/**
-     * Returns <tt>true</tt> if the specified row is selected.
+<span id='Ext-grid-RowSelectionModel-method-isSelected'>    /**
+</span>     * Returns &lt;tt&gt;true&lt;/tt&gt; if the specified row is selected.
      * @param {Number/Record} index The record or index of the record to check
      * @return {Boolean}
      */
     isSelected : function(index){
         var r = Ext.isNumber(index) ? this.grid.store.getAt(index) : index;
-        return (r && this.selections.key(r.id) ? true : false);
+        return (r &amp;&amp; this.selections.key(r.id) ? true : false);
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-isIdSelected"></div>/**
-     * Returns <tt>true</tt> if the specified record id is selected.
+<span id='Ext-grid-RowSelectionModel-method-isIdSelected'>    /**
+</span>     * Returns &lt;tt&gt;true&lt;/tt&gt; if the specified record id is selected.
      * @param {String} id The id of record to check
      * @return {Boolean}
      */
@@ -344,45 +347,45 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         return (this.selections.key(id) ? true : false);
     },
 
-    // private
-    handleMouseDown : function(g, rowIndex, e){
+<span id='Ext-grid-RowSelectionModel-method-handleMouseDown'>    // private
+</span>    handleMouseDown : function(g, rowIndex, e){
         if(e.button !== 0 || this.isLocked()){
             return;
         }
         var view = this.grid.getView();
-        if(e.shiftKey && !this.singleSelect && this.last !== false){
+        if(e.shiftKey &amp;&amp; !this.singleSelect &amp;&amp; this.last !== false){
             var last = this.last;
             this.selectRange(last, rowIndex, e.ctrlKey);
             this.last = last; // reset the last
             view.focusRow(rowIndex);
         }else{
             var isSelected = this.isSelected(rowIndex);
-            if(e.ctrlKey && isSelected){
+            if(e.ctrlKey &amp;&amp; isSelected){
                 this.deselectRow(rowIndex);
-            }else if(!isSelected || this.getCount() > 1){
+            }else if(!isSelected || this.getCount() &gt; 1){
                 this.selectRow(rowIndex, e.ctrlKey || e.shiftKey);
                 view.focusRow(rowIndex);
             }
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectRows"></div>/**
-     * Selects multiple rows.
+<span id='Ext-grid-RowSelectionModel-method-selectRows'>    /**
+</span>     * Selects multiple rows.
      * @param {Array} rows Array of the indexes of the row to select
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep
-     * existing selections (defaults to <tt>false</tt>)
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep
+     * existing selections (defaults to &lt;tt&gt;false&lt;/tt&gt;)
      */
     selectRows : function(rows, keepExisting){
         if(!keepExisting){
             this.clearSelections();
         }
-        for(var i = 0, len = rows.length; i < len; i++){
+        for(var i = 0, len = rows.length; i &lt; len; i++){
             this.selectRow(rows[i], true);
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectRange"></div>/**
-     * Selects a range of rows if the selection model
+<span id='Ext-grid-RowSelectionModel-method-selectRange'>    /**
+</span>     * Selects a range of rows if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is not locked}.
      * All rows in between startRow and endRow are also selected.
      * @param {Number} startRow The index of the first row in the range
@@ -397,19 +400,19 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         if(!keepExisting){
             this.clearSelections();
         }
-        if(startRow <= endRow){
-            for(i = startRow; i <= endRow; i++){
+        if(startRow &lt;= endRow){
+            for(i = startRow; i &lt;= endRow; i++){
                 this.selectRow(i, true);
             }
         }else{
-            for(i = startRow; i >= endRow; i--){
+            for(i = startRow; i &gt;= endRow; i--){
                 this.selectRow(i, true);
             }
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-deselectRange"></div>/**
-     * Deselects a range of rows if the selection model
+<span id='Ext-grid-RowSelectionModel-method-deselectRange'>    /**
+</span>     * Deselects a range of rows if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is not locked}.  
      * All rows in between startRow and endRow are also deselected.
      * @param {Number} startRow The index of the first row in the range
@@ -419,28 +422,28 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         if(this.isLocked()){
             return;
         }
-        for(var i = startRow; i <= endRow; i++){
+        for(var i = startRow; i &lt;= endRow; i++){
             this.deselectRow(i, preventViewNotify);
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-selectRow"></div>/**
-     * Selects a row.  Before selecting a row, checks if the selection model
+<span id='Ext-grid-RowSelectionModel-method-selectRow'>    /**
+</span>     * Selects a row.  Before selecting a row, checks if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is locked} and fires the
      * {@link #beforerowselect} event.  If these checks are satisfied the row
      * will be selected and followed up by  firing the {@link #rowselect} and
      * {@link #selectionchange} events.
      * @param {Number} row The index of the row to select
-     * @param {Boolean} keepExisting (optional) <tt>true</tt> to keep existing selections
-     * @param {Boolean} preventViewNotify (optional) Specify <tt>true</tt> to
+     * @param {Boolean} keepExisting (optional) &lt;tt&gt;true&lt;/tt&gt; to keep existing selections
+     * @param {Boolean} preventViewNotify (optional) Specify &lt;tt&gt;true&lt;/tt&gt; to
      * prevent notifying the view (disables updating the selected appearance)
      */
     selectRow : function(index, keepExisting, preventViewNotify){
-        if(this.isLocked() || (index < 0 || index >= this.grid.store.getCount()) || (keepExisting && this.isSelected(index))){
+        if(this.isLocked() || (index &lt; 0 || index &gt;= this.grid.store.getCount()) || (keepExisting &amp;&amp; this.isSelected(index))){
             return;
         }
         var r = this.grid.store.getAt(index);
-        if(r && this.fireEvent('beforerowselect', this, index, keepExisting, r) !== false){
+        if(r &amp;&amp; this.fireEvent('beforerowselect', this, index, keepExisting, r) !== false){
             if(!keepExisting || this.singleSelect){
                 this.clearSelections();
             }
@@ -456,13 +459,13 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         }
     },
 
-    <div id="method-Ext.grid.RowSelectionModel-deselectRow"></div>/**
-     * Deselects a row.  Before deselecting a row, checks if the selection model
+<span id='Ext-grid-RowSelectionModel-method-deselectRow'>    /**
+</span>     * Deselects a row.  Before deselecting a row, checks if the selection model
      * {@link Ext.grid.AbstractSelectionModel#isLocked is locked}.
      * If this check is satisfied the row will be deselected and followed up by
      * firing the {@link #rowdeselect} and {@link #selectionchange} events.
      * @param {Number} row The index of the row to deselect
-     * @param {Boolean} preventViewNotify (optional) Specify <tt>true</tt> to
+     * @param {Boolean} preventViewNotify (optional) Specify &lt;tt&gt;true&lt;/tt&gt; to
      * prevent notifying the view (disables updating the selected appearance)
      */
     deselectRow : function(index, preventViewNotify){
@@ -486,13 +489,13 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         }
     },
 
-    // private
-    acceptsNav : function(row, col, cm){
-        return !cm.isHidden(col) && cm.isCellEditable(col, row);
+<span id='Ext-grid-RowSelectionModel-method-acceptsNav'>    // private
+</span>    acceptsNav : function(row, col, cm){
+        return !cm.isHidden(col) &amp;&amp; cm.isCellEditable(col, row);
     },
 
-    // private
-    onEditorKey : function(field, e){
+<span id='Ext-grid-RowSelectionModel-method-onEditorKey'>    // private
+</span>    onEditorKey : function(field, e){
         var k = e.getKey(), 
             newCell, 
             g = this.grid, 
@@ -524,9 +527,9 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
 
             this.onEditorSelect(r, last.row);
 
-            if(g.isEditor && g.editing){ // *** handle tabbing while editorgrid is in edit mode
+            if(g.isEditor &amp;&amp; g.editing){ // *** handle tabbing while editorgrid is in edit mode
                 ae = g.activeEditor;
-                if(ae && ae.field.triggerBlur){
+                if(ae &amp;&amp; ae.field.triggerBlur){
                     // *** if activeEditor is a TriggerField, explicitly call its triggerBlur() method
                     ae.field.triggerBlur();
                 }
@@ -535,18 +538,18 @@ Ext.grid.RowSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         }
     },
     
-    onEditorSelect: function(row, lastRow){
-        if(lastRow != row){
+<span id='Ext-grid-RowSelectionModel-method-onEditorSelect'>    onEditorSelect: function(row, lastRow){
+</span>        if(lastRow != row){
             this.selectRow(row); // *** highlight newly-selected cell and update selection
         }
     },
     
-    destroy : function(){
-        Ext.destroy(this.rowNav);
+<span id='Ext-grid-RowSelectionModel-method-destroy'>    destroy : function(){
+</span>        Ext.destroy(this.rowNav);
         this.rowNav = null;
         Ext.grid.RowSelectionModel.superclass.destroy.call(this);
     }
 });
-</pre>    
+</pre>
 </body>
 </html>

@@ -9,7 +9,7 @@ foreach($_COOKIE as $name=>$value){
     // look for state cookies
     if(strpos($name, 'ys-') === 0){
         // store in session
-        $_SESSION['state'][substr($name, 3)] = $value;
+        $_SESSION['state'][substr($name, 3)] = rawurlencode($value);
         // remove cookie
         setCookie($name, '', time()-10000, '/');
     }

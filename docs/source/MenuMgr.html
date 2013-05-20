@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.menu.MenuMgr"></div>/**
- * @class Ext.menu.MenuMgr
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-MenuMgr'>/**
+</span> * @class Ext.menu.MenuMgr
  * Provides a common registry of all menu items on a page so that they can be easily accessed by id.
  * @singleton
  */
@@ -36,7 +39,7 @@ Ext.menu.MenuMgr = function(){
 
    // private
    function hideAll(){
-       if(active && active.length > 0){
+       if(active &amp;&amp; active.length &gt; 0){
            var c = active.clone();
            c.each(function(m){
                m.hide();
@@ -49,9 +52,9 @@ Ext.menu.MenuMgr = function(){
    // private
    function onHide(m){
        active.remove(m);
-       if(active.length < 1){
+       if(active.length &lt; 1){
            map.disable();
-           Ext.getDoc().un("mousedown", onMouseDown);
+           Ext.getDoc().un(&quot;mousedown&quot;, onMouseDown);
            attached = false;
        }
    }
@@ -63,14 +66,14 @@ Ext.menu.MenuMgr = function(){
        active.add(m);
        if(!attached){
            map.enable();
-           Ext.getDoc().on("mousedown", onMouseDown);
+           Ext.getDoc().on(&quot;mousedown&quot;, onMouseDown);
            attached = true;
        }
        if(m.parentMenu){
-          m.getEl().setZIndex(parseInt(m.parentMenu.getEl().getStyle("z-index"), 10) + 3);
+          m.getEl().setZIndex(parseInt(m.parentMenu.getEl().getStyle(&quot;z-index&quot;), 10) + 3);
           m.parentMenu.activeChild = m;
-       }else if(last && !last.isDestroyed && last.isVisible()){
-          m.getEl().setZIndex(parseInt(last.getEl().getStyle("z-index"), 10) + 3);
+       }else if(last &amp;&amp; !last.isDestroyed &amp;&amp; last.isVisible()){
+          m.getEl().setZIndex(parseInt(last.getEl().getStyle(&quot;z-index&quot;), 10) + 3);
        }
    }
 
@@ -88,24 +91,24 @@ Ext.menu.MenuMgr = function(){
    // private
    function onBeforeShow(m){
        var pm = m.parentMenu;
-       if(!pm && !m.allowOtherMenus){
+       if(!pm &amp;&amp; !m.allowOtherMenus){
            hideAll();
-       }else if(pm && pm.activeChild){
+       }else if(pm &amp;&amp; pm.activeChild){
            pm.activeChild.hide();
        }
    }
 
    // private
    function onMouseDown(e){
-       if(lastShow.getElapsed() > 50 && active.length > 0 && !e.getTarget(".x-menu")){
+       if(lastShow.getElapsed() &gt; 50 &amp;&amp; active.length &gt; 0 &amp;&amp; !e.getTarget(&quot;.x-menu&quot;)){
            hideAll();
        }
    }
 
    return {
 
-       <div id="method-Ext.menu.MenuMgr-hideAll"></div>/**
-        * Hides all menus that are currently visible
+<span id='Ext-menu-MenuMgr-method-hideAll'>       /**
+</span>        * Hides all menus that are currently visible
         * @return {Boolean} success True if any active menus were hidden.
         */
        hideAll : function(){
@@ -126,14 +129,14 @@ Ext.menu.MenuMgr = function(){
            });
        },
 
-        <div id="method-Ext.menu.MenuMgr-get"></div>/**
-         * Returns a {@link Ext.menu.Menu} object
+<span id='Ext-menu-MenuMgr-method-get'>        /**
+</span>         * Returns a {@link Ext.menu.Menu} object
          * @param {String/Object} menu The string menu id, an existing menu object reference, or a Menu config that will
          * be used to generate and return a new Menu instance.
          * @return {Ext.menu.Menu} The specified menu, or null if none are found
          */
        get : function(menu){
-           if(typeof menu == "string"){ // menu id
+           if(typeof menu == &quot;string&quot;){ // menu id
                if(!menus){  // not initialized, no menus to return
                    return null;
                }
@@ -150,10 +153,10 @@ Ext.menu.MenuMgr = function(){
        // private
        unregister : function(menu){
            delete menus[menu.id];
-           menu.un("beforehide", onBeforeHide);
-           menu.un("hide", onHide);
-           menu.un("beforeshow", onBeforeShow);
-           menu.un("show", onShow);
+           menu.un(&quot;beforehide&quot;, onBeforeHide);
+           menu.un(&quot;hide&quot;, onHide);
+           menu.un(&quot;beforeshow&quot;, onBeforeShow);
+           menu.un(&quot;show&quot;, onShow);
        },
 
        // private
@@ -177,13 +180,13 @@ Ext.menu.MenuMgr = function(){
        
        // private
        onCheckChange: function(item, state){
-           if(item.group && state){
+           if(item.group &amp;&amp; state){
                var group = groups[item.group],
                    i = 0,
                    len = group.length,
                    current;
                    
-               for(; i < len; i++){
+               for(; i &lt; len; i++){
                    current = group[i];
                    if(current != item){
                        current.setChecked(false);
@@ -195,7 +198,7 @@ Ext.menu.MenuMgr = function(){
        getCheckedItem : function(groupId){
            var g = groups[groupId];
            if(g){
-               for(var i = 0, l = g.length; i < l; i++){
+               for(var i = 0, l = g.length; i &lt; l; i++){
                    if(g[i].checked){
                        return g[i];
                    }
@@ -207,7 +210,7 @@ Ext.menu.MenuMgr = function(){
        setCheckedItem : function(groupId, itemId){
            var g = groups[groupId];
            if(g){
-               for(var i = 0, l = g.length; i < l; i++){
+               for(var i = 0, l = g.length; i &lt; l; i++){
                    if(g[i].id == itemId){
                        g[i].setChecked(true);
                    }
@@ -217,6 +220,6 @@ Ext.menu.MenuMgr = function(){
        }
    };
 }();
-</pre>    
+</pre>
 </body>
 </html>

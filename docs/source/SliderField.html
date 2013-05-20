@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.form.SliderField"></div>/**
- * @class Ext.form.SliderField
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-SliderField-method-constructor'><span id='Ext-form-SliderField'>/**
+</span></span> * @class Ext.form.SliderField
  * @extends Ext.form.Field
  * Wraps a {@link Ext.slider.MultiSlider Slider} so it can be used as a form field.
  * @constructor
@@ -24,24 +27,24 @@
  */
 Ext.form.SliderField = Ext.extend(Ext.form.Field, {
     
-    <div id="cfg-Ext.form.SliderField-useTips"></div>/**
-     * @cfg {Boolean} useTips
-     * True to use an Ext.slider.Tip to display tips for the value. Defaults to <tt>true</tt>.
+<span id='Ext-form-SliderField-cfg-useTips'>    /**
+</span>     * @cfg {Boolean} useTips
+     * True to use an Ext.slider.Tip to display tips for the value. Defaults to &lt;tt&gt;true&lt;/tt&gt;.
      */
     useTips : true,
     
-    <div id="cfg-Ext.form.SliderField-tipText"></div>/**
-     * @cfg {Function} tipText
-     * A function used to display custom text for the slider tip. Defaults to <tt>null</tt>, which will
+<span id='Ext-form-SliderField-cfg-tipText'>    /**
+</span>     * @cfg {Function} tipText
+     * A function used to display custom text for the slider tip. Defaults to &lt;tt&gt;null&lt;/tt&gt;, which will
      * use the default on the plugin.
      */
     tipText : null,
     
-    // private override
-    actionMode: 'wrap',
+<span id='Ext-form-SliderField-property-actionMode'>    // private override
+</span>    actionMode: 'wrap',
     
-    /**
-     * Initialize the component.
+<span id='Ext-form-SliderField-method-initComponent'>    /**
+</span>     * Initialize the component.
      * @private
      */
     initComponent : function() {
@@ -58,8 +61,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         Ext.form.SliderField.superclass.initComponent.call(this);
     },    
     
-    /**
-     * Set up the hidden field
+<span id='Ext-form-SliderField-method-onRender'>    /**
+</span>     * Set up the hidden field
      * @param {Object} ct The container to render to.
      * @param {Object} position The position in the container to render to.
      * @private
@@ -77,8 +80,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.slider.render(this.wrap);
     },
     
-    /**
-     * Ensure that the slider size is set automatically when the field resizes.
+<span id='Ext-form-SliderField-method-onResize'>    /**
+</span>     * Ensure that the slider size is set automatically when the field resizes.
      * @param {Object} w The width
      * @param {Object} h The height
      * @param {Object} aw The adjusted width
@@ -90,8 +93,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.slider.setSize(w, h);    
     },
     
-    /**
-     * Initialize any events for this class.
+<span id='Ext-form-SliderField-method-initEvents'>    /**
+</span>     * Initialize any events for this class.
      * @private
      */
     initEvents : function(){
@@ -99,8 +102,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.slider.on('change', this.onChange, this);   
     },
     
-    /**
-     * Utility method to set the value of the field when the slider changes.
+<span id='Ext-form-SliderField-method-onChange'>    /**
+</span>     * Utility method to set the value of the field when the slider changes.
      * @param {Object} slider The slider object.
      * @param {Object} v The new value.
      * @private
@@ -109,8 +112,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.setValue(v, undefined, true);
     },
     
-    /**
-     * Enable the slider when the field is enabled.
+<span id='Ext-form-SliderField-method-onEnable'>    /**
+</span>     * Enable the slider when the field is enabled.
      * @private
      */
     onEnable : function(){
@@ -118,8 +121,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.slider.enable();
     },
     
-    /**
-     * Disable the slider when the field is disabled.
+<span id='Ext-form-SliderField-method-onDisable'>    /**
+</span>     * Disable the slider when the field is disabled.
      * @private
      */
     onDisable : function(){
@@ -127,8 +130,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         this.slider.disable();    
     },
     
-    /**
-     * Ensure the slider is destroyed when the field is destroyed.
+<span id='Ext-form-SliderField-method-beforeDestroy'>    /**
+</span>     * Ensure the slider is destroyed when the field is destroyed.
      * @private
      */
     beforeDestroy : function(){
@@ -136,16 +139,16 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         Ext.form.SliderField.superclass.beforeDestroy.call(this);
     },
     
-    /**
-     * If a side icon is shown, do alignment to the slider
+<span id='Ext-form-SliderField-method-alignErrorIcon'>    /**
+</span>     * If a side icon is shown, do alignment to the slider
      * @private
      */
     alignErrorIcon : function(){
         this.errorIcon.alignTo(this.slider.el, 'tl-tr', [2, 0]);
     },
     
-    <div id="method-Ext.form.SliderField-setMinValue"></div>/**
-     * Sets the minimum field value.
+<span id='Ext-form-SliderField-method-setMinValue'>    /**
+</span>     * Sets the minimum field value.
      * @param {Number} v The new minimum value.
      * @return {Ext.form.SliderField} this
      */
@@ -154,8 +157,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         return this;    
     },
     
-    <div id="method-Ext.form.SliderField-setMaxValue"></div>/**
-     * Sets the maximum field value.
+<span id='Ext-form-SliderField-method-setMaxValue'>    /**
+</span>     * Sets the maximum field value.
      * @param {Number} v The new maximum value.
      * @return {Ext.form.SliderField} this
      */
@@ -164,8 +167,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         return this;    
     },
     
-    <div id="method-Ext.form.SliderField-setValue"></div>/**
-     * Sets the value for this field.
+<span id='Ext-form-SliderField-method-setValue'>    /**
+</span>     * Sets the value for this field.
      * @param {Number} v The new value.
      * @param {Boolean} animate (optional) Whether to animate the transition. If not specified, it will default to the animate config.
      * @return {Ext.form.SliderField} this
@@ -179,8 +182,8 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
         return Ext.form.SliderField.superclass.setValue.call(this, this.slider.getValue());
     },
     
-    <div id="method-Ext.form.SliderField-getValue"></div>/**
-     * Gets the current value for this field.
+<span id='Ext-form-SliderField-method-getValue'>    /**
+</span>     * Gets the current value for this field.
      * @return {Number} The current value.
      */
     getValue : function(){
@@ -188,6 +191,6 @@ Ext.form.SliderField = Ext.extend(Ext.form.Field, {
     }
 });
 
-Ext.reg('sliderfield', Ext.form.SliderField);</pre>    
+Ext.reg('sliderfield', Ext.form.SliderField);</pre>
 </body>
 </html>

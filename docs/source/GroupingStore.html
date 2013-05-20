@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.data.GroupingStore"></div>/**
- * @class Ext.data.GroupingStore
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-GroupingStore-method-constructor'><span id='Ext-data-GroupingStore'>/**
+</span></span> * @class Ext.data.GroupingStore
  * @extends Ext.data.Store
  * A specialized store implementation that provides for grouping records by one of the available fields. This
  * is usually used in conjunction with an {@link Ext.grid.GroupingView} to provide the data model for
@@ -31,8 +34,8 @@
  */
 Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
 
-    //inherit docs
-    constructor: function(config) {
+<span id='Ext-data-GroupingStore-method-constructor'>    //inherit docs
+</span>    constructor: function(config) {
         config = config || {};
 
         //We do some preprocessing here to massage the grouping + sorting options into a single
@@ -63,8 +66,8 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         Ext.data.GroupingStore.superclass.constructor.call(this, config);
 
         this.addEvents(
-          <div id="event-Ext.data.GroupingStore-groupchange"></div>/**
-           * @event groupchange
+<span id='Ext-data-GroupingStore-event-groupchange'>          /**
+</span>           * @event groupchange
            * Fired whenever a call to store.groupBy successfully changes the grouping on the store
            * @param {Ext.data.GroupingStore} store The grouping store
            * @param {String} groupField The field that the store is now grouped by
@@ -75,32 +78,32 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         this.applyGroupField();
     },
 
-    <div id="cfg-Ext.data.GroupingStore-groupField"></div>/**
-     * @cfg {String} groupField
+<span id='Ext-data-GroupingStore-cfg-groupField'>    /**
+</span>     * @cfg {String} groupField
      * The field name by which to sort the store's data (defaults to '').
      */
-    <div id="cfg-Ext.data.GroupingStore-remoteGroup"></div>/**
-     * @cfg {Boolean} remoteGroup
+<span id='Ext-data-GroupingStore-cfg-remoteGroup'>    /**
+</span>     * @cfg {Boolean} remoteGroup
      * True if the grouping should apply on the server side, false if it is local only (defaults to false).  If the
      * grouping is local, it can be applied immediately to the data.  If it is remote, then it will simply act as a
      * helper, automatically sending the grouping field name as the 'groupBy' param with each XHR call.
      */
     remoteGroup : false,
-    <div id="cfg-Ext.data.GroupingStore-groupOnSort"></div>/**
-     * @cfg {Boolean} groupOnSort
+<span id='Ext-data-GroupingStore-cfg-groupOnSort'>    /**
+</span>     * @cfg {Boolean} groupOnSort
      * True to sort the data on the grouping field when a grouping operation occurs, false to sort based on the
      * existing sort info (defaults to false).
      */
     groupOnSort:false,
 
-    <div id="cfg-Ext.data.GroupingStore-groupDir"></div>/**
-     * @cfg {String} groupDir
-     * The direction to sort the groups. Defaults to <tt>'ASC'</tt>.
+<span id='Ext-data-GroupingStore-cfg-groupDir'>    /**
+</span>     * @cfg {String} groupDir
+     * The direction to sort the groups. Defaults to &lt;tt&gt;'ASC'&lt;/tt&gt;.
      */
     groupDir : 'ASC',
 
-    <div id="method-Ext.data.GroupingStore-clearGrouping"></div>/**
-     * Clears any existing grouping and refreshes the data using the default sort.
+<span id='Ext-data-GroupingStore-method-clearGrouping'>    /**
+</span>     * Clears any existing grouping and refreshes the data using the default sort.
      */
     clearGrouping : function(){
         this.groupField = false;
@@ -111,7 +114,7 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
                 delete this.baseParams.groupDir;
             }
             var lo = this.lastOptions;
-            if(lo && lo.params){
+            if(lo &amp;&amp; lo.params){
                 delete lo.params.groupBy;
                 delete lo.params.groupDir;
             }
@@ -123,8 +126,8 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         }
     },
 
-    <div id="method-Ext.data.GroupingStore-groupBy"></div>/**
-     * Groups the data by the specified field.
+<span id='Ext-data-GroupingStore-method-groupBy'>    /**
+</span>     * Groups the data by the specified field.
      * @param {String} field The field name by which to sort the store's data
      * @param {Boolean} forceRegroup (optional) True to force the group to be refreshed even if the field passed
      * in is the same as the current grouping field, false to skip grouping on the same field (defaults to false)
@@ -132,14 +135,14 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
     groupBy : function(field, forceRegroup, direction) {
         direction = direction ? (String(direction).toUpperCase() == 'DESC' ? 'DESC' : 'ASC') : this.groupDir;
 
-        if (this.groupField == field && this.groupDir == direction && !forceRegroup) {
+        if (this.groupField == field &amp;&amp; this.groupDir == direction &amp;&amp; !forceRegroup) {
             return; // already grouped by this field
         }
 
         //check the contents of the first sorter. If the field matches the CURRENT groupField (before it is set to the new one),
         //remove the sorter as it is actually the grouper. The new grouper is added back in by this.sort
         var sorters = this.multiSortInfo.sorters;
-        if (sorters.length > 0 && sorters[0].field == this.groupField) {
+        if (sorters.length &gt; 0 &amp;&amp; sorters[0].field == this.groupField) {
             sorters.shift();
         }
 
@@ -166,8 +169,8 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         }
     },
 
-    //GroupingStore always uses multisorting so we intercept calls to sort here to make sure that our grouping sorter object
-    //is always injected first.
+<span id='Ext-data-GroupingStore-method-sort'>    //GroupingStore always uses multisorting so we intercept calls to sort here to make sure that our grouping sorter object
+</span>    //is always injected first.
     sort : function(fieldName, dir) {
         if (this.remoteSort) {
             return Ext.data.GroupingStore.superclass.sort.call(this, fieldName, dir);
@@ -193,7 +196,7 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
                 sortToggle = this.sortToggle ? this.sortToggle[name] : null;
 
             if (!dir) {
-                if (sortInfo && sortInfo.field == name) { // toggle sort dir
+                if (sortInfo &amp;&amp; sortInfo.field == name) { // toggle sort dir
                     dir = (this.sortToggle[name] || 'ASC').toggle('ASC', 'DESC');
                 } else {
                     dir = field.sortDir;
@@ -214,8 +217,8 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         return this.multiSort.call(this, sorters, dir);
     },
 
-    /**
-     * @private
+<span id='Ext-data-GroupingStore-method-applyGroupField'>    /**
+</span>     * @private
      * Saves the current grouping field and direction to this.baseParams and this.lastOptions.params
      * if we're using remote grouping. Does not actually perform any grouping - just stores values
      */
@@ -231,7 +234,7 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
             });
 
             var lo = this.lastOptions;
-            if (lo && lo.params) {
+            if (lo &amp;&amp; lo.params) {
                 lo.params.groupDir = this.groupDir;
 
                 //this is deleted because of a bug reported at http://www.extjs.com/forum/showthread.php?t=82907
@@ -240,8 +243,8 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         }
     },
 
-    /**
-     * @private
+<span id='Ext-data-GroupingStore-method-applyGrouping'>    /**
+</span>     * @private
      * TODO: This function is apparently never invoked anywhere in the framework. It has no documentation
      * and should be considered for deletion
      */
@@ -257,18 +260,18 @@ Ext.data.GroupingStore = Ext.extend(Ext.data.Store, {
         }
     },
 
-    /**
-     * @private
+<span id='Ext-data-GroupingStore-method-getGroupState'>    /**
+</span>     * @private
      * Returns the grouping field that should be used. If groupOnSort is used this will be sortInfo's field,
      * otherwise it will be this.groupField
      * @return {String} The group field
      */
     getGroupState : function(){
-        return this.groupOnSort && this.groupField !== false ?
+        return this.groupOnSort &amp;&amp; this.groupField !== false ?
                (this.sortInfo ? this.sortInfo.field : undefined) : this.groupField;
     }
 });
 Ext.reg('groupingstore', Ext.data.GroupingStore);
-</pre>    
+</pre>
 </body>
 </html>

@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.tree.TreeFilter"></div>/**
- * @class Ext.tree.TreeFilter
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tree-TreeFilter'>/**
+</span> * @class Ext.tree.TreeFilter
  * Note this class is experimental and doesn't update the indent (lines) or expand collapse icons of the nodes
  * @param {TreePanel} tree
  * @param {Object} config (optional)
@@ -30,20 +33,20 @@ Ext.tree.TreeFilter.prototype = {
     autoClear:false,
     remove:false,
 
-     <div id="method-Ext.tree.TreeFilter-filter"></div>/**
-     * Filter the data by a specific attribute.
+<span id='Ext-tree-TreeFilter-method-filter'>     /**
+</span>     * Filter the data by a specific attribute.
      * @param {String/RegExp} value Either string that the attribute value
      * should start with or a RegExp to test against the attribute
-     * @param {String} attr (optional) The attribute passed in your node's attributes collection. Defaults to "text".
+     * @param {String} attr (optional) The attribute passed in your node's attributes collection. Defaults to &quot;text&quot;.
      * @param {TreeNode} startNode (optional) The node to start the filter at.
      */
     filter : function(value, attr, startNode){
-        attr = attr || "text";
+        attr = attr || &quot;text&quot;;
         var f;
-        if(typeof value == "string"){
+        if(typeof value == &quot;string&quot;){
             var vlen = value.length;
             // auto clear empty filter
-            if(vlen == 0 && this.clearBlank){
+            if(vlen == 0 &amp;&amp; this.clearBlank){
                 this.clear();
                 return;
             }
@@ -61,12 +64,12 @@ Ext.tree.TreeFilter.prototype = {
         this.filterBy(f, null, startNode);
 	},
 
-    <div id="method-Ext.tree.TreeFilter-filterBy"></div>/**
-     * Filter by a function. The passed function will be called with each
+<span id='Ext-tree-TreeFilter-method-filterBy'>    /**
+</span>     * Filter by a function. The passed function will be called with each
      * node in the tree (or from the startNode). If the function returns true, the node is kept
      * otherwise it is filtered. If a node is filtered, its children are also filtered.
      * @param {Function} fn The filter function
-     * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the function is executed. Defaults to the current Node.
+     * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the function is executed. Defaults to the current Node.
      */
     filterBy : function(fn, scope, startNode){
         startNode = startNode || this.tree.root;
@@ -92,9 +95,9 @@ Ext.tree.TreeFilter.prototype = {
         startNode.cascade(f);
         if(this.remove){
            for(var id in af){
-               if(typeof id != "function"){
+               if(typeof id != &quot;function&quot;){
                    var n = af[id];
-                   if(n && n.parentNode){
+                   if(n &amp;&amp; n.parentNode){
                        n.parentNode.removeChild(n);
                    }
                }
@@ -102,15 +105,15 @@ Ext.tree.TreeFilter.prototype = {
         }
     },
 
-    <div id="method-Ext.tree.TreeFilter-clear"></div>/**
-     * Clears the current filter. Note: with the "remove" option
+<span id='Ext-tree-TreeFilter-method-clear'>    /**
+</span>     * Clears the current filter. Note: with the &quot;remove&quot; option
      * set a filter cannot be cleared.
      */
     clear : function(){
         var t = this.tree;
         var af = this.filtered;
         for(var id in af){
-            if(typeof id != "function"){
+            if(typeof id != &quot;function&quot;){
                 var n = af[id];
                 if(n){
                     n.ui.show();
@@ -120,6 +123,6 @@ Ext.tree.TreeFilter.prototype = {
         this.filtered = {};
     }
 };
-</pre>    
+</pre>
 </body>
 </html>

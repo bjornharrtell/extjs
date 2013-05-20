@@ -1,97 +1,100 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.layout.boxOverflow.Scroller"></div>/**
- * @class Ext.layout.boxOverflow.Scroller
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-boxOverflow-Scroller'>/**
+</span> * @class Ext.layout.boxOverflow.Scroller
  * @extends Ext.layout.boxOverflow.None
  * Description
  */
 Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg animateScroll
+<span id='Ext-layout-boxOverflow-Scroller-property-animateScroll'>    /**
+</span>     * @cfg animateScroll
      * @type Boolean
      * True to animate the scrolling of items within the layout (defaults to true, ignored if enableScroll is false)
      */
     animateScroll: true,
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg scrollIncrement
+<span id='Ext-layout-boxOverflow-Scroller-property-scrollIncrement'>    /**
+</span>     * @cfg scrollIncrement
      * @type Number
      * The number of pixels to scroll by on scroller click (defaults to 100)
      */
     scrollIncrement: 100,
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg wheelIncrement
+<span id='Ext-layout-boxOverflow-Scroller-property-wheelIncrement'>    /**
+</span>     * @cfg wheelIncrement
      * @type Number
-     * The number of pixels to increment on mouse wheel scrolling (defaults to <tt>3</tt>).
+     * The number of pixels to increment on mouse wheel scrolling (defaults to &lt;tt&gt;3&lt;/tt&gt;).
      */
     wheelIncrement: 3,
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg scrollRepeatInterval
+<span id='Ext-layout-boxOverflow-Scroller-property-scrollRepeatInterval'>    /**
+</span>     * @cfg scrollRepeatInterval
      * @type Number
      * Number of milliseconds between each scroll while a scroller button is held down (defaults to 400)
      */
     scrollRepeatInterval: 400,
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg scrollDuration
+<span id='Ext-layout-boxOverflow-Scroller-property-scrollDuration'>    /**
+</span>     * @cfg scrollDuration
      * @type Number
      * Number of seconds that each scroll animation lasts (defaults to 0.4)
      */
     scrollDuration: 0.4,
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg beforeCls
+<span id='Ext-layout-boxOverflow-Scroller-property-beforeCls'>    /**
+</span>     * @cfg beforeCls
      * @type String
      * CSS class added to the beforeCt element. This is the element that holds any special items such as scrollers,
      * which must always be present at the leftmost edge of the Container
      */
     beforeCls: 'x-strip-left',
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg afterCls
+<span id='Ext-layout-boxOverflow-Scroller-property-afterCls'>    /**
+</span>     * @cfg afterCls
      * @type String
      * CSS class added to the afterCt element. This is the element that holds any special items such as scrollers,
      * which must always be present at the rightmost edge of the Container
      */
     afterCls: 'x-strip-right',
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg scrollerCls
+<span id='Ext-layout-boxOverflow-Scroller-property-scrollerCls'>    /**
+</span>     * @cfg scrollerCls
      * @type String
      * CSS class added to both scroller elements if enableScroll is used
      */
     scrollerCls: 'x-strip-scroller',
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg beforeScrollerCls
+<span id='Ext-layout-boxOverflow-Scroller-property-beforeScrollerCls'>    /**
+</span>     * @cfg beforeScrollerCls
      * @type String
      * CSS class added to the left scroller element if enableScroll is used
      */
     beforeScrollerCls: 'x-strip-scroller-left',
     
-    <div id="cfg-Ext.layout.boxOverflow.Scroller-null"></div>/**
-     * @cfg afterScrollerCls
+<span id='Ext-layout-boxOverflow-Scroller-property-afterScrollerCls'>    /**
+</span>     * @cfg afterScrollerCls
      * @type String
      * CSS class added to the right scroller element if enableScroll is used
      */
     afterScrollerCls: 'x-strip-scroller-right',
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-createWheelListener'>    /**
+</span>     * @private
      * Sets up an listener to scroll on the layout's innerCt mousewheel event
      */
     createWheelListener: function() {
@@ -105,8 +108,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         });
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-handleOverflow'>    /**
+</span>     * @private
      * Most of the heavy lifting is done in the subclasses
      */
     handleOverflow: function(calculations, targetSize) {
@@ -114,15 +117,15 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         this.showScrollers();
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-clearOverflow'>    /**
+</span>     * @private
      */
     clearOverflow: function() {
         this.hideScrollers();
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-showScrollers'>    /**
+</span>     * @private
      * Shows the scroller elements in the beforeCt and afterCt. Creates the scrollers first if they are not already
      * present. 
      */
@@ -135,8 +138,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         this.updateScrollButtons();
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-hideScrollers'>    /**
+</span>     * @private
      * Hides the scroller elements in the beforeCt and afterCt
      */
     hideScrollers: function() {
@@ -146,18 +149,18 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         }
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-createScrollers'>    /**
+</span>     * @private
      * Creates the clickable scroller elements and places them into the beforeCt and afterCt
      */
     createScrollers: function() {
-        if (!this.beforeScroller && !this.afterScroller) {
+        if (!this.beforeScroller &amp;&amp; !this.afterScroller) {
             var before = this.beforeCt.createChild({
-                cls: String.format("{0} {1} ", this.scrollerCls, this.beforeScrollerCls)
+                cls: String.format(&quot;{0} {1} &quot;, this.scrollerCls, this.beforeScrollerCls)
             });
             
             var after = this.afterCt.createChild({
-                cls: String.format("{0} {1}", this.scrollerCls, this.afterScrollerCls)
+                cls: String.format(&quot;{0} {1}&quot;, this.scrollerCls, this.afterScrollerCls)
             });
             
             before.addClassOnOver(this.beforeScrollerCls + '-hover');
@@ -178,15 +181,15 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
                 scope   : this
             });
             
-            <div id="prop-Ext.layout.boxOverflow.Scroller-beforeScroller"></div>/**
-             * @property beforeScroller
+<span id='Ext-layout-boxOverflow-Scroller-property-beforeScroller'>            /**
+</span>             * @property beforeScroller
              * @type Ext.Element
              * The left scroller element. Only created when needed.
              */
             this.beforeScroller = before;
             
-            <div id="prop-Ext.layout.boxOverflow.Scroller-afterScroller"></div>/**
-             * @property afterScroller
+<span id='Ext-layout-boxOverflow-Scroller-property-afterScroller'>            /**
+</span>             * @property afterScroller
              * @type Ext.Element
              * The left scroller element. Only created when needed.
              */
@@ -194,15 +197,15 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         }
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-destroy'>    /**
+</span>     * @private
      */
     destroy: function() {
         Ext.destroy(this.beforeScroller, this.afterScroller, this.beforeRepeater, this.afterRepeater, this.beforeCt, this.afterCt);
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-scrollBy'>    /**
+</span>     * @private
      * Scrolls left or right by the number of pixels specified
      * @param {Number} delta Number of pixels to scroll to the right by. Use a negative number to scroll left
      */
@@ -210,8 +213,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         this.scrollTo(this.getScrollPosition() + delta, animate);
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-getItem'>    /**
+</span>     * @private
      * Normalizes an item reference, string id or numerical index into a reference to the item
      * @param {Ext.Component|String|Number} item The item reference, id or index
      * @return {Ext.Component} The item
@@ -226,8 +229,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         return item;
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-getScrollAnim'>    /**
+</span>     * @private
      * @return {Object} Object passed to scrollTo when scrolling
      */
     getScrollAnim: function() {
@@ -238,8 +241,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         };
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-updateScrollButtons'>    /**
+</span>     * @private
      * Enables or disables each scroller button based on the current scroll position
      */
     updateScrollButtons: function() {
@@ -257,8 +260,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         this.scrolling = false;
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-atExtremeBefore'>    /**
+</span>     * @private
      * Returns true if the innerCt scroll is already at its left-most point
      * @return {Boolean} True if already at furthest left point
      */
@@ -266,24 +269,24 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         return this.getScrollPosition() === 0;
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-scrollLeft'>    /**
+</span>     * @private
      * Scrolls to the left by the configured amount
      */
     scrollLeft: function(animate) {
         this.scrollBy(-this.scrollIncrement, animate);
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-scrollRight'>    /**
+</span>     * @private
      * Scrolls to the right by the configured amount
      */
     scrollRight: function(animate) {
         this.scrollBy(this.scrollIncrement, animate);
     },
     
-    <div id="method-Ext.layout.boxOverflow.Scroller-scrollToItem"></div>/**
-     * Scrolls to the given component.
+<span id='Ext-layout-boxOverflow-Scroller-method-scrollToItem'>    /**
+</span>     * Scrolls to the given component.
      * @param {String|Number|Ext.Component} item The item to scroll to. Can be a numerical index, component id 
      * or a reference to the component itself.
      * @param {Boolean} animate True to animate the scrolling
@@ -307,8 +310,8 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
         }
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-Scroller-method-getItemVisibility'>    /**
+</span>     * @private
      * For a given item in the container, return an object with information on whether the item is visible
      * with the current innerCt scroll value.
      * @param {Ext.Component} item The item
@@ -322,9 +325,9 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
             scrollRight = this.layout.innerCt.getWidth() + scrollLeft;
         
         return {
-            hiddenLeft  : itemLeft < scrollLeft,
-            hiddenRight : itemRight > scrollRight,
-            fullyVisible: itemLeft > scrollLeft && itemRight < scrollRight
+            hiddenLeft  : itemLeft &lt; scrollLeft,
+            hiddenRight : itemRight &gt; scrollRight,
+            fullyVisible: itemLeft &gt; scrollLeft &amp;&amp; itemRight &lt; scrollRight
         };
     }
 });
@@ -332,17 +335,17 @@ Ext.layout.boxOverflow.Scroller = Ext.extend(Ext.layout.boxOverflow.None, {
 Ext.layout.boxOverflow.scroller = Ext.layout.boxOverflow.Scroller;
 
 
-<div id="cls-Ext.layout.boxOverflow.VerticalScroller"></div>/**
- * @class Ext.layout.boxOverflow.VerticalScroller
+<span id='Ext-layout-boxOverflow-VerticalScroller'>/**
+</span> * @class Ext.layout.boxOverflow.VerticalScroller
  * @extends Ext.layout.boxOverflow.Scroller
  * Description
  */
 Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scroller, {
-    scrollIncrement: 75,
-    wheelIncrement : 2,
-    
-    handleOverflow: function(calculations, targetSize) {
-        Ext.layout.boxOverflow.VerticalScroller.superclass.handleOverflow.apply(this, arguments);
+<span id='Ext-layout-boxOverflow-VerticalScroller-property-scrollIncrement'>    scrollIncrement: 75,
+</span><span id='Ext-layout-boxOverflow-VerticalScroller-property-wheelIncrement'>    wheelIncrement : 2,
+</span>    
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-handleOverflow'>    handleOverflow: function(calculations, targetSize) {
+</span>        Ext.layout.boxOverflow.VerticalScroller.superclass.handleOverflow.apply(this, arguments);
         
         return {
             targetSize: {
@@ -352,8 +355,8 @@ Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scro
         };
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-createInnerElements'>    /**
+</span>     * @private
      * Creates the beforeCt and afterCt elements if they have not already been created
      */
     createInnerElements: function() {
@@ -369,8 +372,8 @@ Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scro
         }
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-scrollTo'>    /**
+</span>     * @private
      * Scrolls to the given position. Performs bounds checking.
      * @param {Number} position The position to scroll to. This is constrained.
      * @param {Boolean} animate True to animate. If undefined, falls back to value of this.animateScroll
@@ -379,7 +382,7 @@ Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scro
         var oldPosition = this.getScrollPosition(),
             newPosition = position.constrain(0, this.getMaxScrollBottom());
         
-        if (newPosition != oldPosition && !this.scrolling) {
+        if (newPosition != oldPosition &amp;&amp; !this.scrolling) {
             if (animate == undefined) {
                 animate = this.animateScroll;
             }
@@ -395,16 +398,16 @@ Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scro
         }
     },
     
-    <div id="method-Ext.layout.boxOverflow.VerticalScroller-getScrollPosition"></div>/**
-     * Returns the current scroll position of the innerCt element
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-getScrollPosition'>    /**
+</span>     * Returns the current scroll position of the innerCt element
      * @return {Number} The current scroll position
      */
     getScrollPosition: function(){
         return parseInt(this.layout.innerCt.dom.scrollTop, 10) || 0;
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-getMaxScrollBottom'>    /**
+</span>     * @private
      * Returns the maximum value we can scrollTo
      * @return {Number} The max scroll value
      */
@@ -412,27 +415,27 @@ Ext.layout.boxOverflow.VerticalScroller = Ext.extend(Ext.layout.boxOverflow.Scro
         return this.layout.innerCt.dom.scrollHeight - this.layout.innerCt.getHeight();
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-VerticalScroller-method-atExtremeAfter'>    /**
+</span>     * @private
      * Returns true if the innerCt scroll is already at its right-most point
      * @return {Boolean} True if already at furthest right point
      */
     atExtremeAfter: function() {
-        return this.getScrollPosition() >= this.getMaxScrollBottom();
+        return this.getScrollPosition() &gt;= this.getMaxScrollBottom();
     }
 });
 
 Ext.layout.boxOverflow.scroller.vbox = Ext.layout.boxOverflow.VerticalScroller;
 
 
-<div id="cls-Ext.layout.boxOverflow.HorizontalScroller"></div>/**
- * @class Ext.layout.boxOverflow.HorizontalScroller
+<span id='Ext-layout-boxOverflow-HorizontalScroller'>/**
+</span> * @class Ext.layout.boxOverflow.HorizontalScroller
  * @extends Ext.layout.boxOverflow.Scroller
  * Description
  */
 Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Scroller, {
-    handleOverflow: function(calculations, targetSize) {
-        Ext.layout.boxOverflow.HorizontalScroller.superclass.handleOverflow.apply(this, arguments);
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-handleOverflow'>    handleOverflow: function(calculations, targetSize) {
+</span>        Ext.layout.boxOverflow.HorizontalScroller.superclass.handleOverflow.apply(this, arguments);
         
         return {
             targetSize: {
@@ -442,8 +445,8 @@ Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Sc
         };
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-createInnerElements'>    /**
+</span>     * @private
      * Creates the beforeCt and afterCt elements if they have not already been created
      */
     createInnerElements: function() {
@@ -459,8 +462,8 @@ Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Sc
         }
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-scrollTo'>    /**
+</span>     * @private
      * Scrolls to the given position. Performs bounds checking.
      * @param {Number} position The position to scroll to. This is constrained.
      * @param {Boolean} animate True to animate. If undefined, falls back to value of this.animateScroll
@@ -469,7 +472,7 @@ Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Sc
         var oldPosition = this.getScrollPosition(),
             newPosition = position.constrain(0, this.getMaxScrollRight());
         
-        if (newPosition != oldPosition && !this.scrolling) {
+        if (newPosition != oldPosition &amp;&amp; !this.scrolling) {
             if (animate == undefined) {
                 animate = this.animateScroll;
             }
@@ -485,16 +488,16 @@ Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Sc
         }
     },
     
-    <div id="method-Ext.layout.boxOverflow.HorizontalScroller-getScrollPosition"></div>/**
-     * Returns the current scroll position of the innerCt element
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-getScrollPosition'>    /**
+</span>     * Returns the current scroll position of the innerCt element
      * @return {Number} The current scroll position
      */
     getScrollPosition: function(){
         return parseInt(this.layout.innerCt.dom.scrollLeft, 10) || 0;
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-getMaxScrollRight'>    /**
+</span>     * @private
      * Returns the maximum value we can scrollTo
      * @return {Number} The max scroll value
      */
@@ -502,16 +505,16 @@ Ext.layout.boxOverflow.HorizontalScroller = Ext.extend(Ext.layout.boxOverflow.Sc
         return this.layout.innerCt.dom.scrollWidth - this.layout.innerCt.getWidth();
     },
     
-    /**
-     * @private
+<span id='Ext-layout-boxOverflow-HorizontalScroller-method-atExtremeAfter'>    /**
+</span>     * @private
      * Returns true if the innerCt scroll is already at its right-most point
      * @return {Boolean} True if already at furthest right point
      */
     atExtremeAfter: function() {
-        return this.getScrollPosition() >= this.getMaxScrollRight();
+        return this.getScrollPosition() &gt;= this.getMaxScrollRight();
     }
 });
 
-Ext.layout.boxOverflow.scroller.hbox = Ext.layout.boxOverflow.HorizontalScroller;</pre>    
+Ext.layout.boxOverflow.scroller.hbox = Ext.layout.boxOverflow.HorizontalScroller;</pre>
 </body>
 </html>

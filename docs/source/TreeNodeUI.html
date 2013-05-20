@@ -1,34 +1,37 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.tree.TreeNodeUI"></div>/**
- * @class Ext.tree.TreeNodeUI
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tree-TreeNodeUI'>/**
+</span> * @class Ext.tree.TreeNodeUI
  * This class provides the default UI implementation for Ext TreeNodes.
  * The TreeNode UI implementation is separate from the
  * tree implementation, and allows customizing of the appearance of
- * tree nodes.<br>
- * <p>
+ * tree nodes.&lt;br&gt;
+ * &lt;p&gt;
  * If you are customizing the Tree's user interface, you
- * may need to extend this class, but you should never need to instantiate this class.<br>
- * <p>
+ * may need to extend this class, but you should never need to instantiate this class.&lt;br&gt;
+ * &lt;p&gt;
  * This class provides access to the user interface components of an Ext TreeNode, through
  * {@link Ext.tree.TreeNode#getUI}
  */
 Ext.tree.TreeNodeUI = Ext.extend(Object, {
     
-    constructor : function(node){
-        Ext.apply(this, {
+<span id='Ext-tree-TreeNodeUI-method-constructor'>    constructor : function(node){
+</span>        Ext.apply(this, {
             node: node,
             rendered: false,
             animating: false,
@@ -38,67 +41,67 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         });
     },
     
-    // private
-    removeChild : function(node){
+<span id='Ext-tree-TreeNodeUI-method-removeChild'>    // private
+</span>    removeChild : function(node){
         if(this.rendered){
             this.ctNode.removeChild(node.ui.getEl());
         }
     },
 
-    // private
-    beforeLoad : function(){
-         this.addClass("x-tree-node-loading");
+<span id='Ext-tree-TreeNodeUI-method-beforeLoad'>    // private
+</span>    beforeLoad : function(){
+         this.addClass(&quot;x-tree-node-loading&quot;);
     },
 
-    // private
-    afterLoad : function(){
-         this.removeClass("x-tree-node-loading");
+<span id='Ext-tree-TreeNodeUI-method-afterLoad'>    // private
+</span>    afterLoad : function(){
+         this.removeClass(&quot;x-tree-node-loading&quot;);
     },
 
-    // private
-    onTextChange : function(node, text, oldText){
+<span id='Ext-tree-TreeNodeUI-method-onTextChange'>    // private
+</span>    onTextChange : function(node, text, oldText){
         if(this.rendered){
             this.textNode.innerHTML = text;
         }
     },
     
-    // private
-    onIconClsChange : function(node, cls, oldCls){
+<span id='Ext-tree-TreeNodeUI-method-onIconClsChange'>    // private
+</span>    onIconClsChange : function(node, cls, oldCls){
         if(this.rendered){
             Ext.fly(this.iconNode).replaceClass(oldCls, cls);
         }
     },
     
-    // private
-    onIconChange : function(node, icon){
+<span id='Ext-tree-TreeNodeUI-method-onIconChange'>    // private
+</span>    onIconChange : function(node, icon){
         if(this.rendered){
-            //'<img src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon',(a.icon ? " x-tree-node-inline-icon" : ""),(a.iconCls ? " "+a.iconCls : ""),'" unselectable="on" />',
+            //'&lt;img src=&quot;', a.icon || this.emptyIcon, '&quot; class=&quot;x-tree-node-icon',(a.icon ? &quot; x-tree-node-inline-icon&quot; : &quot;&quot;),(a.iconCls ? &quot; &quot;+a.iconCls : &quot;&quot;),'&quot; unselectable=&quot;on&quot; /&gt;',
             var empty = Ext.isEmpty(icon);
             this.iconNode.src = empty ? this.emptyIcon : icon;
             Ext.fly(this.iconNode)[empty ? 'removeClass' : 'addClass']('x-tree-node-inline-icon');
         }
     },
     
-    // private
-    onTipChange : function(node, tip, title){
+<span id='Ext-tree-TreeNodeUI-method-onTipChange'>    // private
+</span>    onTipChange : function(node, tip, title){
         if(this.rendered){
             var hasTitle = Ext.isDefined(title);
             if(this.textNode.setAttributeNS){
-                this.textNode.setAttributeNS("ext", "qtip", tip);
+                this.textNode.setAttributeNS(&quot;ext&quot;, &quot;qtip&quot;, tip);
                 if(hasTitle){
-                    this.textNode.setAttributeNS("ext", "qtitle", title);
+                    this.textNode.setAttributeNS(&quot;ext&quot;, &quot;qtitle&quot;, title);
                 }
             }else{
-                this.textNode.setAttribute("ext:qtip", tip);
+                this.textNode.setAttribute(&quot;ext:qtip&quot;, tip);
                 if(hasTitle){
-                    this.textNode.setAttribute("ext:qtitle", title);
+                    this.textNode.setAttribute(&quot;ext:qtitle&quot;, title);
                 }
             }
         }
     },
     
-    // private
-    onHrefChange : function(node, href, target){
+<span id='Ext-tree-TreeNodeUI-method-onHrefChange'>    // private
+</span>    onHrefChange : function(node, href, target){
         if(this.rendered){
             this.anchor.href = this.getHref(href);
             if(Ext.isDefined(target)){
@@ -107,15 +110,15 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
     
-    // private
-    onClsChange : function(node, cls, oldCls){
+<span id='Ext-tree-TreeNodeUI-method-onClsChange'>    // private
+</span>    onClsChange : function(node, cls, oldCls){
         if(this.rendered){
             Ext.fly(this.elNode).replaceClass(oldCls, cls);
         }    
     },
 
-    // private
-    onDisableChange : function(node, state){
+<span id='Ext-tree-TreeNodeUI-method-onDisableChange'>    // private
+</span>    onDisableChange : function(node, state){
         this.disabled = state;
         if (this.checkbox) {
             this.checkbox.disabled = state;
@@ -123,24 +126,24 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         this[state ? 'addClass' : 'removeClass']('x-tree-node-disabled');
     },
 
-    // private
-    onSelectedChange : function(state){
+<span id='Ext-tree-TreeNodeUI-method-onSelectedChange'>    // private
+</span>    onSelectedChange : function(state){
         if(state){
             this.focus();
-            this.addClass("x-tree-selected");
+            this.addClass(&quot;x-tree-selected&quot;);
         }else{
             //this.blur();
-            this.removeClass("x-tree-selected");
+            this.removeClass(&quot;x-tree-selected&quot;);
         }
     },
 
-    // private
-    onMove : function(tree, node, oldParent, newParent, index, refNode){
+<span id='Ext-tree-TreeNodeUI-method-onMove'>    // private
+</span>    onMove : function(tree, node, oldParent, newParent, index, refNode){
         this.childIndent = null;
         if(this.rendered){
             var targetNode = newParent.ui.getContainer();
             if(!targetNode){//target not rendered
-                this.holder = document.createElement("div");
+                this.holder = document.createElement(&quot;div&quot;);
                 this.holder.appendChild(this.wrap);
                 return;
             }
@@ -154,8 +157,8 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-<div id="method-Ext.tree.TreeNodeUI-addClass"></div>/**
- * Adds one or more CSS classes to the node's UI element.
+<span id='Ext-tree-TreeNodeUI-method-addClass'>/**
+</span> * Adds one or more CSS classes to the node's UI element.
  * Duplicate classes are automatically filtered out.
  * @param {String/Array} className The CSS class to add, or an array of classes
  */
@@ -165,8 +168,8 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-<div id="method-Ext.tree.TreeNodeUI-removeClass"></div>/**
- * Removes one or more CSS classes from the node's UI element.
+<span id='Ext-tree-TreeNodeUI-method-removeClass'>/**
+</span> * Removes one or more CSS classes from the node's UI element.
  * @param {String/Array} className The CSS class to remove, or an array of classes
  */
     removeClass : function(cls){
@@ -175,22 +178,22 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    // private
-    remove : function(){
+<span id='Ext-tree-TreeNodeUI-method-remove'>    // private
+</span>    remove : function(){
         if(this.rendered){
-            this.holder = document.createElement("div");
+            this.holder = document.createElement(&quot;div&quot;);
             this.holder.appendChild(this.wrap);
         }
     },
 
-    // private
-    fireEvent : function(){
+<span id='Ext-tree-TreeNodeUI-method-fireEvent'>    // private
+</span>    fireEvent : function(){
         return this.node.fireEvent.apply(this.node, arguments);
     },
 
-    // private
-    initEvents : function(){
-        this.node.on("move", this.onMove, this);
+<span id='Ext-tree-TreeNodeUI-method-initEvents'>    // private
+</span>    initEvents : function(){
+        this.node.on(&quot;move&quot;, this.onMove, this);
 
         if(this.node.disabled){
             this.onDisableChange(this.node, true);
@@ -200,7 +203,7 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
         var ot = this.node.getOwnerTree();
         var dd = ot.enableDD || ot.enableDrag || ot.enableDrop;
-        if(dd && (!this.node.isRoot || ot.rootVisible)){
+        if(dd &amp;&amp; (!this.node.isRoot || ot.rootVisible)){
             Ext.dd.Registry.register(this.elNode, {
                 node: this.node,
                 handles: this.getDDHandles(),
@@ -209,52 +212,52 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    // private
-    getDDHandles : function(){
+<span id='Ext-tree-TreeNodeUI-method-getDDHandles'>    // private
+</span>    getDDHandles : function(){
         return [this.iconNode, this.textNode, this.elNode];
     },
 
-<div id="method-Ext.tree.TreeNodeUI-hide"></div>/**
- * Hides this node.
+<span id='Ext-tree-TreeNodeUI-method-hide'>/**
+</span> * Hides this node.
  */
     hide : function(){
         this.node.hidden = true;
         if(this.wrap){
-            this.wrap.style.display = "none";
+            this.wrap.style.display = &quot;none&quot;;
         }
     },
 
-<div id="method-Ext.tree.TreeNodeUI-show"></div>/**
- * Shows this node.
+<span id='Ext-tree-TreeNodeUI-method-show'>/**
+</span> * Shows this node.
  */
     show : function(){
         this.node.hidden = false;
         if(this.wrap){
-            this.wrap.style.display = "";
+            this.wrap.style.display = &quot;&quot;;
         }
     },
 
-    // private
-    onContextMenu : function(e){
-        if (this.node.hasListener("contextmenu") || this.node.getOwnerTree().hasListener("contextmenu")) {
+<span id='Ext-tree-TreeNodeUI-method-onContextMenu'>    // private
+</span>    onContextMenu : function(e){
+        if (this.node.hasListener(&quot;contextmenu&quot;) || this.node.getOwnerTree().hasListener(&quot;contextmenu&quot;)) {
             e.preventDefault();
             this.focus();
-            this.fireEvent("contextmenu", this.node, e);
+            this.fireEvent(&quot;contextmenu&quot;, this.node, e);
         }
     },
 
-    // private
-    onClick : function(e){
+<span id='Ext-tree-TreeNodeUI-method-onClick'>    // private
+</span>    onClick : function(e){
         if(this.dropping){
             e.stopEvent();
             return;
         }
-        if(this.fireEvent("beforeclick", this.node, e) !== false){
+        if(this.fireEvent(&quot;beforeclick&quot;, this.node, e) !== false){
             var a = e.getTarget('a');
-            if(!this.disabled && this.node.attributes.href && a){
-                this.fireEvent("click", this.node, e);
+            if(!this.disabled &amp;&amp; this.node.attributes.href &amp;&amp; a){
+                this.fireEvent(&quot;click&quot;, this.node, e);
                 return;
-            }else if(a && e.ctrlKey){
+            }else if(a &amp;&amp; e.ctrlKey){
                 e.stopEvent();
             }
             e.preventDefault();
@@ -262,43 +265,43 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
                 return;
             }
 
-            if(this.node.attributes.singleClickExpand && !this.animating && this.node.isExpandable()){
+            if(this.node.attributes.singleClickExpand &amp;&amp; !this.animating &amp;&amp; this.node.isExpandable()){
                 this.node.toggle();
             }
 
-            this.fireEvent("click", this.node, e);
+            this.fireEvent(&quot;click&quot;, this.node, e);
         }else{
             e.stopEvent();
         }
     },
 
-    // private
-    onDblClick : function(e){
+<span id='Ext-tree-TreeNodeUI-method-onDblClick'>    // private
+</span>    onDblClick : function(e){
         e.preventDefault();
         if(this.disabled){
             return;
         }
-        if(this.fireEvent("beforedblclick", this.node, e) !== false){
+        if(this.fireEvent(&quot;beforedblclick&quot;, this.node, e) !== false){
             if(this.checkbox){
                 this.toggleCheck();
             }
-            if(!this.animating && this.node.isExpandable()){
+            if(!this.animating &amp;&amp; this.node.isExpandable()){
                 this.node.toggle();
             }
-            this.fireEvent("dblclick", this.node, e);
+            this.fireEvent(&quot;dblclick&quot;, this.node, e);
         }
     },
 
-    onOver : function(e){
-        this.addClass('x-tree-node-over');
+<span id='Ext-tree-TreeNodeUI-method-onOver'>    onOver : function(e){
+</span>        this.addClass('x-tree-node-over');
     },
 
-    onOut : function(e){
-        this.removeClass('x-tree-node-over');
+<span id='Ext-tree-TreeNodeUI-method-onOut'>    onOut : function(e){
+</span>        this.removeClass('x-tree-node-over');
     },
 
-    // private
-    onCheckChange : function(){
+<span id='Ext-tree-TreeNodeUI-method-onCheckChange'>    // private
+</span>    onCheckChange : function(){
         var checked = this.checkbox.checked;
         // fix for IE6
         this.checkbox.defaultChecked = checked;
@@ -306,33 +309,33 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         this.fireEvent('checkchange', this.node, checked);
     },
 
-    // private
-    ecClick : function(e){
-        if(!this.animating && this.node.isExpandable()){
+<span id='Ext-tree-TreeNodeUI-method-ecClick'>    // private
+</span>    ecClick : function(e){
+        if(!this.animating &amp;&amp; this.node.isExpandable()){
             this.node.toggle();
         }
     },
 
-    // private
-    startDrop : function(){
+<span id='Ext-tree-TreeNodeUI-method-startDrop'>    // private
+</span>    startDrop : function(){
         this.dropping = true;
     },
 
-    // delayed drop so the click event doesn't get fired on a drop
-    endDrop : function(){
+<span id='Ext-tree-TreeNodeUI-method-endDrop'>    // delayed drop so the click event doesn't get fired on a drop
+</span>    endDrop : function(){
        setTimeout(function(){
            this.dropping = false;
        }.createDelegate(this), 50);
     },
 
-    // private
-    expand : function(){
+<span id='Ext-tree-TreeNodeUI-method-expand'>    // private
+</span>    expand : function(){
         this.updateExpandIcon();
-        this.ctNode.style.display = "";
+        this.ctNode.style.display = &quot;&quot;;
     },
 
-    // private
-    focus : function(){
+<span id='Ext-tree-TreeNodeUI-method-focus'>    // private
+</span>    focus : function(){
         if(!this.node.preventHScroll){
             try{this.anchor.focus();
             }catch(e){}
@@ -346,8 +349,8 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-<div id="method-Ext.tree.TreeNodeUI-toggleCheck"></div>/**
- * Sets the checked status of the tree node to the passed value, or, if no value was passed,
+<span id='Ext-tree-TreeNodeUI-method-toggleCheck'>/**
+</span> * Sets the checked status of the tree node to the passed value, or, if no value was passed,
  * toggles the checked status. If the node was rendered with no checkbox, this has no effect.
  * @param {Boolean} value (optional) The new checked status.
  */
@@ -359,20 +362,20 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    // private
-    blur : function(){
+<span id='Ext-tree-TreeNodeUI-method-blur'>    // private
+</span>    blur : function(){
         try{
             this.anchor.blur();
         }catch(e){}
     },
 
-    // private
-    animExpand : function(callback){
+<span id='Ext-tree-TreeNodeUI-method-animExpand'>    // private
+</span>    animExpand : function(callback){
         var ct = Ext.get(this.ctNode);
         ct.stopFx();
         if(!this.node.isExpandable()){
             this.updateExpandIcon();
-            this.ctNode.style.display = "";
+            this.ctNode.style.display = &quot;&quot;;
             Ext.callback(callback);
             return;
         }
@@ -389,23 +392,23 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         });
     },
 
-    // private
-    highlight : function(){
+<span id='Ext-tree-TreeNodeUI-method-highlight'>    // private
+</span>    highlight : function(){
         var tree = this.node.getOwnerTree();
         Ext.fly(this.wrap).highlight(
-            tree.hlColor || "C3DAF9",
+            tree.hlColor || &quot;C3DAF9&quot;,
             {endColor: tree.hlBaseColor}
         );
     },
 
-    // private
-    collapse : function(){
+<span id='Ext-tree-TreeNodeUI-method-collapse'>    // private
+</span>    collapse : function(){
         this.updateExpandIcon();
-        this.ctNode.style.display = "none";
+        this.ctNode.style.display = &quot;none&quot;;
     },
 
-    // private
-    animCollapse : function(callback){
+<span id='Ext-tree-TreeNodeUI-method-animCollapse'>    // private
+</span>    animCollapse : function(callback){
         var ct = Ext.get(this.ctNode);
         ct.enableDisplayMode('block');
         ct.stopFx();
@@ -423,36 +426,36 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         });
     },
 
-    // private
-    getContainer : function(){
+<span id='Ext-tree-TreeNodeUI-method-getContainer'>    // private
+</span>    getContainer : function(){
         return this.ctNode;
     },
 
-<div id="method-Ext.tree.TreeNodeUI-getEl"></div>/**
- * Returns the element which encapsulates this node.
- * @return {HtmlElement} The DOM element. The default implementation uses a <code>&lt;li></code>.
+<span id='Ext-tree-TreeNodeUI-method-getEl'>/**
+</span> * Returns the element which encapsulates this node.
+ * @return {HtmlElement} The DOM element. The default implementation uses a &lt;code&gt;&amp;lt;li&gt;&lt;/code&gt;.
  */
     getEl : function(){
         return this.wrap;
     },
 
-    // private
-    appendDDGhost : function(ghostNode){
+<span id='Ext-tree-TreeNodeUI-method-appendDDGhost'>    // private
+</span>    appendDDGhost : function(ghostNode){
         ghostNode.appendChild(this.elNode.cloneNode(true));
     },
 
-    // private
-    getDDRepairXY : function(){
+<span id='Ext-tree-TreeNodeUI-method-getDDRepairXY'>    // private
+</span>    getDDRepairXY : function(){
         return Ext.lib.Dom.getXY(this.iconNode);
     },
 
-    // private
-    onRender : function(){
+<span id='Ext-tree-TreeNodeUI-method-onRender'>    // private
+</span>    onRender : function(){
         this.render();
     },
 
-    // private
-    render : function(bulkRender){
+<span id='Ext-tree-TreeNodeUI-method-render'>    // private
+</span>    render : function(bulkRender){
         var n = this.node, a = n.attributes;
         var targetNode = n.parentNode ?
               n.parentNode.ui.getContainer() : n.ownerTree.innerCt.dom;
@@ -479,28 +482,28 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    // private
-    renderElements : function(n, a, targetNode, bulkRender){
+<span id='Ext-tree-TreeNodeUI-method-renderElements'>    // private
+</span>    renderElements : function(n, a, targetNode, bulkRender){
         // add some indent caching, this helps performance when rendering a large tree
         this.indentMarkup = n.parentNode ? n.parentNode.ui.getChildIndent() : '';
 
         var cb = Ext.isBoolean(a.checked),
             nel,
             href = this.getHref(a.href),
-            buf = ['<li class="x-tree-node"><div ext:tree-node-id="',n.id,'" class="x-tree-node-el x-tree-node-leaf x-unselectable ', a.cls,'" unselectable="on">',
-            '<span class="x-tree-node-indent">',this.indentMarkup,"</span>",
-            '<img alt="" src="', this.emptyIcon, '" class="x-tree-ec-icon x-tree-elbow" />',
-            '<img alt="" src="', a.icon || this.emptyIcon, '" class="x-tree-node-icon',(a.icon ? " x-tree-node-inline-icon" : ""),(a.iconCls ? " "+a.iconCls : ""),'" unselectable="on" />',
-            cb ? ('<input class="x-tree-node-cb" type="checkbox" ' + (a.checked ? 'checked="checked" />' : '/>')) : '',
-            '<a hidefocus="on" class="x-tree-node-anchor" href="',href,'" tabIndex="1" ',
-             a.hrefTarget ? ' target="'+a.hrefTarget+'"' : "", '><span unselectable="on">',n.text,"</span></a></div>",
-            '<ul class="x-tree-node-ct" style="display:none;"></ul>',
-            "</li>"].join('');
+            buf = ['&lt;li class=&quot;x-tree-node&quot;&gt;&lt;div ext:tree-node-id=&quot;',n.id,'&quot; class=&quot;x-tree-node-el x-tree-node-leaf x-unselectable ', a.cls,'&quot; unselectable=&quot;on&quot;&gt;',
+            '&lt;span class=&quot;x-tree-node-indent&quot;&gt;',this.indentMarkup,&quot;&lt;/span&gt;&quot;,
+            '&lt;img alt=&quot;&quot; src=&quot;', this.emptyIcon, '&quot; class=&quot;x-tree-ec-icon x-tree-elbow&quot; /&gt;',
+            '&lt;img alt=&quot;&quot; src=&quot;', a.icon || this.emptyIcon, '&quot; class=&quot;x-tree-node-icon',(a.icon ? &quot; x-tree-node-inline-icon&quot; : &quot;&quot;),(a.iconCls ? &quot; &quot;+a.iconCls : &quot;&quot;),'&quot; unselectable=&quot;on&quot; /&gt;',
+            cb ? ('&lt;input class=&quot;x-tree-node-cb&quot; type=&quot;checkbox&quot; ' + (a.checked ? 'checked=&quot;checked&quot; /&gt;' : '/&gt;')) : '',
+            '&lt;a hidefocus=&quot;on&quot; class=&quot;x-tree-node-anchor&quot; href=&quot;',href,'&quot; tabIndex=&quot;1&quot; ',
+             a.hrefTarget ? ' target=&quot;'+a.hrefTarget+'&quot;' : &quot;&quot;, '&gt;&lt;span unselectable=&quot;on&quot;&gt;',n.text,&quot;&lt;/span&gt;&lt;/a&gt;&lt;/div&gt;&quot;,
+            '&lt;ul class=&quot;x-tree-node-ct&quot; style=&quot;display:none;&quot;&gt;&lt;/ul&gt;',
+            &quot;&lt;/li&gt;&quot;].join('');
 
-        if(bulkRender !== true && n.nextSibling && (nel = n.nextSibling.ui.getEl())){
-            this.wrap = Ext.DomHelper.insertHtml("beforeBegin", nel, buf);
+        if(bulkRender !== true &amp;&amp; n.nextSibling &amp;&amp; (nel = n.nextSibling.ui.getEl())){
+            this.wrap = Ext.DomHelper.insertHtml(&quot;beforeBegin&quot;, nel, buf);
         }else{
-            this.wrap = Ext.DomHelper.insertHtml("beforeEnd", targetNode, buf);
+            this.wrap = Ext.DomHelper.insertHtml(&quot;beforeEnd&quot;, targetNode, buf);
         }
 
         this.elNode = this.wrap.childNodes[0];
@@ -520,40 +523,40 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         this.textNode = cs[index].firstChild;
     },
     
-    /**
-     * @private Gets a normalized href for the node.
+<span id='Ext-tree-TreeNodeUI-method-getHref'>    /**
+</span>     * @private Gets a normalized href for the node.
      * @param {String} href
      */
     getHref : function(href){
         return Ext.isEmpty(href) ? (Ext.isGecko ? '' : '#') : href;
     },
 
-<div id="method-Ext.tree.TreeNodeUI-getAnchor"></div>/**
- * Returns the &lt;a> element that provides focus for the node's UI.
+<span id='Ext-tree-TreeNodeUI-method-getAnchor'>/**
+</span> * Returns the &amp;lt;a&gt; element that provides focus for the node's UI.
  * @return {HtmlElement} The DOM anchor element.
  */
     getAnchor : function(){
         return this.anchor;
     },
 
-<div id="method-Ext.tree.TreeNodeUI-getTextEl"></div>/**
- * Returns the text node.
+<span id='Ext-tree-TreeNodeUI-method-getTextEl'>/**
+</span> * Returns the text node.
  * @return {HtmlNode} The DOM text node.
  */
     getTextEl : function(){
         return this.textNode;
     },
 
-<div id="method-Ext.tree.TreeNodeUI-getIconEl"></div>/**
- * Returns the icon &lt;img> element.
+<span id='Ext-tree-TreeNodeUI-method-getIconEl'>/**
+</span> * Returns the icon &amp;lt;img&gt; element.
  * @return {HtmlElement} The DOM image element.
  */
     getIconEl : function(){
         return this.iconNode;
     },
 
-<div id="method-Ext.tree.TreeNodeUI-isChecked"></div>/**
- * Returns the checked status of the node. If the node was rendered with no
+<span id='Ext-tree-TreeNodeUI-method-isChecked'>/**
+</span> * Returns the checked status of the node. If the node was rendered with no
  * checkbox, it returns false.
  * @return {Boolean} The checked flag.
  */
@@ -561,26 +564,26 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         return this.checkbox ? this.checkbox.checked : false;
     },
 
-    // private
-    updateExpandIcon : function(){
+<span id='Ext-tree-TreeNodeUI-method-updateExpandIcon'>    // private
+</span>    updateExpandIcon : function(){
         if(this.rendered){
             var n = this.node,
                 c1,
                 c2,
-                cls = n.isLast() ? "x-tree-elbow-end" : "x-tree-elbow",
+                cls = n.isLast() ? &quot;x-tree-elbow-end&quot; : &quot;x-tree-elbow&quot;,
                 hasChild = n.hasChildNodes();
             if(hasChild || n.attributes.expandable){
                 if(n.expanded){
-                    cls += "-minus";
-                    c1 = "x-tree-node-collapsed";
-                    c2 = "x-tree-node-expanded";
+                    cls += &quot;-minus&quot;;
+                    c1 = &quot;x-tree-node-collapsed&quot;;
+                    c2 = &quot;x-tree-node-expanded&quot;;
                 }else{
-                    cls += "-plus";
-                    c1 = "x-tree-node-expanded";
-                    c2 = "x-tree-node-collapsed";
+                    cls += &quot;-plus&quot;;
+                    c1 = &quot;x-tree-node-expanded&quot;;
+                    c2 = &quot;x-tree-node-collapsed&quot;;
                 }
                 if(this.wasLeaf){
-                    this.removeClass("x-tree-node-leaf");
+                    this.removeClass(&quot;x-tree-node-leaf&quot;);
                     this.wasLeaf = false;
                 }
                 if(this.c1 != c1 || this.c2 != c2){
@@ -589,13 +592,13 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
                 }
             }else{
                 if(!this.wasLeaf){
-                    Ext.fly(this.elNode).replaceClass("x-tree-node-expanded", "x-tree-node-collapsed");
+                    Ext.fly(this.elNode).replaceClass(&quot;x-tree-node-expanded&quot;, &quot;x-tree-node-collapsed&quot;);
                     delete this.c1;
                     delete this.c2;
                     this.wasLeaf = true;
                 }
             }
-            var ecc = "x-tree-ec-icon "+cls;
+            var ecc = &quot;x-tree-ec-icon &quot;+cls;
             if(this.ecc != ecc){
                 this.ecNode.className = ecc;
                 this.ecc = ecc;
@@ -603,37 +606,37 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    // private
-    onIdChange: function(id){
+<span id='Ext-tree-TreeNodeUI-method-onIdChange'>    // private
+</span>    onIdChange: function(id){
         if(this.rendered){
             this.elNode.setAttribute('ext:tree-node-id', id);
         }
     },
 
-    // private
-    getChildIndent : function(){
+<span id='Ext-tree-TreeNodeUI-method-getChildIndent'>    // private
+</span>    getChildIndent : function(){
         if(!this.childIndent){
             var buf = [],
                 p = this.node;
             while(p){
-                if(!p.isRoot || (p.isRoot && p.ownerTree.rootVisible)){
+                if(!p.isRoot || (p.isRoot &amp;&amp; p.ownerTree.rootVisible)){
                     if(!p.isLast()) {
-                        buf.unshift('<img alt="" src="'+this.emptyIcon+'" class="x-tree-elbow-line" />');
+                        buf.unshift('&lt;img alt=&quot;&quot; src=&quot;'+this.emptyIcon+'&quot; class=&quot;x-tree-elbow-line&quot; /&gt;');
                     } else {
-                        buf.unshift('<img alt="" src="'+this.emptyIcon+'" class="x-tree-icon" />');
+                        buf.unshift('&lt;img alt=&quot;&quot; src=&quot;'+this.emptyIcon+'&quot; class=&quot;x-tree-icon&quot; /&gt;');
                     }
                 }
                 p = p.parentNode;
             }
-            this.childIndent = buf.join("");
+            this.childIndent = buf.join(&quot;&quot;);
         }
         return this.childIndent;
     },
 
-    // private
-    renderIndent : function(){
+<span id='Ext-tree-TreeNodeUI-method-renderIndent'>    // private
+</span>    renderIndent : function(){
         if(this.rendered){
-            var indent = "",
+            var indent = &quot;&quot;,
                 p = this.node.parentNode;
             if(p){
                 indent = p.ui.getChildIndent();
@@ -646,8 +649,8 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
         }
     },
 
-    destroy : function(){
-        if(this.elNode){
+<span id='Ext-tree-TreeNodeUI-method-destroy'>    destroy : function(){
+</span>        if(this.elNode){
             Ext.dd.Registry.unregister(this.elNode.id);
         }
 
@@ -661,26 +664,26 @@ Ext.tree.TreeNodeUI = Ext.extend(Object, {
     }
 });
 
-<div id="cls-Ext.tree.RootTreeNodeUI"></div>/**
- * @class Ext.tree.RootTreeNodeUI
- * This class provides the default UI implementation for <b>root</b> Ext TreeNodes.
- * The RootTreeNode UI implementation allows customizing the appearance of the root tree node.<br>
- * <p>
+<span id='Ext-tree-RootTreeNodeUI'>/**
+</span> * @class Ext.tree.RootTreeNodeUI
+ * This class provides the default UI implementation for &lt;b&gt;root&lt;/b&gt; Ext TreeNodes.
+ * The RootTreeNode UI implementation allows customizing the appearance of the root tree node.&lt;br&gt;
+ * &lt;p&gt;
  * If you are customizing the Tree's user interface, you
- * may need to extend this class, but you should never need to instantiate this class.<br>
+ * may need to extend this class, but you should never need to instantiate this class.&lt;br&gt;
  */
 Ext.tree.RootTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
-    // private
-    render : function(){
+<span id='Ext-tree-RootTreeNodeUI-method-render'>    // private
+</span>    render : function(){
         if(!this.rendered){
             var targetNode = this.node.ownerTree.innerCt.dom;
             this.node.expanded = true;
-            targetNode.innerHTML = '<div class="x-tree-root-node"></div>';
+            targetNode.innerHTML = '&lt;div class=&quot;x-tree-root-node&quot;&gt;&lt;/div&gt;';
             this.wrap = this.ctNode = targetNode.firstChild;
         }
     },
-    collapse : Ext.emptyFn,
-    expand : Ext.emptyFn
-});</pre>    
+<span id='Ext-tree-RootTreeNodeUI-method-collapse'>    collapse : Ext.emptyFn,
+</span><span id='Ext-tree-RootTreeNodeUI-method-expand'>    expand : Ext.emptyFn
+</span>});</pre>
 </body>
 </html>

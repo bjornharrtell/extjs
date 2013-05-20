@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.QuickTip"></div>/**
- * @class Ext.QuickTip
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-QuickTip-method-constructor'><span id='Ext-QuickTip'>/**
+</span></span> * @class Ext.QuickTip
  * @extends Ext.ToolTip
  * @xtype quicktip
  * A specialized tooltip class for tooltips that can be specified in markup and automatically managed by the global
@@ -23,55 +26,55 @@
  * @param {Object} config The configuration options
  */
 Ext.QuickTip = Ext.extend(Ext.ToolTip, {
-    <div id="cfg-Ext.QuickTip-target"></div>/**
-     * @cfg {Mixed} target The target HTMLElement, Ext.Element or id to associate with this quicktip (defaults to the document).
+<span id='Ext-QuickTip-cfg-target'>    /**
+</span>     * @cfg {Mixed} target The target HTMLElement, Ext.Element or id to associate with this quicktip (defaults to the document).
      */
-    <div id="cfg-Ext.QuickTip-interceptTitles"></div>/**
-     * @cfg {Boolean} interceptTitles True to automatically use the element's DOM title value if available (defaults to false).
+<span id='Ext-QuickTip-cfg-interceptTitles'>    /**
+</span>     * @cfg {Boolean} interceptTitles True to automatically use the element's DOM title value if available (defaults to false).
      */
     interceptTitles : false,
 
-    // private
-    tagConfig : {
-        namespace : "ext",
-        attribute : "qtip",
-        width : "qwidth",
-        target : "target",
-        title : "qtitle",
-        hide : "hide",
-        cls : "qclass",
-        align : "qalign",
-        anchor : "anchor"
+<span id='Ext-QuickTip-property-tagConfig'>    // private
+</span>    tagConfig : {
+        namespace : &quot;ext&quot;,
+        attribute : &quot;qtip&quot;,
+        width : &quot;qwidth&quot;,
+        target : &quot;target&quot;,
+        title : &quot;qtitle&quot;,
+        hide : &quot;hide&quot;,
+        cls : &quot;qclass&quot;,
+        align : &quot;qalign&quot;,
+        anchor : &quot;anchor&quot;
     },
 
-    // private
-    initComponent : function(){
+<span id='Ext-QuickTip-method-initComponent'>    // private
+</span>    initComponent : function(){
         this.target = this.target || Ext.getDoc();
         this.targets = this.targets || {};
         Ext.QuickTip.superclass.initComponent.call(this);
     },
 
-    <div id="method-Ext.QuickTip-register"></div>/**
-     * Configures a new quick tip instance and assigns it to a target element.  The following config values are
+<span id='Ext-QuickTip-method-register'>    /**
+</span>     * Configures a new quick tip instance and assigns it to a target element.  The following config values are
      * supported (for example usage, see the {@link Ext.QuickTips} class header):
-     * <div class="mdetail-params"><ul>
-     * <li>autoHide</li>
-     * <li>cls</li>
-     * <li>dismissDelay (overrides the singleton value)</li>
-     * <li>target (required)</li>
-     * <li>text (required)</li>
-     * <li>title</li>
-     * <li>width</li></ul></div>
+     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;autoHide&lt;/li&gt;
+     * &lt;li&gt;cls&lt;/li&gt;
+     * &lt;li&gt;dismissDelay (overrides the singleton value)&lt;/li&gt;
+     * &lt;li&gt;target (required)&lt;/li&gt;
+     * &lt;li&gt;text (required)&lt;/li&gt;
+     * &lt;li&gt;title&lt;/li&gt;
+     * &lt;li&gt;width&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;
      * @param {Object} config The config object
      */
     register : function(config){
         var cs = Ext.isArray(config) ? config : arguments;
-        for(var i = 0, len = cs.length; i < len; i++){
+        for(var i = 0, len = cs.length; i &lt; len; i++){
             var c = cs[i];
             var target = c.target;
             if(target){
                 if(Ext.isArray(target)){
-                    for(var j = 0, jlen = target.length; j < jlen; j++){
+                    for(var j = 0, jlen = target.length; j &lt; jlen; j++){
                         this.targets[Ext.id(target[j])] = c;
                     }
                 } else{
@@ -81,38 +84,38 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         }
     },
 
-    <div id="method-Ext.QuickTip-unregister"></div>/**
-     * Removes this quick tip from its element and destroys it.
+<span id='Ext-QuickTip-method-unregister'>    /**
+</span>     * Removes this quick tip from its element and destroys it.
      * @param {String/HTMLElement/Element} el The element from which the quick tip is to be removed.
      */
     unregister : function(el){
         delete this.targets[Ext.id(el)];
     },
     
-    <div id="method-Ext.QuickTip-cancelShow"></div>/**
-     * Hides a visible tip or cancels an impending show for a particular element.
+<span id='Ext-QuickTip-method-cancelShow'>    /**
+</span>     * Hides a visible tip or cancels an impending show for a particular element.
      * @param {String/HTMLElement/Element} el The element that is the target of the tip.
      */
     cancelShow: function(el){
         var at = this.activeTarget;
         el = Ext.get(el).dom;
         if(this.isVisible()){
-            if(at && at.el == el){
+            if(at &amp;&amp; at.el == el){
                 this.hide();
             }
-        }else if(at && at.el == el){
+        }else if(at &amp;&amp; at.el == el){
             this.clearTimer('show');
         }
     },
     
-    getTipCfg: function(e) {
-        var t = e.getTarget(), 
+<span id='Ext-QuickTip-method-getTipCfg'>    getTipCfg: function(e) {
+</span>        var t = e.getTarget(), 
             ttp, 
             cfg;
-        if(this.interceptTitles && t.title && Ext.isString(t.title)){
+        if(this.interceptTitles &amp;&amp; t.title &amp;&amp; Ext.isString(t.title)){
             ttp = t.title;
             t.qtip = ttp;
-            t.removeAttribute("title");
+            t.removeAttribute(&quot;title&quot;);
             e.preventDefault();
         }else{
             cfg = this.tagConfig;
@@ -121,8 +124,8 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         return ttp;
     },
 
-    // private
-    onTargetOver : function(e){
+<span id='Ext-QuickTip-method-onTargetOver'>    // private
+</span>    onTargetOver : function(e){
         if(this.disabled){
             return;
         }
@@ -131,12 +134,12 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         if(!t || t.nodeType !== 1 || t == document || t == document.body){
             return;
         }
-        if(this.activeTarget && ((t == this.activeTarget.el) || Ext.fly(this.activeTarget.el).contains(t))){
+        if(this.activeTarget &amp;&amp; ((t == this.activeTarget.el) || Ext.fly(this.activeTarget.el).contains(t))){
             this.clearTimer('hide');
             this.show();
             return;
         }
-        if(t && this.targets[t.id]){
+        if(t &amp;&amp; this.targets[t.id]){
             this.activeTarget = this.targets[t.id];
             this.activeTarget.el = t;
             this.anchor = this.activeTarget.anchor;
@@ -153,7 +156,7 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
                 el: t,
                 text: ttp,
                 width: et.getAttribute(cfg.width, ns),
-                autoHide: autoHide != "user" && autoHide !== 'false',
+                autoHide: autoHide != &quot;user&quot; &amp;&amp; autoHide !== 'false',
                 title: et.getAttribute(cfg.title, ns),
                 cls: et.getAttribute(cfg.cls, ns),
                 align: et.getAttribute(cfg.align, ns)
@@ -167,11 +170,11 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         }
     },
 
-    // private
-    onTargetOut : function(e){
+<span id='Ext-QuickTip-method-onTargetOut'>    // private
+</span>    onTargetOut : function(e){
 
         // If moving within the current target, and it does not have a new tip, ignore the mouseout
-        if (this.activeTarget && e.within(this.activeTarget.el) && !this.getTipCfg(e)) {
+        if (this.activeTarget &amp;&amp; e.within(this.activeTarget.el) &amp;&amp; !this.getTipCfg(e)) {
             return;
         }
 
@@ -181,8 +184,8 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         }
     },
 
-    // inherit docs
-    showAt : function(xy){
+<span id='Ext-QuickTip-method-showAt'>    // inherit docs
+</span>    showAt : function(xy){
         var t = this.activeTarget;
         if(t){
             if(!this.rendered){
@@ -220,12 +223,12 @@ Ext.QuickTip = Ext.extend(Ext.ToolTip, {
         Ext.QuickTip.superclass.showAt.call(this, xy);
     },
 
-    // inherit docs
-    hide: function(){
+<span id='Ext-QuickTip-method-hide'>    // inherit docs
+</span>    hide: function(){
         delete this.activeTarget;
         Ext.QuickTip.superclass.hide.call(this);
     }
 });
-Ext.reg('quicktip', Ext.QuickTip);</pre>    
+Ext.reg('quicktip', Ext.QuickTip);</pre>
 </body>
 </html>

@@ -1,24 +1,27 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-/**
- * @class Ext.Element
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Element'>/**
+</span> * @class Ext.Element
  */
 Ext.Element.addMethods({
-    <div id="method-Ext.Element-scrollTo"></div>/**
-     * Scrolls this element the specified scroll point. It does NOT do bounds checking so if you scroll to a weird value it will try to do it. For auto bounds checking, use scroll().
-     * @param {String} side Either "left" for scrollLeft values or "top" for scrollTop values.
+<span id='Ext-Element-method-scrollTo'>    /**
+</span>     * Scrolls this element the specified scroll point. It does NOT do bounds checking so if you scroll to a weird value it will try to do it. For auto bounds checking, use scroll().
+     * @param {String} side Either &quot;left&quot; for scrollLeft values or &quot;top&quot; for scrollTop values.
      * @param {Number} value The new scroll value
      * @param {Boolean/Object} animate (optional) true for the default animation or a standard Element animation config object
      * @return {Element} this
@@ -42,8 +45,8 @@ Ext.Element.addMethods({
         return me;
     },
     
-    <div id="method-Ext.Element-scrollIntoView"></div>/**
-     * Scrolls this element into view within the passed container.
+<span id='Ext-Element-method-scrollIntoView'>    /**
+</span>     * Scrolls this element into view within the passed container.
      * @param {Mixed} container (optional) The container element to scroll (defaults to document.body).  Should be a
      * string (id), dom node, or Ext.Element.
      * @param {Boolean} hscroll (optional) False to disable horizontal scroll (defaults to true)
@@ -63,20 +66,20 @@ Ext.Element.addMethods({
             cb = ct + ch,
             cr = cl + c.clientWidth;
 
-        if (el.offsetHeight > ch || t < ct) {
+        if (el.offsetHeight &gt; ch || t &lt; ct) {
             c.scrollTop = t;
         }
-        else if (b > cb) {
+        else if (b &gt; cb) {
             c.scrollTop = b-ch;
         }
         // corrects IE, other browsers will ignore
         c.scrollTop = c.scrollTop;
 
         if (hscroll !== false) {
-            if (el.offsetWidth > c.clientWidth || l < cl) {
+            if (el.offsetWidth &gt; c.clientWidth || l &lt; cl) {
                 c.scrollLeft = l;
             }
-            else if (r > cr) {
+            else if (r &gt; cr) {
                 c.scrollLeft = r - c.clientWidth;
             }
             c.scrollLeft = c.scrollLeft;
@@ -89,10 +92,10 @@ Ext.Element.addMethods({
         Ext.fly(child, '_scrollChildIntoView').scrollIntoView(this, hscroll);
     },
     
-    <div id="method-Ext.Element-scroll"></div>/**
-     * Scrolls this element the specified direction. Does bounds checking to make sure the scroll is
+<span id='Ext-Element-method-scroll'>    /**
+</span>     * Scrolls this element the specified direction. Does bounds checking to make sure the scroll is
      * within this element's scrollable range.
-     * @param {String} direction Possible values are: "l" (or "left"), "r" (or "right"), "t" (or "top", or "up"), "b" (or "bottom", or "down").
+     * @param {String} direction Possible values are: &quot;l&quot; (or &quot;left&quot;), &quot;r&quot; (or &quot;right&quot;), &quot;t&quot; (or &quot;top&quot;, or &quot;up&quot;), &quot;b&quot; (or &quot;bottom&quot;, or &quot;down&quot;).
      * @param {Number} distance How far to scroll the element in pixels
      * @param {Boolean/Object} animate (optional) true for the default animation or a standard Element animation config object
      * @return {Boolean} Returns true if a scroll was triggered or false if the element
@@ -117,12 +120,12 @@ Ext.Element.addMethods({
             hash.u = hash.t;
         
         direction = direction.substr(0, 1);
-        if ((v = hash[direction]) > -1) {
+        if ((v = hash[direction]) &gt; -1) {
             scrolled = true;
             this.scrollTo(direction == 'l' || direction == 'r' ? 'left' : 'top', v, this.preanim(arguments, 2));
         }
         return scrolled;
     }
-});</pre>    
+});</pre>
 </body>
 </html>

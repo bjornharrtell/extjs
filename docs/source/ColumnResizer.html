@@ -1,27 +1,30 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.list.ColumnResizer"></div>/**
- * @class Ext.list.ColumnResizer
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-list-ColumnResizer-method-constructor'><span id='Ext-list-ColumnResizer'>/**
+</span></span> * @class Ext.list.ColumnResizer
  * @extends Ext.util.Observable
- * <p>Supporting Class for Ext.list.ListView</p>
+ * &lt;p&gt;Supporting Class for Ext.list.ListView&lt;/p&gt;
  * @constructor
  * @param {Object} config
  */
 Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
-    <div id="cfg-Ext.list.ColumnResizer-minPct"></div>/**
-     * @cfg {Number} minPct The minimum percentage to allot for any column (defaults to <tt>.05</tt>)
+<span id='Ext-list-ColumnResizer-cfg-minPct'>    /**
+</span>     * @cfg {Number} minPct The minimum percentage to allot for any column (defaults to &lt;tt&gt;.05&lt;/tt&gt;)
      */
     minPct: .05,
 
@@ -29,13 +32,13 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
         Ext.apply(this, config);
         Ext.list.ColumnResizer.superclass.constructor.call(this);
     },
-    init : function(listView){
-        this.view = listView;
+<span id='Ext-list-ColumnResizer-method-init'>    init : function(listView){
+</span>        this.view = listView;
         listView.on('render', this.initEvents, this);
     },
 
-    initEvents : function(view){
-        view.mon(view.innerHd, 'mousemove', this.handleHdMove, this);
+<span id='Ext-list-ColumnResizer-method-initEvents'>    initEvents : function(view){
+</span>        view.mon(view.innerHd, 'mousemove', this.handleHdMove, this);
         this.tracker = new Ext.dd.DragTracker({
             onBeforeStart: this.onBeforeStart.createDelegate(this),
             onStart: this.onStart.createDelegate(this),
@@ -48,8 +51,8 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
         view.on('beforedestroy', this.tracker.destroy, this.tracker);
     },
 
-    handleHdMove : function(e, t){
-        var handleWidth = 5,
+<span id='Ext-list-ColumnResizer-method-handleHdMove'>    handleHdMove : function(e, t){
+</span>        var handleWidth = 5,
             x = e.getPageX(),
             header = e.getTarget('em', 3, true);
         if(header){
@@ -57,10 +60,10 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
                 style = header.dom.style,
                 parentNode = header.dom.parentNode;
 
-            if(x - region.left <= handleWidth && parentNode != parentNode.parentNode.firstChild){
+            if(x - region.left &lt;= handleWidth &amp;&amp; parentNode != parentNode.parentNode.firstChild){
                 this.activeHd = Ext.get(parentNode.previousSibling.firstChild);
                 style.cursor = Ext.isWebKit ? 'e-resize' : 'col-resize';
-            } else if(region.right - x <= handleWidth && parentNode != parentNode.parentNode.lastChild.previousSibling){
+            } else if(region.right - x &lt;= handleWidth &amp;&amp; parentNode != parentNode.parentNode.lastChild.previousSibling){
                 this.activeHd = header;
                 style.cursor = Ext.isWebKit ? 'w-resize' : 'col-resize';
             } else{
@@ -70,13 +73,13 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
         }
     },
 
-    onBeforeStart : function(e){
-        this.dragHd = this.activeHd;
+<span id='Ext-list-ColumnResizer-method-onBeforeStart'>    onBeforeStart : function(e){
+</span>        this.dragHd = this.activeHd;
         return !!this.dragHd;
     },
 
-    onStart: function(e){
-        
+<span id='Ext-list-ColumnResizer-method-onStart'>    onStart: function(e){
+</span>        
         var me = this,
             view = me.view,
             dragHeader = me.dragHd,
@@ -97,8 +100,8 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
         
     },
     
-    // Sets up the boundaries for the drag/drop operation
-    setBoundaries: function(relativeX){
+<span id='Ext-list-ColumnResizer-method-setBoundaries'>    // Sets up the boundaries for the drag/drop operation
+</span>    setBoundaries: function(relativeX){
         var view = this.view,
             headerIndex = this.headerIndex,
             width = view.innerHd.getWidth(),
@@ -128,15 +131,15 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
         }
     },
 
-    onDrag: function(e){
-        var me = this,
+<span id='Ext-list-ColumnResizer-method-onDrag'>    onDrag: function(e){
+</span>        var me = this,
             cursorX = me.tracker.getXY()[0].constrain(me.minX, me.maxX);
             
         me.proxy.setWidth(cursorX - this.dragX);
     },
 
-    onEnd: function(e){
-        /* calculate desired width by measuring proxy and then remove it */
+<span id='Ext-list-ColumnResizer-method-onEnd'>    onEnd: function(e){
+</span>        /* calculate desired width by measuring proxy and then remove it */
         var newWidth = this.proxy.getWidth(),
             index = this.headerIndex,
             view = this.view,
@@ -164,6 +167,6 @@ Ext.list.ColumnResizer = Ext.extend(Ext.util.Observable, {
 });
 
 // Backwards compatibility alias
-Ext.ListView.ColumnResizer = Ext.list.ColumnResizer;</pre>    
+Ext.ListView.ColumnResizer = Ext.list.ColumnResizer;</pre>
 </body>
 </html>

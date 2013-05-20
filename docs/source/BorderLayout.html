@@ -1,33 +1,36 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.layout.BorderLayout"></div>/**
- * @class Ext.layout.BorderLayout
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-BorderLayout'>/**
+</span> * @class Ext.layout.BorderLayout
  * @extends Ext.layout.ContainerLayout
- * <p>This is a multi-pane, application-oriented UI layout style that supports multiple
+ * &lt;p&gt;This is a multi-pane, application-oriented UI layout style that supports multiple
  * nested panels, automatic {@link Ext.layout.BorderLayout.Region#split split} bars between
  * {@link Ext.layout.BorderLayout.Region#BorderLayout.Region regions} and built-in
- * {@link Ext.layout.BorderLayout.Region#collapsible expanding and collapsing} of regions.</p>
- * <p>This class is intended to be extended or created via the <tt>layout:'border'</tt>
+ * {@link Ext.layout.BorderLayout.Region#collapsible expanding and collapsing} of regions.&lt;/p&gt;
+ * &lt;p&gt;This class is intended to be extended or created via the &lt;tt&gt;layout:'border'&lt;/tt&gt;
  * {@link Ext.Container#layout} config, and should generally not need to be created directly
- * via the new keyword.</p>
- * <p>BorderLayout does not have any direct config options (other than inherited ones).
+ * via the new keyword.&lt;/p&gt;
+ * &lt;p&gt;BorderLayout does not have any direct config options (other than inherited ones).
  * All configuration options available for customizing the BorderLayout are at the
  * {@link Ext.layout.BorderLayout.Region} and {@link Ext.layout.BorderLayout.SplitRegion}
- * levels.</p>
- * <p>Example usage:</p>
- * <pre><code>
+ * levels.&lt;/p&gt;
+ * &lt;p&gt;Example usage:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
 var myBorderPanel = new Ext.Panel({
     {@link Ext.Component#renderTo renderTo}: document.body,
     {@link Ext.BoxComponent#width width}: 700,
@@ -61,20 +64,20 @@ var myBorderPanel = new Ext.Panel({
         {@link Ext.layout.BorderLayout.Region#margins margins}: '5 5 0 0'
     }]
 });
-</code></pre>
- * <p><b><u>Notes</u></b>:</p><div class="mdetail-params"><ul>
- * <li>Any container using the BorderLayout <b>must</b> have a child item with <tt>region:'center'</tt>.
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Notes&lt;/u&gt;&lt;/b&gt;:&lt;/p&gt;&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+ * &lt;li&gt;Any container using the BorderLayout &lt;b&gt;must&lt;/b&gt; have a child item with &lt;tt&gt;region:'center'&lt;/tt&gt;.
  * The child item in the center region will always be resized to fill the remaining space not used by
- * the other regions in the layout.</li>
- * <li>Any child items with a region of <tt>west</tt> or <tt>east</tt> must have <tt>width</tt> defined
- * (an integer representing the number of pixels that the region should take up).</li>
- * <li>Any child items with a region of <tt>north</tt> or <tt>south</tt> must have <tt>height</tt> defined.</li>
- * <li>The regions of a BorderLayout are <b>fixed at render time</b> and thereafter, its child Components may not be removed or added</b>.  To add/remove
+ * the other regions in the layout.&lt;/li&gt;
+ * &lt;li&gt;Any child items with a region of &lt;tt&gt;west&lt;/tt&gt; or &lt;tt&gt;east&lt;/tt&gt; must have &lt;tt&gt;width&lt;/tt&gt; defined
+ * (an integer representing the number of pixels that the region should take up).&lt;/li&gt;
+ * &lt;li&gt;Any child items with a region of &lt;tt&gt;north&lt;/tt&gt; or &lt;tt&gt;south&lt;/tt&gt; must have &lt;tt&gt;height&lt;/tt&gt; defined.&lt;/li&gt;
+ * &lt;li&gt;The regions of a BorderLayout are &lt;b&gt;fixed at render time&lt;/b&gt; and thereafter, its child Components may not be removed or added&lt;/b&gt;.  To add/remove
  * Components within a BorderLayout, have them wrapped by an additional Container which is directly
  * managed by the BorderLayout.  If the region is to be collapsible, the Container used directly
  * by the BorderLayout manager should be a Panel.  In the following example a Container (an Ext.Panel)
  * is added to the west region:
- * <div style="margin-left:16px"><pre><code>
+ * &lt;div style=&quot;margin-left:16px&quot;&gt;&lt;pre&gt;&lt;code&gt;
 wrc = {@link Ext#getCmp Ext.getCmp}('west-region-container');
 wrc.{@link Ext.Panel#removeAll removeAll}();
 wrc.{@link Ext.Container#add add}({
@@ -82,36 +85,36 @@ wrc.{@link Ext.Container#add add}({
     html: 'Some content'
 });
 wrc.{@link Ext.Container#doLayout doLayout}();
- * </code></pre></div>
- * </li>
- * <li> To reference a {@link Ext.layout.BorderLayout.Region Region}:
- * <div style="margin-left:16px"><pre><code>
+ * &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+ * &lt;/li&gt;
+ * &lt;li&gt; To reference a {@link Ext.layout.BorderLayout.Region Region}:
+ * &lt;div style=&quot;margin-left:16px&quot;&gt;&lt;pre&gt;&lt;code&gt;
 wr = myBorderPanel.layout.west;
- * </code></pre></div>
- * </li>
- * </ul></div>
+ * &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+ * &lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  */
 Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
-    // private
-    monitorResize:true,
-    // private
-    rendered : false,
+<span id='Ext-layout-BorderLayout-property-monitorResize'>    // private
+</span>    monitorResize:true,
+<span id='Ext-layout-BorderLayout-property-rendered'>    // private
+</span>    rendered : false,
 
-    type: 'border',
-
-    targetCls: 'x-border-layout-ct',
-
-    getLayoutTargetSize : function() {
-        var target = this.container.getLayoutTarget();
+<span id='Ext-layout-BorderLayout-property-type'>    type: 'border',
+</span>
+<span id='Ext-layout-BorderLayout-property-targetCls'>    targetCls: 'x-border-layout-ct',
+</span>
+<span id='Ext-layout-BorderLayout-method-getLayoutTargetSize'>    getLayoutTargetSize : function() {
+</span>        var target = this.container.getLayoutTarget();
         return target ? target.getViewSize() : {};
     },
 
-    // private
-    onLayout : function(ct, target){
+<span id='Ext-layout-BorderLayout-method-onLayout'>    // private
+</span>    onLayout : function(ct, target){
         var collapsed, i, c, pos, items = ct.items.items, len = items.length;
         if(!this.rendered){
             collapsed = [];
-            for(i = 0; i < len; i++) {
+            for(i = 0; i &lt; len; i++) {
                 c = items[i];
                 pos = c.region;
                 if(c.collapsed){
@@ -122,7 +125,7 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
                     c.render(target, i);
                     c.getPositionEl().addClass('x-border-panel');
                 }
-                this[pos] = pos != 'center' && c.split ?
+                this[pos] = pos != 'center' &amp;&amp; c.split ?
                     new Ext.layout.BorderLayout.SplitRegion(this, c.initialConfig, pos) :
                     new Ext.layout.BorderLayout.Region(this, c.initialConfig, pos);
                 this[pos].render(target, c);
@@ -131,7 +134,7 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
         }
 
         var size = this.getLayoutTargetSize();
-        if(size.width < 20 || size.height < 20){ // display none?
+        if(size.width &lt; 20 || size.height &lt; 20){ // display none?
             if(collapsed){
                 this.restoreCollapsed = collapsed;
             }
@@ -145,11 +148,11 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
             centerW = w, centerH = h, centerY = 0, centerX = 0,
             n = this.north, s = this.south, west = this.west, e = this.east, c = this.center,
             b, m, totalWidth, totalHeight;
-        if(!c && Ext.layout.BorderLayout.WARN !== false){
+        if(!c &amp;&amp; Ext.layout.BorderLayout.WARN !== false){
             throw 'No center region defined in BorderLayout ' + ct.id;
         }
 
-        if(n && n.isVisible()){
+        if(n &amp;&amp; n.isVisible()){
             b = n.getSize();
             m = n.getMargins();
             b.width = w - (m.left+m.right);
@@ -159,7 +162,7 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
             centerH -= centerY;
             n.applyLayout(b);
         }
-        if(s && s.isVisible()){
+        if(s &amp;&amp; s.isVisible()){
             b = s.getSize();
             m = s.getMargins();
             b.width = w - (m.left+m.right);
@@ -169,7 +172,7 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
             centerH -= totalHeight;
             s.applyLayout(b);
         }
-        if(west && west.isVisible()){
+        if(west &amp;&amp; west.isVisible()){
             b = west.getSize();
             m = west.getMargins();
             b.height = centerH - (m.top+m.bottom);
@@ -180,7 +183,7 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
             centerW -= totalWidth;
             west.applyLayout(b);
         }
-        if(e && e.isVisible()){
+        if(e &amp;&amp; e.isVisible()){
             b = e.getSize();
             m = e.getMargins();
             b.height = centerH - (m.top+m.bottom);
@@ -201,15 +204,15 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
             c.applyLayout(centerBox);
         }
         if(collapsed){
-            for(i = 0, len = collapsed.length; i < len; i++){
+            for(i = 0, len = collapsed.length; i &lt; len; i++){
                 collapsed[i].collapse(false);
             }
         }
-        if(Ext.isIE && Ext.isStrict){ // workaround IE strict repainting issue
+        if(Ext.isIE9m &amp;&amp; Ext.isStrict){ // workaround IE strict repainting issue
             target.repaint();
         }
         // Putting a border layout into an overflowed container is NOT correct and will make a second layout pass necessary.
-        if (i = target.getStyle('overflow') && i != 'hidden' && !this.adjustmentPass) {
+        if (i = target.getStyle('overflow') &amp;&amp; i != 'hidden' &amp;&amp; !this.adjustmentPass) {
             var ts = this.getLayoutTargetSize();
             if (ts.width != size.width || ts.height != size.height){
                 this.adjustmentPass = true;
@@ -219,9 +222,9 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
         delete this.adjustmentPass;
     },
 
-    destroy: function() {
-        var r = ['north', 'south', 'east', 'west'], i, region;
-        for (i = 0; i < r.length; i++) {
+<span id='Ext-layout-BorderLayout-method-destroy'>    destroy: function() {
+</span>        var r = ['north', 'south', 'east', 'west'], i, region;
+        for (i = 0; i &lt; r.length; i++) {
             region = this[r[i]];
             if(region){
                 if(region.destroy){
@@ -234,27 +237,28 @@ Ext.layout.BorderLayout = Ext.extend(Ext.layout.ContainerLayout, {
         Ext.layout.BorderLayout.superclass.destroy.call(this);
     }
 
-    <div id="prop-Ext.layout.BorderLayout-activeItem"></div>/**
-     * @property activeItem
+<span id='Ext-layout-BorderLayout-property-activeItem'>    /**
+</span>     * @property activeItem
      * @hide
      */
 });
 
-<div id="cls-Ext.layout.BorderLayout.Region"></div>/**
- * @class Ext.layout.BorderLayout.Region
- * <p>This is a region of a {@link Ext.layout.BorderLayout BorderLayout} that acts as a subcontainer
- * within the layout.  Each region has its own {@link Ext.layout.ContainerLayout layout} that is
- * independent of other regions and the containing BorderLayout, and can be any of the
- * {@link Ext.layout.ContainerLayout valid Ext layout types}.</p>
- * <p>Region size is managed automatically and cannot be changed by the user -- for
- * {@link #split resizable regions}, see {@link Ext.layout.BorderLayout.SplitRegion}.</p>
+<span id='Ext-layout-BorderLayout-Region-method-constructor'><span id='Ext-layout-BorderLayout-Region'>/**
+</span></span> * @class Ext.layout.BorderLayout.Region
+ * &lt;p&gt;This is a region of a {@link Ext.layout.BorderLayout BorderLayout} that acts as a subcontainer
+ * within the layout. Each region in the layout is a component, the region itself is constructed on top
+ * of that component, acting like a mixin. Each region has its own {@link Ext.layout.ContainerLayout layout} 
+ * that is independent of other regions and the containing BorderLayout, and can be any of the
+ * {@link Ext.layout.ContainerLayout valid Ext layout types}.&lt;/p&gt;
+ * &lt;p&gt;Region size is managed automatically and cannot be changed by the user -- for
+ * {@link #split resizable regions}, see {@link Ext.layout.BorderLayout.SplitRegion}.&lt;/p&gt;
  * @constructor
  * Create a new Region.
  * @param {Layout} layout The {@link Ext.layout.BorderLayout BorderLayout} instance that is managing this Region.
  * @param {Object} config The configuration options
- * @param {String} position The region position.  Valid values are: <tt>north</tt>, <tt>south</tt>,
- * <tt>east</tt>, <tt>west</tt> and <tt>center</tt>.  Every {@link Ext.layout.BorderLayout BorderLayout}
- * <b>must have a center region</b> for the primary content -- all other regions are optional.
+ * @param {String} position The region position.  Valid values are: &lt;tt&gt;north&lt;/tt&gt;, &lt;tt&gt;south&lt;/tt&gt;,
+ * &lt;tt&gt;east&lt;/tt&gt;, &lt;tt&gt;west&lt;/tt&gt; and &lt;tt&gt;center&lt;/tt&gt;.  Every {@link Ext.layout.BorderLayout BorderLayout}
+ * &lt;b&gt;must have a center region&lt;/b&gt; for the primary content -- all other regions are optional.
  */
 Ext.layout.BorderLayout.Region = function(layout, config, pos){
     Ext.apply(this, config);
@@ -269,7 +273,7 @@ Ext.layout.BorderLayout.Region = function(layout, config, pos){
         if(typeof this.cmargins == 'string'){
             this.cmargins = this.layout.parseMargins(this.cmargins);
         }
-        if(this.collapseMode == 'mini' && !this.cmargins){
+        if(this.collapseMode == 'mini' &amp;&amp; !this.cmargins){
             this.cmargins = {left:0,top:0,right:0,bottom:0};
         }else{
             this.cmargins = Ext.applyIf(this.cmargins || {},
@@ -279,131 +283,131 @@ Ext.layout.BorderLayout.Region = function(layout, config, pos){
 };
 
 Ext.layout.BorderLayout.Region.prototype = {
-    <div id="cfg-Ext.layout.BorderLayout.Region-animFloat"></div>/**
-     * @cfg {Boolean} animFloat
+<span id='Ext-layout-BorderLayout-Region-cfg-animFloat'>    /**
+</span>     * @cfg {Boolean} animFloat
      * When a collapsed region's bar is clicked, the region's panel will be displayed as a floated
      * panel that will close again once the user mouses out of that panel (or clicks out if
-     * <tt>{@link #autoHide} = false</tt>).  Setting <tt>{@link #animFloat} = false</tt> will
-     * prevent the open and close of these floated panels from being animated (defaults to <tt>true</tt>).
+     * &lt;tt&gt;{@link #autoHide} = false&lt;/tt&gt;).  Setting &lt;tt&gt;{@link #animFloat} = false&lt;/tt&gt; will
+     * prevent the open and close of these floated panels from being animated (defaults to &lt;tt&gt;true&lt;/tt&gt;).
      */
-    <div id="cfg-Ext.layout.BorderLayout.Region-autoHide"></div>/**
-     * @cfg {Boolean} autoHide
+<span id='Ext-layout-BorderLayout-Region-cfg-autoHide'>    /**
+</span>     * @cfg {Boolean} autoHide
      * When a collapsed region's bar is clicked, the region's panel will be displayed as a floated
-     * panel.  If <tt>autoHide = true</tt>, the panel will automatically hide after the user mouses
-     * out of the panel.  If <tt>autoHide = false</tt>, the panel will continue to display until the
-     * user clicks outside of the panel (defaults to <tt>true</tt>).
+     * panel.  If &lt;tt&gt;autoHide = true&lt;/tt&gt;, the panel will automatically hide after the user mouses
+     * out of the panel.  If &lt;tt&gt;autoHide = false&lt;/tt&gt;, the panel will continue to display until the
+     * user clicks outside of the panel (defaults to &lt;tt&gt;true&lt;/tt&gt;).
      */
-    <div id="cfg-Ext.layout.BorderLayout.Region-collapseMode"></div>/**
-     * @cfg {String} collapseMode
-     * <tt>collapseMode</tt> supports two configuration values:<div class="mdetail-params"><ul>
-     * <li><b><tt>undefined</tt></b> (default)<div class="sub-desc">By default, {@link #collapsible}
+<span id='Ext-layout-BorderLayout-Region-cfg-collapseMode'>    /**
+</span>     * @cfg {String} collapseMode
+     * &lt;tt&gt;collapseMode&lt;/tt&gt; supports two configuration values:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;undefined&lt;/tt&gt;&lt;/b&gt; (default)&lt;div class=&quot;sub-desc&quot;&gt;By default, {@link #collapsible}
      * regions are collapsed by clicking the expand/collapse tool button that renders into the region's
-     * title bar.</div></li>
-     * <li><b><tt>'mini'</tt></b><div class="sub-desc">Optionally, when <tt>collapseMode</tt> is set to
-     * <tt>'mini'</tt> the region's split bar will also display a small collapse button in the center of
-     * the bar. In <tt>'mini'</tt> mode the region will collapse to a thinner bar than in normal mode.
-     * </div></li>
-     * </ul></div></p>
-     * <p><b>Note</b>: if a collapsible region does not have a title bar, then set <tt>collapseMode =
-     * 'mini'</tt> and <tt>{@link #split} = true</tt> in order for the region to be {@link #collapsible}
-     * by the user as the expand/collapse tool button (that would go in the title bar) will not be rendered.</p>
-     * <p>See also <tt>{@link #cmargins}</tt>.</p>
+     * title bar.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;'mini'&lt;/tt&gt;&lt;/b&gt;&lt;div class=&quot;sub-desc&quot;&gt;Optionally, when &lt;tt&gt;collapseMode&lt;/tt&gt; is set to
+     * &lt;tt&gt;'mini'&lt;/tt&gt; the region's split bar will also display a small collapse button in the center of
+     * the bar. In &lt;tt&gt;'mini'&lt;/tt&gt; mode the region will collapse to a thinner bar than in normal mode.
+     * &lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;&lt;/p&gt;
+     * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: if a collapsible region does not have a title bar, then set &lt;tt&gt;collapseMode =
+     * 'mini'&lt;/tt&gt; and &lt;tt&gt;{@link #split} = true&lt;/tt&gt; in order for the region to be {@link #collapsible}
+     * by the user as the expand/collapse tool button (that would go in the title bar) will not be rendered.&lt;/p&gt;
+     * &lt;p&gt;See also &lt;tt&gt;{@link #cmargins}&lt;/tt&gt;.&lt;/p&gt;
      */
-    <div id="cfg-Ext.layout.BorderLayout.Region-margins"></div>/**
-     * @cfg {Object} margins
+<span id='Ext-layout-BorderLayout-Region-cfg-margins'>    /**
+</span>     * @cfg {Object} margins
      * An object containing margins to apply to the region when in the expanded state in the
-     * format:<pre><code>
+     * format:&lt;pre&gt;&lt;code&gt;
 {
     top: (top margin),
     right: (right margin),
     bottom: (bottom margin),
     left: (left margin)
-}</code></pre>
-     * <p>May also be a string containing space-separated, numeric margin values. The order of the
-     * sides associated with each value matches the way CSS processes margin values:</p>
-     * <p><div class="mdetail-params"><ul>
-     * <li>If there is only one value, it applies to all sides.</li>
-     * <li>If there are two values, the top and bottom borders are set to the first value and the
-     * right and left are set to the second.</li>
-     * <li>If there are three values, the top is set to the first value, the left and right are set
-     * to the second, and the bottom is set to the third.</li>
-     * <li>If there are four values, they apply to the top, right, bottom, and left, respectively.</li>
-     * </ul></div></p>
-     * <p>Defaults to:</p><pre><code>
+}&lt;/code&gt;&lt;/pre&gt;
+     * &lt;p&gt;May also be a string containing space-separated, numeric margin values. The order of the
+     * sides associated with each value matches the way CSS processes margin values:&lt;/p&gt;
+     * &lt;p&gt;&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;If there is only one value, it applies to all sides.&lt;/li&gt;
+     * &lt;li&gt;If there are two values, the top and bottom borders are set to the first value and the
+     * right and left are set to the second.&lt;/li&gt;
+     * &lt;li&gt;If there are three values, the top is set to the first value, the left and right are set
+     * to the second, and the bottom is set to the third.&lt;/li&gt;
+     * &lt;li&gt;If there are four values, they apply to the top, right, bottom, and left, respectively.&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;&lt;/p&gt;
+     * &lt;p&gt;Defaults to:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
      * {top:0, right:0, bottom:0, left:0}
-     * </code></pre>
+     * &lt;/code&gt;&lt;/pre&gt;
      */
-    <div id="cfg-Ext.layout.BorderLayout.Region-cmargins"></div>/**
-     * @cfg {Object} cmargins
+<span id='Ext-layout-BorderLayout-Region-cfg-cmargins'>    /**
+</span>     * @cfg {Object} cmargins
      * An object containing margins to apply to the region when in the collapsed state in the
-     * format:<pre><code>
+     * format:&lt;pre&gt;&lt;code&gt;
 {
     top: (top margin),
     right: (right margin),
     bottom: (bottom margin),
     left: (left margin)
-}</code></pre>
-     * <p>May also be a string containing space-separated, numeric margin values. The order of the
-     * sides associated with each value matches the way CSS processes margin values.</p>
-     * <p><ul>
-     * <li>If there is only one value, it applies to all sides.</li>
-     * <li>If there are two values, the top and bottom borders are set to the first value and the
-     * right and left are set to the second.</li>
-     * <li>If there are three values, the top is set to the first value, the left and right are set
-     * to the second, and the bottom is set to the third.</li>
-     * <li>If there are four values, they apply to the top, right, bottom, and left, respectively.</li>
-     * </ul></p>
+}&lt;/code&gt;&lt;/pre&gt;
+     * &lt;p&gt;May also be a string containing space-separated, numeric margin values. The order of the
+     * sides associated with each value matches the way CSS processes margin values.&lt;/p&gt;
+     * &lt;p&gt;&lt;ul&gt;
+     * &lt;li&gt;If there is only one value, it applies to all sides.&lt;/li&gt;
+     * &lt;li&gt;If there are two values, the top and bottom borders are set to the first value and the
+     * right and left are set to the second.&lt;/li&gt;
+     * &lt;li&gt;If there are three values, the top is set to the first value, the left and right are set
+     * to the second, and the bottom is set to the third.&lt;/li&gt;
+     * &lt;li&gt;If there are four values, they apply to the top, right, bottom, and left, respectively.&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/p&gt;
      */
-    <div id="cfg-Ext.layout.BorderLayout.Region-collapsible"></div>/**
-     * @cfg {Boolean} collapsible
-     * <p><tt>true</tt> to allow the user to collapse this region (defaults to <tt>false</tt>).  If
-     * <tt>true</tt>, an expand/collapse tool button will automatically be rendered into the title
-     * bar of the region, otherwise the button will not be shown.</p>
-     * <p><b>Note</b>: that a title bar is required to display the collapse/expand toggle button -- if
-     * no <tt>title</tt> is specified for the region's panel, the region will only be collapsible if
-     * <tt>{@link #collapseMode} = 'mini'</tt> and <tt>{@link #split} = true</tt>.
+<span id='Ext-layout-BorderLayout-Region-cfg-collapsible'>    /**
+</span>     * @cfg {Boolean} collapsible
+     * &lt;p&gt;&lt;tt&gt;true&lt;/tt&gt; to allow the user to collapse this region (defaults to &lt;tt&gt;false&lt;/tt&gt;).  If
+     * &lt;tt&gt;true&lt;/tt&gt;, an expand/collapse tool button will automatically be rendered into the title
+     * bar of the region, otherwise the button will not be shown.&lt;/p&gt;
+     * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: that a title bar is required to display the collapse/expand toggle button -- if
+     * no &lt;tt&gt;title&lt;/tt&gt; is specified for the region's panel, the region will only be collapsible if
+     * &lt;tt&gt;{@link #collapseMode} = 'mini'&lt;/tt&gt; and &lt;tt&gt;{@link #split} = true&lt;/tt&gt;.
      */
     collapsible : false,
-    <div id="cfg-Ext.layout.BorderLayout.Region-split"></div>/**
-     * @cfg {Boolean} split
-     * <p><tt>true</tt> to create a {@link Ext.layout.BorderLayout.SplitRegion SplitRegion} and
+<span id='Ext-layout-BorderLayout-Region-cfg-split'>    /**
+</span>     * @cfg {Boolean} split
+     * &lt;p&gt;&lt;tt&gt;true&lt;/tt&gt; to create a {@link Ext.layout.BorderLayout.SplitRegion SplitRegion} and
      * display a 5px wide {@link Ext.SplitBar} between this region and its neighbor, allowing the user to
-     * resize the regions dynamically.  Defaults to <tt>false</tt> creating a
-     * {@link Ext.layout.BorderLayout.Region Region}.</p><br>
-     * <p><b>Notes</b>:</p><div class="mdetail-params"><ul>
-     * <li>this configuration option is ignored if <tt>region='center'</tt></li>
-     * <li>when <tt>split == true</tt>, it is common to specify a
-     * <tt>{@link Ext.SplitBar#minSize minSize}</tt> and <tt>{@link Ext.SplitBar#maxSize maxSize}</tt>
+     * resize the regions dynamically.  Defaults to &lt;tt&gt;false&lt;/tt&gt; creating a
+     * {@link Ext.layout.BorderLayout.Region Region}.&lt;/p&gt;&lt;br&gt;
+     * &lt;p&gt;&lt;b&gt;Notes&lt;/b&gt;:&lt;/p&gt;&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;this configuration option is ignored if &lt;tt&gt;region='center'&lt;/tt&gt;&lt;/li&gt;
+     * &lt;li&gt;when &lt;tt&gt;split == true&lt;/tt&gt;, it is common to specify a
+     * &lt;tt&gt;{@link Ext.SplitBar#minSize minSize}&lt;/tt&gt; and &lt;tt&gt;{@link Ext.SplitBar#maxSize maxSize}&lt;/tt&gt;
      * for the {@link Ext.BoxComponent BoxComponent} representing the region. These are not native
-     * configs of {@link Ext.BoxComponent BoxComponent}, and are used only by this class.</li>
-     * <li>if <tt>{@link #collapseMode} = 'mini'</tt> requires <tt>split = true</tt> to reserve space
-     * for the collapse tool</tt></li>
-     * </ul></div>
+     * configs of {@link Ext.BoxComponent BoxComponent}, and are used only by this class.&lt;/li&gt;
+     * &lt;li&gt;if &lt;tt&gt;{@link #collapseMode} = 'mini'&lt;/tt&gt; requires &lt;tt&gt;split = true&lt;/tt&gt; to reserve space
+     * for the collapse tool&lt;/tt&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      */
     split:false,
-    <div id="cfg-Ext.layout.BorderLayout.Region-floatable"></div>/**
-     * @cfg {Boolean} floatable
-     * <tt>true</tt> to allow clicking a collapsed region's bar to display the region's panel floated
-     * above the layout, <tt>false</tt> to force the user to fully expand a collapsed region by
-     * clicking the expand button to see it again (defaults to <tt>true</tt>).
+<span id='Ext-layout-BorderLayout-Region-cfg-floatable'>    /**
+</span>     * @cfg {Boolean} floatable
+     * &lt;tt&gt;true&lt;/tt&gt; to allow clicking a collapsed region's bar to display the region's panel floated
+     * above the layout, &lt;tt&gt;false&lt;/tt&gt; to force the user to fully expand a collapsed region by
+     * clicking the expand button to see it again (defaults to &lt;tt&gt;true&lt;/tt&gt;).
      */
     floatable: true,
-    <div id="cfg-Ext.layout.BorderLayout.Region-minWidth"></div>/**
-     * @cfg {Number} minWidth
-     * <p>The minimum allowable width in pixels for this region (defaults to <tt>50</tt>).
-     * <tt>maxWidth</tt> may also be specified.</p><br>
-     * <p><b>Note</b>: setting the <tt>{@link Ext.SplitBar#minSize minSize}</tt> /
-     * <tt>{@link Ext.SplitBar#maxSize maxSize}</tt> supersedes any specified
-     * <tt>minWidth</tt> / <tt>maxWidth</tt>.</p>
+<span id='Ext-layout-BorderLayout-Region-cfg-minWidth'>    /**
+</span>     * @cfg {Number} minWidth
+     * &lt;p&gt;The minimum allowable width in pixels for this region (defaults to &lt;tt&gt;50&lt;/tt&gt;).
+     * &lt;tt&gt;maxWidth&lt;/tt&gt; may also be specified.&lt;/p&gt;&lt;br&gt;
+     * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: setting the &lt;tt&gt;{@link Ext.SplitBar#minSize minSize}&lt;/tt&gt; /
+     * &lt;tt&gt;{@link Ext.SplitBar#maxSize maxSize}&lt;/tt&gt; supersedes any specified
+     * &lt;tt&gt;minWidth&lt;/tt&gt; / &lt;tt&gt;maxWidth&lt;/tt&gt;.&lt;/p&gt;
      */
     minWidth:50,
-    <div id="cfg-Ext.layout.BorderLayout.Region-minHeight"></div>/**
-     * @cfg {Number} minHeight
-     * The minimum allowable height in pixels for this region (defaults to <tt>50</tt>)
-     * <tt>maxHeight</tt> may also be specified.</p><br>
-     * <p><b>Note</b>: setting the <tt>{@link Ext.SplitBar#minSize minSize}</tt> /
-     * <tt>{@link Ext.SplitBar#maxSize maxSize}</tt> supersedes any specified
-     * <tt>minHeight</tt> / <tt>maxHeight</tt>.</p>
+<span id='Ext-layout-BorderLayout-Region-cfg-minHeight'>    /**
+</span>     * @cfg {Number} minHeight
+     * The minimum allowable height in pixels for this region (defaults to &lt;tt&gt;50&lt;/tt&gt;)
+     * &lt;tt&gt;maxHeight&lt;/tt&gt; may also be specified.&lt;/p&gt;&lt;br&gt;
+     * &lt;p&gt;&lt;b&gt;Note&lt;/b&gt;: setting the &lt;tt&gt;{@link Ext.SplitBar#minSize minSize}&lt;/tt&gt; /
+     * &lt;tt&gt;{@link Ext.SplitBar#maxSize maxSize}&lt;/tt&gt; supersedes any specified
+     * &lt;tt&gt;minHeight&lt;/tt&gt; / &lt;tt&gt;maxHeight&lt;/tt&gt;.&lt;/p&gt;
      */
     minHeight:50,
 
@@ -415,25 +419,25 @@ Ext.layout.BorderLayout.Region.prototype = {
     defaultEWCMargins : {left:5,top:0,right:5,bottom:0},
     floatingZIndex: 100,
 
-    <div id="prop-Ext.layout.BorderLayout.Region-isCollapsed"></div>/**
-     * True if this region is collapsed. Read-only.
+<span id='Ext-layout-BorderLayout-Region-property-isCollapsed'>    /**
+</span>     * True if this region is collapsed. Read-only.
      * @type Boolean
      * @property
      */
     isCollapsed : false,
 
-    <div id="prop-Ext.layout.BorderLayout.Region-panel"></div>/**
-     * This region's panel.  Read-only.
+<span id='Ext-layout-BorderLayout-Region-property-panel'>    /**
+</span>     * This region's panel.  Read-only.
      * @type Ext.Panel
      * @property panel
      */
-    <div id="prop-Ext.layout.BorderLayout.Region-layout"></div>/**
-     * This region's layout.  Read-only.
+<span id='Ext-layout-BorderLayout-Region-property-layout'>    /**
+</span>     * This region's layout.  Read-only.
      * @type Layout
      * @property layout
      */
-    <div id="prop-Ext.layout.BorderLayout.Region-position"></div>/**
-     * This region's layout position (north, south, east, west or center).  Read-only.
+<span id='Ext-layout-BorderLayout-Region-property-position'>    /**
+</span>     * This region's layout position (north, south, east, west or center).  Read-only.
      * @type String
      * @property position
      */
@@ -465,7 +469,7 @@ Ext.layout.BorderLayout.Region.prototype = {
                 p.collapseEl = 'el';
                 p.slideAnchor = this.getSlideAnchor();
             }
-            if(p.tools && p.tools.toggle){
+            if(p.tools &amp;&amp; p.tools.toggle){
                 p.tools.toggle.addClass('x-tool-collapse-'+ps);
                 p.tools.toggle.addClassOnOver('x-tool-collapse-'+ps+'-over');
             }
@@ -477,14 +481,14 @@ Ext.layout.BorderLayout.Region.prototype = {
         if(!this.collapsedEl){
             if(!this.toolTemplate){
                 var tt = new Ext.Template(
-                     '<div class="x-tool x-tool-{id}">&#160;</div>'
+                     '&lt;div class=&quot;x-tool x-tool-{id}&quot;&gt;&amp;#160;&lt;/div&gt;'
                 );
                 tt.disableFormats = true;
                 tt.compile();
                 Ext.layout.BorderLayout.Region.prototype.toolTemplate = tt;
             }
             this.collapsedEl = this.targetEl.createChild({
-                cls: "x-layout-collapsed x-layout-collapsed-"+this.position,
+                cls: &quot;x-layout-collapsed x-layout-collapsed-&quot;+this.position,
                 id: this.panel.id + '-xcollapsed'
             });
             this.collapsedEl.enableDisplayMode('block');
@@ -492,13 +496,13 @@ Ext.layout.BorderLayout.Region.prototype = {
             if(this.collapseMode == 'mini'){
                 this.collapsedEl.addClass('x-layout-cmini-'+this.position);
                 this.miniCollapsedEl = this.collapsedEl.createChild({
-                    cls: "x-layout-mini x-layout-mini-"+this.position, html: "&#160;"
+                    cls: &quot;x-layout-mini x-layout-mini-&quot;+this.position, html: &quot;&amp;#160;&quot;
                 });
                 this.miniCollapsedEl.addClassOnOver('x-layout-mini-over');
-                this.collapsedEl.addClassOnOver("x-layout-collapsed-over");
+                this.collapsedEl.addClassOnOver(&quot;x-layout-collapsed-over&quot;);
                 this.collapsedEl.on('click', this.onExpandClick, this, {stopEvent:true});
             }else {
-                if(this.collapsible !== false && !this.hideCollapseTool) {
+                if(this.collapsible !== false &amp;&amp; !this.hideCollapseTool) {
                     var t = this.expandToolEl = this.toolTemplate.append(
                             this.collapsedEl.dom,
                             {id:'expand-'+this.position}, true);
@@ -506,8 +510,8 @@ Ext.layout.BorderLayout.Region.prototype = {
                     t.on('click', this.onExpandClick, this, {stopEvent:true});
                 }
                 if(this.floatable !== false || this.titleCollapse){
-                   this.collapsedEl.addClassOnOver("x-layout-collapsed-over");
-                   this.collapsedEl.on("click", this[this.floatable ? 'collapseClick' : 'onExpandClick'], this);
+                   this.collapsedEl.addClassOnOver(&quot;x-layout-collapsed-over&quot;);
+                   this.collapsedEl.on(&quot;click&quot;, this[this.floatable ? 'collapseClick' : 'onExpandClick'], this);
                 }
             }
         }
@@ -612,53 +616,53 @@ Ext.layout.BorderLayout.Region.prototype = {
         }
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-isVisible"></div>/**
-     * True if this region is currently visible, else false.
+<span id='Ext-layout-BorderLayout-Region-method-isVisible'>    /**
+</span>     * True if this region is currently visible, else false.
      * @return {Boolean}
      */
     isVisible : function(){
         return !this.panel.hidden;
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-getMargins"></div>/**
-     * Returns the current margins for this region.  If the region is collapsed, the
+<span id='Ext-layout-BorderLayout-Region-method-getMargins'>    /**
+</span>     * Returns the current margins for this region.  If the region is collapsed, the
      * {@link #cmargins} (collapsed margins) value will be returned, otherwise the
      * {@link #margins} value will be returned.
-     * @return {Object} An object containing the element's margins: <tt>{left: (left
-     * margin), top: (top margin), right: (right margin), bottom: (bottom margin)}</tt>
+     * @return {Object} An object containing the element's margins: &lt;tt&gt;{left: (left
+     * margin), top: (top margin), right: (right margin), bottom: (bottom margin)}&lt;/tt&gt;
      */
     getMargins : function(){
-        return this.isCollapsed && this.cmargins ? this.cmargins : this.margins;
+        return this.isCollapsed &amp;&amp; this.cmargins ? this.cmargins : this.margins;
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-getSize"></div>/**
-     * Returns the current size of this region.  If the region is collapsed, the size of the
+<span id='Ext-layout-BorderLayout-Region-method-getSize'>    /**
+</span>     * Returns the current size of this region.  If the region is collapsed, the size of the
      * collapsedEl will be returned, otherwise the size of the region's panel will be returned.
-     * @return {Object} An object containing the element's size: <tt>{width: (element width),
-     * height: (element height)}</tt>
+     * @return {Object} An object containing the element's size: &lt;tt&gt;{width: (element width),
+     * height: (element height)}&lt;/tt&gt;
      */
     getSize : function(){
         return this.isCollapsed ? this.getCollapsedEl().getSize() : this.panel.getSize();
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-setPanel"></div>/**
-     * Sets the specified panel as the container element for this region.
+<span id='Ext-layout-BorderLayout-Region-method-setPanel'>    /**
+</span>     * Sets the specified panel as the container element for this region.
      * @param {Ext.Panel} panel The new panel
      */
     setPanel : function(panel){
         this.panel = panel;
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-getMinWidth"></div>/**
-     * Returns the minimum allowable width for this region.
+<span id='Ext-layout-BorderLayout-Region-method-getMinWidth'>    /**
+</span>     * Returns the minimum allowable width for this region.
      * @return {Number} The minimum width
      */
     getMinWidth: function(){
         return this.minWidth;
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-getMinHeight"></div>/**
-     * Returns the minimum allowable height for this region.
+<span id='Ext-layout-BorderLayout-Region-method-getMinHeight'>    /**
+</span>     * Returns the minimum allowable height for this region.
      * @return {Number} The minimum height
      */
     getMinHeight: function(){
@@ -698,12 +702,12 @@ Ext.layout.BorderLayout.Region.prototype = {
             if(!this.autoHideHd){
                 this.autoHideSlideTask = new Ext.util.DelayedTask(this.slideIn, this);
                 this.autoHideHd = {
-                    "mouseout": function(e){
+                    &quot;mouseout&quot;: function(e){
                         if(!e.within(this.el, true)){
                             this.autoHideSlideTask.delay(500);
                         }
                     },
-                    "mouseover" : function(e){
+                    &quot;mouseover&quot; : function(e){
                         this.autoHideSlideTask.cancel();
                     },
                     scope : this
@@ -717,21 +721,21 @@ Ext.layout.BorderLayout.Region.prototype = {
     // private
     clearAutoHide : function(){
         if(this.autoHide !== false){
-            this.el.un("mouseout", this.autoHideHd.mouseout);
-            this.el.un("mouseover", this.autoHideHd.mouseover);
-            this.collapsedEl.un("mouseout", this.autoHideHd.mouseout);
-            this.collapsedEl.un("mouseover", this.autoHideHd.mouseover);
+            this.el.un(&quot;mouseout&quot;, this.autoHideHd.mouseout);
+            this.el.un(&quot;mouseover&quot;, this.autoHideHd.mouseover);
+            this.collapsedEl.un(&quot;mouseout&quot;, this.autoHideHd.mouseout);
+            this.collapsedEl.un(&quot;mouseover&quot;, this.autoHideHd.mouseover);
         }
     },
 
     // private
     clearMonitor : function(){
-        Ext.getDoc().un("click", this.slideInIf, this);
+        Ext.getDoc().un(&quot;click&quot;, this.slideInIf, this);
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-slideOut"></div>/**
-     * If this Region is {@link #floatable}, this method slides this Region into full visibility <i>over the top
-     * of the center Region</i> where it floats until either {@link #slideIn} is called, or other regions of the layout
+<span id='Ext-layout-BorderLayout-Region-method-slideOut'>    /**
+</span>     * If this Region is {@link #floatable}, this method slides this Region into full visibility &lt;i&gt;over the top
+     * of the center Region&lt;/i&gt; where it floats until either {@link #slideIn} is called, or other regions of the layout
      * are clicked, or the mouse exits the Region.
      */
     slideOut : function(){
@@ -740,7 +744,7 @@ Ext.layout.BorderLayout.Region.prototype = {
         }
         this.isSlid = true;
         var ts = this.panel.tools, dh, pc;
-        if(ts && ts.toggle){
+        if(ts &amp;&amp; ts.toggle){
             ts.toggle.hide();
         }
         this.el.show();
@@ -767,7 +771,7 @@ Ext.layout.BorderLayout.Region.prototype = {
 
         this.restoreLT = [this.el.dom.style.left, this.el.dom.style.top];
         this.el.alignTo(this.collapsedEl, this.getCollapseAnchor());
-        this.el.setStyle("z-index", this.floatingZIndex+2);
+        this.el.setStyle(&quot;z-index&quot;, this.floatingZIndex+2);
         this.panel.el.replaceClass('x-panel-collapsed', 'x-panel-floating');
         if(this.animFloat !== false){
             this.beforeSlide();
@@ -775,14 +779,14 @@ Ext.layout.BorderLayout.Region.prototype = {
                 callback: function(){
                     this.afterSlide();
                     this.initAutoHide();
-                    Ext.getDoc().on("click", this.slideInIf, this);
+                    Ext.getDoc().on(&quot;click&quot;, this.slideInIf, this);
                 },
                 scope: this,
                 block: true
             });
         }else{
             this.initAutoHide();
-             Ext.getDoc().on("click", this.slideInIf, this);
+             Ext.getDoc().on(&quot;click&quot;, this.slideInIf, this);
         }
     },
 
@@ -791,19 +795,19 @@ Ext.layout.BorderLayout.Region.prototype = {
         this.clearAutoHide();
         this.isSlid = false;
         this.clearMonitor();
-        this.el.setStyle("z-index", "");
+        this.el.setStyle(&quot;z-index&quot;, &quot;&quot;);
         this.panel.el.replaceClass('x-panel-floating', 'x-panel-collapsed');
         this.el.dom.style.left = this.restoreLT[0];
         this.el.dom.style.top = this.restoreLT[1];
 
         var ts = this.panel.tools;
-        if(ts && ts.toggle){
+        if(ts &amp;&amp; ts.toggle){
             ts.toggle.show();
         }
     },
 
-    <div id="method-Ext.layout.BorderLayout.Region-slideIn"></div>/**
-     * If this Region is {@link #floatable}, and this Region has been slid into floating visibility, then this method slides
+<span id='Ext-layout-BorderLayout-Region-method-slideIn'>    /**
+</span>     * If this Region is {@link #floatable}, and this Region has been slid into floating visibility, then this method slides
      * this region back into its collapsed state.
      */
     slideIn : function(cb){
@@ -839,26 +843,26 @@ Ext.layout.BorderLayout.Region.prototype = {
 
     // private
     anchors : {
-        "west" : "left",
-        "east" : "right",
-        "north" : "top",
-        "south" : "bottom"
+        &quot;west&quot; : &quot;left&quot;,
+        &quot;east&quot; : &quot;right&quot;,
+        &quot;north&quot; : &quot;top&quot;,
+        &quot;south&quot; : &quot;bottom&quot;
     },
 
     // private
     sanchors : {
-        "west" : "l",
-        "east" : "r",
-        "north" : "t",
-        "south" : "b"
+        &quot;west&quot; : &quot;l&quot;,
+        &quot;east&quot; : &quot;r&quot;,
+        &quot;north&quot; : &quot;t&quot;,
+        &quot;south&quot; : &quot;b&quot;
     },
 
     // private
     canchors : {
-        "west" : "tl-tr",
-        "east" : "tr-tl",
-        "north" : "tl-bl",
-        "south" : "bl-tl"
+        &quot;west&quot; : &quot;tl-tr&quot;,
+        &quot;east&quot; : &quot;tr-tl&quot;,
+        &quot;north&quot; : &quot;tl-bl&quot;,
+        &quot;south&quot; : &quot;bl-tl&quot;
     },
 
     // private
@@ -880,16 +884,16 @@ Ext.layout.BorderLayout.Region.prototype = {
     getAlignAdj : function(){
         var cm = this.cmargins;
         switch(this.position){
-            case "west":
+            case &quot;west&quot;:
                 return [0, 0];
             break;
-            case "east":
+            case &quot;east&quot;:
                 return [0, 0];
             break;
-            case "north":
+            case &quot;north&quot;:
                 return [0, 0];
             break;
-            case "south":
+            case &quot;south&quot;:
                 return [0, 0];
             break;
         }
@@ -899,35 +903,35 @@ Ext.layout.BorderLayout.Region.prototype = {
     getExpandAdj : function(){
         var c = this.collapsedEl, cm = this.cmargins;
         switch(this.position){
-            case "west":
+            case &quot;west&quot;:
                 return [-(cm.right+c.getWidth()+cm.left), 0];
             break;
-            case "east":
+            case &quot;east&quot;:
                 return [cm.right+c.getWidth()+cm.left, 0];
             break;
-            case "north":
+            case &quot;north&quot;:
                 return [0, -(cm.top+cm.bottom+c.getHeight())];
             break;
-            case "south":
+            case &quot;south&quot;:
                 return [0, cm.top+cm.bottom+c.getHeight()];
             break;
         }
     },
 
     destroy : function(){
-        if (this.autoHideSlideTask && this.autoHideSlideTask.cancel){
+        if (this.autoHideSlideTask &amp;&amp; this.autoHideSlideTask.cancel){
             this.autoHideSlideTask.cancel();
         }
         Ext.destroyMembers(this, 'miniCollapsedEl', 'collapsedEl', 'expandToolEl');
     }
 };
 
-<div id="cls-Ext.layout.BorderLayout.SplitRegion"></div>/**
- * @class Ext.layout.BorderLayout.SplitRegion
+<span id='Ext-layout-BorderLayout-SplitRegion-method-constructor'><span id='Ext-layout-BorderLayout-SplitRegion'>/**
+</span></span> * @class Ext.layout.BorderLayout.SplitRegion
  * @extends Ext.layout.BorderLayout.Region
- * <p>This is a specialized type of {@link Ext.layout.BorderLayout.Region BorderLayout region} that
+ * &lt;p&gt;This is a specialized type of {@link Ext.layout.BorderLayout.Region BorderLayout region} that
  * has a built-in {@link Ext.SplitBar} for user resizing of regions.  The movement of the split bar
- * is configurable to move either {@link #tickSize smooth or incrementally}.</p>
+ * is configurable to move either {@link #tickSize smooth or incrementally}.&lt;/p&gt;
  * @constructor
  * Create a new SplitRegion.
  * @param {Layout} layout The {@link Ext.layout.BorderLayout BorderLayout} instance that is managing this Region.
@@ -942,32 +946,32 @@ Ext.layout.BorderLayout.SplitRegion = function(layout, config, pos){
 };
 
 Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, {
-    <div id="cfg-Ext.layout.BorderLayout.SplitRegion-tickSize"></div>/**
-     * @cfg {Number} tickSize
+<span id='Ext-layout-BorderLayout-SplitRegion-cfg-tickSize'>    /**
+</span>     * @cfg {Number} tickSize
      * The increment, in pixels by which to move this Region's {@link Ext.SplitBar SplitBar}.
      * By default, the {@link Ext.SplitBar SplitBar} moves smoothly.
      */
-    <div id="cfg-Ext.layout.BorderLayout.SplitRegion-splitTip"></div>/**
-     * @cfg {String} splitTip
+<span id='Ext-layout-BorderLayout-SplitRegion-cfg-splitTip'>    /**
+</span>     * @cfg {String} splitTip
      * The tooltip to display when the user hovers over a
      * {@link Ext.layout.BorderLayout.Region#collapsible non-collapsible} region's split bar
-     * (defaults to <tt>"Drag to resize."</tt>).  Only applies if
-     * <tt>{@link #useSplitTips} = true</tt>.
+     * (defaults to &lt;tt&gt;&quot;Drag to resize.&quot;&lt;/tt&gt;).  Only applies if
+     * &lt;tt&gt;{@link #useSplitTips} = true&lt;/tt&gt;.
      */
-    splitTip : "Drag to resize.",
-    <div id="cfg-Ext.layout.BorderLayout.SplitRegion-collapsibleSplitTip"></div>/**
-     * @cfg {String} collapsibleSplitTip
+    splitTip : &quot;Drag to resize.&quot;,
+<span id='Ext-layout-BorderLayout-SplitRegion-cfg-collapsibleSplitTip'>    /**
+</span>     * @cfg {String} collapsibleSplitTip
      * The tooltip to display when the user hovers over a
      * {@link Ext.layout.BorderLayout.Region#collapsible collapsible} region's split bar
-     * (defaults to "Drag to resize. Double click to hide."). Only applies if
-     * <tt>{@link #useSplitTips} = true</tt>.
+     * (defaults to &quot;Drag to resize. Double click to hide.&quot;). Only applies if
+     * &lt;tt&gt;{@link #useSplitTips} = true&lt;/tt&gt;.
      */
-    collapsibleSplitTip : "Drag to resize. Double click to hide.",
-    <div id="cfg-Ext.layout.BorderLayout.SplitRegion-useSplitTips"></div>/**
-     * @cfg {Boolean} useSplitTips
-     * <tt>true</tt> to display a tooltip when the user hovers over a region's split bar
-     * (defaults to <tt>false</tt>).  The tooltip text will be the value of either
-     * <tt>{@link #splitTip}</tt> or <tt>{@link #collapsibleSplitTip}</tt> as appropriate.
+    collapsibleSplitTip : &quot;Drag to resize. Double click to hide.&quot;,
+<span id='Ext-layout-BorderLayout-SplitRegion-cfg-useSplitTips'>    /**
+</span>     * @cfg {Boolean} useSplitTips
+     * &lt;tt&gt;true&lt;/tt&gt; to display a tooltip when the user hovers over a region's split bar
+     * (defaults to &lt;tt&gt;false&lt;/tt&gt;).  The tooltip text will be the value of either
+     * &lt;tt&gt;{@link #splitTip}&lt;/tt&gt; or &lt;tt&gt;{@link #collapsibleSplitTip}&lt;/tt&gt; as appropriate.
      */
     useSplitTips : false,
 
@@ -1062,13 +1066,13 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
         var ps = this.position;
 
         this.splitEl = ct.createChild({
-            cls: "x-layout-split x-layout-split-"+ps, html: "&#160;",
+            cls: &quot;x-layout-split x-layout-split-&quot;+ps, html: &quot;&amp;#160;&quot;,
             id: this.panel.id + '-xsplit'
         });
 
         if(this.collapseMode == 'mini'){
             this.miniSplitEl = this.splitEl.createChild({
-                cls: "x-layout-mini x-layout-mini-"+ps, html: "&#160;"
+                cls: &quot;x-layout-mini x-layout-mini-&quot;+ps, html: &quot;&amp;#160;&quot;
             });
             this.miniSplitEl.addClassOnOver('x-layout-mini-over');
             this.miniSplitEl.on('click', this.onCollapseClick, this, {stopEvent:true});
@@ -1081,7 +1085,7 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
         this.split.placement = s.placement;
         this.split.getMaximumSize = this[s.maxFn].createDelegate(this);
         this.split.minSize = this.minSize || this[s.minProp];
-        this.split.on("beforeapply", this.onSplitMove, this);
+        this.split.on(&quot;beforeapply&quot;, this.onSplitMove, this);
         this.split.useShim = this.useShim === true;
         this.maxSize = this.maxSize || this[s.maxProp];
 
@@ -1093,7 +1097,7 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
             this.splitEl.dom.title = this.collapsible ? this.collapsibleSplitTip : this.splitTip;
         }
         if(this.collapsible){
-            this.splitEl.on("dblclick", this.onCollapseClick,  this);
+            this.splitEl.on(&quot;dblclick&quot;, this.onCollapseClick,  this);
         }
     },
 
@@ -1141,8 +1145,8 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
         return false;
     },
 
-    <div id="method-Ext.layout.BorderLayout.SplitRegion-getSplitBar"></div>/**
-     * Returns a reference to the split bar in use by this region.
+<span id='Ext-layout-BorderLayout-SplitRegion-method-getSplitBar'>    /**
+</span>     * Returns a reference to the split bar in use by this region.
      * @return {Ext.SplitBar} The split bar
      */
     getSplitBar : function(){
@@ -1157,6 +1161,6 @@ Ext.extend(Ext.layout.BorderLayout.SplitRegion, Ext.layout.BorderLayout.Region, 
 });
 
 Ext.Container.LAYOUTS['border'] = Ext.layout.BorderLayout;
-</pre>    
+</pre>
 </body>
 </html>

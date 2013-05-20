@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.data.MemoryProxy"></div>/**
- * @class Ext.data.MemoryProxy
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-MemoryProxy-method-constructor'><span id='Ext-data-MemoryProxy'>/**
+</span></span> * @class Ext.data.MemoryProxy
  * @extends Ext.data.DataProxy
  * An implementation of Ext.data.DataProxy that simply passes the data specified in its constructor
  * to the Reader when its load method is called.
@@ -21,7 +24,7 @@
  * @param {Object} data The data object which the Reader uses to construct a block of Ext.data.Records.
  */
 Ext.data.MemoryProxy = function(data){
-    // Must define a dummy api with "read" action to satisfy DataProxy#doRequest and Ext.data.Api#prepare *before* calling super
+    // Must define a dummy api with &quot;read&quot; action to satisfy DataProxy#doRequest and Ext.data.Api#prepare *before* calling super
     var api = {};
     api[Ext.data.Api.actions.read] = true;
     Ext.data.MemoryProxy.superclass.constructor.call(this, {
@@ -31,8 +34,8 @@ Ext.data.MemoryProxy = function(data){
 };
 
 Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
-    <div id="event-Ext.data.MemoryProxy-loadexception"></div>/**
-     * @event loadexception
+<span id='Ext-data-MemoryProxy-event-loadexception'>    /**
+</span>     * @event loadexception
      * Fires if an exception occurs in the Proxy during data loading. Note that this event is also relayed
      * through {@link Ext.data.Store}, so you can listen for it directly on any Store instance.
      * @param {Object} this
@@ -41,8 +44,8 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
      * @param {Error} e The JavaScript Error object caught if the configured Reader could not read the data
      */
 
-       <div id="method-Ext.data.MemoryProxy-doRequest"></div>/**
-     * MemoryProxy implementation of DataProxy#doRequest
+<span id='Ext-data-MemoryProxy-method-doRequest'>       /**
+</span>     * MemoryProxy implementation of DataProxy#doRequest
      * @param {String} action
      * @param {Ext.data.Record/Ext.data.Record[]} rs If action is load, rs will be null
      * @param {Object} params An object containing properties which are to be used as HTTP parameters
@@ -50,12 +53,12 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
      * @param {Ext.data.DataReader} reader The Reader object which converts the data
      * object into a block of Ext.data.Records.
      * @param {Function} callback The function into which to pass the block of Ext.data.Records.
-     * The function must be passed <ul>
-     * <li>The Record block object</li>
-     * <li>The "arg" argument from the load function</li>
-     * <li>A boolean success indicator</li>
-     * </ul>
-     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
+     * The function must be passed &lt;ul&gt;
+     * &lt;li&gt;The Record block object&lt;/li&gt;
+     * &lt;li&gt;The &quot;arg&quot; argument from the load function&lt;/li&gt;
+     * &lt;li&gt;A boolean success indicator&lt;/li&gt;
+     * &lt;/ul&gt;
+     * @param {Object} scope The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
      */
     doRequest : function(action, rs, params, reader, callback, scope, arg) {
@@ -66,7 +69,7 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
             result = reader.readRecords(this.data);
         }catch(e){
             // @deprecated loadexception
-            this.fireEvent("loadexception", this, null, arg, e);
+            this.fireEvent(&quot;loadexception&quot;, this, null, arg, e);
 
             this.fireEvent('exception', this, 'response', action, arg, null, e);
             callback.call(scope, null, arg, false);
@@ -74,6 +77,6 @@ Ext.extend(Ext.data.MemoryProxy, Ext.data.DataProxy, {
         }
         callback.call(scope, result, arg, true);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

@@ -1,18 +1,21 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-Ext.tree.TreeEventModel = function(tree){
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.tree.TreeEventModel = function(tree){
     this.tree = tree;
     this.tree.on('render', this.initEvents, this);
 };
@@ -66,7 +69,7 @@ Ext.tree.TreeEventModel.prototype = {
                 delete this.lastEcOver;
             }
         }
-        if((t = this.getNodeTarget(e)) && !e.within(t, true)){
+        if((t = this.getNodeTarget(e)) &amp;&amp; !e.within(t, true)){
             this.onNodeOut(e, this.getNode(e));
         }
     },
@@ -75,7 +78,7 @@ Ext.tree.TreeEventModel.prototype = {
         if(!this.beforeEvent(e)){
             return;
         }
-        if(Ext.isGecko && !this.trackingDoc){ // prevent hanging in FF
+        if(Ext.isGecko &amp;&amp; !this.trackingDoc){ // prevent hanging in FF
             Ext.getBody().on('mouseover', this.trackExit, this);
             this.trackingDoc = true;
         }
@@ -94,7 +97,7 @@ Ext.tree.TreeEventModel.prototype = {
 
     trackExit : function(e){
         if(this.lastOverNode){
-            if(this.lastOverNode.ui && !e.within(this.lastOverNode.ui.getEl())){
+            if(this.lastOverNode.ui &amp;&amp; !e.within(this.lastOverNode.ui.getEl())){
                 this.onNodeOut(e, this.lastOverNode);
             }
             delete this.lastOverNode;
@@ -203,6 +206,6 @@ Ext.tree.TreeEventModel.prototype = {
     enable: function(){
         this.disabled = false;
     }
-};</pre>    
+};</pre>
 </body>
 </html>

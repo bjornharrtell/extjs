@@ -1,24 +1,27 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.direct.JsonProvider"></div>/**
- * @class Ext.direct.JsonProvider
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-direct-JsonProvider'>/**
+</span> * @class Ext.direct.JsonProvider
  * @extends Ext.direct.Provider
  */
 Ext.direct.JsonProvider = Ext.extend(Ext.direct.Provider, {
-    parseResponse: function(xhr){
-        if(!Ext.isEmpty(xhr.responseText)){
+<span id='Ext-direct-JsonProvider-method-parseResponse'>    parseResponse: function(xhr){
+</span>        if(!Ext.isEmpty(xhr.responseText)){
             if(typeof xhr.responseText == 'object'){
                 return xhr.responseText;
             }
@@ -27,8 +30,8 @@ Ext.direct.JsonProvider = Ext.extend(Ext.direct.Provider, {
         return null;
     },
 
-    getEvents: function(xhr){
-        var data = null;
+<span id='Ext-direct-JsonProvider-method-getEvents'>    getEvents: function(xhr){
+</span>        var data = null;
         try{
             data = this.parseResponse(xhr);
         }catch(e){
@@ -42,7 +45,7 @@ Ext.direct.JsonProvider = Ext.extend(Ext.direct.Provider, {
         }
         var events = [];
         if(Ext.isArray(data)){
-            for(var i = 0, len = data.length; i < len; i++){
+            for(var i = 0, len = data.length; i &lt; len; i++){
                 events.push(Ext.Direct.createEvent(data[i]));
             }
         }else{
@@ -50,6 +53,6 @@ Ext.direct.JsonProvider = Ext.extend(Ext.direct.Provider, {
         }
         return events;
     }
-});</pre>    
+});</pre>
 </body>
 </html>

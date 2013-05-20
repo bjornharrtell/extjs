@@ -1,25 +1,28 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Loader"></div>/**
- * @class Ext.Loader
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Loader'>/**
+</span> * @class Ext.Loader
  * @singleton
  * Simple class to help load JavaScript files on demand
  */
 Ext.Loader = Ext.apply({}, {
-    <div id="method-Ext.Loader-load"></div>/**
-     * Loads a given set of .js files. Calls the callback function when all files have been loaded
+<span id='Ext-Loader-method-load'>    /**
+</span>     * Loads a given set of .js files. Calls the callback function when all files have been loaded
      * Set preserveOrder to true to ensure non-parallel loading of files if load order is important
      * @param {Array} fileList Array of all files to load
      * @param {Function} callback Callback to call after all files have been loaded
@@ -28,14 +31,14 @@ Ext.Loader = Ext.apply({}, {
      */
     load: function(fileList, callback, scope, preserveOrder) {
         var scope       = scope || this,
-            head        = document.getElementsByTagName("head")[0],
+            head        = document.getElementsByTagName(&quot;head&quot;)[0],
             fragment    = document.createDocumentFragment(),
             numFiles    = fileList.length,
             loadedFiles = 0,
             me          = this;
         
-        <div id="prop-Ext.Loader-var"></div>/**
-         * Loads a particular file from the fileList by index. This is used when preserving order
+<span id='Ext-Loader-method-loadFileIndex'>        /**
+</span>         * Loads a particular file from the fileList by index. This is used when preserving order
          */
         var loadFileIndex = function(index) {
             head.appendChild(
@@ -43,15 +46,15 @@ Ext.Loader = Ext.apply({}, {
             );
         };
         
-        <div id="prop-Ext.Loader-var"></div>/**
-         * Callback function which is called after each file has been loaded. This calls the callback
+<span id='Ext-Loader-method-onFileLoaded'>        /**
+</span>         * Callback function which is called after each file has been loaded. This calls the callback
          * passed to load once the final file in the fileList has been loaded
          */
         var onFileLoaded = function() {
             loadedFiles ++;
             
             //if this was the last file, call the callback, otherwise load the next file
-            if (numFiles == loadedFiles && typeof callback == 'function') {
+            if (numFiles == loadedFiles &amp;&amp; typeof callback == 'function') {
                 callback.call(scope);
             } else {
                 if (preserveOrder === true) {
@@ -74,8 +77,8 @@ Ext.Loader = Ext.apply({}, {
         }
     },
     
-    /**
-     * @private
+<span id='Ext-Loader-method-buildScriptTag'>    /**
+</span>     * @private
      * Creates and returns a script tag, but does not place it into the document. If a callback function
      * is passed, this is called when the script has been loaded
      * @param {String} filename The name of the file to create a script tag for
@@ -84,13 +87,13 @@ Ext.Loader = Ext.apply({}, {
      */
     buildScriptTag: function(filename, callback) {
         var script  = document.createElement('script');
-        script.type = "text/javascript";
+        script.type = &quot;text/javascript&quot;;
         script.src  = filename;
         
-        //IE has a different way of handling &lt;script&gt; loads, so we need to check for it here
+        //IE has a different way of handling &amp;lt;script&amp;gt; loads, so we need to check for it here
         if (script.readyState) {
             script.onreadystatechange = function() {
-                if (script.readyState == "loaded" || script.readyState == "complete") {
+                if (script.readyState == &quot;loaded&quot; || script.readyState == &quot;complete&quot;) {
                     script.onreadystatechange = null;
                     callback();
                 }
@@ -102,6 +105,6 @@ Ext.Loader = Ext.apply({}, {
         return script;
     }
 });
-</pre>    
+</pre>
 </body>
 </html>

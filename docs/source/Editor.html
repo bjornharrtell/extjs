@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Editor"></div>/**
- * @class Ext.Editor
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Editor-method-constructor'><span id='Ext-Editor'>/**
+</span></span> * @class Ext.Editor
  * @extends Ext.Component
  * A base editor field that handles displaying/hiding on demand and has some built-in sizing and event handling logic.
  * @constructor
@@ -33,98 +36,98 @@ Ext.Editor = function(field, config){
 };
 
 Ext.extend(Ext.Editor, Ext.Component, {
-    <div id="cfg-Ext.Editor-field"></div>/**
-    * @cfg {Ext.form.Field} field
+<span id='Ext-Editor-cfg-field'>    /**
+</span>    * @cfg {Ext.form.Field} field
     * The Field object (or descendant) or config object for field
     */
-    <div id="cfg-Ext.Editor-allowBlur"></div>/**
-     * @cfg {Boolean} allowBlur
+<span id='Ext-Editor-cfg-allowBlur'>    /**
+</span>     * @cfg {Boolean} allowBlur
      * True to {@link #completeEdit complete the editing process} if in edit mode when the
-     * field is blurred. Defaults to <tt>true</tt>.
+     * field is blurred. Defaults to &lt;tt&gt;true&lt;/tt&gt;.
      */
     allowBlur: true,
-    <div id="cfg-Ext.Editor-autoSize"></div>/**
-     * @cfg {Boolean/String} autoSize
-     * True for the editor to automatically adopt the size of the underlying field, "width" to adopt the width only,
-     * or "height" to adopt the height only, "none" to always use the field dimensions. (defaults to false)
+<span id='Ext-Editor-cfg-autoSize'>    /**
+</span>     * @cfg {Boolean/String} autoSize
+     * True for the editor to automatically adopt the size of the underlying field, &quot;width&quot; to adopt the width only,
+     * or &quot;height&quot; to adopt the height only, &quot;none&quot; to always use the field dimensions. (defaults to false)
      */
-    <div id="cfg-Ext.Editor-revertInvalid"></div>/**
-     * @cfg {Boolean} revertInvalid
+<span id='Ext-Editor-cfg-revertInvalid'>    /**
+</span>     * @cfg {Boolean} revertInvalid
      * True to automatically revert the field value and cancel the edit when the user completes an edit and the field
      * validation fails (defaults to true)
      */
-    <div id="cfg-Ext.Editor-ignoreNoChange"></div>/**
-     * @cfg {Boolean} ignoreNoChange
+<span id='Ext-Editor-cfg-ignoreNoChange'>    /**
+</span>     * @cfg {Boolean} ignoreNoChange
      * True to skip the edit completion process (no save, no events fired) if the user completes an edit and
      * the value has not changed (defaults to false).  Applies only to string values - edits for other data types
      * will never be ignored.
      */
-    <div id="cfg-Ext.Editor-hideEl"></div>/**
-     * @cfg {Boolean} hideEl
+<span id='Ext-Editor-cfg-hideEl'>    /**
+</span>     * @cfg {Boolean} hideEl
      * False to keep the bound element visible while the editor is displayed (defaults to true)
      */
-    <div id="cfg-Ext.Editor-value"></div>/**
-     * @cfg {Mixed} value
-     * The data value of the underlying field (defaults to "")
+<span id='Ext-Editor-cfg-value'>    /**
+</span>     * @cfg {Mixed} value
+     * The data value of the underlying field (defaults to &quot;&quot;)
      */
-    value : "",
-    <div id="cfg-Ext.Editor-alignment"></div>/**
-     * @cfg {String} alignment
-     * The position to align to (see {@link Ext.Element#alignTo} for more details, defaults to "c-c?").
+    value : &quot;&quot;,
+<span id='Ext-Editor-cfg-alignment'>    /**
+</span>     * @cfg {String} alignment
+     * The position to align to (see {@link Ext.Element#alignTo} for more details, defaults to &quot;c-c?&quot;).
      */
-    alignment: "c-c?",
-    <div id="cfg-Ext.Editor-offsets"></div>/**
-     * @cfg {Array} offsets
-     * The offsets to use when aligning (see {@link Ext.Element#alignTo} for more details. Defaults to <tt>[0, 0]</tt>.
+    alignment: &quot;c-c?&quot;,
+<span id='Ext-Editor-cfg-offsets'>    /**
+</span>     * @cfg {Array} offsets
+     * The offsets to use when aligning (see {@link Ext.Element#alignTo} for more details. Defaults to &lt;tt&gt;[0, 0]&lt;/tt&gt;.
      */
     offsets: [0, 0],
-    <div id="cfg-Ext.Editor-shadow"></div>/**
-     * @cfg {Boolean/String} shadow "sides" for sides/bottom only, "frame" for 4-way shadow, and "drop"
-     * for bottom-right shadow (defaults to "frame")
+<span id='Ext-Editor-cfg-shadow'>    /**
+</span>     * @cfg {Boolean/String} shadow &quot;sides&quot; for sides/bottom only, &quot;frame&quot; for 4-way shadow, and &quot;drop&quot;
+     * for bottom-right shadow (defaults to &quot;frame&quot;)
      */
-    shadow : "frame",
-    <div id="cfg-Ext.Editor-constrain"></div>/**
-     * @cfg {Boolean} constrain True to constrain the editor to the viewport
+    shadow : &quot;frame&quot;,
+<span id='Ext-Editor-cfg-constrain'>    /**
+</span>     * @cfg {Boolean} constrain True to constrain the editor to the viewport
      */
     constrain : false,
-    <div id="cfg-Ext.Editor-swallowKeys"></div>/**
-     * @cfg {Boolean} swallowKeys Handle the keydown/keypress events so they don't propagate (defaults to true)
+<span id='Ext-Editor-cfg-swallowKeys'>    /**
+</span>     * @cfg {Boolean} swallowKeys Handle the keydown/keypress events so they don't propagate (defaults to true)
      */
     swallowKeys : true,
-    <div id="cfg-Ext.Editor-completeOnEnter"></div>/**
-     * @cfg {Boolean} completeOnEnter True to complete the edit when the enter key is pressed. Defaults to <tt>true</tt>.
+<span id='Ext-Editor-cfg-completeOnEnter'>    /**
+</span>     * @cfg {Boolean} completeOnEnter True to complete the edit when the enter key is pressed. Defaults to &lt;tt&gt;true&lt;/tt&gt;.
      */
     completeOnEnter : true,
-    <div id="cfg-Ext.Editor-cancelOnEsc"></div>/**
-     * @cfg {Boolean} cancelOnEsc True to cancel the edit when the escape key is pressed. Defaults to <tt>true</tt>.
+<span id='Ext-Editor-cfg-cancelOnEsc'>    /**
+</span>     * @cfg {Boolean} cancelOnEsc True to cancel the edit when the escape key is pressed. Defaults to &lt;tt&gt;true&lt;/tt&gt;.
      */
     cancelOnEsc : true,
-    <div id="cfg-Ext.Editor-updateEl"></div>/**
-     * @cfg {Boolean} updateEl True to update the innerHTML of the bound element when the update completes (defaults to false)
+<span id='Ext-Editor-cfg-updateEl'>    /**
+</span>     * @cfg {Boolean} updateEl True to update the innerHTML of the bound element when the update completes (defaults to false)
      */
     updateEl : false,
 
     initComponent : function(){
         Ext.Editor.superclass.initComponent.call(this);
         this.addEvents(
-            <div id="event-Ext.Editor-beforestartedit"></div>/**
-             * @event beforestartedit
+<span id='Ext-Editor-event-beforestartedit'>            /**
+</span>             * @event beforestartedit
              * Fires when editing is initiated, but before the value changes.  Editing can be canceled by returning
              * false from the handler of this event.
              * @param {Editor} this
              * @param {Ext.Element} boundEl The underlying element bound to this editor
              * @param {Mixed} value The field value being set
              */
-            "beforestartedit",
-            <div id="event-Ext.Editor-startedit"></div>/**
-             * @event startedit
+            &quot;beforestartedit&quot;,
+<span id='Ext-Editor-event-startedit'>            /**
+</span>             * @event startedit
              * Fires when this editor is displayed
              * @param {Ext.Element} boundEl The underlying element bound to this editor
              * @param {Mixed} value The starting field value
              */
-            "startedit",
-            <div id="event-Ext.Editor-beforecomplete"></div>/**
-             * @event beforecomplete
+            &quot;startedit&quot;,
+<span id='Ext-Editor-event-beforecomplete'>            /**
+</span>             * @event beforecomplete
              * Fires after a change has been made to the field, but before the change is reflected in the underlying
              * field.  Saving the change to the field can be canceled by returning false from the handler of this event.
              * Note that if the value has not changed and ignoreNoChange = true, the editing will still end but this
@@ -133,31 +136,31 @@ Ext.extend(Ext.Editor, Ext.Component, {
              * @param {Mixed} value The current field value
              * @param {Mixed} startValue The original field value
              */
-            "beforecomplete",
-            <div id="event-Ext.Editor-complete"></div>/**
-             * @event complete
+            &quot;beforecomplete&quot;,
+<span id='Ext-Editor-event-complete'>            /**
+</span>             * @event complete
              * Fires after editing is complete and any changed value has been written to the underlying field.
              * @param {Editor} this
              * @param {Mixed} value The current field value
              * @param {Mixed} startValue The original field value
              */
-            "complete",
-            <div id="event-Ext.Editor-canceledit"></div>/**
-             * @event canceledit
+            &quot;complete&quot;,
+<span id='Ext-Editor-event-canceledit'>            /**
+</span>             * @event canceledit
              * Fires after editing has been canceled and the editor's value has been reset.
              * @param {Editor} this
              * @param {Mixed} value The user-entered field value that was discarded
              * @param {Mixed} startValue The original field value that was set back into the editor after cancel
              */
-            "canceledit",
-            <div id="event-Ext.Editor-specialkey"></div>/**
-             * @event specialkey
+            &quot;canceledit&quot;,
+<span id='Ext-Editor-event-specialkey'>            /**
+</span>             * @event specialkey
              * Fires when any key related to navigation (arrows, tab, enter, esc, etc.) is pressed.  You can check
              * {@link Ext.EventObject#getKey} to determine which key was pressed.
              * @param {Ext.form.Field} this
              * @param {Ext.EventObject} e The event object
              */
-            "specialkey"
+            &quot;specialkey&quot;
         );
     },
 
@@ -165,7 +168,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
     onRender : function(ct, position){
         this.el = new Ext.Layer({
             shadow: this.shadow,
-            cls: "x-editor",
+            cls: &quot;x-editor&quot;,
             parentEl : ct,
             shim : this.shim,
             shadowOffset: this.shadowOffset || 4,
@@ -175,7 +178,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
         if(this.zIndex){
             this.el.setZIndex(this.zIndex);
         }
-        this.el.setStyle("overflow", Ext.isGecko ? "auto" : "hidden");
+        this.el.setStyle(&quot;overflow&quot;, Ext.isGecko ? &quot;auto&quot; : &quot;hidden&quot;);
         if(this.field.msgTarget != 'title'){
             this.field.msgTarget = 'qtip';
         }
@@ -186,7 +189,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
             specialkey: this.onSpecialKey
         });
         if(this.field.grow){
-            this.mon(this.field, "autosize", this.el.sync,  this.el, {delay:1});
+            this.mon(this.field, &quot;autosize&quot;, this.el.sync,  this.el, {delay:1});
         }
         this.field.render(this.el).show();
         this.field.getEl().dom.name = '';
@@ -201,8 +204,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
     // private
     onSpecialKey : function(field, e){
         var key = e.getKey(),
-            complete = this.completeOnEnter && key == e.ENTER,
-            cancel = this.cancelOnEsc && key == e.ESC;
+            complete = this.completeOnEnter &amp;&amp; key == e.ENTER,
+            cancel = this.cancelOnEsc &amp;&amp; key == e.ESC;
         if(complete || cancel){
             e.stopEvent();
             if(complete){
@@ -217,8 +220,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
         this.fireEvent('specialkey', field, e);
     },
 
-    <div id="method-Ext.Editor-startEdit"></div>/**
-     * Starts the editing process and shows the editor.
+<span id='Ext-Editor-method-startEdit'>    /**
+</span>     * Starts the editing process and shows the editor.
      * @param {Mixed} el The element to edit
      * @param {String} value (optional) A value to initialize the editor with. If a value is not provided, it defaults
       * to the innerHTML of el.
@@ -232,7 +235,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
         if(!this.rendered){
             this.render(this.parentEl || document.body);
         }
-        if(this.fireEvent("beforestartedit", this, this.boundEl, v) !== false){
+        if(this.fireEvent(&quot;beforestartedit&quot;, this, this.boundEl, v) !== false){
             this.startValue = v;
             this.field.reset();
             this.field.setValue(v);
@@ -249,13 +252,13 @@ Ext.extend(Ext.Editor, Ext.Component, {
                 fs = this.field.getSize();
 
             switch(this.autoSize){
-                case "width":
+                case &quot;width&quot;:
                     this.setSize(sz.width, fs.height);
                     break;
-                case "height":
+                case &quot;height&quot;:
                     this.setSize(fs.width, sz.height);
                     break;
-                case "none":
+                case &quot;none&quot;:
                     this.setSize(fs.width, fs.height);
                     break;
                 default:
@@ -264,8 +267,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
         }
     },
 
-    <div id="method-Ext.Editor-setSize"></div>/**
-     * Sets the height and width of this editor.
+<span id='Ext-Editor-method-setSize'>    /**
+</span>     * Sets the height and width of this editor.
      * @param {Number} width The new width
      * @param {Number} height The new height
      */
@@ -274,7 +277,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
         this.field.setSize(w, h);
         if(this.el){
             // IE7 in strict mode doesn't size properly.
-            if(Ext.isGecko2 || Ext.isOpera || (Ext.isIE7 && Ext.isStrict)){
+            if(Ext.isGecko2 || Ext.isOpera || (Ext.isIE7 &amp;&amp; Ext.isStrict)){
                 // prevent layer scrollbars
                 this.el.setSize(w, h);
             }
@@ -282,8 +285,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
         }
     },
 
-    <div id="method-Ext.Editor-realign"></div>/**
-     * Realigns the editor to the bound field based on the current alignment config value.
+<span id='Ext-Editor-method-realign'>    /**
+</span>     * Realigns the editor to the bound field based on the current alignment config value.
      * @param {Boolean} autoSize (optional) True to size the field to the dimensions of the bound element.
      */
     realign : function(autoSize){
@@ -293,8 +296,8 @@ Ext.extend(Ext.Editor, Ext.Component, {
         this.el.alignTo(this.boundEl, this.alignment, this.offsets);
     },
 
-    <div id="method-Ext.Editor-completeEdit"></div>/**
-     * Ends the editing process, persists the changed value to the underlying field, and hides the editor.
+<span id='Ext-Editor-method-completeEdit'>    /**
+</span>     * Ends the editing process, persists the changed value to the underlying field, and hides the editor.
      * @param {Boolean} remainVisible Override the default behavior and keep the editor visible after edit (defaults to false)
      */
     completeEdit : function(remainVisible){
@@ -312,17 +315,17 @@ Ext.extend(Ext.Editor, Ext.Component, {
             }
             return;
         }
-        if(String(v) === String(this.startValue) && this.ignoreNoChange){
+        if(String(v) === String(this.startValue) &amp;&amp; this.ignoreNoChange){
             this.hideEdit(remainVisible);
             return;
         }
-        if(this.fireEvent("beforecomplete", this, v, this.startValue) !== false){
+        if(this.fireEvent(&quot;beforecomplete&quot;, this, v, this.startValue) !== false){
             v = this.getValue();
-            if(this.updateEl && this.boundEl){
+            if(this.updateEl &amp;&amp; this.boundEl){
                 this.boundEl.update(v);
             }
             this.hideEdit(remainVisible);
-            this.fireEvent("complete", this, v, this.startValue);
+            this.fireEvent(&quot;complete&quot;, this, v, this.startValue);
         }
     },
 
@@ -333,11 +336,11 @@ Ext.extend(Ext.Editor, Ext.Component, {
             this.boundEl.hide();
         }
         this.field.show().focus(false, true);
-        this.fireEvent("startedit", this.boundEl, this.startValue);
+        this.fireEvent(&quot;startedit&quot;, this.boundEl, this.startValue);
     },
 
-    <div id="method-Ext.Editor-cancelEdit"></div>/**
-     * Cancels the editing process and hides the editor without persisting any changes.  The field value will be
+<span id='Ext-Editor-method-cancelEdit'>    /**
+</span>     * Cancels the editing process and hides the editor without persisting any changes.  The field value will be
      * reverted to the original starting value.
      * @param {Boolean} remainVisible Override the default behavior and keep the editor visible after
      * cancel (defaults to false)
@@ -347,7 +350,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
             var v = this.getValue();
             this.setValue(this.startValue);
             this.hideEdit(remainVisible);
-            this.fireEvent("canceledit", this, v, this.startValue);
+            this.fireEvent(&quot;canceledit&quot;, this, v, this.startValue);
         }
     },
 
@@ -362,7 +365,7 @@ Ext.extend(Ext.Editor, Ext.Component, {
     // private
     onBlur : function(){
         // selectSameEditor flag allows the same editor to be started without onBlur firing on itself
-        if(this.allowBlur === true && this.editing && this.selectSameEditor !== true){
+        if(this.allowBlur === true &amp;&amp; this.editing &amp;&amp; this.selectSameEditor !== true){
             this.completeEdit();
         }
     },
@@ -383,16 +386,16 @@ Ext.extend(Ext.Editor, Ext.Component, {
         }
     },
 
-    <div id="method-Ext.Editor-setValue"></div>/**
-     * Sets the data value of the editor
+<span id='Ext-Editor-method-setValue'>    /**
+</span>     * Sets the data value of the editor
      * @param {Mixed} value Any valid value supported by the underlying field
      */
     setValue : function(v){
         this.field.setValue(v);
     },
 
-    <div id="method-Ext.Editor-getValue"></div>/**
-     * Gets the data value of the editor
+<span id='Ext-Editor-method-getValue'>    /**
+</span>     * Gets the data value of the editor
      * @return {Mixed} The data value
      */
     getValue : function(){
@@ -407,6 +410,6 @@ Ext.extend(Ext.Editor, Ext.Component, {
     }
 });
 Ext.reg('editor', Ext.Editor);
-</pre>    
+</pre>
 </body>
 </html>

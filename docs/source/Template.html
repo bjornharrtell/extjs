@@ -1,70 +1,73 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Template"></div>/**
- * @class Ext.Template
- * <p>Represents an HTML fragment template. Templates may be {@link #compile precompiled}
- * for greater performance.</p>
- * <p>For example usage {@link #Template see the constructor}.</p>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Template-method-constructor'><span id='Ext-Template'>/**
+</span></span> * @class Ext.Template
+ * &lt;p&gt;Represents an HTML fragment template. Templates may be {@link #compile precompiled}
+ * for greater performance.&lt;/p&gt;
+ * &lt;p&gt;For example usage {@link #Template see the constructor}.&lt;/p&gt;
  *
  * @constructor
  * An instance of this class may be created by passing to the constructor either
  * a single argument, or multiple arguments:
- * <div class="mdetail-params"><ul>
- * <li><b>single argument</b> : String/Array
- * <div class="sub-desc">
- * The single argument may be either a String or an Array:<ul>
- * <li><tt>String</tt> : </li><pre><code>
-var t = new Ext.Template("&lt;div>Hello {0}.&lt;/div>");
+ * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+ * &lt;li&gt;&lt;b&gt;single argument&lt;/b&gt; : String/Array
+ * &lt;div class=&quot;sub-desc&quot;&gt;
+ * The single argument may be either a String or an Array:&lt;ul&gt;
+ * &lt;li&gt;&lt;tt&gt;String&lt;/tt&gt; : &lt;/li&gt;&lt;pre&gt;&lt;code&gt;
+var t = new Ext.Template(&quot;&amp;lt;div&gt;Hello {0}.&amp;lt;/div&gt;&quot;);
 t.{@link #append}('some-element', ['foo']);
- * </code></pre>
- * <li><tt>Array</tt> : </li>
- * An Array will be combined with <code>join('')</code>.
-<pre><code>
+ * &lt;/code&gt;&lt;/pre&gt;
+ * &lt;li&gt;&lt;tt&gt;Array&lt;/tt&gt; : &lt;/li&gt;
+ * An Array will be combined with &lt;code&gt;join('')&lt;/code&gt;.
+&lt;pre&gt;&lt;code&gt;
 var t = new Ext.Template([
-    '&lt;div name="{id}"&gt;',
-        '&lt;span class="{cls}"&gt;{name:trim} {value:ellipsis(10)}&lt;/span&gt;',
-    '&lt;/div&gt;',
+    '&amp;lt;div name=&quot;{id}&quot;&amp;gt;',
+        '&amp;lt;span class=&quot;{cls}&quot;&amp;gt;{name:trim} {value:ellipsis(10)}&amp;lt;/span&amp;gt;',
+    '&amp;lt;/div&amp;gt;',
 ]);
 t.{@link #compile}();
 t.{@link #append}('some-element', {id: 'myid', cls: 'myclass', name: 'foo', value: 'bar'});
-</code></pre>
- * </ul></div></li>
- * <li><b>multiple arguments</b> : String, Object, Array, ...
- * <div class="sub-desc">
- * Multiple arguments will be combined with <code>join('')</code>.
- * <pre><code>
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;/ul&gt;&lt;/div&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;multiple arguments&lt;/b&gt; : String, Object, Array, ...
+ * &lt;div class=&quot;sub-desc&quot;&gt;
+ * Multiple arguments will be combined with &lt;code&gt;join('')&lt;/code&gt;.
+ * &lt;pre&gt;&lt;code&gt;
 var t = new Ext.Template(
-    '&lt;div name="{id}"&gt;',
-        '&lt;span class="{cls}"&gt;{name} {value}&lt;/span&gt;',
-    '&lt;/div&gt;',
+    '&amp;lt;div name=&quot;{id}&quot;&amp;gt;',
+        '&amp;lt;span class=&quot;{cls}&quot;&amp;gt;{name} {value}&amp;lt;/span&amp;gt;',
+    '&amp;lt;/div&amp;gt;',
     // a configuration object:
     {
         compiled: true,      // {@link #compile} immediately
         disableFormats: true // See Notes below.
     }
 );
- * </code></pre>
- * <p><b>Notes</b>:</p>
- * <div class="mdetail-params"><ul>
- * <li>Formatting and <code>disableFormats</code> are not applicable for Ext Core.</li>
- * <li>For a list of available format functions, see {@link Ext.util.Format}.</li>
- * <li><code>disableFormats</code> reduces <code>{@link #apply}</code> time
- * when no formatting is required.</li>
- * </ul></div>
- * </div></li>
- * </ul></div>
+ * &lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;&lt;b&gt;Notes&lt;/b&gt;:&lt;/p&gt;
+ * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+ * &lt;li&gt;Formatting and &lt;code&gt;disableFormats&lt;/code&gt; are not applicable for Ext Core.&lt;/li&gt;
+ * &lt;li&gt;For a list of available format functions, see {@link Ext.util.Format}.&lt;/li&gt;
+ * &lt;li&gt;&lt;code&gt;disableFormats&lt;/code&gt; reduces &lt;code&gt;{@link #apply}&lt;/code&gt; time
+ * when no formatting is required.&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
+ * &lt;/div&gt;&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  * @param {Mixed} config
  */
 Ext.Template = function(html){
@@ -74,9 +77,9 @@ Ext.Template = function(html){
         v;
 
     if (Ext.isArray(html)) {
-        html = html.join("");
-    } else if (a.length > 1) {
-        for(var i = 0, len = a.length; i < len; i++){
+        html = html.join(&quot;&quot;);
+    } else if (a.length &gt; 1) {
+        for(var i = 0, len = a.length; i &lt; len; i++){
             v = a[i];
             if(typeof v == 'object'){
                 Ext.apply(me, v);
@@ -87,37 +90,37 @@ Ext.Template = function(html){
         html = buf.join('');
     }
 
-    /**@private*/
-    me.html = html;
-    <div id="cfg-Ext.Template-compiled"></div>/**
-     * @cfg {Boolean} compiled Specify <tt>true</tt> to compile the template
-     * immediately (see <code>{@link #compile}</code>).
-     * Defaults to <tt>false</tt>.
+<span id='Ext-Template-property-html'>    /**@private*/
+</span>    me.html = html;
+<span id='Ext-Template-cfg-compiled'>    /**
+</span>     * @cfg {Boolean} compiled Specify &lt;tt&gt;true&lt;/tt&gt; to compile the template
+     * immediately (see &lt;code&gt;{@link #compile}&lt;/code&gt;).
+     * Defaults to &lt;tt&gt;false&lt;/tt&gt;.
      */
     if (me.compiled) {
         me.compile();
     }
 };
 Ext.Template.prototype = {
-    <div id="cfg-Ext.Template-re"></div>/**
-     * @cfg {RegExp} re The regular expression used to match template variables.
-     * Defaults to:<pre><code>
+<span id='Ext-Template-cfg-re'>    /**
+</span>     * @cfg {RegExp} re The regular expression used to match template variables.
+     * Defaults to:&lt;pre&gt;&lt;code&gt;
      * re : /\{([\w\-]+)\}/g                                     // for Ext Core
      * re : /\{([\w\-]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?\}/g      // for Ext JS
-     * </code></pre>
+     * &lt;/code&gt;&lt;/pre&gt;
      */
     re : /\{([\w\-]+)\}/g,
-    <div id="prop-Ext.Template-re"></div>/**
-     * See <code>{@link #re}</code>.
+<span id='Ext-Template-property-re'>    /**
+</span>     * See &lt;code&gt;{@link #re}&lt;/code&gt;.
      * @type RegExp
      * @property re
      */
 
-    <div id="method-Ext.Template-applyTemplate"></div>/**
-     * Returns an HTML fragment of this template with the specified <code>values</code> applied.
+<span id='Ext-Template-method-applyTemplate'>    /**
+</span>     * Returns an HTML fragment of this template with the specified &lt;code&gt;values&lt;/code&gt; applied.
      * @param {Object/Array} values
-     * The template values. Can be an array if the params are numeric (i.e. <code>{0}</code>)
-     * or an object (i.e. <code>{foo: 'bar'}</code>).
+     * The template values. Can be an array if the params are numeric (i.e. &lt;code&gt;{0}&lt;/code&gt;)
+     * or an object (i.e. &lt;code&gt;{foo: 'bar'}&lt;/code&gt;).
      * @return {String} The HTML fragment
      */
     applyTemplate : function(values){
@@ -126,12 +129,12 @@ Ext.Template.prototype = {
         return me.compiled ?
                 me.compiled(values) :
                 me.html.replace(me.re, function(m, name){
-                    return values[name] !== undefined ? values[name] : "";
+                    return values[name] !== undefined ? values[name] : &quot;&quot;;
                 });
     },
 
-    <div id="method-Ext.Template-set"></div>/**
-     * Sets the HTML used as the template and optionally compiles it.
+<span id='Ext-Template-method-set'>    /**
+</span>     * Sets the HTML used as the template and optionally compiles it.
      * @param {String} html
      * @param {Boolean} compile (optional) True to compile the template (defaults to undefined)
      * @return {Ext.Template} this
@@ -143,27 +146,27 @@ Ext.Template.prototype = {
         return compile ? me.compile() : me;
     },
 
-    <div id="method-Ext.Template-compile"></div>/**
-     * Compiles the template into an internal function, eliminating the RegEx overhead.
+<span id='Ext-Template-method-compile'>    /**
+</span>     * Compiles the template into an internal function, eliminating the RegEx overhead.
      * @return {Ext.Template} this
      */
     compile : function(){
         var me = this,
-            sep = Ext.isGecko ? "+" : ",";
+            sep = Ext.isGecko ? &quot;+&quot; : &quot;,&quot;;
 
         function fn(m, name){
-            name = "values['" + name + "']";
-            return "'"+ sep + '(' + name + " == undefined ? '' : " + name + ')' + sep + "'";
+            name = &quot;values['&quot; + name + &quot;']&quot;;
+            return &quot;'&quot;+ sep + '(' + name + &quot; == undefined ? '' : &quot; + name + ')' + sep + &quot;'&quot;;
         }
 
-        eval("this.compiled = function(values){ return " + (Ext.isGecko ? "'" : "['") +
-             me.html.replace(/\\/g, '\\\\').replace(/(\r\n|\n)/g, '\\n').replace(/'/g, "\\'").replace(this.re, fn) +
-             (Ext.isGecko ?  "';};" : "'].join('');};"));
+        eval(&quot;this.compiled = function(values){ return &quot; + (Ext.isGecko ? &quot;'&quot; : &quot;['&quot;) +
+             me.html.replace(/\\/g, '\\\\').replace(/(\r\n|\n)/g, '\\n').replace(/'/g, &quot;\\'&quot;).replace(this.re, fn) +
+             (Ext.isGecko ?  &quot;';};&quot; : &quot;'].join('');};&quot;));
         return me;
     },
 
-    <div id="method-Ext.Template-insertFirst"></div>/**
-     * Applies the supplied values to the template and inserts the new node(s) as the first child of el.
+<span id='Ext-Template-method-insertFirst'>    /**
+</span>     * Applies the supplied values to the template and inserts the new node(s) as the first child of el.
      * @param {Mixed} el The context element
      * @param {Object/Array} values The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})
      * @param {Boolean} returnElement (optional) true to return a Ext.Element (defaults to undefined)
@@ -173,8 +176,8 @@ Ext.Template.prototype = {
         return this.doInsert('afterBegin', el, values, returnElement);
     },
 
-    <div id="method-Ext.Template-insertBefore"></div>/**
-     * Applies the supplied values to the template and inserts the new node(s) before el.
+<span id='Ext-Template-method-insertBefore'>    /**
+</span>     * Applies the supplied values to the template and inserts the new node(s) before el.
      * @param {Mixed} el The context element
      * @param {Object/Array} values The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})
      * @param {Boolean} returnElement (optional) true to return a Ext.Element (defaults to undefined)
@@ -184,8 +187,8 @@ Ext.Template.prototype = {
         return this.doInsert('beforeBegin', el, values, returnElement);
     },
 
-    <div id="method-Ext.Template-insertAfter"></div>/**
-     * Applies the supplied values to the template and inserts the new node(s) after el.
+<span id='Ext-Template-method-insertAfter'>    /**
+</span>     * Applies the supplied values to the template and inserts the new node(s) after el.
      * @param {Mixed} el The context element
      * @param {Object/Array} values The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})
      * @param {Boolean} returnElement (optional) true to return a Ext.Element (defaults to undefined)
@@ -195,14 +198,14 @@ Ext.Template.prototype = {
         return this.doInsert('afterEnd', el, values, returnElement);
     },
 
-    <div id="method-Ext.Template-append"></div>/**
-     * Applies the supplied <code>values</code> to the template and appends
-     * the new node(s) to the specified <code>el</code>.
-     * <p>For example usage {@link #Template see the constructor}.</p>
+<span id='Ext-Template-method-append'>    /**
+</span>     * Applies the supplied &lt;code&gt;values&lt;/code&gt; to the template and appends
+     * the new node(s) to the specified &lt;code&gt;el&lt;/code&gt;.
+     * &lt;p&gt;For example usage {@link #Template see the constructor}.&lt;/p&gt;
      * @param {Mixed} el The context element
      * @param {Object/Array} values
-     * The template values. Can be an array if the params are numeric (i.e. <code>{0}</code>)
-     * or an object (i.e. <code>{foo: 'bar'}</code>).
+     * The template values. Can be an array if the params are numeric (i.e. &lt;code&gt;{0}&lt;/code&gt;)
+     * or an object (i.e. &lt;code&gt;{foo: 'bar'}&lt;/code&gt;).
      * @param {Boolean} returnElement (optional) true to return an Ext.Element (defaults to undefined)
      * @return {HTMLElement/Ext.Element} The new node or Element
      */
@@ -216,8 +219,8 @@ Ext.Template.prototype = {
         return returnEl ? Ext.get(newNode, true) : newNode;
     },
 
-    <div id="method-Ext.Template-overwrite"></div>/**
-     * Applies the supplied values to the template and overwrites the content of el with the new node(s).
+<span id='Ext-Template-method-overwrite'>    /**
+</span>     * Applies the supplied values to the template and overwrites the content of el with the new node(s).
      * @param {Mixed} el The context element
      * @param {Object/Array} values The template values. Can be an array if your params are numeric (i.e. {0}) or an object (i.e. {foo: 'bar'})
      * @param {Boolean} returnElement (optional) true to return a Ext.Element (defaults to undefined)
@@ -229,20 +232,20 @@ Ext.Template.prototype = {
         return returnElement ? Ext.get(el.firstChild, true) : el.firstChild;
     }
 };
-<div id="method-Ext.Template-apply"></div>/**
- * Alias for {@link #applyTemplate}
- * Returns an HTML fragment of this template with the specified <code>values</code> applied.
+<span id='Ext-Template-method-apply'>/**
+</span> * Alias for {@link #applyTemplate}
+ * Returns an HTML fragment of this template with the specified &lt;code&gt;values&lt;/code&gt; applied.
  * @param {Object/Array} values
- * The template values. Can be an array if the params are numeric (i.e. <code>{0}</code>)
- * or an object (i.e. <code>{foo: 'bar'}</code>).
+ * The template values. Can be an array if the params are numeric (i.e. &lt;code&gt;{0}&lt;/code&gt;)
+ * or an object (i.e. &lt;code&gt;{foo: 'bar'}&lt;/code&gt;).
  * @return {String} The HTML fragment
  * @member Ext.Template
  * @method apply
  */
 Ext.Template.prototype.apply = Ext.Template.prototype.applyTemplate;
 
-<div id="method-Ext.Template-Template.from"></div>/**
- * Creates a template from the passed element's value (<i>display:none</i> textarea, preferred) or innerHTML.
+<span id='Ext-Template-static-method-from'>/**
+</span> * Creates a template from the passed element's value (&lt;i&gt;display:none&lt;/i&gt; textarea, preferred) or innerHTML.
  * @param {String/HTMLElement} el A DOM element or its id
  * @param {Object} config A configuration object
  * @return {Ext.Template} The created template
@@ -252,6 +255,6 @@ Ext.Template.from = function(el, config){
     el = Ext.getDom(el);
     return new Ext.Template(el.value || el.innerHTML, config || '');
 };
-</pre>    
+</pre>
 </body>
 </html>

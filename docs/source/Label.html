@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.form.Label"></div>/**
- * @class Ext.form.Label
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-Label-method-constructor'><span id='Ext-form-Label'>/**
+</span></span> * @class Ext.form.Label
  * @extends Ext.BoxComponent
  * Basic Label field.
  * @constructor
@@ -24,21 +27,21 @@
  * @xtype label
  */
 Ext.form.Label = Ext.extend(Ext.BoxComponent, {
-    <div id="cfg-Ext.form.Label-text"></div>/**
-     * @cfg {String} text The plain text to display within the label (defaults to ''). If you need to include HTML
+<span id='Ext-form-Label-cfg-text'>    /**
+</span>     * @cfg {String} text The plain text to display within the label (defaults to ''). If you need to include HTML
      * tags within the label's innerHTML, use the {@link #html} config instead.
      */
-    <div id="cfg-Ext.form.Label-forId"></div>/**
-     * @cfg {String} forId The id of the input element to which this label will be bound via the standard HTML 'for'
+<span id='Ext-form-Label-cfg-forId'>    /**
+</span>     * @cfg {String} forId The id of the input element to which this label will be bound via the standard HTML 'for'
      * attribute. If not specified, the attribute will not be added to the label.
      */
-    <div id="cfg-Ext.form.Label-html"></div>/**
-     * @cfg {String} html An HTML fragment that will be used as the label's innerHTML (defaults to '').
+<span id='Ext-form-Label-cfg-html'>    /**
+</span>     * @cfg {String} html An HTML fragment that will be used as the label's innerHTML (defaults to '').
      * Note that if {@link #text} is specified it will take precedence and this value will be ignored.
      */
 
-    // private
-    onRender : function(ct, position){
+<span id='Ext-form-Label-method-onRender'>    // private
+</span>    onRender : function(ct, position){
         if(!this.el){
             this.el = document.createElement('label');
             this.el.id = this.getId();
@@ -50,8 +53,8 @@ Ext.form.Label = Ext.extend(Ext.BoxComponent, {
         Ext.form.Label.superclass.onRender.call(this, ct, position);
     },
 
-    <div id="method-Ext.form.Label-setText"></div>/**
-     * Updates the label's innerHTML with the specified string.
+<span id='Ext-form-Label-method-setText'>    /**
+</span>     * Updates the label's innerHTML with the specified string.
      * @param {String} text The new label text
      * @param {Boolean} encode (optional) False to skip HTML-encoding the text when rendering it
      * to the label (defaults to true which encodes the value). This might be useful if you want to include
@@ -69,6 +72,6 @@ Ext.form.Label = Ext.extend(Ext.BoxComponent, {
     }
 });
 
-Ext.reg('label', Ext.form.Label);</pre>    
+Ext.reg('label', Ext.form.Label);</pre>
 </body>
 </html>

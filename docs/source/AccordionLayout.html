@@ -1,27 +1,30 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.layout.AccordionLayout"></div>/**
- * @class Ext.layout.AccordionLayout
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-AccordionLayout'>/**
+</span> * @class Ext.layout.AccordionLayout
  * @extends Ext.layout.FitLayout
- * <p>This is a layout that manages multiple Panels in an expandable accordion style such that only
- * <b>one Panel can be expanded at any given time</b>. Each Panel has built-in support for expanding and collapsing.</p>
- * <p>Note: Only Ext.Panels <b>and all subclasses of Ext.Panel</b> may be used in an accordion layout Container.</p>
- * <p>This class is intended to be extended or created via the <tt><b>{@link Ext.Container#layout layout}</b></tt>
- * configuration property.  See <tt><b>{@link Ext.Container#layout}</b></tt> for additional details.</p>
- * <p>Example usage:</p>
- * <pre><code>
+ * &lt;p&gt;This is a layout that manages multiple Panels in an expandable accordion style such that only
+ * &lt;b&gt;one Panel can be expanded at any given time&lt;/b&gt;. Each Panel has built-in support for expanding and collapsing.&lt;/p&gt;
+ * &lt;p&gt;Note: Only Ext.Panels &lt;b&gt;and all subclasses of Ext.Panel&lt;/b&gt; may be used in an accordion layout Container.&lt;/p&gt;
+ * &lt;p&gt;This class is intended to be extended or created via the &lt;tt&gt;&lt;b&gt;{@link Ext.Container#layout layout}&lt;/b&gt;&lt;/tt&gt;
+ * configuration property.  See &lt;tt&gt;&lt;b&gt;{@link Ext.Container#layout}&lt;/b&gt;&lt;/tt&gt; for additional details.&lt;/p&gt;
+ * &lt;p&gt;Example usage:&lt;/p&gt;
+ * &lt;pre&gt;&lt;code&gt;
 var accordion = new Ext.Panel({
     title: 'Accordion Layout',
     layout:'accordion',
@@ -37,73 +40,73 @@ var accordion = new Ext.Panel({
     },
     items: [{
         title: 'Panel 1',
-        html: '&lt;p&gt;Panel content!&lt;/p&gt;'
+        html: '&amp;lt;p&amp;gt;Panel content!&amp;lt;/p&amp;gt;'
     },{
         title: 'Panel 2',
-        html: '&lt;p&gt;Panel content!&lt;/p&gt;'
+        html: '&amp;lt;p&amp;gt;Panel content!&amp;lt;/p&amp;gt;'
     },{
         title: 'Panel 3',
-        html: '&lt;p&gt;Panel content!&lt;/p&gt;'
+        html: '&amp;lt;p&amp;gt;Panel content!&amp;lt;/p&amp;gt;'
     }]
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  */
 Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
-    <div id="cfg-Ext.layout.AccordionLayout-fill"></div>/**
-     * @cfg {Boolean} fill
+<span id='Ext-layout-AccordionLayout-cfg-fill'>    /**
+</span>     * @cfg {Boolean} fill
      * True to adjust the active item's height to fill the available space in the container, false to use the
      * item's current height, or auto height if not explicitly set (defaults to true).
      */
     fill : true,
-    <div id="cfg-Ext.layout.AccordionLayout-autoWidth"></div>/**
-     * @cfg {Boolean} autoWidth
+<span id='Ext-layout-AccordionLayout-cfg-autoWidth'>    /**
+</span>     * @cfg {Boolean} autoWidth
      * True to set each contained item's width to 'auto', false to use the item's current width (defaults to true).
      * Note that some components, in particular the {@link Ext.grid.GridPanel grid}, will not function properly within
      * layouts if they have auto width, so in such cases this config should be set to false.
      */
     autoWidth : true,
-    <div id="cfg-Ext.layout.AccordionLayout-titleCollapse"></div>/**
-     * @cfg {Boolean} titleCollapse
+<span id='Ext-layout-AccordionLayout-cfg-titleCollapse'>    /**
+</span>     * @cfg {Boolean} titleCollapse
      * True to allow expand/collapse of each contained panel by clicking anywhere on the title bar, false to allow
      * expand/collapse only when the toggle tool button is clicked (defaults to true).  When set to false,
      * {@link #hideCollapseTool} should be false also.
      */
     titleCollapse : true,
-    <div id="cfg-Ext.layout.AccordionLayout-hideCollapseTool"></div>/**
-     * @cfg {Boolean} hideCollapseTool
+<span id='Ext-layout-AccordionLayout-cfg-hideCollapseTool'>    /**
+</span>     * @cfg {Boolean} hideCollapseTool
      * True to hide the contained panels' collapse/expand toggle buttons, false to display them (defaults to false).
      * When set to true, {@link #titleCollapse} should be true also.
      */
     hideCollapseTool : false,
-    <div id="cfg-Ext.layout.AccordionLayout-collapseFirst"></div>/**
-     * @cfg {Boolean} collapseFirst
+<span id='Ext-layout-AccordionLayout-cfg-collapseFirst'>    /**
+</span>     * @cfg {Boolean} collapseFirst
      * True to make sure the collapse/expand toggle button always renders first (to the left of) any other tools
      * in the contained panels' title bars, false to render it last (defaults to false).
      */
     collapseFirst : false,
-    <div id="cfg-Ext.layout.AccordionLayout-animate"></div>/**
-     * @cfg {Boolean} animate
+<span id='Ext-layout-AccordionLayout-cfg-animate'>    /**
+</span>     * @cfg {Boolean} animate
      * True to slide the contained panels open and closed during expand/collapse using animation, false to open and
      * close directly with no animation (defaults to false).  Note: to defer to the specific config setting of each
      * contained panel for this property, set this to undefined at the layout level.
      */
     animate : false,
-    <div id="cfg-Ext.layout.AccordionLayout-sequence"></div>/**
-     * @cfg {Boolean} sequence
-     * <b>Experimental</b>. If animate is set to true, this will result in each animation running in sequence.
+<span id='Ext-layout-AccordionLayout-cfg-sequence'>    /**
+</span>     * @cfg {Boolean} sequence
+     * &lt;b&gt;Experimental&lt;/b&gt;. If animate is set to true, this will result in each animation running in sequence.
      */
     sequence : false,
-    <div id="cfg-Ext.layout.AccordionLayout-activeOnTop"></div>/**
-     * @cfg {Boolean} activeOnTop
+<span id='Ext-layout-AccordionLayout-cfg-activeOnTop'>    /**
+</span>     * @cfg {Boolean} activeOnTop
      * True to swap the position of each panel as it is expanded so that it becomes the first item in the container,
-     * false to keep the panels in the rendered order. <b>This is NOT compatible with "animate:true"</b> (defaults to false).
+     * false to keep the panels in the rendered order. &lt;b&gt;This is NOT compatible with &quot;animate:true&quot;&lt;/b&gt; (defaults to false).
      */
     activeOnTop : false,
 
-    type: 'accordion',
-
-    renderItem : function(c){
-        if(this.animate === false){
+<span id='Ext-layout-AccordionLayout-property-type'>    type: 'accordion',
+</span>
+<span id='Ext-layout-AccordionLayout-method-renderItem'>    renderItem : function(c){
+</span>        if(this.animate === false){
             c.animCollapse = false;
         }
         c.collapsible = true;
@@ -119,9 +122,9 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
         if(this.collapseFirst !== undefined){
             c.collapseFirst = this.collapseFirst;
         }
-        if(!this.activeItem && !c.collapsed){
+        if(!this.activeItem &amp;&amp; !c.collapsed){
             this.setActiveItem(c, true);
-        }else if(this.activeItem && this.activeItem != c){
+        }else if(this.activeItem &amp;&amp; this.activeItem != c){
             c.collapsed = true;
         }
         Ext.layout.AccordionLayout.superclass.renderItem.apply(this, arguments);
@@ -129,16 +132,16 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
         c.on('beforeexpand', this.beforeExpand, this);
     },
 
-    onRemove: function(c){
-        Ext.layout.AccordionLayout.superclass.onRemove.call(this, c);
+<span id='Ext-layout-AccordionLayout-method-onRemove'>    onRemove: function(c){
+</span>        Ext.layout.AccordionLayout.superclass.onRemove.call(this, c);
         if(c.rendered){
             c.header.removeClass('x-accordion-hd');
         }
         c.un('beforeexpand', this.beforeExpand, this);
     },
 
-    // private
-    beforeExpand : function(p, anim){
+<span id='Ext-layout-AccordionLayout-method-beforeExpand'>    // private
+</span>    beforeExpand : function(p, anim){
         var ai = this.activeItem;
         if(ai){
             if(this.sequence){
@@ -161,13 +164,13 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
         this.layout();
     },
 
-    // private
-    setItemSize : function(item, size){
-        if(this.fill && item){
+<span id='Ext-layout-AccordionLayout-method-setItemSize'>    // private
+</span>    setItemSize : function(item, size){
+        if(this.fill &amp;&amp; item){
             var hh = 0, i, ct = this.getRenderedItems(this.container), len = ct.length, p;
             // Add up all the header heights
-            for (i = 0; i < len; i++) {
-                if((p = ct[i]) != item && !p.hidden){
+            for (i = 0; i &lt; len; i++) {
+                if((p = ct[i]) != item &amp;&amp; !p.hidden){
                     hh += p.header.getHeight();
                 }
             };
@@ -179,20 +182,20 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
         }
     },
 
-    <div id="method-Ext.layout.AccordionLayout-setActiveItem"></div>/**
-     * Sets the active (expanded) item in the layout.
+<span id='Ext-layout-AccordionLayout-method-setActiveItem'>    /**
+</span>     * Sets the active (expanded) item in the layout.
      * @param {String/Number} item The string component id or numeric index of the item to activate
      */
     setActiveItem : function(item){
         this.setActive(item, true);
     },
 
-    // private
-    setActive : function(item, expand){
+<span id='Ext-layout-AccordionLayout-method-setActive'>    // private
+</span>    setActive : function(item, expand){
         var ai = this.activeItem;
         item = this.container.getComponent(item);
         if(ai != item){
-            if(item.rendered && item.collapsed && expand){
+            if(item.rendered &amp;&amp; item.collapsed &amp;&amp; expand){
                 item.expand();
             }else{
                 if(ai){
@@ -207,6 +210,6 @@ Ext.layout.AccordionLayout = Ext.extend(Ext.layout.FitLayout, {
 Ext.Container.LAYOUTS.accordion = Ext.layout.AccordionLayout;
 
 //backwards compat
-Ext.layout.Accordion = Ext.layout.AccordionLayout;</pre>    
+Ext.layout.Accordion = Ext.layout.AccordionLayout;</pre>
 </body>
 </html>

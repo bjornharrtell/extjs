@@ -1,77 +1,80 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.FlashComponent"></div>/**
- * @class Ext.FlashComponent
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-FlashComponent-method-constructor'><span id='Ext-FlashComponent'>/**
+</span></span> * @class Ext.FlashComponent
  * @extends Ext.BoxComponent
  * @constructor
  * @xtype flash
  */
 Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
-    <div id="cfg-Ext.FlashComponent-flashVersion"></div>/**
-     * @cfg {String} flashVersion
-     * Indicates the version the flash content was published for. Defaults to <tt>'9.0.115'</tt>.
+<span id='Ext-FlashComponent-cfg-flashVersion'>    /**
+</span>     * @cfg {String} flashVersion
+     * Indicates the version the flash content was published for. Defaults to &lt;tt&gt;'9.0.115'&lt;/tt&gt;.
      */
     flashVersion : '9.0.115',
 
-    <div id="cfg-Ext.FlashComponent-backgroundColor"></div>/**
-     * @cfg {String} backgroundColor
-     * The background color of the chart. Defaults to <tt>'#ffffff'</tt>.
+<span id='Ext-FlashComponent-cfg-backgroundColor'>    /**
+</span>     * @cfg {String} backgroundColor
+     * The background color of the chart. Defaults to &lt;tt&gt;'#ffffff'&lt;/tt&gt;.
      */
     backgroundColor: '#ffffff',
 
-    <div id="cfg-Ext.FlashComponent-wmode"></div>/**
-     * @cfg {String} wmode
-     * The wmode of the flash object. This can be used to control layering. Defaults to <tt>'opaque'</tt>.
+<span id='Ext-FlashComponent-cfg-wmode'>    /**
+</span>     * @cfg {String} wmode
+     * The wmode of the flash object. This can be used to control layering. Defaults to &lt;tt&gt;'opaque'&lt;/tt&gt;.
      */
     wmode: 'opaque',
 
-    <div id="cfg-Ext.FlashComponent-flashVars"></div>/**
-     * @cfg {Object} flashVars
-     * A set of key value pairs to be passed to the flash object as flash variables. Defaults to <tt>undefined</tt>.
+<span id='Ext-FlashComponent-cfg-flashVars'>    /**
+</span>     * @cfg {Object} flashVars
+     * A set of key value pairs to be passed to the flash object as flash variables. Defaults to &lt;tt&gt;undefined&lt;/tt&gt;.
      */
     flashVars: undefined,
 
-    <div id="cfg-Ext.FlashComponent-flashParams"></div>/**
-     * @cfg {Object} flashParams
+<span id='Ext-FlashComponent-cfg-flashParams'>    /**
+</span>     * @cfg {Object} flashParams
      * A set of key value pairs to be passed to the flash object as parameters. Possible parameters can be found here:
-     * http://kb2.adobe.com/cps/127/tn_12701.html Defaults to <tt>undefined</tt>.
+     * http://kb2.adobe.com/cps/127/tn_12701.html Defaults to &lt;tt&gt;undefined&lt;/tt&gt;.
      */
     flashParams: undefined,
 
-    <div id="cfg-Ext.FlashComponent-url"></div>/**
-     * @cfg {String} url
-     * The URL of the chart to include. Defaults to <tt>undefined</tt>.
+<span id='Ext-FlashComponent-cfg-url'>    /**
+</span>     * @cfg {String} url
+     * The URL of the chart to include. Defaults to &lt;tt&gt;undefined&lt;/tt&gt;.
      */
     url: undefined,
-    swfId : undefined,
-    swfWidth: '100%',
-    swfHeight: '100%',
-
-    <div id="cfg-Ext.FlashComponent-expressInstall"></div>/**
-     * @cfg {Boolean} expressInstall
+<span id='Ext-FlashComponent-property-swfId'>    swfId : undefined,
+</span><span id='Ext-FlashComponent-property-swfWidth'>    swfWidth: '100%',
+</span><span id='Ext-FlashComponent-property-swfHeight'>    swfHeight: '100%',
+</span>
+<span id='Ext-FlashComponent-cfg-expressInstall'>    /**
+</span>     * @cfg {Boolean} expressInstall
      * True to prompt the user to install flash if not installed. Note that this uses
-     * Ext.FlashComponent.EXPRESS_INSTALL_URL, which should be set to the local resource. Defaults to <tt>false</tt>.
+     * Ext.FlashComponent.EXPRESS_INSTALL_URL, which should be set to the local resource. Defaults to &lt;tt&gt;false&lt;/tt&gt;.
      */
     expressInstall: false,
 
-    initComponent : function(){
-        Ext.FlashComponent.superclass.initComponent.call(this);
+<span id='Ext-FlashComponent-method-initComponent'>    initComponent : function(){
+</span>        Ext.FlashComponent.superclass.initComponent.call(this);
 
         this.addEvents(
-            <div id="event-Ext.FlashComponent-initialize"></div>/**
-             * @event initialize
+<span id='Ext-FlashComponent-event-initialize'>            /**
+</span>             * @event initialize
              *
              * @param {Chart} this
              */
@@ -79,8 +82,8 @@ Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
         );
     },
 
-    onRender : function(){
-        Ext.FlashComponent.superclass.onRender.apply(this, arguments);
+<span id='Ext-FlashComponent-method-onRender'>    onRender : function(){
+</span>        Ext.FlashComponent.superclass.onRender.apply(this, arguments);
 
         var params = Ext.apply({
             allowScriptAccess: 'always',
@@ -99,49 +102,49 @@ Ext.FlashComponent = Ext.extend(Ext.BoxComponent, {
         this.el = Ext.get(this.swf);
     },
 
-    getSwfId : function(){
-        return this.swfId || (this.swfId = "extswf" + (++Ext.Component.AUTO_ID));
+<span id='Ext-FlashComponent-method-getSwfId'>    getSwfId : function(){
+</span>        return this.swfId || (this.swfId = &quot;extswf&quot; + (++Ext.Component.AUTO_ID));
     },
 
-    getId : function(){
-        return this.id || (this.id = "extflashcmp" + (++Ext.Component.AUTO_ID));
+<span id='Ext-FlashComponent-method-getId'>    getId : function(){
+</span>        return this.id || (this.id = &quot;extflashcmp&quot; + (++Ext.Component.AUTO_ID));
     },
 
-    onFlashEvent : function(e){
-        switch(e.type){
-            case "swfReady":
+<span id='Ext-FlashComponent-method-onFlashEvent'>    onFlashEvent : function(e){
+</span>        switch(e.type){
+            case &quot;swfReady&quot;:
                 this.initSwf();
                 return;
-            case "log":
+            case &quot;log&quot;:
                 return;
         }
         e.component = this;
         this.fireEvent(e.type.toLowerCase().replace(/event$/, ''), e);
     },
 
-    initSwf : function(){
-        this.onSwfReady(!!this.isInitialized);
+<span id='Ext-FlashComponent-method-initSwf'>    initSwf : function(){
+</span>        this.onSwfReady(!!this.isInitialized);
         this.isInitialized = true;
         this.fireEvent('initialize', this);
     },
 
-    beforeDestroy: function(){
-        if(this.rendered){
+<span id='Ext-FlashComponent-method-beforeDestroy'>    beforeDestroy: function(){
+</span>        if(this.rendered){
             swfobject.removeSWF(this.swf.id);
         }
         Ext.FlashComponent.superclass.beforeDestroy.call(this);
     },
 
-    onSwfReady : Ext.emptyFn
-});
+<span id='Ext-FlashComponent-method-onSwfReady'>    onSwfReady : Ext.emptyFn
+</span>});
 
-<div id="prop-Ext.FlashComponent-EXPRESS_INSTALL_URL"></div>/**
- * Sets the url for installing flash if it doesn't exist. This should be set to a local resource.
+<span id='Ext-FlashComponent-static-property-EXPRESS_INSTALL_URL'>/**
+</span> * Sets the url for installing flash if it doesn't exist. This should be set to a local resource.
  * @static
  * @type String
  */
 Ext.FlashComponent.EXPRESS_INSTALL_URL = 'http:/' + '/swfobject.googlecode.com/svn/trunk/swfobject/expressInstall.swf';
 
-Ext.reg('flash', Ext.FlashComponent);</pre>    
+Ext.reg('flash', Ext.FlashComponent);</pre>
 </body>
 </html>

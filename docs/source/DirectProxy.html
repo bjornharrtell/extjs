@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.data.DirectProxy"></div>/**
- * @class Ext.data.DirectProxy
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-DirectProxy'>/**
+</span> * @class Ext.data.DirectProxy
  * @extends Ext.data.DataProxy
  */
 Ext.data.DirectProxy = function(config){
@@ -25,36 +28,36 @@ Ext.data.DirectProxy = function(config){
 };
 
 Ext.extend(Ext.data.DirectProxy, Ext.data.DataProxy, {
-    <div id="cfg-Ext.data.DirectProxy-paramOrder"></div>/**
-     * @cfg {Array/String} paramOrder Defaults to <tt>undefined</tt>. A list of params to be executed
+<span id='Ext-data-DirectProxy-cfg-paramOrder'>    /**
+</span>     * @cfg {Array/String} paramOrder Defaults to &lt;tt&gt;undefined&lt;/tt&gt;. A list of params to be executed
      * server side.  Specify the params in the order in which they must be executed on the server-side
      * as either (1) an Array of String values, or (2) a String of params delimited by either whitespace,
      * comma, or pipe. For example,
-     * any of the following would be acceptable:<pre><code>
+     * any of the following would be acceptable:&lt;pre&gt;&lt;code&gt;
 paramOrder: ['param1','param2','param3']
 paramOrder: 'param1 param2 param3'
 paramOrder: 'param1,param2,param3'
 paramOrder: 'param1|param2|param'
-     </code></pre>
+     &lt;/code&gt;&lt;/pre&gt;
      */
     paramOrder: undefined,
 
-    <div id="cfg-Ext.data.DirectProxy-paramsAsHash"></div>/**
-     * @cfg {Boolean} paramsAsHash
-     * Send parameters as a collection of named arguments (defaults to <tt>true</tt>). Providing a
-     * <tt>{@link #paramOrder}</tt> nullifies this configuration.
+<span id='Ext-data-DirectProxy-cfg-paramsAsHash'>    /**
+</span>     * @cfg {Boolean} paramsAsHash
+     * Send parameters as a collection of named arguments (defaults to &lt;tt&gt;true&lt;/tt&gt;). Providing a
+     * &lt;tt&gt;{@link #paramOrder}&lt;/tt&gt; nullifies this configuration.
      */
     paramsAsHash: true,
 
-    <div id="cfg-Ext.data.DirectProxy-directFn"></div>/**
-     * @cfg {Function} directFn
+<span id='Ext-data-DirectProxy-cfg-directFn'>    /**
+</span>     * @cfg {Function} directFn
      * Function to call when executing a request.  directFn is a simple alternative to defining the api configuration-parameter
      * for Store's which will not implement a full CRUD api.
      */
     directFn : undefined,
 
-    <div id="method-Ext.data.DirectProxy-doRequest"></div>/**
-     * DirectProxy implementation of {@link Ext.data.DataProxy#doRequest}
+<span id='Ext-data-DirectProxy-method-doRequest'>    /**
+</span>     * DirectProxy implementation of {@link Ext.data.DataProxy#doRequest}
      * @param {String} action The crud action type (create, read, update, destroy)
      * @param {Ext.data.Record/Ext.data.Record[]} rs If action is load, rs will be null
      * @param {Object} params An object containing properties which are to be used as HTTP parameters
@@ -62,12 +65,12 @@ paramOrder: 'param1|param2|param'
      * @param {Ext.data.DataReader} reader The Reader object which converts the data
      * object into a block of Ext.data.Records.
      * @param {Function} callback
-     * <div class="sub-desc"><p>A function to be called after the request.
-     * The <tt>callback</tt> is passed the following arguments:<ul>
-     * <li><tt>r</tt> : Ext.data.Record[] The block of Ext.data.Records.</li>
-     * <li><tt>options</tt>: Options object from the action request</li>
-     * <li><tt>success</tt>: Boolean success indicator</li></ul></p></div>
-     * @param {Object} scope The scope (<code>this</code> reference) in which the callback function is executed. Defaults to the browser window.
+     * &lt;div class=&quot;sub-desc&quot;&gt;&lt;p&gt;A function to be called after the request.
+     * The &lt;tt&gt;callback&lt;/tt&gt; is passed the following arguments:&lt;ul&gt;
+     * &lt;li&gt;&lt;tt&gt;r&lt;/tt&gt; : Ext.data.Record[] The block of Ext.data.Records.&lt;/li&gt;
+     * &lt;li&gt;&lt;tt&gt;options&lt;/tt&gt;: Options object from the action request&lt;/li&gt;
+     * &lt;li&gt;&lt;tt&gt;success&lt;/tt&gt;: Boolean success indicator&lt;/li&gt;&lt;/ul&gt;&lt;/p&gt;&lt;/div&gt;
+     * @param {Object} scope The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback function is executed. Defaults to the browser window.
      * @param {Object} arg An optional argument which is passed to the callback as its second parameter.
      * @protected
      */
@@ -77,13 +80,13 @@ paramOrder: 'param1|param2|param'
 
         switch (action) {
             case Ext.data.Api.actions.create:
-                args.push(params.jsonData);		// <-- create(Hash)
+                args.push(params.jsonData);		// &lt;-- create(Hash)
                 break;
             case Ext.data.Api.actions.read:
                 // If the method has no parameters, ignore the paramOrder/paramsAsHash.
-                if(directFn.directCfg.method.len > 0){
+                if(directFn.directCfg.method.len &gt; 0){
                     if(this.paramOrder){
-                        for(var i = 0, len = this.paramOrder.length; i < len; i++){
+                        for(var i = 0, len = this.paramOrder.length; i &lt; len; i++){
                             args.push(params[this.paramOrder[i]]);
                         }
                     }else if(this.paramsAsHash){
@@ -92,10 +95,10 @@ paramOrder: 'param1|param2|param'
                 }
                 break;
             case Ext.data.Api.actions.update:
-                args.push(params.jsonData);        // <-- update(Hash/Hash[])
+                args.push(params.jsonData);        // &lt;-- update(Hash/Hash[])
                 break;
             case Ext.data.Api.actions.destroy:
-                args.push(params.jsonData);        // <-- destroy(Int/Int[])
+                args.push(params.jsonData);        // &lt;-- destroy(Int/Int[])
                 break;
         }
 
@@ -120,7 +123,7 @@ paramOrder: 'param1|param2|param'
             if (!res.status) {
                 // @deprecated fire loadexception
                 if (action === Ext.data.Api.actions.read) {
-                    me.fireEvent("loadexception", me, trans, res, null);
+                    me.fireEvent(&quot;loadexception&quot;, me, trans, res, null);
                 }
                 me.fireEvent('exception', me, 'remote', action, trans, res, null);
                 trans.request.callback.call(trans.request.scope, null, trans.request.arg, false);
@@ -134,8 +137,8 @@ paramOrder: 'param1|param2|param'
         };
     },
 
-    <div id="method-Ext.data.DirectProxy-onRead"></div>/**
-     * Callback for read actions
+<span id='Ext-data-DirectProxy-method-onRead'>    /**
+</span>     * Callback for read actions
      * @param {String} action [Ext.data.Api.actions.create|read|update|destroy]
      * @param {Object} trans The request transaction object
      * @param {Object} result Data object picked out of the server-response.
@@ -149,22 +152,22 @@ paramOrder: 'param1|param2|param'
         }
         catch (ex) {
             // @deprecated: Fire old loadexception for backwards-compat.
-            this.fireEvent("loadexception", this, trans, res, ex);
+            this.fireEvent(&quot;loadexception&quot;, this, trans, res, ex);
 
             this.fireEvent('exception', this, 'response', action, trans, res, ex);
             trans.request.callback.call(trans.request.scope, null, trans.request.arg, false);
             return;
         }
-        this.fireEvent("load", this, res, trans.request.arg);
+        this.fireEvent(&quot;load&quot;, this, res, trans.request.arg);
         trans.request.callback.call(trans.request.scope, records, trans.request.arg, true);
     },
-    <div id="method-Ext.data.DirectProxy-onWrite"></div>/**
-     * Callback for write actions
+<span id='Ext-data-DirectProxy-method-onWrite'>    /**
+</span>     * Callback for write actions
      * @param {String} action [{@link Ext.data.Api#actions create|read|update|destroy}]
      * @param {Object} trans The request transaction object
      * @param {Object} result Data object picked out of the server-response.
      * @param {Object} res The server response
-     * @param {Ext.data.Record/[Ext.data.Record]} rs The Store resultset associated with the action.
+     * @param {Ext.data.Record/Ext.data.Record[]} rs The Store resultset associated with the action.
      * @protected
      */
     onWrite : function(action, trans, result, res, rs) {
@@ -172,13 +175,13 @@ paramOrder: 'param1|param2|param'
         var success = trans.reader.getSuccess(result);
         success = (success !== false);
         if (success){
-            this.fireEvent("write", this, action, data, res, rs, trans.request.arg);
+            this.fireEvent(&quot;write&quot;, this, action, data, res, rs, trans.request.arg);
         }else{
             this.fireEvent('exception', this, 'remote', action, trans, result, rs);
         }
         trans.request.callback.call(trans.request.scope, data, res, success);
     }
 });
-</pre>    
+</pre>
 </body>
 </html>

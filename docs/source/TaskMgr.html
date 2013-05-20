@@ -1,25 +1,28 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.util.TaskRunner"></div>/**
- * @class Ext.util.TaskRunner
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-util-TaskRunner-method-constructor'><span id='Ext-util-TaskRunner'>/**
+</span></span> * @class Ext.util.TaskRunner
  * Provides the ability to execute one or more arbitrary tasks in a multithreaded
  * manner.  Generally, you can use the singleton {@link Ext.TaskMgr} instead, but
  * if needed, you can create separate instances of TaskRunner.  Any number of
  * separate tasks can be started at any time and will run independently of each
  * other. Example usage:
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 // Start a simple clock task that updates a div once per second
 var updateClock = function(){
     Ext.fly('clock').update(new Date().format('g:i:s A'));
@@ -37,8 +40,8 @@ Ext.TaskMgr.start({
     interval: 1000
 });
 
- * </code></pre>
- * <p>See the {@link #start} method for details about how to configure a task object.</p>
+ * &lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;See the {@link #start} method for details about how to configure a task object.&lt;/p&gt;
  * Also see {@link Ext.util.DelayedTask}. 
  * 
  * @constructor
@@ -80,20 +83,20 @@ Ext.util.TaskRunner = function(interval){
 	    	var rqLen = removeQueue.length,
 	    		now = new Date().getTime();	    			    		
 	    
-	        if(rqLen > 0){
-	            for(var i = 0; i < rqLen; i++){
+	        if(rqLen &gt; 0){
+	            for(var i = 0; i &lt; rqLen; i++){
 	                tasks.remove(removeQueue[i]);
 	            }
 	            removeQueue = [];
-	            if(tasks.length < 1){
+	            if(tasks.length &lt; 1){
 	                stopThread();
 	                return;
 	            }
 	        }	        
-	        for(var i = 0, t, itime, rt, len = tasks.length; i < len; ++i){
+	        for(var i = 0, t, itime, rt, len = tasks.length; i &lt; len; ++i){
 	            t = tasks[i];
 	            itime = now - t.taskRunTime;
-	            if(t.interval <= itime){
+	            if(t.interval &lt;= itime){
 	                rt = t.run.apply(t.scope || t, t.args || [++t.taskRunCount]);
 	                t.taskRunTime = now;
 	                if(rt === false || t.taskRunCount === t.repeat){
@@ -101,34 +104,34 @@ Ext.util.TaskRunner = function(interval){
 	                    return;
 	                }
 	            }
-	            if(t.duration && t.duration <= (now - t.taskStartTime)){
+	            if(t.duration &amp;&amp; t.duration &lt;= (now - t.taskStartTime)){
 	                removeTask(t);
 	            }
 	        }
 	    };
 
-    <div id="method-Ext.util.TaskRunner-start"></div>/**
-     * Starts a new task.
+<span id='Ext-util-TaskRunner-method-start'>    /**
+</span>     * Starts a new task.
      * @method start
-     * @param {Object} task <p>A config object that supports the following properties:<ul>
-     * <li><code>run</code> : Function<div class="sub-desc"><p>The function to execute each time the task is invoked. The
-     * function will be called at each interval and passed the <code>args</code> argument if specified, and the
-     * current invocation count if not.</p>
-     * <p>If a particular scope (<code>this</code> reference) is required, be sure to specify it using the <code>scope</code> argument.</p>
-     * <p>Return <code>false</code> from this function to terminate the task.</p></div></li>
-     * <li><code>interval</code> : Number<div class="sub-desc">The frequency in milliseconds with which the task
-     * should be invoked.</div></li>
-     * <li><code>args</code> : Array<div class="sub-desc">(optional) An array of arguments to be passed to the function
-     * specified by <code>run</code>. If not specified, the current invocation count is passed.</div></li>
-     * <li><code>scope</code> : Object<div class="sub-desc">(optional) The scope (<tt>this</tt> reference) in which to execute the
-     * <code>run</code> function. Defaults to the task config object.</div></li>
-     * <li><code>duration</code> : Number<div class="sub-desc">(optional) The length of time in milliseconds to invoke
-     * the task before stopping automatically (defaults to indefinite).</div></li>
-     * <li><code>repeat</code> : Number<div class="sub-desc">(optional) The number of times to invoke the task before
-     * stopping automatically (defaults to indefinite).</div></li>
-     * </ul></p>
-     * <p>Before each invocation, Ext injects the property <code>taskRunCount</code> into the task object so
-     * that calculations based on the repeat count can be performed.</p>
+     * @param {Object} task &lt;p&gt;A config object that supports the following properties:&lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;run&lt;/code&gt; : Function&lt;div class=&quot;sub-desc&quot;&gt;&lt;p&gt;The function to execute each time the task is invoked. The
+     * function will be called at each interval and passed the &lt;code&gt;args&lt;/code&gt; argument if specified, and the
+     * current invocation count if not.&lt;/p&gt;
+     * &lt;p&gt;If a particular scope (&lt;code&gt;this&lt;/code&gt; reference) is required, be sure to specify it using the &lt;code&gt;scope&lt;/code&gt; argument.&lt;/p&gt;
+     * &lt;p&gt;Return &lt;code&gt;false&lt;/code&gt; from this function to terminate the task.&lt;/p&gt;&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;interval&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The frequency in milliseconds with which the task
+     * should be invoked.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;args&lt;/code&gt; : Array&lt;div class=&quot;sub-desc&quot;&gt;(optional) An array of arguments to be passed to the function
+     * specified by &lt;code&gt;run&lt;/code&gt;. If not specified, the current invocation count is passed.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;scope&lt;/code&gt; : Object&lt;div class=&quot;sub-desc&quot;&gt;(optional) The scope (&lt;tt&gt;this&lt;/tt&gt; reference) in which to execute the
+     * &lt;code&gt;run&lt;/code&gt; function. Defaults to the task config object.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;duration&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;(optional) The length of time in milliseconds to invoke
+     * the task before stopping automatically (defaults to indefinite).&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;repeat&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;(optional) The number of times to invoke the task before
+     * stopping automatically (defaults to indefinite).&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/p&gt;
+     * &lt;p&gt;Before each invocation, Ext injects the property &lt;code&gt;taskRunCount&lt;/code&gt; into the task object so
+     * that calculations based on the repeat count can be performed.&lt;/p&gt;
      * @return {Object} The task
      */
     this.start = function(task){
@@ -140,8 +143,8 @@ Ext.util.TaskRunner = function(interval){
         return task;
     };
 
-    <div id="method-Ext.util.TaskRunner-stop"></div>/**
-     * Stops an existing running task.
+<span id='Ext-util-TaskRunner-method-stop'>    /**
+</span>     * Stops an existing running task.
      * @method stop
      * @param {Object} task The task to stop
      * @return {Object} The task
@@ -151,13 +154,13 @@ Ext.util.TaskRunner = function(interval){
         return task;
     };
 
-    <div id="method-Ext.util.TaskRunner-stopAll"></div>/**
-     * Stops all tasks that are currently running.
+<span id='Ext-util-TaskRunner-method-stopAll'>    /**
+</span>     * Stops all tasks that are currently running.
      * @method stopAll
      */
     this.stopAll = function(){
         stopThread();
-        for(var i = 0, len = tasks.length; i < len; i++){
+        for(var i = 0, len = tasks.length; i &lt; len; i++){
             if(tasks[i].onStop){
                 tasks[i].onStop();
             }
@@ -167,12 +170,12 @@ Ext.util.TaskRunner = function(interval){
     };
 };
 
-<div id="cls-Ext.TaskMgr"></div>/**
- * @class Ext.TaskMgr
+<span id='Ext-TaskMgr'>/**
+</span> * @class Ext.TaskMgr
  * @extends Ext.util.TaskRunner
  * A static {@link Ext.util.TaskRunner} instance that can be used to start and stop arbitrary tasks.  See
  * {@link Ext.util.TaskRunner} for supported methods and task config properties.
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 // Start a simple clock task that updates a div once per second
 var task = {
     run: function(){
@@ -181,10 +184,10 @@ var task = {
     interval: 1000 //1 second
 }
 Ext.TaskMgr.start(task);
-</code></pre>
- * <p>See the {@link #start} method for details about how to configure a task object.</p>
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;See the {@link #start} method for details about how to configure a task object.&lt;/p&gt;
  * @singleton
  */
-Ext.TaskMgr = new Ext.util.TaskRunner();</pre>    
+Ext.TaskMgr = new Ext.util.TaskRunner();</pre>
 </body>
 </html>

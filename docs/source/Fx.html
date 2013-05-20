@@ -1,39 +1,42 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-(function(){
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">(function(){
     // contants
     var NULL = null,
         UNDEFINED = undefined,
         TRUE = true,
         FALSE = false,
-        SETX = "setX",
-        SETY = "setY",
-        SETXY = "setXY",
-        LEFT = "left",
-        BOTTOM = "bottom",
-        TOP = "top",
-        RIGHT = "right",
-        HEIGHT = "height",
-        WIDTH = "width",
-        POINTS = "points",
-        HIDDEN = "hidden",
-        ABSOLUTE = "absolute",
-        VISIBLE = "visible",
-        MOTION = "motion",
-        POSITION = "position",
-        EASEOUT = "easeOut",
+        SETX = &quot;setX&quot;,
+        SETY = &quot;setY&quot;,
+        SETXY = &quot;setXY&quot;,
+        LEFT = &quot;left&quot;,
+        BOTTOM = &quot;bottom&quot;,
+        TOP = &quot;top&quot;,
+        RIGHT = &quot;right&quot;,
+        HEIGHT = &quot;height&quot;,
+        WIDTH = &quot;width&quot;,
+        POINTS = &quot;points&quot;,
+        HIDDEN = &quot;hidden&quot;,
+        ABSOLUTE = &quot;absolute&quot;,
+        VISIBLE = &quot;visible&quot;,
+        MOTION = &quot;motion&quot;,
+        POSITION = &quot;position&quot;,
+        EASEOUT = &quot;easeOut&quot;,
         /*
          * Use a light flyweight here since we are using so many callbacks and are always assured a DOM element
          */
@@ -63,25 +66,25 @@
 //Notifies Element that fx methods are available
 Ext.enableFx = TRUE;
 
-<div id="cls-Ext.Fx"></div>/**
- * @class Ext.Fx
- * <p>A class to provide basic animation and visual effects support.  <b>Note:</b> This class is automatically applied
+<span id='Ext-Fx-cfg-stopFx'><span id='Ext-Fx-cfg-concurrent'><span id='Ext-Fx-cfg-block'><span id='Ext-Fx-cfg-afterStyle'><span id='Ext-Fx-cfg-useDisplay'><span id='Ext-Fx-cfg-remove'><span id='Ext-Fx-cfg-endOpacity'><span id='Ext-Fx-cfg-duration'><span id='Ext-Fx-cfg-afterCls'><span id='Ext-Fx-cfg-easing'><span id='Ext-Fx-cfg-scope'><span id='Ext-Fx-cfg-callback'><span id='Ext-Fx'>/**
+</span></span></span></span></span></span></span></span></span></span></span></span></span> * @class Ext.Fx
+ * &lt;p&gt;A class to provide basic animation and visual effects support.  &lt;b&gt;Note:&lt;/b&gt; This class is automatically applied
  * to the {@link Ext.Element} interface when included, so all effects calls should be performed via {@link Ext.Element}.
- * Conversely, since the effects are not actually defined in {@link Ext.Element}, Ext.Fx <b>must</b> be
- * {@link Ext#enableFx included} in order for the Element effects to work.</p><br/>
+ * Conversely, since the effects are not actually defined in {@link Ext.Element}, Ext.Fx &lt;b&gt;must&lt;/b&gt; be
+ * {@link Ext#enableFx included} in order for the Element effects to work.&lt;/p&gt;&lt;br/&gt;
  * 
- * <p><b><u>Method Chaining</u></b></p>
- * <p>It is important to note that although the Fx methods and many non-Fx Element methods support "method chaining" in that
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Method Chaining&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;It is important to note that although the Fx methods and many non-Fx Element methods support &quot;method chaining&quot; in that
  * they return the Element object itself as the method return value, it is not always possible to mix the two in a single
  * method chain.  The Fx methods use an internal effects queue so that each effect can be properly timed and sequenced.
  * Non-Fx methods, on the other hand, have no such internal queueing and will always execute immediately.  For this reason,
  * while it may be possible to mix certain Fx and non-Fx method calls in a single chain, it may not always provide the
- * expected results and should be done with care.  Also see <tt>{@link #callback}</tt>.</p><br/>
+ * expected results and should be done with care.  Also see &lt;tt&gt;{@link #callback}&lt;/tt&gt;.&lt;/p&gt;&lt;br/&gt;
  *
- * <p><b><u>Anchor Options for Motion Effects</u></b></p>
- * <p>Motion effects support 8-way anchoring, meaning that you can choose one of 8 different anchor points on the Element
- * that will serve as either the start or end point of the animation.  Following are all of the supported anchor positions:</p>
-<pre>
+ * &lt;p&gt;&lt;b&gt;&lt;u&gt;Anchor Options for Motion Effects&lt;/u&gt;&lt;/b&gt;&lt;/p&gt;
+ * &lt;p&gt;Motion effects support 8-way anchoring, meaning that you can choose one of 8 different anchor points on the Element
+ * that will serve as either the start or end point of the animation.  Following are all of the supported anchor positions:&lt;/p&gt;
+&lt;pre&gt;
 Value  Description
 -----  -----------------------------
 tl     The top left corner
@@ -92,50 +95,50 @@ r      The center of the right edge
 bl     The bottom left corner
 b      The center of the bottom edge
 br     The bottom right corner
-</pre>
- * <b>Note</b>: some Fx methods accept specific custom config parameters.  The options shown in the Config Options
- * section below are common options that can be passed to any Fx method unless otherwise noted.</b>
+&lt;/pre&gt;
+ * &lt;b&gt;Note&lt;/b&gt;: some Fx methods accept specific custom config parameters.  The options shown in the Config Options
+ * section below are common options that can be passed to any Fx method unless otherwise noted.&lt;/b&gt;
  * 
  * @cfg {Function} callback A function called when the effect is finished.  Note that effects are queued internally by the
  * Fx class, so a callback is not required to specify another effect -- effects can simply be chained together
- * and called in sequence (see note for <b><u>Method Chaining</u></b> above), for example:<pre><code>
+ * and called in sequence (see note for &lt;b&gt;&lt;u&gt;Method Chaining&lt;/u&gt;&lt;/b&gt; above), for example:&lt;pre&gt;&lt;code&gt;
  * el.slideIn().highlight();
- * </code></pre>
+ * &lt;/code&gt;&lt;/pre&gt;
  * The callback is intended for any additional code that should run once a particular effect has completed. The Element
  * being operated upon is passed as the first parameter.
  * 
- * @cfg {Object} scope The scope (<code>this</code> reference) in which the <tt>{@link #callback}</tt> function is executed. Defaults to the browser window.
+ * @cfg {Object} scope The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the &lt;tt&gt;{@link #callback}&lt;/tt&gt; function is executed. Defaults to the browser window.
  * 
- * @cfg {String} easing A valid Ext.lib.Easing value for the effect:</p><div class="mdetail-params"><ul>
- * <li><b><tt>backBoth</tt></b></li>
- * <li><b><tt>backIn</tt></b></li>
- * <li><b><tt>backOut</tt></b></li>
- * <li><b><tt>bounceBoth</tt></b></li>
- * <li><b><tt>bounceIn</tt></b></li>
- * <li><b><tt>bounceOut</tt></b></li>
- * <li><b><tt>easeBoth</tt></b></li>
- * <li><b><tt>easeBothStrong</tt></b></li>
- * <li><b><tt>easeIn</tt></b></li>
- * <li><b><tt>easeInStrong</tt></b></li>
- * <li><b><tt>easeNone</tt></b></li>
- * <li><b><tt>easeOut</tt></b></li>
- * <li><b><tt>easeOutStrong</tt></b></li>
- * <li><b><tt>elasticBoth</tt></b></li>
- * <li><b><tt>elasticIn</tt></b></li>
- * <li><b><tt>elasticOut</tt></b></li>
- * </ul></div>
+ * @cfg {String} easing A valid Ext.lib.Easing value for the effect:&lt;/p&gt;&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;backBoth&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;backIn&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;backOut&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;bounceBoth&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;bounceIn&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;bounceOut&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeBoth&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeBothStrong&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeIn&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeInStrong&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeNone&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeOut&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;easeOutStrong&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;elasticBoth&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;elasticIn&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;b&gt;&lt;tt&gt;elasticOut&lt;/tt&gt;&lt;/b&gt;&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  *
  * @cfg {String} afterCls A css class to apply after the effect
  * @cfg {Number} duration The length of time (in seconds) that the effect should last
  * 
  * @cfg {Number} endOpacity Only applicable for {@link #fadeIn} or {@link #fadeOut}, a number between
- * <tt>0</tt> and <tt>1</tt> inclusive to configure the ending opacity value.
+ * &lt;tt&gt;0&lt;/tt&gt; and &lt;tt&gt;1&lt;/tt&gt; inclusive to configure the ending opacity value.
  *  
  * @cfg {Boolean} remove Whether the Element should be removed from the DOM and destroyed after the effect finishes
- * @cfg {Boolean} useDisplay Whether to use the <i>display</i> CSS property instead of <i>visibility</i> when hiding Elements (only applies to 
+ * @cfg {Boolean} useDisplay Whether to use the &lt;i&gt;display&lt;/i&gt; CSS property instead of &lt;i&gt;visibility&lt;/i&gt; when hiding Elements (only applies to 
  * effects that end with the element being visually hidden, ignored otherwise)
- * @cfg {String/Object/Function} afterStyle A style specification string, e.g. <tt>"width:100px"</tt>, or an object
- * in the form <tt>{width:"100px"}</tt>, or a function which returns such a specification that will be applied to the
+ * @cfg {String/Object/Function} afterStyle A style specification string, e.g. &lt;tt&gt;&quot;width:100px&quot;&lt;/tt&gt;, or an object
+ * in the form &lt;tt&gt;{width:&quot;100px&quot;}&lt;/tt&gt;, or a function which returns such a specification that will be applied to the
  * Element after the effect finishes.
  * @cfg {Boolean} block Whether the effect should block other effects from queueing while it runs
  * @cfg {Boolean} concurrent Whether to allow subsequently-queued effects to run at the same time as the current effect, or to ensure that they run in sequence
@@ -143,18 +146,18 @@ br     The bottom right corner
  */
 Ext.Fx = {
     
-    // private - calls the function taking arguments from the argHash based on the key.  Returns the return value of the function.
-    //           this is useful for replacing switch statements (for example).
+<span id='Ext-Fx-method-switchStatements'>    // private - calls the function taking arguments from the argHash based on the key.  Returns the return value of the function.
+</span>    //           this is useful for replacing switch statements (for example).
     switchStatements : function(key, fn, argHash){
         return fn.apply(this, argHash[key]);
     },
     
-    /**
-     * Slides the element into view.  An anchor point can be optionally passed to set the point of
+<span id='Ext-Fx-method-slideIn'>    /**
+</span>     * Slides the element into view.  An anchor point can be optionally passed to set the point of
      * origin for the slide effect.  This function automatically handles wrapping the element with
      * a fixed-size container if needed.  See the Fx class overview for valid anchor point options.
      * Usage:
-     *<pre><code>
+     *&lt;pre&gt;&lt;code&gt;
 // default: slide the element in from the top
 el.slideIn();
 
@@ -166,7 +169,7 @@ el.slideIn('t', {
     easing: 'easeOut',
     duration: .5
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
@@ -187,7 +190,7 @@ el.slideIn('t', {
             bw,
             bh;
             
-        anchor = anchor || "t";
+        anchor = anchor || &quot;t&quot;;
 
         me.queueFx(o, function(){            
             xy = fly(dom).getXY();
@@ -228,7 +231,7 @@ el.slideIn('t', {
                 if(fly(wrap)[sXY]){
                     fly(wrap)[sXY](sXYval);                  
                 }
-                style[s1] = style[s2] = "0";                    
+                style[s1] = style[s2] = &quot;0&quot;;                    
                 if(w){
                     ret.width = w;
                 }
@@ -265,14 +268,14 @@ el.slideIn('t', {
         return me;
     },
     
-    /**
-     * Slides the element out of view.  An anchor point can be optionally passed to set the end point
+<span id='Ext-Fx-method-slideOut'>    /**
+</span>     * Slides the element out of view.  An anchor point can be optionally passed to set the end point
      * for the slide effect.  When the effect is completed, the element will be hidden (visibility = 
      * 'hidden') but block elements will still take up space in the document.  The element must be removed
      * from the DOM using the 'remove' config option if desired.  This function automatically handles 
      * wrapping the element with a fixed-size container if needed.  See the Fx class overview for valid anchor point options.
      * Usage:
-     *<pre><code>
+     *&lt;pre&gt;&lt;code&gt;
 // default: slide the element out to the top
 el.slideOut();
 
@@ -286,7 +289,7 @@ el.slideOut('t', {
     remove: false,
     useDisplay: false
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
@@ -303,7 +306,7 @@ el.slideOut('t', {
             a,
             zero = {to: 0}; 
                     
-        anchor = anchor || "t";
+        anchor = anchor || &quot;t&quot;;
 
         me.queueFx(o, function(){
             
@@ -334,7 +337,7 @@ el.slideOut('t', {
             function argCalc(style, s1, s2, p1, v1, p2, v2, p3, v3){                    
                 var ret = {};
                 
-                style[s1] = style[s2] = "0";
+                style[s1] = style[s2] = &quot;0&quot;;
                 ret[p1] = v1;               
                 if(p2){
                     ret[p2] = v2;               
@@ -367,12 +370,12 @@ el.slideOut('t', {
         return me;
     },
 
-    /**
-     * Fades the element out while slowly expanding it in all directions.  When the effect is completed, the 
+<span id='Ext-Fx-method-puff'>    /**
+</span>     * Fades the element out while slowly expanding it in all directions.  When the effect is completed, the 
      * element will be hidden (visibility = 'hidden') but block elements will still take up space in the document. 
      * The element must be removed from the DOM using the 'remove' config option if desired.
      * Usage:
-     *<pre><code>
+     *&lt;pre&gt;&lt;code&gt;
 // default
 el.puff();
 
@@ -383,7 +386,7 @@ el.puff({
     remove: false,
     useDisplay: false
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
      */
@@ -420,7 +423,7 @@ el.puff({
                     height : {to : fly(dom).adjustHeight(height * 2)},
                     points : {by : [-width * .5, -height * .5]},
                     opacity : {to : 0},
-                    fontSize: {to : 200, unit: "%"}
+                    fontSize: {to : 200, unit: &quot;%&quot;}
                 },
                 o,
                 MOTION,
@@ -431,12 +434,12 @@ el.puff({
         return me;
     },
 
-    /**
-     * Blinks the element as if it was clicked and then collapses on its center (similar to switching off a television).
+<span id='Ext-Fx-method-switchOff'>    /**
+</span>     * Blinks the element as if it was clicked and then collapses on its center (similar to switching off a television).
      * When the effect is completed, the element will be hidden (visibility = 'hidden') but block elements will still 
      * take up space in the document. The element must be removed from the DOM using the 'remove' config option if desired.
      * Usage:
-     *<pre><code>
+     *&lt;pre&gt;&lt;code&gt;
 // default
 el.switchOff();
 
@@ -447,7 +450,7 @@ el.switchOff({
     remove: false,
     useDisplay: false
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
      */
@@ -497,26 +500,26 @@ el.switchOff({
         return me;
     },
 
-    /**
-     * Highlights the Element by setting a color (applies to the background-color by default, but can be
-     * changed using the "attr" config option) and then fading back to the original color. If no original
-     * color is available, you should provide the "endColor" config option which will be cleared after the animation.
+<span id='Ext-Fx-method-highlight'>    /**
+</span>     * Highlights the Element by setting a color (applies to the background-color by default, but can be
+     * changed using the &quot;attr&quot; config option) and then fading back to the original color. If no original
+     * color is available, you should provide the &quot;endColor&quot; config option which will be cleared after the animation.
      * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // default: highlight background to yellow
 el.highlight();
 
 // custom: highlight foreground text to blue for 2 seconds
-el.highlight("0000ff", { attr: 'color', duration: 2 });
+el.highlight(&quot;0000ff&quot;, { attr: 'color', duration: 2 });
 
 // common config options shown with default values
-el.highlight("ffff9c", {
-    attr: "background-color", //can be any valid CSS property (attribute) that supports a color value
-    endColor: (current color) or "ffffff",
+el.highlight(&quot;ffff9c&quot;, {
+    attr: &quot;background-color&quot;, //can be any valid CSS property (attribute) that supports a color value
+    endColor: (current color) or &quot;ffffff&quot;,
     easing: 'easeIn',
     duration: 1
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {String} color (optional) The highlight color. Should be a 6 char hex color without the leading # (defaults to yellow: 'ffff9c')
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
@@ -525,7 +528,7 @@ el.highlight("ffff9c", {
         o = getObject(o);
         var me = this,
             dom = me.dom,
-            attr = o.attr || "backgroundColor",
+            attr = o.attr || &quot;backgroundColor&quot;,
             a = {},
             restore;
 
@@ -538,7 +541,7 @@ el.highlight("ffff9c", {
                 fly(dom).afterFx(o);
             }            
             restore = dom.style[attr];
-            a[attr] = {from: color || "ffff9c", to: o.endColor || fly(dom).getColor(attr) || "ffffff"};
+            a[attr] = {from: color || &quot;ffff9c&quot;, to: o.endColor || fly(dom).getColor(attr) || &quot;ffffff&quot;};
             arguments.callee.anim = fly(dom).fxanim(a,
                 o,
                 'color',
@@ -549,22 +552,22 @@ el.highlight("ffff9c", {
         return me;
     },
 
-   /**
-    * Shows a ripple of exploding, attenuating borders to draw attention to an Element.
+<span id='Ext-Fx-method-frame'>   /**
+</span>    * Shows a ripple of exploding, attenuating borders to draw attention to an Element.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // default: a single light blue ripple
 el.frame();
 
 // custom: 3 red ripples lasting 3 seconds total
-el.frame("ff0000", 3, { duration: 3 });
+el.frame(&quot;ff0000&quot;, 3, { duration: 3 });
 
 // common config options shown with default values
-el.frame("C3DAF9", 1, {
+el.frame(&quot;C3DAF9&quot;, 1, {
     duration: 1 //duration of each individual ripple.
     // Note: Easing is not configurable and will be ignored if included
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {String} color (optional) The color of the border.  Should be a 6 char hex color without the leading # (defaults to light blue: 'C3DAF9').
     * @param {Number} count (optional) The number of ripples to display (defaults to 1)
     * @param {Object} options (optional) Object literal with any of the Fx config options
@@ -620,7 +623,7 @@ el.frame("C3DAF9", 1, {
                     duration: o.duration || 1,
                     callback: function() {
                         proxy.remove();
-                        --count > 0 ? queue() : fly(dom).afterFx(o);
+                        --count &gt; 0 ? queue() : fly(dom).afterFx(o);
                     }
                 });
                 arguments.callee.anim = {
@@ -635,13 +638,13 @@ el.frame("C3DAF9", 1, {
         return me;
     },
 
-   /**
-    * Creates a pause before any subsequent queued effects begin.  If there are
+<span id='Ext-Fx-method-pause'>   /**
+</span>    * Creates a pause before any subsequent queued effects begin.  If there are
     * no effects queued after the pause it will have no effect.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 el.pause(1);
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {Number} seconds The length of time to pause (in seconds)
     * @return {Ext.Element} The Element
     */
@@ -664,11 +667,11 @@ el.pause(1);
         return this;
     },
 
-   /**
-    * Fade an element in (from transparent to opaque).  The ending opacity can be specified
-    * using the <tt>{@link #endOpacity}</tt> config option.
+<span id='Ext-Fx-method-fadeIn'>   /**
+</span>    * Fade an element in (from transparent to opaque).  The ending opacity can be specified
+    * using the &lt;tt&gt;{@link #endOpacity}&lt;/tt&gt; config option.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // default: fade in from opacity 0 to 100%
 el.fadeIn();
 
@@ -681,7 +684,7 @@ el.fadeIn({
     easing: 'easeOut',
     duration: .5
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {Object} options (optional) Object literal with any of the Fx config options
     * @return {Ext.Element} The Element
     */
@@ -706,12 +709,12 @@ el.fadeIn({
         return me;
     },
 
-   /**
-    * Fade an element out (from opaque to transparent).  The ending opacity can be specified
-    * using the <tt>{@link #endOpacity}</tt> config option.  Note that IE may require
-    * <tt>{@link #useDisplay}:true</tt> in order to redisplay correctly.
+<span id='Ext-Fx-method-fadeOut'>   /**
+</span>    * Fade an element out (from opaque to transparent).  The ending opacity can be specified
+    * using the &lt;tt&gt;{@link #endOpacity}&lt;/tt&gt; config option.  Note that IE may require
+    * &lt;tt&gt;{@link #useDisplay}:true&lt;/tt&gt; in order to redisplay correctly.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // default: fade out from the element's current opacity to 0
 el.fadeOut();
 
@@ -726,7 +729,7 @@ el.fadeOut({
     remove: false,
     useDisplay: false
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {Object} options (optional) Object literal with any of the Fx config options
     * @return {Ext.Element} The Element
     */
@@ -747,7 +750,7 @@ el.fadeOut({
                 function(){
                     if(to == 0){
                         Ext.Element.data(dom, 'visibilityMode') == Ext.Element.DISPLAY || o.useDisplay ? 
-                            style.display = "none" :
+                            style.display = &quot;none&quot; :
                             style.visibility = HIDDEN;
                             
                         fly(dom).clearOpacity();
@@ -758,24 +761,24 @@ el.fadeOut({
         return me;
     },
 
-   /**
-    * Animates the transition of an element's dimensions from a starting height/width
+<span id='Ext-Fx-method-scale'>   /**
+</span>    * Animates the transition of an element's dimensions from a starting height/width
     * to an ending height/width.  This method is a convenience implementation of {@link shift}.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // change height and width to 100x100 pixels
 el.scale(100, 100);
 
 // common config options shown with default values.  The height and width will default to
-// the element&#39;s existing values if passed as null.
+// the element&amp;#39;s existing values if passed as null.
 el.scale(
-    [element&#39;s width],
-    [element&#39;s height], {
+    [element&amp;#39;s width],
+    [element&amp;#39;s height], {
         easing: 'easeOut',
         duration: .35
     }
 );
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {Number} width  The new width (pass undefined to keep the original width)
     * @param {Number} height  The new height (pass undefined to keep the original height)
     * @param {Object} options (optional) Object literal with any of the Fx config options
@@ -789,27 +792,27 @@ el.scale(
         return this;
     },
 
-   /**
-    * Animates the transition of any combination of an element's dimensions, xy position and/or opacity.
+<span id='Ext-Fx-method-shift'>   /**
+</span>    * Animates the transition of any combination of an element's dimensions, xy position and/or opacity.
     * Any of these properties not specified in the config object will not be changed.  This effect 
     * requires that at least one new dimension, position or opacity setting must be passed in on
     * the config object in order for the function to have any effect.
     * Usage:
-<pre><code>
+&lt;pre&gt;&lt;code&gt;
 // slide the element horizontally to x position 200 while changing the height and opacity
 el.shift({ x: 200, height: 50, opacity: .8 });
 
 // common config options shown with default values.
 el.shift({
-    width: [element&#39;s width],
-    height: [element&#39;s height],
-    x: [element&#39;s x position],
-    y: [element&#39;s y position],
-    opacity: [element&#39;s opacity],
+    width: [element&amp;#39;s width],
+    height: [element&amp;#39;s height],
+    x: [element&amp;#39;s x position],
+    y: [element&amp;#39;s y position],
+    opacity: [element&amp;#39;s opacity],
     easing: 'easeOut',
     duration: .35
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
     * @param {Object} options  Object literal with any of the Fx config options
     * @return {Ext.Element} The Element
     */
@@ -846,11 +849,11 @@ el.shift({
         return this;
     },
 
-    /**
-     * Slides the element while fading it out of view.  An anchor point can be optionally passed to set the 
+<span id='Ext-Fx-method-ghost'>    /**
+</span>     * Slides the element while fading it out of view.  An anchor point can be optionally passed to set the 
      * ending point of the effect.
      * Usage:
-     *<pre><code>
+     *&lt;pre&gt;&lt;code&gt;
 // default: slide the element downward while fading out
 el.ghost();
 
@@ -864,7 +867,7 @@ el.ghost('b', {
     remove: false,
     useDisplay: false
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to bottom: 'b')
      * @param {Object} options (optional) Object literal with any of the Fx config options
      * @return {Ext.Element} The Element
@@ -880,7 +883,7 @@ el.ghost('b', {
             w,
             h;
             
-        anchor = anchor || "b";
+        anchor = anchor || &quot;b&quot;;
 
         me.queueFx(o, function(){
             // restore values after effect
@@ -917,8 +920,8 @@ el.ghost('b', {
         return me;
     },
 
-    /**
-     * Ensures that all effects queued after syncFx is called on the element are
+<span id='Ext-Fx-method-syncFx'>    /**
+</span>     * Ensures that all effects queued after syncFx is called on the element are
      * run concurrently.  This is the opposite of {@link #sequenceFx}.
      * @return {Ext.Element} The Element
      */
@@ -932,8 +935,8 @@ el.ghost('b', {
         return me;
     },
 
-    /**
-     * Ensures that all effects queued after sequenceFx is called on the element are
+<span id='Ext-Fx-method-sequenceFx'>    /**
+</span>     * Ensures that all effects queued after sequenceFx is called on the element are
      * run in sequence.  This is the opposite of {@link #syncFx}.
      * @return {Ext.Element} The Element
      */
@@ -947,24 +950,24 @@ el.ghost('b', {
         return me;
     },
 
-    /* @private */
-    nextFx : function(){        
+<span id='Ext-Fx-method-nextFx'>    /* @private */
+</span>    nextFx : function(){        
         var ef = getQueue(this.dom.id)[0];
         if(ef){
             ef.call(this);
         }
     },
 
-    /**
-     * Returns true if the element has any effects actively running or queued, else returns false.
+<span id='Ext-Fx-method-hasActiveFx'>    /**
+</span>     * Returns true if the element has any effects actively running or queued, else returns false.
      * @return {Boolean} True if element has active effects, else false
      */
     hasActiveFx : function(){
         return getQueue(this.dom.id)[0];
     },
 
-    /**
-     * Stops any running effects and clears the element's internal effects queue if it contains
+<span id='Ext-Fx-method-stopFx'>    /**
+</span>     * Stops any running effects and clears the element's internal effects queue if it contains
      * any additional effects that haven't started yet.
      * @return {Ext.Element} The Element
      */
@@ -973,7 +976,7 @@ el.ghost('b', {
             id = me.dom.id;
         if(me.hasActiveFx()){
             var cur = getQueue(id)[0];
-            if(cur && cur.anim){
+            if(cur &amp;&amp; cur.anim){
                 if(cur.anim.isAnimated){
                     setQueue(id, [cur]); //clear
                     cur.anim.stop(finish !== undefined ? finish : TRUE);
@@ -985,9 +988,9 @@ el.ghost('b', {
         return me;
     },
 
-    /* @private */
-    beforeFx : function(o){
-        if(this.hasActiveFx() && !o.concurrent){
+<span id='Ext-Fx-method-beforeFx'>    /* @private */
+</span>    beforeFx : function(o){
+        if(this.hasActiveFx() &amp;&amp; !o.concurrent){
            if(o.stopFx){
                this.stopFx();
                return TRUE;
@@ -997,8 +1000,8 @@ el.ghost('b', {
         return TRUE;
     },
 
-    /**
-     * Returns true if the element is currently blocking so that no other effect can be queued
+<span id='Ext-Fx-method-hasFxBlock'>    /**
+</span>     * Returns true if the element is currently blocking so that no other effect can be queued
      * until this effect is finished, else returns false if blocking is not set.  This is commonly
      * used to ensure that an effect initiated by a user action runs to completion prior to the
      * same effect being restarted (e.g., firing only one effect even if the user clicks several times).
@@ -1006,11 +1009,11 @@ el.ghost('b', {
      */
     hasFxBlock : function(){
         var q = getQueue(this.dom.id);
-        return q && q[0] && q[0].block;
+        return q &amp;&amp; q[0] &amp;&amp; q[0].block;
     },
 
-    /* @private */
-    queueFx : function(o, fn){
+<span id='Ext-Fx-method-queueFx'>    /* @private */
+</span>    queueFx : function(o, fn){
         var me = fly(this.dom);
         if(!me.hasFxBlock()){
             Ext.applyIf(o, me.fxDefaults);
@@ -1028,8 +1031,8 @@ el.ghost('b', {
         return me;
     },
 
-    /* @private */
-    fxWrap : function(pos, o, vis){ 
+<span id='Ext-Fx-method-fxWrap'>    /* @private */
+</span>    fxWrap : function(pos, o, vis){ 
         var dom = this.dom,
             wrap,
             wrapXY;
@@ -1037,12 +1040,12 @@ el.ghost('b', {
             if(o.fixPosition){
                 wrapXY = fly(dom).getXY();
             }
-            var div = document.createElement("div");
+            var div = document.createElement(&quot;div&quot;);
             div.style.visibility = vis;
             wrap = dom.parentNode.insertBefore(div, dom);
             fly(wrap).setPositioning(pos);
-            if(fly(wrap).isStyle(POSITION, "static")){
-                fly(wrap).position("relative");
+            if(fly(wrap).isStyle(POSITION, &quot;static&quot;)){
+                fly(wrap).position(&quot;relative&quot;);
             }
             fly(dom).clearPositioning('auto');
             fly(wrap).clip();
@@ -1054,8 +1057,8 @@ el.ghost('b', {
         return wrap;
     },
 
-    /* @private */
-    fxUnwrap : function(wrap, pos, o){      
+<span id='Ext-Fx-method-fxUnwrap'>    /* @private */
+</span>    fxUnwrap : function(wrap, pos, o){      
         var dom = this.dom;
         fly(dom).clearPositioning();
         fly(dom).setPositioning(pos);
@@ -1066,14 +1069,14 @@ el.ghost('b', {
         }
     },
 
-    /* @private */
-    getFxRestore : function(){
+<span id='Ext-Fx-method-getFxRestore'>    /* @private */
+</span>    getFxRestore : function(){
         var st = this.dom.style;
         return {pos: this.getPositioning(), width: st.width, height : st.height};
     },
 
-    /* @private */
-    afterFx : function(o){
+<span id='Ext-Fx-method-afterFx'>    /* @private */
+</span>    afterFx : function(o){
         var dom = this.dom,
             id = dom.id;
         if(o.afterStyle){
@@ -1094,8 +1097,8 @@ el.ghost('b', {
         }
     },
 
-    /* @private */
-    fxanim : function(args, opt, animType, defaultDur, defaultEase, cb){
+<span id='Ext-Fx-method-fxanim'>    /* @private */
+</span>    fxanim : function(args, opt, animType, defaultDur, defaultEase, cb){
         animType = animType || 'run';
         opt = opt || {};
         var anim = Ext.lib.Anim[animType](
@@ -1118,6 +1121,6 @@ Ext.Fx.resize = Ext.Fx.scale;
 //effects are available directly via the Element API
 Ext.Element.addMethods(Ext.Fx);
 })();
-</pre>    
+</pre>
 </body>
 </html>

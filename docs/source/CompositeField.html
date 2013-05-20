@@ -1,23 +1,26 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.form.CompositeField"></div>/**
- * @class Ext.form.CompositeField
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-CompositeField'>/**
+</span> * @class Ext.form.CompositeField
  * @extends Ext.form.Field
  * Composite field allowing a number of form Fields to be rendered on the same row. The fields are rendered
  * using an hbox layout internally, so all of the normal HBox layout config items are available. Example usage:
- * <pre>
+ * &lt;pre&gt;
 {
     xtype: 'compositefield',
     labelWidth: 120
@@ -39,65 +42,65 @@
         }
     ]
 }
- * </pre>
+ * &lt;/pre&gt;
  * In the example above the composite's fieldLabel will be set to 'Title, First, Last' as it groups the fieldLabels
  * of each of its children. This can be overridden by setting a fieldLabel on the compositefield itself:
- * <pre>
+ * &lt;pre&gt;
 {
     xtype: 'compositefield',
     fieldLabel: 'Custom label',
     items: [...]
 }
- * </pre>
+ * &lt;/pre&gt;
  * Any Ext.form.* component can be placed inside a composite field.
  */
 Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
 
-    <div id="prop-Ext.form.CompositeField-defaultMargins"></div>/**
-     * @property defaultMargins
+<span id='Ext-form-CompositeField-property-defaultMargins'>    /**
+</span>     * @property defaultMargins
      * @type String
      * The margins to apply by default to each field in the composite
      */
     defaultMargins: '0 5 0 0',
 
-    <div id="prop-Ext.form.CompositeField-skipLastItemMargin"></div>/**
-     * @property skipLastItemMargin
+<span id='Ext-form-CompositeField-property-skipLastItemMargin'>    /**
+</span>     * @property skipLastItemMargin
      * @type Boolean
      * If true, the defaultMargins are not applied to the last item in the composite field set (defaults to true)
      */
     skipLastItemMargin: true,
 
-    <div id="prop-Ext.form.CompositeField-isComposite"></div>/**
-     * @property isComposite
+<span id='Ext-form-CompositeField-property-isComposite'>    /**
+</span>     * @property isComposite
      * @type Boolean
      * Signifies that this is a Composite field
      */
     isComposite: true,
 
-    <div id="prop-Ext.form.CompositeField-combineErrors"></div>/**
-     * @property combineErrors
+<span id='Ext-form-CompositeField-property-combineErrors'>    /**
+</span>     * @property combineErrors
      * @type Boolean
      * True to combine errors from the individual fields into a single error message at the CompositeField level (defaults to true)
      */
     combineErrors: true,
     
-    <div id="cfg-Ext.form.CompositeField-labelConnector"></div>/**
-     * @cfg {String} labelConnector The string to use when joining segments of the built label together (defaults to ', ')
+<span id='Ext-form-CompositeField-cfg-labelConnector'>    /**
+</span>     * @cfg {String} labelConnector The string to use when joining segments of the built label together (defaults to ', ')
      */
     labelConnector: ', ',
     
-    <div id="cfg-Ext.form.CompositeField-defaults"></div>/**
-     * @cfg {Object} defaults Any default properties to assign to the child fields.
+<span id='Ext-form-CompositeField-cfg-defaults'>    /**
+</span>     * @cfg {Object} defaults Any default properties to assign to the child fields.
      */
 
-    //inherit docs
-    //Builds the composite field label
+<span id='Ext-form-CompositeField-method-initComponent'>    //inherit docs
+</span>    //Builds the composite field label
     initComponent: function() {
         var labels = [],
             items  = this.items,
             item;
 
-        for (var i=0, j = items.length; i < j; i++) {
+        for (var i=0, j = items.length; i &lt; j; i++) {
             item = items[i];
             
             if (!Ext.isEmpty(item.ref)){
@@ -110,15 +113,15 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
             Ext.applyIf(item, this.defaults);
 
             //apply default margins to each item except the last
-            if (!(i == j - 1 && this.skipLastItemMargin)) {
+            if (!(i == j - 1 &amp;&amp; this.skipLastItemMargin)) {
                 Ext.applyIf(item, {margins: this.defaultMargins});
             }
         }
 
         this.fieldLabel = this.fieldLabel || this.buildLabel(labels);
 
-        <div id="prop-Ext.form.CompositeField-fieldErrors"></div>/**
-         * @property fieldErrors
+<span id='Ext-form-CompositeField-property-fieldErrors'>        /**
+</span>         * @property fieldErrors
          * @type Ext.util.MixedCollection
          * MixedCollection of current errors on the Composite's subfields. This is used internally to track when
          * to show and hide error messages at the Composite level. Listeners are attached to the MixedCollection's
@@ -144,14 +147,14 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
             defaultMargins: '0 3 0 0',
             ownerCt: this
         });
-        this.innerCt.ownerCt = undefined;
-        
+        delete this.innerCt.ownerCt;
+
         var fields = this.innerCt.findBy(function(c) {
             return c.isFormField;
         }, this);
 
-        <div id="prop-Ext.form.CompositeField-items"></div>/**
-         * @property items
+<span id='Ext-form-CompositeField-property-items'>        /**
+</span>         * @property items
          * @type Ext.util.MixedCollection
          * Internal collection of all of the subfields in this Composite
          */
@@ -160,19 +163,20 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-onRender'>    /**
+</span>     * @private
      * Creates an internal container using hbox and renders the fields to it
      */
     onRender: function(ct, position) {
         if (!this.el) {
-            <div id="prop-Ext.form.CompositeField-innerCt"></div>/**
-             * @property innerCt
+<span id='Ext-form-CompositeField-property-innerCt'>            /**
+</span>             * @property innerCt
              * @type Ext.Container
              * A container configured with hbox layout which is responsible for laying out the subfields
              */
             var innerCt = this.innerCt;
             innerCt.render(ct);
+            this.innerCt.ownerCt = this;
 
             this.el = innerCt.getEl();
 
@@ -197,8 +201,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         Ext.form.CompositeField.superclass.onRender.apply(this, arguments);
     },
 
-    <div id="method-Ext.form.CompositeField-onFieldMarkInvalid"></div>/**
-     * Called if combineErrors is true and a subfield's markInvalid method is called.
+<span id='Ext-form-CompositeField-method-onFieldMarkInvalid'>    /**
+</span>     * Called if combineErrors is true and a subfield's markInvalid method is called.
      * By default this just adds the subfield's error to the internal fieldErrors MixedCollection
      * @param {Ext.form.Field} field The field that was marked invalid
      * @param {String} message The error message
@@ -218,8 +222,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         }
     },
 
-    <div id="method-Ext.form.CompositeField-onFieldClearInvalid"></div>/**
-     * Called if combineErrors is true and a subfield's clearInvalid method is called.
+<span id='Ext-form-CompositeField-method-onFieldClearInvalid'>    /**
+</span>     * Called if combineErrors is true and a subfield's clearInvalid method is called.
      * By default this just updates the internal fieldErrors MixedCollection.
      * @param {Ext.form.Field} field The field that was marked invalid
      */
@@ -229,14 +233,14 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         field.el.removeClass(field.invalidClass);
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-updateInvalidMark'>    /**
+</span>     * @private
      * Called after a subfield is marked valid or invalid, this checks to see if any of the subfields are
      * currently invalid. If any subfields are invalid it builds a combined error message marks the composite
      * invalid, otherwise clearInvalid is called
      */
     updateInvalidMark: function() {
-        var ieStrict = Ext.isIE6 && Ext.isStrict;
+        var ieStrict = Ext.isIE6 &amp;&amp; Ext.isStrict;
 
         if (this.fieldErrors.length == 0) {
             this.clearInvalid();
@@ -258,8 +262,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         }
     },
 
-    <div id="method-Ext.form.CompositeField-validateValue"></div>/**
-     * Performs validation checks on each subfield and returns false if any of them fail validation.
+<span id='Ext-form-CompositeField-method-validateValue'>    /**
+</span>     * Performs validation checks on each subfield and returns false if any of them fail validation.
      * @return {Boolean} False if any subfield failed validation
      */
     validateValue: function(value, preventMark) {
@@ -274,8 +278,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         return valid;
     },
 
-    <div id="method-Ext.form.CompositeField-buildCombinedErrorMessage"></div>/**
-     * Takes an object containing error messages for contained fields, returning a combined error
+<span id='Ext-form-CompositeField-method-buildCombinedErrorMessage'>    /**
+</span>     * Takes an object containing error messages for contained fields, returning a combined error
      * string (defaults to just placing each item on a new line). This can be overridden to provide
      * custom combined error message handling.
      * @param {Array} errors Array of errors in format: [{field: 'title', error: 'some error'}]
@@ -285,24 +289,24 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         var combined = [],
             error;
 
-        for (var i = 0, j = errors.length; i < j; i++) {
+        for (var i = 0, j = errors.length; i &lt; j; i++) {
             error = errors[i];
 
-            combined.push(String.format("{0}: {1}", error.errorName, error.error));
+            combined.push(String.format(&quot;{0}: {1}&quot;, error.errorName, error.error));
         }
 
-        return combined.join("<br />");
+        return combined.join(&quot;&lt;br /&gt;&quot;);
     },
 
-    <div id="method-Ext.form.CompositeField-sortErrors"></div>/**
-     * Sorts the internal fieldErrors MixedCollection by the order in which the fields are defined.
+<span id='Ext-form-CompositeField-method-sortErrors'>    /**
+</span>     * Sorts the internal fieldErrors MixedCollection by the order in which the fields are defined.
      * This is called before displaying errors to ensure that the errors are presented in the expected order.
      * This function can be overridden to provide a custom sorting order if needed.
      */
     sortErrors: function() {
         var fields = this.items;
 
-        this.fieldErrors.sort("ASC", function(a, b) {
+        this.fieldErrors.sort(&quot;ASC&quot;, function(a, b) {
             var findByName = function(key) {
                 return function(field) {
                     return field.getName() == key;
@@ -312,12 +316,12 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
             var aIndex = fields.findIndexBy(findByName(a.field)),
                 bIndex = fields.findIndexBy(findByName(b.field));
 
-            return aIndex < bIndex ? -1 : 1;
+            return aIndex &lt; bIndex ? -1 : 1;
         });
     },
 
-    <div id="method-Ext.form.CompositeField-reset"></div>/**
-     * Resets each field in the composite to their previous value
+<span id='Ext-form-CompositeField-method-reset'>    /**
+</span>     * Resets each field in the composite to their previous value
      */
     reset: function() {
         this.eachItem(function(item) {
@@ -331,8 +335,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         }).defer(50, this);
     },
     
-    <div id="method-Ext.form.CompositeField-clearInvalidChildren"></div>/**
-     * Calls clearInvalid on all child fields. This is a convenience function and should not often need to be called
+<span id='Ext-form-CompositeField-method-clearInvalidChildren'>    /**
+</span>     * Calls clearInvalid on all child fields. This is a convenience function and should not often need to be called
      * as fields usually take care of clearing themselves
      */
     clearInvalidChildren: function() {
@@ -341,8 +345,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         });
     },
 
-    <div id="method-Ext.form.CompositeField-buildLabel"></div>/**
-     * Builds a label string from an array of subfield labels.
+<span id='Ext-form-CompositeField-method-buildLabel'>    /**
+</span>     * Builds a label string from an array of subfield labels.
      * By default this just joins the labels together with a comma
      * @param {Array} segments Array of each of the labels in the composite field's subfields
      * @return {String} The built label
@@ -351,8 +355,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         return Ext.clean(segments).join(this.labelConnector);
     },
 
-    <div id="method-Ext.form.CompositeField-isDirty"></div>/**
-     * Checks each field in the composite and returns true if any is dirty
+<span id='Ext-form-CompositeField-method-isDirty'>    /**
+</span>     * Checks each field in the composite and returns true if any is dirty
      * @return {Boolean} True if any field is dirty
      */
     isDirty: function(){
@@ -371,34 +375,34 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         return dirty;
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-eachItem'>    /**
+</span>     * @private
      * Convenience function which passes the given function to every item in the composite
      * @param {Function} fn The function to call
      * @param {Object} scope Optional scope object
      */
     eachItem: function(fn, scope) {
-        if(this.items && this.items.each){
+        if(this.items &amp;&amp; this.items.each){
             this.items.each(fn, scope || this);
         }
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-onResize'>    /**
+</span>     * @private
      * Passes the resize call through to the inner panel
      */
     onResize: function(adjWidth, adjHeight, rawWidth, rawHeight) {
         var innerCt = this.innerCt;
 
-        if (this.rendered && innerCt.rendered) {
+        if (this.rendered &amp;&amp; innerCt.rendered) {
             innerCt.setSize(adjWidth, adjHeight);
         }
 
         Ext.form.CompositeField.superclass.onResize.apply(this, arguments);
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-doLayout'>    /**
+</span>     * @private
      * Forces the internal container to be laid out again
      */
     doLayout: function(shallow, force) {
@@ -410,8 +414,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         }
     },
 
-    /**
-     * @private
+<span id='Ext-form-CompositeField-method-beforeDestroy'>    /**
+</span>     * @private
      */
     beforeDestroy: function(){
         Ext.destroy(this.innerCt);
@@ -419,8 +423,8 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         Ext.form.CompositeField.superclass.beforeDestroy.call(this);
     },
 
-    //override the behaviour to check sub items.
-    setReadOnly : function(readOnly) {
+<span id='Ext-form-CompositeField-method-setReadOnly'>    //override the behaviour to check sub items.
+</span>    setReadOnly : function(readOnly) {
         if (readOnly == undefined) {
             readOnly = true;
         }
@@ -434,26 +438,26 @@ Ext.form.CompositeField = Ext.extend(Ext.form.Field, {
         this.readOnly = readOnly;
     },
 
-    onShow : function() {
-        Ext.form.CompositeField.superclass.onShow.call(this);
+<span id='Ext-form-CompositeField-method-onShow'>    onShow : function() {
+</span>        Ext.form.CompositeField.superclass.onShow.call(this);
         this.doLayout();
     },
 
-    //override the behaviour to check sub items.
-    onDisable : function(){
+<span id='Ext-form-CompositeField-method-onDisable'>    //override the behaviour to check sub items.
+</span>    onDisable : function(){
         this.eachItem(function(item){
             item.disable();
         });
     },
 
-    //override the behaviour to check sub items.
-    onEnable : function(){
+<span id='Ext-form-CompositeField-method-onEnable'>    //override the behaviour to check sub items.
+</span>    onEnable : function(){
         this.eachItem(function(item){
             item.enable();
         });
     }
 });
 
-Ext.reg('compositefield', Ext.form.CompositeField);</pre>    
+Ext.reg('compositefield', Ext.form.CompositeField);</pre>
 </body>
 </html>

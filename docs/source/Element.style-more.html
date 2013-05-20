@@ -1,31 +1,34 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-/**
- * @class Ext.Element
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Element'>/**
+</span> * @class Ext.Element
  */
 
 // special markup used throughout Ext when box wrapping elements
-Ext.Element.boxMarkup = '<div class="{0}-tl"><div class="{0}-tr"><div class="{0}-tc"></div></div></div><div class="{0}-ml"><div class="{0}-mr"><div class="{0}-mc"></div></div></div><div class="{0}-bl"><div class="{0}-br"><div class="{0}-bc"></div></div></div>';
+Ext.Element.boxMarkup = '&lt;div class=&quot;{0}-tl&quot;&gt;&lt;div class=&quot;{0}-tr&quot;&gt;&lt;div class=&quot;{0}-tc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;{0}-ml&quot;&gt;&lt;div class=&quot;{0}-mr&quot;&gt;&lt;div class=&quot;{0}-mc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;{0}-bl&quot;&gt;&lt;div class=&quot;{0}-br&quot;&gt;&lt;div class=&quot;{0}-bc&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;';
 
 Ext.Element.addMethods(function(){
-    var INTERNAL = "_internal",
+    var INTERNAL = &quot;_internal&quot;,
         pxMatch = /(\d+\.?\d+)px/;
     return {
-        <div id="method-Ext.Element-applyStyles"></div>/**
-         * More flexible version of {@link #setStyle} for setting style properties.
-         * @param {String/Object/Function} styles A style specification string, e.g. "width:100px", or object in the form {width:"100px"}, or
+<span id='Ext-Element-method-applyStyles'>        /**
+</span>         * More flexible version of {@link #setStyle} for setting style properties.
+         * @param {String/Object/Function} styles A style specification string, e.g. &quot;width:100px&quot;, or object in the form {width:&quot;100px&quot;}, or
          * a function which returns such a specification.
          * @return {Ext.Element} this
          */
@@ -34,8 +37,8 @@ Ext.Element.addMethods(function(){
             return this;
         },
 
-        <div id="method-Ext.Element-getStyles"></div>/**
-         * Returns an object with properties matching the styles requested.
+<span id='Ext-Element-method-getStyles'>        /**
+</span>         * Returns an object with properties matching the styles requested.
          * For example, el.getStyles('color', 'font-size', 'width') might return
          * {'color': '#FFFFFF', 'font-size': '13px', 'width': '100px'}.
          * @param {String} style1 A style name
@@ -52,10 +55,10 @@ Ext.Element.addMethods(function(){
             return ret;
         },
 
-        // private  ==> used by ext full
+        // private  ==&gt; used by ext full
         setOverflow : function(v){
             var dom = this.dom;
-            if(v=='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
+            if(v=='auto' &amp;&amp; Ext.isMac &amp;&amp; Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
                 dom.style.overflow = 'hidden';
                 (function(){dom.style.overflow = 'auto';}).defer(1);
             }else{
@@ -63,52 +66,52 @@ Ext.Element.addMethods(function(){
             }
         },
 
-       <div id="method-Ext.Element-boxWrap"></div>/**
-        * <p>Wraps the specified element with a special 9 element markup/CSS block that renders by default as
-        * a gray container with a gradient background, rounded corners and a 4-way shadow.</p>
-        * <p>This special markup is used throughout Ext when box wrapping elements ({@link Ext.Button},
-        * {@link Ext.Panel} when <tt>{@link Ext.Panel#frame frame=true}</tt>, {@link Ext.Window}).  The markup
-        * is of this form:</p>
-        * <pre><code>
+<span id='Ext-Element-method-boxWrap'>       /**
+</span>        * &lt;p&gt;Wraps the specified element with a special 9 element markup/CSS block that renders by default as
+        * a gray container with a gradient background, rounded corners and a 4-way shadow.&lt;/p&gt;
+        * &lt;p&gt;This special markup is used throughout Ext when box wrapping elements ({@link Ext.Button},
+        * {@link Ext.Panel} when &lt;tt&gt;{@link Ext.Panel#frame frame=true}&lt;/tt&gt;, {@link Ext.Window}).  The markup
+        * is of this form:&lt;/p&gt;
+        * &lt;pre&gt;&lt;code&gt;
     Ext.Element.boxMarkup =
-    &#39;&lt;div class="{0}-tl">&lt;div class="{0}-tr">&lt;div class="{0}-tc">&lt;/div>&lt;/div>&lt;/div>
-     &lt;div class="{0}-ml">&lt;div class="{0}-mr">&lt;div class="{0}-mc">&lt;/div>&lt;/div>&lt;/div>
-     &lt;div class="{0}-bl">&lt;div class="{0}-br">&lt;div class="{0}-bc">&lt;/div>&lt;/div>&lt;/div>&#39;;
-        * </code></pre>
-        * <p>Example usage:</p>
-        * <pre><code>
+    &amp;#39;&amp;lt;div class=&quot;{0}-tl&quot;&gt;&amp;lt;div class=&quot;{0}-tr&quot;&gt;&amp;lt;div class=&quot;{0}-tc&quot;&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;
+     &amp;lt;div class=&quot;{0}-ml&quot;&gt;&amp;lt;div class=&quot;{0}-mr&quot;&gt;&amp;lt;div class=&quot;{0}-mc&quot;&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;
+     &amp;lt;div class=&quot;{0}-bl&quot;&gt;&amp;lt;div class=&quot;{0}-br&quot;&gt;&amp;lt;div class=&quot;{0}-bc&quot;&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;&amp;lt;/div&gt;&amp;#39;;
+        * &lt;/code&gt;&lt;/pre&gt;
+        * &lt;p&gt;Example usage:&lt;/p&gt;
+        * &lt;pre&gt;&lt;code&gt;
     // Basic box wrap
-    Ext.get("foo").boxWrap();
+    Ext.get(&quot;foo&quot;).boxWrap();
 
     // You can also add a custom class and use CSS inheritance rules to customize the box look.
     // 'x-box-blue' is a built-in alternative -- look at the related CSS definitions as an example
     // for how to create a custom box wrap style.
-    Ext.get("foo").boxWrap().addClass("x-box-blue");
-        * </code></pre>
+    Ext.get(&quot;foo&quot;).boxWrap().addClass(&quot;x-box-blue&quot;);
+        * &lt;/code&gt;&lt;/pre&gt;
         * @param {String} class (optional) A base CSS class to apply to the containing wrapper element
-        * (defaults to <tt>'x-box'</tt>). Note that there are a number of CSS rules that are dependent on
+        * (defaults to &lt;tt&gt;'x-box'&lt;/tt&gt;). Note that there are a number of CSS rules that are dependent on
         * this name to make the overall effect work, so if you supply an alternate base class, make sure you
         * also supply all of the necessary rules.
         * @return {Ext.Element} The outermost wrapping element of the created box structure.
         */
         boxWrap : function(cls){
             cls = cls || 'x-box';
-            var el = Ext.get(this.insertHtml("beforeBegin", "<div class='" + cls + "'>" + String.format(Ext.Element.boxMarkup, cls) + "</div>"));        //String.format('<div class="{0}">'+Ext.Element.boxMarkup+'</div>', cls)));
+            var el = Ext.get(this.insertHtml(&quot;beforeBegin&quot;, &quot;&lt;div class='&quot; + cls + &quot;'&gt;&quot; + String.format(Ext.Element.boxMarkup, cls) + &quot;&lt;/div&gt;&quot;));        //String.format('&lt;div class=&quot;{0}&quot;&gt;'+Ext.Element.boxMarkup+'&lt;/div&gt;', cls)));
             Ext.DomQuery.selectNode('.' + cls + '-mc', el.dom).appendChild(this.dom);
             return el;
         },
 
-        <div id="method-Ext.Element-setSize"></div>/**
-         * Set the size of this Element. If animation is true, both width and height will be animated concurrently.
-         * @param {Mixed} width The new width. This may be one of:<div class="mdetail-params"><ul>
-         * <li>A Number specifying the new width in this Element's {@link #defaultUnit}s (by default, pixels).</li>
-         * <li>A String used to set the CSS width style. Animation may <b>not</b> be used.
-         * <li>A size object in the format <code>{width: widthValue, height: heightValue}</code>.</li>
-         * </ul></div>
-         * @param {Mixed} height The new height. This may be one of:<div class="mdetail-params"><ul>
-         * <li>A Number specifying the new height in this Element's {@link #defaultUnit}s (by default, pixels).</li>
-         * <li>A String used to set the CSS height style. Animation may <b>not</b> be used.</li>
-         * </ul></div>
+<span id='Ext-Element-method-setSize'>        /**
+</span>         * Set the size of this Element. If animation is true, both width and height will be animated concurrently.
+         * @param {Mixed} width The new width. This may be one of:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+         * &lt;li&gt;A Number specifying the new width in this Element's {@link #defaultUnit}s (by default, pixels).&lt;/li&gt;
+         * &lt;li&gt;A String used to set the CSS width style. Animation may &lt;b&gt;not&lt;/b&gt; be used.
+         * &lt;li&gt;A size object in the format &lt;code&gt;{width: widthValue, height: heightValue}&lt;/code&gt;.&lt;/li&gt;
+         * &lt;/ul&gt;&lt;/div&gt;
+         * @param {Mixed} height The new height. This may be one of:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+         * &lt;li&gt;A Number specifying the new height in this Element's {@link #defaultUnit}s (by default, pixels).&lt;/li&gt;
+         * &lt;li&gt;A String used to set the CSS height style. Animation may &lt;b&gt;not&lt;/b&gt; be used.&lt;/li&gt;
+         * &lt;/ul&gt;&lt;/div&gt;
          * @param {Boolean/Object} animate (optional) true for the default animation or a standard Element animation config object
          * @return {Ext.Element} this
          */
@@ -129,8 +132,8 @@ Ext.Element.addMethods(function(){
             return me;
         },
 
-        <div id="method-Ext.Element-getComputedHeight"></div>/**
-         * Returns either the offsetHeight or the height of this element based on CSS height adjusted by padding or borders
+<span id='Ext-Element-method-getComputedHeight'>        /**
+</span>         * Returns either the offsetHeight or the height of this element based on CSS height adjusted by padding or borders
          * when needed to simulate offsetHeight when offsets aren't available. This may not work on display:none elements
          * if a height has not been set using CSS.
          * @return {Number}
@@ -147,8 +150,8 @@ Ext.Element.addMethods(function(){
             return h;
         },
 
-        <div id="method-Ext.Element-getComputedWidth"></div>/**
-         * Returns either the offsetWidth or the width of this element based on CSS width adjusted by padding or borders
+<span id='Ext-Element-method-getComputedWidth'>        /**
+</span>         * Returns either the offsetWidth or the width of this element based on CSS width adjusted by padding or borders
          * when needed to simulate offsetWidth when offsets aren't available. This may not work on display:none elements
          * if a width has not been set using CSS.
          * @return {Number}
@@ -164,18 +167,18 @@ Ext.Element.addMethods(function(){
             return w;
         },
 
-        <div id="method-Ext.Element-getFrameWidth"></div>/**
-         * Returns the sum width of the padding and borders for the passed "sides". See getBorderWidth()
+<span id='Ext-Element-method-getFrameWidth'>        /**
+</span>         * Returns the sum width of the padding and borders for the passed &quot;sides&quot;. See getBorderWidth()
          for more information about the sides.
          * @param {String} sides
          * @return {Number}
          */
         getFrameWidth : function(sides, onlyContentBox){
-            return onlyContentBox && this.isBorderBox() ? 0 : (this.getPadding(sides) + this.getBorderWidth(sides));
+            return onlyContentBox &amp;&amp; this.isBorderBox() ? 0 : (this.getPadding(sides) + this.getBorderWidth(sides));
         },
 
-        <div id="method-Ext.Element-addClassOnOver"></div>/**
-         * Sets up event handlers to add and remove a css class when the mouse is over this element
+<span id='Ext-Element-method-addClassOnOver'>        /**
+</span>         * Sets up event handlers to add and remove a css class when the mouse is over this element
          * @param {String} className
          * @return {Ext.Element} this
          */
@@ -191,44 +194,44 @@ Ext.Element.addMethods(function(){
             return this;
         },
 
-        <div id="method-Ext.Element-addClassOnFocus"></div>/**
-         * Sets up event handlers to add and remove a css class when this element has the focus
+<span id='Ext-Element-method-addClassOnFocus'>        /**
+</span>         * Sets up event handlers to add and remove a css class when this element has the focus
          * @param {String} className
          * @return {Ext.Element} this
          */
         addClassOnFocus : function(className){
-            this.on("focus", function(){
+            this.on(&quot;focus&quot;, function(){
                 Ext.fly(this, INTERNAL).addClass(className);
             }, this.dom);
-            this.on("blur", function(){
+            this.on(&quot;blur&quot;, function(){
                 Ext.fly(this, INTERNAL).removeClass(className);
             }, this.dom);
             return this;
         },
 
-        <div id="method-Ext.Element-addClassOnClick"></div>/**
-         * Sets up event handlers to add and remove a css class when the mouse is down and then up on this element (a click effect)
+<span id='Ext-Element-method-addClassOnClick'>        /**
+</span>         * Sets up event handlers to add and remove a css class when the mouse is down and then up on this element (a click effect)
          * @param {String} className
          * @return {Ext.Element} this
          */
         addClassOnClick : function(className){
             var dom = this.dom;
-            this.on("mousedown", function(){
+            this.on(&quot;mousedown&quot;, function(){
                 Ext.fly(dom, INTERNAL).addClass(className);
                 var d = Ext.getDoc(),
                     fn = function(){
                         Ext.fly(dom, INTERNAL).removeClass(className);
-                        d.removeListener("mouseup", fn);
+                        d.removeListener(&quot;mouseup&quot;, fn);
                     };
-                d.on("mouseup", fn);
+                d.on(&quot;mouseup&quot;, fn);
             });
             return this;
         },
 
-        <div id="method-Ext.Element-getViewSize"></div>/**
-         * <p>Returns the dimensions of the element available to lay content out in.<p>
-         * <p>If the element (or any ancestor element) has CSS style <code>display : none</code>, the dimensions will be zero.</p>
-         * example:<pre><code>
+<span id='Ext-Element-method-getViewSize'>        /**
+</span>         * &lt;p&gt;Returns the dimensions of the element available to lay content out in.&lt;p&gt;
+         * &lt;p&gt;If the element (or any ancestor element) has CSS style &lt;code&gt;display : none&lt;/code&gt;, the dimensions will be zero.&lt;/p&gt;
+         * example:&lt;pre&gt;&lt;code&gt;
         var vpSize = Ext.getBody().getViewSize();
 
         // all Windows created afterwards will have a default value of 90% height and 95% width
@@ -237,7 +240,7 @@ Ext.Element.addMethods(function(){
             height: vpSize.height * 0.95
         });
         // To handle window resizing you would have to hook onto onWindowResize.
-        * </code></pre>
+        * &lt;/code&gt;&lt;/pre&gt;
         *
         * getViewSize utilizes clientHeight/clientWidth which excludes sizing of scrollbars.
         * To obtain the size including scrollbars, use getStyleSize
@@ -267,8 +270,8 @@ Ext.Element.addMethods(function(){
             }
         },
 
-        <div id="method-Ext.Element-getStyleSize"></div>/**
-        * <p>Returns the dimensions of the element available to lay content out in.<p>
+<span id='Ext-Element-method-getStyleSize'>        /**
+</span>        * &lt;p&gt;Returns the dimensions of the element available to lay content out in.&lt;p&gt;
         *
         * getStyleSize utilizes prefers style sizing if present, otherwise it chooses the larger of offsetHeight/clientHeight and offsetWidth/clientWidth.
         * To obtain the size excluding scrollbars, use getViewSize
@@ -293,14 +296,14 @@ Ext.Element.addMethods(function(){
                 };
             }
             // Use Styles if they are set
-            if(s.width && s.width != 'auto'){
+            if(s.width &amp;&amp; s.width != 'auto'){
                 w = parseFloat(s.width);
                 if(me.isBorderBox()){
                    w -= me.getFrameWidth('lr');
                 }
             }
             // Use Styles if they are set
-            if(s.height && s.height != 'auto'){
+            if(s.height &amp;&amp; s.height != 'auto'){
                 h = parseFloat(s.height);
                 if(me.isBorderBox()){
                    h -= me.getFrameWidth('tb');
@@ -310,8 +313,8 @@ Ext.Element.addMethods(function(){
             return {width: w || me.getWidth(true), height: h || me.getHeight(true)};
         },
 
-        <div id="method-Ext.Element-getSize"></div>/**
-         * Returns the size of the element.
+<span id='Ext-Element-method-getSize'>        /**
+</span>         * Returns the size of the element.
          * @param {Boolean} contentSize (optional) true to get the width/size minus borders and padding
          * @return {Object} An object containing the element's size {width: (element width), height: (element height)}
          */
@@ -319,32 +322,31 @@ Ext.Element.addMethods(function(){
             return {width: this.getWidth(contentSize), height: this.getHeight(contentSize)};
         },
 
-        <div id="method-Ext.Element-repaint"></div>/**
-         * Forces the browser to repaint this element
+<span id='Ext-Element-method-repaint'>        /**
+</span>         * Forces the browser to repaint this element
          * @return {Ext.Element} this
          */
         repaint : function(){
             var dom = this.dom;
-            this.addClass("x-repaint");
+            this.addClass(&quot;x-repaint&quot;);
             setTimeout(function(){
-                Ext.fly(dom).removeClass("x-repaint");
+                Ext.fly(dom).removeClass(&quot;x-repaint&quot;);
             }, 1);
             return this;
         },
 
-        <div id="method-Ext.Element-unselectable"></div>/**
-         * Disables text selection for this element (normalized across browsers)
+<span id='Ext-Element-method-unselectable'>        /**
+</span>         * Disables text selection for this element (normalized across browsers)
          * @return {Ext.Element} this
          */
         unselectable : function(){
-            this.dom.unselectable = "on";
-            return this.swallowEvent("selectstart", true).
-                        applyStyles("-moz-user-select:none;-khtml-user-select:none;").
-                        addClass("x-unselectable");
+            this.dom.unselectable = &quot;on&quot;;
+            return this.swallowEvent(&quot;selectstart&quot;, true).
+                        addClass(&quot;x-unselectable&quot;);
         },
 
-        <div id="method-Ext.Element-getMargins"></div>/**
-         * Returns an object with properties top, left, right and bottom representing the margins of this element unless sides is passed,
+<span id='Ext-Element-method-getMargins'>        /**
+</span>         * Returns an object with properties top, left, right and bottom representing the margins of this element unless sides is passed,
          * then it returns the calculated width of the sides (see getPadding)
          * @param {String} sides (optional) Any combination of l, r, t, b to get the sum of those sides
          * @return {Object/Number}
@@ -352,7 +354,7 @@ Ext.Element.addMethods(function(){
         getMargins : function(side){
             var me = this,
                 key,
-                hash = {t:"top", l:"left", r:"right", b: "bottom"},
+                hash = {t:&quot;top&quot;, l:&quot;left&quot;, r:&quot;right&quot;, b: &quot;bottom&quot;},
                 o = {};
 
             if (!side) {
@@ -366,6 +368,6 @@ Ext.Element.addMethods(function(){
         }
     };
 }());
-</pre>    
+</pre>
 </body>
 </html>

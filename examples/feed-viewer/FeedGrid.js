@@ -1,68 +1,84 @@
-/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-FeedGrid = function(viewer, config) {
-    this.viewer = viewer;
-    Ext.apply(this, config);
+/*
+This file is part of Ext JS 3.4
 
-    this.store = new Ext.data.Store({
-        proxy: new Ext.data.HttpProxy({
-            url: 'feed-proxy.php'
-        }),
+Copyright (c) 2011-2013 Sencha Inc
 
-        reader: new Ext.data.XmlReader(
-            {record: 'item'},
-            ['title', 'author', {name:'pubDate', type:'date'}, 'link', 'description', 'content']
-        )
-    });
-    this.store.setDefaultSort('pubDate', "DESC");
+Contact:  http://www.sencha.com/contact
 
-    this.columns = [{
-        id: 'title',
-        header: "Title",
-        dataIndex: 'title',
-        sortable:true,
-        width: 420,
-        renderer: this.formatTitle
-      },{
-        header: "Author",
-        dataIndex: 'author',
-        width: 100,
-        hidden: true,
-        sortable:true
-      },{
-        id: 'last',
-        header: "Date",
-        dataIndex: 'pubDate',
-        width: 150,
-        renderer:  this.formatDate,
-        sortable:true
-    }];
+GNU General Public License Usage
+This file may be used under the terms of the GNU General Public License version 3.0 as
+published by the Free Software Foundation and appearing in the file LICENSE included in the
+packaging of this file.
 
-    FeedGrid.superclass.constructor.call(this, {
-        region: 'center',
-        id: 'topic-grid',
-        loadMask: {msg:'Loading Feed...'},
+Please review the following information to ensure the GNU General Public License version 3.0
+requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 
-        sm: new Ext.grid.RowSelectionModel({
-            singleSelect:true
-        }),
+If you are unsure which license is appropriate for your use, please contact the sales department
+at http://www.sencha.com/contact.
 
-        viewConfig: {
-            forceFit:true,
-            enableRowBody:true,
-            showPreview:true,
-            getRowClass : this.applyRowClass
-        }
-    });
+Build date: 2013-04-03 15:07:25
+*/
+Ext.define('FeedGrid', {
+    extend: 'Ext.grid.GridPanel',
+    
+    xtype: 'appfeedgrid',
+    
+    constructor: function(config) {
+        Ext.apply(this, config);
 
-    this.on('rowcontextmenu', this.onContextClick, this);
-};
+        this.store = new Ext.data.Store({
+            proxy: new Ext.data.HttpProxy({
+                url: 'feed-proxy.php'
+            }),
 
-Ext.extend(FeedGrid, Ext.grid.GridPanel, {
+            reader: new Ext.data.XmlReader(
+                {record: 'item'},
+                ['title', 'author', {name:'pubDate', type:'date'}, 'link', 'description', 'content']
+            )
+        });
+        this.store.setDefaultSort('pubDate', "DESC");
+
+        this.columns = [{
+            id: 'title',
+            header: "Title",
+            dataIndex: 'title',
+            sortable:true,
+            width: 420,
+            renderer: this.formatTitle
+        },{
+            header: "Author",
+            dataIndex: 'author',
+            width: 100,
+            hidden: true,
+            sortable:true
+        },{
+            id: 'last',
+            header: "Date",
+            dataIndex: 'pubDate',
+            width: 150,
+            renderer:  this.formatDate,
+            sortable:true
+        }];
+
+        this.callParent([{
+            region: 'center',
+            id: 'topic-grid',
+            loadMask: {msg:'Loading Feed...'},
+
+            sm: new Ext.grid.RowSelectionModel({
+                singleSelect:true
+            }),
+
+            viewConfig: {
+                forceFit:true,
+                enableRowBody:true,
+                showPreview:true,
+                getRowClass : this.applyRowClass
+            }
+        }]);
+
+        this.on('rowcontextmenu', this.onContextClick, this);
+    },
 
     onContextClick : function(grid, index, e){
         if(!this.menu){ // create context menu on first right click
@@ -158,5 +174,3 @@ Ext.extend(FeedGrid, Ext.grid.GridPanel, {
                 );
     }
 });
-
-Ext.reg('appfeedgrid', FeedGrid);

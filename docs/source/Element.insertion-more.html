@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-/**
- * @class Ext.Element
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Element'>/**
+</span> * @class Ext.Element
  */
 Ext.apply(Ext.Element.prototype, function() {
 	var GETDOM = Ext.getDom,
@@ -21,8 +24,8 @@ Ext.apply(Ext.Element.prototype, function() {
 		DH = Ext.DomHelper;
 	
 	return {	
-		<div id="method-Ext.Element-insertSibling"></div>/**
-	     * Inserts (or creates) the passed element (or DomHelper config) as a sibling of this element
+<span id='Ext-Element-method-insertSibling'>		/**
+</span>	     * Inserts (or creates) the passed element (or DomHelper config) as a sibling of this element
 	     * @param {Mixed/Object/Array} el The id, element to insert or a DomHelper config to create and insert *or* an array of any of those.
 	     * @param {String} where (optional) 'before' or 'after' defaults to before
 	     * @param {Boolean} returnDom (optional) True to return the raw DOM element instead of Ext.Element
@@ -53,7 +56,7 @@ Ext.apply(Ext.Element.prototype, function() {
                     rt = GET(rt);
                 }
             }else{
-                if (isAfter && !me.dom.nextSibling) {
+                if (isAfter &amp;&amp; !me.dom.nextSibling) {
                     rt = DH.append(me.dom.parentNode, el, !returnDom);
                 } else {                    
                     rt = DH[isAfter ? 'insertAfter' : 'insertBefore'](me.dom, el, !returnDom);
@@ -62,6 +65,6 @@ Ext.apply(Ext.Element.prototype, function() {
 	        return rt;
 	    }
     };
-}());</pre>    
+}());</pre>
 </body>
 </html>

@@ -1,26 +1,29 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Date"></div>/**
- * @class Date
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Date'>/**
+</span> * @class Date
  *
  * The date parsing and formatting syntax contains a subset of
- * <a href="http://www.php.net/date">PHP's date() function</a>, and the formats that are
+ * &lt;a href=&quot;http://www.php.net/date&quot;&gt;PHP's date() function&lt;/a&gt;, and the formats that are
  * supported will provide results equivalent to their PHP versions.
  *
  * The following is a list of all currently supported formats:
- * <pre>
+ * &lt;pre&gt;
 Format  Description                                                               Example returned values
 ------  -----------------------------------------------------------------------   -----------------------
   d     Day of the month, 2 digits with leading zeros                             01 to 31
@@ -64,7 +67,7 @@ Format  Description                                                             
         1) If unspecified, the month / day defaults to the current month / day,   1991 or
            the time defaults to midnight, while the timezone defaults to the      1992-10 or
            browser's timezone. If a time is specified, it must include both hours 1993-09-20 or
-           and minutes. The "T" delimiter, seconds, milliseconds and timezone     1994-08-19T16:20+01:00 or
+           and minutes. The &quot;T&quot; delimiter, seconds, milliseconds and timezone     1994-08-19T16:20+01:00 or
            are optional.                                                          1995-07-18T17:21:28-02:00 or
         2) The decimal fraction of a second, if specified, must contain at        1996-06-17T18:22:29.98765+03:00 or
            least 1 digit (there is no limit to the maximum number                 1997-05-16T19:23:30,12345-0400 or
@@ -75,10 +78,10 @@ Format  Description                                                             
   U     Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)                1193432466 or -2138434463
   M$    Microsoft AJAX serialized dates                                           \/Date(1238606590509)\/ (i.e. UTC milliseconds since epoch) or
                                                                                   \/Date(1238606590509+0800)\/
-</pre>
+&lt;/pre&gt;
  *
  * Example usage (note that you must escape format specifiers with '\\' to render them as character literals):
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 // Sample date:
 // 'Wed Jan 10 2007 15:05:01 GMT-0600 (Central Standard Time)'
 
@@ -86,35 +89,35 @@ var dt = new Date('1/10/2007 03:05:01 PM GMT-0600');
 document.write(dt.format('Y-m-d'));                           // 2007-01-10
 document.write(dt.format('F j, Y, g:i a'));                   // January 10, 2007, 3:05 pm
 document.write(dt.format('l, \\t\\he jS \\of F Y h:i:s A'));  // Wednesday, the 10th of January 2007 03:05:01 PM
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  *
  * Here are some standard date/time patterns that you might find helpful.  They
  * are not part of the source of Date.js, but to use them you can simply copy this
  * block of code into any script that is included after Date.js and they will also become
  * globally available on the Date object.  Feel free to add or remove patterns as needed in your code.
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 Date.patterns = {
-    ISO8601Long:"Y-m-d H:i:s",
-    ISO8601Short:"Y-m-d",
-    ShortDate: "n/j/Y",
-    LongDate: "l, F d, Y",
-    FullDateTime: "l, F d, Y g:i:s A",
-    MonthDay: "F d",
-    ShortTime: "g:i A",
-    LongTime: "g:i:s A",
-    SortableDateTime: "Y-m-d\\TH:i:s",
-    UniversalSortableDateTime: "Y-m-d H:i:sO",
-    YearMonth: "F, Y"
+    ISO8601Long:&quot;Y-m-d H:i:s&quot;,
+    ISO8601Short:&quot;Y-m-d&quot;,
+    ShortDate: &quot;n/j/Y&quot;,
+    LongDate: &quot;l, F d, Y&quot;,
+    FullDateTime: &quot;l, F d, Y g:i:s A&quot;,
+    MonthDay: &quot;F d&quot;,
+    ShortTime: &quot;g:i A&quot;,
+    LongTime: &quot;g:i:s A&quot;,
+    SortableDateTime: &quot;Y-m-d\\TH:i:s&quot;,
+    UniversalSortableDateTime: &quot;Y-m-d H:i:sO&quot;,
+    YearMonth: &quot;F, Y&quot;
 };
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  *
  * Example usage:
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 var dt = new Date();
 document.write(dt.format(Date.patterns.ShortDate));
-</code></pre>
- * <p>Developer-written, custom formats may be used by supplying both a formatting and a parsing function
- * which perform to specialized requirements. The functions are stored in {@link #parseFunctions} and {@link #formatFunctions}.</p>
+&lt;/code&gt;&lt;/pre&gt;
+ * &lt;p&gt;Developer-written, custom formats may be used by supplying both a formatting and a parsing function
+ * which perform to specialized requirements. The functions are stored in {@link #parseFunctions} and {@link #formatFunctions}.&lt;/p&gt;
  */
 
 /*
@@ -127,12 +130,12 @@ document.write(dt.format(Date.patterns.ShortDate));
 
 (function() {
 
-<div id="prop-Date-useStrict"></div>/**
- * Global flag which determines if strict date parsing should be used.
+<span id='Date-static-property-useStrict'>/**
+</span> * Global flag which determines if strict date parsing should be used.
  * Strict date parsing will not roll-over invalid dates, which is the
  * default behaviour of javascript Date objects.
  * (see {@link #parseDate} for more information)
- * Defaults to <tt>false</tt>.
+ * Defaults to &lt;tt&gt;false&lt;/tt&gt;.
  * @static
  * @type Boolean
 */
@@ -161,7 +164,7 @@ Date.formatCodeToRegex = function(character, currentGroup) {
     }
 
     return p ? Ext.applyIf({
-      c: p.c ? xf(p.c, currentGroup || "{0}") : p.c
+      c: p.c ? xf(p.c, currentGroup || &quot;{0}&quot;) : p.c
     }, p) : {
         g:0,
         c:null,
@@ -173,30 +176,30 @@ Date.formatCodeToRegex = function(character, currentGroup) {
 var $f = Date.formatCodeToRegex;
 
 Ext.apply(Date, {
-    <div id="prop-Date-parseFunctions"></div>/**
-     * <p>An object hash in which each property is a date parsing function. The property name is the
-     * format string which that function parses.</p>
-     * <p>This object is automatically populated with date parsing functions as
-     * date formats are requested for Ext standard formatting strings.</p>
-     * <p>Custom parsing functions may be inserted into this object, keyed by a name which from then on
-     * may be used as a format string to {@link #parseDate}.<p>
-     * <p>Example:</p><pre><code>
+<span id='Date-static-property-parseFunctions'>    /**
+</span>     * &lt;p&gt;An object hash in which each property is a date parsing function. The property name is the
+     * format string which that function parses.&lt;/p&gt;
+     * &lt;p&gt;This object is automatically populated with date parsing functions as
+     * date formats are requested for Ext standard formatting strings.&lt;/p&gt;
+     * &lt;p&gt;Custom parsing functions may be inserted into this object, keyed by a name which from then on
+     * may be used as a format string to {@link #parseDate}.&lt;p&gt;
+     * &lt;p&gt;Example:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
 Date.parseFunctions['x-date-format'] = myDateParser;
-</code></pre>
-     * <p>A parsing function should return a Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
-     * <li><code>date</code> : String<div class="sub-desc">The date string to parse.</div></li>
-     * <li><code>strict</code> : Boolean<div class="sub-desc">True to validate date strings while parsing
-     * (i.e. prevent javascript Date "rollover") (The default must be false).
-     * Invalid date strings should return null when parsed.</div></li>
-     * </ul></div></p>
-     * <p>To enable Dates to also be <i>formatted</i> according to that format, a corresponding
+&lt;/code&gt;&lt;/pre&gt;
+     * &lt;p&gt;A parsing function should return a Date object, and is passed the following parameters:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;date&lt;/code&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The date string to parse.&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;strict&lt;/code&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;True to validate date strings while parsing
+     * (i.e. prevent javascript Date &quot;rollover&quot;) (The default must be false).
+     * Invalid date strings should return null when parsed.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;&lt;/p&gt;
+     * &lt;p&gt;To enable Dates to also be &lt;i&gt;formatted&lt;/i&gt; according to that format, a corresponding
      * formatting function must be placed into the {@link #formatFunctions} property.
      * @property parseFunctions
      * @static
      * @type Object
      */
     parseFunctions: {
-        "M$": function(input, strict) {
+        &quot;M$&quot;: function(input, strict) {
             // note: the timezone offset is ignored since the M$ Ajax server sends
             // a UTC milliseconds-since-Unix-epoch value (negative values are allowed)
             var re = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/');
@@ -206,26 +209,26 @@ Date.parseFunctions['x-date-format'] = myDateParser;
     },
     parseRegexes: [],
 
-    <div id="prop-Date-formatFunctions"></div>/**
-     * <p>An object hash in which each property is a date formatting function. The property name is the
-     * format string which corresponds to the produced formatted date string.</p>
-     * <p>This object is automatically populated with date formatting functions as
-     * date formats are requested for Ext standard formatting strings.</p>
-     * <p>Custom formatting functions may be inserted into this object, keyed by a name which from then on
-     * may be used as a format string to {@link #format}. Example:</p><pre><code>
+<span id='Date-static-property-formatFunctions'>    /**
+</span>     * &lt;p&gt;An object hash in which each property is a date formatting function. The property name is the
+     * format string which corresponds to the produced formatted date string.&lt;/p&gt;
+     * &lt;p&gt;This object is automatically populated with date formatting functions as
+     * date formats are requested for Ext standard formatting strings.&lt;/p&gt;
+     * &lt;p&gt;Custom formatting functions may be inserted into this object, keyed by a name which from then on
+     * may be used as a format string to {@link #format}. Example:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
 Date.formatFunctions['x-date-format'] = myDateFormatter;
-</code></pre>
-     * <p>A formatting function should return a string representation of the passed Date object, and is passed the following parameters:<div class="mdetail-params"><ul>
-     * <li><code>date</code> : Date<div class="sub-desc">The Date to format.</div></li>
-     * </ul></div></p>
-     * <p>To enable date strings to also be <i>parsed</i> according to that format, a corresponding
+&lt;/code&gt;&lt;/pre&gt;
+     * &lt;p&gt;A formatting function should return a string representation of the passed Date object, and is passed the following parameters:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;date&lt;/code&gt; : Date&lt;div class=&quot;sub-desc&quot;&gt;The Date to format.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;&lt;/p&gt;
+     * &lt;p&gt;To enable date strings to also be &lt;i&gt;parsed&lt;/i&gt; according to that format, a corresponding
      * parsing function must be placed into the {@link #parseFunctions} property.
      * @property formatFunctions
      * @static
      * @type Object
      */
     formatFunctions: {
-        "M$": function() {
+        &quot;M$&quot;: function() {
             // UTC milliseconds since Unix epoch (M$-AJAX serialized date format (MRSF))
             return '\\/Date(' + this.getTime() + ')\\/';
         }
@@ -233,71 +236,71 @@ Date.formatFunctions['x-date-format'] = myDateFormatter;
 
     y2kYear : 50,
 
-    <div id="prop-Date-MILLI"></div>/**
-     * Date interval constant
+<span id='Date-static-property-MILLI'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    MILLI : "ms",
+    MILLI : &quot;ms&quot;,
 
-    <div id="prop-Date-SECOND"></div>/**
-     * Date interval constant
+<span id='Date-static-property-SECOND'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    SECOND : "s",
+    SECOND : &quot;s&quot;,
 
-    <div id="prop-Date-MINUTE"></div>/**
-     * Date interval constant
+<span id='Date-static-property-MINUTE'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    MINUTE : "mi",
+    MINUTE : &quot;mi&quot;,
 
-    <div id="prop-Date-HOUR"></div>/** Date interval constant
+<span id='Date-static-property-HOUR'>    /** Date interval constant
+</span>     * @static
+     * @type String
+     */
+    HOUR : &quot;h&quot;,
+
+<span id='Date-static-property-DAY'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    HOUR : "h",
+    DAY : &quot;d&quot;,
 
-    <div id="prop-Date-DAY"></div>/**
-     * Date interval constant
+<span id='Date-static-property-MONTH'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    DAY : "d",
+    MONTH : &quot;mo&quot;,
 
-    <div id="prop-Date-MONTH"></div>/**
-     * Date interval constant
+<span id='Date-static-property-YEAR'>    /**
+</span>     * Date interval constant
      * @static
      * @type String
      */
-    MONTH : "mo",
+    YEAR : &quot;y&quot;,
 
-    <div id="prop-Date-YEAR"></div>/**
-     * Date interval constant
-     * @static
-     * @type String
-     */
-    YEAR : "y",
-
-    <div id="prop-Date-defaults"></div>/**
-     * <p>An object hash containing default date values used during date parsing.</p>
-     * <p>The following properties are available:<div class="mdetail-params"><ul>
-     * <li><code>y</code> : Number<div class="sub-desc">The default year value. (defaults to undefined)</div></li>
-     * <li><code>m</code> : Number<div class="sub-desc">The default 1-based month value. (defaults to undefined)</div></li>
-     * <li><code>d</code> : Number<div class="sub-desc">The default day value. (defaults to undefined)</div></li>
-     * <li><code>h</code> : Number<div class="sub-desc">The default hour value. (defaults to undefined)</div></li>
-     * <li><code>i</code> : Number<div class="sub-desc">The default minute value. (defaults to undefined)</div></li>
-     * <li><code>s</code> : Number<div class="sub-desc">The default second value. (defaults to undefined)</div></li>
-     * <li><code>ms</code> : Number<div class="sub-desc">The default millisecond value. (defaults to undefined)</div></li>
-     * </ul></div></p>
-     * <p>Override these properties to customize the default date values used by the {@link #parseDate} method.</p>
-     * <p><b>Note: In countries which experience Daylight Saving Time (i.e. DST), the <tt>h</tt>, <tt>i</tt>, <tt>s</tt>
-     * and <tt>ms</tt> properties may coincide with the exact time in which DST takes effect.
-     * It is the responsiblity of the developer to account for this.</b></p>
+<span id='Date-static-property-defaults'>    /**
+</span>     * &lt;p&gt;An object hash containing default date values used during date parsing.&lt;/p&gt;
+     * &lt;p&gt;The following properties are available:&lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;code&gt;y&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default year value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;m&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default 1-based month value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;d&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default day value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;h&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default hour value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;i&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default minute value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;s&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default second value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;code&gt;ms&lt;/code&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default millisecond value. (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;&lt;/p&gt;
+     * &lt;p&gt;Override these properties to customize the default date values used by the {@link #parseDate} method.&lt;/p&gt;
+     * &lt;p&gt;&lt;b&gt;Note: In countries which experience Daylight Saving Time (i.e. DST), the &lt;tt&gt;h&lt;/tt&gt;, &lt;tt&gt;i&lt;/tt&gt;, &lt;tt&gt;s&lt;/tt&gt;
+     * and &lt;tt&gt;ms&lt;/tt&gt; properties may coincide with the exact time in which DST takes effect.
+     * It is the responsiblity of the developer to account for this.&lt;/b&gt;&lt;/p&gt;
      * Example Usage:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 // set default day value to the first day of the month
 Date.defaults.d = 1;
 
@@ -305,77 +308,77 @@ Date.defaults.d = 1;
 // setting the default day value to 1 prevents weird date rollover issues
 // when attempting to parse the following date string on, for example, March 31st 2009.
 Date.parseDate('2009-02', 'Y-m'); // returns a Date object representing February 1st 2009
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @property defaults
      * @static
      * @type Object
      */
     defaults: {},
 
-    <div id="prop-Date-dayNames"></div>/**
-     * An array of textual day names.
+<span id='Date-static-property-dayNames'>    /**
+</span>     * An array of textual day names.
      * Override these values for international dates.
      * Example:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 Date.dayNames = [
     'SundayInYourLang',
     'MondayInYourLang',
     ...
 ];
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @type Array
      * @static
      */
     dayNames : [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
+        &quot;Sunday&quot;,
+        &quot;Monday&quot;,
+        &quot;Tuesday&quot;,
+        &quot;Wednesday&quot;,
+        &quot;Thursday&quot;,
+        &quot;Friday&quot;,
+        &quot;Saturday&quot;
     ],
 
-    <div id="prop-Date-monthNames"></div>/**
-     * An array of textual month names.
+<span id='Date-static-property-monthNames'>    /**
+</span>     * An array of textual month names.
      * Override these values for international dates.
      * Example:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 Date.monthNames = [
     'JanInYourLang',
     'FebInYourLang',
     ...
 ];
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @type Array
      * @static
      */
     monthNames : [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
+        &quot;January&quot;,
+        &quot;February&quot;,
+        &quot;March&quot;,
+        &quot;April&quot;,
+        &quot;May&quot;,
+        &quot;June&quot;,
+        &quot;July&quot;,
+        &quot;August&quot;,
+        &quot;September&quot;,
+        &quot;October&quot;,
+        &quot;November&quot;,
+        &quot;December&quot;
     ],
 
-    <div id="prop-Date-monthNumbers"></div>/**
-     * An object hash of zero-based javascript month numbers (with short month names as keys. note: keys are case-sensitive).
+<span id='Date-static-property-monthNumbers'>    /**
+</span>     * An object hash of zero-based javascript month numbers (with short month names as keys. note: keys are case-sensitive).
      * Override these values for international dates.
      * Example:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 Date.monthNumbers = {
     'ShortJanNameInYourLang':0,
     'ShortFebNameInYourLang':1,
     ...
 };
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @type Object
      * @static
      */
@@ -394,8 +397,8 @@ Date.monthNumbers = {
         Dec:11
     },
 
-    <div id="method-Date-getShortMonthName"></div>/**
-     * Get the short month name for the given month number.
+<span id='Date-static-method-getShortMonthName'>    /**
+</span>     * Get the short month name for the given month number.
      * Override this function for international dates.
      * @param {Number} month A zero-based javascript month number.
      * @return {String} The short month name.
@@ -405,8 +408,8 @@ Date.monthNumbers = {
         return Date.monthNames[month].substring(0, 3);
     },
 
-    <div id="method-Date-getShortDayName"></div>/**
-     * Get the short day name for the given day number.
+<span id='Date-static-method-getShortDayName'>    /**
+</span>     * Get the short day name for the given day number.
      * Override this function for international dates.
      * @param {Number} day A zero-based javascript day number.
      * @return {String} The short day name.
@@ -416,8 +419,8 @@ Date.monthNumbers = {
         return Date.dayNames[day].substring(0, 3);
     },
 
-    <div id="method-Date-getMonthNumber"></div>/**
-     * Get the zero-based javascript month number for the given short/full month name.
+<span id='Date-static-method-getMonthNumber'>    /**
+</span>     * Get the zero-based javascript month number for the given short/full month name.
      * Override this function for international dates.
      * @param {String} name The short/full month name.
      * @return {Number} The zero-based javascript month number.
@@ -428,8 +431,8 @@ Date.monthNumbers = {
         return Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
     },
     
-    <div id="method-Date-formatContainsHourInfo"></div>/**
-     * Checks if the specified format contains hour information
+<span id='Date-static-method-formatContainsHourInfo'>    /**
+</span>     * Checks if the specified format contains hour information
      * @param {Object} format The format to check
      * @return {Boolean} True if the format contains hour information
      * @static
@@ -442,81 +445,81 @@ Date.monthNumbers = {
         };
     })(),
 
-    <div id="prop-Date-formatCodes"></div>/**
-     * The base format-code to formatting-function hashmap used by the {@link #format} method.
+<span id='Date-static-property-formatCodes'>    /**
+</span>     * The base format-code to formatting-function hashmap used by the {@link #format} method.
      * Formatting functions are strings (or functions which return strings) which
      * will return the appropriate value when evaluated in the context of the Date object
      * from which the {@link #format} method is called.
      * Add to / override these mappings for custom date formatting.
      * Note: Date.format() treats characters as literals if an appropriate mapping cannot be found.
      * Example:
-     * <pre><code>
-Date.formatCodes.x = "String.leftPad(this.getDate(), 2, '0')";
-(new Date()).format("X"); // returns the current day of the month
-</code></pre>
+     * &lt;pre&gt;&lt;code&gt;
+Date.formatCodes.x = &quot;String.leftPad(this.getDate(), 2, '0')&quot;;
+(new Date()).format(&quot;X&quot;); // returns the current day of the month
+&lt;/code&gt;&lt;/pre&gt;
      * @type Object
      * @static
      */
     formatCodes : {
-        d: "String.leftPad(this.getDate(), 2, '0')",
-        D: "Date.getShortDayName(this.getDay())", // get localised short day name
-        j: "this.getDate()",
-        l: "Date.dayNames[this.getDay()]",
-        N: "(this.getDay() ? this.getDay() : 7)",
-        S: "this.getSuffix()",
-        w: "this.getDay()",
-        z: "this.getDayOfYear()",
-        W: "String.leftPad(this.getWeekOfYear(), 2, '0')",
-        F: "Date.monthNames[this.getMonth()]",
-        m: "String.leftPad(this.getMonth() + 1, 2, '0')",
-        M: "Date.getShortMonthName(this.getMonth())", // get localised short month name
-        n: "(this.getMonth() + 1)",
-        t: "this.getDaysInMonth()",
-        L: "(this.isLeapYear() ? 1 : 0)",
-        o: "(this.getFullYear() + (this.getWeekOfYear() == 1 && this.getMonth() > 0 ? +1 : (this.getWeekOfYear() >= 52 && this.getMonth() < 11 ? -1 : 0)))",
-        Y: "String.leftPad(this.getFullYear(), 4, '0')",
-        y: "('' + this.getFullYear()).substring(2, 4)",
-        a: "(this.getHours() < 12 ? 'am' : 'pm')",
-        A: "(this.getHours() < 12 ? 'AM' : 'PM')",
-        g: "((this.getHours() % 12) ? this.getHours() % 12 : 12)",
-        G: "this.getHours()",
-        h: "String.leftPad((this.getHours() % 12) ? this.getHours() % 12 : 12, 2, '0')",
-        H: "String.leftPad(this.getHours(), 2, '0')",
-        i: "String.leftPad(this.getMinutes(), 2, '0')",
-        s: "String.leftPad(this.getSeconds(), 2, '0')",
-        u: "String.leftPad(this.getMilliseconds(), 3, '0')",
-        O: "this.getGMTOffset()",
-        P: "this.getGMTOffset(true)",
-        T: "this.getTimezone()",
-        Z: "(this.getTimezoneOffset() * -60)",
+        d: &quot;String.leftPad(this.getDate(), 2, '0')&quot;,
+        D: &quot;Date.getShortDayName(this.getDay())&quot;, // get localised short day name
+        j: &quot;this.getDate()&quot;,
+        l: &quot;Date.dayNames[this.getDay()]&quot;,
+        N: &quot;(this.getDay() ? this.getDay() : 7)&quot;,
+        S: &quot;this.getSuffix()&quot;,
+        w: &quot;this.getDay()&quot;,
+        z: &quot;this.getDayOfYear()&quot;,
+        W: &quot;String.leftPad(this.getWeekOfYear(), 2, '0')&quot;,
+        F: &quot;Date.monthNames[this.getMonth()]&quot;,
+        m: &quot;String.leftPad(this.getMonth() + 1, 2, '0')&quot;,
+        M: &quot;Date.getShortMonthName(this.getMonth())&quot;, // get localised short month name
+        n: &quot;(this.getMonth() + 1)&quot;,
+        t: &quot;this.getDaysInMonth()&quot;,
+        L: &quot;(this.isLeapYear() ? 1 : 0)&quot;,
+        o: &quot;(this.getFullYear() + (this.getWeekOfYear() == 1 &amp;&amp; this.getMonth() &gt; 0 ? +1 : (this.getWeekOfYear() &gt;= 52 &amp;&amp; this.getMonth() &lt; 11 ? -1 : 0)))&quot;,
+        Y: &quot;String.leftPad(this.getFullYear(), 4, '0')&quot;,
+        y: &quot;('' + this.getFullYear()).substring(2, 4)&quot;,
+        a: &quot;(this.getHours() &lt; 12 ? 'am' : 'pm')&quot;,
+        A: &quot;(this.getHours() &lt; 12 ? 'AM' : 'PM')&quot;,
+        g: &quot;((this.getHours() % 12) ? this.getHours() % 12 : 12)&quot;,
+        G: &quot;this.getHours()&quot;,
+        h: &quot;String.leftPad((this.getHours() % 12) ? this.getHours() % 12 : 12, 2, '0')&quot;,
+        H: &quot;String.leftPad(this.getHours(), 2, '0')&quot;,
+        i: &quot;String.leftPad(this.getMinutes(), 2, '0')&quot;,
+        s: &quot;String.leftPad(this.getSeconds(), 2, '0')&quot;,
+        u: &quot;String.leftPad(this.getMilliseconds(), 3, '0')&quot;,
+        O: &quot;this.getGMTOffset()&quot;,
+        P: &quot;this.getGMTOffset(true)&quot;,
+        T: &quot;this.getTimezone()&quot;,
+        Z: &quot;(this.getTimezoneOffset() * -60)&quot;,
 
         c: function() { // ISO-8601 -- GMT format
-            for (var c = "Y-m-dTH:i:sP", code = [], i = 0, l = c.length; i < l; ++i) {
+            for (var c = &quot;Y-m-dTH:i:sP&quot;, code = [], i = 0, l = c.length; i &lt; l; ++i) {
                 var e = c.charAt(i);
-                code.push(e == "T" ? "'T'" : Date.getFormatCode(e)); // treat T as a character literal
+                code.push(e == &quot;T&quot; ? &quot;'T'&quot; : Date.getFormatCode(e)); // treat T as a character literal
             }
-            return code.join(" + ");
+            return code.join(&quot; + &quot;);
         },
         /*
         c: function() { // ISO-8601 -- UTC format
             return [
-              "this.getUTCFullYear()", "'-'",
-              "String.leftPad(this.getUTCMonth() + 1, 2, '0')", "'-'",
-              "String.leftPad(this.getUTCDate(), 2, '0')",
-              "'T'",
-              "String.leftPad(this.getUTCHours(), 2, '0')", "':'",
-              "String.leftPad(this.getUTCMinutes(), 2, '0')", "':'",
-              "String.leftPad(this.getUTCSeconds(), 2, '0')",
-              "'Z'"
-            ].join(" + ");
+              &quot;this.getUTCFullYear()&quot;, &quot;'-'&quot;,
+              &quot;String.leftPad(this.getUTCMonth() + 1, 2, '0')&quot;, &quot;'-'&quot;,
+              &quot;String.leftPad(this.getUTCDate(), 2, '0')&quot;,
+              &quot;'T'&quot;,
+              &quot;String.leftPad(this.getUTCHours(), 2, '0')&quot;, &quot;':'&quot;,
+              &quot;String.leftPad(this.getUTCMinutes(), 2, '0')&quot;, &quot;':'&quot;,
+              &quot;String.leftPad(this.getUTCSeconds(), 2, '0')&quot;,
+              &quot;'Z'&quot;
+            ].join(&quot; + &quot;);
         },
         */
 
-        U: "Math.round(this.getTime() / 1000)"
+        U: &quot;Math.round(this.getTime() / 1000)&quot;
     },
 
-    <div id="method-Date-isValid"></div>/**
-     * Checks if the passed Date parameters will cause a javascript Date "rollover".
+<span id='Date-static-method-isValid'>    /**
+</span>     * Checks if the passed Date parameters will cause a javascript Date &quot;rollover&quot;.
      * @param {Number} year 4-digit year
      * @param {Number} month 1-based month-of-year
      * @param {Number} day Day of month
@@ -524,7 +527,7 @@ Date.formatCodes.x = "String.leftPad(this.getDate(), 2, '0')";
      * @param {Number} minute (optional) Minute
      * @param {Number} second (optional) Second
      * @param {Number} millisecond (optional) Millisecond
-     * @return {Boolean} true if the passed parameters do not cause a Date "rollover", false otherwise.
+     * @return {Boolean} true if the passed parameters do not cause a Date &quot;rollover&quot;, false otherwise.
      * @static
      */
     isValid : function(y, m, d, h, i, s, ms) {
@@ -534,45 +537,45 @@ Date.formatCodes.x = "String.leftPad(this.getDate(), 2, '0')";
         s = s || 0;
         ms = ms || 0;
 
-        // Special handling for year < 100
-        var dt = new Date(y < 100 ? 100 : y, m - 1, d, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);
+        // Special handling for year &lt; 100
+        var dt = new Date(y &lt; 100 ? 100 : y, m - 1, d, h, i, s, ms).add(Date.YEAR, y &lt; 100 ? y - 100 : 0);
 
-        return y == dt.getFullYear() &&
-            m == dt.getMonth() + 1 &&
-            d == dt.getDate() &&
-            h == dt.getHours() &&
-            i == dt.getMinutes() &&
-            s == dt.getSeconds() &&
+        return y == dt.getFullYear() &amp;&amp;
+            m == dt.getMonth() + 1 &amp;&amp;
+            d == dt.getDate() &amp;&amp;
+            h == dt.getHours() &amp;&amp;
+            i == dt.getMinutes() &amp;&amp;
+            s == dt.getSeconds() &amp;&amp;
             ms == dt.getMilliseconds();
     },
 
-    <div id="method-Date-parseDate"></div>/**
-     * Parses the passed string using the specified date format.
+<span id='Date-static-method-parseDate'>    /**
+</span>     * Parses the passed string using the specified date format.
      * Note that this function expects normal calendar dates, meaning that months are 1-based (i.e. 1 = January).
      * The {@link #defaults} hash will be used for any date value (i.e. year, month, day, hour, minute, second or millisecond)
      * which cannot be found in the passed string. If a corresponding default date value has not been specified in the {@link #defaults} hash,
      * the current date's year, month, day or DST-adjusted zero-hour time value will be used instead.
      * Keep in mind that the input date string must precisely match the specified format string
      * in order for the parse operation to be successful (failed parse operations return a null value).
-     * <p>Example:</p><pre><code>
+     * &lt;p&gt;Example:&lt;/p&gt;&lt;pre&gt;&lt;code&gt;
 //dt = Fri May 25 2007 (current date)
 var dt = new Date();
 
-//dt = Thu May 25 2006 (today&#39;s month/day in 2006)
-dt = Date.parseDate("2006", "Y");
+//dt = Thu May 25 2006 (today&amp;#39;s month/day in 2006)
+dt = Date.parseDate(&quot;2006&quot;, &quot;Y&quot;);
 
 //dt = Sun Jan 15 2006 (all date parts specified)
-dt = Date.parseDate("2006-01-15", "Y-m-d");
+dt = Date.parseDate(&quot;2006-01-15&quot;, &quot;Y-m-d&quot;);
 
 //dt = Sun Jan 15 2006 15:20:01
-dt = Date.parseDate("2006-01-15 3:20:01 PM", "Y-m-d g:i:s A");
+dt = Date.parseDate(&quot;2006-01-15 3:20:01 PM&quot;, &quot;Y-m-d g:i:s A&quot;);
 
 // attempt to parse Sun Feb 29 2006 03:20:01 in strict mode
-dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
-</code></pre>
+dt = Date.parseDate(&quot;2006-02-29 03:20:01&quot;, &quot;Y-m-d H:i:s&quot;, true); // returns null
+&lt;/code&gt;&lt;/pre&gt;
      * @param {String} input The raw date string.
      * @param {String} format The expected date string format.
-     * @param {Boolean} strict (optional) True to validate date strings while parsing (i.e. prevents javascript Date "rollover")
+     * @param {Boolean} strict (optional) True to validate date strings while parsing (i.e. prevents javascript Date &quot;rollover&quot;)
                         (defaults to false). Invalid date strings will return null when parsed.
      * @return {Date} The parsed Date.
      * @static
@@ -595,7 +598,7 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
         }
 
         // note: unknown characters are treated as literals
-        return f || ("'" + String.escape(character) + "'");
+        return f || (&quot;'&quot; + String.escape(character) + &quot;'&quot;);
     },
 
     // private
@@ -604,81 +607,81 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
             special = false,
             ch = '';
 
-        for (var i = 0; i < format.length; ++i) {
+        for (var i = 0; i &lt; format.length; ++i) {
             ch = format.charAt(i);
-            if (!special && ch == "\\") {
+            if (!special &amp;&amp; ch == &quot;\\&quot;) {
                 special = true;
             } else if (special) {
                 special = false;
-                code.push("'" + String.escape(ch) + "'");
+                code.push(&quot;'&quot; + String.escape(ch) + &quot;'&quot;);
             } else {
                 code.push(Date.getFormatCode(ch));
             }
         }
-        Date.formatFunctions[format] = new Function("return " + code.join('+'));
+        Date.formatFunctions[format] = new Function(&quot;return &quot; + code.join('+'));
     },
 
     // private
     createParser : function() {
         var code = [
-            "var dt, y, m, d, h, i, s, ms, o, z, zz, u, v,",
-                "def = Date.defaults,",
-                "results = String(input).match(Date.parseRegexes[{0}]);", // either null, or an array of matched strings
+            &quot;var dt, y, m, d, h, i, s, ms, o, z, zz, u, v,&quot;,
+                &quot;def = Date.defaults,&quot;,
+                &quot;results = String(input).match(Date.parseRegexes[{0}]);&quot;, // either null, or an array of matched strings
 
-            "if(results){",
-                "{1}",
+            &quot;if(results){&quot;,
+                &quot;{1}&quot;,
 
-                "if(u != null){", // i.e. unix time is defined
-                    "v = new Date(u * 1000);", // give top priority to UNIX time
-                "}else{",
+                &quot;if(u != null){&quot;, // i.e. unix time is defined
+                    &quot;v = new Date(u * 1000);&quot;, // give top priority to UNIX time
+                &quot;}else{&quot;,
                     // create Date object representing midnight of the current day;
                     // this will provide us with our date defaults
                     // (note: clearTime() handles Daylight Saving Time automatically)
-                    "dt = (new Date()).clearTime();",
+                    &quot;dt = (new Date()).clearTime();&quot;,
 
                     // date calculations (note: these calculations create a dependency on Ext.num())
-                    "y = Ext.num(y, Ext.num(def.y, dt.getFullYear()));",
-                    "m = Ext.num(m, Ext.num(def.m - 1, dt.getMonth()));",
-                    "d = Ext.num(d, Ext.num(def.d, dt.getDate()));",
+                    &quot;y = Ext.num(y, Ext.num(def.y, dt.getFullYear()));&quot;,
+                    &quot;m = Ext.num(m, Ext.num(def.m - 1, dt.getMonth()));&quot;,
+                    &quot;d = Ext.num(d, Ext.num(def.d, dt.getDate()));&quot;,
 
                     // time calculations (note: these calculations create a dependency on Ext.num())
-                    "h  = Ext.num(h, Ext.num(def.h, dt.getHours()));",
-                    "i  = Ext.num(i, Ext.num(def.i, dt.getMinutes()));",
-                    "s  = Ext.num(s, Ext.num(def.s, dt.getSeconds()));",
-                    "ms = Ext.num(ms, Ext.num(def.ms, dt.getMilliseconds()));",
+                    &quot;h  = Ext.num(h, Ext.num(def.h, dt.getHours()));&quot;,
+                    &quot;i  = Ext.num(i, Ext.num(def.i, dt.getMinutes()));&quot;,
+                    &quot;s  = Ext.num(s, Ext.num(def.s, dt.getSeconds()));&quot;,
+                    &quot;ms = Ext.num(ms, Ext.num(def.ms, dt.getMilliseconds()));&quot;,
 
-                    "if(z >= 0 && y >= 0){",
-                        // both the year and zero-based day of year are defined and >= 0.
+                    &quot;if(z &gt;= 0 &amp;&amp; y &gt;= 0){&quot;,
+                        // both the year and zero-based day of year are defined and &gt;= 0.
                         // these 2 values alone provide sufficient info to create a full date object
 
                         // create Date object representing January 1st for the given year
-                        // handle years < 100 appropriately
-                        "v = new Date(y < 100 ? 100 : y, 0, 1, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);",
+                        // handle years &lt; 100 appropriately
+                        &quot;v = new Date(y &lt; 100 ? 100 : y, 0, 1, h, i, s, ms).add(Date.YEAR, y &lt; 100 ? y - 100 : 0);&quot;,
 
-                        // then add day of year, checking for Date "rollover" if necessary
-                        "v = !strict? v : (strict === true && (z <= 364 || (v.isLeapYear() && z <= 365))? v.add(Date.DAY, z) : null);",
-                    "}else if(strict === true && !Date.isValid(y, m + 1, d, h, i, s, ms)){", // check for Date "rollover"
-                        "v = null;", // invalid date, so return null
-                    "}else{",
+                        // then add day of year, checking for Date &quot;rollover&quot; if necessary
+                        &quot;v = !strict? v : (strict === true &amp;&amp; (z &lt;= 364 || (v.isLeapYear() &amp;&amp; z &lt;= 365))? v.add(Date.DAY, z) : null);&quot;,
+                    &quot;}else if(strict === true &amp;&amp; !Date.isValid(y, m + 1, d, h, i, s, ms)){&quot;, // check for Date &quot;rollover&quot;
+                        &quot;v = null;&quot;, // invalid date, so return null
+                    &quot;}else{&quot;,
                         // plain old Date object
-                        // handle years < 100 properly
-                        "v = new Date(y < 100 ? 100 : y, m, d, h, i, s, ms).add(Date.YEAR, y < 100 ? y - 100 : 0);",
-                    "}",
-                "}",
-            "}",
+                        // handle years &lt; 100 properly
+                        &quot;v = new Date(y &lt; 100 ? 100 : y, m, d, h, i, s, ms).add(Date.YEAR, y &lt; 100 ? y - 100 : 0);&quot;,
+                    &quot;}&quot;,
+                &quot;}&quot;,
+            &quot;}&quot;,
 
-            "if(v){",
+            &quot;if(v){&quot;,
                 // favour UTC offset over GMT offset
-                "if(zz != null){",
+                &quot;if(zz != null){&quot;,
                     // reset to UTC, then add offset
-                    "v = v.add(Date.SECOND, -v.getTimezoneOffset() * 60 - zz);",
-                "}else if(o){",
+                    &quot;v = v.add(Date.SECOND, -v.getTimezoneOffset() * 60 - zz);&quot;,
+                &quot;}else if(o){&quot;,
                     // reset to GMT, then add offset
-                    "v = v.add(Date.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));",
-                "}",
-            "}",
+                    &quot;v = v.add(Date.MINUTE, -v.getTimezoneOffset() + (sn == '+'? -1 : 1) * (hr * 60 + mn));&quot;,
+                &quot;}&quot;,
+            &quot;}&quot;,
 
-            "return v;"
+            &quot;return v;&quot;
         ].join('\n');
 
         return function(format) {
@@ -687,14 +690,14 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 calc = [],
                 regex = [],
                 special = false,
-                ch = "",
+                ch = &quot;&quot;,
                 i = 0,
                 obj,
                 last;
 
-            for (; i < format.length; ++i) {
+            for (; i &lt; format.length; ++i) {
                 ch = format.charAt(i);
-                if (!special && ch == "\\") {
+                if (!special &amp;&amp; ch == &quot;\\&quot;) {
                     special = true;
                 } else if (special) {
                     special = false;
@@ -703,7 +706,7 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                     obj = $f(ch, currentGroup);
                     currentGroup += obj.g;
                     regex.push(obj.s);
-                    if (obj.g && obj.c) {
+                    if (obj.g &amp;&amp; obj.c) {
                         if (obj.calcLast) {
                             last = obj.c;
                         } else {
@@ -717,8 +720,8 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
                 calc.push(last);
             }
 
-            Date.parseRegexes[regexNum] = new RegExp("^" + regex.join('') + "$", 'i');
-            Date.parseFunctions[format] = new Function("input", "strict", xf(code, regexNum, calc.join('')));
+            Date.parseRegexes[regexNum] = new RegExp(&quot;^&quot; + regex.join('') + &quot;$&quot;, 'i');
+            Date.parseFunctions[format] = new Function(&quot;input&quot;, &quot;strict&quot;, xf(code, regexNum, calc.join('')));
         };
     }(),
 
@@ -732,232 +735,232 @@ dt = Date.parseDate("2006-02-29 03:20:01", "Y-m-d H:i:s", true); // returns null
          */
         d: {
             g:1,
-            c:"d = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // day of month with leading zeroes (01 - 31)
+            c:&quot;d = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{2})&quot; // day of month with leading zeroes (01 - 31)
         },
         j: {
             g:1,
-            c:"d = parseInt(results[{0}], 10);\n",
-            s:"(\\d{1,2})" // day of month without leading zeroes (1 - 31)
+            c:&quot;d = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{1,2})&quot; // day of month without leading zeroes (1 - 31)
         },
         D: function() {
-            for (var a = [], i = 0; i < 7; a.push(Date.getShortDayName(i)), ++i); // get localised short day names
+            for (var a = [], i = 0; i &lt; 7; a.push(Date.getShortDayName(i)), ++i); // get localised short day names
             return {
                 g:0,
                 c:null,
-                s:"(?:" + a.join("|") +")"
+                s:&quot;(?:&quot; + a.join(&quot;|&quot;) +&quot;)&quot;
             };
         },
         l: function() {
             return {
                 g:0,
                 c:null,
-                s:"(?:" + Date.dayNames.join("|") + ")"
+                s:&quot;(?:&quot; + Date.dayNames.join(&quot;|&quot;) + &quot;)&quot;
             };
         },
         N: {
             g:0,
             c:null,
-            s:"[1-7]" // ISO-8601 day number (1 (monday) - 7 (sunday))
+            s:&quot;[1-7]&quot; // ISO-8601 day number (1 (monday) - 7 (sunday))
         },
         S: {
             g:0,
             c:null,
-            s:"(?:st|nd|rd|th)"
+            s:&quot;(?:st|nd|rd|th)&quot;
         },
         w: {
             g:0,
             c:null,
-            s:"[0-6]" // javascript day number (0 (sunday) - 6 (saturday))
+            s:&quot;[0-6]&quot; // javascript day number (0 (sunday) - 6 (saturday))
         },
         z: {
             g:1,
-            c:"z = parseInt(results[{0}], 10);\n",
-            s:"(\\d{1,3})" // day of the year (0 - 364 (365 in leap years))
+            c:&quot;z = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{1,3})&quot; // day of the year (0 - 364 (365 in leap years))
         },
         W: {
             g:0,
             c:null,
-            s:"(?:\\d{2})" // ISO-8601 week number (with leading zero)
+            s:&quot;(?:\\d{2})&quot; // ISO-8601 week number (with leading zero)
         },
         F: function() {
             return {
                 g:1,
-                c:"m = parseInt(Date.getMonthNumber(results[{0}]), 10);\n", // get localised month number
-                s:"(" + Date.monthNames.join("|") + ")"
+                c:&quot;m = parseInt(Date.getMonthNumber(results[{0}]), 10);\n&quot;, // get localised month number
+                s:&quot;(&quot; + Date.monthNames.join(&quot;|&quot;) + &quot;)&quot;
             };
         },
         M: function() {
-            for (var a = [], i = 0; i < 12; a.push(Date.getShortMonthName(i)), ++i); // get localised short month names
+            for (var a = [], i = 0; i &lt; 12; a.push(Date.getShortMonthName(i)), ++i); // get localised short month names
             return Ext.applyIf({
-                s:"(" + a.join("|") + ")"
-            }, $f("F"));
+                s:&quot;(&quot; + a.join(&quot;|&quot;) + &quot;)&quot;
+            }, $f(&quot;F&quot;));
         },
         m: {
             g:1,
-            c:"m = parseInt(results[{0}], 10) - 1;\n",
-            s:"(\\d{2})" // month number with leading zeros (01 - 12)
+            c:&quot;m = parseInt(results[{0}], 10) - 1;\n&quot;,
+            s:&quot;(\\d{2})&quot; // month number with leading zeros (01 - 12)
         },
         n: {
             g:1,
-            c:"m = parseInt(results[{0}], 10) - 1;\n",
-            s:"(\\d{1,2})" // month number without leading zeros (1 - 12)
+            c:&quot;m = parseInt(results[{0}], 10) - 1;\n&quot;,
+            s:&quot;(\\d{1,2})&quot; // month number without leading zeros (1 - 12)
         },
         t: {
             g:0,
             c:null,
-            s:"(?:\\d{2})" // no. of days in the month (28 - 31)
+            s:&quot;(?:\\d{2})&quot; // no. of days in the month (28 - 31)
         },
         L: {
             g:0,
             c:null,
-            s:"(?:1|0)"
+            s:&quot;(?:1|0)&quot;
         },
         o: function() {
-            return $f("Y");
+            return $f(&quot;Y&quot;);
         },
         Y: {
             g:1,
-            c:"y = parseInt(results[{0}], 10);\n",
-            s:"(\\d{4})" // 4-digit year
+            c:&quot;y = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{4})&quot; // 4-digit year
         },
         y: {
             g:1,
-            c:"var ty = parseInt(results[{0}], 10);\n"
-                + "y = ty > Date.y2kYear ? 1900 + ty : 2000 + ty;\n", // 2-digit year
-            s:"(\\d{1,2})"
+            c:&quot;var ty = parseInt(results[{0}], 10);\n&quot;
+                + &quot;y = ty &gt; Date.y2kYear ? 1900 + ty : 2000 + ty;\n&quot;, // 2-digit year
+            s:&quot;(\\d{1,2})&quot;
         },
-        <div id="method-Date-a"></div>/**
-         * In the am/pm parsing routines, we allow both upper and lower case 
+<span id='Date-method-a'>        /**
+</span>         * In the am/pm parsing routines, we allow both upper and lower case 
          * even though it doesn't exactly match the spec. It gives much more flexibility
          * in being able to specify case insensitive regexes.
          */
         a: function(){
-            return $f("A");
+            return $f(&quot;A&quot;);
         },
         A: {
             // We need to calculate the hour before we apply AM/PM when parsing
             calcLast: true,
             g:1,
-            c:"if (/(am)/i.test(results[{0}])) {\n"
-                + "if (!h || h == 12) { h = 0; }\n"
-                + "} else { if (!h || h < 12) { h = (h || 0) + 12; }}",
-            s:"(AM|PM|am|pm)"
+            c:&quot;if (/(am)/i.test(results[{0}])) {\n&quot;
+                + &quot;if (!h || h == 12) { h = 0; }\n&quot;
+                + &quot;} else { if (!h || h &lt; 12) { h = (h || 0) + 12; }}&quot;,
+            s:&quot;(AM|PM|am|pm)&quot;
         },
         g: function() {
-            return $f("G");
+            return $f(&quot;G&quot;);
         },
         G: {
             g:1,
-            c:"h = parseInt(results[{0}], 10);\n",
-            s:"(\\d{1,2})" // 24-hr format of an hour without leading zeroes (0 - 23)
+            c:&quot;h = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{1,2})&quot; // 24-hr format of an hour without leading zeroes (0 - 23)
         },
         h: function() {
-            return $f("H");
+            return $f(&quot;H&quot;);
         },
         H: {
             g:1,
-            c:"h = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" //  24-hr format of an hour with leading zeroes (00 - 23)
+            c:&quot;h = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{2})&quot; //  24-hr format of an hour with leading zeroes (00 - 23)
         },
         i: {
             g:1,
-            c:"i = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // minutes with leading zeros (00 - 59)
+            c:&quot;i = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{2})&quot; // minutes with leading zeros (00 - 59)
         },
         s: {
             g:1,
-            c:"s = parseInt(results[{0}], 10);\n",
-            s:"(\\d{2})" // seconds with leading zeros (00 - 59)
+            c:&quot;s = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(\\d{2})&quot; // seconds with leading zeros (00 - 59)
         },
         u: {
             g:1,
-            c:"ms = results[{0}]; ms = parseInt(ms, 10)/Math.pow(10, ms.length - 3);\n",
-            s:"(\\d+)" // decimal fraction of a second (minimum = 1 digit, maximum = unlimited)
+            c:&quot;ms = results[{0}]; ms = parseInt(ms, 10)/Math.pow(10, ms.length - 3);\n&quot;,
+            s:&quot;(\\d+)&quot; // decimal fraction of a second (minimum = 1 digit, maximum = unlimited)
         },
         O: {
             g:1,
             c:[
-                "o = results[{0}];",
-                "var sn = o.substring(0,1),", // get + / - sign
-                    "hr = o.substring(1,3)*1 + Math.floor(o.substring(3,5) / 60),", // get hours (performs minutes-to-hour conversion also, just in case)
-                    "mn = o.substring(3,5) % 60;", // get minutes
-                "o = ((-12 <= (hr*60 + mn)/60) && ((hr*60 + mn)/60 <= 14))? (sn + String.leftPad(hr, 2, '0') + String.leftPad(mn, 2, '0')) : null;\n" // -12hrs <= GMT offset <= 14hrs
-            ].join("\n"),
-            s: "([+\-]\\d{4})" // GMT offset in hrs and mins
+                &quot;o = results[{0}];&quot;,
+                &quot;var sn = o.substring(0,1),&quot;, // get + / - sign
+                    &quot;hr = o.substring(1,3)*1 + Math.floor(o.substring(3,5) / 60),&quot;, // get hours (performs minutes-to-hour conversion also, just in case)
+                    &quot;mn = o.substring(3,5) % 60;&quot;, // get minutes
+                &quot;o = ((-12 &lt;= (hr*60 + mn)/60) &amp;&amp; ((hr*60 + mn)/60 &lt;= 14))? (sn + String.leftPad(hr, 2, '0') + String.leftPad(mn, 2, '0')) : null;\n&quot; // -12hrs &lt;= GMT offset &lt;= 14hrs
+            ].join(&quot;\n&quot;),
+            s: &quot;([+\-]\\d{4})&quot; // GMT offset in hrs and mins
         },
         P: {
             g:1,
             c:[
-                "o = results[{0}];",
-                "var sn = o.substring(0,1),", // get + / - sign
-                    "hr = o.substring(1,3)*1 + Math.floor(o.substring(4,6) / 60),", // get hours (performs minutes-to-hour conversion also, just in case)
-                    "mn = o.substring(4,6) % 60;", // get minutes
-                "o = ((-12 <= (hr*60 + mn)/60) && ((hr*60 + mn)/60 <= 14))? (sn + String.leftPad(hr, 2, '0') + String.leftPad(mn, 2, '0')) : null;\n" // -12hrs <= GMT offset <= 14hrs
-            ].join("\n"),
-            s: "([+\-]\\d{2}:\\d{2})" // GMT offset in hrs and mins (with colon separator)
+                &quot;o = results[{0}];&quot;,
+                &quot;var sn = o.substring(0,1),&quot;, // get + / - sign
+                    &quot;hr = o.substring(1,3)*1 + Math.floor(o.substring(4,6) / 60),&quot;, // get hours (performs minutes-to-hour conversion also, just in case)
+                    &quot;mn = o.substring(4,6) % 60;&quot;, // get minutes
+                &quot;o = ((-12 &lt;= (hr*60 + mn)/60) &amp;&amp; ((hr*60 + mn)/60 &lt;= 14))? (sn + String.leftPad(hr, 2, '0') + String.leftPad(mn, 2, '0')) : null;\n&quot; // -12hrs &lt;= GMT offset &lt;= 14hrs
+            ].join(&quot;\n&quot;),
+            s: &quot;([+\-]\\d{2}:\\d{2})&quot; // GMT offset in hrs and mins (with colon separator)
         },
         T: {
             g:0,
             c:null,
-            s:"[A-Z]{1,4}" // timezone abbrev. may be between 1 - 4 chars
+            s:&quot;[A-Z]{1,4}&quot; // timezone abbrev. may be between 1 - 4 chars
         },
         Z: {
             g:1,
-            c:"zz = results[{0}] * 1;\n" // -43200 <= UTC offset <= 50400
-                  + "zz = (-43200 <= zz && zz <= 50400)? zz : null;\n",
-            s:"([+\-]?\\d{1,5})" // leading '+' sign is optional for UTC offset
+            c:&quot;zz = results[{0}] * 1;\n&quot; // -43200 &lt;= UTC offset &lt;= 50400
+                  + &quot;zz = (-43200 &lt;= zz &amp;&amp; zz &lt;= 50400)? zz : null;\n&quot;,
+            s:&quot;([+\-]?\\d{1,5})&quot; // leading '+' sign is optional for UTC offset
         },
         c: function() {
             var calc = [],
                 arr = [
-                    $f("Y", 1), // year
-                    $f("m", 2), // month
-                    $f("d", 3), // day
-                    $f("h", 4), // hour
-                    $f("i", 5), // minute
-                    $f("s", 6), // second
-                    {c:"ms = results[7] || '0'; ms = parseInt(ms, 10)/Math.pow(10, ms.length - 3);\n"}, // decimal fraction of a second (minimum = 1 digit, maximum = unlimited)
-                    {c:[ // allow either "Z" (i.e. UTC) or "-0530" or "+08:00" (i.e. UTC offset) timezone delimiters. assumes local timezone if no timezone is specified
-                        "if(results[8]) {", // timezone specified
-                            "if(results[8] == 'Z'){",
-                                "zz = 0;", // UTC
-                            "}else if (results[8].indexOf(':') > -1){",
-                                $f("P", 8).c, // timezone offset with colon separator
-                            "}else{",
-                                $f("O", 8).c, // timezone offset without colon separator
-                            "}",
-                        "}"
+                    $f(&quot;Y&quot;, 1), // year
+                    $f(&quot;m&quot;, 2), // month
+                    $f(&quot;d&quot;, 3), // day
+                    $f(&quot;h&quot;, 4), // hour
+                    $f(&quot;i&quot;, 5), // minute
+                    $f(&quot;s&quot;, 6), // second
+                    {c:&quot;ms = results[7] || '0'; ms = parseInt(ms, 10)/Math.pow(10, ms.length - 3);\n&quot;}, // decimal fraction of a second (minimum = 1 digit, maximum = unlimited)
+                    {c:[ // allow either &quot;Z&quot; (i.e. UTC) or &quot;-0530&quot; or &quot;+08:00&quot; (i.e. UTC offset) timezone delimiters. assumes local timezone if no timezone is specified
+                        &quot;if(results[8]) {&quot;, // timezone specified
+                            &quot;if(results[8] == 'Z'){&quot;,
+                                &quot;zz = 0;&quot;, // UTC
+                            &quot;}else if (results[8].indexOf(':') &gt; -1){&quot;,
+                                $f(&quot;P&quot;, 8).c, // timezone offset with colon separator
+                            &quot;}else{&quot;,
+                                $f(&quot;O&quot;, 8).c, // timezone offset without colon separator
+                            &quot;}&quot;,
+                        &quot;}&quot;
                     ].join('\n')}
                 ];
 
-            for (var i = 0, l = arr.length; i < l; ++i) {
+            for (var i = 0, l = arr.length; i &lt; l; ++i) {
                 calc.push(arr[i].c);
             }
 
             return {
                 g:1,
-                c:calc.join(""),
+                c:calc.join(&quot;&quot;),
                 s:[
                     arr[0].s, // year (required)
-                    "(?:", "-", arr[1].s, // month (optional)
-                        "(?:", "-", arr[2].s, // day (optional)
-                            "(?:",
-                                "(?:T| )?", // time delimiter -- either a "T" or a single blank space
-                                arr[3].s, ":", arr[4].s,  // hour AND minute, delimited by a single colon (optional). MUST be preceded by either a "T" or a single blank space
-                                "(?::", arr[5].s, ")?", // seconds (optional)
-                                "(?:(?:\\.|,)(\\d+))?", // decimal fraction of a second (e.g. ",12345" or ".98765") (optional)
-                                "(Z|(?:[-+]\\d{2}(?::)?\\d{2}))?", // "Z" (UTC) or "-0530" (UTC offset without colon delimiter) or "+08:00" (UTC offset with colon delimiter) (optional)
-                            ")?",
-                        ")?",
-                    ")?"
-                ].join("")
+                    &quot;(?:&quot;, &quot;-&quot;, arr[1].s, // month (optional)
+                        &quot;(?:&quot;, &quot;-&quot;, arr[2].s, // day (optional)
+                            &quot;(?:&quot;,
+                                &quot;(?:T| )?&quot;, // time delimiter -- either a &quot;T&quot; or a single blank space
+                                arr[3].s, &quot;:&quot;, arr[4].s,  // hour AND minute, delimited by a single colon (optional). MUST be preceded by either a &quot;T&quot; or a single blank space
+                                &quot;(?::&quot;, arr[5].s, &quot;)?&quot;, // seconds (optional)
+                                &quot;(?:(?:\\.|,)(\\d+))?&quot;, // decimal fraction of a second (e.g. &quot;,12345&quot; or &quot;.98765&quot;) (optional)
+                                &quot;(Z|(?:[-+]\\d{2}(?::)?\\d{2}))?&quot;, // &quot;Z&quot; (UTC) or &quot;-0530&quot; (UTC offset without colon delimiter) or &quot;+08:00&quot; (UTC offset with colon delimiter) (optional)
+                            &quot;)?&quot;,
+                        &quot;)?&quot;,
+                    &quot;)?&quot;
+                ].join(&quot;&quot;)
             };
         },
         U: {
             g:1,
-            c:"u = parseInt(results[{0}], 10);\n",
-            s:"(-?\\d+)" // leading minus sign indicates seconds before UNIX epoch
+            c:&quot;u = parseInt(results[{0}], 10);\n&quot;,
+            s:&quot;(-?\\d+)&quot; // leading minus sign indicates seconds before UNIX epoch
         }
     }
 });
@@ -973,12 +976,12 @@ Ext.apply(Date.prototype, {
         return Date.formatFunctions[format].call(this);
     },
 
-    <div id="method-Date-getTimezone"></div>/**
-     * Get the timezone abbreviation of the current date (equivalent to the format specifier 'T').
+<span id='Date-method-getTimezone'>    /**
+</span>     * Get the timezone abbreviation of the current date (equivalent to the format specifier 'T').
      *
      * Note: The date string returned by the javascript Date object's toString() method varies
      * between browsers (e.g. FF vs IE) and system region settings (e.g. IE in Asia vs IE in America).
-     * For a given date string e.g. "Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)",
+     * For a given date string e.g. &quot;Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)&quot;,
      * getTimezone() first tries to get the timezone abbreviation from between a pair of parentheses
      * (which may or may not be present), failing which it proceeds to get the timezone abbreviation
      * from the GMT offset portion of the date string.
@@ -987,33 +990,33 @@ Ext.apply(Date.prototype, {
     getTimezone : function() {
         // the following list shows the differences between date strings from different browsers on a WinXP SP2 machine from an Asian locale:
         //
-        // Opera  : "Thu, 25 Oct 2007 22:53:45 GMT+0800" -- shortest (weirdest) date string of the lot
-        // Safari : "Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)" -- value in parentheses always gives the correct timezone (same as FF)
-        // FF     : "Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)" -- value in parentheses always gives the correct timezone
-        // IE     : "Thu Oct 25 22:54:35 UTC+0800 2007" -- (Asian system setting) look for 3-4 letter timezone abbrev
-        // IE     : "Thu Oct 25 17:06:37 PDT 2007" -- (American system setting) look for 3-4 letter timezone abbrev
+        // Opera  : &quot;Thu, 25 Oct 2007 22:53:45 GMT+0800&quot; -- shortest (weirdest) date string of the lot
+        // Safari : &quot;Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)&quot; -- value in parentheses always gives the correct timezone (same as FF)
+        // FF     : &quot;Thu Oct 25 2007 22:55:35 GMT+0800 (Malay Peninsula Standard Time)&quot; -- value in parentheses always gives the correct timezone
+        // IE     : &quot;Thu Oct 25 22:54:35 UTC+0800 2007&quot; -- (Asian system setting) look for 3-4 letter timezone abbrev
+        // IE     : &quot;Thu Oct 25 17:06:37 PDT 2007&quot; -- (American system setting) look for 3-4 letter timezone abbrev
         //
         // this crazy regex attempts to guess the correct timezone abbreviation despite these differences.
         // step 1: (?:\((.*)\) -- find timezone in parentheses
         // step 2: ([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?) -- if nothing was found in step 1, find timezone from timezone offset portion of date string
         // step 3: remove all non uppercase characters found in step 1 and 2
-        return this.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, "$1$2").replace(/[^A-Z]/g, "");
+        return this.toString().replace(/^.* (?:\((.*)\)|([A-Z]{1,4})(?:[\-+][0-9]{4})?(?: -?\d+)?)$/, &quot;$1$2&quot;).replace(/[^A-Z]/g, &quot;&quot;);
     },
 
-    <div id="method-Date-getGMTOffset"></div>/**
-     * Get the offset from GMT of the current date (equivalent to the format specifier 'O').
+<span id='Date-method-getGMTOffset'>    /**
+</span>     * Get the offset from GMT of the current date (equivalent to the format specifier 'O').
      * @param {Boolean} colon (optional) true to separate the hours and minutes with a colon (defaults to false).
      * @return {String} The 4-character offset string prefixed with + or - (e.g. '-0600').
      */
     getGMTOffset : function(colon) {
-        return (this.getTimezoneOffset() > 0 ? "-" : "+")
-            + String.leftPad(Math.floor(Math.abs(this.getTimezoneOffset()) / 60), 2, "0")
-            + (colon ? ":" : "")
-            + String.leftPad(Math.abs(this.getTimezoneOffset() % 60), 2, "0");
+        return (this.getTimezoneOffset() &gt; 0 ? &quot;-&quot; : &quot;+&quot;)
+            + String.leftPad(Math.floor(Math.abs(this.getTimezoneOffset()) / 60), 2, &quot;0&quot;)
+            + (colon ? &quot;:&quot; : &quot;&quot;)
+            + String.leftPad(Math.abs(this.getTimezoneOffset() % 60), 2, &quot;0&quot;);
     },
 
-    <div id="method-Date-getDayOfYear"></div>/**
-     * Get the numeric day number of the year, adjusted for leap year.
+<span id='Date-method-getDayOfYear'>    /**
+</span>     * Get the numeric day number of the year, adjusted for leap year.
      * @return {Number} 0 to 364 (365 in leap years).
      */
     getDayOfYear: function() {
@@ -1022,14 +1025,14 @@ Ext.apply(Date.prototype, {
             m = this.getMonth(),
             i;
 
-        for (i = 0, d.setDate(1), d.setMonth(0); i < m; d.setMonth(++i)) {
+        for (i = 0, d.setDate(1), d.setMonth(0); i &lt; m; d.setMonth(++i)) {
             num += d.getDaysInMonth();
         }
         return num + this.getDate() - 1;
     },
 
-    <div id="method-Date-getWeekOfYear"></div>/**
-     * Get the numeric ISO-8601 week number of the year.
+<span id='Date-method-getWeekOfYear'>    /**
+</span>     * Get the numeric ISO-8601 week number of the year.
      * (equivalent to the format specifier 'W', but without a leading zero).
      * @return {Number} 1 to 53
      */
@@ -1047,40 +1050,40 @@ Ext.apply(Date.prototype, {
         };
     }(),
 
-    <div id="method-Date-isLeapYear"></div>/**
-     * Checks if the current date falls within a leap year.
+<span id='Date-method-isLeapYear'>    /**
+</span>     * Checks if the current date falls within a leap year.
      * @return {Boolean} True if the current date falls within a leap year, false otherwise.
      */
     isLeapYear : function() {
         var year = this.getFullYear();
-        return !!((year & 3) == 0 && (year % 100 || (year % 400 == 0 && year)));
+        return !!((year &amp; 3) == 0 &amp;&amp; (year % 100 || (year % 400 == 0 &amp;&amp; year)));
     },
 
-    <div id="method-Date-getFirstDayOfMonth"></div>/**
-     * Get the first day of the current month, adjusted for leap year.  The returned value
+<span id='Date-method-getFirstDayOfMonth'>    /**
+</span>     * Get the first day of the current month, adjusted for leap year.  The returned value
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
      * Example:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 var dt = new Date('1/10/2007');
 document.write(Date.dayNames[dt.getFirstDayOfMonth()]); //output: 'Monday'
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @return {Number} The day number (0-6).
      */
     getFirstDayOfMonth : function() {
         var day = (this.getDay() - (this.getDate() - 1)) % 7;
-        return (day < 0) ? (day + 7) : day;
+        return (day &lt; 0) ? (day + 7) : day;
     },
 
-    <div id="method-Date-getLastDayOfMonth"></div>/**
-     * Get the last day of the current month, adjusted for leap year.  The returned value
+<span id='Date-method-getLastDayOfMonth'>    /**
+</span>     * Get the last day of the current month, adjusted for leap year.  The returned value
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
      * Example:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 var dt = new Date('1/10/2007');
 document.write(Date.dayNames[dt.getLastDayOfMonth()]); //output: 'Wednesday'
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @return {Number} The day number (0-6).
      */
     getLastDayOfMonth : function() {
@@ -1088,24 +1091,24 @@ document.write(Date.dayNames[dt.getLastDayOfMonth()]); //output: 'Wednesday'
     },
 
 
-    <div id="method-Date-getFirstDateOfMonth"></div>/**
-     * Get the date of the first day of the month in which this date resides.
+<span id='Date-method-getFirstDateOfMonth'>    /**
+</span>     * Get the date of the first day of the month in which this date resides.
      * @return {Date}
      */
     getFirstDateOfMonth : function() {
         return new Date(this.getFullYear(), this.getMonth(), 1);
     },
 
-    <div id="method-Date-getLastDateOfMonth"></div>/**
-     * Get the date of the last day of the month in which this date resides.
+<span id='Date-method-getLastDateOfMonth'>    /**
+</span>     * Get the date of the last day of the month in which this date resides.
      * @return {Date}
      */
     getLastDateOfMonth : function() {
         return new Date(this.getFullYear(), this.getMonth(), this.getDaysInMonth());
     },
 
-    <div id="method-Date-getDaysInMonth"></div>/**
-     * Get the number of days in the current month, adjusted for leap year.
+<span id='Date-method-getDaysInMonth'>    /**
+</span>     * Get the number of days in the current month, adjusted for leap year.
      * @return {Number} The number of days in the month.
      */
     getDaysInMonth: function() {
@@ -1114,12 +1117,12 @@ document.write(Date.dayNames[dt.getLastDayOfMonth()]); //output: 'Wednesday'
         return function() { // return a closure for efficiency
             var m = this.getMonth();
 
-            return m == 1 && this.isLeapYear() ? 29 : daysInMonth[m];
+            return m == 1 &amp;&amp; this.isLeapYear() ? 29 : daysInMonth[m];
         };
     }(),
 
-    <div id="method-Date-getSuffix"></div>/**
-     * Get the English ordinal suffix of the current day (equivalent to the format specifier 'S').
+<span id='Date-method-getSuffix'>    /**
+</span>     * Get the English ordinal suffix of the current day (equivalent to the format specifier 'S').
      * @return {String} 'st, 'nd', 'rd' or 'th'.
      */
     getSuffix : function() {
@@ -1127,26 +1130,26 @@ document.write(Date.dayNames[dt.getLastDayOfMonth()]); //output: 'Wednesday'
             case 1:
             case 21:
             case 31:
-                return "st";
+                return &quot;st&quot;;
             case 2:
             case 22:
-                return "nd";
+                return &quot;nd&quot;;
             case 3:
             case 23:
-                return "rd";
+                return &quot;rd&quot;;
             default:
-                return "th";
+                return &quot;th&quot;;
         }
     },
 
-    <div id="method-Date-clone"></div>/**
-     * Creates and returns a new Date instance with the exact same date value as the called instance.
+<span id='Date-method-clone'>    /**
+</span>     * Creates and returns a new Date instance with the exact same date value as the called instance.
      * Dates are copied and passed by reference, so if a copied date variable is modified later, the original
      * variable will also be changed.  When the intention is to create a new variable that will not
      * modify the original instance, you should create a clone.
      *
      * Example of correctly cloning a date:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 //wrong way:
 var orig = new Date('10/1/2006');
 var copy = orig;
@@ -1158,15 +1161,15 @@ var orig = new Date('10/1/2006');
 var copy = orig.clone();
 copy.setDate(5);
 document.write(orig);  //returns 'Thu Oct 01 2006'
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      * @return {Date} The new Date instance.
      */
     clone : function() {
         return new Date(this.getTime());
     },
 
-    <div id="method-Date-isDST"></div>/**
-     * Checks if the current date is affected by Daylight Saving Time (DST).
+<span id='Date-method-isDST'>    /**
+</span>     * Checks if the current date is affected by Daylight Saving Time (DST).
      * @return {Boolean} True if the current date is affected by DST.
      */
     isDST : function() {
@@ -1175,8 +1178,8 @@ document.write(orig);  //returns 'Thu Oct 01 2006'
         return new Date(this.getFullYear(), 0, 1).getTimezoneOffset() != this.getTimezoneOffset();
     },
 
-    <div id="method-Date-clearTime"></div>/**
-     * Attempts to clear all time information from this Date by setting the time to midnight of the same day,
+<span id='Date-method-clearTime'>    /**
+</span>     * Attempts to clear all time information from this Date by setting the time to midnight of the same day,
      * automatically adjusting for Daylight Saving Time (DST) where applicable.
      * (note: DST timezone information for the browser's host operating system is assumed to be up-to-date)
      * @param {Boolean} clone true to create a clone of this date, clear the time and return it (defaults to false).
@@ -1210,13 +1213,13 @@ document.write(orig);  //returns 'Thu Oct 01 2006'
         return this;
     },
 
-    <div id="method-Date-add"></div>/**
-     * Provides a convenient method for performing basic date arithmetic. This method
+<span id='Date-method-add'>    /**
+</span>     * Provides a convenient method for performing basic date arithmetic. This method
      * does not modify the Date instance being called - it creates and returns
      * a new Date instance containing the resulting date value.
      *
      * Examples:
-     * <pre><code>
+     * &lt;pre&gt;&lt;code&gt;
 // Basic usage:
 var dt = new Date('10/29/2006').add(Date.DAY, 5);
 document.write(dt); //returns 'Fri Nov 03 2006 00:00:00'
@@ -1228,7 +1231,7 @@ document.write(dt2); //returns 'Tue Sep 26 2006 00:00:00'
 // You can even chain several calls together in one line:
 var dt3 = new Date('10/1/2006').add(Date.DAY, 5).add(Date.HOUR, 8).add(Date.MINUTE, -30);
 document.write(dt3); //returns 'Fri Oct 06 2006 07:30:00'
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
      *
      * @param {String} interval A valid date interval enum value.
      * @param {Number} value The amount to add to the current date.
@@ -1256,7 +1259,7 @@ document.write(dt3); //returns 'Fri Oct 06 2006 07:30:00'
                 break;
             case Date.MONTH:
                 var day = this.getDate();
-                if (day > 28) {
+                if (day &gt; 28) {
                     day = Math.min(day, this.getFirstDateOfMonth().add('mo', value).getLastDateOfMonth().getDate());
                 }
                 d.setDate(day);
@@ -1269,21 +1272,21 @@ document.write(dt3); //returns 'Fri Oct 06 2006 07:30:00'
         return d;
     },
 
-    <div id="method-Date-between"></div>/**
-     * Checks if this date falls on or between the given start and end dates.
+<span id='Date-method-between'>    /**
+</span>     * Checks if this date falls on or between the given start and end dates.
      * @param {Date} start Start date
      * @param {Date} end End date
      * @return {Boolean} true if this date falls on or between the given start and end dates.
      */
     between : function(start, end) {
         var t = this.getTime();
-        return start.getTime() <= t && t <= end.getTime();
+        return start.getTime() &lt;= t &amp;&amp; t &lt;= end.getTime();
     }
 });
 
 
-<div id="method-Date-format"></div>/**
- * Formats a date given the supplied format string.
+<span id='Date-method-format'>/**
+</span> * Formats a date given the supplied format string.
  * @param {String} format The format string.
  * @return {String} The formatted date.
  * @method format
@@ -1292,15 +1295,15 @@ Date.prototype.format = Date.prototype.dateFormat;
 
 
 // private
-if (Ext.isSafari && (navigator.userAgent.match(/WebKit\/(\d+)/)[1] || NaN) < 420) {
+if (Ext.isSafari &amp;&amp; (navigator.userAgent.match(/WebKit\/(\d+)/)[1] || NaN) &lt; 420) {
     Ext.apply(Date.prototype, {
         _xMonth : Date.prototype.setMonth,
         _xDate  : Date.prototype.setDate,
 
-        // Bug in Safari 1.3, 2.0 (WebKit build < 420)
+        // Bug in Safari 1.3, 2.0 (WebKit build &lt; 420)
         // Date.setMonth does not work consistently if iMonth is not 0-11
         setMonth : function(num) {
-            if (num <= -1) {
+            if (num &lt;= -1) {
                 var n = Math.ceil(-num),
                     back_year = Math.ceil(n / 12),
                     month = (n % 12) ? 12 - n % 12 : 0;
@@ -1313,7 +1316,7 @@ if (Ext.isSafari && (navigator.userAgent.match(/WebKit\/(\d+)/)[1] || NaN) < 420
             }
         },
 
-        // Bug in setDate() method (resolved in WebKit build 419.3, so to be safe we target Webkit builds < 420)
+        // Bug in setDate() method (resolved in WebKit build 419.3, so to be safe we target Webkit builds &lt; 420)
         // The parameter for Date.setDate() is converted to a signed byte integer in Safari
         // http://brianary.blogspot.com/2006/03/safari-date-bug.html
         setDate : function(d) {
@@ -1329,31 +1332,31 @@ if (Ext.isSafari && (navigator.userAgent.match(/WebKit\/(\d+)/)[1] || NaN) < 420
 /* Some basic Date tests... (requires Firebug)
 
 Date.parseDate('', 'c'); // call Date.parseDate() once to force computation of regex string so we can console.log() it
-console.log('Insane Regex for "c" format: %o', Date.parseCodes.c.s); // view the insane regex for the "c" format specifier
+console.log('Insane Regex for &quot;c&quot; format: %o', Date.parseCodes.c.s); // view the insane regex for the &quot;c&quot; format specifier
 
 // standard tests
 console.group('Standard Date.parseDate() Tests');
-    console.log('Date.parseDate("2009-01-05T11:38:56", "c")               = %o', Date.parseDate("2009-01-05T11:38:56", "c")); // assumes browser's timezone setting
-    console.log('Date.parseDate("2009-02-04T12:37:55.001000", "c")        = %o', Date.parseDate("2009-02-04T12:37:55.001000", "c")); // assumes browser's timezone setting
-    console.log('Date.parseDate("2009-03-03T13:36:54,101000Z", "c")       = %o', Date.parseDate("2009-03-03T13:36:54,101000Z", "c")); // UTC
-    console.log('Date.parseDate("2009-04-02T14:35:53.901000-0530", "c")   = %o', Date.parseDate("2009-04-02T14:35:53.901000-0530", "c")); // GMT-0530
-    console.log('Date.parseDate("2009-05-01T15:34:52,9876000+08:00", "c") = %o', Date.parseDate("2009-05-01T15:34:52,987600+08:00", "c")); // GMT+08:00
+    console.log('Date.parseDate(&quot;2009-01-05T11:38:56&quot;, &quot;c&quot;)               = %o', Date.parseDate(&quot;2009-01-05T11:38:56&quot;, &quot;c&quot;)); // assumes browser's timezone setting
+    console.log('Date.parseDate(&quot;2009-02-04T12:37:55.001000&quot;, &quot;c&quot;)        = %o', Date.parseDate(&quot;2009-02-04T12:37:55.001000&quot;, &quot;c&quot;)); // assumes browser's timezone setting
+    console.log('Date.parseDate(&quot;2009-03-03T13:36:54,101000Z&quot;, &quot;c&quot;)       = %o', Date.parseDate(&quot;2009-03-03T13:36:54,101000Z&quot;, &quot;c&quot;)); // UTC
+    console.log('Date.parseDate(&quot;2009-04-02T14:35:53.901000-0530&quot;, &quot;c&quot;)   = %o', Date.parseDate(&quot;2009-04-02T14:35:53.901000-0530&quot;, &quot;c&quot;)); // GMT-0530
+    console.log('Date.parseDate(&quot;2009-05-01T15:34:52,9876000+08:00&quot;, &quot;c&quot;) = %o', Date.parseDate(&quot;2009-05-01T15:34:52,987600+08:00&quot;, &quot;c&quot;)); // GMT+08:00
 console.groupEnd();
 
 // ISO-8601 format as specified in http://www.w3.org/TR/NOTE-datetime
 // -- accepts ALL 6 levels of date-time granularity
 console.group('ISO-8601 Granularity Test (see http://www.w3.org/TR/NOTE-datetime)');
-    console.log('Date.parseDate("1997", "c")                              = %o', Date.parseDate("1997", "c")); // YYYY (e.g. 1997)
-    console.log('Date.parseDate("1997-07", "c")                           = %o', Date.parseDate("1997-07", "c")); // YYYY-MM (e.g. 1997-07)
-    console.log('Date.parseDate("1997-07-16", "c")                        = %o', Date.parseDate("1997-07-16", "c")); // YYYY-MM-DD (e.g. 1997-07-16)
-    console.log('Date.parseDate("1997-07-16T19:20+01:00", "c")            = %o', Date.parseDate("1997-07-16T19:20+01:00", "c")); // YYYY-MM-DDThh:mmTZD (e.g. 1997-07-16T19:20+01:00)
-    console.log('Date.parseDate("1997-07-16T19:20:30+01:00", "c")         = %o', Date.parseDate("1997-07-16T19:20:30+01:00", "c")); // YYYY-MM-DDThh:mm:ssTZD (e.g. 1997-07-16T19:20:30+01:00)
-    console.log('Date.parseDate("1997-07-16T19:20:30.45+01:00", "c")      = %o', Date.parseDate("1997-07-16T19:20:30.45+01:00", "c")); // YYYY-MM-DDThh:mm:ss.sTZD (e.g. 1997-07-16T19:20:30.45+01:00)
-    console.log('Date.parseDate("1997-07-16 19:20:30.45+01:00", "c")      = %o', Date.parseDate("1997-07-16 19:20:30.45+01:00", "c")); // YYYY-MM-DD hh:mm:ss.sTZD (e.g. 1997-07-16T19:20:30.45+01:00)
-    console.log('Date.parseDate("1997-13-16T19:20:30.45+01:00", "c", true)= %o', Date.parseDate("1997-13-16T19:20:30.45+01:00", "c", true)); // strict date parsing with invalid month value
+    console.log('Date.parseDate(&quot;1997&quot;, &quot;c&quot;)                              = %o', Date.parseDate(&quot;1997&quot;, &quot;c&quot;)); // YYYY (e.g. 1997)
+    console.log('Date.parseDate(&quot;1997-07&quot;, &quot;c&quot;)                           = %o', Date.parseDate(&quot;1997-07&quot;, &quot;c&quot;)); // YYYY-MM (e.g. 1997-07)
+    console.log('Date.parseDate(&quot;1997-07-16&quot;, &quot;c&quot;)                        = %o', Date.parseDate(&quot;1997-07-16&quot;, &quot;c&quot;)); // YYYY-MM-DD (e.g. 1997-07-16)
+    console.log('Date.parseDate(&quot;1997-07-16T19:20+01:00&quot;, &quot;c&quot;)            = %o', Date.parseDate(&quot;1997-07-16T19:20+01:00&quot;, &quot;c&quot;)); // YYYY-MM-DDThh:mmTZD (e.g. 1997-07-16T19:20+01:00)
+    console.log('Date.parseDate(&quot;1997-07-16T19:20:30+01:00&quot;, &quot;c&quot;)         = %o', Date.parseDate(&quot;1997-07-16T19:20:30+01:00&quot;, &quot;c&quot;)); // YYYY-MM-DDThh:mm:ssTZD (e.g. 1997-07-16T19:20:30+01:00)
+    console.log('Date.parseDate(&quot;1997-07-16T19:20:30.45+01:00&quot;, &quot;c&quot;)      = %o', Date.parseDate(&quot;1997-07-16T19:20:30.45+01:00&quot;, &quot;c&quot;)); // YYYY-MM-DDThh:mm:ss.sTZD (e.g. 1997-07-16T19:20:30.45+01:00)
+    console.log('Date.parseDate(&quot;1997-07-16 19:20:30.45+01:00&quot;, &quot;c&quot;)      = %o', Date.parseDate(&quot;1997-07-16 19:20:30.45+01:00&quot;, &quot;c&quot;)); // YYYY-MM-DD hh:mm:ss.sTZD (e.g. 1997-07-16T19:20:30.45+01:00)
+    console.log('Date.parseDate(&quot;1997-13-16T19:20:30.45+01:00&quot;, &quot;c&quot;, true)= %o', Date.parseDate(&quot;1997-13-16T19:20:30.45+01:00&quot;, &quot;c&quot;, true)); // strict date parsing with invalid month value
 console.groupEnd();
 
 */
-</pre>    
+</pre>
 </body>
 </html>

@@ -1,30 +1,33 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.FlashProxy"></div>/**
- * @class Ext.FlashProxy
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-FlashProxy'>/**
+</span> * @class Ext.FlashProxy
  * @singleton
  */
 Ext.FlashEventProxy = {
-    onEvent : function(id, e){
-        var fp = Ext.getCmp(id);
+<span id='Ext-FlashProxy-method-onEvent'>    onEvent : function(id, e){
+</span>        var fp = Ext.getCmp(id);
         if(fp){
             fp.onFlashEvent(e);
         }else{
             arguments.callee.defer(10, this, [id, e]);
         }
     }
-};</pre>    
+};</pre>
 </body>
 </html>

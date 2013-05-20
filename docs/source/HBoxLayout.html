@@ -1,67 +1,71 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.layout.HBoxLayout"></div>/**
- * @class Ext.layout.HBoxLayout
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-HBoxLayout'>/**
+</span> * @class Ext.layout.HBoxLayout
  * @extends Ext.layout.BoxLayout
- * <p>A layout that arranges items horizontally across a Container. This layout optionally divides available horizontal
- * space between child items containing a numeric <code>flex</code> configuration.</p>
+ * &lt;p&gt;A layout that arranges items horizontally across a Container. This layout optionally divides available horizontal
+ * space between child items containing a numeric &lt;code&gt;flex&lt;/code&gt; configuration.&lt;/p&gt;
  * This layout may also be used to set the heights of child items by configuring it with the {@link #align} option.
  */
 Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
-    <div id="cfg-Ext.layout.HBoxLayout-align"></div>/**
-     * @cfg {String} align
+<span id='Ext-layout-HBoxLayout-cfg-align'>    /**
+</span>     * @cfg {String} align
      * Controls how the child items of the container are aligned. Acceptable configuration values for this
      * property are:
-     * <div class="mdetail-params"><ul>
-     * <li><b><tt>top</tt></b> : <b>Default</b><div class="sub-desc">child items are aligned vertically
-     * at the <b>top</b> of the container</div></li>
-     * <li><b><tt>middle</tt></b> : <div class="sub-desc">child items are aligned vertically in the
-     * <b>middle</b> of the container</div></li>
-     * <li><b><tt>stretch</tt></b> : <div class="sub-desc">child items are stretched vertically to fill
-     * the height of the container</div></li>
-     * <li><b><tt>stretchmax</tt></b> : <div class="sub-desc">child items are stretched vertically to
-     * the height of the largest item.</div></li>
+     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;top&lt;/tt&gt;&lt;/b&gt; : &lt;b&gt;Default&lt;/b&gt;&lt;div class=&quot;sub-desc&quot;&gt;child items are aligned vertically
+     * at the &lt;b&gt;top&lt;/b&gt; of the container&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;middle&lt;/tt&gt;&lt;/b&gt; : &lt;div class=&quot;sub-desc&quot;&gt;child items are aligned vertically in the
+     * &lt;b&gt;middle&lt;/b&gt; of the container&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;stretch&lt;/tt&gt;&lt;/b&gt; : &lt;div class=&quot;sub-desc&quot;&gt;child items are stretched vertically to fill
+     * the height of the container&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;stretchmax&lt;/tt&gt;&lt;/b&gt; : &lt;div class=&quot;sub-desc&quot;&gt;child items are stretched vertically to
+     * the height of the largest item.&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      */
-    align: 'top', // top, middle, stretch, strechmax
-
+<span id='Ext-layout-HBoxLayout-property-type'>    align: 'top', // top, middle, stretch, strechmax
+</span>
     type : 'hbox',
 
-    <div id="cfg-Ext.layout.HBoxLayout-pack"></div>/**
-     * @cfg {String} pack
+<span id='Ext-layout-HBoxLayout-cfg-pack'>    /**
+</span>     * @cfg {String} pack
      * Controls how the child items of the container are packed together. Acceptable configuration values
      * for this property are:
-     * <div class="mdetail-params"><ul>
-     * <li><b><tt>start</tt></b> : <b>Default</b><div class="sub-desc">child items are packed together at
-     * <b>left</b> side of container</div></li>
-     * <li><b><tt>center</tt></b> : <div class="sub-desc">child items are packed together at
-     * <b>mid-width</b> of container</div></li>
-     * <li><b><tt>end</tt></b> : <div class="sub-desc">child items are packed together at <b>right</b>
-     * side of container</div></li>
-     * </ul></div>
+     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;start&lt;/tt&gt;&lt;/b&gt; : &lt;b&gt;Default&lt;/b&gt;&lt;div class=&quot;sub-desc&quot;&gt;child items are packed together at
+     * &lt;b&gt;left&lt;/b&gt; side of container&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;center&lt;/tt&gt;&lt;/b&gt; : &lt;div class=&quot;sub-desc&quot;&gt;child items are packed together at
+     * &lt;b&gt;mid-width&lt;/b&gt; of container&lt;/div&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;&lt;tt&gt;end&lt;/tt&gt;&lt;/b&gt; : &lt;div class=&quot;sub-desc&quot;&gt;child items are packed together at &lt;b&gt;right&lt;/b&gt;
+     * side of container&lt;/div&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      */
-    <div id="cfg-Ext.layout.HBoxLayout-flex"></div>/**
-     * @cfg {Number} flex
-     * This configuation option is to be applied to <b>child <tt>items</tt></b> of the container managed
-     * by this layout. Each child item with a <tt>flex</tt> property will be flexed <b>horizontally</b>
-     * according to each item's <b>relative</b> <tt>flex</tt> value compared to the sum of all items with
-     * a <tt>flex</tt> value specified.  Any child items that have either a <tt>flex = 0</tt> or
-     * <tt>flex = undefined</tt> will not be 'flexed' (the initial size will not be changed).
+<span id='Ext-layout-HBoxLayout-cfg-flex'>    /**
+</span>     * @cfg {Number} flex
+     * This configuation option is to be applied to &lt;b&gt;child &lt;tt&gt;items&lt;/tt&gt;&lt;/b&gt; of the container managed
+     * by this layout. Each child item with a &lt;tt&gt;flex&lt;/tt&gt; property will be flexed &lt;b&gt;horizontally&lt;/b&gt;
+     * according to each item's &lt;b&gt;relative&lt;/b&gt; &lt;tt&gt;flex&lt;/tt&gt; value compared to the sum of all items with
+     * a &lt;tt&gt;flex&lt;/tt&gt; value specified.  Any child items that have either a &lt;tt&gt;flex = 0&lt;/tt&gt; or
+     * &lt;tt&gt;flex = undefined&lt;/tt&gt; will not be 'flexed' (the initial size will not be changed).
      */
 
-    /**
-     * @private
+<span id='Ext-layout-HBoxLayout-method-calculateChildBoxes'>    /**
+</span>     * @private
      * Calculates the size and positioning of each item in the HBox. This iterates over all of the rendered,
      * visible items and returns a height, width, top and left for each, as well as a reference to each. Also
      * returns meta data such as maxHeight which are useful when resizing layout wrappers such as this.innerCt.
@@ -96,28 +100,28 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
             boxes        = [],
 
             //used in the for loops below, just declared here for brevity
-            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth, 
+            child, childWidth, childHeight, childSize, childMargins, canLayout, i, calcs, flexedWidth,
             horizMargins, vertMargins, stretchHeight;
 
         //gather the total flex of all flexed items and the width taken up by fixed width items
-        for (i = 0; i < visibleCount; i++) {
+        for (i = 0; i &lt; visibleCount; i++) {
             child       = visibleItems[i];
             childHeight = child.height;
             childWidth  = child.width;
-            canLayout   = !child.hasLayout && typeof child.doLayout == 'function';
+            canLayout   = !child.hasLayout &amp;&amp; typeof child.doLayout == 'function';
 
             // Static width (numeric) requires no calcs
             if (typeof childWidth != 'number') {
 
                 // flex and not 'auto' width
-                if (child.flex && !childWidth) {
+                if (child.flex &amp;&amp; !childWidth) {
                     totalFlex += child.flex;
 
                 // Not flexed or 'auto' width or undefined width
                 } else {
                     //Render and layout sub-containers without a flex or width defined, as otherwise we
                     //don't know how wide the sub-container should be and cannot calculate flexed widths
-                    if (!childWidth && canLayout) {
+                    if (!childWidth &amp;&amp; canLayout) {
                         child.doLayout();
                     }
 
@@ -151,29 +155,27 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
                 width    : childWidth  || undefined
             });
         }
-                
+
         var shortfall = desiredWidth - width,
-            tooNarrow = minimumWidth > width;
-            
+            tooNarrow = minimumWidth &gt; width;
+
         //the width available to the flexed items
         var availableWidth = Math.max(0, width - nonFlexWidth - paddingHoriz);
-        
+
         if (tooNarrow) {
-            for (i = 0; i < visibleCount; i++) {
+            for (i = 0; i &lt; visibleCount; i++) {
                 boxes[i].width = visibleItems[i].minWidth || visibleItems[i].width || boxes[i].width;
             }
         } else {
             //all flexed items should be sized to their minimum width, other items should be shrunk down until
             //the shortfall has been accounted for
-            if (shortfall > 0) {
+            if (shortfall &gt; 0) {
                 var minWidths = [];
-                
-                <div id="prop-Ext.layout.HBoxLayout-for"></div>/**
-                 * When we have a shortfall but are not tooNarrow, we need to shrink the width of each non-flexed item.
-                 * Flexed items are immediately reduced to their minWidth and anything already at minWidth is ignored.
-                 * The remaining items are collected into the minWidths array, which is later used to distribute the shortfall.
-                 */
-                for (var index = 0, length = visibleCount; index < length; index++) {
+
+                // When we have a shortfall but are not tooNarrow, we need to shrink the width of each non-flexed item.
+                // Flexed items are immediately reduced to their minWidth and anything already at minWidth is ignored.
+                // The remaining items are collected into the minWidths array, which is later used to distribute the shortfall.
+                for (var index = 0, length = visibleCount; index &lt; length; index++) {
                     var item     = visibleItems[index],
                         minWidth = item.minWidth || 0;
 
@@ -189,34 +191,34 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
                         });
                     }
                 }
-                
+
                 //sort by descending amount of width remaining before minWidth is reached
                 minWidths.sort(function(a, b) {
-                    return a.available > b.available ? 1 : -1;
+                    return a.available &gt; b.available ? 1 : -1;
                 });
-                
+
                 /*
                  * Distribute the shortfall (difference between total desired with of all items and actual width available)
                  * between the non-flexed items. We try to distribute the shortfall evenly, but apply it to items with the
                  * smallest difference between their width and minWidth first, so that if reducing the width by the average
                  * amount would make that item less than its minWidth, we carry the remainder over to the next item.
                  */
-                for (var i = 0, length = minWidths.length; i < length; i++) {
+                for (var i = 0, length = minWidths.length; i &lt; length; i++) {
                     var itemIndex = minWidths[i].index;
-                    
+
                     if (itemIndex == undefined) {
                         continue;
                     }
-                        
+
                     var item      = visibleItems[itemIndex],
                         box       = boxes[itemIndex],
                         oldWidth  = box.width,
                         minWidth  = item.minWidth,
                         newWidth  = Math.max(minWidth, oldWidth - Math.ceil(shortfall / (length - i))),
                         reduction = oldWidth - newWidth;
-                    
+
                     boxes[itemIndex].width = newWidth;
-                    shortfall -= reduction;                    
+                    shortfall -= reduction;
                 }
             } else {
                 //temporary variables used in the flex width calculations below
@@ -224,14 +226,14 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
                     remainingFlex  = totalFlex;
 
                 //calculate the widths of each flexed item
-                for (i = 0; i < visibleCount; i++) {
+                for (i = 0; i &lt; visibleCount; i++) {
                     child = visibleItems[i];
                     calcs = boxes[i];
 
                     childMargins = child.margins;
                     vertMargins  = childMargins.top + childMargins.bottom;
 
-                    if (isStart && child.flex && !child.width) {
+                    if (isStart &amp;&amp; child.flex &amp;&amp; !child.width) {
                         flexedWidth     = Math.ceil((child.flex / remainingFlex) * remainingWidth);
                         remainingWidth -= flexedWidth;
                         remainingFlex  -= child.flex;
@@ -242,22 +244,22 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
                 }
             }
         }
-        
+
         if (isCenter) {
             leftOffset += availableWidth / 2;
         } else if (isEnd) {
             leftOffset += availableWidth;
         }
-        
+
         //finally, calculate the left and top position of each item
-        for (i = 0; i < visibleCount; i++) {
+        for (i = 0; i &lt; visibleCount; i++) {
             child = visibleItems[i];
             calcs = boxes[i];
-            
+
             childMargins = child.margins;
             leftOffset  += childMargins.left;
             vertMargins  = childMargins.top + childMargins.bottom;
-            
+
             calcs.left = leftOffset;
             calcs.top  = topOffset + childMargins.top;
 
@@ -274,11 +276,11 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
                     break;
                 case 'middle':
                     var diff = availHeight - calcs.height - vertMargins;
-                    if (diff > 0) {
+                    if (diff &gt; 0) {
                         calcs.top = topOffset + vertMargins + (diff / 2);
                     }
             }
-            
+
             leftOffset += calcs.width + childMargins.right;
         }
 
@@ -296,6 +298,6 @@ Ext.layout.HBoxLayout = Ext.extend(Ext.layout.BoxLayout, {
     }
 });
 
-Ext.Container.LAYOUTS.hbox = Ext.layout.HBoxLayout;</pre>    
+Ext.Container.LAYOUTS.hbox = Ext.layout.HBoxLayout;</pre>
 </body>
 </html>

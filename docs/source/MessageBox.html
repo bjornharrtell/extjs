@@ -1,26 +1,29 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.MessageBox"></div>/**
- * @class Ext.MessageBox
- * <p>Utility class for generating different styles of message boxes.  The alias Ext.Msg can also be used.<p/>
- * <p>Note that the MessageBox is asynchronous.  Unlike a regular JavaScript <code>alert</code> (which will halt
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-MessageBox'>/**
+</span> * @class Ext.MessageBox
+ * &lt;p&gt;Utility class for generating different styles of message boxes.  The alias Ext.Msg can also be used.&lt;p/&gt;
+ * &lt;p&gt;Note that the MessageBox is asynchronous.  Unlike a regular JavaScript &lt;code&gt;alert&lt;/code&gt; (which will halt
  * browser execution), showing a MessageBox will not cause the code to stop.  For this reason, if you have code
- * that should only run <em>after</em> some user feedback from the MessageBox, you must use a callback function
- * (see the <code>function</code> parameter for {@link #show} for more details).</p>
- * <p>Example usage:</p>
- *<pre><code>
+ * that should only run &lt;em&gt;after&lt;/em&gt; some user feedback from the MessageBox, you must use a callback function
+ * (see the &lt;code&gt;function&lt;/code&gt; parameter for {@link #show} for more details).&lt;/p&gt;
+ * &lt;p&gt;Example usage:&lt;/p&gt;
+ *&lt;pre&gt;&lt;code&gt;
 // Basic alert:
 Ext.Msg.alert('Status', 'Changes saved successfully.');
 
@@ -40,7 +43,7 @@ Ext.Msg.show({
    animEl: 'elId',
    icon: Ext.MessageBox.QUESTION
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  * @singleton
  */
 Ext.MessageBox = function(){
@@ -61,7 +64,7 @@ Ext.MessageBox = function(){
 
     // private
     var handleHide = function(){
-        if(opt && opt.cls){
+        if(opt &amp;&amp; opt.cls){
             dlg.el.removeClass(opt.cls);
         }
         progressBar.reset();        
@@ -69,7 +72,7 @@ Ext.MessageBox = function(){
 
     // private
     var handleEsc = function(d, k, e){
-        if(opt && opt.closable !== false){
+        if(opt &amp;&amp; opt.closable !== false){
             dlg.hide();
             handleHide();
         }
@@ -103,8 +106,8 @@ Ext.MessageBox = function(){
     };
 
     return {
-        <div id="method-Ext.MessageBox-getDialog"></div>/**
-         * Returns a reference to the underlying {@link Ext.Window} element
+<span id='Ext-MessageBox-method-getDialog'>        /**
+</span>         * Returns a reference to the underlying {@link Ext.Window} element
          * @return {Ext.Window} The window
          */
         getDialog : function(titleText){
@@ -130,7 +133,7 @@ Ext.MessageBox = function(){
                     stateful: false,
                     modal: true,
                     shim:true,
-                    buttonAlign:"center",
+                    buttonAlign:&quot;center&quot;,
                     width:400,
                     height:100,
                     minHeight: 80,
@@ -138,10 +141,10 @@ Ext.MessageBox = function(){
                     footer:true,
                     closable:true,
                     close : function(){
-                        if(opt && opt.buttons && opt.buttons.no && !opt.buttons.cancel){
-                            handleButton("no");
+                        if(opt &amp;&amp; opt.buttons &amp;&amp; opt.buttons.no &amp;&amp; !opt.buttons.cancel){
+                            handleButton(&quot;no&quot;);
                         }else{
-                            handleButton("cancel");
+                            handleButton(&quot;cancel&quot;);
                         }
                     },
                     fbar: new Ext.Toolbar({
@@ -153,7 +156,7 @@ Ext.MessageBox = function(){
                 dlg.getEl().addClass('x-window-dlg');
                 mask = dlg.mask;
                 bodyEl = dlg.body.createChild({
-                    html:'<div class="ext-mb-icon"></div><div class="ext-mb-content"><span class="ext-mb-text"></span><br /><div class="ext-mb-fix-cursor"><input type="text" class="ext-mb-input" /><textarea class="ext-mb-textarea"></textarea></div></div>'
+                    html:'&lt;div class=&quot;ext-mb-icon&quot;&gt;&lt;/div&gt;&lt;div class=&quot;ext-mb-content&quot;&gt;&lt;span class=&quot;ext-mb-text&quot;&gt;&lt;/span&gt;&lt;br /&gt;&lt;div class=&quot;ext-mb-fix-cursor&quot;&gt;&lt;input type=&quot;text&quot; class=&quot;ext-mb-input&quot; /&gt;&lt;textarea class=&quot;ext-mb-textarea&quot;&gt;&lt;/textarea&gt;&lt;/div&gt;&lt;/div&gt;'
                 });
                 iconEl = Ext.get(bodyEl.dom.firstChild);
                 var contentEl = bodyEl.dom.childNodes[1];
@@ -161,11 +164,11 @@ Ext.MessageBox = function(){
                 textboxEl = Ext.get(contentEl.childNodes[2].firstChild);
                 textboxEl.enableDisplayMode();
                 textboxEl.addKeyListener([10,13], function(){
-                    if(dlg.isVisible() && opt && opt.buttons){
+                    if(dlg.isVisible() &amp;&amp; opt &amp;&amp; opt.buttons){
                         if(opt.buttons.ok){
-                            handleButton("ok");
+                            handleButton(&quot;ok&quot;);
                         }else if(opt.buttons.yes){
-                            handleButton("yes");
+                            handleButton(&quot;yes&quot;);
                         }
                     }
                 });
@@ -179,18 +182,18 @@ Ext.MessageBox = function(){
             return dlg;
         },
 
-        <div id="method-Ext.MessageBox-updateText"></div>/**
-         * Updates the message box body text
+<span id='Ext-MessageBox-method-updateText'>        /**
+</span>         * Updates the message box body text
          * @param {String} text (optional) Replaces the message box element's innerHTML with the specified string (defaults to
-         * the XHTML-compliant non-breaking space character '&amp;#160;')
+         * the XHTML-compliant non-breaking space character '&amp;amp;#160;')
          * @return {Ext.MessageBox} this
          */
         updateText : function(text){
-            if(!dlg.isVisible() && !opt.width){
+            if(!dlg.isVisible() &amp;&amp; !opt.width){
                 dlg.setSize(this.maxWidth, 100); // resize first so content is never clipped from previous shows
             }
             // Append a space here for sizing. In IE, for some reason, it wraps text incorrectly without one in some cases
-            msgEl.update(text ? text + ' ' : '&#160;');
+            msgEl.update(text ? text + ' ' : '&amp;#160;');
 
             var iw = iconCls != '' ? (iconEl.getWidth() + iconEl.getMargins('lr')) : 0,
                 mw = msgEl.getWidth() + msgEl.getMargins('lr'),
@@ -207,16 +210,16 @@ Ext.MessageBox = function(){
             if(opt.progress === true || opt.wait === true){
                 progressBar.setSize(w-iw-fw-bw);
             }
-            if(Ext.isIE && w == bwidth){
+            if(Ext.isIE9m &amp;&amp; w == bwidth){
                 w += 4; //Add offset when the content width is smaller than the buttons.    
             }
-            msgEl.update(text || '&#160;');
+            msgEl.update(text || '&amp;#160;');
             dlg.setSize(w, 'auto').center();
             return this;
         },
 
-        <div id="method-Ext.MessageBox-updateProgress"></div>/**
-         * Updates a progress-style message box's text and progress bar. Only relevant on message boxes
+<span id='Ext-MessageBox-method-updateProgress'>        /**
+</span>         * Updates a progress-style message box's text and progress bar. Only relevant on message boxes
          * initiated via {@link Ext.MessageBox#progress} or {@link Ext.MessageBox#wait},
          * or by calling {@link Ext.MessageBox#show} with progress: true.
          * @param {Number} value Any number between 0 and 1 (e.g., .5, defaults to 0)
@@ -233,16 +236,16 @@ Ext.MessageBox = function(){
             return this;
         },
 
-        <div id="method-Ext.MessageBox-isVisible"></div>/**
-         * Returns true if the message box is currently displayed
+<span id='Ext-MessageBox-method-isVisible'>        /**
+</span>         * Returns true if the message box is currently displayed
          * @return {Boolean} True if the message box is visible, else false
          */
         isVisible : function(){
-            return dlg && dlg.isVisible();
+            return dlg &amp;&amp; dlg.isVisible();
         },
 
-        <div id="method-Ext.MessageBox-hide"></div>/**
-         * Hides the message box if it is displayed
+<span id='Ext-MessageBox-method-hide'>        /**
+</span>         * Hides the message box if it is displayed
          * @return {Ext.MessageBox} this
          */
         hide : function(){
@@ -259,62 +262,62 @@ Ext.MessageBox = function(){
             return this;
         },
 
-        <div id="method-Ext.MessageBox-show"></div>/**
-         * Displays a new message box, or reinitializes an existing message box, based on the config options
+<span id='Ext-MessageBox-method-show'>        /**
+</span>         * Displays a new message box, or reinitializes an existing message box, based on the config options
          * passed in. All display functions (e.g. prompt, alert, etc.) on MessageBox call this function internally,
          * although those calls are basic shortcuts and do not support all of the config options allowed here.
-         * @param {Object} config The following config options are supported: <ul>
-         * <li><b>animEl</b> : String/Element<div class="sub-desc">An id or Element from which the message box should animate as it
-         * opens and closes (defaults to undefined)</div></li>
-         * <li><b>buttons</b> : Object/Boolean<div class="sub-desc">A button config object (e.g., Ext.MessageBox.OKCANCEL or {ok:'Foo',
-         * cancel:'Bar'}), or false to not show any buttons (defaults to false)</div></li>
-         * <li><b>closable</b> : Boolean<div class="sub-desc">False to hide the top-right close button (defaults to true). Note that
+         * @param {Object} config The following config options are supported: &lt;ul&gt;
+         * &lt;li&gt;&lt;b&gt;animEl&lt;/b&gt; : String/Element&lt;div class=&quot;sub-desc&quot;&gt;An id or Element from which the message box should animate as it
+         * opens and closes (defaults to undefined)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;buttons&lt;/b&gt; : Object/Boolean&lt;div class=&quot;sub-desc&quot;&gt;A button config object (e.g., Ext.MessageBox.OKCANCEL or {ok:'Foo',
+         * cancel:'Bar'}), or false to not show any buttons (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;closable&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;False to hide the top-right close button (defaults to true). Note that
          * progress and wait dialogs will ignore this property and always hide the close button as they can only
-         * be closed programmatically.</div></li>
-         * <li><b>cls</b> : String<div class="sub-desc">A custom CSS class to apply to the message box's container element</div></li>
-         * <li><b>defaultTextHeight</b> : Number<div class="sub-desc">The default height in pixels of the message box's multiline textarea
-         * if displayed (defaults to 75)</div></li>
-         * <li><b>fn</b> : Function<div class="sub-desc">A callback function which is called when the dialog is dismissed either
+         * be closed programmatically.&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;cls&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;A custom CSS class to apply to the message box's container element&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;defaultTextHeight&lt;/b&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The default height in pixels of the message box's multiline textarea
+         * if displayed (defaults to 75)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;fn&lt;/b&gt; : Function&lt;div class=&quot;sub-desc&quot;&gt;A callback function which is called when the dialog is dismissed either
          * by clicking on the configured buttons, or on the dialog close button, or by pressing
          * the return button to enter input.
-         * <p>Progress and wait dialogs will ignore this option since they do not respond to user
+         * &lt;p&gt;Progress and wait dialogs will ignore this option since they do not respond to user
          * actions and can only be closed programmatically, so any required function should be called
-         * by the same code after it closes the dialog. Parameters passed:<ul>
-         * <li><b>buttonId</b> : String<div class="sub-desc">The ID of the button pressed, one of:<div class="sub-desc"><ul>
-         * <li><tt>ok</tt></li>
-         * <li><tt>yes</tt></li>
-         * <li><tt>no</tt></li>
-         * <li><tt>cancel</tt></li>
-         * </ul></div></div></li>
-         * <li><b>text</b> : String<div class="sub-desc">Value of the input field if either <tt><a href="#show-option-prompt" ext:member="show-option-prompt" ext:cls="Ext.MessageBox">prompt</a></tt>
-         * or <tt><a href="#show-option-multiline" ext:member="show-option-multiline" ext:cls="Ext.MessageBox">multiline</a></tt> is true</div></li>
-         * <li><b>opt</b> : Object<div class="sub-desc">The config object passed to show.</div></li>
-         * </ul></p></div></li>
-         * <li><b>scope</b> : Object<div class="sub-desc">The scope of the callback function</div></li>
-         * <li><b>icon</b> : String<div class="sub-desc">A CSS class that provides a background image to be used as the body icon for the
-         * dialog (e.g. Ext.MessageBox.WARNING or 'custom-class') (defaults to '')</div></li>
-         * <li><b>iconCls</b> : String<div class="sub-desc">The standard {@link Ext.Window#iconCls} to
-         * add an optional header icon (defaults to '')</div></li>
-         * <li><b>maxWidth</b> : Number<div class="sub-desc">The maximum width in pixels of the message box (defaults to 600)</div></li>
-         * <li><b>minWidth</b> : Number<div class="sub-desc">The minimum width in pixels of the message box (defaults to 100)</div></li>
-         * <li><b>modal</b> : Boolean<div class="sub-desc">False to allow user interaction with the page while the message box is
-         * displayed (defaults to true)</div></li>
-         * <li><b>msg</b> : String<div class="sub-desc">A string that will replace the existing message box body text (defaults to the
-         * XHTML-compliant non-breaking space character '&amp;#160;')</div></li>
-         * <li><a id="show-option-multiline"></a><b>multiline</b> : Boolean<div class="sub-desc">
-         * True to prompt the user to enter multi-line text (defaults to false)</div></li>
-         * <li><b>progress</b> : Boolean<div class="sub-desc">True to display a progress bar (defaults to false)</div></li>
-         * <li><b>progressText</b> : String<div class="sub-desc">The text to display inside the progress bar if progress = true (defaults to '')</div></li>
-         * <li><a id="show-option-prompt"></a><b>prompt</b> : Boolean<div class="sub-desc">True to prompt the user to enter single-line text (defaults to false)</div></li>
-         * <li><b>proxyDrag</b> : Boolean<div class="sub-desc">True to display a lightweight proxy while dragging (defaults to false)</div></li>
-         * <li><b>title</b> : String<div class="sub-desc">The title text</div></li>
-         * <li><b>value</b> : String<div class="sub-desc">The string value to set into the active textbox element if displayed</div></li>
-         * <li><b>wait</b> : Boolean<div class="sub-desc">True to display a progress bar (defaults to false)</div></li>
-         * <li><b>waitConfig</b> : Object<div class="sub-desc">A {@link Ext.ProgressBar#waitConfig} object (applies only if wait = true)</div></li>
-         * <li><b>width</b> : Number<div class="sub-desc">The width of the dialog in pixels</div></li>
-         * </ul>
+         * by the same code after it closes the dialog. Parameters passed:&lt;ul&gt;
+         * &lt;li&gt;&lt;b&gt;buttonId&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The ID of the button pressed, one of:&lt;div class=&quot;sub-desc&quot;&gt;&lt;ul&gt;
+         * &lt;li&gt;&lt;tt&gt;ok&lt;/tt&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;tt&gt;yes&lt;/tt&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;tt&gt;no&lt;/tt&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;tt&gt;cancel&lt;/tt&gt;&lt;/li&gt;
+         * &lt;/ul&gt;&lt;/div&gt;&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;text&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;Value of the input field if either &lt;tt&gt;&lt;a href=&quot;#show-option-prompt&quot; ext:member=&quot;show-option-prompt&quot; ext:cls=&quot;Ext.MessageBox&quot;&gt;prompt&lt;/a&gt;&lt;/tt&gt;
+         * or &lt;tt&gt;&lt;a href=&quot;#show-option-multiline&quot; ext:member=&quot;show-option-multiline&quot; ext:cls=&quot;Ext.MessageBox&quot;&gt;multiline&lt;/a&gt;&lt;/tt&gt; is true&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;opt&lt;/b&gt; : Object&lt;div class=&quot;sub-desc&quot;&gt;The config object passed to show.&lt;/div&gt;&lt;/li&gt;
+         * &lt;/ul&gt;&lt;/p&gt;&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;scope&lt;/b&gt; : Object&lt;div class=&quot;sub-desc&quot;&gt;The scope of the callback function&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;icon&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;A CSS class that provides a background image to be used as the body icon for the
+         * dialog (e.g. Ext.MessageBox.WARNING or 'custom-class') (defaults to '')&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;iconCls&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The standard {@link Ext.Window#iconCls} to
+         * add an optional header icon (defaults to '')&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;maxWidth&lt;/b&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The maximum width in pixels of the message box (defaults to 600)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;minWidth&lt;/b&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The minimum width in pixels of the message box (defaults to 100)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;modal&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;False to allow user interaction with the page while the message box is
+         * displayed (defaults to true)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;msg&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;A string that will replace the existing message box body text (defaults to the
+         * XHTML-compliant non-breaking space character '&amp;amp;#160;')&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;a id=&quot;show-option-multiline&quot;&gt;&lt;/a&gt;&lt;b&gt;multiline&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;
+         * True to prompt the user to enter multi-line text (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;progress&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;True to display a progress bar (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;progressText&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The text to display inside the progress bar if progress = true (defaults to '')&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;a id=&quot;show-option-prompt&quot;&gt;&lt;/a&gt;&lt;b&gt;prompt&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;True to prompt the user to enter single-line text (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;proxyDrag&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;True to display a lightweight proxy while dragging (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;title&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The title text&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;value&lt;/b&gt; : String&lt;div class=&quot;sub-desc&quot;&gt;The string value to set into the active textbox element if displayed&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;wait&lt;/b&gt; : Boolean&lt;div class=&quot;sub-desc&quot;&gt;True to display a progress bar (defaults to false)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;waitConfig&lt;/b&gt; : Object&lt;div class=&quot;sub-desc&quot;&gt;A {@link Ext.ProgressBar#waitConfig} object (applies only if wait = true)&lt;/div&gt;&lt;/li&gt;
+         * &lt;li&gt;&lt;b&gt;width&lt;/b&gt; : Number&lt;div class=&quot;sub-desc&quot;&gt;The width of the dialog in pixels&lt;/div&gt;&lt;/li&gt;
+         * &lt;/ul&gt;
          * Example usage:
-         * <pre><code>
+         * &lt;pre&gt;&lt;code&gt;
 Ext.Msg.show({
    title: 'Address',
    msg: 'Please enter your address:',
@@ -325,7 +328,7 @@ Ext.Msg.show({
    animEl: 'addAddressBtn',
    icon: Ext.MessageBox.INFO
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
          * @return {Ext.MessageBox} this
          */
         show : function(options){
@@ -333,10 +336,10 @@ Ext.Msg.show({
                 this.hide();
             }
             opt = options;
-            var d = this.getDialog(opt.title || "&#160;");
+            var d = this.getDialog(opt.title || &quot;&amp;#160;&quot;);
 
-            d.setTitle(opt.title || "&#160;");
-            var allowClose = (opt.closable !== false && opt.progress !== true && opt.wait !== true);
+            d.setTitle(opt.title || &quot;&amp;#160;&quot;);
+            var allowClose = (opt.closable !== false &amp;&amp; opt.progress !== true &amp;&amp; opt.wait !== true);
             d.tools.close.setDisplayed(allowClose);
             activeTextEl = textboxEl;
             opt.prompt = opt.prompt || (opt.multiline ? true : false);
@@ -354,16 +357,16 @@ Ext.Msg.show({
                 textboxEl.hide();
                 textareaEl.hide();
             }
-            activeTextEl.dom.value = opt.value || "";
+            activeTextEl.dom.value = opt.value || &quot;&quot;;
             if(opt.prompt){
                 d.focusEl = activeTextEl;
             }else{
                 var bs = opt.buttons;
                 var db = null;
-                if(bs && bs.ok){
-                    db = buttons["ok"];
-                }else if(bs && bs.yes){
-                    db = buttons["yes"];
+                if(bs &amp;&amp; bs.ok){
+                    db = buttons[&quot;ok&quot;];
+                }else if(bs &amp;&amp; bs.yes){
+                    db = buttons[&quot;yes&quot;];
                 }
                 if (db){
                     d.focusEl = db;
@@ -403,17 +406,17 @@ Ext.Msg.show({
             return this;
         },
 
-        <div id="method-Ext.MessageBox-setIcon"></div>/**
-         * Adds the specified icon to the dialog.  By default, the class 'ext-mb-icon' is applied for default
+<span id='Ext-MessageBox-method-setIcon'>        /**
+</span>         * Adds the specified icon to the dialog.  By default, the class 'ext-mb-icon' is applied for default
          * styling, and the class passed in is expected to supply the background image url. Pass in empty string ('')
          * to clear any existing icon. This method must be called before the MessageBox is shown.
          * The following built-in icon classes are supported, but you can also pass in a custom class name:
-         * <pre>
+         * &lt;pre&gt;
 Ext.MessageBox.INFO
 Ext.MessageBox.WARNING
 Ext.MessageBox.QUESTION
 Ext.MessageBox.ERROR
-         *</pre>
+         *&lt;/pre&gt;
          * @param {String} icon A CSS classname specifying the icon's background image url, or empty string to clear the icon
          * @return {Ext.MessageBox} this
          */
@@ -423,7 +426,7 @@ Ext.MessageBox.ERROR
                 return;
             }
             bufferIcon = undefined;
-            if(icon && icon != ''){
+            if(icon &amp;&amp; icon != ''){
                 iconEl.removeClass('x-hidden');
                 iconEl.replaceClass(iconCls, icon);
                 bodyEl.addClass('x-dlg-icon');
@@ -436,8 +439,8 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="method-Ext.MessageBox-progress"></div>/**
-         * Displays a message box with a progress bar.  This message box has no buttons and is not closeable by
+<span id='Ext-MessageBox-method-progress'>        /**
+</span>         * Displays a message box with a progress bar.  This message box has no buttons and is not closeable by
          * the user.  You are responsible for updating the progress bar as needed via {@link Ext.MessageBox#updateProgress}
          * and closing the message box when the process is complete.
          * @param {String} title The title bar text
@@ -458,8 +461,8 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="method-Ext.MessageBox-wait"></div>/**
-         * Displays a message box with an infinitely auto-updating progress bar.  This can be used to block user
+<span id='Ext-MessageBox-method-wait'>        /**
+</span>         * Displays a message box with an infinitely auto-updating progress bar.  This can be used to block user
          * interaction while waiting for a long-running process to complete that does not have defined intervals.
          * You are responsible for closing the message box when the process is complete.
          * @param {String} msg The message box body text
@@ -481,15 +484,15 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="method-Ext.MessageBox-alert"></div>/**
-         * Displays a standard read-only message box with an OK button (comparable to the basic JavaScript alert prompt).
+<span id='Ext-MessageBox-method-alert'>        /**
+</span>         * Displays a standard read-only message box with an OK button (comparable to the basic JavaScript alert prompt).
          * If a callback function is passed it will be called after the user clicks the button, and the
          * id of the button that was clicked will be passed as the only parameter to the callback
          * (could also be the top-right close button).
          * @param {String} title The title bar text
          * @param {String} msg The message box body text
          * @param {Function} fn (optional) The callback function invoked after the message box is closed
-         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to the browser wnidow.
+         * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback is executed. Defaults to the browser wnidow.
          * @return {Ext.MessageBox} this
          */
         alert : function(title, msg, fn, scope){
@@ -504,15 +507,15 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="method-Ext.MessageBox-confirm"></div>/**
-         * Displays a confirmation message box with Yes and No buttons (comparable to JavaScript's confirm).
+<span id='Ext-MessageBox-method-confirm'>        /**
+</span>         * Displays a confirmation message box with Yes and No buttons (comparable to JavaScript's confirm).
          * If a callback function is passed it will be called after the user clicks either button,
          * and the id of the button that was clicked will be passed as the only parameter to the callback
          * (could also be the top-right close button).
          * @param {String} title The title bar text
          * @param {String} msg The message box body text
          * @param {Function} fn (optional) The callback function invoked after the message box is closed
-         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to the browser wnidow.
+         * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback is executed. Defaults to the browser wnidow.
          * @return {Ext.MessageBox} this
          */
         confirm : function(title, msg, fn, scope){
@@ -528,15 +531,15 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="method-Ext.MessageBox-prompt"></div>/**
-         * Displays a message box with OK and Cancel buttons prompting the user to enter some text (comparable to JavaScript's prompt).
+<span id='Ext-MessageBox-method-prompt'>        /**
+</span>         * Displays a message box with OK and Cancel buttons prompting the user to enter some text (comparable to JavaScript's prompt).
          * The prompt can be a single-line or multi-line textbox.  If a callback function is passed it will be called after the user
          * clicks either button, and the id of the button that was clicked (could also be the top-right
          * close button) and the text that was entered will be passed as the two parameters to the callback.
          * @param {String} title The title bar text
          * @param {String} msg The message box body text
          * @param {Function} fn (optional) The callback function invoked after the message box is closed
-         * @param {Object} scope (optional) The scope (<code>this</code> reference) in which the callback is executed. Defaults to the browser wnidow.
+         * @param {Object} scope (optional) The scope (&lt;code&gt;this&lt;/code&gt; reference) in which the callback is executed. Defaults to the browser wnidow.
          * @param {Boolean/Number} multiline (optional) True to create a multiline textbox using the defaultTextHeight
          * property, or the height in pixels to create the textbox (defaults to false / single-line)
          * @param {String} value (optional) Default value of the text input element (defaults to '')
@@ -557,98 +560,98 @@ Ext.MessageBox.ERROR
             return this;
         },
 
-        <div id="prop-Ext.MessageBox-OK"></div>/**
-         * Button config that displays a single OK button
+<span id='Ext-MessageBox-property-OK'>        /**
+</span>         * Button config that displays a single OK button
          * @type Object
          */
         OK : {ok:true},
-        <div id="prop-Ext.MessageBox-CANCEL"></div>/**
-         * Button config that displays a single Cancel button
+<span id='Ext-MessageBox-property-CANCEL'>        /**
+</span>         * Button config that displays a single Cancel button
          * @type Object
          */
         CANCEL : {cancel:true},
-        <div id="prop-Ext.MessageBox-OKCANCEL"></div>/**
-         * Button config that displays OK and Cancel buttons
+<span id='Ext-MessageBox-property-OKCANCEL'>        /**
+</span>         * Button config that displays OK and Cancel buttons
          * @type Object
          */
         OKCANCEL : {ok:true, cancel:true},
-        <div id="prop-Ext.MessageBox-YESNO"></div>/**
-         * Button config that displays Yes and No buttons
+<span id='Ext-MessageBox-property-YESNO'>        /**
+</span>         * Button config that displays Yes and No buttons
          * @type Object
          */
         YESNO : {yes:true, no:true},
-        <div id="prop-Ext.MessageBox-YESNOCANCEL"></div>/**
-         * Button config that displays Yes, No and Cancel buttons
+<span id='Ext-MessageBox-property-YESNOCANCEL'>        /**
+</span>         * Button config that displays Yes, No and Cancel buttons
          * @type Object
          */
         YESNOCANCEL : {yes:true, no:true, cancel:true},
-        <div id="prop-Ext.MessageBox-INFO"></div>/**
-         * The CSS class that provides the INFO icon image
+<span id='Ext-MessageBox-property-INFO'>        /**
+</span>         * The CSS class that provides the INFO icon image
          * @type String
          */
         INFO : 'ext-mb-info',
-        <div id="prop-Ext.MessageBox-WARNING"></div>/**
-         * The CSS class that provides the WARNING icon image
+<span id='Ext-MessageBox-property-WARNING'>        /**
+</span>         * The CSS class that provides the WARNING icon image
          * @type String
          */
         WARNING : 'ext-mb-warning',
-        <div id="prop-Ext.MessageBox-QUESTION"></div>/**
-         * The CSS class that provides the QUESTION icon image
+<span id='Ext-MessageBox-property-QUESTION'>        /**
+</span>         * The CSS class that provides the QUESTION icon image
          * @type String
          */
         QUESTION : 'ext-mb-question',
-        <div id="prop-Ext.MessageBox-ERROR"></div>/**
-         * The CSS class that provides the ERROR icon image
+<span id='Ext-MessageBox-property-ERROR'>        /**
+</span>         * The CSS class that provides the ERROR icon image
          * @type String
          */
         ERROR : 'ext-mb-error',
 
-        <div id="prop-Ext.MessageBox-defaultTextHeight"></div>/**
-         * The default height in pixels of the message box's multiline textarea if displayed (defaults to 75)
+<span id='Ext-MessageBox-property-defaultTextHeight'>        /**
+</span>         * The default height in pixels of the message box's multiline textarea if displayed (defaults to 75)
          * @type Number
          */
         defaultTextHeight : 75,
-        <div id="prop-Ext.MessageBox-maxWidth"></div>/**
-         * The maximum width in pixels of the message box (defaults to 600)
+<span id='Ext-MessageBox-property-maxWidth'>        /**
+</span>         * The maximum width in pixels of the message box (defaults to 600)
          * @type Number
          */
         maxWidth : 600,
-        <div id="prop-Ext.MessageBox-minWidth"></div>/**
-         * The minimum width in pixels of the message box (defaults to 100)
+<span id='Ext-MessageBox-property-minWidth'>        /**
+</span>         * The minimum width in pixels of the message box (defaults to 100)
          * @type Number
          */
         minWidth : 100,
-        <div id="prop-Ext.MessageBox-minProgressWidth"></div>/**
-         * The minimum width in pixels of the message box if it is a progress-style dialog.  This is useful
+<span id='Ext-MessageBox-property-minProgressWidth'>        /**
+</span>         * The minimum width in pixels of the message box if it is a progress-style dialog.  This is useful
          * for setting a different minimum width than text-only dialogs may need (defaults to 250).
          * @type Number
          */
         minProgressWidth : 250,
-        <div id="prop-Ext.MessageBox-minPromptWidth"></div>/**
-         * The minimum width in pixels of the message box if it is a prompt dialog.  This is useful
+<span id='Ext-MessageBox-property-minPromptWidth'>        /**
+</span>         * The minimum width in pixels of the message box if it is a prompt dialog.  This is useful
          * for setting a different minimum width than text-only dialogs may need (defaults to 250).
          * @type Number
          */
         minPromptWidth: 250,
-        <div id="prop-Ext.MessageBox-buttonText"></div>/**
-         * An object containing the default button text strings that can be overriden for localized language support.
+<span id='Ext-MessageBox-property-buttonText'>        /**
+</span>         * An object containing the default button text strings that can be overriden for localized language support.
          * Supported properties are: ok, cancel, yes and no.  Generally you should include a locale-specific
          * resource file for handling language support across the framework.
-         * Customize the default text like so: Ext.MessageBox.buttonText.yes = "oui"; //french
+         * Customize the default text like so: Ext.MessageBox.buttonText.yes = &quot;oui&quot;; //french
          * @type Object
          */
         buttonText : {
-            ok : "OK",
-            cancel : "Cancel",
-            yes : "Yes",
-            no : "No"
+            ok : &quot;OK&quot;,
+            cancel : &quot;Cancel&quot;,
+            yes : &quot;Yes&quot;,
+            no : &quot;No&quot;
         }
     };
 }();
 
-<div id="prop-Ext.MessageBox-Msg"></div>/**
- * Shorthand for {@link Ext.MessageBox}
+<span id='Ext-Msg'>/**
+</span> * Shorthand for {@link Ext.MessageBox}
  */
-Ext.Msg = Ext.MessageBox;</pre>    
+Ext.Msg = Ext.MessageBox;</pre>
 </body>
 </html>

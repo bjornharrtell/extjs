@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-/**
- * @class Ext.DomHelper
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-DomHelper'>/**
+</span> * @class Ext.DomHelper
  */
 Ext.apply(Ext.DomHelper,
 function(){
@@ -42,8 +45,8 @@ function(){
     }
 
     // build as dom
-    /** @ignore */
-    function createDom(o, parentNode){
+<span id='global-method-createDom'>    /** @ignore */
+</span>    function createDom(o, parentNode){
         var el,
             doc = document,
             useSet,
@@ -53,7 +56,7 @@ function(){
 
         if (Ext.isArray(o)) {                       // Allow Arrays of siblings to be inserted
             el = doc.createDocumentFragment(); // in one shot using a DocumentFragment
-            for (var i = 0, l = o.length; i < l; i++) {
+            for (var i = 0, l = o.length; i &lt; l; i++) {
                 createDom(o[i], el);
             }
         } else if (typeof o == 'string') {         // Allow a string as a child spec.
@@ -90,8 +93,8 @@ function(){
     }
 
     pub = {
-        <div id="method-Ext.DomHelper-createTemplate"></div>/**
-         * Creates a new Ext.Template from the DOM object spec.
+<span id='Ext-DomHelper-method-createTemplate'>        /**
+</span>         * Creates a new Ext.Template from the DOM object spec.
          * @param {Object} o The DOM object spec (and children)
          * @return {Ext.Template} The new template
          */
@@ -100,11 +103,11 @@ function(){
             return new Ext.Template(html);
         },
 
-        <div id="prop-Ext.DomHelper-useDom"></div>/** True to force the use of DOM instead of html fragments @type Boolean */
-        useDom : false,
+<span id='Ext-DomHelper-property-useDom'>        /** True to force the use of DOM instead of html fragments @type Boolean */
+</span>        useDom : false,
 
-        <div id="method-Ext.DomHelper-insertBefore"></div>/**
-         * Creates new DOM element(s) and inserts them before el.
+<span id='Ext-DomHelper-method-insertBefore'>        /**
+</span>         * Creates new DOM element(s) and inserts them before el.
          * @param {Mixed} el The context element
          * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
          * @param {Boolean} returnElement (optional) true to return a Ext.Element
@@ -115,8 +118,8 @@ function(){
             return doInsert(el, o, returnElement, beforebegin);
         },
 
-        <div id="method-Ext.DomHelper-insertAfter"></div>/**
-         * Creates new DOM element(s) and inserts them after el.
+<span id='Ext-DomHelper-method-insertAfter'>        /**
+</span>         * Creates new DOM element(s) and inserts them after el.
          * @param {Mixed} el The context element
          * @param {Object} o The DOM object spec (and children)
          * @param {Boolean} returnElement (optional) true to return a Ext.Element
@@ -127,8 +130,8 @@ function(){
             return doInsert(el, o, returnElement, afterend, 'nextSibling');
         },
 
-        <div id="method-Ext.DomHelper-insertFirst"></div>/**
-         * Creates new DOM element(s) and inserts them as the first child of el.
+<span id='Ext-DomHelper-method-insertFirst'>        /**
+</span>         * Creates new DOM element(s) and inserts them as the first child of el.
          * @param {Mixed} el The context element
          * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
          * @param {Boolean} returnElement (optional) true to return a Ext.Element
@@ -139,8 +142,8 @@ function(){
             return doInsert(el, o, returnElement, afterbegin, 'firstChild');
         },
 
-        <div id="method-Ext.DomHelper-append"></div>/**
-         * Creates new DOM element(s) and appends them to el.
+<span id='Ext-DomHelper-method-append'>        /**
+</span>         * Creates new DOM element(s) and appends them to el.
          * @param {Mixed} el The context element
          * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
          * @param {Boolean} returnElement (optional) true to return a Ext.Element
@@ -151,8 +154,8 @@ function(){
             return doInsert(el, o, returnElement, beforeend, '', true);
         },
 
-        <div id="method-Ext.DomHelper-createDom"></div>/**
-         * Creates new DOM element(s) without inserting them to the document.
+<span id='Ext-DomHelper-method-createDom'>        /**
+</span>         * Creates new DOM element(s) without inserting them to the document.
          * @param {Object/String} o The DOM object spec (and children) or raw HTML blob
          * @return {HTMLElement} The new uninserted node
          */
@@ -160,6 +163,6 @@ function(){
     };
     return pub;
 }());
-</pre>    
+</pre>
 </body>
 </html>

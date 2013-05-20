@@ -1,46 +1,49 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.data.DirectStore"></div>/**
- * @class Ext.data.DirectStore
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-DirectStore-method-constructor'><span id='Ext-data-DirectStore'>/**
+</span></span> * @class Ext.data.DirectStore
  * @extends Ext.data.Store
- * <p>Small helper class to create an {@link Ext.data.Store} configured with an
+ * &lt;p&gt;Small helper class to create an {@link Ext.data.Store} configured with an
  * {@link Ext.data.DirectProxy} and {@link Ext.data.JsonReader} to make interacting
  * with an {@link Ext.Direct} Server-side {@link Ext.direct.Provider Provider} easier.
  * To create a different proxy/reader combination create a basic {@link Ext.data.Store}
- * configured as needed.</p>
+ * configured as needed.&lt;/p&gt;
  *
- * <p><b>*Note:</b> Although they are not listed, this class inherits all of the config options of:</p>
- * <div><ul class="mdetail-params">
- * <li><b>{@link Ext.data.Store Store}</b></li>
- * <div class="sub-desc"><ul class="mdetail-params">
+ * &lt;p&gt;&lt;b&gt;*Note:&lt;/b&gt; Although they are not listed, this class inherits all of the config options of:&lt;/p&gt;
+ * &lt;div&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
+ * &lt;li&gt;&lt;b&gt;{@link Ext.data.Store Store}&lt;/b&gt;&lt;/li&gt;
+ * &lt;div class=&quot;sub-desc&quot;&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
  *
- * </ul></div>
- * <li><b>{@link Ext.data.JsonReader JsonReader}</b></li>
- * <div class="sub-desc"><ul class="mdetail-params">
- * <li><tt><b>{@link Ext.data.JsonReader#root root}</b></tt></li>
- * <li><tt><b>{@link Ext.data.JsonReader#idProperty idProperty}</b></tt></li>
- * <li><tt><b>{@link Ext.data.JsonReader#totalProperty totalProperty}</b></tt></li>
- * </ul></div>
+ * &lt;/ul&gt;&lt;/div&gt;
+ * &lt;li&gt;&lt;b&gt;{@link Ext.data.JsonReader JsonReader}&lt;/b&gt;&lt;/li&gt;
+ * &lt;div class=&quot;sub-desc&quot;&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.JsonReader#root root}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.JsonReader#idProperty idProperty}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.JsonReader#totalProperty totalProperty}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  *
- * <li><b>{@link Ext.data.DirectProxy DirectProxy}</b></li>
- * <div class="sub-desc"><ul class="mdetail-params">
- * <li><tt><b>{@link Ext.data.DirectProxy#directFn directFn}</b></tt></li>
- * <li><tt><b>{@link Ext.data.DirectProxy#paramOrder paramOrder}</b></tt></li>
- * <li><tt><b>{@link Ext.data.DirectProxy#paramsAsHash paramsAsHash}</b></tt></li>
- * </ul></div>
- * </ul></div>
+ * &lt;li&gt;&lt;b&gt;{@link Ext.data.DirectProxy DirectProxy}&lt;/b&gt;&lt;/li&gt;
+ * &lt;div class=&quot;sub-desc&quot;&gt;&lt;ul class=&quot;mdetail-params&quot;&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.DirectProxy#directFn directFn}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.DirectProxy#paramOrder paramOrder}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;li&gt;&lt;tt&gt;&lt;b&gt;{@link Ext.data.DirectProxy#paramsAsHash paramsAsHash}&lt;/b&gt;&lt;/tt&gt;&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  *
  * @xtype directstore
  *
@@ -55,11 +58,11 @@ Ext.data.DirectStore = Ext.extend(Ext.data.Store, {
         }, config);
         Ext.data.DirectStore.superclass.constructor.call(this, Ext.apply(c, {
             proxy: Ext.isDefined(c.proxy) ? c.proxy : new Ext.data.DirectProxy(Ext.copyTo({}, c, 'paramOrder,paramsAsHash,directFn,api')),
-            reader: (!Ext.isDefined(c.reader) && c.fields) ? new Ext.data.JsonReader(Ext.copyTo({}, c, 'totalProperty,root,idProperty'), c.fields) : c.reader
+            reader: (!Ext.isDefined(c.reader) &amp;&amp; c.fields) ? new Ext.data.JsonReader(Ext.copyTo({}, c, 'totalProperty,root,idProperty'), c.fields) : c.reader
         }));
     }
 });
 Ext.reg('directstore', Ext.data.DirectStore);
-</pre>    
+</pre>
 </body>
 </html>

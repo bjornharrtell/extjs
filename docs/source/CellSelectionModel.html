@@ -1,27 +1,30 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.grid.CellSelectionModel"></div>/**
- * @class Ext.grid.CellSelectionModel
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-CellSelectionModel-method-constructor'><span id='Ext-grid-CellSelectionModel'>/**
+</span></span> * @class Ext.grid.CellSelectionModel
  * @extends Ext.grid.AbstractSelectionModel
- * This class provides the basic implementation for <i>single</i> <b>cell</b> selection in a grid.
+ * This class provides the basic implementation for &lt;i&gt;single&lt;/i&gt; &lt;b&gt;cell&lt;/b&gt; selection in a grid.
  * The object stored as the selection contains the following properties:
- * <div class="mdetail-params"><ul>
- * <li><b>cell</b> : see {@link #getSelectedCell} 
- * <li><b>record</b> : Ext.data.record The {@link Ext.data.Record Record}
- * which provides the data for the row containing the selection</li>
- * </ul></div>
+ * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+ * &lt;li&gt;&lt;b&gt;cell&lt;/b&gt; : see {@link #getSelectedCell} 
+ * &lt;li&gt;&lt;b&gt;record&lt;/b&gt; : Ext.data.record The {@link Ext.data.Record Record}
+ * which provides the data for the row containing the selection&lt;/li&gt;
+ * &lt;/ul&gt;&lt;/div&gt;
  * @constructor
  * @param {Object} config The object containing the configuration of this model.
  */
@@ -33,41 +36,41 @@ Ext.grid.CellSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
 	    this.selection = null;
 	
 	    this.addEvents(
-	        <div id="event-Ext.grid.CellSelectionModel-beforecellselect"></div>/**
-	         * @event beforecellselect
+<span id='Ext-grid-CellSelectionModel-event-beforecellselect'>	        /**
+</span>	         * @event beforecellselect
 	         * Fires before a cell is selected, return false to cancel the selection.
 	         * @param {SelectionModel} this
 	         * @param {Number} rowIndex The selected row index
 	         * @param {Number} colIndex The selected cell index
 	         */
-	        "beforecellselect",
-	        <div id="event-Ext.grid.CellSelectionModel-cellselect"></div>/**
-	         * @event cellselect
+	        &quot;beforecellselect&quot;,
+<span id='Ext-grid-CellSelectionModel-event-cellselect'>	        /**
+</span>	         * @event cellselect
 	         * Fires when a cell is selected.
 	         * @param {SelectionModel} this
 	         * @param {Number} rowIndex The selected row index
 	         * @param {Number} colIndex The selected cell index
 	         */
-	        "cellselect",
-	        <div id="event-Ext.grid.CellSelectionModel-selectionchange"></div>/**
-	         * @event selectionchange
+	        &quot;cellselect&quot;,
+<span id='Ext-grid-CellSelectionModel-event-selectionchange'>	        /**
+</span>	         * @event selectionchange
 	         * Fires when the active selection changes.
 	         * @param {SelectionModel} this
 	         * @param {Object} selection null for no selection or an object with two properties
-	         * <div class="mdetail-params"><ul>
-	         * <li><b>cell</b> : see {@link #getSelectedCell} 
-	         * <li><b>record</b> : Ext.data.record<p class="sub-desc">The {@link Ext.data.Record Record}
-	         * which provides the data for the row containing the selection</p></li>
-	         * </ul></div>
+	         * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+	         * &lt;li&gt;&lt;b&gt;cell&lt;/b&gt; : see {@link #getSelectedCell} 
+	         * &lt;li&gt;&lt;b&gt;record&lt;/b&gt; : Ext.data.record&lt;p class=&quot;sub-desc&quot;&gt;The {@link Ext.data.Record Record}
+	         * which provides the data for the row containing the selection&lt;/p&gt;&lt;/li&gt;
+	         * &lt;/ul&gt;&lt;/div&gt;
 	         */
-	        "selectionchange"
+	        &quot;selectionchange&quot;
 	    );
 	
 	    Ext.grid.CellSelectionModel.superclass.constructor.call(this);
     },
 
-    /** @ignore */
-    initEvents : function(){
+<span id='global-method-initEvents'>    /** @ignore */
+</span>    initEvents : function(){
         this.grid.on('cellmousedown', this.handleMouseDown, this);
         this.grid.on(Ext.EventManager.getKeyEvent(), this.handleKeyDown, this);
         this.grid.getView().on({
@@ -82,47 +85,47 @@ Ext.grid.CellSelectionModel = Ext.extend(Ext.grid.AbstractSelectionModel,  {
         }
     },
 
-	//private
-    beforeEdit : function(e){
+<span id='Ext-grid-CellSelectionModel-method-beforeEdit'>	//private
+</span>    beforeEdit : function(e){
         this.select(e.row, e.column, false, true, e.record);
     },
 
-	//private
-    onRowUpdated : function(v, index, r){
-        if(this.selection && this.selection.record == r){
+<span id='Ext-grid-CellSelectionModel-method-onRowUpdated'>	//private
+</span>    onRowUpdated : function(v, index, r){
+        if(this.selection &amp;&amp; this.selection.record == r){
             v.onCellSelect(index, this.selection.cell[1]);
         }
     },
 
-	//private
-    onViewChange : function(){
+<span id='Ext-grid-CellSelectionModel-method-onViewChange'>	//private
+</span>    onViewChange : function(){
         this.clearSelections(true);
     },
 
-	<div id="method-Ext.grid.CellSelectionModel-getSelectedCell"></div>/**
-     * Returns an array containing the row and column indexes of the currently selected cell
+<span id='Ext-grid-CellSelectionModel-method-getSelectedCell'>	/**
+</span>     * Returns an array containing the row and column indexes of the currently selected cell
      * (e.g., [0, 0]), or null if none selected. The array has elements:
-     * <div class="mdetail-params"><ul>
-     * <li><b>rowIndex</b> : Number<p class="sub-desc">The index of the selected row</p></li>
-     * <li><b>cellIndex</b> : Number<p class="sub-desc">The index of the selected cell. 
-     * Due to possible column reordering, the cellIndex should <b>not</b> be used as an
-     * index into the Record's data. Instead, use the cellIndex to determine the <i>name</i>
-     * of the selected cell and use the field name to retrieve the data value from the record:<pre><code>
+     * &lt;div class=&quot;mdetail-params&quot;&gt;&lt;ul&gt;
+     * &lt;li&gt;&lt;b&gt;rowIndex&lt;/b&gt; : Number&lt;p class=&quot;sub-desc&quot;&gt;The index of the selected row&lt;/p&gt;&lt;/li&gt;
+     * &lt;li&gt;&lt;b&gt;cellIndex&lt;/b&gt; : Number&lt;p class=&quot;sub-desc&quot;&gt;The index of the selected cell. 
+     * Due to possible column reordering, the cellIndex should &lt;b&gt;not&lt;/b&gt; be used as an
+     * index into the Record's data. Instead, use the cellIndex to determine the &lt;i&gt;name&lt;/i&gt;
+     * of the selected cell and use the field name to retrieve the data value from the record:&lt;pre&gt;&lt;code&gt;
 // get name
 var fieldName = grid.getColumnModel().getDataIndex(cellIndex);
 // get data value based on name
 var data = record.get(fieldName);
-     * </code></pre></p></li>
-     * </ul></div>
+     * &lt;/code&gt;&lt;/pre&gt;&lt;/p&gt;&lt;/li&gt;
+     * &lt;/ul&gt;&lt;/div&gt;
      * @return {Array} An array containing the row and column indexes of the selected cell, or null if none selected.
 	 */
     getSelectedCell : function(){
         return this.selection ? this.selection.cell : null;
     },
 
-    <div id="method-Ext.grid.CellSelectionModel-clearSelections"></div>/**
-     * If anything is selected, clears all selections and fires the selectionchange event.
-     * @param {Boolean} preventNotify <tt>true</tt> to prevent the gridview from
+<span id='Ext-grid-CellSelectionModel-method-clearSelections'>    /**
+</span>     * If anything is selected, clears all selections and fires the selectionchange event.
+     * @param {Boolean} preventNotify &lt;tt&gt;true&lt;/tt&gt; to prevent the gridview from
      * being notified about the change.
      */
     clearSelections : function(preventNotify){
@@ -132,41 +135,41 @@ var data = record.get(fieldName);
                 this.grid.view.onCellDeselect(s.cell[0], s.cell[1]);
             }
             this.selection = null;
-            this.fireEvent("selectionchange", this, null);
+            this.fireEvent(&quot;selectionchange&quot;, this, null);
         }
     },
 
-    <div id="method-Ext.grid.CellSelectionModel-hasSelection"></div>/**
-     * Returns <tt>true</tt> if there is a selection.
+<span id='Ext-grid-CellSelectionModel-method-hasSelection'>    /**
+</span>     * Returns &lt;tt&gt;true&lt;/tt&gt; if there is a selection.
      * @return {Boolean}
      */
     hasSelection : function(){
         return this.selection ? true : false;
     },
 
-    /** @ignore */
-    handleMouseDown : function(g, row, cell, e){
+<span id='global-method-handleMouseDown'>    /** @ignore */
+</span>    handleMouseDown : function(g, row, cell, e){
         if(e.button !== 0 || this.isLocked()){
             return;
         }
         this.select(row, cell);
     },
 
-    <div id="method-Ext.grid.CellSelectionModel-select"></div>/**
-     * Selects a cell.  Before selecting a cell, fires the
+<span id='Ext-grid-CellSelectionModel-method-select'>    /**
+</span>     * Selects a cell.  Before selecting a cell, fires the
      * {@link #beforecellselect} event.  If this check is satisfied the cell
      * will be selected and followed up by  firing the {@link #cellselect} and
      * {@link #selectionchange} events.
      * @param {Number} rowIndex The index of the row to select
      * @param {Number} colIndex The index of the column to select
-     * @param {Boolean} preventViewNotify (optional) Specify <tt>true</tt> to
+     * @param {Boolean} preventViewNotify (optional) Specify &lt;tt&gt;true&lt;/tt&gt; to
      * prevent notifying the view (disables updating the selected appearance)
      * @param {Boolean} preventFocus (optional) Whether to prevent the cell at
      * the specified rowIndex / colIndex from being focused.
      * @param {Ext.data.Record} r (optional) The record to select
      */
     select : function(rowIndex, colIndex, preventViewNotify, preventFocus, /*internal*/ r){
-        if(this.fireEvent("beforecellselect", this, rowIndex, colIndex) !== false){
+        if(this.fireEvent(&quot;beforecellselect&quot;, this, rowIndex, colIndex) !== false){
             this.clearSelections();
             r = r || this.grid.store.getAt(rowIndex);
             this.selection = {
@@ -180,25 +183,25 @@ var data = record.get(fieldName);
                     v.focusCell(rowIndex, colIndex);
                 }
             }
-            this.fireEvent("cellselect", this, rowIndex, colIndex);
-            this.fireEvent("selectionchange", this, this.selection);
+            this.fireEvent(&quot;cellselect&quot;, this, rowIndex, colIndex);
+            this.fireEvent(&quot;selectionchange&quot;, this, this.selection);
         }
     },
 
-	//private
-    isSelectable : function(rowIndex, colIndex, cm){
+<span id='Ext-grid-CellSelectionModel-method-isSelectable'>	//private
+</span>    isSelectable : function(rowIndex, colIndex, cm){
         return !cm.isHidden(colIndex);
     },
     
-    // private
-    onEditorKey: function(field, e){
+<span id='Ext-grid-CellSelectionModel-method-onEditorKey'>    // private
+</span>    onEditorKey: function(field, e){
         if(e.getKey() == e.TAB){
             this.handleKeyDown(e);
         }
     },
 
-    /** @ignore */
-    handleKeyDown : function(e){
+<span id='global-method-handleKeyDown'>    /** @ignore */
+</span>    handleKeyDown : function(e){
         if(!e.isNavKeyPress()){
             return;
         }
@@ -212,7 +215,7 @@ var data = record.get(fieldName);
                     row,
                     col,
                     step,
-                    g.isEditor && g.editing ? sm.acceptsNav : sm.isSelectable, // *** handle tabbing while editorgrid is in edit mode
+                    g.isEditor &amp;&amp; g.editing ? sm.acceptsNav : sm.isSelectable, // *** handle tabbing while editorgrid is in edit mode
                     sm
                 );
             },
@@ -263,7 +266,7 @@ var data = record.get(fieldName);
                 newCell = walk(r, c - 1, -1);
                 break;
             case e.ENTER:
-                if (g.isEditor && !g.editing) {
+                if (g.isEditor &amp;&amp; !g.editing) {
                     g.startEditing(r, c);
                     return;
                 }
@@ -271,15 +274,15 @@ var data = record.get(fieldName);
         }
 
         if(newCell){
-            // *** reassign r & c variables to newly-selected cell's row and column
+            // *** reassign r &amp; c variables to newly-selected cell's row and column
             r = newCell[0];
             c = newCell[1];
 
             this.select(r, c); // *** highlight newly-selected cell and update selection
 
-            if(g.isEditor && g.editing){ // *** handle tabbing while editorgrid is in edit mode
+            if(g.isEditor &amp;&amp; g.editing){ // *** handle tabbing while editorgrid is in edit mode
                 ae = g.activeEditor;
-                if(ae && ae.field.triggerBlur){
+                if(ae &amp;&amp; ae.field.triggerBlur){
                     // *** if activeEditor is a TriggerField, explicitly call its triggerBlur() method
                     ae.field.triggerBlur();
                 }
@@ -288,9 +291,9 @@ var data = record.get(fieldName);
         }
     },
 
-    acceptsNav : function(row, col, cm){
-        return !cm.isHidden(col) && cm.isCellEditable(col, row);
+<span id='Ext-grid-CellSelectionModel-method-acceptsNav'>    acceptsNav : function(row, col, cm){
+</span>        return !cm.isHidden(col) &amp;&amp; cm.isCellEditable(col, row);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

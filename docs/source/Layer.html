@@ -1,19 +1,22 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.Layer"></div>/**
- * @class Ext.Layer
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Layer-method-constructor'><span id='Ext-Layer-cfg-useDisplay'><span id='Ext-Layer-cfg-shadowOffset'><span id='Ext-Layer-cfg-zindex'><span id='Ext-Layer-cfg-cls'><span id='Ext-Layer-cfg-constrain'><span id='Ext-Layer-cfg-dh'><span id='Ext-Layer-cfg-shadow'><span id='Ext-Layer-cfg-shim'><span id='Ext-Layer'>/**
+</span></span></span></span></span></span></span></span></span></span> * @class Ext.Layer
  * @extends Ext.Element
  * An extended {@link Ext.Element} object that supports a shadow and shim, constrain to viewport and
  * automatic maintaining of shadow/shim positions.
@@ -26,8 +29,8 @@
  * @cfg {Number} zindex Starting z-index (defaults to 11000)
  * @cfg {Number} shadowOffset Number of pixels to offset the shadow (defaults to 4)
  * @cfg {Boolean} useDisplay
- * Defaults to use css offsets to hide the Layer. Specify <tt>true</tt>
- * to use css style <tt>'display:none;'</tt> to hide the Layer.
+ * Defaults to use css offsets to hide the Layer. Specify &lt;tt&gt;true&lt;/tt&gt;
+ * to use css style &lt;tt&gt;'display:none;'&lt;/tt&gt; to hide the Layer.
  * @constructor
  * @param {Object} config An object with config options.
  * @param {String/HTMLElement} existingEl (optional) Uses an existing DOM element. If the element is not found it creates it.
@@ -66,7 +69,7 @@ Ext.Layer = function(config, existingEl){
     }else{
         this.shadowOffset = 0;
     }
-    this.useShim = config.shim !== false && Ext.useShims;
+    this.useShim = config.shim !== false &amp;&amp; Ext.useShims;
     this.useDisplay = config.useDisplay;
     this.hide();
 };
@@ -140,15 +143,15 @@ Ext.extend(Ext.Layer, Ext.Element, {
     // code size was sacrificed for effeciency (e.g. no getBox/setBox, no XY calls)
     sync : function(doShow){
         var shadow = this.shadow;
-        if(!this.updating && this.isVisible() && (shadow || this.useShim)){
+        if(!this.updating &amp;&amp; this.isVisible() &amp;&amp; (shadow || this.useShim)){
             var shim = this.getShim(),
                 w = this.getWidth(),
                 h = this.getHeight(),
                 l = this.getLeft(true),
                 t = this.getTop(true);
 
-            if(shadow && !this.shadowDisabled){
-                if(doShow && !shadow.isVisible()){
+            if(shadow &amp;&amp; !this.shadowDisabled){
+                if(doShow &amp;&amp; !shadow.isVisible()){
                     shadow.show(this);
                 }else{
                     shadow.realign(l, t, w, h);
@@ -223,27 +226,27 @@ Ext.extend(Ext.Layer, Ext.Element, {
             // only move it if it needs it
             var moved = false;
             // first validate right/bottom
-            if((x + w) > vw+s.left){
+            if((x + w) &gt; vw+s.left){
                 x = vw - w - so;
                 moved = true;
             }
-            if((y + h) > vh+s.top){
+            if((y + h) &gt; vh+s.top){
                 y = vh - h - so;
                 moved = true;
             }
             // then make sure top/left isn't negative
-            if(x < s.left){
+            if(x &lt; s.left){
                 x = s.left;
                 moved = true;
             }
-            if(y < s.top){
+            if(y &lt; s.top){
                 y = s.top;
                 moved = true;
             }
             if(moved){
                 if(this.avoidY){
                     var ay = this.avoidY;
-                    if(y <= ay && (y+h) >= ay){
+                    if(y &lt;= ay &amp;&amp; (y+h) &gt;= ay){
                         y = ay-h-5;
                     }
                 }
@@ -291,7 +294,7 @@ Ext.extend(Ext.Layer, Ext.Element, {
         if(v){
             this.showAction();
         }
-        if(a && v){
+        if(a &amp;&amp; v){
             var cb = function(){
                 this.sync(true);
                 if(c){
@@ -346,7 +349,7 @@ Ext.extend(Ext.Layer, Ext.Element, {
 
     // private
     beforeAction : function(){
-        if(!this.updating && this.shadow){
+        if(!this.updating &amp;&amp; this.shadow){
             this.shadow.hide();
         }
     },
@@ -457,8 +460,8 @@ Ext.extend(Ext.Layer, Ext.Element, {
         return this;
     },
 
-    /**
-     * Sets the z-index of this layer and adjusts any shadow and shim z-indexes. The layer z-index is automatically
+<span id='Ext-Layer-method-setZIndex'>    /**
+</span>     * Sets the z-index of this layer and adjusts any shadow and shim z-indexes. The layer z-index is automatically
      * incremented by two more than the value passed in so that it always shows above any shadow or shim (the shadow
      * element, if any, will be assigned z-index + 1, and the shim element, if any, will be assigned the unmodified z-index).
      * @param {Number} zindex The new z-index to set
@@ -477,6 +480,6 @@ Ext.extend(Ext.Layer, Ext.Element, {
     }
 });
 })();
-</pre>    
+</pre>
 </body>
 </html>

@@ -1,18 +1,21 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-// private
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// private
 // This is a support class used internally by the Grid components
 Ext.grid.SplitDragZone = Ext.extend(Ext.dd.DDProxy, {
     fly: Ext.Element.fly,
@@ -22,7 +25,7 @@ Ext.grid.SplitDragZone = Ext.extend(Ext.dd.DDProxy, {
         this.view = grid.getView();
         this.proxy = this.view.resizeProxy;
         Ext.grid.SplitDragZone.superclass.constructor.call(this, hd,
-            "gridSplitters" + this.grid.getGridEl().id, {
+            &quot;gridSplitters&quot; + this.grid.getGridEl().id, {
             dragElId : Ext.id(this.proxy.dom), resizeFrame:false
         });
         this.setHandleElId(Ext.id(hd));
@@ -48,11 +51,11 @@ Ext.grid.SplitDragZone = Ext.extend(Ext.dd.DDProxy, {
     handleMouseDown : function(e){
         var ev = Ext.EventObject.setEvent(e);
         var t = this.fly(ev.getTarget());
-        if(t.hasClass("x-grid-split")){
+        if(t.hasClass(&quot;x-grid-split&quot;)){
             this.cellIndex = this.view.getCellIndex(t.dom);
             this.split = t.dom;
             this.cm = this.grid.colModel;
-            if(this.cm.isResizable(this.cellIndex) && !this.cm.isFixed(this.cellIndex)){
+            if(this.cm.isResizable(this.cellIndex) &amp;&amp; !this.cm.isFixed(this.cellIndex)){
                 Ext.grid.SplitDragZone.superclass.handleMouseDown.apply(this, arguments);
             }
         }
@@ -68,6 +71,6 @@ Ext.grid.SplitDragZone = Ext.extend(Ext.dd.DDProxy, {
     autoOffset : function(){
         this.setDelta(0,0);
     }
-});</pre>    
+});</pre>
 </body>
 </html>

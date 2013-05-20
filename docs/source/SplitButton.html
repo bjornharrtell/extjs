@@ -1,24 +1,27 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />    
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>The source code</title>
-    <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
-    <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
 </head>
-<body  onload="prettyPrint();">
-    <pre class="prettyprint lang-js">/*!
- * Ext JS Library 3.4.0
- * Copyright(c) 2006-2011 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-<div id="cls-Ext.SplitButton"></div>/**
- * @class Ext.SplitButton
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-SplitButton-method-constructor'><span id='Ext-SplitButton-cfg-arrowTooltip'><span id='Ext-SplitButton-cfg-arrowHandler'><span id='Ext-SplitButton'>/**
+</span></span></span></span> * @class Ext.SplitButton
  * @extends Ext.Button
  * A split button that provides a built-in dropdown arrow that can fire an event separately from the default
  * click event of the button.  Typically this would be used to display a dropdown menu that provides additional
  * options to the primary button action, but any custom handler can provide the arrowclick implementation.  Example usage:
- * <pre><code>
+ * &lt;pre&gt;&lt;code&gt;
 // display a dropdown menu:
 new Ext.SplitButton({
 	renderTo: 'button-ct', // the container id
@@ -41,7 +44,7 @@ new Ext.SplitButton({
    	handler: optionsHandler,
    	arrowHandler: myCustomHandler
 });
-</code></pre>
+&lt;/code&gt;&lt;/pre&gt;
  * @cfg {Function} arrowHandler A function called when the arrow button is clicked (can be used instead of click event)
  * @cfg {String} arrowTooltip The title attribute of the arrow
  * @constructor
@@ -50,32 +53,32 @@ new Ext.SplitButton({
  * @xtype splitbutton
  */
 Ext.SplitButton = Ext.extend(Ext.Button, {
-	// private
-    arrowSelector : 'em',
-    split: true,
-
-    // private
-    initComponent : function(){
+<span id='Ext-SplitButton-property-arrowSelector'>	// private
+</span>    arrowSelector : 'em',
+<span id='Ext-SplitButton-property-split'>    split: true,
+</span>
+<span id='Ext-SplitButton-method-initComponent'>    // private
+</span>    initComponent : function(){
         Ext.SplitButton.superclass.initComponent.call(this);
-        /**
-         * @event arrowclick
+<span id='Ext-SplitButton-event-arrowclick'>        /**
+</span>         * @event arrowclick
          * Fires when this button's arrow is clicked
          * @param {MenuButton} this
          * @param {EventObject} e The click event
          */
-        this.addEvents("arrowclick");
+        this.addEvents(&quot;arrowclick&quot;);
     },
 
-    // private
-    onRender : function(){
+<span id='Ext-SplitButton-method-onRender'>    // private
+</span>    onRender : function(){
         Ext.SplitButton.superclass.onRender.apply(this, arguments);
         if(this.arrowTooltip){
             this.el.child(this.arrowSelector).dom[this.tooltipType] = this.arrowTooltip;
         }
     },
 
-    /**
-     * Sets this button's arrow click handler.
+<span id='Ext-SplitButton-method-setArrowHandler'>    /**
+</span>     * Sets this button's arrow click handler.
      * @param {Function} handler The function to call when the arrow is clicked
      * @param {Object} scope (optional) Scope for the function passed above
      */
@@ -84,35 +87,35 @@ Ext.SplitButton = Ext.extend(Ext.Button, {
         this.scope = scope;
     },
 
-    getMenuClass : function(){
-        return 'x-btn-split' + (this.arrowAlign == 'bottom' ? '-bottom' : '');
+<span id='Ext-SplitButton-method-getMenuClass'>    getMenuClass : function(){
+</span>        return 'x-btn-split' + (this.arrowAlign == 'bottom' ? '-bottom' : '');
     },
 
-    isClickOnArrow : function(e){
-	if (this.arrowAlign != 'bottom') {
+<span id='Ext-SplitButton-method-isClickOnArrow'>    isClickOnArrow : function(e){
+</span>	if (this.arrowAlign != 'bottom') {
 	    var visBtn = this.el.child('em.x-btn-split');
 	    var right = visBtn.getRegion().right - visBtn.getPadding('r');
-	    return e.getPageX() > right;
+	    return e.getPageX() &gt; right;
 	} else {
-	    return e.getPageY() > this.btnEl.getRegion().bottom;
+	    return e.getPageY() &gt; this.btnEl.getRegion().bottom;
 	}
     },
 
-    // private
-    onClick : function(e, t){
+<span id='Ext-SplitButton-method-onClick'>    // private
+</span>    onClick : function(e, t){
         e.preventDefault();
         if(!this.disabled){
             if(this.isClickOnArrow(e)){
-                if(this.menu && !this.menu.isVisible() && !this.ignoreNextClick){
+                if(this.menu &amp;&amp; !this.menu.isVisible() &amp;&amp; !this.ignoreNextClick){
                     this.showMenu();
                 }
-                this.fireEvent("arrowclick", this, e);
+                this.fireEvent(&quot;arrowclick&quot;, this, e);
                 if(this.arrowHandler){
                     this.arrowHandler.call(this.scope || this, this, e);
                 }
             }else{
                 this.doToggle();
-                this.fireEvent("click", this, e);
+                this.fireEvent(&quot;click&quot;, this, e);
                 if(this.handler){
                     this.handler.call(this.scope || this, this, e);
                 }
@@ -120,17 +123,17 @@ Ext.SplitButton = Ext.extend(Ext.Button, {
         }
     },
 
-    // private
-    isMenuTriggerOver : function(e){
-        return this.menu && e.target.tagName == this.arrowSelector;
+<span id='Ext-SplitButton-method-isMenuTriggerOver'>    // private
+</span>    isMenuTriggerOver : function(e){
+        return this.menu &amp;&amp; e.target.tagName == this.arrowSelector;
     },
 
-    // private
-    isMenuTriggerOut : function(e, internal){
-        return this.menu && e.target.tagName != this.arrowSelector;
+<span id='Ext-SplitButton-method-isMenuTriggerOut'>    // private
+</span>    isMenuTriggerOut : function(e, internal){
+        return this.menu &amp;&amp; e.target.tagName != this.arrowSelector;
     }
 });
 
-Ext.reg('splitbutton', Ext.SplitButton);</pre>    
+Ext.reg('splitbutton', Ext.SplitButton);</pre>
 </body>
 </html>
