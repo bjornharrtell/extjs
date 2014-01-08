@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Provides indentation and folder structure markup for a Tree taking into account
@@ -35,16 +35,39 @@ Ext.define('Ext.tree.Column', {
     draggable: false,
     hideable: false,
 
-    treePrefix: Ext.baseCSSPrefix + 'tree-',
-    elbowPrefix: Ext.baseCSSPrefix + 'tree-elbow-',
+    iconCls: Ext.baseCSSPrefix + 'tree-icon',
+    checkboxCls: Ext.baseCSSPrefix + 'tree-checkbox',
+    elbowCls: Ext.baseCSSPrefix + 'tree-elbow',
     expanderCls: Ext.baseCSSPrefix + 'tree-expander',
-    imgText: '<img src="{1}" class="{0}" />',
-    checkboxText: '<input type="button" role="checkbox" class="{0}" {1} />',
+    textCls: Ext.baseCSSPrefix + 'tree-node-text',
+    innerCls: Ext.baseCSSPrefix + 'grid-cell-inner-treecolumn',
+    isTreeColumn: true,
+
+    cellTpl: [
+        '<tpl for="lines">',
+            '<img src="{parent.blankUrl}" class="{parent.childCls} {parent.elbowCls}-img ',
+            '{parent.elbowCls}-<tpl if=".">line<tpl else>empty</tpl>"/>',
+        '</tpl>',
+        '<img src="{blankUrl}" class="{childCls} {elbowCls}-img {elbowCls}',
+            '<tpl if="isLast">-end</tpl><tpl if="expandable">-plus {expanderCls}</tpl>"/>',
+        '<tpl if="checked !== null">',
+            '<input type="button" role="checkbox" <tpl if="checked">aria-checked="true" </tpl>',
+                'class="{childCls} {checkboxCls}<tpl if="checked"> {checkboxCls}-checked</tpl>"/>',
+        '</tpl>',
+        '<img src="{blankUrl}" class="{childCls} {baseIconCls} ',
+            '{baseIconCls}-<tpl if="leaf">leaf<tpl else>parent</tpl> {iconCls}"',
+            '<tpl if="icon">style="background-image:url({icon})"</tpl>/>',
+        '<tpl if="href">',
+            '<a href="{href}" target="{hrefTarget}" class="{textCls} {childCls}">{value}</a>',
+        '<tpl else>',
+            '<span class="{textCls} {childCls}">{value}</span>',
+        '</tpl>'
+    ],
 
     initComponent: function() {
         var me = this;
 
-        me.origRenderer = me.renderer || me.defaultRenderer;
+        me.origRenderer = me.renderer;
         me.origScope = me.scope || window;
 
         me.renderer = me.treeRenderer;
@@ -55,85 +78,49 @@ Ext.define('Ext.tree.Column', {
 
     treeRenderer: function(value, metaData, record, rowIdx, colIdx, store, view){
         var me = this,
-            buf = [],
-            format = Ext.String.format,
-            depth = record.getDepth(),
-            treePrefix  = me.treePrefix,
-            elbowPrefix = me.elbowPrefix,
-            expanderCls = me.expanderCls,
-            imgText     = me.imgText,
-            checkboxText= me.checkboxText,
-            formattedValue = me.origRenderer.apply(me.origScope, arguments),
-            blank = Ext.BLANK_IMAGE_URL,
-            href = record.get('href'),
-            target = record.get('hrefTarget'),
             cls = record.get('cls'),
+            renderer = me.origRenderer,
+            data = record.data,
+            parent = record.parentNode,
+            rootVisible = view.rootVisible,
+            lines = [],
+            parentData;
+
+        if (cls) {
+            metaData.tdCls += ' ' + cls;
+        }
+
+        while (parent && (rootVisible || parent.data.depth > 0)) {
+            parentData = parent.data;
+            lines[rootVisible ? parentData.depth : parentData.depth - 1] =
+                    parentData.isLast ? 0 : 1;
+            parent = parent.parentNode;
+        }
+
+        return me.getTpl('cellTpl').apply({
+            record: record,
+            baseIconCls: me.iconCls,
+            iconCls: data.iconCls,
+            icon: data.icon,
+            checkboxCls: me.checkboxCls,
+            checked: data.checked,
+            elbowCls: me.elbowCls,
+            expanderCls: me.expanderCls,
+            textCls: me.textCls,
+            leaf: data.leaf,
+            expandable: record.isExpandable(),
+            isLast: data.isLast,
+            blankUrl: Ext.BLANK_IMAGE_URL,
+            href: data.href,
+            hrefTarget: data.hrefTarget,
+            lines: lines,
+            metaData: metaData,
             // subclasses or overrides can implement a getChildCls() method, which can
             // return an extra class to add to all of the cell's child elements (icon,
             // expander, elbow, checkbox).  This is used by the rtl override to add the
             // "x-rtl" class to these elements.
-            childCls = me.getChildCls ? me.getChildCls() + ' ' : '';
-
-        while (record) {
-            if (!record.isRoot() || (record.isRoot() && view.rootVisible)) {
-                if (record.getDepth() === depth) {
-                    buf.unshift(format(imgText,
-                        childCls +
-                        treePrefix + 'icon ' +
-                        treePrefix + 'icon' + (record.get('icon') ? '-inline ' : (record.isLeaf() ? '-leaf ' : '-parent ')) +
-                        (record.get('iconCls') || ''),
-                        record.get('icon') || blank
-                    ));
-                    if (record.get('checked') !== null) {
-                        buf.unshift(format(
-                            checkboxText,
-                            childCls + (treePrefix + 'checkbox') + (record.get('checked') ? ' ' + treePrefix + 'checkbox-checked' : ''),
-                            record.get('checked') ? 'aria-checked="true"' : ''
-                        ));
-                        if (record.get('checked')) {
-                            metaData.tdCls += (' ' + treePrefix + 'checked');
-                        }
-                    }
-                    if (record.isLast()) {
-                        if (record.isExpandable()) {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'end-plus ' + expanderCls), blank));
-                        } else {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'end'), blank));
-                        }
-
-                    } else {
-                        if (record.isExpandable()) {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'plus ' + expanderCls), blank));
-                        } else {
-                            buf.unshift(format(imgText, (childCls + treePrefix + 'elbow'), blank));
-                        }
-                    }
-                } else {
-                    if (record.isLast() || record.getDepth() === 0) {
-                        buf.unshift(format(imgText, (childCls + elbowPrefix + 'empty'), blank));
-                    } else if (record.getDepth() !== 0) {
-                        buf.unshift(format(imgText, (childCls + elbowPrefix + 'line'), blank));
-                    }
-                }
-            }
-            record = record.parentNode;
-        }
-        if (href) {
-            buf.push('<a class="' + Ext.baseCSSPrefix + 'tree-node-text" href="', href, '" target="', target, '">');
-        } else {
-            buf.push('<span class="' + Ext.baseCSSPrefix + 'tree-node-text">');
-        }
-        buf.push(formattedValue);
-        if (href) {
-            buf.push('</a>');
-        } else {
-            buf.push('</span>');
-        }
-        if (cls) {
-            metaData.tdCls += ' ' + cls;
-        }
-        return buf.join('');
-    },
-
-    defaultRenderer: Ext.identityFn
+            childCls: me.getChildCls ? me.getChildCls() + ' ' : '',
+            value: renderer ? renderer.apply(me.origScope, arguments) : value
+        });
+    }
 });

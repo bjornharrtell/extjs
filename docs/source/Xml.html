@@ -96,6 +96,12 @@
  *         &lt;/nested&gt;
  *     &lt;/deeply&gt;
  *
+ * If this Reader is being used by a {@link Ext.data.TreeStore TreeStore} to read tree-structured data in which records
+ * are nested as descendant nodes of other records, then this lenient behaviour must be overridden by using a more specific
+ * child node selector as your {@link #record} selector which will not select all descendants, such as:
+ *
+ *    record: '&gt;user'
+ *
  * # Response metadata
  *
  * The server can return additional data in its response, such as the {@link #totalProperty total number of records} and
@@ -146,6 +152,15 @@ Ext.define('Ext.data.reader.Xml', {
 <span id='Ext-data-reader-Xml-cfg-record'>    /**
 </span>     * @cfg {String} record (required)
      * The DomQuery path to the repeated element which contains record information.
+     *
+     * By default, the elements which match the selector may be nested at any level below the {@link #root}
+     *
+     * If this Reader is being used by a {@link Ext.data.TreeStore TreeStore} to read tree-structured data,
+     * then only first generation child nodes of the root element must be selected, so the record selector must be
+     * specified with a more specific selector which will not select all descendants. For example:
+     *
+     *    record: '&gt;node'
+     *
      */
 
 <span id='Ext-data-reader-Xml-cfg-namespace'>    /**

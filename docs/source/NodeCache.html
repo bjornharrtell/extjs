@@ -232,6 +232,8 @@ Ext.define('Ext.view.NodeCache', {
     */
     removeElement: function(keys, removeDom) {
         var me = this,
+            inKeys,
+            key,
             elements = me.elements,
             el,
             deleteCount,
@@ -241,14 +243,27 @@ Ext.define('Ext.view.NodeCache', {
         // Sort the keys into ascending order so that we can iterate through the elements
         // collection, and delete items encountered in the keys array as we encounter them.
         if (Ext.isArray(keys)) {
-            deleteCount = keys.length;
+            inKeys = keys;
+            keys = [];
+            deleteCount = inKeys.length;
             for (keyIndex = 0; keyIndex &lt; deleteCount; keyIndex++) {
-                if (typeof keys[keyIndex] !== 'number') {
-                    keys[keyIndex] = me.indexOf(keys[keyIndex]);
+                key = inKeys[keyIndex];
+                if (typeof key !== 'number') {
+                    key = me.indexOf(key);
+                }
+                // Could be asked to remove data above the start, or below the end of rendered zone in a buffer rendered view
+                // So only collect keys which are within our range
+                if (key &gt;= me.startIndex &amp;&amp; key &lt;= me.endIndex) {
+                    keys[keys.length] = key;
                 }
             }
             Ext.Array.sort(keys);
+            deleteCount = keys.length;
         } else {
+            // Could be asked to remove data above the start, or below the end of rendered zone in a buffer rendered view
+            if (keys &lt; me.startIndex || keys &gt; me.endIndex) {
+                return;
+            }
             deleteCount = 1;
             keys = [keys];
         }

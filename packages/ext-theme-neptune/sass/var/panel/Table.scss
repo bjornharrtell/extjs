@@ -1,37 +1,27 @@
-// Row height *within* borders. Eventual height will be 25 (border:collapse)
-$grid-row-height: 24px !default;
-
 //Neptune cells
-$grid-row-line-height-increment: 4 !default;
-$grid-cell-inner-padding: 3px 6px !default;
+$grid-cell-inner-padding: 5px 10px 4px !default;
 $grid-row-cell-border-color: #ededed !default;
 $grid-row-cell-background-color: #fff !default;
 $grid-row-cell-font-size: $font-size;
-$grid-row-line-height-increment: 1 !default;
 
-$grid-row-focus-border-style: solid !default;
-
-//cell with col lines
-$grid-cell-with-col-lines-border-color: $grid-row-cell-border-color !default;
+$grid-row-cell-focus-border-style: solid !default;
 
 // special cells
 $grid-cell-special-background-color: null !default;
 $grid-cell-special-background-gradient: null !default;
-$grid-cell-special-border-color: null !default;
-$grid-cell-special-selected-border-color: null !default;
+$grid-cell-special-border-width: 1px 0 !default;
 
 //row cell over
-$grid-row-cell-over-border-color: mix(#fff, $base-light-color, 65%) !default;
-$grid-row-cell-over-background-color: $grid-row-cell-over-border-color !default;
-$grid-row-cell-over-background-gradient: null !default;
+$grid-row-cell-over-background-color: mix(#fff, $base-light-color, 65%) !default;
+$grid-row-cell-over-border-color: $grid-row-cell-over-background-color !default;
 
 //row cell selected
-$grid-row-cell-selected-border-color: mix(#fff, $base-light-color, 25%) !default;
-$grid-row-cell-selected-background-color: $grid-row-cell-selected-border-color !default;
+$grid-row-cell-selected-background-color: mix(#fff, $base-light-color, 25%) !default;
+$grid-row-cell-selected-border-color: $grid-row-cell-selected-background-color !default;
+
+$grid-row-cell-focus-background-color: $grid-row-cell-over-background-color !default;
+$grid-row-cell-focus-border-color: $grid-row-cell-focus-background-color !default;
 
 //row cell focus
-$grid-row-cell-focus-border-color: $grid-row-cell-over-border-color !default;
-$grid-row-cell-focus-background-color: $grid-row-cell-over-border-color !default;
-$grid-row-cell-focus-background-gradient: null !default;
 
 $grid-body-border-color: #c0c0c0 !default;

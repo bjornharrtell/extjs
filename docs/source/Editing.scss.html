@@ -15,15 +15,29 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}grid-editor {
-    // Align checkbox input
-    .#{$prefix}form-cb-wrap {
+  <pre class="prettyprint lang-js">@if $include-ext-form-field-checkbox {
+    .#{$prefix}grid-editor .#{$prefix}form-cb-wrap {
         text-align: center;
     }
+}
 
-    .#{$prefix}form-text {
-        font: $grid-editor-font;
+@if $include-ext-form-field-display {
+    .#{$prefix}grid-editor {
+        .#{$prefix}form-display-field {
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        @if $include-ext-grid-column-action {
+            // include tag name to increase specificity over rules in neutral theme
+            div.#{$prefix}form-action-col-field {
+                line-height: 0;
+            }
+        }
     }
-}</pre>
+}
+
+</pre>
 </body>
 </html>

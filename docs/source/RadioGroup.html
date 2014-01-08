@@ -68,6 +68,10 @@ Ext.define('Ext.form.RadioGroup', {
     extend: 'Ext.form.CheckboxGroup',
     alias: 'widget.radiogroup',
 
+    requires: [
+        'Ext.form.field.Radio'
+    ],
+
 <span id='Ext-form-RadioGroup-cfg-items'>    /**
 </span>     * @cfg {Ext.form.field.Radio[]/Object[]} items
      * An Array of {@link Ext.form.field.Radio Radio}s or Radio config objects to arrange in the group.

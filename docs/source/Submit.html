@@ -280,7 +280,8 @@ Ext.define('Ext.form.action.Submit', {
     handleResponse: function(response) {
         var form = this.form,
             errorReader = form.errorReader,
-            rs, errors, i, len, records;
+            rs, errors, i, len, records, result;
+            
         if (errorReader) {
             rs = errorReader.read(response);
             records = rs.records;
@@ -293,12 +294,22 @@ Ext.define('Ext.form.action.Submit', {
             if (errors.length &lt; 1) {
                 errors = null;
             }
-            return {
+            result = {
                 success : rs.success,
                 errors : errors
             };
+        } else {
+            try {
+                result = Ext.decode(response.responseText);    
+            } catch (e) {
+                result = {
+                    success: false,
+                    errors: []
+                };
+            }
+            
         }
-        return Ext.decode(response.responseText);
+        return result;
     }
 });
 </pre>

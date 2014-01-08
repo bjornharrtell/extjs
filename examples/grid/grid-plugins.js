@@ -85,6 +85,7 @@ Ext.onReady(function(){
             {text: "% Change", dataIndex: 'pctChange'},
             {text: "Last Updated", renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
         ],
+        columnLines: true,
         enableLocking: true,
         width: 600,
         height: 300,

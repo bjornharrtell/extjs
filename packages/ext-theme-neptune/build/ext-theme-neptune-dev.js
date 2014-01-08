@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 Ext.define('ExtThemeNeptune.Component', {
     override: 'Ext.Component',
@@ -41,11 +41,6 @@ Ext.define('ExtThemeNeptune.Component', {
         me.callParent(arguments);
         me.border = border;
     }
-});
-
-Ext.define('ExtThemeNeptune.container.ButtonGroup', {
-    override: 'Ext.container.ButtonGroup',
-    usePlainButtons: false
 });
 
 Ext.define('ExtThemeNeptune.panel.Panel', {
@@ -341,37 +336,16 @@ Ext.define('ExtThemeNeptune.toolbar.Toolbar', {
     border: false
 });
 
-Ext.define('ExtThemeNeptune.form.field.HtmlEditor', {
-    override: 'Ext.form.field.HtmlEditor',
-    defaultButtonUI: 'plain-toolbar'
+Ext.define('ExtThemeNeptune.container.ButtonGroup', {
+    override: 'Ext.container.ButtonGroup',
+    usePlainButtons: false
 });
 
-Ext.define('ExtThemeNeptune.grid.RowEditor', {
-    override: 'Ext.grid.RowEditor',
-    buttonUI: 'default-toolbar'
-});
-
-
-Ext.define('ExtThemeNeptune.menu.Menu', {
-    override: 'Ext.menu.Menu',
-    showSeparator: false
-});
-
-Ext.define('ExtThemeNeptune.menu.Separator', {
-    override: 'Ext.menu.Separator',
-    border: true
-});
+Ext.define('ExtThemeNeptune.toolbar.Paging', {
+    override: 'Ext.toolbar.Paging',
+    defaultButtonUI: 'plain-toolbar',
     
-
-Ext.define('ExtThemeNeptune.panel.Table', {
-    override: 'Ext.panel.Table',
-    bodyBorder: true
-});
-
-Ext.define('ExtThemeNeptune.panel.Tool', {
-    override: 'Ext.panel.Tool',
-    height: 16,
-    width: 16
+    inputItemWidth: 40
 });
 
 Ext.define('ExtThemeNeptune.picker.Month', {
@@ -389,18 +363,51 @@ Ext.define('ExtThemeNeptune.picker.Month', {
     measureMaxHeight: 36
 });
 
+Ext.define('ExtThemeNeptune.form.field.HtmlEditor', {
+    override: 'Ext.form.field.HtmlEditor',
+    defaultButtonUI: 'plain-toolbar'
+});
+
+Ext.define('ExtThemeNeptune.panel.Table', {
+    override: 'Ext.panel.Table',
+    bodyBorder: true
+});
+
+Ext.define('ExtThemeNeptune.grid.RowEditor', {
+    override: 'Ext.grid.RowEditor',
+    buttonUI: 'default-toolbar'
+});
+
+
+Ext.define('ExtThemeNeptune.grid.column.RowNumberer', {
+    override: 'Ext.grid.column.RowNumberer',
+    width: 25
+});
+
 Ext.define('ExtThemeNeptune.resizer.Splitter', {
     override: 'Ext.resizer.Splitter',
     size: 8
 });
 
+Ext.define('ExtThemeNeptune.menu.Menu', {
+    override: 'Ext.menu.Menu',
+    showSeparator: false
+});
+
+Ext.define('ExtThemeNeptune.menu.Separator', {
+    override: 'Ext.menu.Separator',
+    border: true
+});
+    
+
+Ext.define('ExtThemeNeptune.panel.Tool', {
+    override: 'Ext.panel.Tool',
+    height: 16,
+    width: 16
+});
+
 Ext.define('ExtThemeNeptune.tab.Tab', {
     override: 'Ext.tab.Tab',
     border: false
-});
-
-Ext.define('ExtThemeNeptune.toolbar.Paging', {
-    override: 'Ext.toolbar.Paging',
-    defaultButtonUI: 'plain-toolbar'
 });
 

@@ -16,9 +16,9 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag core
+// @tag core
 /**
  * Base class that provides a common interface for publishing events. Subclasses are expected to to have a property
  * "events" with all the events defined, and, optionally, a property "listeners" with configured listeners defined.
@@ -98,7 +98,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
             * @static
             */
             releaseCapture: function(o) {
-                o.fireEvent = this.prototype.fireEvent;
+                o.fireEventArgs = this.prototype.fireEventArgs;
             },
 
             /**
@@ -113,7 +113,22 @@ Ext.define('Ext.util.Observable', function(Observable) {
             * @static
             */
             capture: function(o, fn, scope) {
-                o.fireEvent = Ext.Function.createInterceptor(o.fireEvent, fn, scope);
+                // We're capturing calls to fireEventArgs to avoid duplication of events;
+                // however fn expects fireEvent's signature so we have to convert it here.
+                // To avoid unnecessary conversions, observe() below is aware of the changes
+                // and will capture fireEventArgs instead.
+                var newFn = function(eventName, args) {
+                    return fn.apply(scope, [eventName].concat(args));
+                }
+                
+                this.captureArgs(o, newFn, scope);
+            },
+            
+            /**
+             * @private
+             */
+            captureArgs: function(o, fn, scope) {
+                o.fireEventArgs = Ext.Function.createInterceptor(o.fireEventArgs, fn, scope);
             },
 
             /**
@@ -137,7 +152,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
                 if (cls) {
                     if (!cls.isObservable) {
                         Ext.applyIf(cls, new this());
-                        this.capture(cls.prototype, cls.fireEvent, cls);
+                        this.captureArgs(cls.prototype, cls.fireEventArgs, cls);
                     }
                     if (Ext.isObject(listeners)) {
                         cls.on(listeners);
@@ -307,7 +322,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
         *
         *     this.btnListeners.destroy();
         */
-        addManagedListener : function(item, ename, fn, scope, options, /* private */ noDestroy) {
+        addManagedListener: function(item, ename, fn, scope, options, /* private */ noDestroy) {
             var me = this,
                 managedListeners = me.managedListeners = me.managedListeners || [],
                 config, passedOptions;
@@ -337,13 +352,9 @@ Ext.define('Ext.util.Observable', function(Observable) {
             else {
                 if (typeof fn === 'string') {
                     scope = scope || me;
-                    //<debug>
-                    if (!(scope[fn])) {
-                        Ext.Error.raise('No method named "' + fn + '"');
-                    }
-                    //</debug>
-                    fn = scope[fn];
+                    fn = Ext.resolveMethod(fn, scope);
                 }
+                
                 managedListeners.push({
                     item: item,
                     ename: ename,
@@ -370,13 +381,13 @@ Ext.define('Ext.util.Observable', function(Observable) {
         * @param {Object} scope (optional) If the `ename` parameter was an event name, this is the scope (`this` reference)
         * in which the handler function is executed.
         */
-        removeManagedListener : function(item, ename, fn, scope) {
+        removeManagedListener: function(item, ename, fn, scope) {
             var me = this,
                 options,
                 config,
                 managedListeners,
                 length,
-                i;
+                i, func;
 
             if (typeof ename !== 'string') {
                 options = ename;
@@ -389,8 +400,12 @@ Ext.define('Ext.util.Observable', function(Observable) {
                     }
                 }
             } else {
-
                 managedListeners = me.managedListeners ? me.managedListeners.slice() : [];
+                
+                if (typeof fn === 'string') {
+                    scope = scope || me;
+                    fn = Ext.resolveMethod(fn, scope);
+                }
 
                 for (i = 0, length = managedListeners.length; i < length; i++) {
                     me.removeManagedListenerItem(false, managedListeners[i], item, ename, fn, scope);
@@ -410,7 +425,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
         * @return {Boolean} returns false if any of the handlers return false otherwise it returns true.
         */
         fireEvent: function(eventName) {
-            return this.fireEventArgs(eventName, Array.prototype.slice.call(arguments, 1));
+            return this.fireEventArgs(eventName, arraySlice.call(arguments, 1));
         },
 
         /**
@@ -461,7 +476,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
                     event = target.events[eventName];
                     // Continue bubbling if event exists and it is `true` or the handler didn't returns false and it
                     // configure to bubble.
-                    if (event && event != true) {
+                    if (event && event !== true) {
                         if ((ret = event.fire.apply(event, args)) === false) {
                             break;
                         }
@@ -655,12 +670,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
                 // Allow listeners: { click: 'onClick', scope: myObject }
                 if (typeof fn === 'string') {
                     scope = scope || me;
-                    //<debug>
-                    if (!(scope[fn])) {
-                        Ext.Error.raise('No method named "' + fn + '"');
-                    }
-                    //</debug>
-                    fn = scope[fn];
+                    fn = Ext.resolveMethod(fn, scope);
                 }
                 event.addListener(fn, scope, options);
 
@@ -704,6 +714,11 @@ Ext.define('Ext.util.Observable', function(Observable) {
                 ename = ename.toLowerCase();
                 event = me.events[ename];
                 if (event && event.isEvent) {
+                    if (typeof fn === 'string') {
+                        scope = scope || me;
+                        fn = Ext.resolveMethod(fn, scope);
+                    }
+                    
                     if (event.removeListener(fn, scope)) {
                         me.hasListeners._decr_(ename);
                     }
@@ -973,7 +988,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
         createRelayer: function(newName, beginEnd) {
             var me = this;
             return function() {
-                return me.fireEventArgs.call(me, newName, beginEnd ? Array.prototype.slice.apply(arguments, beginEnd) : arguments);
+                return me.fireEventArgs.call(me, newName, beginEnd ? arraySlice.apply(arguments, beginEnd) : arguments);
             };
         },
 

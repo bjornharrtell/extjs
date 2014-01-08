@@ -34,8 +34,7 @@ Ext.define('Ext.tip.Tip', {
 <span id='Ext-tip-Tip-cfg-width'>    /**
 </span>     * @cfg {Number} [width='auto']
      * Width in pixels of the tip.  Width will be ignored if it
-     * exceeds the bounds of {@link #minWidth} or {@link #maxWidth}.  The maximum
-     * supported value is 500.
+     * exceeds the bounds of {@link #minWidth} or {@link #maxWidth}.
      */
     
 <span id='Ext-tip-Tip-cfg-minWidth'>    /**
@@ -47,7 +46,7 @@ Ext.define('Ext.tip.Tip', {
 </span>     * @cfg {Number} maxWidth
      * The maximum width of the tip in pixels.  The maximum supported value is 500.
      */
-    maxWidth : 300,
+    maxWidth : 500,
 <span id='Ext-tip-Tip-cfg-shadow'>    /**
 </span>     * @cfg {Boolean/String} shadow
      * `true` or &quot;sides&quot; for the default effect, &quot;frame&quot; for 4-way shadow, and &quot;drop&quot;
@@ -134,27 +133,6 @@ Ext.define('Ext.tip.Tip', {
             }
             me.toFront(true);
         }
-    },
-
-<span id='Ext-tip-Tip-method-showBy'>    /**
-</span>     * **Experimental**. Shows this tip at a position relative to another element using
-     * a standard {@link Ext.util.Positionable#alignTo} anchor position value.  Example usage:
-     *
-     *     // Show the tip at the default position ('tl-br?')
-     *     tip.showBy('my-el');
-     *
-     *     // Show the tip's top-left corner anchored to the element's top-right corner
-     *     tip.showBy('my-el', 'tl-tr');
-     *
-     * @param {String/HTMLElement/Ext.Element} el An HTMLElement, {@link Ext.Element} or string
-     * id of the target element to align to.
-     *
-     * @param {String} [position] A valid {@link Ext.util.Positionable#alignTo} anchor position.
-     * 
-     * Defaults to 'tl-br?' or {@link #defaultAlign} if specified.
-     */
-    showBy : function(el, pos) {
-        this.showAt(this.getAlignToXY(el, pos || this.defaultAlign));
     },
 
 <span id='Ext-tip-Tip-method-initDraggable'>    /**

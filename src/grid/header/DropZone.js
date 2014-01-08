@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @private
@@ -84,8 +84,6 @@ Ext.define('Ext.grid.header.DropZone', {
             dropLocation = me.getLocation(e, node),
             targetHeader = dropLocation.header,
             pos          = dropLocation.pos,
-            fromHeader,
-            toHeader,
             nextHd,
             prevHd,
             topIndicator, bottomIndicator, topAnchor, bottomAnchor,
@@ -96,8 +94,6 @@ Ext.define('Ext.grid.header.DropZone', {
         if (targetHeader === me.lastTargetHeader && pos === me.lastDropPos) {
             return;
         }
-        fromHeader   = dragHeader.up('headercontainer:not(gridcolumn)');
-        toHeader     = targetHeader.up('headercontainer:not(gridcolumn)');
         nextHd       = dragHeader.nextSibling('gridcolumn:not([hidden])');
         prevHd       = dragHeader.previousSibling('gridcolumn:not([hidden])');
         me.lastTargetHeader = targetHeader;
@@ -105,20 +101,6 @@ Ext.define('Ext.grid.header.DropZone', {
 
         // Cannot drag to before non-draggable start column
         if (!targetHeader.draggable && pos === 'before' && targetHeader.getIndex() === 0) {
-            return false;
-        }
-
-        // Cross-container drag between locked/unnlocked sides of a locking grid.
-        data.isLock = data.isUnlock = false;
-        if (fromHeader !== toHeader && fromHeader.lockableInjected && toHeader.lockableInjected && toHeader.lockedCt) {
-            data.isLock = true;
-        } else if (fromHeader !== toHeader && fromHeader.lockableInjected && toHeader.lockableInjected && fromHeader.lockedCt) {
-            data.isUnlock = true;
-        }
-        // Check whether lock/unlock is allowed.
-        // Unlock is allowed if the column is configured as lockable (which really means togglable between locked and unlocked)
-        // Lock is only allowed if there will still be at least one other colum left in the unlocked side.
-        if ((data.isUnlock && dragHeader.lockable === false) || (data.isLock && !dragHeader.isLockable())) {
             return false;
         }
 
@@ -185,17 +167,37 @@ Ext.define('Ext.grid.header.DropZone', {
 
     onNodeOver: function(node, dragZone, e, data) {
         var me = this,
-            doPosition = true,
             from = data.header,
-            to;
-            
+            doPosition,
+            to,
+            fromPanel,
+            toPanel;
+
         if (data.header.el.dom === node) {
             doPosition = false;
         } else {
+            data.isLock = data.isUnlock = false;
             to = me.getLocation(e, node).header;
-            doPosition = (from.ownerCt === to.ownerCt) || (!from.ownerCt.sealed && !to.ownerCt.sealed);
+            
+            // Dragging within the same container - always valid
+            doPosition = (from.ownerCt === to.ownerCt);
+
+            // If from different containers, and they are not sealed, then continue checking
+            if (!doPosition && (!from.ownerCt.sealed && !to.ownerCt.sealed)) {
+
+                doPosition = true;
+                fromPanel = from.up('tablepanel');
+                toPanel = to.up('tablepanel');
+
+                // If it's a lock operation, check that it's allowable.
+                data.isLock   = toPanel.isLocked && !fromPanel.isLocked;
+                data.isUnlock = !toPanel.isLocked && fromPanel.isLocked;
+                if ((data.isUnlock && from.lockable === false) || (data.isLock && !from.isLockable())) {
+                    doPosition = false;
+                }
+            }
         }
-        
+
         if (doPosition) {
             me.positionIndicator(data, node, e);
         } else {
@@ -227,9 +229,10 @@ Ext.define('Ext.grid.header.DropZone', {
                 toCt         = targetHeader.ownerCt,
                 localToIdx   = toCt.items.indexOf(targetHeader),
                 headerCt     = this.headerCt,
-                fromIdx      = headerCt.getHeaderIndex(dragHeader),
+                columnManager= headerCt.columnManager,
+                fromIdx      = columnManager.getHeaderIndex(dragHeader),
+                toIdx        = columnManager.getHeaderIndex(targetHeader),
                 colsToMove   = dragHeader.isGroupHeader ? dragHeader.query(':not([isGroupHeader])').length : 1,
-                toIdx        = headerCt.getHeaderIndex(targetHeader),
                 sameCt       = fromCt === toCt,
                 scrollerOwner, savedWidth;
 

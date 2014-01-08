@@ -103,7 +103,7 @@ Ext.onReady(function(){
             xtype: 'datecolumn',
             header: 'Start Date',
             dataIndex: 'start',
-            width: 90,
+            width: 105,
             editor: {
                 xtype: 'datefield',
                 allowBlank: false,

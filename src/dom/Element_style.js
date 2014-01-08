@@ -16,9 +16,9 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
+// @tag dom,core
 /**
  */
 Ext.define('Ext.dom.Element_style', {
@@ -183,7 +183,7 @@ Element.override({
             width = dom.offsetWidth;
         }
 
-        // IE9/10 Direct2D dimension rounding bug
+        // IE9/10 Direct2D dimension rounding bug: https://sencha.jira.com/browse/EXTJSIV-603
         // there is no need make adjustments for this bug when the element is vertically
         // rotated because the width of a vertical element is its rotated height
         if (Ext.supports.Direct2DBug && !me.vertical) {

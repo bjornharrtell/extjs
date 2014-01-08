@@ -46,7 +46,8 @@ Ext.define('Ext.grid.property.HeaderContainer', {
 
 <span id='Ext-grid-property-HeaderContainer-property-nameColumnCls'>    // @private
 </span>    nameColumnCls: Ext.baseCSSPrefix + 'grid-property-name',
-
+<span id='Ext-grid-property-HeaderContainer-property-nameColumnInnerCls'>    nameColumnInnerCls: Ext.baseCSSPrefix + 'grid-cell-inner-property-name',
+</span>
 <span id='Ext-grid-property-HeaderContainer-method-constructor'>    /**
 </span>     * Creates new HeaderContainer.
      * @param {Ext.grid.property.Grid} grid The grid this store will be bound to
@@ -58,6 +59,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
         me.grid = grid;
         me.store = store;
         me.callParent([{
+            isRootHeader: true,
             enableColumnResize: Ext.isDefined(grid.enableColumnResize) ? grid.enableColumnResize : me.enableColumnResize,
             enableColumnMove: Ext.isDefined(grid.enableColumnMove) ? grid.enableColumnMove : me.enableColumnMove,
             items: [{
@@ -68,7 +70,8 @@ Ext.define('Ext.grid.property.HeaderContainer', {
                 renderer: Ext.Function.bind(me.renderProp, me),
                 itemId: grid.nameField,
                 menuDisabled :true,
-                tdCls: me.nameColumnCls
+                tdCls: me.nameColumnCls,
+                innerCls: me.nameColumnInnerCls
             }, {
                 header: me.valueText,
                 renderer: Ext.Function.bind(me.renderCell, me),

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A small abstract class that contains the shared behaviour for any summary
@@ -29,7 +29,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     alias: 'feature.abstractsummary',
 
     summaryRowCls: Ext.baseCSSPrefix + 'grid-row-summary',
-    summaryTableCls: Ext.baseCSSPrefix + 'table-plain ' + Ext.baseCSSPrefix + 'grid-table',
+    summaryTableCls: Ext.plainTableCls + ' ' + Ext.baseCSSPrefix + 'grid-table',
     summaryRowSelector: '.' + Ext.baseCSSPrefix + 'grid-row-summary',
 
     // High priority rowTpl interceptor which sees summary rows early, and renders them correctly and then aborts the row rendering chain.
@@ -74,7 +74,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     outputSummaryRecord: function(summaryRecord, contextValues, out) {
         var view = contextValues.view,
             savedRowValues = view.rowValues,
-            columns = contextValues.columns || view.headerCt.getGridColumns(),
+            columns = contextValues.columns || view.headerCt.getVisibleGridColumns(),
             colCount = columns.length, i, column,
             // Set up a row rendering values object so that we can call the rowTpl directly to inject
             // the markup of a grid row into the output stream.
@@ -86,8 +86,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
                 itemClasses: [],
                 recordIndex: -1,
                 rowId: view.getRowId(summaryRecord),
-                columns: columns,
-                visibleColumns: contextValues.visibleColumns || view.headerCt.getVisibleGridColumns()
+                columns: columns
             };
 
         // Because we are using the regular row rendering pathway, temporarily swap out the renderer for the summaryRenderer
@@ -133,7 +132,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
      */
     getSummary: function(store, type, field, group){
         var records = group.records;
-        
+
         if (type) {
             if (Ext.isFunction(type)) {
                 return store.getAggregate(type, null, records, [field]);
@@ -152,7 +151,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
                     return store.getAverage(records, field);
                 default:
                     return '';
-                    
+
             }
         }
     },
@@ -176,7 +175,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             i, group, record,
             root, summaryRows, hasRemote,
             convertedSummaryRow, remoteData;
-            
+
         /**
          * @cfg {String} [remoteRoot=undefined]
          * The name of the property which contains the Array of summary objects.
@@ -189,7 +188,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             root = reader.root;
             reader.root = me.remoteRoot;
             reader.buildExtractors(true);
-            summaryRows = reader.getRoot(reader.rawData);
+            summaryRows = reader.getRoot(reader.rawData)||[];
             len = summaryRows.length;
 
             // Ensure the Reader has a data conversion function to convert a raw data row into a Record data hash
@@ -209,7 +208,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             reader.root = root;
             reader.buildExtractors(true);
         }
-        
+
         for (i = 0; i < len; ++i) {
             group = groups[i];
             // Something has changed or it doesn't exist, populate it
@@ -225,22 +224,18 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
                 }
             } else {
                 record = group.getAggregateRecord();
-                if (lockingPartner && !record.hasPartnerData) {
-                    me.populateRecord(group);
-                    record.hasPartnerData = true;
-                }
             }
             data[group.key] = record;
         }
-        
+
         return data;
     },
-    
+
     populateRemoteRecord: function(group, data) {
         var record = group.getAggregateRecord(true),
             groupData = data[group.key],
             field;
-            
+
         record.beginEdit();
         for (field in groupData) {
             if (groupData.hasOwnProperty(field)) {
@@ -251,19 +246,20 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         }
         record.endEdit(true);
         record.commit(true);
-        
+
         return record;
     },
-    
+
     populateRecord: function(group){
         var me = this,
-            view = me.view,
-            store = view.store,
+            view = me.grid.ownerLockable ? me.grid.ownerLockable.view : me.view,
+            store = me.view.store,
             record = group.getAggregateRecord(),
+            // Use the full column set, regardless of locking
             columns = view.headerCt.getGridColumns(),
             len = columns.length,
             i, column, fieldName;
-            
+
         record.beginEdit();
         for (i = 0; i < len; ++i) {
             column = columns[i];
@@ -273,7 +269,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         }
         record.endEdit(true);
         record.commit();
-            
+
         return record;
     }
 });

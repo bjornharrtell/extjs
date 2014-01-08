@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A menu object. This is the container to which you may add {@link Ext.menu.Item menu items}.
@@ -246,11 +246,10 @@ Ext.define('Ext.menu.Menu', {
             if (me.minWidth === undefined) {
                 me.minWidth = me.defaultMinWidth;
             }
-        }
-
-        // hidden defaults to false if floating is configured as false
-        else {
+        } else {
+            // hidden defaults to false if floating is configured as false
             me.hidden = !!me.initialConfig.hidden;
+            me.constrain = false;
         }
 
         me.callParent(arguments);
@@ -553,27 +552,29 @@ Ext.define('Ext.menu.Menu', {
         return me;
     },
 
-    show: function() {
+    beforeShow: function() {
         var me = this,
-            parentEl, viewHeight,
-            maxWas = me.maxHeight;
+            viewHeight;
 
-        // we need to get scope parent for height constraint
-        if (!me.rendered){
-            me.doAutoRender();
-        }
-
-        // constrain the height to the curren viewable area
+        // Constrain the height to the containing element's viewable area
         if (me.floating) {
-            //if our reset css is scoped, there will be a x-reset wrapper on this menu which we need to skip
-            parentEl = me.el.parent();
-            viewHeight = parentEl.getViewSize().height;
-            me.maxHeight  =  Math.min(maxWas || viewHeight, viewHeight);
+            me.savedMaxHeight = me.maxHeight;
+            viewHeight = me.container.getViewSize().height;
+            me.maxHeight = Math.min(me.maxHeight || viewHeight, viewHeight);
         }
 
         me.callParent(arguments);
-        me.maxHeight = maxWas;
-        return me;
+    },
+
+    afterShow: function() {
+        var me = this;
+
+        me.callParent(arguments);
+
+        // Restore configured maxHeight
+        if (me.floating) {
+            me.maxHeight = me.savedMaxHeight;
+        }
     },
 
     // @private

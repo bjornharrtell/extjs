@@ -37,6 +37,7 @@ Ext.define('Ext.tab.Tab', {
     isTab: true,
 
 <span id='Ext-tab-Tab-cfg-baseCls'>    baseCls: Ext.baseCSSPrefix + 'tab',
+</span><span id='Ext-tab-Tab-property-closeElOverCls'>    closeElOverCls: Ext.baseCSSPrefix + 'tab-close-btn-over',
 </span>
 <span id='Ext-tab-Tab-cfg-activeCls'>    /**
 </span>     * @cfg {String} activeCls
@@ -142,6 +143,10 @@ Ext.define('Ext.tab.Tab', {
 
         return result;
     },
+    
+<span id='Ext-tab-Tab-method-getFramingInfoCls'>    getFramingInfoCls: function(){
+</span>        return this.baseCls + '-' + this.ui + '-' + this.position;
+    },
 
 <span id='Ext-tab-Tab-method-beforeRender'>    beforeRender: function() {
 </span>        var me = this,
@@ -185,6 +190,10 @@ Ext.define('Ext.tab.Tab', {
         me.setElOrientation();
 
         me.callParent(arguments);
+
+        if (me.closable) {
+            me.closeEl.addClsOnOver(me.closeElOverCls);
+        }
 
         me.keyNav = new Ext.util.KeyNav(me.el, {
             enter: me.onEnterKey,
@@ -272,13 +281,14 @@ Ext.define('Ext.tab.Tab', {
 
         if (me.closable) {
             if (!closeEl) {
-                me.closeEl = me.btnWrap.insertSibling({
+                closeEl = me.closeEl = me.btnWrap.insertSibling({
                     tag: 'a',
                     cls: me.baseCls + '-close-btn',
                     href: '#',
                     title: me.closeText
                 }, 'after');
             }
+            closeEl.addClsOnOver(me.closeElOverCls);
         } else if (closeEl) {
             closeEl.remove();
             delete me.closeEl;

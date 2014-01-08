@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class specifies the definition for a column inside a {@link Ext.grid.Panel}. It encompasses
@@ -103,6 +103,15 @@ Ext.define('Ext.grid.column.Column', {
     childEls: [
         'titleEl', 'triggerEl', 'textEl'
     ],
+    
+    /**
+     * @private
+     * @cfg {Boolean} [noWrap=true]
+     * The default setting indicates that external CSS rules dictate that the title is `white-space: nowrap` and
+     * therefore, width cannot affect the measured height by causing text wrapping. This is what the Sencha-supplied
+     * styles set. If you change those styles to allow text wrapping, you must set this to `false`.
+     */
+    noWrap: true,
 
     renderTpl:
         '<div id="{id}-titleEl" {tipMarkup}class="' + Ext.baseCSSPrefix + 'column-header-inner">' +
@@ -331,10 +340,19 @@ Ext.define('Ext.grid.column.Column', {
 
     /**
      * @property {Boolean} isHeader
+     * @deprecated see isColumn
      * Set in this class to identify, at runtime, instances which are not instances of the
      * HeaderContainer base class, but are in fact, the subclass: Header.
      */
     isHeader: true,
+
+    /**
+     * @property {Boolean} isColumn
+     * @readonly
+     * Set in this class to identify, at runtime, instances which are not instances of the
+     * HeaderContainer base class, but are in fact simple column headers.
+     */
+    isColumn: true,
 
     ascSortCls: Ext.baseCSSPrefix + 'column-header-sort-ASC',
     descSortCls: Ext.baseCSSPrefix + 'column-header-sort-DESC',
@@ -344,6 +362,8 @@ Ext.define('Ext.grid.column.Column', {
     groupSubHeaderCls: Ext.baseCSSPrefix + 'group-sub-header',
 
     groupHeaderCls: Ext.baseCSSPrefix + 'group-header',
+
+    clickTargetName: 'titleEl',
 
     // So that when removing from group headers which are then empty and then get destroyed, there's no child DOM left
     detachOnRemove : true,
@@ -356,9 +376,9 @@ Ext.define('Ext.grid.column.Column', {
             renderer,
             listeners;
 
-        if (Ext.isDefined(me.header)) {
+        if (me.header != null) {
             me.text = me.header;
-            delete me.header;
+            me.header = null;
         }
 
         if (!me.triStateSort) {
@@ -366,7 +386,7 @@ Ext.define('Ext.grid.column.Column', {
         }
 
         // A group header; It contains items which are themselves Headers
-        if (Ext.isDefined(me.columns)) {
+        if (me.columns != null) {
             me.isGroupHeader = true;
 
             //<debug>
@@ -380,18 +400,13 @@ Ext.define('Ext.grid.column.Column', {
 
             // The headers become child items
             me.items = me.columns;
-            delete me.columns;
-            delete me.flex;
-            delete me.width;
+            me.columns = me.flex = me.width = null;
             me.cls = (me.cls||'') + ' ' + me.groupHeaderCls;
-            me.sortable = false;
-            me.resizable = false;
+
+            // A group cannot be sorted, or resized - it shrinkwraps its children
+            me.sortable = me.resizable = false;
             me.align = 'center';
         } else {
-            // If we are not a group header, then this is not to be used as a container, and must not have a container layout executed, and it must
-            // acquire layout height from DOM content, not from child items.
-            me.isContainer = false;
-
             // Flexed Headers need to have a minWidth defined so that they can never be squeezed out of existence by the
             // HeaderContainer's specialized Box layout, the ColumnLayout. The ColumnLayout's overridden calculateChildboxes
             // method extends the available layout space to accommodate the "desiredWidth" of all the columns.
@@ -418,35 +433,35 @@ Ext.define('Ext.grid.column.Column', {
         me.callParent(arguments);
 
         listeners = {
-            element:  'el',
-            click:    me.onElClick,
-            contextmenu: me.onElContextMenu,
-            scope:    me
+            element:        me.clickTargetName,
+            click:          me.onTitleElClick,
+            contextmenu:    me.onTitleElContextMenu,
+            mouseenter:     me.onTitleMouseOver,
+            mouseleave:     me.onTitleMouseOut,
+            scope:          me
         };
         if (me.resizable) {
-            listeners.dblclick = me.onElDblClick;
+            listeners.dblclick = me.onTitleElDblClick;
         }
         me.on(listeners);
-        me.on({
-            element:    'titleEl',
-            mouseenter: me.onTitleMouseOver,
-            mouseleave: me.onTitleMouseOut,
-            scope:      me
-        });
     },
 
-    onAdd: function(childHeader) {
-        childHeader.isSubHeader = true;
-        if (this.hidden) {
-            childHeader.hide();
+    onAdd: function(child) {
+        if (child.isColumn) {
+            child.isSubHeader = true;
+            child.addCls(this.groupSubHeaderCls);
         }
-        childHeader.addCls(this.groupSubHeaderCls);
+        if (this.hidden) {
+            child.hide();
+        }
         this.callParent(arguments);
     },
 
-    onRemove: function(childHeader) {
-        childHeader.isSubHeader = false;
-        childHeader.removeCls(this.groupSubHeaderCls);
+    onRemove: function(child) {
+        if (child.isSubHeader) {
+            child.isSubHeader = false;
+            child.removeCls(this.groupSubHeaderCls);
+        }
         this.callParent(arguments);
     },
 
@@ -468,28 +483,27 @@ Ext.define('Ext.grid.column.Column', {
     },
 
     applyColumnState: function (state) {
-        var me = this,
-            defined = Ext.isDefined;
+        var me = this;
  
         // apply any columns
         me.applyColumnsState(state.columns);
 
         // Only state properties which were saved should be restored.
         // (Only user-changed properties were saved by getState)
-        if (defined(state.hidden)) {
+        if (state.hidden != null) {
             me.hidden = state.hidden;
         }
-        if (defined(state.locked)) {
+        if (state.locked != null) {
             me.locked = state.locked;
         }
-        if (defined(state.sortable)) {
+        if (state.sortable != null) {
             me.sortable = state.sortable;
         }
-        if (defined(state.width)) {
-            delete me.flex;
+        if (state.width != null) {
+            me.flex = null;
             me.width = state.width;
-        } else if (defined(state.flex)) {
-            delete me.width;
+        } else if (state.flex != null) {
+            me.width = null;
             me.flex = state.flex;
         }
     },
@@ -578,13 +592,10 @@ Ext.define('Ext.grid.column.Column', {
 
     afterRender: function() {
         var me = this,
-            el = me.el;
+            triggerEl = me.triggerEl,
+            triggerWidth;
 
         me.callParent(arguments);
-
-        if (me.overCls) {
-            el.addClsOnOver(me.overCls);
-        }
 
         // BrowserBug: Ie8 Strict Mode, this will break the focus for this browser,
         // must be fixed when focus management will be implemented.
@@ -595,8 +606,14 @@ Ext.define('Ext.grid.column.Column', {
                 scope: me
             });
         }
+        
+        if (triggerEl && me.self.triggerElWidth === undefined) {
+            triggerEl.setStyle('display', 'block');
+            me.self.triggerElWidth = triggerEl.getWidth();
+            triggerEl.setStyle('display', '');
+        }
 
-        me.keyNav = new Ext.util.KeyNav(el, {
+        me.keyNav = new Ext.util.KeyNav(me.el, {
             enter: me.onEnterKey,
             down: me.onDownKey,
             scope: me
@@ -616,52 +633,11 @@ Ext.define('Ext.grid.column.Column', {
         }
     },
 
-    // private
-    // After the container has laid out and stretched, it calls this to correctly pad the inner to center the text vertically
-    // Total available header height must be passed to enable padding for inner elements to be calculated.
-    setPadding: function(headerContext, availableHeight) {
-        var me = this,
-            textHeight = me.textEl.dom.offsetHeight,
-            titleEl = me.titleEl,
-            titleHeight = titleEl.dom.offsetHeight,
-            pt, pb;
-
-        // Our inner available height is *within* our borders
-        availableHeight -= headerContext.borderInfo.height;
-
-        // If we are a group header, size the container below the titleEl
-        if (headerContext.innerCtContext) {
-            me.layout.innerCt.setHeight(availableHeight - titleHeight);
-        }
-        // Not a group header
-        else {
-            if (titleHeight < availableHeight) {
-
-                // Vertically center the header text and ensure titleEl occupies availableHeight
-                if (textHeight) {
-                    titleHeight = availableHeight;
-                    availableHeight -= textHeight;
-                    pt = Math.floor(availableHeight / 2);
-                    pb = availableHeight - pt;
-                    titleEl.setStyle({
-                        paddingTop: pt + 'px',
-                        paddingBottom: pb + 'px'
-                    });
-                }
-            }
-        }
-        // Only IE6 and IEQuirks needs this.
-        // This is why we maintain titleHeight when setting it.
-        if ((Ext.isIE6 || Ext.isIEQuirks) && me.triggerEl) {
-            me.triggerEl.setHeight(titleHeight);
-        }
-    },
-
     onDestroy: function() {
         var me = this;
         // force destroy on the textEl, IE reports a leak
         Ext.destroy(me.textEl, me.keyNav, me.field);
-        delete me.keyNav;
+        me.keyNav = null;
         me.callParent(arguments);
     },
 
@@ -675,12 +651,12 @@ Ext.define('Ext.grid.column.Column', {
 
     onDownKey: function(e) {
         if (this.triggerEl) {
-            this.onElClick(e, this.triggerEl.dom || this.el.dom);
+            this.onTitleElClick(e, this.triggerEl.dom || this.el.dom);
         }
     },
 
     onEnterKey: function(e) {
-        this.onElClick(e, this.el.dom);
+        this.onTitleElClick(e, this.el.dom);
     },
 
     /**
@@ -688,7 +664,7 @@ Ext.define('Ext.grid.column.Column', {
      * Double click handler which, if on left or right edges, auto-sizes the column to the left.
      * @param e The dblclick event
      */
-    onElDblClick: function(e, t) {
+    onTitleElDblClick: function(e, t) {
         var me = this,
             prev,
             leafColumns;
@@ -745,7 +721,7 @@ Ext.define('Ext.grid.column.Column', {
         this.getOwnerHeaderCt().autoSizeColumn(this);
     },
 
-    onElClick: function(e, t) {
+    onTitleElClick: function(e, t) {
 
         // The grid's docked HeaderContainer.
         var me = this,
@@ -764,7 +740,7 @@ Ext.define('Ext.grid.column.Column', {
         }
     },
 
-    onElContextMenu: function(e, t) {
+    onTitleElContextMenu: function(e, t) {
         // The grid's docked HeaderContainer.
         var me = this,
             ownerHeaderCt = me.getOwnerHeaderCt();
@@ -835,7 +811,7 @@ Ext.define('Ext.grid.column.Column', {
 
          state = state || null;
 
-        if (!me.sorting && oldSortState !== state && me.getSortParam()) {
+        if (!me.sorting && oldSortState !== state && (me.getSortParam() != null)) {
             // don't trigger a sort on the first time, we just want to update the UI
             if (state && !initial) {
                 // when sorting, it will call setSortState on the header again once
@@ -935,6 +911,14 @@ Ext.define('Ext.grid.column.Column', {
         return result.result;
     },
 
+    /*
+     * Determines whether this column is in the locked side of a grid. It may be a descendant node of a locked column
+     * and as such will *not* have the {@link #locked} flag set.
+     */
+    isLocked: function() {
+        return this.locked || !!this.up('[isColumn][locked]', '[isRootHeader]');
+    },
+
     // Private bubble function used in determining whether this column is lockable.
     // Executes in the scope of each component in the bubble sequence
     hasMultipleVisibleChildren: function(result) {
@@ -956,6 +940,11 @@ Ext.define('Ext.grid.column.Column', {
             ownerIsGroup,
             item, items, len, i;
             
+        if (!me.isVisible()) {
+            // Already hidden
+            return me;
+        }
+
         // If we have no ownerHeaderCt, it's during object construction, so
         // just set the hidden flag and jump out
         if (!ownerHeaderCt) {
@@ -970,10 +959,10 @@ Ext.define('Ext.grid.column.Column', {
             me.visibleSiblingCount = ownerHeaderCt.getVisibleGridColumns().length - 1;
             if (me.flex) {
                 me.savedWidth = me.getWidth();
-                delete me.flex;
+                me.flex = null;
             }
         }
-        
+
         ownerIsGroup = owner.isGroupHeader;
 
         // owner is a group, hide call didn't come from the owner
@@ -1016,7 +1005,12 @@ Ext.define('Ext.grid.column.Column', {
             myWidth,
             availFlex,
             totalFlex,
-            oldLen;
+            oldLen,
+            defaultWidth = Ext.grid.header.Container.prototype.defaultWidth;
+            
+        if (me.isVisible()) {
+            return me;
+        }
 
         if (!me.rendered) {
             me.hidden = false;
@@ -1035,7 +1029,7 @@ Ext.define('Ext.grid.column.Column', {
             // Therefore, to force the fit, it converts all widths to flexes.
             // So as long as we are not in that situation with artificial flexes, original column widths can be restored.
             if (items.length) {
-                me.width = me.savedWidth || me.width || Ext.grid.header.Container.prototype.defaultWidth;
+                me.width = me.savedWidth || me.width || defaultWidth;
             }
             // Showing back into a fully flexed HeaderContainer
             else {
@@ -1047,7 +1041,7 @@ Ext.define('Ext.grid.column.Column', {
                 // If no saved width, it's the first show, use the width.
                 // The first show of a flex inside a forceFit container cannot work properly because flex values will
                 // have been allocated as the flexed pixel width.
-                myWidth = (me.savedWidth || me.width || Ext.grid.header.Container.prototype.defaultWidth);
+                myWidth = (me.savedWidth || me.width || defaultWidth);
 
                 // Scale the restoration width depending on whether there are now more or fewer visible
                 // siblings than we this column was hidden.
@@ -1056,11 +1050,11 @@ Ext.define('Ext.grid.column.Column', {
                 // look VERY greedy now if it tries to claim all the space saved in 'savedWidth'.
                 //
                 // Likewise if there were lots of other columns present when this was hidden, but few now, this would
-                // get squeezed out of existend.
-                myWidth = Math.min(Math.max(myWidth * (oldLen / len), Ext.grid.header.Container.prototype.defaultWidth),
-                    availFlex - (len * Ext.grid.header.Container.prototype.defaultWidth));
+                // get squeezed out of existence.
+                myWidth = Math.min(myWidth * (oldLen / len), defaultWidth,
+                    Math.max(availFlex - (len * defaultWidth), defaultWidth));
 
-                delete me.width;
+                me.width = null;
                 me.flex = myWidth;
                 availFlex -= myWidth;
                 totalFlex = 0;
@@ -1068,7 +1062,7 @@ Ext.define('Ext.grid.column.Column', {
                     item = items[i];
                     item.flex = (item.width || item.getWidth());
                     totalFlex += item.flex;
-                    delete item.width;
+                    item.width = null;
                 }
 
                 // Now distribute the flex values so that they all add up to the total available flex *minus the flex of this*

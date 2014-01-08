@@ -252,6 +252,10 @@ Ext.define('Ext.app.Controller', {
             var me = this,
                 strings = me.strings[kind],
                 o, absoluteName, shortName, name, j, subLn, getterName, getter;
+                
+             if (!Ext.isArray(names)) {
+                 names = [names];
+             }
 
             for (j = 0, subLn = names.length; j &lt; subLn; j++) {
                 name = names[j];
@@ -338,7 +342,7 @@ Ext.define('Ext.app.Controller', {
     application: null,
 
 <span id='Ext-app-Controller-cfg-models'>    /**
-</span>     * @cfg {String[]} models
+</span>     * @cfg {String/String[]} models
      * Array of models to require from AppName.model namespace. For example:
      *
      *      Ext.define(&quot;MyApp.controller.Foo&quot;, {
@@ -364,7 +368,7 @@ Ext.define('Ext.app.Controller', {
      */
 
 <span id='Ext-app-Controller-cfg-views'>    /**
-</span>     * @cfg {String[]} views
+</span>     * @cfg {String/String[]} views
      * Array of views to require from AppName.view namespace and to generate getter methods for.
      * For example:
      *
@@ -390,7 +394,7 @@ Ext.define('Ext.app.Controller', {
      */
 
 <span id='Ext-app-Controller-cfg-stores'>    /**
-</span>     * @cfg {String[]} stores
+</span>     * @cfg {String/String[]} stores
      * Array of stores to require from AppName.store namespace and to generate getter methods for.
      * For example:
      *
@@ -533,6 +537,19 @@ Ext.define('Ext.app.Controller', {
         if (!me._initialized) {
             me.init(app);
             me._initialized = true;
+        }
+    },
+    
+<span id='Ext-app-Controller-method-finishInit'>    finishInit: function(app) {
+</span>        var me = this,
+            controllers = me.controllers,
+            controller, i, l;
+        
+        if (me._initialized &amp;&amp; controllers &amp;&amp; controllers.length) {
+            for (i = 0, l = controllers.length; i &lt; l; i++) {
+                controller = me.getController(controllers[i]);
+                controller.finishInit(app);
+            }
         }
     },
 

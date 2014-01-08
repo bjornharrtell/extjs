@@ -125,6 +125,12 @@ Ext.define('Ext.chart.axis.Axis', {
      * The title for the Axis
      */
 
+<span id='Ext-chart-axis-Axis-cfg-hidden'>     /**
+</span>      * @cfg {Boolean} hidden
+      * `true` to hide the axis.
+      */
+     hidden: false,
+
 <span id='Ext-chart-axis-Axis-property-forceMinMax'>    // @private force min/max values from store
 </span>    forceMinMax: false,
 
@@ -285,6 +291,8 @@ Ext.define('Ext.chart.axis.Axis', {
                 }
                 if (value === undefined) {
                     value = 0;
+                } else {
+                    value = Number(value);
                 }
                 if (countedFields[field]) {
                     if (min &gt; value) {

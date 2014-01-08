@@ -16,28 +16,48 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A Column subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.
  *
  * Example usage:
- * 
- *    // create the grid
- *    var grid = Ext.create('Ext.grid.Panel', {
- *        ...
- *        columns: [{
- *           text: 'Foo',
- *           ...
- *        },{
- *           xtype: 'checkcolumn',
- *           text: 'Indoor?',
- *           dataIndex: 'indoor',
- *           width: 55
- *        }]
- *        ...
- *    });
  *
+ *     @example
+ *     var store = Ext.create('Ext.data.Store', {
+ *         fields : ['name', 'email', 'phone', 'active'],
+ *         data   : {
+ *             items : [
+ *                 { name : 'Lisa',  email : 'lisa@simpsons.com',  phone : '555-111-1224', active : true  },
+ *                 { name : 'Bart',  email : 'bart@simpsons.com',  phone : '555-222-1234', active : true  },
+ *                 { name : 'Homer', email : 'home@simpsons.com',  phone : '555-222-1244', active : false },
+ *                 { name : 'Marge', email : 'marge@simpsons.com', phone : '555-222-1254', active : true  }
+ *             ]
+ *         },
+ *         proxy  : {
+ *             type   : 'memory',
+ *             reader : {
+ *                 type : 'json',
+ *                 root : 'items'
+ *             }
+ *         }
+ *     });
+ *
+ *     Ext.create('Ext.grid.Panel', {
+ *         title    : 'Simpsons',
+ *         height   : 200,
+ *         width    : 400,
+ *         renderTo : Ext.getBody(),
+ *         store    : store,
+ *         columns  : [
+ *             { text : 'Name', dataIndex : 'name' },
+ *             { text : 'Email', dataIndex : 'email', flex : 1 },
+ *             { text : 'Phone', dataIndex : 'phone' },
+ *             { xtype : 'checkcolumn', text : 'Active', dataIndex : 'active' }
+ *         ]
+ *     });
+ *
+ * The check column can be at any index in the columns array.
  */
 Ext.define('Ext.grid.column.CheckColumn', {
     extend: 'Ext.grid.column.Column',
@@ -58,6 +78,9 @@ Ext.define('Ext.grid.column.CheckColumn', {
     stopSelection: true,
 
     tdCls: Ext.baseCSSPrefix + 'grid-cell-checkcolumn',
+    innerCls: Ext.baseCSSPrefix + 'grid-cell-inner-checkcolumn',
+
+    clickTargetName: 'el',
 
     constructor: function() {
         this.addEvents(

@@ -67,7 +67,7 @@ Ext.define('Ext.grid.feature.RowWrap', {
 </span>    onColumnHideShow: function() {
         var view = this.view,
             items = view.el.query(this.rowWrapTd),
-            colspan = view.headerCt.getGridColumns().length,
+            colspan = view.headerCt.getVisibleGridColumns().length,
             len = items.length,
             i;
             

@@ -15,41 +15,50 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}form-checkboxgroup-body {
-    padding: $form-checkboxgroup-body-padding;
-}
+  <pre class="prettyprint lang-js"><span id='Ext-form-CheckboxGroup'>/**
+</span> * @class Ext.form.CheckboxGroup
+ */
 
-.#{$prefix}form-invalid {
-    .#{$prefix}form-checkboxgroup-body {
-        border: 1px solid $form-field-invalid-border-color;
-        @if $form-field-invalid-background-image != null {
-            background-image: theme-background-image($form-field-invalid-background-image);
-            background-repeat: $form-field-invalid-background-repeat;
-            background-position: $form-field-invalid-background-position;
-        }
-    }
-}
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-body-padding'>/**
+</span> * @var {number/list}
+ * The padding of the CheckboxGroup body element
+ */
+$form-checkboxgroup-body-padding: 0 4px !default;
 
-.#{$prefix}check-group-alt {
-    background: $form-checkboxgroup-alt-background;
-    border-top: $form-checkboxgroup-alt-border-top;
-    border-bottom: $form-checkboxgroup-alt-border-bottom;
-}
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-color'>/**
+</span> * @var {color}
+ * The text color of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-color: $form-label-font-color !default;
 
-.#{$prefix}form-check-group-label {
-    color: $form-checkboxgroup-label-color;
-    padding: $form-checkboxgroup-label-padding;
-    margin: $form-checkboxgroup-label-margin;
-    border-width: $form-checkboxgroup-label-border-width;
-    border-style: $form-checkboxgroup-label-border-style;
-    border-color: $form-checkboxgroup-label-border-color;
-}
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-padding'>/**
+</span> * @var {number}
+ * The padding of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-padding: 2px !default;
 
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}form-check-group-label {
-        margin: rtl($form-checkboxgroup-label-margin);
-    }
-}
-</pre>
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-margin'>/**
+</span> * @var {number}
+ * The margin of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-margin: 0 30px 5px 0 !default;
+
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-border-width'>/**
+</span> * @var {number}
+ * The border-width of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-border-width: 0 0 1px 0 !default;
+
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-border-style'>/**
+</span> * @var {number}
+ * The border-style of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-border-style: solid !default;
+
+<span id='Ext-form-CheckboxGroup-css_var-S-form-checkboxgroup-label-border-color'>/**
+</span> * @var {number}
+ * The border-color of the CheckboxGroup label
+ */
+$form-checkboxgroup-label-border-color: $form-checkboxgroup-label-color !default;</pre>
 </body>
 </html>

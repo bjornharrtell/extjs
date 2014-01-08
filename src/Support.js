@@ -16,11 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag extras,core
-//@require perf/Monitor.js
-//@define Ext.Supports
+// @tag extras,core
+// @require perf/Monitor.js
+// @define Ext.Supports
 
 /**
  * @class Ext.is
@@ -170,16 +170,16 @@ Ext.is.init();
         return style[styleName];
     },
     supportsVectors = {
-        'IE6-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
-        'IE6-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,0,1,0,0],
-        'IE7-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
-        'IE7-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,0,0,1,0,1,0,0],
-        'IE8-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
-        'IE8-strict': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,0,0,1,0,1,0,0],
-        'IE9-quirks': [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,1,0,0,1,0,1,0,0],
-        'IE9-strict': [0,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,0,0,0,0],
-        'IE10-quirks': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0],
-        'IE10-strict': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0]
+        'IE6-quirks':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0],
+        'IE6-strict':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,0,1,0,0,0],
+        'IE7-quirks':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0],
+        'IE7-strict':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,0,1,0,0,1,0,1,0,0,0],
+        'IE8-quirks':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0],
+        'IE8-strict':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,0,0,1,0,1,0,0,1],
+        'IE9-quirks':  [0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,0,1,0,0,1,0,1,0,0,0],
+        'IE9-strict':  [0,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,0,0,0,0,1],
+        'IE10-quirks': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0,0,1],
+        'IE10-strict': [1,1,0,0,1,1,1,1,0,1,1,1,0,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,0,0,1]
     };
 
 function getBrowserKey() {
@@ -833,6 +833,42 @@ Ext.supports = {
                     b3 = document.getElementById('b3').getBoundingClientRect();
 
                 return (b2.left !== outerBox.left && b3.right !== outerBox.right);
+            }
+        },
+
+        /**
+         * @property {Boolean} ScrollWidthInlinePaddingBug
+         * In some browsers the right padding of an overflowing element is not accounted
+         * for in its scrollWidth.  The result can vary depending on whether or not
+         * The element contains block-level children.  This method tests the effect
+         * of padding on scrollWidth when there are no block-level children inside the
+         * overflowing element.
+         * 
+         * This method returns true if the browser is affected by this bug.
+         */
+        {
+            identity: 'ScrollWidthInlinePaddingBug',
+            fn: function(doc) {
+                var hasBug = false,
+                    style, el;
+
+                el = doc.createElement('div');
+                style = el.style;
+                style.height = '50px';
+                style.width = '50px';
+                style.padding = '10px';
+                style.overflow = 'hidden';
+                style.position = 'absolute';
+                
+                el.innerHTML =
+                    '<span style="display:inline-block;zoom:1;height:60px;width:60px;"></span>';
+                doc.body.appendChild(el);
+                if (el.scrollWidth === 70) {
+                    hasBug = true;
+                }
+                doc.body.removeChild(el);
+                
+                return hasBug;
             }
         }
     ]

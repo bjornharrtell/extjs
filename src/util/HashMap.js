@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Represents a collection of a set of key and value pairs. Each key in the HashMap
@@ -41,6 +41,11 @@ Ext.define('Ext.util.HashMap', {
         observable: 'Ext.util.Observable'
     },
 
+    /**
+     * @private Mutation counter which is incremented upon add and remove.
+     */
+    generation: 0,
+    
     /**
      * @cfg {Function} keyFn A function that is used to retrieve a default key for a passed object.
      * A default is provided that returns the `id` property on the object. This function is only used
@@ -165,6 +170,7 @@ Ext.define('Ext.util.HashMap', {
 
         me.map[key] = value;
         ++me.length;
+        me.generation++;
         if (me.hasListeners.add) {
             me.fireEvent('add', me, key, value);
         }
@@ -195,6 +201,7 @@ Ext.define('Ext.util.HashMap', {
         }
         old = map[key];
         map[key] = value;
+        me.generation++;
         if (me.hasListeners.replace) {
             me.fireEvent('replace', me, key, value, old);
         }
@@ -227,6 +234,7 @@ Ext.define('Ext.util.HashMap', {
             value = me.map[key];
             delete me.map[key];
             --me.length;
+            me.generation++;
             if (me.hasListeners.remove) {
                 me.fireEvent('remove', me, key, value);
             }
@@ -238,10 +246,11 @@ Ext.define('Ext.util.HashMap', {
     /**
      * Retrieves an item with a particular key.
      * @param {String} key The key to lookup.
-     * @return {Object} The value at that key. If it doesn't exist, <tt>undefined</tt> is returned.
+     * @return {Object} The value at that key. If it doesn't exist, `undefined` is returned.
      */
     get: function(key) {
-        return this.map[key];
+        var map = this.map;
+        return map.hasOwnProperty(key) ? map[key] : undefined;
     },
 
     /**
@@ -250,8 +259,13 @@ Ext.define('Ext.util.HashMap', {
      */
     clear: function(/* private */ initial) {
         var me = this;
-        me.map = {};
-        me.length = 0;
+
+        // Only clear if it has ever had any content
+        if (initial || me.generation) {
+            me.map = {};
+            me.length = 0;
+            me.generation = initial ? 0 : me.generation + 1;
+        }
         if (initial !== true && me.hasListeners.clear) {
             me.fireEvent('clear', me);
         }
@@ -264,7 +278,8 @@ Ext.define('Ext.util.HashMap', {
      * @return {Boolean} True if they key exists in the hash.
      */
     containsKey: function(key) {
-        return this.map[key] !== undefined;
+        var map = this.map;
+        return map.hasOwnProperty(key) && map[key] !== undefined;
     },
 
     /**

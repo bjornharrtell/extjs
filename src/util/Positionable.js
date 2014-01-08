@@ -16,9 +16,9 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag core
+// @tag core
 /**
  * This mixin provides a common interface for objects that can be positioned, e.g.
  * {@link Ext.Component Components} and {@link Ext.dom.Element Elements}
@@ -374,9 +374,7 @@ Ext.define('Ext.util.Positionable', {
      * rtl mode it is overridden to convert "l" to "r" and vice versa when required.
      * @private
      */
-    convertPositionSpec: function(posSpec) {
-        return posSpec;
-    },
+    convertPositionSpec: Ext.identityFn,
 
     /**
      * Gets the x,y coordinates to align this element with another element. See
@@ -623,7 +621,7 @@ Ext.define('Ext.util.Positionable', {
         // constrainTo setting. getConstrainVector will provide a default constraint
         // region if there is no explicit constrainTo, *and* there is no floatParent owner Component.
         constrainTo = constrainTo || me.constrainTo || parentNode || me.container || me.el.parent();
-        vector = (me.constrainHeader ? me.header.el : me.el).getConstrainVector(constrainTo, proposedConstrainPosition, proposedSize);
+        vector = (me.constrainHeader ? me.header : me).getConstrainVector(constrainTo, proposedConstrainPosition, proposedSize);
 
         // false is returned if no movement is needed
         if (vector) {
@@ -663,10 +661,17 @@ Ext.define('Ext.util.Positionable', {
         var thisRegion = this.getRegion(),
             vector = [0, 0],
             shadowSize = (this.shadow && this.constrainShadow && !this.shadowDisabled) ? this.shadow.getShadowSize() : undefined,
-            overflowed = false;
+            overflowed = false,
+            constraintInsets = this.constraintInsets;
 
         if (!(constrainTo instanceof Ext.util.Region)) {
             constrainTo = Ext.get(constrainTo.el || constrainTo).getViewRegion();
+        }
+
+        // Apply constraintInsets
+        if (constraintInsets) {
+            constraintInsets = Ext.isObject(constraintInsets) ? constraintInsets : Ext.Element.parseBox(constraintInsets);
+            constrainTo.adjust(constraintInsets.top, constraintInsets.right, constraintInsets.bottom, constraintInsets.length);
         }
 
         // Shift this region to occupy the proposed position
@@ -831,7 +836,8 @@ Ext.define('Ext.util.Positionable', {
             xy = [x, y],
             w = box.width,
             h = box.height,
-            constrainedPos = me.constrain && me.calculateConstrainedPosition(null, [x, y], false, [w, h]);
+            doConstrain = (me.constrain || me.constrainHeader),
+            constrainedPos = doConstrain && me.calculateConstrainedPosition(null, [x, y], false, [w, h]);
 
         // Position to the contrained
         if (constrainedPos) {

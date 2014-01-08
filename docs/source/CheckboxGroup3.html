@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define('Ext.rtl.layout.container.CheckboxGroup', {
+    override: 'Ext.layout.container.CheckboxGroup',
+    
+    finishedLayout: function(){
+        var owner = this.owner;
+        
+        // In some cases in IE the groups get visually positioned
+        // in the wrong spot, though via the inspector they are in
+        // the correct place, so we need to kick off a repaint here.
+        if ((Ext.isIE6 || Ext.isIE7 || Ext.isIEQuirks) &amp;&amp; owner.getHierarchyState().rtl) {
+            this.innerCt.select('.' + owner.groupCls).repaint();
+        }
+    }
+})
+</pre>
+</body>
+</html>

@@ -15,20 +15,34 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-form-field-Display'>/**
-</span> * @class Ext.form.field.Display
- */
+  <pre class="prettyprint lang-js">.#{$prefix}form-display-field-body {
+    height: $form-field-height;
 
-<span id='Ext-form-field-Display-css_var-S-form-display-field-font'>/**
-</span> * @var {font} $form-display-field-font
- * Font for form display fields.
- */
-$form-display-field-font: $form-field-font !default;
+    @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
+        .#{$prefix}toolbar-item &amp; {
+            height: $form-toolbar-field-height;
+        }
+    }
+}
 
-<span id='Ext-form-field-Display-css_var-S-form-display-field-color'>/**
-</span> * @var {color} $form-display-field-color
- * Text color for form display fields.
- */
-$form-display-field-color: $form-field-color !default;</pre>
+.#{$prefix}form-display-field {
+    font: $form-display-field-font;
+    color: $form-display-field-color;
+    margin-top: round(($form-field-height - $form-display-field-line-height) / 2);
+
+    @if $include-ext-toolbar-toolbar {
+        .#{$prefix}toolbar-item &amp; {
+            @if $form-toolbar-field-height != $form-field-height {
+                margin-top: round(($form-toolbar-field-height - $form-toolbar-display-field-line-height) / 2);
+            }
+
+            @if $form-toolbar-display-field-font != $form-display-field-font {
+                font: $form-toolbar-display-field-font;
+            }
+        }
+    }
+
+}
+</pre>
 </body>
 </html>

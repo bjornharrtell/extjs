@@ -280,6 +280,16 @@ Ext.define('Ext.form.Panel', {
     getRecord: function() {
         return this.getForm().getRecord();
     },
+    
+<span id='Ext-form-Panel-method-updateRecord'>    /**
+</span>     * Persists the values in this form into the passed {@link Ext.data.Model} object in a beginEdit/endEdit block.
+     * If the record is not specified, it will attempt to update (if it exists) the record provided to {@link #loadRecord}.
+     * @param {Ext.data.Model} [record] The record to edit
+     * @return {Ext.form.Basic} The Ext.form.Basic attached to this FormPanel
+     */
+    updateRecord: function(record) {
+        return this.getForm().updateRecord(record);
+    },
 
 <span id='Ext-form-Panel-method-getValues'>    /**
 </span>     * Convenience function for fetching the current value of each field in the form. This is the same as calling

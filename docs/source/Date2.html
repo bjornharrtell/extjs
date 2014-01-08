@@ -15,9 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag foundation,core
-//@require Object.js
-//@define Ext.Date
+  <pre class="prettyprint lang-js">// @tag foundation,core
+// @require Object.js
+// @define Ext.Date
 
 <span id='Ext-Date'>/**
 </span> * @class Ext.Date
@@ -146,7 +146,7 @@ Ext.Date = new function() {
       MSFormatRe = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
       code = [
         // date calculations (note: the code below creates a dependency on Ext.Number.from())
-        &quot;var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday,&quot;,
+        &quot;var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday, daysInMonth, dayMatched,&quot;,
             &quot;def = me.defaults,&quot;,
             &quot;from = Ext.Number.from,&quot;,
             &quot;results = String(input).match(me.parseRegexes[{0}]);&quot;, // either null, or an array of matched strings
@@ -164,7 +164,26 @@ Ext.Date = new function() {
 
                 &quot;y = from(y, from(def.y, dt.getFullYear()));&quot;,
                 &quot;m = from(m, from(def.m - 1, dt.getMonth()));&quot;,
+                &quot;dayMatched = d !== undefined;&quot;,
                 &quot;d = from(d, from(def.d, dt.getDate()));&quot;,
+                
+                // Attempt to validate the day. Since it defaults to today, it may go out
+                // of range, for example parsing m/Y where the value is 02/2000 on the 31st of May.
+                // It will attempt to parse 2000/02/31, which will overflow to March and end up
+                // returning 03/2000. We only do this when we default the day. If an invalid day value
+                // was set to be parsed by the user, continue on and either let it overflow or return null
+                // depending on the strict value. This will be in line with the normal Date behaviour.
+                
+                &quot;if (!dayMatched) {&quot;, 
+                    &quot;dt.setDate(1);&quot;,
+                    &quot;dt.setMonth(m);&quot;,
+                    &quot;dt.setFullYear(y);&quot;,
+                
+                    &quot;daysInMonth = me.getDaysInMonth(dt);&quot;,
+                    &quot;if (d &gt; daysInMonth) {&quot;,
+                        &quot;d = daysInMonth;&quot;,
+                    &quot;}&quot;,
+                &quot;}&quot;,
 
                 &quot;h  = from(h, from(def.h, dt.getHours()));&quot;,
                 &quot;i  = from(i, from(def.i, dt.getMinutes()));&quot;,
@@ -302,7 +321,7 @@ Ext.Date = new function() {
      * @return {Number} The difference in milliseconds
      */
     getElapsed: function(dateA, dateB) {
-        return Math.abs(dateA - (dateB || new Date()));
+        return Math.abs(dateA - (dateB || utilDate.now()));
     },
 
 <span id='Ext-Date-property-useStrict'>    /**

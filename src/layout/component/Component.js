@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class is intended to be extended or created via the {@link Ext.Component#componentLayout layout}
@@ -132,7 +132,7 @@ Ext.define('Ext.layout.component.Component', {
         var me = this,
             elementChildren = ownerContext.children,
             owner = me.owner,
-            len, i, elContext, lastBox, props, v;
+            len, i, elContext, lastBox, props;
 
         // NOTE: In the code below we cannot use getProp because that will generate a layout dependency
 

@@ -16,13 +16,13 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
-//@require Helper.js
-//@define Ext.dom.Query
-//@define Ext.core.Query
-//@define Ext.DomQuery
+// @tag dom,core
+// @require Helper.js
+// @define Ext.dom.Query
+// @define Ext.core.DomQuery
+// @define Ext.DomQuery
 
 /*
  * This is code is also distributed under MIT license for use
@@ -177,9 +177,7 @@ Ext.dom.Query = Ext.core.DomQuery = Ext.DomQuery = (function() {
         // normalized to the css '\\0000##' 6-hex-digit style escape sequence :
         // will not handle any other escape formats
         unescapeCssSelector = function(selector) {
-            return (hasEscapes)
-                ? selector.replace(longHex, longHexToChar)
-                : selector;
+            return (hasEscapes) ? selector.replace(longHex, longHexToChar) : selector;
         },
 
         // checks if the path has escaping & does any appropriate replacements
@@ -202,7 +200,7 @@ Ext.dom.Query = Ext.core.DomQuery = Ext.DomQuery = (function() {
     // parent at the specified index.
     child = useChildrenCollection ?
         function child(parent, index) {
-            return parent.children[index]
+            return parent.children[index];
         } :
         function child(parent, index) {
             var i = 0,
@@ -946,7 +944,7 @@ Ext.dom.Query = Ext.core.DomQuery = Ext.DomQuery = (function() {
                 return a && a.indexOf(v) !== -1;
             },
             "%=": function(a, v) {
-                return (a % v) == 0;
+                return (a % v) === 0;
             },
             "|=": function(a, v) {
                 return a && (a == v || a.substr(0, v.length + 1) == v + '-');
@@ -1029,10 +1027,10 @@ Ext.dom.Query = Ext.core.DomQuery = Ext.DomQuery = (function() {
                         pn._batch = batch;
                     }
                     if (f == 1) {
-                        if (l == 0 || n.nodeIndex == l) {
+                        if (l === 0 || n.nodeIndex == l) {
                             r[++ri] = n;
                         }
-                    } else if ((n.nodeIndex + l) % f == 0) {
+                    } else if ((n.nodeIndex + l) % f === 0) {
                         r[++ri] = n;
                     }
                 }
@@ -1098,7 +1096,7 @@ Ext.dom.Query = Ext.core.DomQuery = Ext.DomQuery = (function() {
                 var r = [], ri = -1,
                     i, ci;
                 for (i = 0; ci = c[i]; i++) {
-                    if (ci.checked == true) {
+                    if (ci.checked === true) {
                         r[++ri] = ci;
                     }
                 }

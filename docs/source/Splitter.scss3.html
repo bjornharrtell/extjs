@@ -15,11 +15,45 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">$splitter-size: 5px !default;
+  <pre class="prettyprint lang-js"><span id='Ext-resizer-Splitter'>/**
+</span> * @class Ext.resizer.Splitter
+ */
+
+<span id='Ext-resizer-Splitter-css_var-S-splitter-size'>/**
+</span> * @var {number}
+ * The size of the Splitter
+ */
+$splitter-size: 5px !default;
+
+<span id='Ext-resizer-Splitter-css_var-S-splitter-active-background-color'>/**
+</span> * @var {color}
+ * The background-color of the active Splitter (the Splitter currently being dragged)
+ */
 $splitter-active-background-color: #b4b4b4 !default;
+
+<span id='Ext-resizer-Splitter-css_var-S-splitter-active-opacity'>/**
+</span> * @var {number}
+ * The opacity of the active Splitter (the Splitter currently being dragged)
+ */
 $splitter-active-opacity: .8 !default;
+
+<span id='Ext-resizer-Splitter-css_var-S-splitter-active-collapse-tool-opacity'>/**
+</span> * @var {number}
+ * The opacity of the collapse tool on the active Splitter (the Splitter currently being dragged)
+ */
 $splitter-active-collapse-tool-opacity: .3 !default;
+
+<span id='Ext-resizer-Splitter-css_var-S-collapse-tool-cursor'>/**
+</span> * @var {string}
+ * The the type of cursor to display when the cursor is over the collapse tool
+ */
 $collapse-tool-cursor: pointer !default;
+
+<span id='Ext-resizer-Splitter-css_var-S-collapse-tool-size'>/**
+</span> * @var {number}
+ * The size of the collapse tool. This becomes the width of the collapse tool for
+ * horizontal splitters, and the height for vertical splitters.
+ */
 $collapse-tool-size: 35px !default;
 </pre>
 </body>

@@ -97,9 +97,26 @@ Ext.define('Ext.form.action.DirectLoad', {
 <span id='Ext-form-action-DirectLoad-method-run'>    run: function() {
 </span>        var me = this,
             form = me.form,
-            fn = form.api.load,
-            method = fn.directCfg.method,
-            args = method.getArgs(me.getParams(), form.paramOrder, form.paramsAsHash);
+            api = form.api,
+            fn = api.load,
+            method, args;
+
+        if (typeof fn !== 'function') {
+            //&lt;debug&gt;
+            var fnName = fn;
+            //&lt;/debug&gt;
+            
+            api.load = fn = Ext.direct.Manager.parseMethod(fn);
+
+            //&lt;debug&gt;
+            if (!Ext.isFunction(fn)) {
+                Ext.Error.raise('Cannot resolve Ext.Direct API method ' + fnName);
+            }
+            //&lt;/debug&gt;
+        }
+        
+        method = fn.directCfg.method;
+        args = method.getArgs(me.getParams(), form.paramOrder, form.paramsAsHash);
             
         args.push(me.onComplete, me);
         fn.apply(window, args);

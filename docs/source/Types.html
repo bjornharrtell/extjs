@@ -172,7 +172,7 @@ Ext.define('Ext.data.Types', {
                 if (this.useNull &amp;&amp; (v === undefined || v === null || v === '')) {
                     return null;
                 }
-                return v === true || v === 'true' || v == 1;
+                return v === 'true' || v == 1;
             },
             sortType: st.none,
             type: 'bool'

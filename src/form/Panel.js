@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
@@ -282,6 +282,16 @@ Ext.define('Ext.form.Panel', {
      */
     getRecord: function() {
         return this.getForm().getRecord();
+    },
+    
+    /**
+     * Persists the values in this form into the passed {@link Ext.data.Model} object in a beginEdit/endEdit block.
+     * If the record is not specified, it will attempt to update (if it exists) the record provided to {@link #loadRecord}.
+     * @param {Ext.data.Model} [record] The record to edit
+     * @return {Ext.form.Basic} The Ext.form.Basic attached to this FormPanel
+     */
+    updateRecord: function(record) {
+        return this.getForm().updateRecord(record);
     },
 
     /**

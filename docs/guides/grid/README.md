@@ -135,7 +135,7 @@ Using a {@link Ext.selection.CellModel Cell Selection Model} changes a couple of
 
 ## Editing
 
-{@link Ext.grid.Panel Grid Panel} has build in support for editing.  We're going to look at the two main editing modes - row editing and cell editing
+{@link Ext.grid.Panel Grid Panel} has built in support for editing.  We're going to look at the two main editing modes - row editing and cell editing
 
 ### Cell Editing
 
@@ -219,7 +219,7 @@ Row editing enables you to edit an entire row at a time, rather than editing cel
 
 ## Paging
 
-Sometimes your data set is too large to display all on one page.  {@link Ext.grid.Panel Grid Panel} supports two different methods of paging - {@link Ext.toolbar.Paging Paging Toolbar} which loads pages using previous/next buttons, and {@link Ext.grid.PagingScroller Paging Scroller} which loads new pages inline as you scroll.
+Sometimes your data set is too large to display all on one page.  {@link Ext.grid.Panel Grid Panel} supports displaying individual pages from the dataset using a {@link Ext.toolbar.Paging Paging Toolbar} which loads pages using previous/next buttons.
 
 ### Store Setup
 

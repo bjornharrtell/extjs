@@ -113,7 +113,8 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-getPrefixConfig'>    getPrefixConfig: function() {
 </span>        var me = this,
-            owner = me.layout.owner,
+            layout = me.layout,
+            owner = layout.owner,
             cls;
 
         me.initCSSClasses();
@@ -125,7 +126,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
         return {
             cls: cls,
             cn : {
-                id : owner.id + '-before-scroller',
+                id : owner.id + layout.names.beforeScrollerSuffix,
                 cls: me.scrollerCls + ' ' + me.beforeScrollerCls,
                 style: 'display:none'
             }
@@ -134,7 +135,8 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-getSuffixConfig'>    getSuffixConfig: function() {
 </span>        var me = this,
-            owner = me.layout.owner,
+            layout = me.layout,
+            owner = layout.owner,
             cls = Ext.layout.container.Box.prototype.innerCls + ' ' + me.afterCtCls;
 
         if (owner.plain) {
@@ -144,7 +146,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
         return {
             cls: cls,
             cn : {
-                id : me.layout.owner.id + '-after-scroller',
+                id : owner.id + layout.names.afterScrollerSuffix,
                 cls: me.scrollerCls + ' ' + me.afterScrollerCls,
                 style: 'display:none'
             }
@@ -172,7 +174,10 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     },
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-beginLayout'>    beginLayout: function (ownerContext) {
-</span>        ownerContext.innerCtScrollPos = this.getElScrollPos();
+</span>        var layout = this.layout;
+
+        ownerContext.innerCtScrollPos = this.getScrollPosition();
+
         this.callParent(arguments);
     },
 
@@ -194,27 +199,11 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     },
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-finishedLayout'>    finishedLayout: function(ownerContext) {
-</span>        var scrollPos = Math.min(this.getMaxScrollPosition(), ownerContext.innerCtScrollPos);
+</span>        var me = this,
+            layout = me.layout,
+            scrollPos = Math.min(me.getMaxScrollPosition(), ownerContext.innerCtScrollPos);
 
-        this.setElScrollPos(scrollPos);
-    },
-    
-<span id='Ext-layout-container-boxOverflow-Scroller-method-setElScrollPos'>    setElScrollPos: function(scrollPos) {
-</span>        var layout = this.layout;
-        if (layout.direction === 'vertical') {
-            layout.innerCt.dom.scrollTop = scrollPos;
-        } else {
-            layout.innerCt.setScrollLeft(scrollPos);
-        }
-    },
-    
-<span id='Ext-layout-container-boxOverflow-Scroller-method-getElScrollPos'>    getElScrollPos: function(){
-</span>        var layout = this.layout;
-        if (layout.direction === 'vertical') {
-            return layout.innerCt.dom.scrollTop;
-        } else {
-            return layout.innerCt.getScrollLeft();
-        }
+        layout.innerCt[layout.names.setScrollLeft](scrollPos);
     },
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-handleOverflow'>    handleOverflow: function(ownerContext) {
@@ -283,10 +272,14 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
         var me = this;
         me.layout.innerCt.on({
             mousewheel: function(e) {
-                me.scrollBy(e.getWheelDelta() * me.wheelIncrement * -1, false);
+                me.scrollBy(me.getWheelDelta(e) * me.wheelIncrement * -1, false);
             },
             stopEvent: true
         });
+    },
+
+<span id='Ext-layout-container-boxOverflow-Scroller-method-getWheelDelta'>    getWheelDelta: function (e) {
+</span>        return e.getWheelDelta();
     },
 
 <span id='Ext-layout-container-boxOverflow-Scroller-method-clearOverflow'>    /**
@@ -409,9 +402,10 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
             layout = me.layout,
             result;
 
-        // Until we actually scroll, the scroll[Top|Left] is stored as zero to avoid DOM hits, after that it's NaN.
+        // Until we actually scroll, the scroll[Top|Left] is stored as zero to avoid DOM
+        // hits, after that it's NaN.
         if (isNaN(me.scrollPosition)) {
-            result = me.getElScrollPos();
+            result = layout.innerCt[layout.names.getScrollLeft]();
         } else {
             result = me.scrollPosition;
         }
@@ -430,7 +424,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
 
         return (maxScrollPos &lt; 0) ? 0 : maxScrollPos;
     },
-    
+
 <span id='Ext-layout-container-boxOverflow-Scroller-method-atExtremeBefore'>    /**
 </span>     * @private
      * Returns true if the innerCt scroll is already at its left-most point
@@ -458,6 +452,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     scrollTo: function(position, animate) {
         var me = this,
             layout = me.layout,
+            names = layout.names,
             oldPosition = me.getScrollPosition(),
             newPosition = Ext.Number.constrain(position, 0, me.getMaxScrollPosition());
 
@@ -467,7 +462,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
                 animate = me.animateScroll;
             }
 
-            layout.innerCt.scrollTo(layout.names.beforeX, newPosition, animate ? me.getScrollAnim() : false);
+            layout.innerCt[names.scrollTo](names.beforeScrollX, newPosition, animate ? me.getScrollAnim() : false);
             if (animate) {
                 me.scrolling = true;
             } else {
@@ -508,7 +503,9 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
                     }
                 }
             }
-            me.scrollTo(newPos, animate);
+            if (newPos !== undefined) {
+                me.scrollTo(newPos, animate);
+            }
         }
     },
 

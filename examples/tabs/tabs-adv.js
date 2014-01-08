@@ -48,9 +48,6 @@ Ext.onReady(function() {
                 }
             ],
             listeners: {
-                aftermenu: function () {
-                    currentItem = null;
-                },
                 beforemenu: function (menu, item) {
                     var enabled = menu.child('[text="Enabled"]'); 
                     menu.child('[text="Closable"]').setChecked(item.closable);

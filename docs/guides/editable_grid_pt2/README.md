@@ -1,13 +1,12 @@
-# Doing CRUD with the Editable Grid, Part 2
-______________________________________________
+# Editable Grid + Node.js, Part 2
 
-## Part 2: Implementing CRUD Operations
+Since we already have the Read operation working from [part 1](#!/guide/editable_grid),
+we are left with the Create, Update, and Delete operations to implement.
+Let's start with updating existing movies in our grid.
 
-Since we already have the Read operation working from part 1, we are left with the Create, Update, and Delete operations to implement. Let's start with updating existing movies in our grid.
+## Updating
 
-### Updating
-
-#### Making the Grid Editable
+### Making the Grid Editable
 As explained in the {@link Ext.grid.Panel Grid} documentation, making a grid editable requires a couple of modifications to the grid's configuration:
 
  1. In the grid columns config, define which form control should be used to edit the editable fields, eg. 'textfield' for simple text
@@ -60,13 +59,13 @@ If you open this up in a browser, you should see that the rows of the grid are e
 **Note** We specified the editor 'xtype' of the Year column to be 'numberfield'. When editing this column, the grid will use a {@link Ext.form.field.Number NumberField} to ensure that the user can only enter a number here (and they get the numeric stepper buttons to increment the values easily).
 
 
-#### Updating the Server
+### Updating the Server
 
 Now that we have allowed the user to change the values in the grid, it would be nice to provide a way to save the changes to the server. One way would be to provide a 'Save' button, and then when it is clicked, call the `sync` method of the Movies Store. This would trigger the Store to save all changes made since the last time it was synced. The other is to set the `autoSync` config option of the grid to 'true' (it is false by default) and then the Store will automatically save each change as soon as it is made. We will use the `autoSave` approach here.
 
 If we add the line `autoSync: true` just after the `autoLoad: true` line in the `app/store/Movies.js` file, reload the app and then edit one of the fields, we see that there is an error reported. This is because the Store attempts to save the value using its Proxy, which is currently the default Ajax proxy. The Ajax Proxy issued a POST request to its URL (/movies) containing a JSON representation of the value of the row which was edited. The request fails because we have not setup a handler for 'POST' requests in our Node.js app. So we need to go back to the server code and decide how to design our webservice API.
 
-#### Designing the Server API: REST vs RPC
+### Designing the Server API: REST vs RPC
 
 Webservices come in two main flavors: RPC (Remote Procedure Call) and RESTful. [RPC](http://en.wikipedia.org/wiki/Remote_procedure_call) style APIs have been a common approach, but for this tutorial we will be using a [RESTful API](http://en.wikipedia.org/wiki/Representational_state_transfer). In a nutshell, a RESTful API defines resources using unique URLs, while the CRUD actions are indicated by the HTTP request methods POST, GET, PUT, and DELETE respectively. We can describe the desired API of our application as follows:
 
@@ -79,7 +78,7 @@ Webservices come in two main flavors: RPC (Remote Procedure Call) and RESTful. [
 <tr><td>    DELETE    </td><td>    /movies/123</td><td>   DELETE the movie with id = 123</td><td>         Whether the delete succeeded or not            </td></tr>
 </table>
 
-#### Using the REST Proxy
+### Using the REST Proxy
 
 There is a {@link Ext.data.proxy.Rest REST Proxy} for use with RESTful APIs, so let's change the definition of the store to use it. The Movies Store now looks like this:
 
@@ -107,7 +106,7 @@ There is a {@link Ext.data.proxy.Rest REST Proxy} for use with RESTful APIs, so 
 
 Note that we specified the Model that the Proxy must use, and we added the `_id` field which was missing from the list of fields before. In addition, we need to specify that the `_id` field is indeed the idProperty of the Model by adding the config `idProperty: '_id'` to the Model as defined in /app/model/Movie.js.
 
-#### Handling the PUT Request to Update
+### Handling the PUT Request to Update
 
 Now when we reload the app and modify a field, we see that there is a PUT request made to a URL of the form, '/movies/1234' where the number in the path is the ID of the movie in our database. We still receive a server error in response, so we should implement the web service in our Node.js server app. We can do this by defining a new route in the Express application (the toplevel /app.js) as follows:
 
@@ -138,9 +137,9 @@ Now if you stop and restart the node app, you should be able to make modificatio
 
 {@img editing.png Updating a Movie}
 
-### Creating new Movies
+## Creating new Movies
 
-#### Adding an 'Add Movie' Button
+### Adding an 'Add Movie' Button
 
 In order to allow the user to add new movies, we need to change the view to include an 'Add Movie' button somewhere. Currently the Movies view extends from GridPanel, which extends from Panel. This means that we can add a bottom toolbar as one of its `dockedItems`:
 
@@ -163,7 +162,7 @@ In order to allow the user to add new movies, we need to change the view to incl
 
 In case you are wondering, the '->' special form expands to a ToolbarFill which ensures that the Add Movie Button is aligned to the right of the toolbar. The default xtype inside a Toolbar is a Button, so we only need to specify its label text.
 
-#### Adding a new Movie Model to the Store
+### Adding a new Movie Model to the Store
 
 Handling events such as button clicks is the Controller's job, so lets tell it to listen for them by adding another item to the `control()` function in `app/controller/Movies.js`:
 
@@ -195,7 +194,7 @@ Handling events such as button clicks is the Controller's job, so lets tell it t
 
 The `addMovie()` handler for the click event adds a new movie to the Store and starts editing the new movie, allowing the user to fill in the field values, which are initially empty.
 
-#### Handling the POST request to Create a new Movie
+### Handling the POST request to Create a new Movie
 
 Because `autoSync` is set to `true` on the Store, as soon as the new empty movie is added to the Store, it will attempt to save it to the server using the POST method. This is not going to work yet as we have not yet added that capability to our server. We need to add another route to our Express app to handle the create action, as follows:
 
@@ -218,7 +217,7 @@ Because `autoSync` is set to `true` on the Store, as soon as the new empty movie
 
 We renamed the `movieModel` variable to be simply `Movie`, so you'll need to do a search and replace if you're following along... Sorry about that. However, the code reads a lot better with this change. The other tricky thing to note is that we want MongoDB to generate a new ID for the new Movie, so we delete the bogus one we got from the client, and then the `_id` field will automatically be created when the new Movie is saved to the database. Don't forget to restart the Node app for the changes to take effect.
 
-#### The Case of the Disappearing Row Editor
+### The Case of the Disappearing Row Editor
 
 Now you may have noticed that when we click the 'Add Movie' button, the row becomes editable for an instant, and then reverts back to read-only mode, having saved the empty row. What is happening here is an unfortunate side-effect of `autoSync: true`: once we create a new empty Movie Model and add it to the Store, the store sends the request to the server and when the response comes back the grid is updated with the new data (which has the server-generated `_id`). At this point the Grid re-renders its view, causing the RowEditor to be obliterated.
 
@@ -250,9 +249,9 @@ So now we must reconsider the `autoSync` setting: it was helpful for modifying e
 
 Now you should be able to add a new Movie and find that it is saved to the database (it is still there after a page refresh). The `onEditorRender` handler now does something useful, by storing a reference to the movies editor grid and its RowEditor. This helps keep some of the other code more readable.
 
-### Deleting Movies
+## Deleting Movies
 
-#### Adding Delete and Edit Icons
+### Adding Delete and Edit Icons
 
 By now you probably have a whole bunch of random movies in your grid from testing out the previous command. Let's clean them up. Thanks once again to our the REST Proxy, triggering a DELETE request to the server is as easy as removing the offending item from the Store. But we need some way to make this easy for the user. One way to do this is to add a delete icon in every row of the column. The {@link Ext.grid.column.Action Action Column} is the perfect solution to this, and can be configured in the view for the Movie Grid. While we're at it, we might as well add an icon for editing movies as well, as not every user will realize that double-clicking on a row is required for editing it.
 
@@ -301,7 +300,7 @@ In the icon event handlers we fire a custom event: 'movieEdit' or 'movieDelete' 
 
 {@img icons.png Delete and Edit Icons}
 
-#### Deleting Movies from the Store
+### Deleting Movies from the Store
 
 Now we add a couple more handlers for our custom events into the Movies Controller:
 
@@ -341,7 +340,7 @@ Now we add a couple more handlers for our custom events into the Movies Controll
 
  When the `onMovieEdit()` handler gets called, we start editing the record which was referenced by the data we passed in from the View event. The `onMovieDelete()` handler is similar, but simply removes the record, and then calls `sync` since in this case the `edit` event does not fire.
 
-#### Handling DELETE Requests
+### Handling DELETE Requests
 
 Since the REST Proxy will send a DELETE request to the Node.js app when we remove a Movie from the Store, we must add another route to the app to handle it.
 
@@ -359,7 +358,7 @@ Since the REST Proxy will send a DELETE request to the Node.js app when we remov
 
 This route is very simple: it just calls `remove()` on any Movies which have the id which was in the request (there will be just one). So now you can remove the blank row which was inadvertently added earlier. After you refresh the page, it should still be gone.
 
-### Operation CRUD Complete
+## Operation CRUD Complete
 
 Our application now supports full CRUD operations! In a real-world application you would add input validation and escaping... but we will not be covering that here. Hopefully you have found that creating a database driven web application using ExtJS, NodeJS, and MongoDB was an effective solution. Being able to use Javascript on the server and even to access a database is indeed an exciting development.
 

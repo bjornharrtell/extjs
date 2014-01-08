@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-cell-inner-row-expander {
+    padding: $row-expander-cell-padding;
+
+    @if $grid-no-row-lines-show-focus-border {
+        .#{$prefix}grid-no-row-lines .#{$prefix}grid-row-focused &amp; {
+            // when the grid has no row lines we need to subtract the border width from the 
+            // top and bottom padding when the row is focused so that the focus border does
+            // not increase the row height.
+            padding-top: top($row-expander-cell-padding) - $grid-row-cell-border-width;
+            padding-bottom: bottom($row-expander-cell-padding) - $grid-row-cell-border-width;
+        }
+    }
+}
+.#{$prefix}grid-row-expander {
+    width: $row-expander-width;
+    height: $row-expander-height;
+    cursor: $row-expander-cursor;
+    background-image: theme-background-image('grid/group-collapse');
+
+    .#{$prefix}grid-row-collapsed &amp; {
+        background-image: theme-background-image('grid/group-expand');
+    }
+}
+</pre>
+</body>
+</html>

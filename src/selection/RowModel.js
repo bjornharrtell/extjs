@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Implements row based navigation via keyboard.
@@ -96,10 +96,6 @@ Ext.define('Ext.selection.RowModel', {
 
     bindComponent: function(view) {
         var me = this;
-
-        me.views = me.views || [];
-        me.views.push(view);
-        me.bindStore(view.getStore(), true);
 
         view.on({
             itemmousedown: me.onRowMouseDown,
@@ -337,8 +333,13 @@ Ext.define('Ext.selection.RowModel', {
         }
     },
     
-    processSelection: function(view, record, item, index, e) {
-        this.selectWithEvent(record, e);
+    // If the mousedown event is vetoed, we still want to treat it as though we've had
+    // a mousedown because we don't want to proceed on click. For example, the click on
+    // an action column vetoes the mousedown event so the click isn't processed.
+    onVetoUIEvent: function(type, view, cell, rowIndex, cellIndex, e, record){
+        if (type == 'mousedown') {
+            this.mousedownAction = !this.isSelected(record);
+        }
     },
 
     onRowClick: function(view, record, item, index, e) {
@@ -347,6 +348,10 @@ Ext.define('Ext.selection.RowModel', {
         } else {
             this.processSelection(view, record, item, index, e);
         }
+    },
+    
+    processSelection: function(view, record, item, index, e) {
+        this.selectWithEvent(record, e);
     },
 
     /**
@@ -403,7 +408,7 @@ Ext.define('Ext.selection.RowModel', {
             rowIdx = views[0].indexOf(oldFocused);
             if (rowIdx != -1) {
                 for (; i < viewsLn; i++) {
-                    views[i].onRowFocus(rowIdx, false);
+                    views[i].onRowFocus(rowIdx, false, true);
                 }
             }
         }
@@ -434,7 +439,7 @@ Ext.define('Ext.selection.RowModel', {
 
         do {
             position  = view.walkCells(position, direction, e, me.preventWrap);
-        } while(position && (!view.headerCt.getHeaderAtIndex(position.column).getEditor(record) || !editingPlugin.startEditByPosition(position)));
+        } while (position && (!position.columnHeader.getEditor(record) || !editingPlugin.startEditByPosition(position)));
     },
 
     /**
@@ -443,16 +448,12 @@ Ext.define('Ext.selection.RowModel', {
     getCurrentPosition: function() {
         var firstSelection = this.selected.items[0];
         if (firstSelection) {
-            return {
-                row: this.store.indexOf(firstSelection),
-                column: 0
-            };
+            return new Ext.grid.CellContext(this.view).setPosition(this.store.indexOf(firstSelection), 0);
         }
     },
 
     selectByPosition: function(position) {
-        var record = this.store.getAt(position.row);
-        this.select(record);
+        this.select(this.store.getAt(position.row));
     },
 
     /**
@@ -469,7 +470,7 @@ Ext.define('Ext.selection.RowModel', {
             index = me.views[0].indexOf(record) + 1,
             success;
 
-        if(index === store.getCount() || index === 0) {
+        if (index === store.getCount() || index === 0) {
             success = false;
         } else {
             me.doSelect(index, keepExisting, suppressEvent);

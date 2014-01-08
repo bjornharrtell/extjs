@@ -1,20 +1,18 @@
 .#{$prefix}grid-header-ct {
-    cursor: default;
-    zoom: 1;
-    padding: 0;
-    border: 1px solid $panel-body-border-color;
+    border: $grid-header-border-width $grid-header-border-style $panel-body-border-color;
 
     // Body border provided by headerCt only when in accordion layout.
     border-bottom-color: $grid-header-background-color;
 
-    @if $supports-gradients or $compile-all {
+    background-color: $grid-header-background-color;
+    @if ($supports-gradients or $compile-all) and $grid-header-background-gradient != null {
         @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
     }
 }
 
 @if $include-ext-layout-container-accordion {
     .#{$prefix}accordion-item .#{$prefix}grid-header-ct {
-        border-width: 0 0 1px !important;
+        border-width: 0 0 $grid-header-border-width !important;
     }
 
     // When hideHeaders: true, we need !important to override above rule

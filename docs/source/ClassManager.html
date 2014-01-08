@@ -15,8 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag foundation,core
-//@require Class.js
+  <pre class="prettyprint lang-js">// @tag foundation,core
+// @require Class.js
+// @define Ext.ClassManager
 
 <span id='Ext-ClassManager'>/**
 </span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
@@ -648,7 +649,7 @@
                     (nameToAlternates[className] = []);
 
                 for (i  = 0; i &lt; alternates[className].length; i++) {
-                    alternate = alternates[className];
+                    alternate = alternates[className][i];
                     if (!alternateToName[alternate]) {
                         alternateToName[alternate] = className;
                         aliasList.push(alternate);
@@ -1612,7 +1613,6 @@
             return Manager.create.apply(Manager, arguments);
         },
 
-        //&lt;debug&gt;
 <span id='Ext-ClassManager-method-undefine'>        /**
 </span>         * Undefines a class defined using the #define method. Typically used
          * for unit testing where setting up and tearing down a class multiple
@@ -1681,7 +1681,6 @@
                 namespace[parts[partCount]] = undefined;
             }
         },
-        //&lt;/debug&gt;
 
 <span id='Ext-method-getClassName'>        /**
 </span>         * @inheritdoc Ext.ClassManager#getName

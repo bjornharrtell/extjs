@@ -12,6 +12,11 @@
     .#{$prefix}form-text {
         border-width: 0;
         height: $form-field-height - vertical($form-field-border-width);
+        @if $include-content-box {
+            .#{$prefix}content-box & {
+                height: $form-field-content-height;
+            }
+        }
     }
 
     .#{$prefix}form-trigger-wrap-focus & {

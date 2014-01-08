@@ -1,34 +1,109 @@
 .#{$prefix}grid-row-editor {
-    position: absolute !important;
-    z-index: 1;
-    zoom: 1;
-    overflow: visible !important;
+    .#{$prefix}field {
+        margin: 0 ceil($grid-row-editor-field-spacing / 2) 0 floor($grid-row-editor-field-spacing / 2);
+    }
 
-    .#{$prefix}form-display-field {
-        font: $grid-editor-font;
+    @if $include-ext-form-field-display {
+        .#{$prefix}form-display-field {
+            padding: 
+                top($grid-row-editor-field-padding) + $form-field-border-width
+                right($grid-row-editor-field-padding) + $form-field-border-width
+                bottom($grid-row-editor-field-padding) + $form-field-border-width
+                left($grid-row-editor-field-padding) + $form-field-border-width;
+        }
+
+        @if $include-ext-grid-column-action {
+            .#{$prefix}form-action-col-field {
+                padding:
+                    max(ceil(($grid-editor-height - $grid-actioncolumn-icon-height) / 2), 0)
+                    max($grid-actioncolumn-horizontal-padding - ceil($grid-row-editor-field-spacing / 2), 0)
+                    max(floor(($grid-editor-height - $grid-actioncolumn-icon-height) / 2), 0)
+                    max($grid-actioncolumn-horizontal-padding - floor($grid-row-editor-field-spacing / 2), 0);
+            }
+        }
+    }
+
+    @if $include-ext-form-field-text {
+        .#{$prefix}form-text {
+            padding: $grid-row-editor-field-padding;
+
+            .#{$prefix}gecko & {
+                // firefox adds an additional px of horizontal space inside text inputs
+                padding-left: max((left($grid-row-editor-field-padding) - 1), 0);
+                padding-right: max((right($grid-row-editor-field-padding) - 1), 0);
+            }
+        }
     }
 
     .#{$prefix}panel-body {
-        border-top: $grid-row-editor-border;
-        border-bottom: $grid-row-editor-border;
+        // !important is needed to override dock layout border-management rules
+        border-top: $grid-row-editor-border !important;
+        border-bottom: $grid-row-editor-border !important;
         padding: $grid-row-editor-padding;
         background-color: $grid-row-editor-background-color;
     }
-    .#{$prefix}form-cb {
-        margin-top: 0;
+
+    @if $include-ext-form-field-checkbox {
+        .#{$prefix}grid-with-col-lines & {
+            .#{$prefix}form-cb {
+                margin-right: $grid-row-cell-border-width;
+            }
+
+            @if $include-rtl {
+                .#{$prefix}rtl.#{$prefix}form-cb {
+                    margin-right: 0;
+                    margin-left: $grid-row-cell-border-width;
+                }
+            }
+        }
     }
 }
 
-// The RowEditorButtons component has framing at the bottom
 @include x-frame(
     $cls: grid-row-editor-buttons,
-    $border-radius: 0 0 5px 5px,
-    $border-width: 0 1px 1px 1px,
-    $padding: 4px,
+    $ui: default-bottom, // change default to $ui when RowEditor adds ui support
+    $border-radius: 0 0
+        $grid-row-editor-button-container-border-radius
+        $grid-row-editor-button-container-border-radius,
+    $border-width: 0
+        $grid-row-editor-border-width
+        $grid-row-editor-border-width
+        $grid-row-editor-border-width,
+    $padding: $grid-row-editor-button-container-padding,
     $background-color: $grid-row-editor-background-color,
     $background-gradient: null,
-    $table: false
+    $table: true
 );
+
+@include x-frame(
+    $cls: grid-row-editor-buttons,
+    $ui: default-top, // change default to $ui when RowEditor adds ui support
+    $border-radius:
+        $grid-row-editor-button-container-border-radius
+        $grid-row-editor-button-container-border-radius
+        0 0,
+    $border-width:
+        $grid-row-editor-border-width
+        $grid-row-editor-border-width
+        0
+        $grid-row-editor-border-width,
+    $padding: flip-vertical($grid-row-editor-button-container-padding),
+    $background-color: $grid-row-editor-background-color,
+    $background-gradient: null,
+    $table: true
+);
+
+// change default to #{$ui} when RowEditor adds ui support
+.#{$prefix}grid-row-editor-buttons-default-bottom {
+    top: $grid-editor-height + vertical($grid-row-editor-padding) +
+        top($grid-row-editor-border-width);
+}
+
+// change default to #{$ui} when RowEditor adds ui support
+.#{$prefix}grid-row-editor-buttons-default-top {
+    bottom: $grid-editor-height + vertical($grid-row-editor-padding) +
+        bottom($grid-row-editor-border-width);
+}
 
 .#{$prefix}grid-row-editor-buttons {
     border-color: $grid-row-editor-border-color;
@@ -38,7 +113,7 @@
     margin-right: ceil($grid-row-editor-button-spacing / 2);
 }
 .#{$prefix}row-editor-cancel-button {
-    margin-left: $grid-row-editor-button-spacing - ceil($grid-row-editor-button-spacing / 2);
+    margin-left: floor($grid-row-editor-button-spacing / 2);
 }
 
 @if $include-rtl {
@@ -47,24 +122,27 @@
         margin-right: auto;
     }
     .#{$prefix}rtl.#{$prefix}row-editor-cancel-button {
-        margin-right: $grid-row-editor-button-spacing - ceil($grid-row-editor-button-spacing / 2);
+        margin-right: floor($grid-row-editor-button-spacing / 2);
         margin-left: auto;
-    }
-
-    // In IEQuirks, row editor input fields, when in RTL mode disappear if the form-item-body TD is left as relative
-    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}rtl.#{$prefix}grid-row-editor {
-        .#{$prefix}form-item-body {
-            position: static;
-        }
     }
 }
 
 .#{$prefix}grid-row-editor-errors {
-    ul {
-        margin-left: 5px;
+    .#{$prefix}tip-body {
+        padding: $grid-row-editor-error-tip-body-padding;
     }
-    li {
-        list-style: disc;
-        margin-left: 15px;
+}
+
+.#{$prefix}grid-row-editor-errors-item {
+    list-style: $grid-row-editor-error-tip-list-style;
+    margin-left: $grid-row-editor-error-tip-list-spacing;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}grid-row-editor-errors {
+        .#{$prefix}grid-row-editor-errors-item {
+            margin-left: 0;
+            margin-right: $grid-row-editor-error-tip-list-spacing;
+        }
     }
 }

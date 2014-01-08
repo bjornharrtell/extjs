@@ -67,6 +67,7 @@ Ext.onReady(function(){
         title: 'Sponsored Projects',
         iconCls: 'icon-grid',
         renderTo: document.body,
+        columnLines : true,
         store: store,
         plugins: [
             cellEditing,
@@ -79,7 +80,7 @@ Ext.onReady(function(){
             beforeshowtip: function(grid, tip, data) {
                 var cellNode = tip.triggerEvent.getTarget(tip.view.getCellSelector());
                 if (cellNode) {
-                    data.colName = tip.view.headerCt.getHeaderAtIndex(cellNode.cellIndex).text;
+                    data.colName = tip.view.headerCt.columnManager.getHeaderAtIndex(cellNode.cellIndex).text;
                 }
             }
         },

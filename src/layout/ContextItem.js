@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class manages state information for a component or element during a layout.
@@ -46,7 +46,7 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  * @private
  */
 Ext.define('Ext.layout.ContextItem', {
-    
+
     requires: ['Ext.layout.ClassList'],
 
     heightModel: null,
@@ -152,7 +152,7 @@ Ext.define('Ext.layout.ContextItem', {
         me.styles = {};
 
         target = me.target;
-        
+
         if (!target.isComponent) {
             lastBox = el.lastBox;
         } else {
@@ -165,7 +165,7 @@ Ext.define('Ext.layout.ContextItem', {
             // These items are created top-down, so the ContextItem of our ownerCt should
             // be available (if it is part of this layout run).
             ownerCt = target.ownerCt;
-            if (ownerCt && (ownerCtContext = me.context.items[ownerCt.el.id])) {
+            if (ownerCt && (ownerCtContext = ownerCt.el && me.context.items[ownerCt.el.id])) {
                 me.ownerCtContext = ownerCtContext;
             }
 
@@ -182,7 +182,7 @@ Ext.define('Ext.layout.ContextItem', {
 
             me.widthModel = widthModel = sizeModel.width;
             me.heightModel = heightModel = sizeModel.height;
-            
+
             // The lastBox is populated early but does not get an "invalid" property
             // until layout has occurred. The "false" value is placed in the lastBox
             // by Component.finishedLayout.
@@ -205,7 +205,7 @@ Ext.define('Ext.layout.ContextItem', {
                 }
             }
         }
-        
+
         me.lastBox = lastBox;
     },
 
@@ -232,7 +232,8 @@ Ext.define('Ext.layout.ContextItem', {
             children, i, n, ownerCt, sizeModel, target,
             oldHeightModel = me.heightModel,
             oldWidthModel = me.widthModel,
-            newHeightModel, newWidthModel;
+            newHeightModel, newWidthModel,
+            remainingCount = 0;
 
         me.dirty = me.invalid = false;
         me.props = {};
@@ -327,22 +328,26 @@ Ext.define('Ext.layout.ContextItem', {
             // this at some point more carefully):
             me.recoverProp('x', oldProps, oldDirty);
             me.recoverProp('y', oldProps, oldDirty);
-
+            
             // if these are calculated by the ownerCt, don't trash them:
             if (me.widthModel.calculated) {
                 me.recoverProp('width', oldProps, oldDirty);
+            } else if ('width' in oldProps) {
+                ++remainingCount;
             }
             if (me.heightModel.calculated) {
                 me.recoverProp('height', oldProps, oldDirty);
+            } else if ('height' in oldProps) {
+                ++remainingCount;
             }
-
+            
             // if we are a container child and this is not a full init, that means our
-            // parent was not invalidated, and therefore only the dimensions that were
-            // set last time, and removed from remainingChildDimensions last time, need
-            // to be added back to remainingChildDimensions.
+            // parent was not invalidated and therefore only the dimensions that were
+            // set last time and removed from remainingChildDimensions last time, need to
+            // be added back to remainingChildDimensions. This only needs to happen for
+            // properties that we don't recover above (model=calculated)
             if (ownerCtContext && !me.isComponentChild) {
-                ownerCtContext.remainingChildDimensions +=
-                    ('width' in oldProps) + ('height' in oldProps);
+                ownerCtContext.remainingChildDimensions += remainingCount;
             }
         }
 
@@ -413,7 +418,7 @@ Ext.define('Ext.layout.ContextItem', {
             widthModel = me.widthModel,
             hierarchyState = comp.getHierarchyState(),
             boxParent;
-            
+
         if (widthModel.fixed) { // calculated or configured
             hierarchyState.inShrinkWrapTable = false;
         } else {
@@ -836,7 +841,7 @@ Ext.define('Ext.layout.ContextItem', {
                     me.writeProps(anim.from);
                 }
                 me.el.animate(anim);
-                
+
                 Ext.fx.Manager.getFxQueue(me.el.id)[0].on({
                     afteranimate: function() {
                         if (me.isCollapsingOrExpanding === 1) {
@@ -932,7 +937,7 @@ Ext.define('Ext.layout.ContextItem', {
         if (!info) {
             framing = me.framing;
             border = me.getBorderInfo();
-            
+
             me.frameInfo = info = 
                 framing ? {
                     top   : framing.top    + border.top,
@@ -1188,8 +1193,7 @@ Ext.define('Ext.layout.ContextItem', {
      * @return {Boolean}
      */
     hasProp: function (propName) {
-        var value = this.getProp(propName);
-        return typeof value != 'undefined';
+        return this.getProp(propName) != null;
     },
 
     /**
@@ -1201,8 +1205,7 @@ Ext.define('Ext.layout.ContextItem', {
      * @return {Boolean}
      */
     hasDomProp: function (propName) {
-        var value = this.getDomProp(propName);
-        return typeof value != 'undefined';
+        return this.getDomProp(propName) != null;
     },
 
     /**
@@ -1545,7 +1548,7 @@ Ext.define('Ext.layout.ContextItem', {
             if (!me.setProp('height', height, dirty)) {
                 return NaN;
             }
-        
+
             // if we are a container child, since the height is now known we can decrement
             // the number of remainingChildDimensions that the ownerCtContext is waiting on.
             if (ownerCtContext && !me.isComponentChild && isNaN(oldHeight)) {
@@ -1679,7 +1682,7 @@ Ext.define('Ext.layout.ContextItem', {
             styles = {},
             styleCount = 0, // used as a boolean, the exact count doesn't matter
             styleInfo = me.styleInfo,
-            
+
             info,
             propName,
             numericValue,
@@ -1804,7 +1807,7 @@ Ext.define('Ext.layout.ContextItem', {
         }
     }
 }, function () {
-    
+
     var px =    { dom: true, parseInt: true, suffix: 'px' },
         isDom = { dom: true },
         faux =  { dom: false };

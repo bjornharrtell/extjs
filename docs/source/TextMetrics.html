@@ -69,10 +69,15 @@ Ext.define('Ext.util.TextMetrics', {
      * @param {Number} [fixedWidth] A fixed width to apply to the measuring element.
      */
     constructor: function(bindTo, fixedWidth){
-        var measure = this.measure = Ext.getBody().createChild({
-            cls: Ext.baseCSSPrefix + 'textmetrics'
-        });
-        this.el = Ext.get(bindTo);
+        var me = this,
+            measure = Ext.getBody().createChild({
+                cls: Ext.baseCSSPrefix + 'textmetrics'
+            });
+            
+        me.measure = measure; 
+        if (bindTo) {
+            me.bind(bindTo);
+        }
         
         measure.position('absolute');
         measure.setLocalXY(-1000, -1000);

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This feature is used to place a summary row at the bottom of the grid. If using a grouping, 
@@ -129,11 +129,15 @@ Ext.define('Ext.grid.feature.Summary', {
             });
             grid.on({
                 beforerender: function() {
+                    var tableCls = [me.summaryTableCls];
+                    if (view.columnLines) {
+                        tableCls[tableCls.length] = view.ownerCt.colLinesCls;
+                    }
                     me.summaryBar = grid.addDocked({
                         childEls: ['innerCt'],
                         renderTpl: [
                             '<div id="{id}-innerCt">',
-                                '<table cellpadding="0" class="' + me.summaryTableCls + '">',
+                                '<table cellPadding="0" cellSpacing="0" class="' + tableCls.join(' ') + '">',
                                     '<tr class="' + me.summaryRowCls + '"></tr>',
                                 '</table>',
                             '</div>'
@@ -271,7 +275,7 @@ Ext.define('Ext.grid.feature.Summary', {
     // Synchronize column widths in the docked summary Component
     onColumnHeaderLayout: function() {
         var view = this.view,
-            columns = view.headerCt.getGridColumns(),
+            columns = view.headerCt.getVisibleGridColumns(),
             column,
             len = columns.length, i,
             summaryEl = this.summaryBar.el,

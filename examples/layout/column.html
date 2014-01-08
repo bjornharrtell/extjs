@@ -16,12 +16,6 @@
     .x-panel-body p {
         margin:5px;
     }
-    .x-column-layout-ct .x-panel {
-        margin-bottom:5px;
-    }
-    .x-column-layout-ct .x-panel-dd-spacer {
-        margin-bottom:5px;
-    }
     .settings {
         background-image:url(../shared/icons/fam/folder_wrench.png) !important;
     }
@@ -44,21 +38,19 @@ Ext.require(['*']);
        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
 
        var viewport = Ext.create('Ext.Viewport', {
-            layout:'border',
+            layout: 'border',
             items:[{
-                region:'west',
-                id:'west-panel',
-                title:'West',
-                split:true,
+                region: 'west',
+                title: 'West',
+                split: true,
                 width: 200,
-                minSize: 175,
-                maxSize: 400,
+                minWidth: 175,
+                maxWidth: 400,
                 collapsible: true,
-                margins:'35 0 5 5',
-                cmargins:'35 5 5 5',
-                layout:'accordion',
-                layoutConfig:{
-                    animate:true
+                margin: '35 0 5 5',
+                layout: {
+                    type: 'accordion',
+                    animate: false
                 },
                 items: [{
                     html: Ext.example.shortBogusMarkup,
@@ -74,40 +66,33 @@ Ext.require(['*']);
                     iconCls:'settings'
                 }]
             },{
-                region:'center',
-                margins:'35 5 5 0',
-                layout:'column',
-                autoScroll:true,
-                defaults: {
-                    layout: 'anchor',
-                    defaults: {
-                        anchor: '100%'
-                    }
-                },
+                region: 'center',
+                margin: '35 5 5 0',
+                layout: 'column',
+                autoScroll: true,
+                defaultType: 'container',
                 items: [{
                     columnWidth: 1/3,
-                    baseCls:'x-plain',
-                    bodyStyle:'padding:5px 0 5px 5px',
+                    padding: '5 0 5 5',
                     items:[{
                         title: 'A Panel',
                         html: Ext.example.shortBogusMarkup
                     }]
                 },{
                     columnWidth: 1/3,
-                    baseCls:'x-plain',
-                    bodyStyle:'padding:5px 0 5px 5px',
+                    padding: '5 0 5 5',
                     items:[{
                         title: 'A Panel',
                         html: Ext.example.shortBogusMarkup
                     }]
                 },{
                     columnWidth: 1/3,
-                    baseCls:'x-plain',
-                    bodyStyle:'padding:5px',
+                    padding: 5,
                     items:[{
                         title: 'A Panel',
                         html: Ext.example.shortBogusMarkup
                     },{
+                        margin: '5 0 0 0',
                         title: 'Another Panel',
                         html: Ext.example.shortBogusMarkup
                     }]

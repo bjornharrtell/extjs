@@ -1,13 +1,12 @@
-# Editable Grid
-______________________________________________
+# Editable Grid + Node.js, Part 1
 
-The {@link Ext.grid.Panel Grid} is a powerful way to display tabular data. It is an ideal solution for displaying dynamic data from a database. It can also allow users to edit the fields of the data displayed in the grid. Changes to the dataset can be easily saved back to the server. This guide describes how to create this functionality using Ext's MVC application architecture. If you're not familiar with this, then I recommend you checkout [the guide](link to MVC guide) about it for more details.
+The {@link Ext.grid.Panel Grid} is a powerful way to display tabular data. It is an ideal solution for displaying dynamic data from a database. It can also allow users to edit the fields of the data displayed in the grid. Changes to the dataset can be easily saved back to the server. This guide describes how to create this functionality using Ext's MVC application architecture. If you're not familiar with this, then I recommend you checkout [the guide](#!/guide/application_architecture) about it for more details.
 
 The example dataset we will be dealing with is the set of movies which Computer Geeks like. So we will call the demo app GeekFlicks.
 
 ## Setting up the Application
 
-First, lets create a folder structure for our app as described in the [getting started guide](getting started link):
+First, lets create a folder structure for our app as described in the [getting started guide](#!/guide/getting_started):
 
 	GeekFlicks
 		app/
@@ -150,7 +149,7 @@ The Model element of the MVC trinity, consists of a few classes with specific re
 * The Store: stores records of data (which are defined by the Model)
 * The Proxy: loads the Store from the server (or other storage) and saves changes
 
-These are covered in more detail in the [data package guide](guide/data). So lets define our data, first by creating a Movie.js in the 'model' folder:
+These are covered in more detail in the [data package guide](#!/guide/data). So lets define our data, first by creating a Movie.js in the 'model' folder:
 
 	Ext.define('GeekFlicks.model.Movie', {
 	    extend: 'Ext.data.Model',

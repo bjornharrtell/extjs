@@ -69,7 +69,7 @@ Ext.define('Ext.container.Monitor', {
                 this.onItemAdd(comp.ownerCt, comp);
             }
         
-            if (comp.isContainer) {
+            if (comp.isQueryable) {
                 this.onContainerAdd(comp);
             }
         }
@@ -112,10 +112,12 @@ Ext.define('Ext.container.Monitor', {
             handleRemove = me.handleRemove,
             i, comp;
         
-        ct.on('add', handleAdd, me);
-        ct.on('dockedadd', handleAdd, me);
-        ct.on('remove', handleRemove, me);
-        ct.on('dockedremove', handleRemove, me);
+        if (ct.isContainer) {
+            ct.on('add', handleAdd, me);
+            ct.on('dockedadd', handleAdd, me);
+            ct.on('remove', handleRemove, me);
+            ct.on('dockedremove', handleRemove, me);
+        }
         
         // Means we've been called by a parent container so the selector
         // matchers have already been processed
@@ -144,7 +146,7 @@ Ext.define('Ext.container.Monitor', {
                 me.onItemRemove(ct, comp);
             }
         
-            if (comp.isContainer) {
+            if (comp.isQueryable) {
                 me.onContainerRemove(ct, comp);
             }
         }
@@ -152,25 +154,26 @@ Ext.define('Ext.container.Monitor', {
     
 <span id='Ext-container-Monitor-method-onContainerRemove'>    onContainerRemove: function(ct, comp){
 </span>        var me = this,
-            destroying = ct.destroying,
             items, i, len, item;
             
-        // only need to unbind the listeners if the ct isn't destroying children
-        if (!destroying) {
+        // If it's not a container, it means it's a queryable that isn't a container.
+        // For example a button with a menu
+        if (!comp.isDestroyed &amp;&amp; !comp.destroying &amp;&amp; comp.isContainer) {
             me.removeCtListeners(comp);
-        }
             
-        items = comp.query(me.selector);
-        for (i = 0, len = items.length; i &lt; len; ++i) {
-            item = items[i];
-            me.onItemRemove(item.ownerCt, item);
-        }
-         
-        if (!destroying) {   
+            items = comp.query(me.selector);
+            for (i = 0, len = items.length; i &lt; len; ++i) {
+                item = items[i];
+                me.onItemRemove(item.ownerCt, item);
+            }
+            
             items = comp.query('container');
             for (i = 0, len = items.length; i &lt; len; ++i) {
                 me.removeCtListeners(items[i]);
             }
+        } else {
+            // comp destroying, or we need to invalidate the collection
+            me.invalidateItems();
         }
     },
     

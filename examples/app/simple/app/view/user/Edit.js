@@ -7,7 +7,6 @@ Ext.define('AM.view.user.Edit', {
     title : 'Edit User',
     layout: 'fit',
     autoShow: true,
-    height: 120,
     width: 280,
 
     initComponent: function() {

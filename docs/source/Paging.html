@@ -405,7 +405,8 @@ Ext.define('Ext.toolbar.Paging', {
             pageCount,
             afterText,
             count,
-            isEmpty;
+            isEmpty,
+            item;
 
         count = me.store.getCount();
         isEmpty = count === 0;
@@ -421,18 +422,31 @@ Ext.define('Ext.toolbar.Paging', {
         }
 
         Ext.suspendLayouts();
-        me.child('#afterTextItem').setText(afterText);
-        me.child('#inputItem').setDisabled(isEmpty).setValue(currPage);
-        me.child('#first').setDisabled(currPage === 1 || isEmpty);
-        me.child('#prev').setDisabled(currPage === 1  || isEmpty);
-        me.child('#next').setDisabled(currPage === pageCount  || isEmpty);
-        me.child('#last').setDisabled(currPage === pageCount  || isEmpty);
-        me.child('#refresh').enable();
+        item = me.child('#afterTextItem');
+        if (item) {    
+            item.setText(afterText);
+        }
+        item = me.getInputItem();
+        if (item) {
+            item.setDisabled(isEmpty).setValue(currPage);
+        }
+        me.setChildDisabled('#first', currPage === 1 || isEmpty);
+        me.setChildDisabled('#prev', currPage === 1 || isEmpty);
+        me.setChildDisabled('#next', currPage === pageCount  || isEmpty);
+        me.setChildDisabled('#last', currPage === pageCount  || isEmpty);
+        me.setChildDisabled('#refresh', false);
         me.updateInfo();
         Ext.resumeLayouts(true);
 
         if (me.rendered) {
             me.fireEvent('change', me, pageData);
+        }
+    },
+    
+<span id='Ext-toolbar-Paging-method-setChildDisabled'>    setChildDisabled: function(selector, disabled){
+</span>        var item = this.child(selector);
+        if (item) {
+            item.setDisabled(disabled);
         }
     },
 
@@ -456,29 +470,46 @@ Ext.define('Ext.toolbar.Paging', {
         if (!this.rendered) {
             return;
         }
-        this.child('#refresh').enable();
+        this.setChildDisabled('#refresh', false);
+    },
+    
+<span id='Ext-toolbar-Paging-method-getInputItem'>    getInputItem: function(){
+</span>        return this.child('#inputItem');
     },
 
 <span id='Ext-toolbar-Paging-method-readPageFromInput'>    // @private
 </span>    readPageFromInput : function(pageData){
-        var v = this.child('#inputItem').getValue(),
-            pageNum = parseInt(v, 10);
+        var inputItem = this.getInputItem(),
+            pageNum = false,
+            v;
 
-        if (!v || isNaN(pageNum)) {
-            this.child('#inputItem').setValue(pageData.currentPage);
-            return false;
+        if (inputItem) {
+            v = inputItem.getValue();
+            pageNum = parseInt(v, 10);
+            if (!v || isNaN(pageNum)) {
+                inputItem.setValue(pageData.currentPage);
+                return false;
+            }
         }
         return pageNum;
     },
 
 <span id='Ext-toolbar-Paging-method-onPagingFocus'>    onPagingFocus : function(){
-</span>        this.child('#inputItem').select();
+</span>        var inputItem = this.getInputItem();
+        if (inputItem) {
+            inputItem.select();
+        }
     },
 
 <span id='Ext-toolbar-Paging-method-onPagingBlur'>    // @private
 </span>    onPagingBlur : function(e){
-        var curPage = this.getPageData().currentPage;
-        this.child('#inputItem').setValue(curPage);
+        var inputItem = this.getInputItem(),
+            curPage;
+            
+        if (inputItem) {
+            curPage = this.getPageData().currentPage;
+            inputItem.setValue(curPage);
+        }
     },
 
 <span id='Ext-toolbar-Paging-method-onPagingKeyDown'>    // @private
@@ -519,8 +550,8 @@ Ext.define('Ext.toolbar.Paging', {
 
 <span id='Ext-toolbar-Paging-method-beforeLoad'>    // @private
 </span>    beforeLoad : function(){
-        if(this.rendered &amp;&amp; this.refresh){
-            this.refresh.disable();
+        if (this.rendered) {
+            this.setChildDisabled('#refresh', true);
         }
     },
 

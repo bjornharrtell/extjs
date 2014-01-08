@@ -15,16 +15,59 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">$grid-grouped-header-background-color: #fff !default;
-$grid-grouped-header-border-width: 0 0 2px 0 !default;
-$grid-grouped-header-border-style: solid !default;
-$grid-grouped-header-border-color: adjust-color($base-color, $hue: 0.844deg, $saturation: 7.644%, $lightness: -8.627%) !default;
+  <pre class="prettyprint lang-js">.#{$prefix}grid-group-hd {
+    border-width: $grid-grouped-header-border-width;
+    border-style: $grid-grouped-header-border-style;
+    border-color: $grid-grouped-header-border-color;
+    padding: $grid-grouped-header-padding;
+    background: $grid-grouped-header-background-color;
+    cursor: $grid-grouped-header-cursor;
+}
 
-$grid-grouped-header-padding: 10px 4px 4px 4px !default;
+.#{$prefix}grid-group-hd-not-collapsible {
+    cursor: default; 
+}
 
-$grid-grouped-title-color: adjust-color($base-color, $hue: 0.952deg, $saturation: -6.718%, $lightness: -41.961%) !default;
-$grid-grouped-title-font: bold ceil($font-size * .9) $font-family !default;
+.#{$prefix}grid-group-hd-collapsible {
+    .#{$prefix}grid-group-title {
+        background-repeat: no-repeat;
+        background-position: left center;
+        background-image: theme-background-image('grid/group-collapse');
+        padding: $grid-grouped-icon-padding;
+    }
+}
 
-$grid-grouped-icon-padding: 0 0 0 14px !default; </pre>
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}grid-view .#{$prefix}grid-group-hd-collapsible .#{$prefix}grid-group-title {
+        background-position: right center;
+        padding: rtl($grid-grouped-icon-padding);
+    }
+}
+
+.#{$prefix}grid-group-title {
+    color: $grid-grouped-title-color;
+    font: $grid-grouped-title-font;
+}
+
+.#{$prefix}grid-group-hd-collapsed {
+    .#{$prefix}grid-group-title {
+        background-image: theme-background-image('grid/group-expand');
+    }
+}
+
+.#{$prefix}grid-group-collapsed .#{$prefix}grid-group-title {
+    background-image: theme-background-image('grid/group-expand');
+}
+
+.#{$prefix}group-by-icon {
+    background-image: theme-background-image('grid/group-by');
+}
+
+.#{$prefix}show-groups-icon {
+    background-image: theme-background-image('grid/group-by');
+}
+
+
+</pre>
 </body>
 </html>

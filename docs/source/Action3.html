@@ -230,6 +230,8 @@ Ext.define('Ext.grid.column.Action', {
 
 <span id='Ext-grid-column-Action-cfg-sortable'>    sortable: false,
 </span>
+<span id='Ext-grid-column-Action-property-innerCls'>    innerCls: Ext.baseCSSPrefix + 'grid-cell-inner-action-col',
+</span>
 <span id='Ext-grid-column-Action-method-constructor'>    constructor: function(config) {
 </span>        var me = this,
             cfg = Ext.apply({}, config),
@@ -298,7 +300,7 @@ Ext.define('Ext.grid.column.Action', {
                 item.hasActionConfiguration = true;
             }
 
-            ret += '&lt;img alt=&quot;' + (item.altText || me.altText) + '&quot; src=&quot;' + (item.icon || Ext.BLANK_IMAGE_URL) +
+            ret += '&lt;img role=&quot;button&quot; alt=&quot;' + (item.altText || me.altText) + '&quot; src=&quot;' + (item.icon || Ext.BLANK_IMAGE_URL) +
                 '&quot; class=&quot;' + prefix + 'action-col-icon ' + prefix + 'action-col-' + String(i) + ' ' + (disabled ? prefix + 'item-disabled' : ' ') +
                 ' ' + (Ext.isFunction(item.getClass) ? item.getClass.apply(item.scope || scope, arguments) : (item.iconCls || me.iconCls || '')) + '&quot;' +
                 (tooltip ? ' data-qtip=&quot;' + tooltip + '&quot;' : '') + ' /&gt;';

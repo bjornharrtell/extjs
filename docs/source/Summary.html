@@ -126,11 +126,15 @@ Ext.define('Ext.grid.feature.Summary', {
             });
             grid.on({
                 beforerender: function() {
+                    var tableCls = [me.summaryTableCls];
+                    if (view.columnLines) {
+                        tableCls[tableCls.length] = view.ownerCt.colLinesCls;
+                    }
                     me.summaryBar = grid.addDocked({
                         childEls: ['innerCt'],
                         renderTpl: [
                             '&lt;div id=&quot;{id}-innerCt&quot;&gt;',
-                                '&lt;table cellpadding=&quot;0&quot; class=&quot;' + me.summaryTableCls + '&quot;&gt;',
+                                '&lt;table cellPadding=&quot;0&quot; cellSpacing=&quot;0&quot; class=&quot;' + tableCls.join(' ') + '&quot;&gt;',
                                     '&lt;tr class=&quot;' + me.summaryRowCls + '&quot;&gt;&lt;/tr&gt;',
                                 '&lt;/table&gt;',
                             '&lt;/div&gt;'
@@ -268,7 +272,7 @@ Ext.define('Ext.grid.feature.Summary', {
 <span id='Ext-grid-feature-Summary-method-onColumnHeaderLayout'>    // Synchronize column widths in the docked summary Component
 </span>    onColumnHeaderLayout: function() {
         var view = this.view,
-            columns = view.headerCt.getGridColumns(),
+            columns = view.headerCt.getVisibleGridColumns(),
             column,
             len = columns.length, i,
             summaryEl = this.summaryBar.el,

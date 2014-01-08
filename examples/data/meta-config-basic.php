@@ -66,7 +66,7 @@
     function generateData() {
 		global $date_format;
 	    $row_count = rand(10, 30);
-		$col_count = rand(5, 10);
+		$col_count = rand(3, 7);
 		$types = array();
         $data['data'] = array();
 		$fields = array();

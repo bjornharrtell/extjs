@@ -16,9 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag foundation,core
+// @tag foundation,core
+// @define Ext
+
 /**
  * @class Ext
  * @singleton
@@ -30,7 +32,7 @@ Ext._startTime = new Date().getTime();
         objectPrototype = Object.prototype,
         toString = objectPrototype.toString,
         enumerables = true,
-        enumerablesTest = { toString: 1 },
+        enumerablesTest = {toString: 1},
         emptyFn = function () {},
         // This is the "$previous" method of a hook function on an instance. When called, it
         // calls through the class prototype by the name of the called method.
@@ -40,7 +42,8 @@ Ext._startTime = new Date().getTime();
         },
         i,
         nonWhitespaceRe = /\S/,
-        ExtApp;
+        ExtApp,
+        iterableRe = /\[object\s*(?:Array|Arguments|\w*Collection|\w*List|HTML\s+document\.all\s+class)\]/;
 
     Function.prototype.$extIsFunction = true;
 
@@ -605,26 +608,36 @@ Ext._startTime = new Date().getTime();
         },
 
         /**
-         * Returns true if the passed value is iterable, false otherwise
+         * Returns `true` if the passed value is iterable, that is, if elements of it are addressable using array
+         * notation with numeric indices, `false` otherwise.
+         *
+         * Arrays and function `arguments` objects are iterable. Also HTML collections such as `NodeList` and `HTMLCollection'
+         * are iterable.
+         *
          * @param {Object} value The value to test
          * @return {Boolean}
          */
         isIterable: function(value) {
-            var type = typeof value,
-                checkLength = false;
-            if (value && type != 'string') {
-                // Functions have a length property, so we need to filter them out
-                if (type == 'function') {
-                    // In Safari, NodeList/HTMLCollection both return "function" when using typeof, so we need
-                    // to explicitly check them here.
-                    if (Ext.isSafari) {
-                        checkLength = value instanceof NodeList || value instanceof HTMLCollection;
-                    }
-                } else {
-                    checkLength = true;
-                }
+            // To be iterable, the object must have a numeric length property and must not be a string or function.
+            if (!value || typeof value.length !== 'number' || typeof value === 'string' || value.$extIsFunction) {
+                return false;
             }
-            return checkLength ? value.length !== undefined : false;
+
+            // Certain "standard" collections in IE (such as document.images) do not offer the correct
+            // Javascript Object interface; specifically, they lack the propertyIsEnumerable method.
+            // And the item property while it does exist is not typeof "function"
+            if (!value.propertyIsEnumerable) {
+                return !!value.item;
+            }
+
+            // If it is a regular, interrogatable JS object (not an IE ActiveX object), then...
+            // If it has its own property called "length", but not enumerable, it's iterable
+            if (value.hasOwnProperty('length') && !value.propertyIsEnumerable('length')) {
+                return true;
+            }
+
+            // Test against whitelist which includes known iterable collection types
+            return iterableRe.test(toString.call(value));
         }
     });
 
@@ -686,7 +699,9 @@ Ext._startTime = new Date().getTime();
                 if (enumerables) {
                     for (j = enumerables.length; j--;) {
                         k = enumerables[j];
-                        clone[k] = item[k];
+                        if (item.hasOwnProperty(k)) {
+                            clone[k] = item[k];
+                        }
                     }
                 }
             }

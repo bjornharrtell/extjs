@@ -16,99 +16,270 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Provides searching of Components within Ext.ComponentManager (globally) or a specific
  * Ext.container.Container on the document with a similar syntax to a CSS selector.
+ * Returns Array of matching Components, or empty Array.
  *
- * Components can be retrieved by using their {@link Ext.Component xtype}
+ * ## Basic Component lookup
+ *
+ * Components can be retrieved by using their {@link Ext.Component xtype}:
  *
  * - `component`
  * - `gridpanel`
  *
- * Matching by xtype matches inherited types, so in the following code, the previous field
+ * Matching by `xtype` matches inherited types, so in the following code, the previous field
  * *of any type which inherits from `TextField`* will be found:
  *
  *     prevField = myField.previousNode('textfield');
  *
- * To match only the exact type, pass the "shallow" flag (See {@link Ext.AbstractComponent#isXType AbstractComponent's isXType method})
+ * To match only the exact type, pass the "shallow" flag by adding `(true)` to xtype
+ * (See AbstractComponent's {@link Ext.AbstractComponent#isXType isXType} method):
  *
  *     prevTextField = myField.previousNode('textfield(true)');
  *
- * An itemId or id must be prefixed with a #
+ * You can search Components by their `id` or `itemId` property, prefixed with a #:
  *
- * - `#myContainer`
+ *     #myContainer
  *
- * Attributes must be wrapped in brackets
+ * Component `xtype` and `id` or `itemId` can be used together to avoid possible
+ * id collisions between Components of different types:
  *
- * - `component[autoScroll]`
- * - `panel[title="Test"]`
+ *     panel#myPanel
  *
- * Attributes can use any of the operators in {@link Ext.dom.Query DomQuery}'s {@link Ext.dom.Query#operators operators} to compare
- * values.
+ * ## Traversing Component tree
  *
- * Prefixing the attribute name with an at sign `@` means that the property must be the object's `ownProperty`, not
- * a property from the prototype chain.
+ * Components can be found by their relation to other Components. There are several
+ * relationship operators, mostly taken from CSS selectors:
  *
- * Specifications like `[propName]` check that the property is a truthy value. To check that the object has an `ownProperty`
- * of a certain name, regardless of the value use the form `[?propName]`
+ * - **`E F`** All descendant Components of E that match F
+ * - **`E > F`** All direct children Components of E that match F
+ * - **`E ^ F`** All parent Components of E that match F
  *
- * The specified value is coerced to match the type of the property found in the candidate Component using {@link Ext#coerce}.
+ * Expressions between relationship operators are matched left to right, i.e. leftmost
+ * selector is applied first, then if one or more matches are found, relationship operator
+ * itself is applied, then next selector expression, etc. It is possible to combine
+ * relationship operators in complex selectors:
  *
- * The '=' operator will return the results that <strong>exactly</strong> match:
+ *     window[title="Input form"] textfield[name=login] ^ form > button[action=submit]
  *
- *     Ext.Component.query('panel[cls=my-cls]')
+ * That selector can be read this way: Find a window with title "Input form", in that
+ * window find a TextField with name "login" at any depth (including subpanels and/or
+ * FieldSets), then find an `Ext.form.Panel` that is a parent of the TextField, and in
+ * that form find a direct child that is a button with custom property `action` set to
+ * value "submit".
+ *
+ * Whitespace on both sides of `^` and `>` operators is non-significant, i.e. can be
+ * omitted, but usually is used for clarity.
+ *
+ * ## Searching by Component attributes
+ *
+ * Components can be searched by their object property values (attributes). To do that,
+ * use attribute matching expression in square brackets:
+ *
+ * - `component[autoScroll]` - matches any Component that has `autoScroll` property with
+ * any truthy (non-empty, not `false`) value.
+ * - `panel[title="Test"]` - matches any Component that has `title` property set to
+ * "Test". Note that if the value does not contain spaces, the quotes are optional.
+ *
+ * Attributes can use any of the operators in {@link Ext.dom.Query DomQuery}'s
+ * {@link Ext.dom.Query#operators operators} to compare values.
+ *
+ * Prefixing the attribute name with an at sign `@` means that the property must be
+ * the object's `ownProperty`, not a property from the prototype chain.
+ *
+ * Specifications like `[propName]` check that the property is a truthy value. To check
+ * that the object has an `ownProperty` of a certain name, regardless of the value use
+ * the form `[?propName]`.
+ *
+ * The specified value is coerced to match the type of the property found in the
+ * candidate Component using {@link Ext#coerce}.
+ *
+ * If you need to find Components by their `itemId` property, use `#id` form; it will
+ * do the same but is easier to read.
+ *
+ * ## Attribute matching operators
+ *
+ * The '=' operator will return the results that **exactly** match the
+ * specified object property (attribute):
+ *
+ *     Ext.ComponentQuery.query('panel[cls=my-cls]');
  *
  * Will match the following Component:
  *
- *     Ext.create('Ext.Panel', {
- *         cls : 'my-cls'
+ *     Ext.create('Ext.window.Window', {
+ *         cls: 'my-cls'
  *     });
  *
- * The '~=' operator will return results that <strong>exactly</strong> matches one of the whitespace-separated values:
+ * But will not match the following Component, because 'my-cls' is one value
+ * among others:
  *
- *     Ext.Component.query('panel[cls~=my-cls]')
+ *      Ext.create('Ext.panel.Panel', {
+ *          cls: 'foo-cls my-cls bar-cls'
+ *      });
  *
- * Will match the follow Component:
+ * You can use the '~=' operator instead, it will return Components with
+ * the property that **exactly** matches one of the whitespace-separated
+ * values. This is also true for properties that only have *one* value:
  *
- *     Ext.create('My.Panel', {
- *         cls : 'foo-cls my-cls bar-cls'
+ *     Ext.ComponentQuery.query('panel[cls~=my-cls]');
+ *
+ * Will match both Components:
+ *
+ *     Ext.create('Ext.panel.Panel', {
+ *         cls: 'foo-cls my-cls bar-cls'
+ *     });
+ *     
+ *     Ext.create('Ext.window.Window', {
+ *         cls: 'my-cls'
  *     });
  *
- * The '^=' operator will return results that start with the passed value:
+ * Generally, '=' operator is more suited for object properties other than
+ * CSS classes, while '~=' operator will work best with properties that
+ * hold lists of whitespace-separated CSS classes.
  *
- *     Ext.Component.query('panel[cls^=my]')
+ * The '^=' operator will return Components with specified attribute that
+ * start with the passed value:
  *
- * Will match the follow Component:
+ *     Ext.ComponentQuery.query('panel[title^=Sales]');
  *
- *     Ext.create('My.Panel', {
- *         cls : 'my-cls'
+ * Will match the following Component:
+ *
+ *     Ext.create('Ext.panel.Panel', {
+ *         title: 'Sales estimate for Q4'
  *     });
  *
- * The '$=' operator will return results that end with the passed value:
+ * The '$=' operator will return Components with specified properties that
+ * end with the passed value:
  *
- *     Ext.Component.query('panel[cls$=cls]')
+ *     Ext.ComponentQuery.query('field[fieldLabel$=name]');
  *
- * Will match the follow Component:
+ * Will match the following Component:
  *
- *     Ext.create('My.Panel', {
- *         cls : 'my-cls'
+ *     Ext.create('Ext.form.field.Text', {
+ *         fieldLabel: 'Enter your name'
  *     });
  *
- * This is because it <strong>exactly</strong> matched the 'my-cls' within the cls config.
+ * The following test will find panels with their `ownProperty` collapsed being equal to
+ * `false`. It will **not** match a collapsed property from the prototype chain.
  *
- * The following test will find panels with their `ownProperty` collapsed being equal to `false`. It will *not* match
- * a collapsed property from the prototype chain.
+ *     Ext.ComponentQuery.query('panel[@collapsed=false]');
  *
- *     Ext.ComponentQuery.query('panel[@collapsed=false]')
- *
- * Member expressions from candidate Components may be tested. If the expression returns a *truthy* value,
- * the candidate Component will be included in the query:
+ * Member expressions from candidate Components may be tested. If the expression returns
+ * a *truthy* value, the candidate Component will be included in the query:
  *
  *     var disabledFields = myFormPanel.query("{isDisabled()}");
  *
- * Pseudo classes may be used to filter results in the same way as in {@link Ext.DomQuery DomQuery}:
+ * Such expressions are executed in Component's context, and the above expression is
+ * similar to running this snippet for every Component in your application:
+ *
+ *      if (component.isDisabled()) {
+ *          matches.push(component);
+ *      }
+ *
+ * It is important to use only methods that are available in **every** Component instance
+ * to avoid run time exceptions. If you need to match your Components with a custom
+ * condition formula, you can augment `Ext.Component` to provide custom matcher that
+ * will return `false` by default, and override it in your custom classes:
+ * 
+ *      Ext.define('My.Component', {
+ *          override: 'Ext.Component',
+ *          myMatcher: function() { return false; }
+ *      });
+ *
+ *      Ext.define('My.Panel', {
+ *          extend: 'Ext.panel.Panel',
+ *          requires: ['My.Component'],     // Ensure that Component override is applied
+ *          myMatcher: function(selector) {
+ *              return selector === 'myPanel';
+ *          }
+ *      });
+ *
+ * After that you can use a selector with your custom matcher to find all instances
+ * of `My.Panel`:
+ *
+ *      Ext.ComponentQuery.query("{myMatcher('myPanel')}");
+ *
+ * However if you really need to use a custom matcher, you may find it easier to implement
+ * a custom Pseudo class instead (see below).
+ *
+ * ## Conditional matching
+ *
+ * Attribute matchers can be combined to select only Components that match **all**
+ * conditions (logical AND operator):
+ *
+ *     Ext.ComponentQuery.query('panel[cls~=my-cls][floating=true][title$="sales data"]');
+ *
+ * E.g., the query above will match only a Panel-descended Component that has 'my-cls'
+ * CSS class *and* is floating *and* with a title that ends with "sales data".
+ *
+ * Expressions separated with commas will match any Component that satisfies
+ * *either* expression (logical OR operator):
+ *
+ *     Ext.ComponentQuery.query('field[fieldLabel^=User], field[fieldLabel*=password]');
+ *
+ * E.g., the query above will match any field with field label starting with "User",
+ * *or* any field that has "password" in its label.
+ *
+ * ## Pseudo classes
+ *
+ * Pseudo classes may be used to filter results in the same way as in
+ * {@link Ext.dom.Query}. There are five default pseudo classes:
+ *
+ * * `not` Negates a selector.
+ * * `first` Filters out all except the first matching item for a selector.
+ * * `last` Filters out all except the last matching item for a selector.
+ * * `focusable` Filters out all except Components which are currently able to recieve
+ * focus.
+ * * `nth-child` Filters Components by ordinal position in the selection.
+ *
+ * These pseudo classes can be used with other matchers or without them:
+ *
+ *      // Select first direct child button in any panel
+ *      Ext.ComponentQuery.query('panel > button:first');
+ *
+ *      // Select last field in Profile form
+ *      Ext.ComponentQuery.query('form[title=Profile] field:last');
+ * 
+ *      // Find first focusable Component in a panel and focus it
+ *      panel.down(':focusable').focus();
+ * 
+ *      // Select any field that is not hidden in a form
+ *      form.query('field:not(hiddenfield)');
+ *
+ * Pseudo class `nth-child` can be used to find any child Component by its
+ * position relative to its siblings. This class' handler takes one argument
+ * that specifies the selection formula as `Xn` or `Xn+Y`:
+ *
+ *      // Find every odd field in a form
+ *      form.query('field:nth-child(2n+1)'); // or use shortcut: :nth-child(odd)
+ *
+ *      // Find every even field in a form
+ *      form.query('field:nth-child(2n)');   // or use shortcut: :nth-child(even)
+ *
+ *      // Find every 3rd field in a form
+ *      form.query('field:nth-child(3n)');
+ *
+ * Pseudo classes can be combined to further filter the results, e.g., in the
+ * form example above we can modify the query to exclude hidden fields:
+ *
+ *      // Find every 3rd non-hidden field in a form
+ *      form.query('field:not(hiddenfield):nth-child(3n)');
+ *
+ * Note that when combining pseudo classes, whitespace is significant, i.e.
+ * there should be no spaces between pseudo classes. This is a common mistake;
+ * if you accidentally type a space between `field` and `:not`, the query
+ * will not return any result because it will mean "find *field's children
+ * Components* that are not hidden fields...".
+ *
+ * ## Custom pseudo classes
+ *
+ * It is possible to define your own custom pseudo classes. In fact, a
+ * pseudo class is just a property in `Ext.ComponentQuery.pseudos` object
+ * that defines pseudo class name (property name) and pseudo class handler
+ * (property value):
  *
  *     // Function receives array and returns a filtered array.
  *     Ext.ComponentQuery.pseudos.invalid = function(items) {
@@ -120,7 +291,7 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  *         }
  *         return result;
  *     };
-
+ * 
  *     var invalidFields = myFormPanel.query('field:invalid');
  *     if (invalidFields.length) {
  *         invalidFields[0].getEl().scrollIntoView(myFormPanel.body);
@@ -129,16 +300,36 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  *         }
  *     }
  *
- * Default pseudos include:
+ * Pseudo class handlers can be even more flexible, with a selector
+ * argument used to define the logic:
  *
- * * `not` Negates a selector.
- * * `first` Filters out all except the first matching item for a selector.
- * * `last` Filters out all except the last matching item for a selector.
- * * `focusable` Filters out all except components which are currently able to recieve focus.
- * * `nth-child` Filters components by ordinal position in the selection.
+ *      // Handler receives array of itmes and selector in parentheses
+ *      Ext.ComponentQuery.pseudos.titleRegex = function(components, selector) {
+ *          var i = 0, l = components.length, c, result = [], regex = new RegExp(selector);
+ *          for (; i < l; i++) {
+ *              c = components[i];
+ *              if (c.title && regex.test(c.title)) {
+ *                  result.push(c);
+ *              }
+ *          }
+ *          return result;
+ *      }
  *
- * Queries return an array of components.
- * Here are some example queries.
+ *      var salesTabs = tabPanel.query('panel:titleRegex("sales\\s+for\\s+201[123]")');
+ *
+ * Be careful when using custom pseudo classes with MVC Controllers: when
+ * you use a pseudo class in Controller's `control` or `listen` component
+ * selectors, the pseudo class' handler function will be called very often
+ * and may slow down your application significantly. A good rule of thumb
+ * is to always specify Component xtype with the pseudo class so that the
+ * handlers are only called on Components that you need, and try to make
+ * the condition checks as cheap in terms of execution time as possible.
+ * Note how in the example above, handler function checks that Component
+ * *has* a title first, before running regex test on it.
+ *
+ * ## Query examples
+ *
+ * Queries return an array of Components. Here are some example queries:
  *
  *     // retrieve all Ext.Panels in the document by xtype
  *     var panelsArray = Ext.ComponentQuery.query('panel');
@@ -149,14 +340,21 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  *     // retrieve all direct children which are Ext.Panels within myCt
  *     var directChildPanel = Ext.ComponentQuery.query('#myCt > panel');
  *
- *     // retrieve all grids and trees
+ *     // retrieve all grids or trees
  *     var gridsAndTrees = Ext.ComponentQuery.query('gridpanel, treepanel');
  *     
- *     // Focus first component
+ *     // Focus first Component
  *     myFormPanel.child(':focusable').focus();
  *
- * For easy access to queries based from a particular Container see the {@link Ext.container.Container#query},
- * {@link Ext.container.Container#down} and {@link Ext.container.Container#child} methods. Also see
+ *     // Retrieve every odd text field in a form
+ *     myFormPanel.query('textfield:nth-child(odd)');
+ *
+ *     // Retrieve every even field in a form, excluding hidden fields
+ *     myFormPanel.query('field:not(hiddenfield):nth-child(even)');
+ *
+ * For easy access to queries based from a particular Container see the
+ * {@link Ext.container.Container#query}, {@link Ext.container.Container#down} and
+ * {@link Ext.container.Container#child} methods. Also see
  * {@link Ext.Component#up}.
  */
 Ext.define('Ext.ComponentQuery', {

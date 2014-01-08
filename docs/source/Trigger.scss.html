@@ -30,6 +30,10 @@
 
 .#{$prefix}form-trigger-wrap {
     vertical-align: top;
+    // The trigger wrap table needs to have border-collapse: separate or else the
+    // horizontal alignment of the text will be off by 1px in IE in neptune (because the 
+    // field border is on the trigger wrap)
+    border-collapse: separate;
 }</pre>
 </body>
 </html>

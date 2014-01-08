@@ -774,8 +774,11 @@ Ext.define('Ext.dd.DragDrop', {
         this.DDMInstance._remove(this);
     },
 
-<span id='Ext-dd-DragDrop-method-destroy'>    destroy : function(){
-</span>        this.unreg();
+<span id='Ext-dd-DragDrop-method-destroy'>    /**
+</span>     * Destroy this DragDrop instance
+     */
+    destroy : function(){
+        this.unreg();
     },
 
 <span id='Ext-dd-DragDrop-method-isLocked'>    /**
@@ -795,8 +798,7 @@ Ext.define('Ext.dd.DragDrop', {
      * @private
      */
     handleMouseDown: function(e, oDD){
-        var me = this,
-            activeEl;
+        var me = this;
 
         if ((me.primaryButtonOnly &amp;&amp; e.button != 0) || me.isLocked()) {
             return;
@@ -806,21 +808,12 @@ Ext.define('Ext.dd.DragDrop', {
 
         if (me.hasOuterHandles || me.DDMInstance.isOverTarget(e.getPoint(), me))  {
             if (me.clickValidator(e)) {
-                activeEl = Ext.Element.getActiveElement();
-
                 // set the initial element position
                 me.setStartPosition();
                 me.b4MouseDown(e);
                 me.onMouseDown(e);
 
                 me.DDMInstance.handleMouseDown(e, me);
-
-                // We're going to stop this event.
-                // But we need blurs to proceed so that editors still disappear when you click draggable things.
-                // Like column headers in a cell editing grid: https://sencha.jira.com/browse/EXTJSIV-7802
-                if (activeEl) {
-                    Ext.fly(activeEl).blur();
-                }
 
                 me.DDMInstance.stopEvent(e);
             }

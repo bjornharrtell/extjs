@@ -15,182 +15,33 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}column-header {
-    padding: 0;
-    position: absolute;
-    overflow: hidden;
-    border: 0 none;
-
-    border-right: $grid-column-header-border-width solid $grid-header-border-color;
-
-    text-shadow: 0 1px 0 rgba(255, 255, 255, .3);
-
-    @if $grid-column-header-color {
-        color: $grid-column-header-color;
-    }
-    font: $grid-column-header-font;
-
-    @if ($supports-gradients or $compile-all) and $grid-header-background-gradient != null {
-        @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
-    }
-    @if $grid-header-background-gradient == null {
-        background-color: $grid-header-background-color;
-    }
+  <pre class="prettyprint lang-js">.#{$prefix}column {
+    float: left;
 }
 
 @if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}column-header {
-        border-right: 0 none;
-        border-left: $grid-column-header-border-width solid $grid-header-border-color;
+    .#{$prefix}rtl &gt; .#{$prefix}column {
+        float: right;
     }
-}
 
-.#{$prefix}group-header {
-    padding: 0;
-    border-left-width: 0;
-}
-.#{$prefix}group-sub-header {
-    background: transparent;
-    border-top: $grid-column-header-border-width solid $grid-header-border-color;
-    border-left-width: 0;
-
-    // Because the sub-header has a top border, the padding of the inner is reduced by 1px
-    .#{$prefix}column-header-inner {
-        padding: top($grid-header-padding) - $grid-column-header-border-width right($grid-header-padding) bottom($grid-header-padding) left($grid-header-padding);
-    }
-}
-
-.#{$prefix}column-header-inner {
-    zoom: 1;
-    white-space: nowrap;
-    padding: $grid-header-padding;
-    position: relative;
-    .#{$prefix}column-header-text {
-        white-space: nowrap;
-    }
-}
-
-@if $include-rtl {
-    .#{$prefix}ie {
-        .#{$prefix}rtl.#{$prefix}column-header-text {
-            // in all version of IE except for 8 strict, left and right padding are
-            // automatically reversed on inline elements when the direction property
-            // is &quot;rtl&quot;. triggering hasLayout corrects this bug in IE6/7/quirks, and
-            // display: inline-block is used for IE9/10
-            zoom: 1;
-            display: inline-block;
+    // In IE6 and IEquirks, any RTL ancestor element triggers RTL behaviour.
+    @if $include-ie {
+        .#{$prefix}ie6, .#{$prefix}quirks .#{$prefix}ie {
+            .#{$prefix}rtl .#{$prefix}column {
+                float: right;
+            }
         }
     }
 }
 
-@if ($supports-gradients or $compile-all) and $grid-header-over-background-gradient != null {
-    .#{$prefix}column-header-over,
-    .#{$prefix}column-header-sort-ASC,
-    .#{$prefix}column-header-sort-DESC {
-        @include background-gradient($grid-header-over-background-color, $grid-header-over-background-gradient);
+@if $include-ie {
+    .#{$prefix}ie6 .#{$prefix}column {
+        display: inline; /*prevent IE6 double-margin bug*/
     }
-}
 
-@if not $supports-gradients or $compile-all {
-    .#{$prefix}nlg {
-        .#{$prefix}grid-header-ct,
-        .#{$prefix}column-header {
-            background: repeat-x 0 top;
-            background-image: slicer-background-image(column-header, 'grid/column-header-bg');
-        }
-
-        .#{$prefix}column-header-over,
-        .#{$prefix}column-header-sort-ASC,
-        .#{$prefix}column-header-sort-DESC {
-            background: #ebf3fd repeat-x 0 top;
-            background-image: slicer-background-image(column-header-over, 'grid/column-header-over-bg');
-        }
+    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}form-layout-table, .#{$prefix}quirks .#{$prefix}ie .#{$prefix}form-layout-table tbody tr.#{$prefix}form-item {
+        position: relative;
     }
-}
-
-.#{$prefix}column-header-trigger {
-    display: none;
-    height: 100%;
-    width: $grid-header-trigger-width;
-    background-repeat: no-repeat;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 2;
-    cursor: pointer;
-}
-
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}column-header-trigger {
-        left: 0;
-        right: auto;
-    }
-}
-
-.#{$prefix}column-header-over, .#{$prefix}column-header-open {
-    .#{$prefix}column-header-trigger {
-        display: block;
-    }
-}
-
-.#{$prefix}column-header-align-right {
-    text-align: right;
-
-    .#{$prefix}column-header-text {
-        margin-right: $grid-column-align-right-margin;
-    }
-}
-
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}column-header-align-right {
-        text-align: left;
-    }
-    .#{$prefix}column-header-align-right .#{$prefix}rtl.#{$prefix}column-header-text {
-        margin-right: 0;
-        margin-left: $grid-column-align-right-margin;
-    }
-    .#{$prefix}rtl.#{$prefix}column-header-align-left {
-        text-align: right;
-    }
-}
-
-.#{$prefix}column-header-align-center {
-    text-align: center;
-}
-.#{$prefix}column-header-align-left {
-    text-align: left;
-}
-
-// Sort direction indicator is a background of the text span.
-.#{$prefix}column-header-sort-ASC,
-.#{$prefix}column-header-sort-DESC {
-    .#{$prefix}column-header-text {
-        padding-right: $grid-header-sort-icon-width + $grid-header-sort-icon-spacing;
-        background-repeat: no-repeat;
-        background-position: $grid-header-sort-icon-position;
-    }
-}
-
-@if $include-rtl {
-    .#{$prefix}column-header-sort-ASC,
-    .#{$prefix}column-header-sort-DESC {
-        .#{$prefix}rtl.#{$prefix}column-header-text {
-            padding-right: 0;
-            padding-left: $grid-header-sort-icon-width + $grid-header-sort-icon-spacing;
-            background-position: rtl-background-position($grid-header-sort-icon-position);
-        }
-    }
-}
-
-.#{$prefix}column-header-sort-ASC .#{$prefix}column-header-text {
-    background-image: theme-background-image('grid/sort_asc');
-}
-.#{$prefix}column-header-sort-DESC .#{$prefix}column-header-text {
-    background-image: theme-background-image('grid/sort_desc');
-}
-
-@include x-slicer(column-header);
-@include x-slicer(column-header-over);
-</pre>
+}</pre>
 </body>
 </html>

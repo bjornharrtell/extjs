@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A base class for all menu items that require menu-related functionality such as click handling,
@@ -43,6 +43,10 @@ Ext.define('Ext.menu.Item', {
     extend: 'Ext.Component',
     alias: 'widget.menuitem',
     alternateClassName: 'Ext.menu.TextItem',
+    
+    mixins: {
+        queryable: 'Ext.Queryable'
+    },
 
     /**
      * @property {Boolean} activated
@@ -77,7 +81,7 @@ Ext.define('Ext.menu.Item', {
      * The delay in milliseconds to wait before hiding the menu after clicking the menu item.
      * This only has an effect when `hideOnClick: true`.
      */
-    clickHideDelay: 1,
+    clickHideDelay: 0,
 
     /**
      * @cfg {Boolean} destroyMenu
@@ -387,7 +391,8 @@ Ext.define('Ext.menu.Item', {
     },
 
     onClick: function(e) {
-        var me = this;
+        var me = this,
+            clickHideDelay = me.clickHideDelay;
 
         if (!me.href) {
             e.stopEvent();
@@ -398,7 +403,11 @@ Ext.define('Ext.menu.Item', {
         }
 
         if (me.hideOnClick) {
-            me.deferHideParentMenusTimer = Ext.defer(me.deferHideParentMenus, me.clickHideDelay, me);
+            if (!clickHideDelay) {
+                me.deferHideParentMenus();
+            } else {
+                me.deferHideParentMenusTimer = Ext.defer(me.deferHideParentMenus, clickHideDelay, me);
+            }
         }
 
         Ext.callback(me.handler, me.scope || me, [me, e]);

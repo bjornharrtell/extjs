@@ -19,15 +19,26 @@
 </span> * @class Ext.panel.Panel
  */
 
-// TODO: Change value to $include-default-uis !default;
-$include-panel-uis: true;
-
-// ===============================
-// ========= BASE PANEL ==========
-// ===============================
+// TODO: setting this probably doesn't work well, since border-radius is typically
+// reserved for framed-panels - should we remove this?
 $panel-border-radius: null !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-border-width'>/**
+</span> * @var {number}
+ * The default border-width of Panels
+ */
 $panel-border-width: 1px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-base-color'>/**
+</span> * @var {color}
+ * The base color of Panels
+ */
 $panel-base-color: $base-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-border-color'>/**
+</span> * @var {color}
+ * The default border-color of Panels
+ */
 $panel-border-color: $panel-base-color !default;
 
 <span id='Ext-panel-Panel-css_var-S-border-width-threshold'>/**
@@ -44,84 +55,329 @@ $border-width-threshold: 2 !default;
 // ===============================
 // ========= PANEL BODY ==========
 // ===============================
+<span id='Ext-panel-Panel-css_var-S-panel-body-border-style'>/**
+</span> * @var {string}
+ * The default border-style of Panels
+ */
 $panel-body-border-style: solid !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-background-color'>/**
+</span> * @var {color}
+ * The default body background-color of Panels
+ */
 $panel-body-background-color: #fff !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-color'>/**
+</span> * @var {color}
+ * The default color of text inside a Panel's body
+ */
 $panel-body-color: #000 !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-border-color'>/**
+</span> * @var {color}
+ * The default border-color of the Panel body
+ */
 $panel-body-border-color: $panel-border-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-border-width'>/**
+</span> * @var {number}
+ * The default border-width of the Panel body
+ */
 $panel-body-border-width: 1px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-font-size'>/**
+</span> * @var {number}
+ * The default font-size of the Panel body
+ */
 $panel-body-font-size: $font-size !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-body-font-weight'>/**
+</span> * @var {string}
+ * The default font-weight of the Panel body
+ */
 $panel-body-font-weight: normal !default;
 
-// ===============================
-// ======== PANEL TOOLS ==========
-// ===============================
+<span id='Ext-panel-Panel-css_var-S-panel-tool-spacing'>/**
+</span> * @var {number}
+ * The space between the Panel {@link Ext.panel.Tool Tools}
+ */
 $panel-tool-spacing: 4px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-tool-background-image'>/**
+</span> * @var {string}
+ * The background sprite to use for Panel {@link Ext.panel.Tool Tools}
+ */
 $panel-tool-background-image: 'tools/tool-sprites' !default;
 
-// ===============================
-// ======== PANEL HEADER =========
-// ===============================
+<span id='Ext-panel-Panel-css_var-S-panel-header-border-width'>/**
+</span> * @var {number}
+ * The border-width of Panel Headers
+ */
 $panel-header-border-width: $panel-border-width !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-border-style'>/**
+</span> * @var {string}
+ * The border-style of Panel Headers
+ */
 $panel-header-border-style: solid !default;
 
-//padding
+<span id='Ext-panel-Panel-css_var-S-panel-header-padding'>/**
+</span> * @var {number/list}
+ * The padding of Panel Headers
+ */
 $panel-header-padding: 4px 5px !default;
 
-//fonts
+<span id='Ext-panel-Panel-css_var-S-panel-header-font-size'>/**
+</span> * @var {number}
+ * The font-size of Panel Headers
+ */
 $panel-header-font-size: $font-size !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-line-height'>/**
+</span> * @var {number}
+ * The line-height of Panel Headers
+ */
 $panel-header-line-height: 16px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of Panel Headers
+ */
 $panel-header-font-weight: bold !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-font-family'>/**
+</span> * @var {string}
+ * The font-family of Panel Headers
+ */
 $panel-header-font-family: $font-family !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-text-transform'>/**
+</span> * @var {string}
+ * The text-transform of Panel Headers
+ */
 $panel-header-text-transform: none !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-text-padding'>/**
+</span> * @var {number/list}
+ * The padding of the Panel Header's text element
+ */
 $panel-header-text-padding: 0 !default;
 
-//background
+<span id='Ext-panel-Panel-css_var-S-panel-header-background-gradient'>/**
+</span> * @var {string/list}
+ * The background-gradient of the Panel Header. Can be either the name of a predefined
+ * gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
 $panel-header-background-gradient: null !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-header-border-color'>/**
+</span> * @var {color}
+ * The border-color of the Panel Header
+ */
 $panel-header-border-color: $panel-border-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-inner-border-color'>/**
+</span> * @var {color}
+ * The inner border-color of the Panel Header
+ */
 $panel-header-inner-border-color: #fff !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-inner-border-width'>/**
+</span> * @var {number}
+ * The inner border-width of the Panel Header
+ */
 $panel-header-inner-border-width: 0 !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-color'>/**
+</span> * @var {color}
+ * The text color of the Panel Header
+ */
 $panel-header-color: $color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-background-color'>/**
+</span> * @var {color}
+ * The background-color of the Panel Header
+ */
 $panel-header-background-color: $panel-base-color !default;
 
-//icon
+<span id='Ext-panel-Panel-css_var-S-panel-header-icon-width'>/**
+</span> * @var {number}
+ * The width of the Panel Header icon
+ */
 $panel-header-icon-width: 16px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-icon-height'>/**
+</span> * @var {number}
+ * The height of the Panel Header icon
+ */
 $panel-header-icon-height: 16px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-icon-spacing'>/**
+</span> * @var {number}
+ * The space between the Panel Header icon and text
+ */
 $panel-header-icon-spacing: 4px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-icon-background-position'>/**
+</span> * @var {list}
+ * The background-position of  the Panel Header icon
+ */
 $panel-header-icon-background-position: center center !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-glyph-color'>/**
+</span> * @var {color}
+ * The color of the Panel Header glyph icon
+ */
 $panel-header-glyph-color: $panel-header-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-header-glyph-opacity'>/**
+</span> * @var {number}
+ * The opacity of the Panel Header glyph icon
+ */
 $panel-header-glyph-opacity: .5 !default;
 
-// ===============================
-// ======== FRAMED PANEL =========
-// ===============================
+<span id='Ext-panel-Panel-css_var-S-panel-frame-base-color'>/**
+</span> * @var {color}
+ * The base color of the framed Panels
+ */
 $panel-frame-base-color: $panel-base-color !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-frame-border-radius'>/**
+</span> * @var {number}
+ * The border-radius of framed Panels
+ */
 $panel-frame-border-radius: 4px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-border-width'>/**
+</span> * @var {number}
+ * The border-width of framed Panels
+ */
 $panel-frame-border-width: 1px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-border-style'>/**
+</span> * @var {string}
+ * The border-style of framed Panels
+ */
 $panel-frame-border-style: solid !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-padding'>/**
+</span> * @var {number}
+ * The padding of framed Panels
+ */
 $panel-frame-padding: 4px !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-frame-background-color'>/**
+</span> * @var {color}
+ * The background-color of framed Panels
+ */
 $panel-frame-background-color: #fff !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-border-color'>/**
+</span> * @var {color}
+ * The border-color of framed Panels
+ */
 $panel-frame-border-color: $panel-border-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-body-border-width'>/**
+</span> * @var {number}
+ * The border-width of the body element of framed Panels
+ */
 $panel-frame-body-border-width: 1px !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-header-border-width'>/**
+</span> * @var {number}
+ * The border-width of framed Panel Headers
+ */
 $panel-frame-header-border-width: $panel-header-border-width !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-header-inner-border-color'>/**
+</span> * @var {color}
+ * The inner border-color of framed Panel Headers
+ */
 $panel-frame-header-inner-border-color: #fff !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-header-inner-border-width'>/**
+</span> * @var {number}
+ * The inner border-width of framed Panel Headers
+ */
 $panel-frame-header-inner-border-width: 0 !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-frame-header-padding'>/**
+</span> * @var {number/list}
+ * The padding of framed Panel Headers
+ */
 $panel-frame-header-padding: $panel-header-padding !default;
 
-// ghost panel
+<span id='Ext-panel-Panel-css_var-S-panel-ghost-opacity'>/**
+</span> * @var {number}
+ * The opacity of ghost Panels while dragging
+ */
 $panel-ghost-opacity: 0.50 !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-background-stretch-top'>/**
+</span> * @var {string}
+ * The direction to strech the background-gradient of top docked Headers when slicing images
+ * for IE using Sencha Cmd
+ */
 $panel-background-stretch-top: bottom !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-background-stretch-bottom'>/**
+</span> * @var {string}
+ * The direction to strech the background-gradient of bottom docked Headers when slicing images
+ * for IE using Sencha Cmd
+ */
 $panel-background-stretch-bottom: top !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-background-stretch-right'>/**
+</span> * @var {string}
+ * The direction to strech the background-gradient of right docked Headers when slicing images
+ * for IE using Sencha Cmd
+ */
 $panel-background-stretch-right: left !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-background-stretch-left'>/**
+</span> * @var {string}
+ * The direction to strech the background-gradient of left docked Headers when slicing images
+ * for IE using Sencha Cmd
+ */
 $panel-background-stretch-left: right !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-include-border-management-rules'>/**
+</span> * @var {boolean}
+ * True to include neptune style border management rules.
+ */
 $panel-include-border-management-rules: false !default;
 
+<span id='Ext-panel-Panel-css_var-S-panel-wrap-border-color'>/**
+</span> * @var {color}
+ * The color to apply to the border that wraps the body and docked items in a framed
+ * panel. The presence of the wrap border in a framed panel is controlled by the
+ * {@link #border} config. Only applicable when `$panel-include-border-management-rules` is
+ * `true`.
+ */
 $panel-wrap-border-color: $panel-border-color !default;
+
+<span id='Ext-panel-Panel-css_var-S-panel-wrap-border-width'>/**
+</span> * @var {number}
+ * The width to apply to the border that wraps the body and docked items in a framed
+ * panel. The presence of the wrap border in a framed panel is controlled by the
+ * {@link #border} config. Only applicable when `$panel-include-border-management-rules` is
+ * `true`.
+ */
 $panel-wrap-border-width: 1px !default;
+
+<span id='Ext-panel-Panel-css_var-S-include-panel-default-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; panel UI
+ */
+$include-panel-default-ui: $include-default-uis !default;
+
+<span id='Ext-panel-Panel-css_var-S-include-panel-default-framed-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default-framed&quot; panel UI
+ */
+$include-panel-default-framed-ui: $include-default-uis !default;
 </pre>
 </body>
 </html>

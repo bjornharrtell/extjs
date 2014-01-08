@@ -6,7 +6,7 @@ Ext.define('Ext.ux.GroupTabRenderer', {
     extend: 'Ext.AbstractPlugin',
 
     tableTpl: new Ext.XTemplate(
-        '<div id="{view.id}-body" class="' + Ext.baseCSSPrefix + '{view.id}-table ' + Ext.baseCSSPrefix + 'grid-table ' + Ext.baseCSSPrefix + 'grid-table-resizer" style="{tableStyle}">',
+        '<div id="{view.id}-body" class="' + Ext.baseCSSPrefix + '{view.id}-table ' + Ext.baseCSSPrefix + 'grid-table-resizer" style="{tableStyle}">',
             '{%',
                 'values.view.renderRows(values.rows, values.viewStartIndex, out);',
             '%}',

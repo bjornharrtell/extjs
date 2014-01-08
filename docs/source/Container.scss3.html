@@ -15,19 +15,47 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">$grid-header-background-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: -16.078%) !default;
-$grid-header-background-gradient: 'grid-header' !default;
-$grid-header-border-color: adjust-color($neutral-color, $hue: 0deg, $saturation: 0%, $lightness: -16.078%) !default;
-$grid-header-over-background-color: adjust-color($base-color, $hue: -0.175deg, $saturation: 25.296%, $lightness: -2.549%) !default;
-$grid-header-over-background-gradient: 'grid-header-over' !default;
-$grid-header-background-color: $grid-base-color !default;
-$grid-header-padding: 5px 6px 5px 6px !default;
-$grid-header-trigger-height: 22px !default;
-$grid-header-trigger-width: 14px !default;
-$grid-header-color: null !default;
-$grid-header-sort-icon-width: 9px !default;
-$grid-header-sort-icon-spacing: 3px !default;
-$grid-header-sort-icon-position: right center !default;
-</pre>
+  <pre class="prettyprint lang-js">.#{$prefix}grid-header-ct {
+    border: $grid-header-border-width $grid-header-border-style $panel-body-border-color;
+
+    // Body border provided by headerCt only when in accordion layout.
+    border-bottom-color: $grid-header-background-color;
+
+    background-color: $grid-header-background-color;
+    @if ($supports-gradients or $compile-all) and $grid-header-background-gradient != null {
+        @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
+    }
+}
+
+@if $include-ext-layout-container-accordion {
+    .#{$prefix}accordion-item .#{$prefix}grid-header-ct {
+        border-width: 0 0 $grid-header-border-width !important;
+    }
+
+    // When hideHeaders: true, we need !important to override above rule
+    .#{$prefix}accordion-item .#{$prefix}grid-header-ct-hidden {
+        border: 0 !important;
+    }
+}
+
+// create the bottom border of the header container by adding a top border to the
+// grid body.  This is necessary because the header container is a docked item, and 
+// Dock layout's border-collapsing mechanism removes the bottom border of top docked
+// items with a !important.
+.#{$prefix}grid-body {
+    border-top-color: $grid-header-border-color;
+}
+
+.#{$prefix}hmenu-sort-asc .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-asc');
+}
+
+.#{$prefix}hmenu-sort-desc .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/hmenu-desc');
+}
+
+.#{$prefix}cols-icon .#{$prefix}menu-item-icon {
+    background-image: theme-background-image('grid/columns');
+}</pre>
 </body>
 </html>

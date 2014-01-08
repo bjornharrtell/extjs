@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * The Ext.grid.plugin.CellEditing plugin injects editing at a cell level for a Grid. Only a single
@@ -191,18 +191,15 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         if (lockingPartner) {
             if (lockingPartner.editors) {
                 me.editors = lockingPartner.editors;
-                me.editTask = lockingPartner.editTask;
             } else {
                 me.editors = lockingPartner.editors = new Ext.util.MixedCollection(false, function(editor) {
                     return editor.editorId;
                 });
-                me.editTask = lockingPartner.editTask = new Ext.util.DelayedTask();
             }
         } else {
             me.editors = new Ext.util.MixedCollection(false, function(editor) {
                 return editor.editorId;
             });
-            me.editTask = new Ext.util.DelayedTask();
         }
     },
 
@@ -221,7 +218,6 @@ Ext.define('Ext.grid.plugin.CellEditing', {
     destroy: function() {
         var me = this;
         if (me.editors) {
-            me.editTask.cancel();
             me.editors.each(Ext.destroy, Ext);
             me.editors.clear();
         }
@@ -292,27 +288,37 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         var me = this,
             ed;
 
-        context = context || me.callParent(arguments);
+        if (!context) {
+            me.preventBeforeCheck = true;
+            context = me.callParent(arguments);
+            delete me.preventBeforeCheck;
+            if (context === false) {
+                return false;
+            }
+        }
 
-        // Complete the edit now, before getting the editor's target
-        // cell DOM element. Completing the edit causes a row refresh.
-        // Also allows any post-edit events to take effect before continuing
-        me.completeEdit();
-        
         // Cancel editing if EditingContext could not be found (possibly because record has been deleted by an intervening listener),
         // or if the grid view is not currently visible
         if (context && me.grid.view.isVisible(true)) {
-            me.context = context;
 
             record = context.record;
             columnHeader = context.column;
+
+            // Complete the edit now, before getting the editor's target cell DOM element.
+            // Completing the edit hides the editor, causes a row update and sets up a delayed focus on the row.
+            // Also allows any post-edit events to take effect before continuing
+            me.completeEdit();
 
             // See if the field is editable for the requested record
             if (columnHeader && !columnHeader.getEditor(record)) {
                 return false;
             }
 
+            // Switch to new context *after* completing the current edit
+            me.context = context;
+
             context.originalValue = context.value = record.get(columnHeader.dataIndex);
+            
             if (me.beforeEdit(context) === false || me.fireEvent('beforeedit', me, context) === false || context.cancel) {
                 return false;
             }
@@ -321,12 +327,9 @@ Ext.define('Ext.grid.plugin.CellEditing', {
 
             // Whether we are going to edit or not, ensure the edit cell is scrolled into view
             me.grid.view.cancelFocus();
-            me.view.focusCell({
-                row: context.rowIdx,
-                column: context.colIdx
-            });
+            me.view.scrollCellIntoView(me.getCell(record, columnHeader));
             if (ed) {
-                me.editTask.delay(15, me.showEditor, me, [ed, context, context.value]);
+                me.showEditor(ed, context, context.value);
                 return true;
             }
             return false;
@@ -432,15 +435,13 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             // Allow them to specify a CellEditor in the Column
             if (editor instanceof Ext.grid.CellEditor) {
                 editor.floating = true;
-                editor.isForTree = me.grid.isTree;
             }
             // But if it's just a Field, wrap it.
             else {
                 editor = new Ext.grid.CellEditor({
                     floating: true,
                     editorId: editorId,
-                    field: editor,
-                    isForTree: me.grid.isTree
+                    field: editor
                 });
             }
             // Add the Editor as a floating child of the grid
@@ -454,6 +455,12 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             column.on('removed', me.cancelActiveEdit, me);
             editors.add(editor);
         }
+
+        if (column.isTreeColumn) {
+            editor.isForTree = column.isTreeColumn;
+            editor.addCls(Ext.baseCSSPrefix + 'tree-cell-editor')
+        }
+        editor.grid = me.grid;
         
         // Keep upward pointer correct for each use - editors are shared between locking sides
         editor.editingPlugin = me;
@@ -506,9 +513,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
 
     onEditComplete : function(ed, value, startValue) {
         var me = this,
-            grid = me.grid,
             activeColumn = me.getActiveColumn(),
-            sm = grid.getSelectionModel(),
             context = me.context,
             record;
 
@@ -530,12 +535,9 @@ Ext.define('Ext.grid.plugin.CellEditing', {
                 record.set(activeColumn.dataIndex, value);
             }
 
-            // Restore focus back to the view's element.
-            if (sm.setCurrentPosition) {
-                sm.setCurrentPosition(sm.getCurrentPosition());
-            } else {
-                grid.getView().focus();
-            }
+            // Restore focus back to the view.
+            // Use delay so that if we are completing due to tabbing, we can cancel the focus task
+            context.view.focus(false, true);
             me.fireEvent('edit', me, context);
             me.editing = false;
         }
@@ -546,15 +548,14 @@ Ext.define('Ext.grid.plugin.CellEditing', {
      */
     cancelEdit: function() {
         var me = this,
-            activeEd = me.getActiveEditor(),
-            viewEl = me.grid.getView().getEl(me.getActiveColumn());
+            activeEd = me.getActiveEditor();
 
         me.setActiveEditor(null);
         me.setActiveColumn(null);
         me.setActiveRecord(null);
         if (activeEd) {
             activeEd.cancelEdit();
-            viewEl.focus();
+            me.context.view.focus();
             me.callParent(arguments);
             return;
         }
@@ -568,9 +569,14 @@ Ext.define('Ext.grid.plugin.CellEditing', {
      */
     startEditByPosition: function(position) {
 
-        // Coerce the edit column to the closest visible column
-        position.column = this.view.getHeaderCt().getVisibleHeaderClosestToIndex(position.column).getIndex();
+        // If a raw {row:0, column:0} object passed.
+        if (!position.isCellContext) {
+            position = new Ext.grid.CellContext(this.view).setPosition(position);
+        }
 
-        return this.startEdit(position.row, position.column);
+        // Coerce the edit column to the closest visible column
+        position.setColumn(this.view.getHeaderCt().getVisibleHeaderClosestToIndex(position.column).getIndex());
+
+        return this.startEdit(position.record, position.columnHeader);
     }
 });

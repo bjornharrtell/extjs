@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class is intended to be extended or created via the {@link Ext.container.Container#layout layout}
@@ -423,6 +423,22 @@ Ext.define('Ext.layout.container.Container', {
             result = this.getItemsRenderTree(this.getLayoutItems(), renderCfgs);
         } while (items.generation !== itemsGen);
         return result;
+    },
+    
+    renderChildren: function () {
+        var me = this,
+            ownerItems = me.owner.items,
+            target = me.getRenderTarget(),
+            itemsGen, items;
+            
+        // During the render phase, new items may be added. Specifically, a panel will
+        // create a placeholder component during render if required, so we need to catch
+        // it here so we can render it.
+        do {
+            itemsGen = ownerItems.generation;
+            items = me.getLayoutItems();
+            me.renderItems(items, target);
+        } while (ownerItems.generation !== itemsGen);
     },
 
     getScrollbarsNeeded: function (width, height, contentWidth, contentHeight) {

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This is a multi-pane, application-oriented UI layout style that supports multiple nested panels, automatic bars
@@ -82,13 +82,17 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  */
 Ext.define('Ext.layout.container.Border', {
 
-    alias: 'layout.border',
-
     extend: 'Ext.layout.container.Container',
-
-    requires: ['Ext.resizer.BorderSplitter', 'Ext.Component', 'Ext.fx.Anim'],
-
+    alias: 'layout.border',
     alternateClassName: 'Ext.layout.BorderLayout',
+
+    requires: [
+        'Ext.resizer.BorderSplitter',
+        'Ext.fx.Anim',
+
+        // Overrides for Panel that provide border layout features
+        'Ext.layout.container.border.Region'
+    ],
 
 
     targetCls: Ext.baseCSSPrefix + 'border-layout-ct',
@@ -96,6 +100,8 @@ Ext.define('Ext.layout.container.Border', {
     itemCls: [Ext.baseCSSPrefix + 'border-item', Ext.baseCSSPrefix + 'box-item'],
 
     type: 'border',
+
+    isBorderLayout: true,
 
     /**
      * @cfg {Boolean} split
@@ -131,6 +137,10 @@ Ext.define('Ext.layout.container.Border', {
     padding: undefined,
 
     percentageRe: /(\d+)%/,
+    
+    horzMarginProp: 'left',
+    padOnContainerProp: 'left',
+    padNotOnContainerProp: 'right',
 
     /**
      * Reused meta-data objects that describe axis properties.
@@ -157,17 +167,6 @@ Ext.define('Ext.layout.container.Border', {
 
     // @private
     centerRegion: null,
-
-    /**
-     * Maps from region name to collapseDirection for panel.
-     * @private
-     */
-    collapseDirections: {
-        north: 'top',
-        south: 'bottom',
-        east: 'right',
-        west: 'left'
-    },
 
     manageMargins: true,
 
@@ -324,7 +323,7 @@ Ext.define('Ext.layout.container.Border', {
         for (i = 0, length = items.length; i < length; ++i) {
             item = items[i];
             collapseTarget = me.getSplitterTarget(item);
-            if (collapseTarget) {
+            if (collapseTarget) {  // if (splitter)
                 doShow = undefined;
                 hidden = !!item.hidden;
                 if (!collapseTarget.split) {
@@ -334,8 +333,8 @@ Ext.define('Ext.layout.container.Border', {
                 } else if (hidden !== collapseTarget.hidden) {
                     doShow = !collapseTarget.hidden;
                 }
-                
-                if (doShow === true) {
+
+                if (doShow) {
                     item.show();
                 } else if (doShow === false) {
                     item.hide();
@@ -396,11 +395,12 @@ Ext.define('Ext.layout.container.Border', {
             padOnContainer = ownerContext.padOnContainer,
             i, childContext, childMargins, size, horzPercentTotal, vertPercentTotal;
 
-        horz.begin = pad.left;
+        horz.begin = pad[me.padOnContainerProp];
         vert.begin = pad.top;
         // If the padding is already on the container we need to add it to the space
         // If not on the container, it's "virtual" padding.
-        horzPercentTotal = horz.end = horz.flexSpace = containerSize.width + (padOnContainer ? pad.left : -pad.right);
+        
+        horzPercentTotal = horz.end = horz.flexSpace = containerSize.width + (padOnContainer ? pad[me.padOnContainerProp] : -pad[me.padNotOnContainerProp]);
         vertPercentTotal = vert.end = vert.flexSpace = containerSize.height + (padOnContainer ? pad.top : -pad.bottom);
 
         // Reduce flexSpace on each axis by the fixed/auto sized dimensions of items that
@@ -562,12 +562,13 @@ Ext.define('Ext.layout.container.Border', {
      */
     finishPositions: function (childItems) {
         var length = childItems.length,
-            index, childContext;
+            index, childContext,
+            marginProp = this.horzMarginProp;
 
         for (index = 0; index < length; ++index) {
             childContext = childItems[index];
 
-            childContext.setProp('x', childContext.layoutPos.x + childContext.marginInfo.left);
+            childContext.setProp('x', childContext.layoutPos.x + childContext.marginInfo[marginProp]);
             childContext.setProp('y', childContext.layoutPos.y + childContext.marginInfo.top);
         }
     },
@@ -643,25 +644,19 @@ Ext.define('Ext.layout.container.Border', {
      * on the component as "splitter".
      * @private
      */
-    insertSplitter: function (item, index, hidden) {
+    insertSplitter: function (item, index, hidden, splitterCfg) {
         var region = item.region,
-            splitter = {
+            splitter = Ext.apply({
                 xtype: 'bordersplitter',
                 collapseTarget: item,
                 id: item.id + '-splitter',
                 hidden: hidden,
-                canResize: item.splitterResize !== false
-            },
-            at = index + ((region == 'south' || region == 'east') ? 0 : 1);
+                canResize: item.splitterResize !== false,
+                splitterFor: item
+            }, splitterCfg),
+            at = index + ((region === 'south' || region === 'east') ? 0 : 1);
 
-        // remove the default fixed width or height depending on orientation:
-        if (item.isHorz) {
-            splitter.height = null;
-        } else {
-            splitter.width = null;
-        }
-
-        if (item.collapseMode == 'mini') {
+        if (item.collapseMode === 'mini') {
             splitter.collapsedCls = item.collapsedCls;
         }
 
@@ -679,14 +674,21 @@ Ext.define('Ext.layout.container.Border', {
             placeholderFor = item.placeholderFor,
             region = item.region,
             split,
-            hidden;
+            hidden,
+            cfg;
 
         me.callParent(arguments);
 
         if (region) {
             Ext.apply(item, me.regionFlags[region]);
 
-            if (region == 'center') {
+            if (item.initBorderRegion) {
+                // This method should always be present but perhaps the override is being
+                // excluded.
+                item.initBorderRegion();
+            }
+
+            if (region === 'center') {
                 //<debug>
                 if (me.centerRegion) {
                     Ext.Error.raise("Cannot have multiple center regions in a BorderLayout.");
@@ -694,11 +696,16 @@ Ext.define('Ext.layout.container.Border', {
                 //</debug>
                 me.centerRegion = item;
             } else {
-                item.collapseDirection = this.collapseDirections[region];
                 split = item.split;
                 hidden = !!item.hidden;
+                
+                if (typeof split === 'object') {
+                    cfg = split;
+                    split = true;
+                }
+                
                 if ((item.isHorz || item.isVert) && (split || item.collapseMode == 'mini')) {
-                    me.insertSplitter(item, index, hidden || !split);
+                    me.insertSplitter(item, index, hidden || !split, cfg);
                 }
             }
 
@@ -707,7 +714,7 @@ Ext.define('Ext.layout.container.Border', {
             }
 
             if (!item.hasOwnProperty('animCollapse')) {
-                if (item.collapseMode != 'placeholder') {
+                if (item.collapseMode !== 'placeholder') {
                     // other collapse modes do not animate nicely in a border layout, so
                     // default them to off:
                     item.animCollapse = false;
@@ -753,14 +760,28 @@ Ext.define('Ext.layout.container.Border', {
     //----------------------------------
     // Misc
 
+    regionMeta: {
+        center: { splitterDelta: 0 },
+
+        north: { splitterDelta:  1 },
+        south: { splitterDelta: -1 },
+
+        west:  { splitterDelta:  1 },
+        east:  { splitterDelta: -1 }
+    },
+
+    /**
+     * Flags and configs that get set of regions based on their `region` property.
+     * @private
+     */
     regionFlags: {
         center: { isCenter: true, isHorz: false, isVert: false },
 
-        north: { isCenter: false, isHorz: false, isVert: true },
-        south: { isCenter: false, isHorz: false, isVert: true },
+        north: { isCenter: false, isHorz: false, isVert: true, collapseDirection: 'top' },
+        south: { isCenter: false, isHorz: false, isVert: true, collapseDirection: 'bottom' },
 
-        west: { isCenter: false, isHorz: true, isVert: false },
-        east: { isCenter: false, isHorz: true, isVert: false }
+        west: { isCenter: false, isHorz: true, isVert: false, collapseDirection: 'left' },
+        east: { isCenter: false, isHorz: true, isVert: false, collapseDirection: 'right' }
     },
 
     setupSplitterNeighbors: function (items) {

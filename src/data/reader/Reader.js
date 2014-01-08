@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @author Ed Spencer
@@ -207,7 +207,7 @@ Ext.define('Ext.data.reader.Reader', {
     successProperty: 'success',
 
     /**
-     * @cfg {String} root
+     * @cfg {String} [root]
      * The name of the property which contains the data items corresponding to the Model(s) for which this
      * Reader is configured.  For JSON reader it's a property name (or a dot-separated list of property names
      * if the root is nested).  For XML reader it's a CSS selector.  For Array reader the root is not applicable
@@ -280,7 +280,6 @@ Ext.define('Ext.data.reader.Reader', {
         me.mixins.observable.constructor.call(me, config);
         me.fieldCount = 0;
         me.model = Ext.ModelManager.getModel(me.model);
-        me.accessExpressionFn = Ext.Function.bind(me.createFieldAccessExpression, me);
 
         // Extractors can only be calculated if the fields MixedCollection has been set.
         // A Model may only complete its setup (set the prototype properties) after asynchronous loading
@@ -759,7 +758,10 @@ Ext.define('Ext.data.reader.Reader', {
                 fields: modelProto.fields.items
             };
 
-        me.recordDataExtractorTemplate.createFieldAccessExpression = me.accessExpressionFn;
+        me.recordDataExtractorTemplate.createFieldAccessExpression = function() { 
+            return me.createFieldAccessExpression.apply(me,arguments);
+        };
+        
         // Here we are creating a new Function and invoking it immediately in the scope of this Reader
         // It declares several vars capturing the configured context of this Reader, and returns a function
         // which, when passed a record data object, a raw data row in the format this Reader is configured to read,

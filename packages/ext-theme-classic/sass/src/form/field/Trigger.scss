@@ -1,39 +1,21 @@
 .#{$prefix}form-trigger {
-    border-bottom: $form-trigger-border-bottom;
-    height: $form-field-height - $form-trigger-border-bottom-width;
-}
-
-.#{$prefix}border-box .#{$prefix}form-trigger {
     height: $form-field-height;
+
+    @if $include-content-box {
+        .#{$prefix}content-box & {
+            height: $form-field-height - vertical($form-trigger-border-width);
+        }
+    }
 }
 
 @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
-    .#{$prefix}toolbar-item .#{$prefix}form-trigger {
-        height: $form-toolbar-field-height - $form-trigger-border-bottom-width;
-    }
-
-    .#{$prefix}border-box .#{$prefix}field-default-toolbar .#{$prefix}form-trigger {
+    .#{$prefix}field-toolbar .#{$prefix}form-trigger {
         height: $form-toolbar-field-height;
-    }
-}
 
-.#{$prefix}form-trigger-over {
-    border-bottom-color: $form-trigger-border-bottom-color-over;
-}
-
-.#{$prefix}form-trigger-wrap-focus .#{$prefix}form-trigger {
-    border-bottom-color: $form-trigger-border-bottom-color-focus;
-}
-
-@if $form-trigger-border-bottom-color-focus-over != null {
-    .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-trigger-over {
-        border-bottom-color: $form-trigger-border-bottom-color-focus-over;
-    }
-}
-
-@if $form-trigger-border-bottom-color-pressed != null {
-    .#{$prefix}form-trigger-click,
-    .#{$prefix}form-trigger-wrap-focus .#{$prefix}form-trigger-click {
-        border-bottom-color: $form-trigger-border-bottom-color-pressed;
+        @if $include-content-box {
+            .#{$prefix}content-box & {
+                height: $form-toolbar-field-height - vertical($form-trigger-border-width);
+            }
+        }
     }
 }

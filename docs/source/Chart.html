@@ -149,16 +149,12 @@
  * 
  * {@img Ext.chart.Chart/Ext.chart.Chart3.png Green Theme}
  * 
- * For more information on Charts please refer to the [Drawing and Charting Guide](#/guide/drawing_and_charting).
- * 
+ * For more information on Charts please refer to the [Charting Guide](#/guide/charting).
  */
 Ext.define('Ext.chart.Chart', {
-
-    /* Begin Definitions */
+    extend: 'Ext.draw.Component',
 
     alias: 'widget.chart',
-
-    extend: 'Ext.draw.Component',
     
     mixins: {
         themeManager: 'Ext.chart.theme.Theme',
@@ -988,10 +984,10 @@ Ext.define('Ext.chart.Chart', {
             themeAttrs = me.themeAttrs,
             seriesObj, markerObj, seriesThemes, st,
             markerThemes, colorArrayStyle = [],
-            initialized = (series instanceof Ext.chart.series.Series),
+            isInstance = (series instanceof Ext.chart.series.Series).
             i = 0, l, config;
 
-        if (!initialized) {
+        if (!series.initialized) {
             config = {
                 chart: me,
                 seriesId: series.seriesId
@@ -1021,8 +1017,14 @@ Ext.define('Ext.chart.Chart', {
                 config.seriesIdx = idx;
                 config.themeIdx = themeIndex;
             }
-            Ext.applyIf(config, series);
-            series = me.series.replace(Ext.createByAlias('series.' + series.type.toLowerCase(), config));
+            
+            if (isInstance) {
+                Ext.applyIf(series, config);
+            }
+            else {
+                Ext.applyIf(config, series);
+                series = me.series.replace(Ext.createByAlias('series.' + series.type.toLowerCase(), config));
+            }
         }
 
         if (series.initialize) {

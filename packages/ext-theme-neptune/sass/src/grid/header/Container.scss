@@ -1,4 +1,4 @@
 .#{$prefix}grid-header-ct {
-    border: 1px solid $grid-header-border-color;
+    border: $grid-header-border-width $grid-header-border-style $grid-header-border-color;
 }
 

@@ -130,6 +130,10 @@ Ext.define('Ext.dom.Layer', {
                 pel.appendChild(me.dom);
             }
         }
+        
+        if (config.preventSync) {
+            me.preventSync = true;
+        }
 
         if (config.id) {
             me.id = me.dom.id = config.id;
@@ -253,6 +257,10 @@ Ext.define('Ext.dom.Layer', {
             shadow = me.shadow,
             shadowPos, shimStyle, shadowSize,
             shim, xy, x, y, w, h, shimIndex;
+            
+        if (me.preventSync) {
+            return;
+        }
 
         if (!me.updating &amp;&amp; me.isVisible() &amp;&amp; (shadow || me.useShim)) {
             shim = me.getShim();

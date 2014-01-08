@@ -16,9 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag foundation,core
+// @tag foundation,core
+// @define Ext
+
 /**
  * @class Ext
  * @singleton
@@ -30,7 +32,7 @@ Ext._startTime = new Date().getTime();
         objectPrototype = Object.prototype,
         toString = objectPrototype.toString,
         enumerables = true,
-        enumerablesTest = { toString: 1 },
+        enumerablesTest = {toString: 1},
         emptyFn = function () {},
         // This is the "$previous" method of a hook function on an instance. When called, it
         // calls through the class prototype by the name of the called method.
@@ -40,7 +42,8 @@ Ext._startTime = new Date().getTime();
         },
         i,
         nonWhitespaceRe = /\S/,
-        ExtApp;
+        ExtApp,
+        iterableRe = /\[object\s*(?:Array|Arguments|\w*Collection|\w*List|HTML\s+document\.all\s+class)\]/;
 
     Function.prototype.$extIsFunction = true;
 
@@ -584,26 +587,36 @@ Ext._startTime = new Date().getTime();
         },
 
         /**
-         * Returns true if the passed value is iterable, false otherwise
+         * Returns `true` if the passed value is iterable, that is, if elements of it are addressable using array
+         * notation with numeric indices, `false` otherwise.
+         *
+         * Arrays and function `arguments` objects are iterable. Also HTML collections such as `NodeList` and `HTMLCollection'
+         * are iterable.
+         *
          * @param {Object} value The value to test
          * @return {Boolean}
          */
         isIterable: function(value) {
-            var type = typeof value,
-                checkLength = false;
-            if (value && type != 'string') {
-                // Functions have a length property, so we need to filter them out
-                if (type == 'function') {
-                    // In Safari, NodeList/HTMLCollection both return "function" when using typeof, so we need
-                    // to explicitly check them here.
-                    if (Ext.isSafari) {
-                        checkLength = value instanceof NodeList || value instanceof HTMLCollection;
-                    }
-                } else {
-                    checkLength = true;
-                }
+            // To be iterable, the object must have a numeric length property and must not be a string or function.
+            if (!value || typeof value.length !== 'number' || typeof value === 'string' || value.$extIsFunction) {
+                return false;
             }
-            return checkLength ? value.length !== undefined : false;
+
+            // Certain "standard" collections in IE (such as document.images) do not offer the correct
+            // Javascript Object interface; specifically, they lack the propertyIsEnumerable method.
+            // And the item property while it does exist is not typeof "function"
+            if (!value.propertyIsEnumerable) {
+                return !!value.item;
+            }
+
+            // If it is a regular, interrogatable JS object (not an IE ActiveX object), then...
+            // If it has its own property called "length", but not enumerable, it's iterable
+            if (value.hasOwnProperty('length') && !value.propertyIsEnumerable('length')) {
+                return true;
+            }
+
+            // Test against whitelist which includes known iterable collection types
+            return iterableRe.test(toString.call(value));
         }
     });
 
@@ -665,7 +678,9 @@ Ext._startTime = new Date().getTime();
                 if (enumerables) {
                     for (j = enumerables.length; j--;) {
                         k = enumerables[j];
-                        clone[k] = item[k];
+                        if (item.hasOwnProperty(k)) {
+                            clone[k] = item[k];
+                        }
                     }
                 }
             }
@@ -860,8 +875,9 @@ Ext.globalEval = Ext.global.execScript
         }());
     };
 
-//@tag foundation,core
-//@require ../Ext.js
+// @tag foundation,core
+// @require ../Ext.js
+// @define Ext.Version
 
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
@@ -894,7 +910,7 @@ Ext.globalEval = Ext.global.execScript
 
 // Current core version
 // also fix Ext-more.js
-var version = '4.2.0.663', Version;
+var version = '4.2.1.883', Version;
     Ext.Version = Version = Ext.extend(Object, {
 
         /**
@@ -1238,8 +1254,9 @@ var version = '4.2.0.663', Version;
 
 }());
 
-//@tag foundation,core
-//@require ../version/Version.js
+// @tag foundation,core
+// @require ../version/Version.js
+// @define Ext.String
 
 /**
  * @class Ext.String
@@ -1668,9 +1685,9 @@ Ext.htmlDecode = Ext.String.htmlDecode;
  */
 Ext.urlAppend = Ext.String.urlAppend;
 
-//@tag foundation,core
-//@require String.js
-//@define Ext.Number
+// @tag foundation,core
+// @require String.js
+// @define Ext.Number
 
 /**
  * @class Ext.Number
@@ -1861,8 +1878,9 @@ Ext.Number = new function() {
     };
 };
 
-//@tag foundation,core
-//@require Number.js
+// @tag foundation,core
+// @require Number.js
+// @define Ext.Array
 
 /**
  * @class Ext.Array
@@ -3165,8 +3183,9 @@ Ext.Number = new function() {
     };
 }());
 
-//@tag foundation,core
-//@require Array.js
+// @tag foundation,core
+// @require Array.js
+// @define Ext.Function
 
 /**
  * @class Ext.Function
@@ -3540,11 +3559,11 @@ Ext.Function = {
     createThrottled: function(fn, interval, scope) {
         var lastCallTime, elapsed, lastArgs, timer, execute = function() {
             fn.apply(scope || this, lastArgs);
-            lastCallTime = new Date().getTime();
+            lastCallTime = Ext.Date.now();
         };
 
         return function() {
-            elapsed = new Date().getTime() - lastCallTime;
+            elapsed = Ext.Date.now() - lastCallTime;
             lastArgs = arguments;
 
             clearTimeout(timer);
@@ -3655,8 +3674,9 @@ Ext.pass = Ext.Function.alias(Ext.Function, 'pass');
  */
 Ext.bind = Ext.Function.alias(Ext.Function, 'bind');
 
-//@tag foundation,core
-//@require Function.js
+// @tag foundation,core
+// @require Function.js
+// @define Ext.Object
 
 /**
  * @class Ext.Object
@@ -4327,9 +4347,9 @@ Ext.urlDecode = function() {
 
 }());
 
-//@tag foundation,core
-//@require Object.js
-//@define Ext.Date
+// @tag foundation,core
+// @require Object.js
+// @define Ext.Date
 
 /**
  * @class Ext.Date
@@ -4458,7 +4478,7 @@ Ext.Date = new function() {
       MSFormatRe = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
       code = [
         // date calculations (note: the code below creates a dependency on Ext.Number.from())
-        "var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday,",
+        "var me = this, dt, y, m, d, h, i, s, ms, o, O, z, zz, u, v, W, year, jan4, week1monday, daysInMonth, dayMatched,",
             "def = me.defaults,",
             "from = Ext.Number.from,",
             "results = String(input).match(me.parseRegexes[{0}]);", // either null, or an array of matched strings
@@ -4476,7 +4496,26 @@ Ext.Date = new function() {
 
                 "y = from(y, from(def.y, dt.getFullYear()));",
                 "m = from(m, from(def.m - 1, dt.getMonth()));",
+                "dayMatched = d !== undefined;",
                 "d = from(d, from(def.d, dt.getDate()));",
+                
+                // Attempt to validate the day. Since it defaults to today, it may go out
+                // of range, for example parsing m/Y where the value is 02/2000 on the 31st of May.
+                // It will attempt to parse 2000/02/31, which will overflow to March and end up
+                // returning 03/2000. We only do this when we default the day. If an invalid day value
+                // was set to be parsed by the user, continue on and either let it overflow or return null
+                // depending on the strict value. This will be in line with the normal Date behaviour.
+                
+                "if (!dayMatched) {", 
+                    "dt.setDate(1);",
+                    "dt.setMonth(m);",
+                    "dt.setFullYear(y);",
+                
+                    "daysInMonth = me.getDaysInMonth(dt);",
+                    "if (d > daysInMonth) {",
+                        "d = daysInMonth;",
+                    "}",
+                "}",
 
                 "h  = from(h, from(def.h, dt.getHours()));",
                 "i  = from(i, from(def.i, dt.getMinutes()));",
@@ -4614,7 +4653,7 @@ Ext.Date = new function() {
      * @return {Number} The difference in milliseconds
      */
     getElapsed: function(dateA, dateB) {
-        return Math.abs(dateA - (dateB || new Date()));
+        return Math.abs(dateA - (dateB || utilDate.now()));
     },
 
     /**
@@ -5959,8 +5998,9 @@ Ext.Date = new function() {
   });
 };
 
-//@tag foundation,core
-//@require ../lang/Date.js
+// @tag foundation,core
+// @require ../lang/Date.js
+// @define Ext.Base
 
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
@@ -7146,8 +7186,9 @@ var noArgs = [],
 
 }(Ext.Function.flexSetter));
 
-//@tag foundation,core
-//@require Base.js
+// @tag foundation,core
+// @require Base.js
+// @define Ext.Class
 
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
@@ -7799,8 +7840,9 @@ var noArgs = [],
     };
 }());
 
-//@tag foundation,core
-//@require Class.js
+// @tag foundation,core
+// @require Class.js
+// @define Ext.ClassManager
 
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
@@ -8413,7 +8455,7 @@ var noArgs = [],
                     (nameToAlternates[className] = []);
 
                 for (i  = 0; i < alternates[className].length; i++) {
-                    alternate = alternates[className];
+                    alternate = alternates[className][i];
                     if (!alternateToName[alternate]) {
                         alternateToName[alternate] = className;
                         aliasList.push(alternate);
@@ -9302,6 +9344,71 @@ var noArgs = [],
             return Manager.create.apply(Manager, arguments);
         },
 
+        /**
+         * Undefines a class defined using the #define method. Typically used
+         * for unit testing where setting up and tearing down a class multiple
+         * times is required.  For example:
+         * 
+         *     // define a class
+         *     Ext.define('Foo', {
+         *        ...
+         *     });
+         *     
+         *     // run test
+         *     
+         *     // undefine the class
+         *     Ext.undefine('Foo');
+         * @param {String} className The class name to undefine in string dot-namespaced format.
+         * @private
+         */
+        undefine: function(className) {
+        
+            var classes = Manager.classes,
+                maps = Manager.maps,
+                aliasToName = maps.aliasToName,
+                nameToAliases = maps.nameToAliases,
+                alternateToName = maps.alternateToName,
+                nameToAlternates = maps.nameToAlternates,
+                aliases = nameToAliases[className],
+                alternates = nameToAlternates[className],
+                parts, partCount, namespace, i;
+
+            delete Manager.namespaceParseCache[className];
+            delete nameToAliases[className];
+            delete nameToAlternates[className];
+            delete classes[className];
+
+            if (aliases) {
+                for (i = aliases.length; i--;) {
+                    delete aliasToName[aliases[i]];
+                }
+            }
+
+            if (alternates) {
+                for (i = alternates.length; i--; ) {
+                    delete alternateToName[alternates[i]];
+                }
+            }
+
+            parts  = Manager.parseNamespace(className);
+            partCount = parts.length - 1;
+            namespace = parts[0];
+
+            for (i = 1; i < partCount; i++) {
+                namespace = namespace[parts[i]];
+                if (!namespace) {
+                    return;
+                }
+            }
+
+            // Old IE blows up on attempt to delete window property
+            try {
+                delete namespace[parts[partCount]];
+            }
+            catch (e) {
+                namespace[parts[partCount]] = undefined;
+            }
+        },
 
         /**
          * @inheritdoc Ext.ClassManager#getName
@@ -9471,9 +9578,9 @@ if (Ext._aliasMetadata) {
     Ext._aliasMetadata = null;
 }
 
-//@tag foundation,core
-//@require ClassManager.js
-//@define Ext.Loader
+// @tag foundation,core
+// @require ClassManager.js
+// @define Ext.Loader
 
 /**
  * @author Jacky Nguyen <jacky@sencha.com>
@@ -10837,7 +10944,8 @@ if (Ext._classPathMetadata) {
 
     Loader.setConfig({
         enabled: true,
-        disableCaching: true,
+        disableCaching:
+            true,
         paths: {
             'Ext': path + 'src'
         }
@@ -10851,8 +10959,9 @@ if (Ext._beforereadyhandler){
     Ext._beforereadyhandler();
 }
 
-//@tag foundation,core
-//@require ../class/Loader.js
+// @tag foundation,core
+// @require ../class/Loader.js
+// @define Ext.Error
 
 /**
  * @author Brian Moeskau <brian@sencha.com>

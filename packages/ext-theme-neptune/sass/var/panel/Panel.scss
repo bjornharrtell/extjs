@@ -30,3 +30,15 @@ $panel-light-tool-background-image: 'tools/tool-sprites-dark' !default;
 
 $panel-light-frame-border-color: $panel-light-header-background-color !default;
 $panel-include-border-management-rules: true !default;
+
+/**
+ * @var {boolean}
+ * True to include the "light" panel UI
+ */
+$include-panel-light-ui: $include-default-uis !default;
+
+/**
+ * @var {boolean}
+ * True to include the "light-framed" panel UI
+ */
+$include-panel-light-framed-ui: $include-default-uis !default;

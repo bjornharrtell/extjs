@@ -55,7 +55,7 @@ Ext.define('Ext.form.field.Display', {
     requires: ['Ext.util.Format', 'Ext.XTemplate'],
     alternateClassName: ['Ext.form.DisplayField', 'Ext.form.Display'],
 <span id='Ext-form-field-Display-cfg-fieldSubTpl'>    fieldSubTpl: [
-</span>        '&lt;div id=&quot;{id}&quot;',
+</span>        '&lt;div id=&quot;{id}&quot; role=&quot;input&quot; ',
         '&lt;tpl if=&quot;fieldStyle&quot;&gt; style=&quot;{fieldStyle}&quot;&lt;/tpl&gt;', 
         ' class=&quot;{fieldCls}&quot;&gt;{value}&lt;/div&gt;',
         {
@@ -64,12 +64,20 @@ Ext.define('Ext.form.field.Display', {
         }
     ],
 
+<span id='Ext-form-field-Display-cfg-readOnly'>    /**
+</span>     * @cfg {Boolean} readOnly
+     * @private
+     */
+    readOnly: true,
+
 <span id='Ext-form-field-Display-cfg-fieldCls'>    /**
 </span>     * @cfg {String} [fieldCls=&quot;x-form-display-field&quot;]
      * The default CSS class for the field.
      */
     fieldCls: Ext.baseCSSPrefix + 'form-display-field',
 
+<span id='Ext-form-field-Display-cfg-fieldBodyCls'>    fieldBodyCls: Ext.baseCSSPrefix + 'form-display-field-body',
+</span>
 <span id='Ext-form-field-Display-cfg-htmlEncode'>    /**
 </span>     * @cfg {Boolean} htmlEncode
      * True to escape HTML in text when rendering it.
@@ -87,6 +95,12 @@ Ext.define('Ext.form.field.Display', {
      * The scope to execute the {@link #renderer} function. Defaults to this.
      */
 
+    noWrap: false,
+    
+<span id='Ext-form-field-Display-cfg-validateOnChange'>    /**
+</span>     * @cfg {Boolean} validateOnChange
+     * @private
+     */
     validateOnChange: false,
 
 <span id='Ext-form-field-Display-method-initEvents'>    initEvents: Ext.emptyFn,
@@ -110,8 +124,7 @@ Ext.define('Ext.form.field.Display', {
     },
 
 <span id='Ext-form-field-Display-method-setRawValue'>    setRawValue: function(value) {
-</span>        var me = this,
-            display;
+</span>        var me = this;
             
         value = Ext.value(value, '');
         me.rawValue = value;
@@ -152,14 +165,6 @@ Ext.define('Ext.form.field.Display', {
      */
 <span id='Ext-form-field-Display-cfg-disabled'>    /**
 </span>     * @cfg {Boolean} disabled
-     * @private
-     */
-<span id='Ext-form-field-Display-cfg-readOnly'>    /**
-</span>     * @cfg {Boolean} readOnly
-     * @private
-     */
-<span id='Ext-form-field-Display-cfg-validateOnChange'>    /**
-</span>     * @cfg {Boolean} validateOnChange
      * @private
      */
 <span id='Ext-form-field-Display-cfg-checkChangeEvents'>    /**

@@ -91,9 +91,6 @@ Ext.define('Ext.grid.feature.RowBody', {
             var view = values.view,
                 rowValues = view.rowValues;
 
-            if (!rowValues.visibleColumns) {
-                rowValues.visibleColumns = view.headerCt.getVisibleGridColumns();
-            }
             this.rowBody.setup(values.rows, rowValues);
         },
         after: function(values, out) {
@@ -212,7 +209,7 @@ Ext.define('Ext.grid.feature.RowBody', {
 <span id='Ext-grid-feature-RowBody-method-onColumnsChanged'>    // When columns added/removed, keep row body colspan in sync with number of columns.
 </span>    onColumnsChanged: function(headerCt) {
         var items = this.view.el.query(this.rowBodyTdSelector),
-            colspan = headerCt.getGridColumns().length,
+            colspan = headerCt.getVisibleGridColumns().length,
             len = items.length,
             i;
 

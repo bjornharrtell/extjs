@@ -25,7 +25,7 @@
     // of right and left TD elements switched.
     rtlFrameTableTpl: [
         '{%this.renderDockedItems(out,values,0);%}',
-        '&lt;table class=&quot;', Ext.baseCSSPrefix, 'table-plain', '&quot; cellpadding=&quot;0&quot;&gt;&lt;tbody&gt;',
+        '&lt;table class=&quot;', Ext.plainTableCls, '&quot; cellpadding=&quot;0&quot;&gt;&lt;tbody&gt;',
             '&lt;tpl if=&quot;top&quot;&gt;',
                 '&lt;tr&gt;',
                     '&lt;tpl if=&quot;right&quot;&gt;&lt;td id=&quot;{fgid}TR&quot; class=&quot;{frameCls}-tr {baseCls}-tr {baseCls}-{ui}-tr&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-{parent.ui}-{.}-tr&lt;/tpl&gt;{frameElCls}&quot; role=&quot;presentation&quot;&gt;&lt;/td&gt;&lt;/tpl&gt;',

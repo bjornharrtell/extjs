@@ -31,6 +31,9 @@ Ext.onReady(function(){
             }
         };
     }();
+    
+    // Reset the disabled state on the buttons because firefox will retain the state
+    // between page refreshes
 
     //==== Progress bar 1 ====
     var pbar1 = Ext.create('Ext.ProgressBar', {
@@ -38,6 +41,8 @@ Ext.onReady(function(){
     });
 
     var btn1 = Ext.get('btn1');
+    btn1.dom.disabled = false;
+    
     btn1.on('click', function() {
         Ext.fly('p1text').update('Working');
         if (!pbar1.rendered) {
@@ -61,7 +66,8 @@ Ext.onReady(function(){
     });
 
     var btn2 = Ext.get('btn2');
-
+    btn2.dom.disabled = false;
+    
     btn2.on('click', function() {
         Runner.run(pbar2, btn2, 12, function() {
             pbar2.reset();
@@ -83,6 +89,7 @@ Ext.onReady(function(){
     });
 
     var btn3 = Ext.get('btn3');
+    btn3.dom.disabled = false;
 
     btn3.on('click', function(){
         Ext.fly('p3text').update('Working');
@@ -108,6 +115,7 @@ Ext.onReady(function(){
     });
 
     var btn4 = Ext.get('btn4');
+    btn4.dom.disabled = false;
 
     btn4.on('click', function() {
         Runner.run(pbar4, btn4, 19, function() {

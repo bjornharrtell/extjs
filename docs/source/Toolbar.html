@@ -431,6 +431,7 @@ Ext.define('Ext.toolbar.Toolbar', {
             component.ui = me.defaultButtonUI;
         } else if ((isButton || component.isFormField) &amp;&amp; me.ui !== 'footer') {
             component.ui = component.ui + '-toolbar';
+            component.addCls(component.baseCls + '-toolbar');
         }
 
         // Any separators needs to know if is vertical or not

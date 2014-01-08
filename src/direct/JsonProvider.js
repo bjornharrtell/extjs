@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A base provider for communicating using JSON. This is an abstract class
@@ -101,6 +101,14 @@ Ext.define('Ext.direct.JsonProvider', {
      * @return {Ext.direct.Event} The event
      */
     createEvent: function(response) {
+        if (typeof response !== 'object'|| !('type' in response)) {
+            return new Ext.direct.ExceptionEvent({
+                data: response,
+                code: Ext.direct.Manager.exceptions.DATA,
+                message: 'Invalid data: event type is not specified'
+            });
+        }
+    
         return Ext.create('direct.' + response.type, response);
     }
 });

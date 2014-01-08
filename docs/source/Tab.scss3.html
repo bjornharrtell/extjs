@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tab-Tab'>/**
+</span> * @class Ext.tab.Tab
+ */
+
+<span id='Ext-tab-Tab-css_var-S-tab-base-color'>/**
+</span> * @var {color}
+ * The base color of Tabs
+ */
+$tab-base-color: $base-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-base-color-over'>/**
+</span> * @var {color}
+ * The base color of hovered Tabs
+ */
+$tab-base-color-over: $tab-base-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-base-color-active'>/**
+</span> * @var {color}
+ * The base color of the active Tabs
+ */
+$tab-base-color-active: $tab-base-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-base-color-disabled'>/**
+</span> * @var {color}
+ * The base color of disabled Tabs
+ */
+$tab-base-color-disabled: $tab-base-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-color'>/**
+</span> * @var {color}
+ * The text color of Tabs
+ */
+$tab-color: $color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-color-over'>/**
+</span> * @var {color}
+ * The text color of hovered Tabs
+ */
+$tab-color-over: $tab-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-color-active'>/**
+</span> * @var {color}
+ * The text color of the active Tab
+ */
+$tab-color-active: $tab-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-color-disabled'>/**
+</span> * @var {color}
+ * The text color of disabled Tabs
+ */
+$tab-color-disabled: $tab-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-size'>/**
+</span> * @var {number}
+ * The font-size of Tabs
+ */
+$tab-font-size: $font-size !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-size-over'>/**
+</span> * @var {number}
+ * The font-size of hovered Tabs
+ */
+$tab-font-size-over: $tab-font-size !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-size-active'>/**
+</span> * @var {number}
+ * The font-size of the active Tab
+ */
+$tab-font-size-active: $tab-font-size !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-size-disabled'>/**
+</span> * @var {number}
+ * The font-size of disabled Tabs
+ */
+$tab-font-size-disabled: $tab-font-size !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-family'>/**
+</span> * @var {string}
+ * The font-family of Tabs
+ */
+$tab-font-family: $font-family !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-family-over'>/**
+</span> * @var {string}
+ * The font-family of hovered Tabs
+ */
+$tab-font-family-over: $tab-font-family !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-family-active'>/**
+</span> * @var {string}
+ * The font-family of the active Tab
+ */
+$tab-font-family-active: $tab-font-family !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-family-disabled'>/**
+</span> * @var {string}
+ * The font-family of disabled Tabs
+ */
+$tab-font-family-disabled: $tab-font-family !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of Tabs
+ */
+$tab-font-weight: bold !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-weight-over'>/**
+</span> * @var {string}
+ * The font-weight of hovered Tabs
+ */
+$tab-font-weight-over: $tab-font-weight !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-weight-active'>/**
+</span> * @var {string}
+ * The font-weight of the active Tab
+ */
+$tab-font-weight-active: $tab-font-weight !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-font-weight-disabled'>/**
+</span> * @var {string}
+ * The font-weight of disabled Tabs
+ */
+$tab-font-weight-disabled: $tab-font-weight !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-cursor'>/**
+</span> * @var {string}
+ * The Tab cursor
+ */
+$tab-cursor: pointer !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-cursor-disabled'>/**
+</span> * @var {string}
+ * The cursor of disabled Tabs
+ */
+$tab-cursor-disabled: default !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-background-gradient'>/**
+</span> * @var {string/list}
+ * The background-gradient for Tabs. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ */
+$tab-background-gradient: 'tab' !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-background-gradient-over'>/**
+</span> * @var {string/list}
+ * The background-gradient for hovered Tabs. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ */
+$tab-background-gradient-over: 'tab-over' !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-background-gradient-active'>/**
+</span> * @var {string/list}
+ * The background-gradient for the active Tab. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ */
+$tab-background-gradient-active: 'tab-active' !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-background-gradient-disabled'>/**
+</span> * @var {string/list}
+ * The background-gradient for disabled Tabs. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ */
+$tab-background-gradient-disabled: 'tab-disabled' !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-radius'>/**
+</span> * @var {list}
+ * The border-radius of Tabs
+ */
+$tab-border-radius: 4px 4px 0 0 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-width'>/**
+</span> * @var {number}
+ * The border-width of Tabs
+ */
+$tab-border-width: 1px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-inner-border-width'>/**
+</span> * @var {number/list}
+ * The inner border-width of Tabs
+ */
+$tab-inner-border-width: 1px 1px 0 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-inner-border-color'>/**
+</span> * @var {color}
+ * The inner border-color of Tabs
+ */
+$tab-inner-border-color: #fff !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-color'>/**
+</span> * @var {color}
+ * The border-color of Tabs
+ */
+$tab-border-color: $base-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-color-over'>/**
+</span> * @var {color}
+ * The border-color of hovered Tabs
+ */
+$tab-border-color-over: $tab-border-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-color-active'>/**
+</span> * @var {color}
+ * The border-color of the active Tab
+ */
+$tab-border-color-active: $tab-border-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-border-color-disabled'>/**
+</span> * @var {color}
+ * The border-color of disabled Tabs
+ */
+$tab-border-color-disabled: $tab-border-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-padding'>/**
+</span> * @var {number/list}
+ * The padding of Tabs
+ */
+$tab-padding: 3px 9px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-text-padding'>/**
+</span> * @var {number/list}
+ * The padding of the Tab's text element
+ */
+$tab-text-padding: 0 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-line-height'>/**
+</span> * @var {number}
+ * The line-height of Tabs
+ */
+$tab-line-height: 13px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-margin'>/**
+</span> * @var {number/list}
+ * The margin of Tabs. Typically used to add horizontal space between the tabs.
+ */
+$tab-margin: 0 0 0 2px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-width'>/**
+</span> * @var {number}
+ * The width of the Tab close icon
+ */
+$tab-closable-icon-width: 11px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-height'>/**
+</span> * @var {number}
+ * The height of the Tab close icon
+ */
+$tab-closable-icon-height: 11px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-top'>/**
+</span> * @var {number}
+ * The distance to offset the Tab close icon from the top of the tab
+ */
+$tab-closable-icon-top: 2px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-right'>/**
+</span> * @var {number}
+ * The distance to offset the Tab close icon from the right of the tab
+ */
+$tab-closable-icon-right: 2px !default;
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-spacing'>/**
+</span> * @var {number}
+ * the space in between the text and the close button
+ */
+$tab-closable-icon-spacing: 3px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-opacity'>/**
+</span> * @var {number}
+ * The opacity of the Tab close icon
+ */
+$tab-closable-icon-opacity: 1 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-opacity-over'>/**
+</span> * @var {number}
+ * The opacity of the Tab close icon when hovered
+ */
+$tab-closable-icon-opacity-over: 1 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-opacity-disabled'>/**
+</span> * @var {number}
+ * The opacity of the Tab close icon when the Tab is disabled
+ */
+$tab-closable-icon-opacity-disabled: 1 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-include-hover-background-position'>/**
+</span> * @var {boolean}
+ * True to change the x background-postition of the close icon background image on hover
+ * to allow for a horizontally aligned background image sprite
+ */
+$tab-closable-icon-include-hover-background-position: false !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-closable-icon-include-pressed-background-position'>/**
+</span> * @var {boolean}
+ * True to change the x background-postition of the close icon background image on click
+ * to allow for a horizontally aligned background image sprite
+ */
+$tab-closable-icon-include-pressed-background-position: false !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-icon-width'>/**
+</span> * @var {number}
+ * The width of Tab icons
+ */
+$tab-icon-width: 16px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-icon-height'>/**
+</span> * @var {number}
+ * The height of Tab icons
+ */
+$tab-icon-height: 16px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-icon-spacing'>/**
+</span> * @var {number}
+ * The space between the Tab icon and the Tab text
+ */
+$tab-icon-spacing: 4px !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-icon-background-position'>/**
+</span> * @var {number}
+ * The background-position of Tab icons
+ */
+$tab-icon-background-position: center center !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-color'>/**
+</span> * @var {color}
+ * The color of Tab glyph icons
+ */
+$tab-glyph-color: $tab-color !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-color-over'>/**
+</span> * @var {color}
+ * The color of a Tab glyph icon when the Tab is hovered
+ */
+$tab-glyph-color-over: $tab-color-over !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-color-active'>/**
+</span> * @var {color}
+ * The color of a Tab glyph icon when the Tab is active
+ */
+$tab-glyph-color-active: $tab-color-active !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-color-disabled'>/**
+</span> * @var {color}
+ * The color of a Tab glyph icon when the Tab is disabled
+ */
+$tab-glyph-color-disabled: $tab-color-disabled !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-opacity'>/**
+</span> * @var {number}
+ * The opacity of a Tab glyph icon
+ */
+$tab-glyph-opacity: .5 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-glyph-opacity-disabled'>/**
+</span> * @var {number}
+ * The opacity of a Tab glyph icon when the Tab is disabled
+ */
+$tab-glyph-opacity-disabled: .3 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-opacity-disabled'>/**
+</span> * @var {number}
+ * opacity to apply to the tab's main element when the tab is disabled
+ */
+$tab-opacity-disabled: 1 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-text-opacity-disabled'>/**
+</span> * @var {number}
+ * opacity to apply to the tab's text element when the tab is disabled
+ */
+$tab-text-opacity-disabled: .3 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-icon-opacity-disabled'>/**
+</span> * @var {number}
+ * opacity to apply to the tab's icon element when the tab is disabled
+ */
+$tab-icon-opacity-disabled: .5 !default;
+
+<span id='Ext-tab-Tab-css_var-S-tab-left-rotate-direction'>/**
+</span> * @var {string}
+ * Experimental - Has issues with IE
+ * The direction to rotate the contents of a left-aligned tab.  `right` to rotate
+ * clockwise or `left` to rotate counterclockwise. Defaults to `left`.
+ */
+$tab-left-rotate-direction: 'left';
+
+<span id='Ext-tab-Tab-css_var-S-tab-right-rotate-direction'>/**
+</span> * @var {string}
+ * Experimental - Has issues with IE
+ * The direction to rotate the contents of a right-aligned tab.  `right` to rotate
+ * clockwise or `left` to rotate counterclockwise. Defaults to `right`.
+ */
+$tab-right-rotate-direction: 'right';
+
+<span id='Ext-tab-Tab-css_var-S-include-tab-default-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; tab UI
+ */
+$include-tab-default-ui: $include-default-uis !default;
+</pre>
+</body>
+</html>

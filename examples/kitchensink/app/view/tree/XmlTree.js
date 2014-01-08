@@ -25,10 +25,12 @@ Ext.define('KitchenSink.view.tree.XmlTree', {
                 proxy: {
                     type: 'ajax',
                     url: 'resources/data/tree/get-nodes.php',
+                    //<example>
                     extraParams: {
-                        path: 'extjs',
+                        path: Ext.repoDevMode ? '' : 'extjs',
                         isXml: true
                     },
+                    //</example>
                     reader: {
                         type: 'xml',
                         root: 'nodes',

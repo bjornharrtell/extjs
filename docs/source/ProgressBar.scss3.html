@@ -15,25 +15,88 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">$progress-height: 20px !default;
+  <pre class="prettyprint lang-js"><span id='Ext-ProgressBar'>/**
+</span> * @class Ext.ProgressBar
+ */
 
-//borders
+<span id='Ext-ProgressBar-css_var-S-progress-height'>/**
+</span> * @var {number}
+ * The height of the ProgressBar
+ */
+$progress-height: 20px !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-border-color'>/**
+</span> * @var {color}
+ * The border-color of the ProgressBar
+ */
 $progress-border-color: $base-color !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-border-width'>/**
+</span> * @var {number}
+ * The border-width of the ProgressBar
+ */
 $progress-border-width: 1px !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-border-radius'>/**
+</span> * @var {number}
+ * The border-radius of the ProgressBar
+ */
 $progress-border-radius: 0 !default;
 
-//backgrounds
+<span id='Ext-ProgressBar-css_var-S-progress-background-color'>/**
+</span> * @var {color}
+ * The background-color of the ProgressBar
+ */
 $progress-background-color: $base-color !default;
 
-//bar
+<span id='Ext-ProgressBar-css_var-S-progress-bar-background-color'>/**
+</span> * @var {color}
+ * The background-color of the ProgressBar's moving element
+ */
 $progress-bar-background-color: $base-color !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-bar-background-gradient'>/**
+</span> * @var {string/list}
+ * The background-gradient of the ProgressBar's moving element. Can be either the name of
+ * a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
 $progress-bar-background-gradient: null !default;
 
-//text
+<span id='Ext-ProgressBar-css_var-S-progress-text-color-front'>/**
+</span> * @var {color}
+ * The color of the ProgressBar's text when in front of the ProgressBar's moving element
+ */
 $progress-text-color-front: #fff !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-text-color-back'>/**
+</span> * @var {color}
+ * The color of the ProgressBar's text when the ProgressBar's 'moving element is not under it
+ */
 $progress-text-color-back: #000 !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-text-text-align'>/**
+</span> * @var {string}
+ * The text-align of the ProgressBar's text
+ */
 $progress-text-text-align: center !default;
+
+<span id='Ext-ProgressBar-css_var-S-progress-text-font-size'>/**
+</span> * @var {number}
+ * The font-size of the ProgressBar's text
+ */
 $progress-text-font-size: $font-size !default;
-$progress-text-font-weight: bold !default;</pre>
+
+<span id='Ext-ProgressBar-css_var-S-progress-text-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of the ProgressBar's text
+ */
+$progress-text-font-weight: bold !default;
+
+<span id='Ext-ProgressBar-css_var-S-include-progress-default-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; ProgressBar UI
+ */
+$include-progress-default-ui: $include-default-uis !default;</pre>
 </body>
 </html>

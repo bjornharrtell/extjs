@@ -421,6 +421,22 @@ Ext.define('Ext.layout.container.Container', {
         } while (items.generation !== itemsGen);
         return result;
     },
+    
+<span id='Ext-layout-container-Container-method-renderChildren'>    renderChildren: function () {
+</span>        var me = this,
+            ownerItems = me.owner.items,
+            target = me.getRenderTarget(),
+            itemsGen, items;
+            
+        // During the render phase, new items may be added. Specifically, a panel will
+        // create a placeholder component during render if required, so we need to catch
+        // it here so we can render it.
+        do {
+            itemsGen = ownerItems.generation;
+            items = me.getLayoutItems();
+            me.renderItems(items, target);
+        } while (ownerItems.generation !== itemsGen);
+    },
 
 <span id='Ext-layout-container-Container-method-getScrollbarsNeeded'>    getScrollbarsNeeded: function (width, height, contentWidth, contentHeight) {
 </span>        var scrollbarSize = Ext.getScrollbarSize(),

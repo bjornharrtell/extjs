@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  *
@@ -36,16 +36,10 @@ Ext.define('Ext.form.field.FileButton', {
     preventDefault: false,
 
     renderTpl: [
-        '<div id="{id}-btnWrap" class="{baseCls}-wrap',
+        '<span id="{id}-btnWrap" class="{baseCls}-wrap',
             '<tpl if="splitCls"> {splitCls}</tpl>',
             '{childElCls}" unselectable="on">',
-            '<a id="{id}-btnEl" class="{baseCls}-button" role="button" hidefocus="on" unselectable="on"',
-
-                // If developer specified their own tabIndex...
-                '<tpl if="tabIndex != null>',
-                    ' tabIndex="{tabIndex}"',
-                '</tpl>',
-            '>',
+            '<span id="{id}-btnEl" class="{baseCls}-button">',
                 '<span id="{id}-btnInnerEl" class="{baseCls}-inner {innerCls}',
                     '{childElCls}" unselectable="on">',
                     '{text}',
@@ -56,9 +50,9 @@ Ext.define('Ext.form.field.FileButton', {
                     '<tpl if="glyph && glyphFontFamily">font-family:{glyphFontFamily};</tpl>">',
                     '<tpl if="glyph">&#{glyph};</tpl><tpl if="iconCls || iconUrl">&#160;</tpl>',
                 '</span>',
-            '</a>',
-        '</div>',
-        '<input id="{id}-fileInputEl" class="{inputCls}" type="file" size="1" name="{inputName}">'
+            '</span>',
+        '</span>',
+        '<input id="{id}-fileInputEl" class="{childElCls} {inputCls}" type="file" size="1" name="{inputName}">'
     ],
     
     getTemplateArgs: function(){

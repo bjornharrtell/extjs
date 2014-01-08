@@ -16,9 +16,9 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
+// @tag dom,core
 /* ================================
  * A Note About Wrapped Animations
  * ================================
@@ -169,7 +169,7 @@ Ext.define('Ext.dom.Element_anim', {
     /**
      * Slides the element into view. An anchor point can be optionally passed to set the point of origin for the slide
      * effect. This function automatically handles wrapping the element with a fixed-size container if needed. See the
-     * Fx class overview for valid anchor point options. Usage:
+     * {@link Ext.fx.Anim} class overview for valid anchor point options. Usage:
      *
      *     // default: slide the element in from the top
      *     el.slideIn();
@@ -183,8 +183,8 @@ Ext.define('Ext.dom.Element_anim', {
      *         duration: 500
      *     });
      *
-     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {String} anchor (optional) One of the valid {@link Ext.fx.Anim} anchor positions (defaults to top: 't')
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @param {Boolean} options.preserveScroll Set to true if preservation of any descendant elements'
      * `scrollTop` values is required. By default the DOM wrapping operation performed by `slideIn` and
      * `slideOut` causes the browser to lose all scroll positions.
@@ -440,7 +440,7 @@ Ext.define('Ext.dom.Element_anim', {
      * effect. When the effect is completed, the element will be hidden (visibility = 'hidden') but block elements will
      * still take up space in the document. The element must be removed from the DOM using the 'remove' config option if
      * desired. This function automatically handles wrapping the element with a fixed-size container if needed. See the
-     * Fx class overview for valid anchor point options. Usage:
+     * {@link Ext.fx.Anim} class overview for valid anchor point options. Usage:
      *
      *     // default: slide the element out to the top
      *     el.slideOut();
@@ -456,8 +456,8 @@ Ext.define('Ext.dom.Element_anim', {
      *         useDisplay: false
      *     });
      *
-     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to top: 't')
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {String} anchor (optional) One of the valid {@link Ext.fx.Anim} anchor positions (defaults to top: 't')
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     slideOut: function(anchor, o) {
@@ -478,7 +478,7 @@ Ext.define('Ext.dom.Element_anim', {
      *         useDisplay: false
      *     });
      *
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     puff: function(obj) {
@@ -550,7 +550,7 @@ Ext.define('Ext.dom.Element_anim', {
      *         useDisplay: false
      *     });
      *
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     switchOff: function(obj) {
@@ -616,7 +616,9 @@ Ext.define('Ext.dom.Element_anim', {
                 beforeanimate: {
                     fn: beforeAnim
                 }
-            }
+            },
+            callback: obj.callback,
+            scope: obj.scope
         });
         return me;
     },
@@ -638,7 +640,7 @@ Ext.define('Ext.dom.Element_anim', {
      *
      * @param {String} [color='#C3DAF9'] The hex color value for the border.
      * @param {Number} [count=1] The number of ripples to display.
-     * @param {Object} [options] Object literal with any of the Fx config options
+     * @param {Object} [options] Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     frame : function(color, count, obj){
@@ -703,7 +705,9 @@ Ext.define('Ext.dom.Element_anim', {
                 beforeanimate: {
                     fn: beforeAnim
                 }
-            }
+            },
+            callback: obj.callback,
+            scope: obj.scope
         });
         return me;
     },
@@ -724,8 +728,8 @@ Ext.define('Ext.dom.Element_anim', {
      *         duration: 500
      *     });
      *
-     * @param {String} anchor (optional) One of the valid Fx anchor positions (defaults to bottom: 'b')
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {String} anchor (optional) One of the valid {@link Ext.fx.Anim} anchor positions (defaults to bottom: 'b')
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     ghost: function(anchor, obj) {
@@ -815,7 +819,7 @@ Ext.define('Ext.dom.Element_anim', {
      *
      * @param {String} color (optional) The highlight color. Should be a 6 char hex color without the leading #
      * (defaults to yellow: 'ffff9c')
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.dom.Element} The Element
      */
     highlight: function(color, o) {
@@ -913,7 +917,7 @@ Ext.define('Ext.dom.Element_anim', {
      *         duration: 500
      *     });
      *
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.Element} The Element
      */
     fadeIn: function(o) {
@@ -958,7 +962,7 @@ Ext.define('Ext.dom.Element_anim', {
      *         useDisplay: false
      *     });
      *
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.Element} The Element
      */
     fadeOut: function(o) {
@@ -1004,7 +1008,7 @@ Ext.define('Ext.dom.Element_anim', {
      * @deprecated 4.0 Just use {@link #animate} instead.
      * @param {Number} width The new width (pass undefined to keep the original width)
      * @param {Number} height The new height (pass undefined to keep the original height)
-     * @param {Object} options (optional) Object literal with any of the Fx config options
+     * @param {Object} options (optional) Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.Element} The Element
      */
     scale: function(w, h, o) {
@@ -1036,7 +1040,7 @@ Ext.define('Ext.dom.Element_anim', {
      *     });
      *
      * @deprecated 4.0 Just use {@link #animate} instead.
-     * @param {Object} options Object literal with any of the Fx config options
+     * @param {Object} options Object literal with any of the {@link Ext.fx.Anim} config options
      * @return {Ext.Element} The Element
      */
     shift: function(config) {

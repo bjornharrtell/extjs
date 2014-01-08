@@ -15,9 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag foundation,core
-//@require ClassManager.js
-//@define Ext.Loader
+  <pre class="prettyprint lang-js">// @tag foundation,core
+// @require ClassManager.js
+// @define Ext.Loader
 
 <span id='Ext-Loader'>/**
 </span> * @author Jacky Nguyen &lt;jacky@sencha.com&gt;
@@ -1541,7 +1541,12 @@ if (Ext._classPathMetadata) {
 
     Loader.setConfig({
         enabled: true,
-        disableCaching: true,
+        disableCaching:
+            //&lt;debug&gt;
+            (/[?&amp;](?:cache|disableCacheBuster)\b/i.test(location.search) ||
+             /(^|[ ;])ext-cache=1/.test(document.cookie)) ? false : 
+            //&lt;/debug&gt;
+            true,
         paths: {
             'Ext': path + 'src'
         }

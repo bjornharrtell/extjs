@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This layout implements the column arrangement for {@link Ext.form.CheckboxGroup} and {@link Ext.form.RadioGroup}.
@@ -45,7 +45,7 @@ Ext.define('Ext.layout.container.CheckboxGroup', {
     ],
 
     renderTpl: [
-        '<table id="{ownerId}-innerCt" class="' + Ext.baseCSSPrefix + 'table-plain" cellpadding="0"',
+        '<table id="{ownerId}-innerCt" class="' + Ext.plainTableCls + '" cellpadding="0"',
             'role="presentation" style="{tableStyle}"><tbody><tr>',
             '<tpl for="columns">',
                 '<td class="{parent.colCls}" valign="top" style="{style}">',

@@ -182,7 +182,8 @@ Ext.define('Ext.data.proxy.Memory', {
 
             // Remotely, groupers just mean top priority sorters
             if (groupers &amp;&amp; groupers.length) {
-                Ext.Array.insert(sorters||[], 0, groupers);
+                // Must concat so as not to mutate passed sorters array which could be the items property of the sorters collection
+                sorters = sorters ? sorters.concat(groupers) : sorters;
             }
 
             // Sort by the specified groupers and sorters

@@ -107,6 +107,15 @@ img {
     width: 0 !important;
 }
 
+// A hide method which is still accessible to screen readers
+.#{$prefix}hide-clip {
+    position: absolute!important;
+    clip: rect(0,0,0,0);
+
+    // IE6 and IE7 use space separators
+    clip: rect(0 0 0 0);
+}
+
 .#{$prefix}masked-relative {
     position: relative;
 }

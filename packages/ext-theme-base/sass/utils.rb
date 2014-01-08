@@ -65,32 +65,12 @@ module ExtJS
           map[k] = value
         end
         
-        # Returns a background-image property for a specified images for the theme
-        def theme_image(path, relative = false)
-          path = path.value
-          
-          relative_path = "images/"
-          
-          if relative
-            if relative.class == Sass::Script::String
-              relative_path = relative.value
-              relative = true
-            elsif relative.class == FalseClass || relative.class == TrueClass
-              relative = relative
-            else
-              relative = relative.value
-            end
-          else
-            relative = false
-          end
-          
-          if relative
-            image_path = File.join(relative_path, path)
-          else
-            image_path = File.join('images', path)
-          end
-          
-          Sass::Script::String.new(image_path)
+        # Joins 2 file paths using the path separator
+        def file_join(path1, path2)
+          path1 = path1.value
+          path2 = path2.value
+          path = path1.empty? ? path2 : File.join(path1, path2)
+          Sass::Script::String.new(path)
         end
 
         def theme_image_exists(directory, path)

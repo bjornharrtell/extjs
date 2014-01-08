@@ -16,58 +16,19 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 Ext.define('Ext.rtl.layout.container.boxOverflow.Scroller', {
     override: 'Ext.layout.container.boxOverflow.Scroller',
-    
-    scrollLeft: function(internal) {
-        var me = this,
-            layout = me.layout;
-        
-        if (layout.direction === 'horizontal' && layout.owner.getHierarchyState().rtl) {
-            if (internal) {
-                me.scrollBy(me.scrollIncrement, false);
-            } else {
-                me.scrollRight(true);
-            }
-        } else {
-            me.callParent();
-        }
-    },
 
-    scrollRight: function(internal) {
-        var me = this,
-            layout = me.layout;
-        
+    getWheelDelta: function(e) {
+        var layout = this.layout,
+            delta = e.getWheelDelta();
+
         if (layout.direction === 'horizontal' && layout.owner.getHierarchyState().rtl) {
-            if (internal) {
-                me.scrollBy(-me.scrollIncrement, false);
-            } else {
-                me.scrollLeft(true);
-            }
-        } else {
-            me.callParent();
+            delta = -delta;
         }
-    },
-    
-    atExtremeBefore: function(internal) {
-        var layout = this.layout;
-        
-        if (!internal && layout.direction === 'horizontal' && layout.owner.getHierarchyState().rtl) {
-            return this.atExtremeAfter(true);
-        } else {
-            return this.callParent();
-        }
-    },
-    
-    atExtremeAfter: function(internal) {
-        var layout = this.layout;
-        
-        if (!internal && layout.direction === 'horizontal' && layout.owner.getHierarchyState().rtl) {
-            return this.atExtremeBefore(true);
-        } else {
-            return this.callParent();
-        }
+
+        return delta;
     }
 });

@@ -15,8 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag dom,core
-//@require Ext.Supports
+  <pre class="prettyprint lang-js">// @tag dom,core
+// @require Ext.Supports
 
 <span id='Ext-dom-AbstractElement'>/**
 </span> * @private
@@ -42,6 +42,12 @@ Ext.define('Ext.dom.AbstractElement', {
          *
          * **This method does not retrieve {@link Ext.Component Component}s.** This method retrieves Ext.dom.Element
          * objects which encapsulate DOM elements. To retrieve a Component by its ID, use {@link Ext.ComponentManager#get}.
+         * 
+         * When passing an id, it should not include the `#` character that is used for a css selector.
+         * 
+         *     // For an element with id 'foo'
+         *     Ext.get('foo'); // Correct
+         *     Ext.get('#foo'); // Incorrect
          *
          * Uses simple caching to consistently return the same object. Automatically fixes if an object was recreated with
          * the same id via AJAX or DOM.

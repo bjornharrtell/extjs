@@ -4,7 +4,10 @@ Ext.define('KitchenSink.view.CodePreview', {
     title: 'Code Preview',
     autoScroll: true,
     cls: 'preview-container',
-    
+
+    // The code must be read in LTR
+    rtl: false,
+
     tools: [{
         type: 'maximize',
         tooltip: 'Maximize example code content'    

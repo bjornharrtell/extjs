@@ -1,51 +1,30 @@
-.#{$prefix}grid-row .#{$prefix}grid-cell-row-checker {
-    vertical-align: middle;
-}
-
-.#{$prefix}column-header-checkbox .#{$prefix}column-header-inner {
-    padding: 0;
-    line-height: 0;
-    font-size: 0;
+.#{$prefix}column-header-checkbox {
+    border-color: $grid-header-background-color;
 }
 
 .#{$prefix}grid-row-checker,
 .#{$prefix}column-header-checkbox .#{$prefix}column-header-text {
     height: $form-checkbox-size;
     width: $form-checkbox-size;
-    line-height: 0;
-    font-size: 0;
     background-image: theme-background-image($form-checkbox-image);
-    background-repeat: no-repeat;
-    background-color: transparent;
+    // IE6, IE7, and all IE Quirks mode need line-height to be the same as checkbox height
+    // or the header/row height will be too tall
+    line-height: $form-checkbox-size;
 }
 
-// Row checker is a div but column header checker is the text span element, so make it display: block
-// Header checkbox element needs centering
-.#{$prefix}column-header-checkbox .#{$prefix}column-header-text {
-    display: block;
-    margin-left: 5px;
-}
-
-@if $include-rtl {
-    .#{$prefix}column-header-checkbox .#{$prefix}rtl.#{$prefix}column-header-text {
-        margin-left: auto;
-        margin-right: 4px;
-    }
-}
-
-@if $include-ie or $compile-all {
-    /* IE6, IE7, and all IE Quirks mode need line-height to be the same as checkbox height or the header/row height will be too tall */
-    .#{$prefix}quirks .#{$prefix}ie, .#{$prefix}ie7m {
-        .#{$prefix}grid-row-checker,
-        .#{$prefix}column-header-checkbox .#{$prefix}column-header-text {
-            line-height: $form-checkbox-size;
-        }
-    }
+.#{$prefix}column-header-checkbox .#{$prefix}column-header-inner {
+    padding: $checkbox-selection-model-column-header-padding;
 }
 
 .#{$prefix}grid-cell-row-checker .#{$prefix}grid-cell-inner {
-    padding: 3px 5px;
-    line-height: $grid-row-height - 6;
+    padding: $checkbox-selection-model-cell-padding;
+
+    @if $grid-no-row-lines-show-focus-border {
+        .#{$prefix}grid-no-row-lines .#{$prefix}grid-row-focused & {
+            padding-top: top($checkbox-selection-model-cell-padding) - $grid-row-cell-border-width;
+            padding-bottom: bottom($checkbox-selection-model-cell-padding) - $grid-row-cell-border-width;
+        }
+    }
 }
 
 .#{$prefix}grid-hd-checker-on .#{$prefix}column-header-text,

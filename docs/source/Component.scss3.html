@@ -15,18 +15,18 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-Component'>/**
-</span> * @class Ext.Component
+  <pre class="prettyprint lang-js"><span id='Global_CSS'>/**
+</span> * @class Global_CSS
  */
 
-<span id='Ext-Component-css_var-S-prefix'>/**
+<span id='Global_CSS-css_var-S-prefix'>/**
 </span> * @var {string} $prefix
  * The prefix to be applied to all CSS selectors. If this is changed, it must also be changed in your
  * JavaScript application.
  */
 $prefix: 'x-' !default;
 
-<span id='Ext-Component-css_var-S-relative-image-path-for-uis'>/**
+<span id='Global_CSS-css_var-S-relative-image-path-for-uis'>/**
 </span> * @var {boolean/string} $relative-image-path-for-uis
  * True to use a relative image path for all new UIs. If true, the path will be &quot;../images/&quot;.
  * It can also be a string of the path value.
@@ -34,43 +34,50 @@ $prefix: 'x-' !default;
  */
 $relative-image-path-for-uis: false !default;
 
-<span id='Ext-Component-css_var-S-include-not-found-images'>/**
+<span id='Global_CSS-css_var-S-include-not-found-images'>/**
 </span> * @var {boolean} $include-not-found-images
  * True to include files which are not found when compiling your SASS
  */
 $include-missing-images: true !default;
 
-<span id='Ext-Component-css_var-S-include-ie'>/**
+<span id='Global_CSS-css_var-S-include-ie'>/**
 </span> * @var {boolean} $include-ie
  * True to include Internet Explorer specific rules
  */
 $include-ie: true !default;
 
-<span id='Ext-Component-css_var-S-include-ff'>/**
+<span id='Global_CSS-css_var-S-include-content-box'>/**
+</span> * @var {boolean} $include-content-box
+ * True to include rules for browsers that do not support the border-box model
+ * (IE6 strict and IE7 strict)
+ */
+$include-content-box: $include-ie !default;
+
+<span id='Global_CSS-css_var-S-include-ff'>/**
 </span> * @var {boolean} $include-ff
  * True to include Firefox specific rules
  */
 $include-ff: true !default;
 
-<span id='Ext-Component-css_var-S-include-chrome'>/**
+<span id='Global_CSS-css_var-S-include-chrome'>/**
 </span> * @var {boolean} $include-chrome
  * True to include Chrome specific rules
  */
 $include-chrome: true !default;
 
-<span id='Ext-Component-css_var-S-include-safari'>/**
+<span id='Global_CSS-css_var-S-include-safari'>/**
 </span> * @var {boolean} $include-safari
  * True to include Safari specific rules
  */
 $include-safari: true !default;
 
-<span id='Ext-Component-css_var-S-include-opera'>/**
+<span id='Global_CSS-css_var-S-include-opera'>/**
 </span> * @var {boolean} $include-opera
  * True to include Opera specific rules
  */
 $include-opera: true !default;
 
-<span id='Ext-Component-css_var-S-include-webkit'>/**
+<span id='Global_CSS-css_var-S-include-webkit'>/**
 </span> * @var {boolean} $include-webkit
  * True to include Webkit specific rules
  */
@@ -79,45 +86,54 @@ $include-webkit: true !default;
 $supports-border-radius: true !default;
 $supports-gradients: true !default;
 
-<span id='Ext-Component-css_var-S-compile-all'>/**
-</span> * @var {boolean} $compile-all
- * True to copile all CSS, even if above include rules are false
- */
 $compile-all: true !default;
 
-<span id='Ext-Component-css_var-S-css-shadow-border-radius'>/**
+<span id='Global_CSS-css_var-S-css-shadow-border-radius'>/**
 </span> * @var {measurement} $css-shadow-border-radius
  * The border radius for CSS shadows
  */
 $css-shadow-border-radius: 5px !default;
 
-<span id='Ext-Component-css_var-S-include-shadow-images'>/**
+<span id='Global_CSS-css_var-S-include-shadow-images'>/**
 </span> * @var {color} $include-shadow-images
  * True to include all shadow images.
  */
 $include-shadow-images: true !default;
 
-<span id='Ext-Component-css_var-S-include-rtl'>/**
-</span> * @var {boolean} $include-rtl
- * True to include right-to-left styles
- */
+// documented in rtl/util/Renderable
 $include-rtl: false !default;
 
-<span id='Ext-Component-css_var-S-image-extension'>/**
+<span id='Global_CSS-css_var-S-image-extension'>/**
 </span> * @var {string} $image-extension
  * default file extension to use for images (defaults to 'png').
  */
 $image-extension: 'png' !default;
 
-<span id='Ext-Component-css_var-S-slicer-image-extension'>/**
+<span id='Global_CSS-css_var-S-slicer-image-extension'>/**
 </span> * @var {string} $slicer-image-extension
  * default file extension to use for slicer images (defaults to 'gif').
  */
 $slicer-image-extension: 'gif' !default;
 
-<span id='Ext-Component-css_var-S-image-search-path'>/**
+<span id='Global_CSS-css_var-S-image-search-path'>/**
 </span> * Default search path for images
  */
-$image-search-path: '.' !default</pre>
+$image-search-path: '.' !default;
+
+<span id='Global_CSS-css_var-S-include-default-uis'>/**
+</span> * @var {boolean}
+ * True to include the default UI for each component.
+ */
+$include-default-uis: true !default;
+
+<span id='Global_CSS-css_var-S-theme-resource-path'>/**
+</span> * @var {string}
+ * The base path relative to the CSS output directory to use for theme resources.  For example
+ * if the theme's images live one directory up from the generated CSS output in a directory
+ * named 'foo/images/', you would need to set this variable to '../foo/' in order for the image
+ * paths in the CSS output to be generated correctly. By default this is the same as the
+ * CSS output directory.
+ */
+$theme-resource-path: '' !default;</pre>
 </body>
 </html>

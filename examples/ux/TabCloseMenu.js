@@ -76,7 +76,7 @@ Ext.define('Ext.ux.TabCloseMenu', {
         this.mon(this.tabBar.el, {
             scope: this,
             contextmenu: this.onContextMenu,
-            delegate: 'div.x-tab'
+            delegate: '.x-tab'
         });
     },
 

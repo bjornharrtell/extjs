@@ -1,3 +1,8 @@
 {
-    "name": "KitchenSink"
+    "name": "KitchenSink",
+
+    "requires": [
+    ],
+
+    "id": "c30f0e36-baa6-4b3b-a8b4-48aed00f1ddb"
 }

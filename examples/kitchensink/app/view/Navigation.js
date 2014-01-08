@@ -29,7 +29,9 @@ Ext.define('KitchenSink.view.Navigation', {
                     { id: 'sliding-pager', text: 'Sliding Pager', leaf: true },
                     { id: 'reconfigure-grid', text: 'Reconfigure Grid', leaf: true },
                     { id: 'property-grid', text: 'Property Grid', leaf: true },
-                    { id: 'cell-editing', text: 'Cell Editing', leaf: true }
+                    { id: 'cell-editing', text: 'Cell Editing', leaf: true },
+                    { id: 'row-expander-grid', text: 'Row Expander', leaf: true },
+                    { id: 'big-data-grid', text: 'Big Data', leaf: true }
                 ]
             },
             {

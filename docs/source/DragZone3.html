@@ -80,7 +80,9 @@ Ext.define('Ext.view.DragZone', {
             // Since handleMouseDown prevents the default behavior of the event, which
             // is to focus the view, we focus the view now.  This ensures that the view
             // remains focused if the drag is cancelled, or if no drag occurs.
-            this.view.focus();
+            if (view.focusRow) {
+                view.focusRow(record);
+            }
             this.handleMouseDown(e);
         }
     },

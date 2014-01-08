@@ -15,8 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag extras,core
-//@require Format.js
+  <pre class="prettyprint lang-js">// @tag extras,core
+// @require Format.js
 
 <span id='Ext-util-TaskRunner-method-constructor'><span id='Ext-util-TaskRunner'>/**
 </span></span> * Provides the ability to execute one or more arbitrary tasks in a asynchronous manner.
@@ -175,7 +175,7 @@ Ext.define('Ext.util.TaskRunner', {
      */
     start: function(task) {
         var me = this,
-            now = new Date().getTime();
+            now = Ext.Date.now();
 
         if (!task.pending) {
             me.tasks.push(task);
@@ -236,7 +236,7 @@ Ext.define('Ext.util.TaskRunner', {
 </span>    onTick: function () {
         var me = this,
             tasks = me.tasks,
-            now = new Date().getTime(),
+            now = Ext.Date.now(),
             nextExpires = 1e99,
             len = tasks.length,
             expires, newTasks, i, task, rt, remove;
@@ -324,7 +324,7 @@ Ext.define('Ext.util.TaskRunner', {
             // we create a new Date here because all the callbacks could have taken a long
             // time... we want to base the next timeout on the current time (after the
             // callback storm):
-            me.startTimer(nextExpires - now, new Date().getTime());
+            me.startTimer(nextExpires - now, Ext.Date.now());
         }
         
         // After a tick

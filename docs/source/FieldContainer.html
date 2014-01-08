@@ -161,7 +161,10 @@ Ext.define('Ext.form.FieldContainer', {
     combineErrors: false,
 
 <span id='Ext-form-FieldContainer-property-maskOnDisable'>    maskOnDisable: false,
-</span>
+</span><span id='Ext-form-FieldContainer-cfg-invalidCls'>    // If we allow this to mark with the invalidCls it will cascade to all
+</span>    // child fields, let them handle themselves
+    invalidCls: '',
+
 <span id='Ext-form-FieldContainer-property-fieldSubTpl'>    fieldSubTpl: '&lt;div id=&quot;{id}-containerEl&quot; class=&quot;{containerElCls}&quot;&gt;{%this.renderContainer(out,values)%}&lt;/div&gt;',
 </span>
 <span id='Ext-form-FieldContainer-method-initComponent'>    initComponent: function() {
@@ -193,6 +196,10 @@ Ext.define('Ext.form.FieldContainer', {
             labelable.x += (me.labelWidth + me.labelPad);
         }
         me.callParent(arguments);
+        if (me.combineLabels) {
+            labelable.oldHideLabel = labelable.hideLabel;
+            labelable.hideLabel = true;
+        }
         me.updateLabel();
     },
 
@@ -204,6 +211,9 @@ Ext.define('Ext.form.FieldContainer', {
         var me = this;
         me.callParent(arguments);
         if (!isDestroying) {
+            if (me.combineLabels) {
+                labelable.hideLabel = labelable.oldHideLabel;
+            }
             me.updateLabel();
         }   
     },

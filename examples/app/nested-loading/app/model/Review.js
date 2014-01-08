@@ -13,5 +13,9 @@ Ext.define('Books.model.Review', {
         'title',
         'comment'
     ],
-    belongsTo: 'Books.model.Book'
+    belongsTo: {
+        model: 'Books.model.Book',
+        getterName: 'getBook',
+        setterName: 'setBook'
+    }
 });

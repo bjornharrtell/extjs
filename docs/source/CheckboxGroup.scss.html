@@ -15,11 +15,41 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">table.#{$prefix}form-checkboxgroup {
-    // remove the bottom margin from checkbox group, becuase the fields inside have bottom margin
-    // we include the tag name in the selector to increase specificity over the rule
-    // that applies the bottom margin to form-items in the neutral theme
-    margin: 0;
-}</pre>
+  <pre class="prettyprint lang-js">.#{$prefix}form-checkboxgroup-body {
+    padding: $form-checkboxgroup-body-padding;
+}
+
+.#{$prefix}form-invalid {
+    .#{$prefix}form-checkboxgroup-body {
+        border: 1px solid $form-field-invalid-border-color;
+        @if $form-field-invalid-background-image != null {
+            background-image: theme-background-image($form-field-invalid-background-image);
+            background-repeat: $form-field-invalid-background-repeat;
+            background-position: $form-field-invalid-background-position;
+        }
+    }
+}
+
+.#{$prefix}check-group-alt {
+    background: $form-checkboxgroup-alt-background;
+    border-top: $form-checkboxgroup-alt-border-top;
+    border-bottom: $form-checkboxgroup-alt-border-bottom;
+}
+
+.#{$prefix}form-check-group-label {
+    color: $form-checkboxgroup-label-color;
+    padding: $form-checkboxgroup-label-padding;
+    margin: $form-checkboxgroup-label-margin;
+    border-width: $form-checkboxgroup-label-border-width;
+    border-style: $form-checkboxgroup-label-border-style;
+    border-color: $form-checkboxgroup-label-border-color;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}form-check-group-label {
+        margin: rtl($form-checkboxgroup-label-margin);
+    }
+}
+</pre>
 </body>
 </html>

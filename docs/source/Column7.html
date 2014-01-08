@@ -32,16 +32,39 @@ Ext.define('Ext.tree.Column', {
 </span><span id='Ext-tree-Column-property-draggable'>    draggable: false,
 </span><span id='Ext-tree-Column-cfg-hideable'>    hideable: false,
 </span>
-<span id='Ext-tree-Column-property-treePrefix'>    treePrefix: Ext.baseCSSPrefix + 'tree-',
-</span><span id='Ext-tree-Column-property-elbowPrefix'>    elbowPrefix: Ext.baseCSSPrefix + 'tree-elbow-',
+<span id='Ext-tree-Column-property-iconCls'>    iconCls: Ext.baseCSSPrefix + 'tree-icon',
+</span><span id='Ext-tree-Column-property-checkboxCls'>    checkboxCls: Ext.baseCSSPrefix + 'tree-checkbox',
+</span><span id='Ext-tree-Column-property-elbowCls'>    elbowCls: Ext.baseCSSPrefix + 'tree-elbow',
 </span><span id='Ext-tree-Column-property-expanderCls'>    expanderCls: Ext.baseCSSPrefix + 'tree-expander',
-</span><span id='Ext-tree-Column-property-imgText'>    imgText: '&lt;img src=&quot;{1}&quot; class=&quot;{0}&quot; /&gt;',
-</span><span id='Ext-tree-Column-property-checkboxText'>    checkboxText: '&lt;input type=&quot;button&quot; role=&quot;checkbox&quot; class=&quot;{0}&quot; {1} /&gt;',
+</span><span id='Ext-tree-Column-property-textCls'>    textCls: Ext.baseCSSPrefix + 'tree-node-text',
+</span><span id='Ext-tree-Column-property-innerCls'>    innerCls: Ext.baseCSSPrefix + 'grid-cell-inner-treecolumn',
+</span><span id='Ext-tree-Column-property-isTreeColumn'>    isTreeColumn: true,
 </span>
+<span id='Ext-tree-Column-property-cellTpl'>    cellTpl: [
+</span>        '&lt;tpl for=&quot;lines&quot;&gt;',
+            '&lt;img src=&quot;{parent.blankUrl}&quot; class=&quot;{parent.childCls} {parent.elbowCls}-img ',
+            '{parent.elbowCls}-&lt;tpl if=&quot;.&quot;&gt;line&lt;tpl else&gt;empty&lt;/tpl&gt;&quot;/&gt;',
+        '&lt;/tpl&gt;',
+        '&lt;img src=&quot;{blankUrl}&quot; class=&quot;{childCls} {elbowCls}-img {elbowCls}',
+            '&lt;tpl if=&quot;isLast&quot;&gt;-end&lt;/tpl&gt;&lt;tpl if=&quot;expandable&quot;&gt;-plus {expanderCls}&lt;/tpl&gt;&quot;/&gt;',
+        '&lt;tpl if=&quot;checked !== null&quot;&gt;',
+            '&lt;input type=&quot;button&quot; role=&quot;checkbox&quot; &lt;tpl if=&quot;checked&quot;&gt;aria-checked=&quot;true&quot; &lt;/tpl&gt;',
+                'class=&quot;{childCls} {checkboxCls}&lt;tpl if=&quot;checked&quot;&gt; {checkboxCls}-checked&lt;/tpl&gt;&quot;/&gt;',
+        '&lt;/tpl&gt;',
+        '&lt;img src=&quot;{blankUrl}&quot; class=&quot;{childCls} {baseIconCls} ',
+            '{baseIconCls}-&lt;tpl if=&quot;leaf&quot;&gt;leaf&lt;tpl else&gt;parent&lt;/tpl&gt; {iconCls}&quot;',
+            '&lt;tpl if=&quot;icon&quot;&gt;style=&quot;background-image:url({icon})&quot;&lt;/tpl&gt;/&gt;',
+        '&lt;tpl if=&quot;href&quot;&gt;',
+            '&lt;a href=&quot;{href}&quot; target=&quot;{hrefTarget}&quot; class=&quot;{textCls} {childCls}&quot;&gt;{value}&lt;/a&gt;',
+        '&lt;tpl else&gt;',
+            '&lt;span class=&quot;{textCls} {childCls}&quot;&gt;{value}&lt;/span&gt;',
+        '&lt;/tpl&gt;'
+    ],
+
 <span id='Ext-tree-Column-method-initComponent'>    initComponent: function() {
 </span>        var me = this;
 
-        me.origRenderer = me.renderer || me.defaultRenderer;
+        me.origRenderer = me.renderer;
         me.origScope = me.scope || window;
 
         me.renderer = me.treeRenderer;
@@ -52,88 +75,52 @@ Ext.define('Ext.tree.Column', {
 
 <span id='Ext-tree-Column-method-treeRenderer'>    treeRenderer: function(value, metaData, record, rowIdx, colIdx, store, view){
 </span>        var me = this,
-            buf = [],
-            format = Ext.String.format,
-            depth = record.getDepth(),
-            treePrefix  = me.treePrefix,
-            elbowPrefix = me.elbowPrefix,
-            expanderCls = me.expanderCls,
-            imgText     = me.imgText,
-            checkboxText= me.checkboxText,
-            formattedValue = me.origRenderer.apply(me.origScope, arguments),
-            blank = Ext.BLANK_IMAGE_URL,
-            href = record.get('href'),
-            target = record.get('hrefTarget'),
             cls = record.get('cls'),
+            renderer = me.origRenderer,
+            data = record.data,
+            parent = record.parentNode,
+            rootVisible = view.rootVisible,
+            lines = [],
+            parentData;
+
+        if (cls) {
+            metaData.tdCls += ' ' + cls;
+        }
+
+        while (parent &amp;&amp; (rootVisible || parent.data.depth &gt; 0)) {
+            parentData = parent.data;
+            lines[rootVisible ? parentData.depth : parentData.depth - 1] =
+                    parentData.isLast ? 0 : 1;
+            parent = parent.parentNode;
+        }
+
+        return me.getTpl('cellTpl').apply({
+            record: record,
+            baseIconCls: me.iconCls,
+            iconCls: data.iconCls,
+            icon: data.icon,
+            checkboxCls: me.checkboxCls,
+            checked: data.checked,
+            elbowCls: me.elbowCls,
+            expanderCls: me.expanderCls,
+            textCls: me.textCls,
+            leaf: data.leaf,
+            expandable: record.isExpandable(),
+            isLast: data.isLast,
+            blankUrl: Ext.BLANK_IMAGE_URL,
+            href: data.href,
+            hrefTarget: data.hrefTarget,
+            lines: lines,
+            metaData: metaData,
             // subclasses or overrides can implement a getChildCls() method, which can
             // return an extra class to add to all of the cell's child elements (icon,
             // expander, elbow, checkbox).  This is used by the rtl override to add the
             // &quot;x-rtl&quot; class to these elements.
-            childCls = me.getChildCls ? me.getChildCls() + ' ' : '';
-
-        while (record) {
-            if (!record.isRoot() || (record.isRoot() &amp;&amp; view.rootVisible)) {
-                if (record.getDepth() === depth) {
-                    buf.unshift(format(imgText,
-                        childCls +
-                        treePrefix + 'icon ' +
-                        treePrefix + 'icon' + (record.get('icon') ? '-inline ' : (record.isLeaf() ? '-leaf ' : '-parent ')) +
-                        (record.get('iconCls') || ''),
-                        record.get('icon') || blank
-                    ));
-                    if (record.get('checked') !== null) {
-                        buf.unshift(format(
-                            checkboxText,
-                            childCls + (treePrefix + 'checkbox') + (record.get('checked') ? ' ' + treePrefix + 'checkbox-checked' : ''),
-                            record.get('checked') ? 'aria-checked=&quot;true&quot;' : ''
-                        ));
-                        if (record.get('checked')) {
-                            metaData.tdCls += (' ' + treePrefix + 'checked');
-                        }
-                    }
-                    if (record.isLast()) {
-                        if (record.isExpandable()) {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'end-plus ' + expanderCls), blank));
-                        } else {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'end'), blank));
-                        }
-
-                    } else {
-                        if (record.isExpandable()) {
-                            buf.unshift(format(imgText, (childCls + elbowPrefix + 'plus ' + expanderCls), blank));
-                        } else {
-                            buf.unshift(format(imgText, (childCls + treePrefix + 'elbow'), blank));
-                        }
-                    }
-                } else {
-                    if (record.isLast() || record.getDepth() === 0) {
-                        buf.unshift(format(imgText, (childCls + elbowPrefix + 'empty'), blank));
-                    } else if (record.getDepth() !== 0) {
-                        buf.unshift(format(imgText, (childCls + elbowPrefix + 'line'), blank));
-                    }
-                }
-            }
-            record = record.parentNode;
-        }
-        if (href) {
-            buf.push('&lt;a class=&quot;' + Ext.baseCSSPrefix + 'tree-node-text&quot; href=&quot;', href, '&quot; target=&quot;', target, '&quot;&gt;');
-        } else {
-            buf.push('&lt;span class=&quot;' + Ext.baseCSSPrefix + 'tree-node-text&quot;&gt;');
-        }
-        buf.push(formattedValue);
-        if (href) {
-            buf.push('&lt;/a&gt;');
-        } else {
-            buf.push('&lt;/span&gt;');
-        }
-        if (cls) {
-            metaData.tdCls += ' ' + cls;
-        }
-        return buf.join('');
-    },
-
-<span id='Ext-tree-Column-property-defaultRenderer'>    defaultRenderer: Ext.identityFn
-</span>});
+            childCls: me.getChildCls ? me.getChildCls() + ' ' : '',
+            value: renderer ? renderer.apply(me.origScope, arguments) : value
+        });
+    }
+});
 </pre>
 </body>
 </html>

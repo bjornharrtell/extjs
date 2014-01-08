@@ -147,8 +147,6 @@ Ext.define('Ext.form.FieldSet', {
      */
     layout: 'anchor',
 
-<span id='Ext-form-FieldSet-cfg-border'>    border: 1,
-</span>
 <span id='Ext-form-FieldSet-cfg-componentLayout'>    componentLayout: 'fieldset',
 </span>
 <span id='Ext-form-FieldSet-cfg-autoEl'>    autoEl: 'fieldset',
@@ -184,6 +182,8 @@ Ext.define('Ext.form.FieldSet', {
 <span id='Ext-form-FieldSet-method-initComponent'>    initComponent: function() {
 </span>        var me = this,
             baseCls = me.baseCls;
+                
+        me.initFieldAncestor();
 
         me.callParent();
 
@@ -238,11 +238,11 @@ Ext.define('Ext.form.FieldSet', {
             me.addTitleClasses();
             me.legend = Ext.widget(me.createLegendCt());
         }
+        me.initMonitor();
     },
 
 <span id='Ext-form-FieldSet-method-initPadding'>    initPadding: function(targetEl) {
 </span>        var me = this,
-            Element = Ext.Element,
             body = me.getProtoBody(),
             padding = me.padding,
             bodyPadding;
@@ -251,14 +251,14 @@ Ext.define('Ext.form.FieldSet', {
             if (Ext.isIEQuirks || Ext.isIE8m) {
                 // IE8 and below display fieldset top padding outside the border
                 // so we transfer the top padding to the body element.
-                padding = Element.parseBox(padding);
-                bodyPadding = Element.parseBox(0);
+                padding = me.parseBox(padding);
+                bodyPadding = Ext.Element.parseBox(0);
                 bodyPadding.top = padding.top;
                 padding.top = 0;
-                body.setStyle('padding', Element.unitizeBox(bodyPadding));
+                body.setStyle('padding', me.unitizeBox(bodyPadding));
             }
 
-            targetEl.setStyle('padding', Element.unitizeBox(padding));
+            targetEl.setStyle('padding', me.unitizeBox(padding));
         }
     },
 
@@ -554,6 +554,11 @@ Ext.define('Ext.form.FieldSet', {
                 me.addCls(me.baseCls + '-collapsed');
             }
             me.collapsed = !expanded;
+            if (expanded) {
+                delete me.getHierarchyState().collapsed;
+            } else {
+                me.getHierarchyState().collapsed = true;
+            }
             if (me.rendered) {
                 // say explicitly we are not root because when we have a fixed/configured height
                 // our ownerLayout would say we are root and so would not have it's height

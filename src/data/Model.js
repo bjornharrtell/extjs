@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @author Ed Spencer
@@ -238,7 +238,7 @@ Ext.define('Ext.data.Model', {
     mixins: {
         observable: 'Ext.util.Observable'
     },
-    
+
     requires: [
         'Ext.ModelManager',
         'Ext.data.IdGenerator',
@@ -513,7 +513,7 @@ Ext.define('Ext.data.Model', {
          * @inheritable
          */
         getProxy: function() {
-            
+
             var proxy = this.proxy;
 
             // Not yet been created wither from prototype property set in onClassExtended, or by cloning superclass's Proxy...
@@ -574,7 +574,7 @@ Ext.define('Ext.data.Model', {
 
             for (i = 0, len = fields.length; i < len; i++) {
                 newField = new Ext.data.Field(fields[i]);
-                    
+
                 // If a defined Field encapsulates the idProperty, then we do not have to create a separate identifying field.
                 // Also, this field must never have a default value set if no value arrives from the server side.
                 // So override any possible prototype-provided defaultValue with undefined which will inhibit generation of defaulting code in Reader.buildRecordDataExtractor
@@ -627,12 +627,14 @@ Ext.define('Ext.data.Model', {
          *         scope: this,
          *         failure: function(record, operation) {
          *             //do something if the load failed
+         *             //record is null
          *         },
          *         success: function(record, operation) {
          *             //do something if the load succeeded
          *         },
-         *         callback: function(record, operation) {
+         *         callback: function(record, operation, success) {
          *             //do something whether the load succeeded or failed
+         *             //if operation is unsuccessful, record is null
          *         }
          *     });
          *
@@ -651,11 +653,13 @@ Ext.define('Ext.data.Model', {
 
             var operation  = new Ext.data.Operation(config),
                 scope      = config.scope || this,
-                record     = null,
                 callback;
 
             callback = function(operation) {
-                if (operation.wasSuccessful()) {
+                var record = null,
+                    success = operation.wasSuccessful();
+                
+                if (success) {
                     record = operation.getRecords()[0];
                     // If the server didn't set the id, do it here
                     if (!record.hasId()) {
@@ -665,7 +669,7 @@ Ext.define('Ext.data.Model', {
                 } else {
                     Ext.callback(config.failure, scope, [record, operation]);
                 }
-                Ext.callback(config.callback, scope, [record, operation]);
+                Ext.callback(config.callback, scope, [record, operation, success]);
             };
 
             this.getProxy().read(operation, callback, this);
@@ -966,7 +970,7 @@ Ext.define('Ext.data.Model', {
         }
         //</debug>
         persistenceProperty = me[me.persistenceProperty] = convertedData || {};
-        
+
         // Until persistenceProperty is deprecated, keep a reference in me.data
         me.data = me[me.persistenceProperty];
 
@@ -1259,11 +1263,11 @@ Ext.define('Ext.data.Model', {
             key,
             data,
             o;
-            
+
         if (!me.editing) {
             me.editing = true;
             me.dirtySave = me.dirty;
-            
+
             o = me[me.persistenceProperty];
             data = me.dataSave = {};
             for (key in o) {
@@ -1271,7 +1275,7 @@ Ext.define('Ext.data.Model', {
                     data[key] = o[key];
                 }
             }
-            
+
             o = me.modified;
             data = me.modifiedSave = {}; 
             for (key in o) {
@@ -1307,7 +1311,7 @@ Ext.define('Ext.data.Model', {
         var me = this,
             dataSave,
             changed;
-            
+
         silent = silent === true;
         if (me.editing) {
             me.editing = false;
@@ -1567,7 +1571,6 @@ Ext.define('Ext.data.Model', {
             i = 0,
             storeCount,
             store,
-            args,
             operation,
             callback;
 
@@ -1579,20 +1582,22 @@ Ext.define('Ext.data.Model', {
         operation = new Ext.data.Operation(options);
 
         callback = function(operation) {
-            args = [me, operation];
-            if (operation.wasSuccessful()) {
+            var success = operation.wasSuccessful();
+            
+            if (success) {
                 for(storeCount = stores.length; i < storeCount; i++) {
                     store = stores[i];
                     store.fireEvent('write', store, operation);
                     store.fireEvent('datachanged', store);
                     // Not firing refresh here, since it's a single record
                 }
-                Ext.callback(options.success, scope, args);
-            } else {
-                Ext.callback(options.failure, scope, args);
+                Ext.callback(options.success, scope, [me, operation]);
+            }
+            else {
+                Ext.callback(options.failure, scope, [me, operation]);
             }
 
-            Ext.callback(options.callback, scope, args);
+            Ext.callback(options.callback, scope, [me, operation, success]);
         };
 
         me.getProxy()[action](operation, callback, me);
@@ -1638,6 +1643,10 @@ Ext.define('Ext.data.Model', {
                     if (store.remove) {
                         store.remove(me, true);
                     }
+
+                    // Other parties may need to know that the record as gone
+                    // eg View SelectionModels
+                    store.fireEvent('bulkremove', store, [me], [store.indexOf(me)], false);
                     if (isNotPhantom) {
                         store.fireEvent('write', store, operation);
                     }
@@ -1686,11 +1695,11 @@ Ext.define('Ext.data.Model', {
     setId: function(id) {
         this.set(this.idProperty, id);
     },
-    
+
     changeId: function(oldId, newId) {
         var me = this,
             hasOldId, hasId, oldInternalId;
-            
+
         if (!me.preventInternalUpdate) { 
             hasOldId = me.hasId(oldId);
             hasId = me.hasId(newId);
@@ -1703,12 +1712,12 @@ Ext.define('Ext.data.Model', {
             if (hasId !== hasOldId || (hasId && hasOldId)) {
                 me.internalId = hasId ? newId : Ext.data.Model.id(me);
             }
-        
+
             me.fireEvent('idchanged', me, oldId, newId, oldInternalId);
             me.callStore('onIdChanged', oldId, newId, oldInternalId);
          }
     },
-    
+
     /**
      * @private
      * Checks if this model has an id assigned
@@ -1728,7 +1737,7 @@ Ext.define('Ext.data.Model', {
      */
     join : function(store) {
         var me = this;
-        
+
         // Code for the 99% use case using fast way!
         if (!me.stores.length) {
             me.stores[0] = store;
@@ -1884,7 +1893,7 @@ Ext.define('Ext.data.Model', {
         for (i = 0; i < associationCount; i++) {
             association = associations[i];
             associationId = association.associationId;
-            
+
             seenDepth = seenKeys[associationId];
             if (seenDepth && seenDepth !== depth) {
                 continue;
@@ -1926,7 +1935,7 @@ Ext.define('Ext.data.Model', {
                 }
             }
         }
-        
+
         for (i = 0, associatedRecordCount = toRead.length; i < associatedRecordCount; ++i) {
             associatedRecord = toRead[i];
             o = associationData[toReadKey[i]];

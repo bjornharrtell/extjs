@@ -54,16 +54,28 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
             'checkchange'
         );
 
-        me.callParent([cfg = cfg || {}]);
+        me.callParent(arguments);
 
-        if(!cfg.store && cfg.options) {
+        // A ListMenu which is completely unconfigured acquires its store from the unique values of its field in the store
+        if (!me.store && !me.options) {
+            me.options = me.grid.store.collect(me.dataIndex, false, true);
+        }
+
+        if (!me.store && me.options) {
             options = [];
-            for(i = 0, len = cfg.options.length; i < len; i++){
-                value = cfg.options[i];
-                switch(Ext.type(value)){
-                    case 'array':  options.push(value); break;
-                    case 'object': options.push([value[me.idField], value[me.labelField]]); break;
-                    case 'string': options.push([value, value]); break;
+            for(i = 0, len = me.options.length; i < len; i++) {
+                value = me.options[i];
+                switch (Ext.type(value)) {
+                    case 'array': 
+                        options.push(value);
+                        break;
+                    case 'object':
+                        options.push([value[me.idField], value[me.labelField]]);
+                        break;
+                    default:
+                        if (value != null) {
+                            options.push([value, value]);
+                        }
                 }
             }
 

@@ -67,7 +67,11 @@ Ext.define('Ext.form.CheckboxGroup', {
         field: 'Ext.form.field.Field'
     },
     alias: 'widget.checkboxgroup',
-    requires: ['Ext.layout.container.CheckboxGroup', 'Ext.form.field.Base'],
+    requires: [
+        'Ext.layout.container.CheckboxGroup',
+        'Ext.form.field.Checkbox',
+        'Ext.form.field.Base'
+    ],
 
 <span id='Ext-form-CheckboxGroup-cfg-name'>    /**
 </span>     * @cfg {String} name
@@ -125,11 +129,8 @@ Ext.define('Ext.form.CheckboxGroup', {
 <span id='Ext-form-CheckboxGroup-property-groupCls'>    // private
 </span>    groupCls : Ext.baseCSSPrefix + 'form-check-group',
 
-<span id='Ext-form-CheckboxGroup-cfg-fieldBodyCls'>    /**
-</span>     * @cfg {String} [fieldBodyCls='x-form-checkboxgroup-body']
-     * An extra CSS class to be applied to the body content element in addition to {@link #baseBodyCls}.
-     */
-    fieldBodyCls: Ext.baseCSSPrefix + 'form-checkboxgroup-body',
+<span id='Ext-form-CheckboxGroup-property-extraFieldBodyCls'>    // private
+</span>    extraFieldBodyCls: Ext.baseCSSPrefix + 'form-checkboxgroup-body',
 
 <span id='Ext-form-CheckboxGroup-cfg-layout'>    // private
 </span>    layout: 'checkboxgroup',
@@ -471,7 +472,7 @@ Ext.define('Ext.form.CheckboxGroup', {
 
 }, function() {
 
-    this.borrow(Ext.form.field.Base, ['markInvalid', 'clearInvalid']);
+    this.borrow(Ext.form.field.Base, ['markInvalid', 'clearInvalid', 'setError']);
 
 });
 

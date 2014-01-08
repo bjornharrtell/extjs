@@ -282,8 +282,8 @@ $menu-item-indent: ($menu-icon-separator-indent + $menu-separator-size + $menu-i
     @include opacity($menu-item-disabled-opacity);
 }
 
-@if $include-ie {
-  .#{$prefix}strict .#{$prefix}ie7m {
+@if $include-content-box {
+  .#{$prefix}content-box {
         .#{$prefix}menu-icon-separator {
             width: $menu-separator-size - 1;
         }

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A DragTracker listens for drag events on an Element and fires events at the start and end of the drag,
@@ -399,12 +399,14 @@ Ext.define('Ext.dd.DragTracker', {
      */
     endDrag: function(e) {
         var me = this,
-            doc = Ext.getDoc(),
             wasActive = me.active;
 
-        doc.un('mousemove', me.onMouseMove, me);
-        doc.un('mouseup', me.onMouseUp, me);
-        doc.un('selectstart', me.stopSelect, me);
+        Ext.getDoc().un({
+            mousemove: me.onMouseMove,
+            mouseup: me.onMouseUp,
+            selectstart: me.stopSelect,
+            scope: me
+        });
         me.clearStart();
         me.active = false;
         if (wasActive) {
@@ -412,10 +414,8 @@ Ext.define('Ext.dd.DragTracker', {
             me.fireEvent('dragend', me, e);
         }
         // Private property calculated when first required and only cached during a drag
-        delete me._constrainRegion;
-
         // Remove flag from event singleton.  Using "Ext.EventObject" here since "endDrag" is called directly in some cases without an "e" param
-        delete Ext.EventObject.dragTracked;
+        me._constrainRegion = Ext.EventObject.dragTracked = null
     },
 
     triggerStart: function(e) {
@@ -430,7 +430,7 @@ Ext.define('Ext.dd.DragTracker', {
         var timer = this.timer;
         if (timer) {
             clearTimeout(timer);
-            delete this.timer;
+            this.timer = null;
         }
     },
 

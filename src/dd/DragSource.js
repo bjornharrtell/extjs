@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A simple class that provides the basic implementation needed to make any element draggable.
@@ -32,6 +32,13 @@ Ext.define('Ext.dd.DragSource', {
      * @cfg {String} ddGroup
      * A named drag drop group to which this object belongs.  If a group is specified, then this object will only
      * interact with other drag drop objects in the same group.
+     */
+
+    /**
+     * @property {Object} dragData
+     * This property contains the data representing the dragged object. This data is set up by the implementation of the
+     * {@link #getDragData} method. It must contain a ddel property, but can contain any other data according to the
+     * application's needs.
      */
 
     /**
@@ -273,29 +280,32 @@ Ext.define('Ext.dd.DragSource', {
         // This method may be called by the DragDropManager.
         // To preserve backwards compat, it only passes the event object
         // Here we correct the arguments.
+        var me = this;
+        
         if (!e) {
             e = target;
             target = null;
             id = e.getTarget().id;
         }
-        this.beforeInvalidDrop(target, e, id);
-        if (this.cachedTarget) {
-            if(this.cachedTarget.isNotifyTarget){
-                this.cachedTarget.notifyOut(this, e, this.dragData);
+        if (me.beforeInvalidDrop(target, e, id) !== false) {
+            if (me.cachedTarget) {
+                if(me.cachedTarget.isNotifyTarget){
+                    me.cachedTarget.notifyOut(me, e, me.dragData);
+                }
+                me.cacheTarget = null;
             }
-            this.cacheTarget = null;
-        }
-        this.proxy.repair(this.getRepairXY(e, this.dragData), this.afterRepair, this);
+            me.proxy.repair(me.getRepairXY(e, me.dragData), me.afterRepair, me);
 
-        if (this.afterInvalidDrop) {
-            /**
-             * An empty function by default, but provided so that you can perform a custom action
-             * after an invalid drop has occurred by providing an implementation.
-             * @param {Event} e The event object
-             * @param {String} id The id of the dropped element
-             * @method afterInvalidDrop
-             */
-            this.afterInvalidDrop(e, id);
+            if (me.afterInvalidDrop) {
+                /**
+                * An empty function by default, but provided so that you can perform a custom action
+                * after an invalid drop has occurred by providing an implementation.
+                * @param {Event} e The event object
+                * @param {String} id The id of the dropped element
+                * @method afterInvalidDrop
+                */
+                me.afterInvalidDrop(e, id);
+            }
         }
     },
 

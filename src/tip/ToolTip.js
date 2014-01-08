@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * ToolTip is a {@link Ext.tip.Tip} implementation that handles the common case of displaying a
@@ -468,12 +468,13 @@ Ext.define('Ext.tip.ToolTip', {
     // @private
     onTargetOver: function(e) {
         var me = this,
+            delegate = me.delegate,
             t;
 
         if (me.disabled || e.within(me.target.dom, true)) {
             return;
         }
-        t = e.getTarget(me.delegate);
+        t = delegate ? e.getTarget(delegate) : true;
         if (t) {
             me.triggerElement = t;
             me.triggerEvent = e;
@@ -512,14 +513,21 @@ Ext.define('Ext.tip.ToolTip', {
 
     // @private
     onTargetOut: function(e) {
-        var me = this;
+        var me = this,
+            triggerEl = me.triggerElement,
+            // If we don't have a delegate, then the target is set
+            // to true, so set it to the main target.
+            target = triggerEl === true ? me.target : triggerEl;
 
         // If disabled, moving within the current target, ignore the mouseout
         // EventObject.within is the only correct way to determine this.
-        if (me.disabled || e.within(me.target.dom, true)) {
+        if (me.disabled || !triggerEl || e.within(target, true)) {
             return;
         }
-        me.clearTimer('show');
+        if (me.showTimer) {
+            me.clearTimer('show');
+            me.triggerElement = null;
+        }
         if (me.autoHide !== false) {
             me.delayHide();
         }
@@ -652,11 +660,18 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
+    _timerNames: {},
     // @private
-    clearTimer: function(name) {
-        name = name + 'Timer';
-        clearTimeout(this[name]);
-        delete this[name];
+    clearTimer: function (name) {
+        var me = this,
+            names = me._timerNames,
+            propName = names[name] || (names[name] = name + 'Timer'),
+            timer = me[propName];
+
+        if (timer) {
+            clearTimeout(timer);
+            me[propName] = null;
+        }
     },
 
     // @private

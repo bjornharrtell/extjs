@@ -101,10 +101,10 @@ Ext.define('KitchenSink.view.grid.Reconfigure', {
         grid.setTitle('Employees');
         grid.reconfigure(this.createEmployeeStore(), [{
             text: 'First Name',
-            dataIndex: 'firstName'
+            dataIndex: 'forename'
         }, {
             text: 'Last Name',
-            dataIndex: 'lastName'
+            dataIndex: 'surname'
         }, {
             width: this.themeInfo.employeeWidth,
             text: 'Employee No.',
@@ -128,8 +128,8 @@ Ext.define('KitchenSink.view.grid.Reconfigure', {
         for (; i < 20; ++i) {
             name = this.getUniqueName(usedNames);
             data.push({
-                firstName: name[0],
-                lastName: name[1],
+                forename: name[0],
+                surname: name[1],
                 employeeNo: this.getEmployeeNo(),
                 department: this.getDepartment()
             });

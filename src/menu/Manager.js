@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Provides a common registry of all menus on a page.
@@ -56,11 +56,10 @@ Ext.define('Ext.menu.Manager', {
      */
     hideAll: function() {
         var active = this.active,
-        clone, menus, m, mLen;
+            menus, m, mLen;
 
         if (active && active.length > 0) {
-            clone = active.clone();
-            menus = clone.items;
+            menus = Ext.Array.slice(active.items);
             mLen  = menus.length;
 
             for (m = 0; m < mLen; m++) {
@@ -134,7 +133,7 @@ Ext.define('Ext.menu.Manager', {
             // Because we use a buffer in IE, the target may have been removed from the
             // DOM by the time we get here, so the selector will never find the menu. In this
             // case, it's safer to not hide than menus than to do so
-            if (Ext.isIE9m && !Ext.getBody().contains(e.target)) {
+            if (Ext.isIE9m && !Ext.getDoc().contains(e.target)) {
                 doHide = false;
             }
             if (doHide) {

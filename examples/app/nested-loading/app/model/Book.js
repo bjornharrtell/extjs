@@ -14,5 +14,9 @@ Ext.define('Books.model.Book', {
         'image'
     ],
 
-    hasMany: {model: 'Books.model.Review', name: 'reviews'}
+    hasMany: {
+        model: 'Books.model.Review', 
+        name: 'reviews',
+        foreignKey: 'book_id'
+    }
 });

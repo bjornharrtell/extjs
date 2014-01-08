@@ -1,62 +1,35 @@
+$grid-header-trigger-border: 
+    $grid-column-header-border-width
+    $grid-column-header-border-style
+    $grid-header-border-color;
+
 .#{$prefix}column-header-trigger {
-    width: 18px;
     background-image: url(images/grid/hd-pop.png);
-    background-position: center center;
-    border-left: 1px solid $grid-header-border-color;
+    border-left: $grid-header-trigger-border;
 }
-// In RTL, trigger's border is on the right.
+
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}column-header-trigger {
-        border-right: 1px solid $grid-header-border-color;
-        border-left: 0 none;
-    }
-}
-
-// Neptune grid header menu trigger is not background colour
-.#{$prefix}column-header-trigger {
-    background-color: $grid-header-over-background-color;
-}
-
-// While menu open, header and trigger go darker
-.#{$prefix}column-header-open {
-    background-color: $grid-header-over-background-color;
-}
-
-.#{$prefix}column-header-open .#{$prefix}column-header-trigger {
-    background-color: mix($base-light-color, $neutral-light-color, 30%);
-}
-
-// Background colour for sorted state
-.#{$prefix}column-header-sort-ASC,
-.#{$prefix}column-header-sort-DESC {
-    background-color: $sorted-grid-column-header-color;
-}
-
-// Neptune checkbox header has no visible border - make it background color
-.#{$prefix}column-header-checkbox {
-    border-right-color: $grid-header-background-color;
-}
-// In RTL, do that on the left
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}column-header-checkbox {
-        border-right: 0 none;
-        border-left-color: $grid-header-background-color;
+        border-right: $grid-header-trigger-border;
+        border-left: 0;
     }
 }
 
 .#{$prefix}column-header-last {
     border-right: 0;
     .#{$prefix}column-header-over .#{$prefix}column-header-trigger {
-        border-right: 1px solid $grid-header-border-color;
+        border-right: $grid-header-trigger-border;
     }
 }
 
+.#{$prefix}column-header-last {
+    border-right: 0 none;
+}
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}column-header-last {
         border-left: 0;
         .#{$prefix}column-header-over .#{$prefix}column-header-trigger {
-            border-left: 1px solid $grid-header-border-color;
+            border-left: $grid-header-trigger-border;
         }
     }
 }
-

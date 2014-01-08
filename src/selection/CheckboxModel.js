@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A selection model that renders a column of checkboxes that can be toggled to
@@ -82,14 +82,9 @@ Ext.define('Ext.selection.CheckboxModel', {
 
     beforeViewRender: function(view) {
         var me = this,
-            views = me.views,
             owner;
             
         me.callParent(arguments);
-        
-        if (Ext.Array.indexOf(views, view) === -1) {
-            views.push(view);
-        }
 
         // if we have a locked header, only hook up to the first
         if (!me.hasLockedHeader() || view.headerCt.lockedCt) {
@@ -220,6 +215,7 @@ Ext.define('Ext.selection.CheckboxModel', {
         return {
             isCheckerHd: showCheck,
             text : '&#160;',
+            clickTargetName: 'el',
             width: me.headerWidth,
             sortable: false,
             draggable: false,
@@ -285,7 +281,7 @@ Ext.define('Ext.selection.CheckboxModel', {
      */
     onSelectChange: function() {
         this.callParent(arguments);
-        if (!this.bulkChange) {
+        if (!this.suspendChange) {
             this.updateHeaderState();
         }
     },
@@ -314,10 +310,17 @@ Ext.define('Ext.selection.CheckboxModel', {
     },
     
     maybeFireSelectionChange: function(fireEvent) {
-        if (fireEvent && !this.bulkChange) {
+        if (fireEvent && !this.suspendChange) {
             this.updateHeaderState();
         }
         this.callParent(arguments);
+    },
+    
+    resumeChanges: function(){
+        this.callParent();
+        if (!this.suspendChange) {
+            this.updateHeaderState();
+        }
     },
 
     /**

@@ -68,7 +68,7 @@ Ext.onReady(function(){
     var grid = Ext.create('Ext.grid.Panel', {
         width: 700,
         height: 500,
-        title: 'Bufffered Grid of 49,679 random records',
+        title: 'Buffered Grid of 49,679 random records',
         store: store,
         verticalScroller: {
             variableRowHeight: true

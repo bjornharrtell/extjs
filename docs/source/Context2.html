@@ -445,7 +445,7 @@ Ext.define('Ext.layout.Context', {
             collection = this.triggers[inDom ? 'dom' : 'data'],
             triggers = collection &amp;&amp; collection[id],
             length = (triggers &amp;&amp; triggers.length) || 0,
-            collection, i, item, trigger;
+            i, item, trigger;
 
         for (i = 0; i &lt; length; ++i) {
             trigger = triggers[i];
@@ -1168,7 +1168,7 @@ Ext.define('Ext.layout.Context', {
 
 <span id='Ext-layout-Context-method-setItemSize'>    /**
 </span>     * Set the size of a component, element or composite or an array of components or elements.
-     * @param {Ext.Component/Ext.Component[]/Ext.dom.Element/Ext.dom.Element[]/Ext.dom.CompositeElement}
+     * @param {Ext.Component/Ext.Component[]/Ext.dom.Element/Ext.dom.Element[]/Ext.dom.CompositeElement} items
      * The item(s) to size.
      * @param {Number} width The new width to set (ignored if undefined or NaN).
      * @param {Number} height The new height to set (ignored if undefined or NaN).

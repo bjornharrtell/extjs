@@ -1,7 +1,12 @@
-.#{$prefix}grid-cell-checkcolumn .#{$prefix}grid-cell-inner {
-    // !important needed to override .x-tree-panel .x-grid-cell-inner's padding setting.
-    padding-top: floor(($grid-row-height - $grid-cell-border-width - $form-checkbox-size) / 2)!important;
-    padding-bottom: 0!important;
+.#{$prefix}grid-cell-inner-checkcolumn {
+    padding: $grid-checkcolumn-cell-padding;
+
+    @if $grid-no-row-lines-show-focus-border {
+        .#{$prefix}grid-no-row-lines .#{$prefix}grid-row-focused & {
+            padding-top: top($grid-checkcolumn-cell-padding) - $grid-row-cell-border-width;
+            padding-bottom: bottom($grid-checkcolumn-cell-padding) - $grid-row-cell-border-width;
+        }
+    }
 }
 
 .#{$prefix}grid-checkcolumn {

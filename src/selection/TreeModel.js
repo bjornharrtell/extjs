@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Adds custom behavior for left/right keyboard navigation for use with a tree.
@@ -65,6 +65,10 @@ Ext.define('Ext.selection.TreeModel', {
     },
 
     onKeyRight: function(e, t) {
+        this.navExpand(e, t);
+    },
+    
+    navExpand: function(e, t) {
         var focused = this.getLastFocused(),
             view    = this.view;
 
@@ -87,6 +91,10 @@ Ext.define('Ext.selection.TreeModel', {
     },
 
     onKeyLeft: function(e, t) {
+        this.navCollapse(e, t);
+    },
+    
+    navCollapse: function(e, t) {
         var me = this,
             focused = this.getLastFocused(),
             view    = this.view,

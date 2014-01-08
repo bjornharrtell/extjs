@@ -129,6 +129,8 @@ Ext.define('Ext.container.Viewport', {
 <span id='Ext-container-Viewport-property-ariaRole'>    ariaRole: 'application',
 </span>    
 <span id='Ext-container-Viewport-property-preserveElOnDestroy'>    preserveElOnDestroy: true,
+</span>    
+<span id='Ext-container-Viewport-property-viewportCls'>    viewportCls: Ext.baseCSSPrefix + 'viewport',
 </span>
 <span id='Ext-container-Viewport-method-initComponent'>    initComponent : function() {
 </span>        var me = this,
@@ -142,7 +144,7 @@ Ext.define('Ext.container.Viewport', {
         me.width = me.height = undefined;
 
         me.callParent(arguments);
-        Ext.fly(html).addCls(Ext.baseCSSPrefix + 'viewport');
+        Ext.fly(html).addCls(me.viewportCls);
         if (me.autoScroll) {
             Ext.fly(html).setStyle(me.getOverflowStyle());
             delete me.autoScroll;
@@ -188,6 +190,15 @@ Ext.define('Ext.container.Viewport', {
 
 <span id='Ext-container-Viewport-method-initHierarchyState'>    initHierarchyState: function(hierarchyState) {
 </span>        this.callParent([this.hierarchyState = Ext.rootHierarchyState]);
+    },
+    
+<span id='Ext-container-Viewport-method-beforeDestroy'>    beforeDestroy: function(){
+</span>        var me = this;
+        
+        me.removeUIFromElement();
+        me.el.removeCls(me.baseCls);
+        Ext.fly(document.body.parentNode).removeCls(me.viewportCls);
+        me.callParent();
     }
 });
 </pre>

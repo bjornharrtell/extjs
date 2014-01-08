@@ -646,14 +646,14 @@ Ext.define('Ext.direct.RemotingProvider', {
             return;
         }
 
-        if (typeof transaction.timeout !== 'undefined') {
+        if (enableBuffer === false || typeof transaction.timeout !== 'undefined') {
             me.sendRequest(transaction);
             return;
         }
         
-        if (enableBuffer) {
-            me.callBuffer.push(transaction);
+        me.callBuffer.push(transaction);
 
+        if (enableBuffer) {
             if (!me.callTask) {
                 me.callTask = new Ext.util.DelayedTask(me.combineAndSend, me);
             }

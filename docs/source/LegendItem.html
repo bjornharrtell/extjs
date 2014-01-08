@@ -34,8 +34,7 @@ Ext.define('Ext.chart.LegendItem', {
     
 <span id='Ext-chart-LegendItem-property-label'>    // These are cached for quick lookups
 </span>    label: undefined,
-<span id='Ext-chart-LegendItem-property-mask'>    mask:  undefined,
-</span>    
+    
 <span id='Ext-chart-LegendItem-property-x'>    // Position of the item, relative to the upper-left corner of the legend box
 </span>    x: 0,
 <span id='Ext-chart-LegendItem-property-y'>    y: 0,
@@ -63,8 +62,6 @@ Ext.define('Ext.chart.LegendItem', {
         me.setAttributes({
             hidden: false
         }, true);
-        
-        me.mask = me.createMask(config);
         
         me.yFieldIndex = index;
 
@@ -117,31 +114,6 @@ Ext.define('Ext.chart.LegendItem', {
             text: me.getLabelText(),
             style: {
                 cursor: 'pointer'
-            }
-        }));
-    },
-    
-<span id='Ext-chart-LegendItem-method-createMask'>    /**
-</span>     * @private Creates mask sprite.
-     */
-    createMask: function(config) {
-        var me = this,
-            surface = me.surface,
-            legend = me.legend,
-            bbox;
-        
-        bbox = me.getBBox();
-        
-        return me.add('mask', surface.add({
-            type: 'rect',
-            x: bbox.x,
-            y: bbox.y,
-            width: bbox.width || 20,
-            height: bbox.height || 20,
-            zIndex: (me.zIndex || 0) + 1,
-            fill: legend.boxFill,
-            style: {
-                'cursor': 'pointer'
             }
         }));
     },
@@ -249,9 +221,6 @@ Ext.define('Ext.chart.LegendItem', {
         
         me.label.setStyle({
             'font-weight': 'bold'
-        });
-        me.mask.setStyle({
-            'cursor': 'pointer'
         });
         me.series._index = me.yFieldIndex;
         me.series.highlightItem();

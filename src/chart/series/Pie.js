@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @class Ext.chart.series.Pie
@@ -651,7 +651,7 @@ Ext.define('Ext.chart.series.Pie', {
             rho = 1,
             theta = Math.atan2(y, x || 1),
             dg = theta * 180 / Math.PI,
-            prevDg;
+            prevDg, labelBox, width, height;
 
         opt.hidden = false;
 
@@ -672,7 +672,17 @@ Ext.define('Ext.chart.series.Pie', {
 
         switch (display) {
         case 'outside':
+            // calculate the distance to the pie's edge
             rho = Math.sqrt(x * x + y * y) * 2;
+
+            // add the distance from the label's center to its edge
+            label.setAttributes({rotation:{degrees: 0}}, true);
+            labelBox = label.getBBox();
+            width = labelBox.width/2 * Math.cos(theta) + 4;
+            height = labelBox.height/2 * Math.sin(theta) + 4;
+
+            rho += Math.sqrt(width*width + height*height);
+
             //update positions
             opt.x = rho * Math.cos(theta) + centerX;
             opt.y = rho * Math.sin(theta) + centerY;

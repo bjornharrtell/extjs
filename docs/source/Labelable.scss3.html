@@ -19,45 +19,136 @@
 </span> * @class Ext.form.Labelable
  */
 
+<span id='Ext-form-Labelable-css_var-S-form-label-font-color'>/**
+</span> * @var {color}
+ * The text color of form field labels
+ */
 $form-label-font-color: $color !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-label-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of form field labels
+ */
 $form-label-font-weight: normal !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-label-font-size'>/**
+</span> * @var {number}
+ * The font-size of form field labels
+ */
 $form-label-font-size: $font-size !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-label-font-family'>/**
+</span> * @var {string}
+ * The font-family of form field labels
+ */
 $form-label-font-family: $font-family !default;
-$form-label-line-height: 22px !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-label-line-height'>/**
+</span> * @var {number}
+ * The line-height of form field labels
+ */
+$form-label-line-height: round($form-label-font-size * 1.15) !default;
+
+// private
 $form-label-font: $form-label-font-weight #{$form-label-font-size}/#{$form-label-line-height} $form-label-font-family !default;
-$form-toolbar-label-line-height: $form-toolbar-field-height !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-toolbar-label-color'>/**
+</span> * @var {color}
+ * The text color of toolbar field labels
+ */
+$form-toolbar-label-color: $color !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-toolbar-label-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of toolbar field labels
+ */
+$form-toolbar-label-font-weight: normal !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-toolbar-label-font-size'>/**
+</span> * @var {number}
+ * The font-size of toolbar field labels
+ */
+$form-toolbar-label-font-size: $font-size !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-toolbar-label-font-family'>/**
+</span> * @var {string}
+ * The font-family of toolbar field labels
+ */
+$form-toolbar-label-font-family: $font-family !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-toolbar-label-line-height'>/**
+</span> * @var {number}
+ * The line-height of toolbar field labels
+ */
+$form-toolbar-label-line-height: round($form-toolbar-label-font-size * 1.15) !default;
+
+// private
+$form-toolbar-label-font: $form-toolbar-label-font-weight #{$form-toolbar-label-font-size}/#{$form-toolbar-label-line-height} $form-toolbar-label-font-family !default;
 
 <span id='Ext-form-Labelable-css_var-S-form-error-icon-width'>/**
-</span> * @var {measurement} $form-error-icon-width
+</span> * @var {number}
  * Width for form error icons.
  */
-$form-error-icon-height: 16px !default;
 $form-error-icon-width: 16px !default;
-<span id='Ext-form-Labelable-css_var-S-form-error-icon-right-margin'>/**
-</span> * @var {measurement} $form-error-icon-right-margin
+
+<span id='Ext-form-Labelable-css_var-S-form-error-icon-height'>/**
+</span> * @var {number}
+ * Height for form error icons.
+ */
+$form-error-icon-height: 16px !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-error-icon-side-margin'>/**
+</span> * @var {number/list}
  * Margin for error icons that are aligned to the side of the field
  */
 $form-error-icon-side-margin: 0 1px !default;
 
 <span id='Ext-form-Labelable-css_var-S-form-error-under-icon-spacing'>/**
-</span> * @var {measurement} $form-error-under-icon-spacing
+</span> * @var {number}
  * The space between the icon and the message for errors that display under the field
  */
 $form-error-under-icon-spacing: 4px !default;
 
 <span id='Ext-form-Labelable-css_var-S-form-error-under-padding'>/**
-</span> * @var {measurement} $form-error-under-padding
- * The space between the icon and the message for errors that display under the field
+</span> * @var {number/list}
+ * The padding on errors that display under the form field
  */
 $form-error-under-padding: 2px 2px 2px 0 !default;
 
+<span id='Ext-form-Labelable-css_var-S-form-error-msg-color'>/**
+</span> * @var {color}
+ * The text color of form error messages
+ */
 $form-error-msg-color: $form-field-invalid-border-color !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-error-msg-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of form error messages
+ */
 $form-error-msg-font-weight: normal !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-error-msg-font-size'>/**
+</span> * @var {number}
+ * The font-size of form error messages
+ */
 $form-error-msg-font-size: $font-size !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-error-msg-font-family'>/**
+</span> * @var {string}
+ * The font-family of form error messages
+ */
 $form-error-msg-font-family: $font-family !default;
+
+// private
 $form-error-msg-font: $form-error-msg-font-weight $form-error-msg-font-size $form-error-msg-font-family !default;
+
+<span id='Ext-form-Labelable-css_var-S-form-error-msg-line-height'>/**
+</span> * @var {number}
+ * The line-height of form error messages
+ */
 $form-error-msg-line-height: $form-error-icon-height !default;
 
+// private
 $form-exclamation-icon: 'form/exclamation' !default;
 
 <span id='Ext-form-Labelable-css_var-S-form-item-margin-bottom'>/**

@@ -29,6 +29,15 @@ no target was specified).
   * `--target`, `-t` - The target(s) to execute from the Ant script (comma separated)
   * `--verbose`, `-v` - Enables Ant verbose level messages
 
+### Syntax
+
+    sencha ant [options] targets...
+
+### Where:
+
+  * `targets` - The Ant script targets to execute
+
+
 ## sencha app
 
 This category contains various commands for application management.
@@ -40,8 +49,8 @@ This category contains various commands for application management.
 ### Commands
   * `build` - Executes the build process for an application
   * `refresh` - Updates the application metadata (aka "bootstrap") file
-  * `resolve` - Generate a list of dependencies in the exact loading order for the given application.
-  * `upgrade` - Upgrade the given application to the SDK at the current working directory
+  * `resolve` - Generate dependencies in the loading order for the given app.
+  * `upgrade` - Upgrade the current application to the specified SDK
 
 ## sencha app build
 
@@ -79,12 +88,21 @@ a command line invocation.
 
 ### Options
   * `--archive`, `-a` - The directory path where all previous builds were stored.
-  * `--destination`, `-d` - The directory path to build this application to. Default: build
+  * `--clean`, `-c` - Remove previous build output prior to executing build
+  * `--destination`, `-d` - The directory to which the build output is written
   * `--environment`, `-e` - The build environment, either 'testing', 'production', 'package' (Touch Specific), or 'native' (Touch Specific).
   * `--run`, `-r` - Enables automatically running builds with the native packager
 
+### Syntax
+
+    sencha app build [options] [environment] \
+                               [destination] \
+                               [archive]
+
 ## sencha app package
 
+This category contains various commands for packing application for deployment
+on phones using the Sencha Mobile Packager.
 
 
 ### Commands
@@ -100,6 +118,10 @@ This command creates a native package of the current application.
 ### Options
   * `--path`, `-p` - the path to the configuration file
 
+### Syntax
+
+    sencha app package build [options] path
+
 ## sencha app package generate
 
 This command generates a Packager configuration JSON file.
@@ -108,6 +130,10 @@ This command generates a Packager configuration JSON file.
 ### Options
   * `--path`, `-p` - the path to the configuration file
 
+### Syntax
+
+    sencha app package generate [options] path
+
 ## sencha app package run
 
 This command packages and runs the current application.
@@ -115,6 +141,10 @@ This command packages and runs the current application.
 
 ### Options
   * `--path`, `-p` - the path to the configuration file
+
+### Syntax
+
+    sencha app package run [options] path
 
 ## sencha app refresh
 
@@ -129,11 +159,18 @@ download those packages from remote repositories), do this:
 
     sencha app refresh --packages
 
+The additional parameters are seldom used.
+
 
 ### Options
   * `--base-path`, `-b` - The base path to use to calculate relative path information. Defaults to index.html directory
   * `--metadata-file`, `-m` - The output filename for the js file containing the manifest metadata
   * `--packages`, `-pac` - Update required packages from remote repositories
+
+### Syntax
+
+    sencha app refresh [options] [metadata-file] \
+                                 [base-path]
 
 ## sencha app resolve
 
@@ -146,6 +183,11 @@ NOTE: the resolved paths are relative to the current application's HTML file.
 ### Options
   * `--output-file`, `-o` - The file path to write the results to in JSON format.
   * `--uri`, `-u` - The URI to the application\'s HTML document
+
+### Syntax
+
+    sencha app resolve [options] uri \
+                                 output-file
 
 ## sencha app upgrade
 
@@ -165,8 +207,13 @@ of Sencha Cmd and not the framework in use, do this:
 
 
 ### Options
-  * `--noframework`, `-no` - Upgrade only the Sencha Cmd scaffolding and not the SDK
+  * `--noappjs`, `-noa` - Disable upgrade of app.js
+  * `--noframework`, `-nof` - Upgrade only the Sencha Cmd scaffolding and not the SDK
   * `--path`, `-p` - The path to the framework to which to upgrade
+
+### Syntax
+
+    sencha app upgrade [options] [path]
 
 ## sencha build
 
@@ -177,50 +224,9 @@ releases. It is highly recommended to migrate applications to the new `compile`
 command and discontinue use of this command.
 
 
-## sencha cert
+### Syntax
 
-
-
-### Commands
-  * `check` - Check signatures on a certificate against other certificates
-  * `create` - Create a new certificate
-  * `merge` - Merge signatures from one copy of a certificate to another
-  * `sign` - Signs one certificate with another
-
-## sencha cert check
-
-
-
-### Options
-  * `--from`, `-f` - The certificate(s) or folder(s) from which to check
-  * `--minimum-signatures`, `-m` - The minimum number of valid signature required
-
-## sencha cert create
-
-
-
-### Options
-  * `--data`, `-d` - Extra data for the certificate (e.g., -data name1:value1 -data name2:value2
-  * `--email`, `-em` - The email address for the owner of the local repository
-  * `--expiration`, `-ex` - The number of years before the generated key pair becomes invalid
-  * `--keybits`, `-k` - Specifies the number of bits for the generated public/private key pair
-  * `--name`, `-n` - The name for the owner of the certificate
-  * `--password`, `-p` - The password to apply to the private key (default is none)
-
-## sencha cert merge
-
-
-
-### Options
-  * `--from`, `-f` - Name of the certificate from which to copy signatures
-
-## sencha cert sign
-
-
-
-### Options
-  * `--password`, `-p` - Password for the signing certificate's private key (default is none)
-  * `--with`, `-w` - Name of the certificate with which to sign
+    sencha build 
 
 ## sencha compass
 
@@ -229,16 +235,6 @@ command and discontinue use of this command.
 ### Options
   * `--native`, `-n` - Enables / disables calls to system installed MRI compass
   * `--ruby-path`, `-r` - set the path to MRI ruby executable
-
-## sencha compass compile
-
-
-
-### Options
-  * `--config`, `-co` - controls the '--config' argument to compass, specifies the configuration ruby file to use
-  * `--css-dir`, `-cs` - sets the css-dir compass argument
-  * `--sass-dir`, `-s` - sets the sass-dir compass argument
-  * `--workingdir`, `-w` - sets the working directory for the compass process
 
 ## sencha compile
 
@@ -271,6 +267,7 @@ repeated calls.
 
 ## sencha compile concatenate
 
+This command writes the current set to the specified output file.
 
 
 ### Options
@@ -278,14 +275,19 @@ repeated calls.
   * `--beautify`, `-b` - enables / disables beautification of sources after compilation
   * `--closure`, `-cl` - Compress generate file using Closure Compiler
   * `--compress`, `-co` - Compress generated file using default compressor (YUI)
-  * `--output-file`, `-o` - the output file name
+  * `--output-file`, `-o` - The output file name (or $ for stdout)
   * `--remove-text-references`, `-r` - enables / disables reference optimization by converting string classnames to static references
   * `--strip-comments`, `-st` - Strip comments from the generated file
   * `--uglify`, `-u` - Compress generate file using uglify-js
   * `--yui`, `-y` - Compress generated file using YUI Compressor
 
+### Syntax
+
+    sencha compile concatenate [options] output-file
+
 ## sencha compile exclude
 
+This command removes from the current set any files matching the criteria.
 
 
 ### Options
@@ -297,9 +299,14 @@ repeated calls.
   * `--recursive`, `-r` - Enable traversal of dependency relationships when selecting files
   * `--set`, `-s` - Selects files from on a previously saved set (ignores other options)
   * `--tag`, `-t` - Selects all files with the specified '//@tag' values
+
+### Syntax
+
+    sencha compile exclude [options] 
 
 ## sencha compile include
 
+This command adds the files matching the criteria to the current set.
 
 
 ### Options
@@ -312,8 +319,17 @@ repeated calls.
   * `--set`, `-s` - Selects files from on a previously saved set (ignores other options)
   * `--tag`, `-t` - Selects all files with the specified '//@tag' values
 
+### Syntax
+
+    sencha compile include [options] 
+
 ## sencha compile intersect
 
+This command produces as in the current set the files that are contained in all
+of the specified input sets. Alternatively, this command can include files that
+are present in a present in a certain minimum number of sets.
+
+This command only operates on saved sets (unlike most other set operations).
 
 
 ### Options
@@ -321,8 +337,14 @@ repeated calls.
   * `--name`, `-n` - The name by which to save the intersection as a set
   * `--sets`, `-s` - The sets to include in the intersection
 
+### Syntax
+
+    sencha compile intersect [options] 
+
 ## sencha compile metadata
 
+This command generates various forms of metadata extracted from the current set
+of files. This data can be exported in various formats (e.g., JSON or JSONP).
 
 
 ### Options
@@ -348,19 +370,23 @@ Choose one of the following options
 
   * `--append`, `-ap` - Appends output to output file instead of overwriting output file
   * `--base-path`, `-b` - Set the base path for relative path references
-  * `--output-file`, `-o` - the output file name
+  * `--output-file`, `-o` - The output file name (or $ for stdout)
   * `--separator`, `-s` - The delimiter character used to separate multiple templates
 
-## sencha compile optimize
+### Syntax
 
-
-
-### Options
-  * `--define-rewrite`, `-d` - enables / disables class definition optimizations (default: false)
-  * `--include-metadata`, `-i` - enables / disables class system metadata inclusion in optimized output
+    sencha compile metadata [options] 
 
 ## sencha compile page
 
+This command processes a markup file as input and generates an output file with
+certain sections rewritten.
+
+If the `-name` option is specified, the dependency graph of all required files
+is saved as a file set with that name (see also the `save` command).
+
+If the `-name` option is not specified, all required files are instead written
+to the "all-classes.js" file.
 
 
 ### Options
@@ -378,42 +404,80 @@ Choose one of the following options
   * `--uglify`, `-u` - Compress generate file using uglify-js
   * `--yui`, `-y` - Compress generated file using YUI Compressor
 
+### Syntax
+
+    sencha compile page [options] output-page
+
 ## sencha compile pop
 
+This command restores the current set of files from the "stack". This state was
+previously put on the "stack" using the `push` command.
 
+    sencha compile ... \
+                and push \
+                and ... \
+                and pop
+                and ...
+
+Between the `push` and `pop` commands the current file set can be adjusted as
+needed and then restored for subsequent commands.
+
+
+### Syntax
+
+    sencha compile pop 
 
 ## sencha compile push
 
+This command saves the current set of files on a "stack" to easily save and
+restore state.
 
+    sencha compile ... \
+                and push \
+                and ... \
+                and pop
+                and ...
+
+Between the `push` and `pop` commands the current file set can be adjusted as
+needed and then restored for subsequent commands.
+
+
+### Syntax
+
+    sencha compile push 
 
 ## sencha compile restore
 
-This command restores a saved set as the current set.
 
 
-## sencha compile sass
+### Syntax
 
-
-
-### Options
-  * `--etc-path`, `-etc-` - adds sass path entries to etc. files (comma separated file or dir paths)
-  * `--ruby-path`, `-ruby-` - add paths to ruby files to include in generated config.rb
-  * `--sass-path`, `-s` - adds sass path entries to rule files (comma separated file or dir paths)
-  * `--var-path`, `-var-` - adds sass path entries to variable files (comma separated file or dir paths)
+    sencha compile restore String
 
 ## sencha compile save
 
-This command saves the current set with the specified name. A saved set can be
-used as a criteria for set operations (e.g., `include`) via the `-set` option.
-A saved set can also be restored as the current set via the `restore` command.
 
+
+### Syntax
+
+    sencha compile save String
 
 ## sencha compile show-ignored
 
+Displays a list of all files found in the `classpath` but matching an `-ignore`
+criteria.
 
+
+### Syntax
+
+    sencha compile show-ignored 
 
 ## sencha compile union
 
+This command adds files matching the criteria to the current set. This is
+similar to the `include` command except that this command first removes all
+files from the current set. In other words, this command makes the current set
+equal to only those files that match the criteria.
 
 
 ### Options
@@ -425,6 +489,10 @@ A saved set can also be restored as the current set via the `restore` command.
   * `--recursive`, `-r` - Enable traversal of dependency relationships when selecting files
   * `--set`, `-s` - Selects files from on a previously saved set (ignores other options)
   * `--tag`, `-t` - Selects all files with the specified '//@tag' values
+
+### Syntax
+
+    sencha compile union [options] 
 
 ## sencha config
 
@@ -458,32 +526,9 @@ In this case, an alternative would be to set `app.dir` in the applications's
   * `--file`, `-f` - The properties file to load
   * `--prop`, `-p` - One or more property names and values to set
 
-## sencha diag
+### Syntax
 
-
-
-## sencha diag command
-
-
-
-## sencha diag jar
-
-
-
-## sencha diag show-props
-
-
-
-## sencha diag version
-
-
-
-## sencha fashion
-
-
-
-### Options
-  * `--output-type`, `-o` - Set the type of output (css or json). Defaults to css.
+    sencha config [options] 
 
 ## sencha fs
 
@@ -497,15 +542,8 @@ This category provides commands for manipulating files.
 ### Commands
   * `concatenate` - Concatenate multiple files into one
   * `difference` - Generates deltas between two files in JSON format
-  * `minify` - Minify a JavaScript file, currently support YUICompressor (default), Closure Compiler and UglifyJS
+  * `minify` - Minify a JavaScript file
   * `slice` - Generates image slices from a given image directed by a JSON manifest
-
-## sencha fs cache
-
-
-
-### Options
-  * `--enable`, `-e` - Enables / disables file system io caching (default: false)
 
 ## sencha fs concatenate
 
@@ -518,6 +556,10 @@ This command combines multiple input files into a single output file.
   * `--from`, `-f` - List of files to concatenate, comma-separated
   * `--to`, `-t` - The destination file to write concatenated content
 
+### Syntax
+
+    sencha fs concatenate [options] files...
+
 ## sencha fs difference
 
 This command produces a delta (or "patch") file between input files.
@@ -525,17 +567,34 @@ This command produces a delta (or "patch") file between input files.
     sencha fs diff -from=base.js -to=modified.js -delta=patch
 
 
+### Syntax
+
+    sencha fs difference 
+
 ## sencha fs minify
 
 This command produced minified files using various back-end compressors.
 
-    sencha fs minify -compressor=yui -from=input.js -to=output.js
+    sencha fs minify -yui -from=in.js -to=out.js
+
+    sencha fs minify -closure -from=in.js -to=out.js
+
+The legacy syntax is also supported:
+
+    sencha fs minify -compressor=yuicompressor -from=in.js -to=out.js
+
+    sencha fs minify -compressor=closurecompiler -from=in.js -to=out.js
 
 
 ### Options
-  * `--compressor`, `-c` - The compressor to use (closure or yui). default: yui
+  * `--closure`, `-cl` - Enable the Google Closure Compiler
   * `--from`, `-f` - The input js file to minify
   * `--to`, `-t` - The destination filename for minified output.
+  * `--yui`, `-y` - Enable the YUI Compressor
+
+### Syntax
+
+    sencha fs minify [options] 
 
 ## sencha fs mirror
 
@@ -612,6 +671,15 @@ The above command will process all `"png"` images and will write out their
   * `--recurse`, `-r` - Process the input folder recursively (i.e., include sub-folders)
   * `--suffix`, `-s` - The suffix of output files (e.g., "-rtl")
 
+### Syntax
+
+    sencha fs mirror all [options] File
+
+### Where:
+
+  * `File` - The input folder to process
+
+
 ## sencha fs mirror image
 
 This command create a horizontal mirror image of a given input file.
@@ -622,6 +690,11 @@ For example
 
 The above command creates `"foo-rtl.png"` from `"foo.png"`.
 
+
+### Syntax
+
+    sencha fs mirror image File \
+                           File
 
 ## sencha fs mirror sprite
 
@@ -640,6 +713,11 @@ and produces `"sprite-rtl.png"`.
 ### Options
   * `--columns`, `-c` - The number of columns in the sprite.
   * `--rows`, `-r` - The number of rows in the sprite.
+
+### Syntax
+
+    sencha fs mirror sprite [options] File \
+                                      File
 
 ## sencha fs slice
 
@@ -661,6 +739,10 @@ http://docs.sencha.com/ext-js/4-2/#!/guide/command_slice
   * `--out-dir`, `-o` - The root folder to which sliced images are written
   * `--quantized`, `-q` - Enables image quantization (default is true)
   * `--tolerate-conflicts`, `-t` - Tolerate conflicts in slice manifest
+
+### Syntax
+
+    sencha fs slice [options] 
 
 ## sencha fs web
 
@@ -696,7 +778,11 @@ To stop the server, press CTRL+C or run the `sencha fs web stop` command:
 
 
 ### Options
-  * `--mappings`, `-m` - List of names for local folders, for example: [urlpath=]/path/to/folder)
+  * `--mappings`, `-m` - List of local folders (ex: [sub=]/path/to/folder)
+
+### Syntax
+
+    sencha fs web start [options] 
 
 ## sencha fs web stop
 
@@ -710,6 +796,10 @@ From another terminal or console, this will stop the server:
 
     sencha fs web -port 8000 stop
 
+
+### Syntax
+
+    sencha fs web stop 
 
 ## sencha generate
 
@@ -741,9 +831,16 @@ Other application actions are provided in the `sencha app` category (e.g.,
 ### Options
   * `--controller-name`, `-c` - The name of the default Controller
   * `--library`, `-l` - the pre-built library to use (core or all). Default: core
+  * `--name`, `-n` - The name of the application to generate
   * `--path`, `-p` - The path for the generated application
+  * `--starter`, `-s` - Overrides the default Starter App template directory
   * `--theme-name`, `-t` - The name of the defualt Theme
   * `--view-name`, `-v` - The name of the defalut View
+
+### Syntax
+
+    sencha generate app [options] name \
+                                  path
 
 ## sencha generate controller
 
@@ -752,6 +849,10 @@ This command generates a new Controller and adds it to the current application.
 
 ### Options
   * `--name`, `-n` - The name of the Controller to generate
+
+### Syntax
+
+    sencha generate controller [options] name
 
 ## sencha generate form
 
@@ -763,6 +864,12 @@ This command generates a new form and adds it to the current application.
   * `--name`, `-n` - The name of the Form to generate
   * `--xtype`, `-x` - The xtype for the form. Defaults to the lowercase form of the name.
 
+### Syntax
+
+    sencha generate form [options] name \
+                                   fields \
+                                   [xtype]
+
 ## sencha generate model
 
 This command generates a new Model class and adds it to the current application.
@@ -773,13 +880,45 @@ This command generates a new Model class and adds it to the current application.
   * `--fields`, `-f` - Comma separated list of "name:type" field pairs
   * `--name`, `-n` - The name of the Model
 
+### Syntax
+
+    sencha generate model [options] name \
+                                    fields
+
 ## sencha generate package
 
+This command generates a new Sencha Cmd Package. A package is in many ways like
+an application in that it contains any of the following pieces:
+
+  * JavaScript source
+  * SASS styles
+  * Arbitrary resources
+
+All of these are integrated by a build process using `sencha package build`.
+
+For example:
+
+    sencha generate package foo
+
+To use this package in applications (or other packages), you just add the name
+of the package to the requires array in the `"app.json"` or `"package.json"`
+file:
+
+    requires: [
+        'foo'
+    ]
+
+All packages reside in the `"./packages"` folder of the workspace (which is
+often the same folder as your application).
 
 
 ### Options
   * `--name`, `-n` - The name of the package to generate
   * `--type`, `-t` - The type of the package to generate (i.e., "code" or "theme")
+
+### Syntax
+
+    sencha generate package [options] name
 
 ## sencha generate profile
 
@@ -791,13 +930,44 @@ NOTE: Sencha Touch only.
 ### Options
   * `--name`, `-n` - The name of the Profile to generate
 
+### Syntax
+
+    sencha generate profile [options] name
+
 ## sencha generate theme
 
-This command generates a new Theme and adds it to the current application.
+This command generates a new Theme. For Ext JS 4.1, themes are "owned" by an
+application. In Ext JS 4.2 and beyond, themes are Packages.
+
+In Ext JS 4.2, theme packages can extend other themes. By default, generated
+themes extend "ext-theme-classic". This can be overridden using `--extend`.
+
+To generate a stand-alone Theme in Ext JS 4.2, follow these steps. Generate a
+workspace (with `"ext"` folder) using Ext JS 4.2 SDK unzipped on your system:
+
+    sencha -sdk /path/to/ext-4.2.0 generate workspace MyWorkspace
+    cd MyWorkspace
+
+From inside the workspace, use the `"ext"` folder to generate the theme package:
+
+    sencha -sdk ext generate theme --extend ext-theme-neptune MyTheme
+
+The above could equivalently have used the SDK used to create the workspace.
+
+The `-sdk` switch is used here to indicate the framework on which the theme is
+based. This is not needed if the command is run from an Ext JS application
+folder.
+
+`NOTE:` Does not apply to Sencha Touch.
 
 
 ### Options
+  * `--extend`, `-e` - The name of the theme package to extend (Ext JS 4.2+ only)
   * `--name`, `-n` - The name of the Theme to generate
+
+### Syntax
+
+    sencha generate theme [options] name
 
 ## sencha generate view
 
@@ -806,6 +976,10 @@ This command generates a new View class and adds it to the current application.
 
 ### Options
   * `--name`, `-n` - The name of the View to generate
+
+### Syntax
+
+    sencha generate view [options] name
 
 ## sencha generate workspace
 
@@ -816,20 +990,38 @@ applications.
 ### Options
   * `--path`, `-p` - Sets the target path for the workspace
 
+### Syntax
+
+    sencha generate workspace [options] [path]
+
 ## sencha help
 
-The `help` command generates help for other commands.
+This command displays help for other commands.
 
-### Usage
+### Example
 
-sencha help <command>
+    sencha help generate app
+
+
+### Syntax
+
+    sencha help command...
+
+### Where:
+
+  * `command` - The command path for which to display help (e.g., "generate app"
 
 
 ## sencha io
 
-These commands give you access to all the tools required to create, manage and deploy web applications in the io cloud.
+These commands give you access to all the tools required to create, manage and
+deploy web applications in the io cloud.
 
-Sencha.io provides a backend-as-a-service that enables developers with a set of APIs that helps them build and run their applications. It allows you to build web applications using services provided through our client side SDKs, Ext JS and Sencha Touch.
+Sencha.io provides a backend-as-a-service that enables developers with a set of
+APIs that helps them build and run their applications. It allows you to build
+web applications using services provided through our client side SDKs, Ext JS
+and Sencha Touch.
+
 
 ### Commands
   * `app-set-group` - Sets the Auth Group associated with an app
@@ -847,32 +1039,73 @@ Sencha.io provides a backend-as-a-service that enables developers with a set of 
 
 Sets the Authentication Group which is associated with this Application.
 
-Only one Authentication Group may be associated with an Application at any given time.
+Only one Authentication Group may be associated with an Application at any
+given time.
 
-An Authentication Group controls which methods of authentication are available to users of your application.  Users are members of Authentication Groups.
+An Authentication Group controls which methods of authentication are available
+to users of your application. Users are members of Authentication Groups.
+
 
 ### Options
   * `--group-name`, `-g` - The Auth Group name to associate with this app
+
+### Syntax
+
+    sencha io app-set-group [options] [appName] \
+                                      [groupName] \
+                                      [username] \
+                                      [password] \
+                                      [teamName]
 
 ## sencha io create-app
 
 Creates a new Application in the context of Sencha Io.
 
+
+### Syntax
+
+    sencha io create-app [appName] \
+                         [username] \
+                         [password] \
+                         [teamName]
+
 ## sencha io create-auth-group
 
 Creates a new Authentication Group in Sencha Io.
 
+
 ### Options
   * `--group-name`, `-g` - The Auth Group name to associate with this app
 
+### Syntax
+
+    sencha io create-auth-group [options] [groupName] \
+                                          [username] \
+                                          [password] \
+                                          [teamName]
+
 ## sencha io create-version
 
-Creates a new Version of an Application.  In doing so, an application .zip file is uploaded to the cloud, along with a version tag and a description of this version.  Once a version has been successfully created, it must be deployed before it can be accessed.
+Creates a new Version of an Application. In doing so, an application `".zip"`
+file is uploaded to the cloud, along with a version tag and a description of
+this version.  Once a version has been successfully created, it must be
+deployed before it can be accessed.
+
 
 ### Options
   * `--package-path`, `-pac` - The path to the package to be used in a new application version.
   * `--version-description`, `-version-d` - The version description for this new application version
   * `--version-tag`, `-version-t` - The version tag for this new application version
+
+### Syntax
+
+    sencha io create-version [options] [appName] \
+                                       [packagePath] \
+                                       [versionTag] \
+                                       [versionDescription] \
+                                       [username] \
+                                       [password] \
+                                       [teamName]
 
 ## sencha io deploy
 
@@ -880,32 +1113,70 @@ Deploys a previously created version of an Application to the cloud.
 
 Once an application has been deployed, it becomes publicly accessible.
 
+
 ### Options
   * `--version-tag`, `-v` - The version tag to deploy
 
+### Syntax
+
+    sencha io deploy [options] [appName] \
+                               [versionTag] \
+                               [username] \
+                               [password] \
+                               [teamName]
+
 ## sencha io list-apps
 
-Lists all Applications which are accessible by this Developer (in the current Team context).
+Lists all Applications which are accessible by this Developer (in the current
+Team context).
 
-If the Developer is a member of multiple teams, they may have to switch Team contexts to see all of the Applications they have access to.
+If the Developer is a member of multiple teams, they may have to switch Team
+contexts to see all of the Applications to which they have access.
+
+
+### Syntax
+
+    sencha io list-apps [username] \
+                        [password] \
+                        [teamName]
 
 ## sencha io list-groups
 
-Lists all the Authentication Groups which this Developer currently has access to.
+Lists all the Authentication Groups to which this Developer currently has
+access.
 
-If the Developer is a member of multiple teams, they may have to switch Team contexts to see all of the Authentication Groups they have access to.
+If the Developer is a member of multiple teams, they may have to switch Team
+contexts to see all of the Authentication Groups to which they have access.
+
+
+### Syntax
+
+    sencha io list-groups [username] \
+                          [password]
 
 ## sencha io list-versions
 
 Lists all of the currently uploaded versions of an Application in the system.
 
+
+### Syntax
+
+    sencha io list-versions [appName] \
+                            [username] \
+                            [password] \
+                            [teamName]
+
 ## sencha io set-group-auth
 
 Sets an Authentication Group's configuration.
 
-Acceptible values for Authentication Method are senchaio (which is on by default), facebook, and twitter.
+Acceptible values for Authentication Method are senchaio (which is on by
+default), facebook, and twitter.
 
-In order to use facebook or twitter, Application Keys and Secrets must be obtained for you application with those services, and then be provided as the final parameters of this command.
+In order to use facebook or twitter, Application Keys and Secrets must be
+obtained for you application with those services, and then be provided as the
+final parameters of this command.
+
 
 ### Options
   * `--auth-method`, `-au` - The auth method to set
@@ -914,18 +1185,39 @@ In order to use facebook or twitter, Application Keys and Secrets must be obtain
   * `--key`, `-k` - key for twitter/facebook auth
   * `--secret`, `-s` - secret for twitter/facebook auth
 
+### Syntax
+
+    sencha io set-group-auth [options] [groupName] \
+                                       [authMethod] \
+                                       [enabled] \
+                                       [username] \
+                                       [password] \
+                                       [key] \
+                                       [secret]
+
 ## sencha io undeploy
 
 Undeploys a previously deployed version of an Application.
 
 Once this has been done, the application will no longer be publicly available.
 
+
 ### Options
   * `--version-tag`, `-v` - The version tag to undeploy
 
+### Syntax
+
+    sencha io undeploy [options] [appName] \
+                                 [versionTag] \
+                                 [username] \
+                                 [password] \
+                                 [teamName]
+
 ## sencha iofs
 
-These commands gives you low level access to an io application's cloud hosting through an interface which ressembles a file system shell.
+These commands gives you low level access to an io application's cloud hosting
+through an interface which ressembles a file system shell.
+
 
 ### Commands
   * `get` - Retrieve a remote file from the file system
@@ -937,21 +1229,60 @@ These commands gives you low level access to an io application's cloud hosting t
 
 Retrieves a remote file from an Application's filesystem in Sencha io.
 
+
+### Syntax
+
+    sencha iofs get [appName] \
+                    [path] \
+                    [username] \
+                    [password] \
+                    [teamName]
+
 ## sencha iofs ls
 
 Lists the contents of a remote path in an Application's Sencha Io hosting.
+
+
+### Syntax
+
+    sencha iofs ls [appName] \
+                   [path] \
+                   [username] \
+                   [password] \
+                   [teamName]
 
 ## sencha iofs put
 
 Uploads a local file to a remote path in an Application's Sencha Io hosting.
 
+
 ### Options
   * `--content-type`, `-c` - The MIME content type of the file to be uploaded
   * `--local-path`, `-l` - The local path of the file to be uploaded
 
+### Syntax
+
+    sencha iofs put [options] [appName] \
+                              [path] \
+                              [localPath] \
+                              [contentType] \
+                              [username] \
+                              [password] \
+                              [teamName]
+
 ## sencha iofs rm
 
-Removes a remote directory or file from an Application's remote Sencha Io hosting.
+Removes a remote directory or file from an Application's remote Sencha Io
+hosting.
+
+
+### Syntax
+
+    sencha iofs rm [appName] \
+                   [path] \
+                   [username] \
+                   [password] \
+                   [teamName]
 
 ## sencha js
 
@@ -1014,6 +1345,11 @@ Java Scripting guide:
 http://docs.oracle.com/javase/6/docs/technotes/guides/scripting/programmer_guide/index.html
 
 
+### Syntax
+
+    sencha js String \
+              String[]...
+
 ## sencha manifest
 
 This category provides commands to manage application manifests.
@@ -1031,12 +1367,16 @@ This command generates a list of metadata for all classes.
   * `--output-path`, `-o` - The file path to write the results to in JSON format.
   * `--path`, `-p` - The directory path(s) that contains all classes
 
+### Syntax
+
+    sencha manifest create [options] output-path
+
 ## sencha package
 
 These commands manage packages in the local repository.
 
 These commands are not typically used directly because application requirements
-are automatically be used by `sencha app build` and `sencha app refresh --packages`
+are automatically used by `sencha app build` and `sencha app refresh --packages`
 to handle these details.
 
 #### Using Packages
@@ -1061,17 +1401,14 @@ repository must be initialized with a name and an optional email address.
 This name is not required to be globally unique, but it is a good idea to use a
 name that is unique and meaningful as a package author.
 
-    sencha package repository init -name "My Company, Inc."
+    sencha repository init -name "My Company, Inc."
 
-    sencha package repository init -name mySenchaForumId
+    sencha repository init -name mySenchaForumId
 
 For details see:
 
-    sencha help package repository init
+    sencha help repository init
 
-
-### Options
-  * `--repository-dir`, `-r` - Sets the folder of the local package repository
 
 ### Categories
   * `repository` - Manage local repository and remote repository connections
@@ -1081,6 +1418,7 @@ For details see:
   * `build` - Builds the current package
   * `extract` - Extracts the contents of a package to an output folder
   * `get` - Get a package from a remote repository
+  * `list` - Lists packages in the repository
   * `remove` - Removes a package from the local repository
   * `upgrade` - Upgrades the current pacakge
 
@@ -1093,6 +1431,18 @@ with the local repository.
 Once a package is added to the local repository, any repository that points to
 this repository as a remote repository will be able to download the package.
 
+The `sencha package build` process generates an appropriate `".pkg"` file in the
+`workspace.build.dir`.
+
+
+### Syntax
+
+    sencha package add pkgFile
+
+### Where:
+
+  * `pkgFile` - The path to the package file (e.g., path/file.pkg)
+
 
 ## sencha package build
 
@@ -1103,18 +1453,38 @@ defined by the current folder).
     sencha package build
 
 
+### Options
+  * `--clean`, `-c` - Remove previous build output prior to executing build
+
+### Syntax
+
+    sencha package build [options] 
+
 ## sencha package extract
 
-This command extracts a package from the local repository.
+This command extracts a package or packages from the repository. If necessary
+the packages will be downloaded from remote repositories and cached locally for
+future use.
 
 `NOTE:` This is `not` typically executed manually but is handle automatically
-as part of the build process based on the "requires".
+as part of the build process based on the "requires" found in `"app.json"` and/or
+`"package.json"`.
 
 To extract a package named "foo" at version "1.2" to a specified location:
 
     sencha package extract -todir=/some/path foo@1.2
 
-This will create `"/some/path/foo"`.
+This will create `"/some/path/foo"`. To recursively extract packages required
+by "foo", you would do this:
+
+    sencha package extract -recurse -todir=/some/path foo@1.2
+
+When complete, "foo" and all of its required packages will reside in the folder
+specified.
+
+`NOTE:` It is recommended to use `-todir` and allow the package name to be used
+as the immediate subdirectory of that folder. The `-outdir` option allows you to
+strip off this directory but prevents recursive extraction as a result.
 
 
 ### Options
@@ -1124,16 +1494,69 @@ This will create `"/some/path/foo"`.
   * `--recurse`, `-r` - Also get all required packages recursively
   * `--todir`, `-t` - The output folder for the extracted package folder
 
+### Syntax
+
+    sencha package extract [options] packages...
+
+### Where:
+
+  * `packages` - The names/versions of the packages to extract
+
+
 ## sencha package get
 
+This command ensures that a specified package is locally available. This does
+`not` extract the package to a particular location, but rather, enables apps or
+other packages to get the package from the local repository (that is, without
+downloading it).
+
+For example, to ensure that `"foo"` and `"bar"` are available locally:
+
+    sencha package get foo bar
+
+To get all packages required by those specified packages:
+
+    sencha package get -recursive foo bar
 
 
 ### Options
-  * `--force`, `-f` - Ignore local copy and fetch from remote repository
+  * `--force`, `-f` - Ignore local copy and (re)fetch from remote repository
   * `--recurse`, `-r` - Also get all required packages recursively
+
+### Syntax
+
+    sencha package get [options] packages...
+
+### Where:
+
+  * `packages` - One or more packages/versions to fetch locally
+
 
 ## sencha package list
 
+This command lists packages in the repository. To list available packages
+simply execute:
+
+    sencha package list
+
+To list locally available packages (no download required), do this:
+
+    sencha package list .
+
+Otherwise, you can specify the names of package repositories to list:
+
+    sencha package list sencha
+
+The above will list the contents of the Sencha Cmd Package Repository.
+
+
+### Syntax
+
+    sencha package list names...
+
+### Where:
+
+  * `names` - The repos to list (blank for all, or remote names or "." for local)
 
 
 ## sencha package remove
@@ -1147,6 +1570,15 @@ Removes version 1.2 of the package "foo":
 Remove all versions of "foo"
 
     sencha package remove foo@...
+
+
+### Syntax
+
+    sencha package remove packageNames...
+
+### Where:
+
+  * `packageNames` - One or more packages/versions to remove
 
 
 ## sencha package repository
@@ -1163,7 +1595,7 @@ commands you can manage these connections.
 
 This command adds a remote repository connection named `"foo"`:
 
-    sencha package repo add foo http://coolstuff.foo/packages
+    sencha repo add foo http://coolstuff.foo/packages
 
 Following this command, any packages contained in this repository will be
 available. Typically these packages are used by adding their name (and possibly
@@ -1190,17 +1622,18 @@ your build.
 To author packages for others to use in their applications, you will need to
 initialize your local repository with your name:
 
-    sencha package repo init -name "My Company, Inc."
+    sencha repo init -name "My Company, Inc."
 
 See these for more details:
 
     sencha help package
-    sencha help package repo init
+    sencha help repo init
 
 
 ### Commands
   * `add` - Add a remote repository connection
   * `init` - Initializes the local package repository
+  * `list` - List remote repository connections
   * `remove` - Remove a remote repository connection
   * `show` - Show details for a repository
   * `sync` - Clears caches to force refetching for a remote repository
@@ -1210,12 +1643,17 @@ See these for more details:
 Adds a remote repository connection. Once added, packages from that repository
 will be available to applications for use.
 
-    sencha package repo add foo http://foo.bar/pkgs
+    sencha repo add foo http://foo.bar/pkgs
 
 
 ### Options
   * `--address`, `-a` - The address (or URL) for the remote repository
   * `--name`, `-n` - The name for the remote connection
+
+### Syntax
+
+    sencha package repository add [options] name \
+                                            address
 
 ## sencha package repository init
 
@@ -1227,7 +1665,7 @@ automatically initialized in "anonymous" mode. This command is needed only if
 you want to publish packages for others to use in their application. To publish
 packages you must initial the local repository and provide a name:
 
-    sencha package repository init -name "My Company, Inc." -email me@foo.com
+    sencha repository init -name "My Company, Inc." -email me@foo.com
 
 Beyond initializing the repository file structures, this command also generates
 a public/private key pair and stores these in the local repository. The private
@@ -1240,13 +1678,13 @@ For details on adding packages:
 #### Private Key
 
 Packages added to the local repository with a `creator` property equal to the
-name given to `sencha package repository init` will be signed using the private
-key stored in the local repository.
+name given to `sencha repository init` will be signed using the private key
+stored in the local repository.
 
 In this release of Sencha Cmd, these signatures are only used to test package
 integrity. You can backup this key if desired, but a new key can be regenerated
-by running `sencha package repo init` at any time. In future versions it may be
-more important to backup your private key.
+by running `sencha repo init` at any time. In future versions it may be more
+important to backup your private key.
 
 #### Remote Access
 
@@ -1255,16 +1693,16 @@ to access requires some knowledge of the disk structure of the repository. By
 default, Sencha Cmd creates the local repository adjacent to its installation
 folder. For example, given the following location of Sencha Cmd:
 
-    /Users/myself/bin/sencha/Cmd/3.1.0.200/sencha
+    /Users/myself/bin/Sencha/Cmd/3.1.0.200/
 
 The local respository is located at:
 
-    /Users/myself/bin/sencha/Cmd/repo
+    /Users/myself/bin/Sencha/Cmd/repo
 
 This is to allow your local repository to be used by newer versions of Sencha
-Cmd. The folder to make publish to others as an HTTP URL is:
+Cmd. The folder to publish to others as an HTTP URL is:
 
-    /Users/myself/bin/sencha/Cmd/repo/pkgs
+    /Users/myself/bin/Sencha/Cmd/repo/pkgs
 
 `IMPORTANT:` Do `NOT` expose the parent folder of `"pkgs"` - that folder holds
 private information (such as your private key). Further, Sencha Cmd will not
@@ -1276,20 +1714,33 @@ folder to a web server and share the HTTP address.
 
 ### Options
   * `--email`, `-em` - The email address for the owner of the local repository
-  * `--expiration`, `-ex` - The number of years before the generated key pair becomes invalid
-  * `--keybits`, `-k` - Specifies the number of bits for the generated public/private key pair
+  * `--expiration`, `-ex` - The number of years before the key pair becomes invalid
+  * `--keybits`, `-k` - The number of bits for the public/private key pair
   * `--name`, `-n` - The name for the owner of the local repository
+
+### Syntax
+
+    sencha package repository init [options] 
+
+## sencha package repository list
+
+Lists all remote repository connections.
+
+
+### Syntax
+
+    sencha package repository list 
 
 ## sencha package repository remove
 
 Remove a remote repository from the local repository's list of remote
 repositories. For example, if a remote was previously added:
 
-    sencha package repo add foo http://foo.bar/pkgs
+    sencha repo add foo http://foo.bar/pkgs
 
 This command will remove it:
 
-    sencha package repo remove foo
+    sencha repo remove foo
 
 `NOTE:` This command does not remove packages that you may have downloaded from
 this remote as they are now cached in the local repository.
@@ -1298,44 +1749,38 @@ this remote as they are now cached in the local repository.
 ### Options
   * `--name`, `-n` - The name for the remote connection
 
-## sencha package repository server
+### Syntax
 
-
-
-### Options
-  * `--port`, `-p` - The TCP port to which the HTTP repository server binds
-
-### Commands
-  * `start` - Starts the HTTP repository server
-  * `stop` - Stops the HTTP repository server
-
-## sencha package repository server start
-
-
-
-## sencha package repository server stop
-
-
+    sencha package repository remove [options] name
 
 ## sencha package repository show
 
-Shows information about a remote repository or package.
+Shows information about a remote repository.
 
 To show information about the local repository:
 
-    sencha package repo show .
+    sencha repo show .
 
 To show information about a specific remote repository:
 
-    sencha package repo show some-remote
+    sencha repo show some-remote
 
 The name given should match the name previously given to:
 
-    sencha package repo add some-remote ...
+    sencha repo add some-remote ...
 
 
 ### Options
   * `--all`, `-a` - Include all details about the repository
+
+### Syntax
+
+    sencha package repository show [options] names...
+
+### Where:
+
+  * `names` - The name(s) of remote repositories (or "." for local)
+
 
 ## sencha package repository sync
 
@@ -1344,19 +1789,19 @@ done periodically and does not need to be manually synchronized. This command
 may be needed if there something known to have been added to a remote repo but
 has not yet shown up in the catalog on this machine.
 
-    sencha package repo sync someremote
+    sencha repo sync someremote
 
 To resynchronize with all remote repositories:
 
-    sencha package repo sync
+    sencha repo sync
 
 
 ### Options
   * `--name`, `-n` - The name for the remote connection (blank for all)
 
-## sencha package sign
+### Syntax
 
-
+    sencha package repository sync [options] [name]
 
 ## sencha package upgrade
 
@@ -1364,51 +1809,251 @@ Upgrades the current package to a newer SDK or Sencha Cmd version.
 
 This command must be run from the desired package's folder.
 
-    sencha package upgrade
 
+### Syntax
 
-## sencha phantom
+    sencha package upgrade 
 
+## sencha repository
 
+These commands manage the local repository and its connections to remote
+repositories.
 
-## sencha schema
+#### Remote Repositories
 
+The primary role of the local repository is as a cache of packages that it
+downloads from one or more specified remote repositories. By default, Sencha
+Cmd adds the Sencha package repository as a remote repository. Using these
+commands you can manage these connections.
+
+This command adds a remote repository connection named `"foo"`:
+
+    sencha repo add foo http://coolstuff.foo/packages
+
+Following this command, any packages contained in this repository will be
+available. Typically these packages are used by adding their name (and possibly
+version) to your application's `"app.json"` in its `requires` array.
+
+    {
+        requires: [
+            'cool-package@2.1'
+        ]
+    }
+
+Then:
+
+    sencha app build
+
+The above addition will require version 2.1 of `"cool-package"`. The remote
+repository added above will be checked for this package, and if found, it is
+downloaded to the local repository and cached there as well as extracted to
+your app's`"packages/cool-package"` folder and automatically integrated in to
+your build.
+
+#### Authoring Packages
+
+To author packages for others to use in their applications, you will need to
+initialize your local repository with your name:
+
+    sencha repo init -name "My Company, Inc."
+
+See these for more details:
+
+    sencha help package
+    sencha help repo init
 
 
 ### Commands
-  * `export` - Exports a Schema definition
+  * `add` - Add a remote repository connection
+  * `init` - Initializes the local package repository
+  * `list` - List remote repository connections
+  * `remove` - Remove a remote repository connection
+  * `show` - Show details for a repository
+  * `sync` - Clears caches to force refetching for a remote repository
 
-## sencha schema export
+## sencha repository add
 
+Adds a remote repository connection. Once added, packages from that repository
+will be available to applications for use.
+
+    sencha repo add foo http://foo.bar/pkgs
 
 
 ### Options
+  * `--address`, `-a` - The address (or URL) for the remote repository
+  * `--name`, `-n` - The name for the remote connection
 
-#### Export Type
-Select one option to specify the export format
+### Syntax
 
-  * `--js`, `-j` - Set the export type to "js" for Ext JS or Sencha Touch (short for -type=js)
-  * `--sql`, `-s` - Set the export type to "sql" (short for -type=sql)
+    sencha repository add [options] name \
+                                    address
 
-#### Misc
+## sencha repository init
 
-  * `--dbtype`, `-d` - The database type used for SQL export, e.g., "oracle" or "mssql"
-  * `--name`, `-n` - The name of the Schema to export
-  * `--output`, `-o` - The output file or folder, depending on the type of export
-  * `--type`, `-t` - The type of data to produce from the Schema, e.g., "sql" or "js"
+Initializes the local repository. The local repository is used to cache local
+copies of packages (potentially for multiple versions).
+
+`NOTE:` This step is not typically necessary because the local repository is
+automatically initialized in "anonymous" mode. This command is needed only if
+you want to publish packages for others to use in their application. To publish
+packages you must initial the local repository and provide a name:
+
+    sencha repository init -name "My Company, Inc." -email me@foo.com
+
+Beyond initializing the repository file structures, this command also generates
+a public/private key pair and stores these in the local repository. The private
+key is used to sign packages added to this local repository.
+
+For details on adding packages:
+
+    sencha help package add
+
+#### Private Key
+
+Packages added to the local repository with a `creator` property equal to the
+name given to `sencha repository init` will be signed using the private key
+stored in the local repository.
+
+In this release of Sencha Cmd, these signatures are only used to test package
+integrity. You can backup this key if desired, but a new key can be regenerated
+by running `sencha repo init` at any time. In future versions it may be more
+important to backup your private key.
+
+#### Remote Access
+
+Making the local package repository available as a remote repository for others
+to access requires some knowledge of the disk structure of the repository. By
+default, Sencha Cmd creates the local repository adjacent to its installation
+folder. For example, given the following location of Sencha Cmd:
+
+    /Users/myself/bin/Sencha/Cmd/3.1.0.200/
+
+The local respository is located at:
+
+    /Users/myself/bin/Sencha/Cmd/repo
+
+This is to allow your local repository to be used by newer versions of Sencha
+Cmd. The folder to publish to others as an HTTP URL is:
+
+    /Users/myself/bin/Sencha/Cmd/repo/pkgs
+
+`IMPORTANT:` Do `NOT` expose the parent folder of `"pkgs"` - that folder holds
+private information (such as your private key). Further, Sencha Cmd will not
+recognize the structure as a valid remote repository.
+
+If you want to host the repository on a public server, simply copy the `"pkgs"`
+folder to a web server and share the HTTP address.
+
+
+### Options
+  * `--email`, `-em` - The email address for the owner of the local repository
+  * `--expiration`, `-ex` - The number of years before the key pair becomes invalid
+  * `--keybits`, `-k` - The number of bits for the public/private key pair
+  * `--name`, `-n` - The name for the owner of the local repository
+
+### Syntax
+
+    sencha repository init [options] 
+
+## sencha repository list
+
+Lists all remote repository connections.
+
+
+### Syntax
+
+    sencha repository list 
+
+## sencha repository remove
+
+Remove a remote repository from the local repository's list of remote
+repositories. For example, if a remote was previously added:
+
+    sencha repo add foo http://foo.bar/pkgs
+
+This command will remove it:
+
+    sencha repo remove foo
+
+`NOTE:` This command does not remove packages that you may have downloaded from
+this remote as they are now cached in the local repository.
+
+
+### Options
+  * `--name`, `-n` - The name for the remote connection
+
+### Syntax
+
+    sencha repository remove [options] name
+
+## sencha repository show
+
+Shows information about a remote repository.
+
+To show information about the local repository:
+
+    sencha repo show .
+
+To show information about a specific remote repository:
+
+    sencha repo show some-remote
+
+The name given should match the name previously given to:
+
+    sencha repo add some-remote ...
+
+
+### Options
+  * `--all`, `-a` - Include all details about the repository
+
+### Syntax
+
+    sencha repository show [options] names...
+
+### Where:
+
+  * `names` - The name(s) of remote repositories (or "." for local)
+
+
+## sencha repository sync
+
+Forces (re)synchronization with a remote repository catalog. Normally this is
+done periodically and does not need to be manually synchronized. This command
+may be needed if there something known to have been added to a remote repo but
+has not yet shown up in the catalog on this machine.
+
+    sencha repo sync someremote
+
+To resynchronize with all remote repositories:
+
+    sencha repo sync
+
+
+### Options
+  * `--name`, `-n` - The name for the remote connection (blank for all)
+
+### Syntax
+
+    sencha repository sync [options] [name]
 
 ## sencha theme
 
-This category contains commands for managing themes.
+This category contains low-level commands for managing themes. Typically these
+operations are handled by `sencha app build` and/or `sencha package build`.
 
 
 ### Commands
   * `build` - Builds a custom theme from a given page
+  * `capture` - Capture an image and slicer manfiest for a theme
   * `slice` - Generates image slices from a given image directed by a JSON manifest
 
 ## sencha theme build
 
 This command will build the specified theme's image sprites.
+
+`IMPORTANT`: This command should only be used for Ext JS 4.1 applications. For
+Ext JS 4.2 applications, themes are now `packages` and should be managed using
+the `sencha package build` process.
 
 
 ### Options
@@ -1417,13 +2062,40 @@ This command will build the specified theme's image sprites.
   * `--page`, `-p` - The page to slice
   * `--theme-name`, `-t` - The name of the theme to build
 
+### Syntax
+
+    sencha theme build [options] [theme-name] \
+                                 [environment]
+
 ## sencha theme capture
 
+This command will capture an image and slice manifest for a specified page.
+
+It is rarely necessary to call this command directly as it is part of the theme
+build process. In Ext JS 4.2 applications or theme packages, this command is
+called by the build script's `slice` step. In Ext JS 4.1 applications this is
+called for each application theme or directly by the 'sencha theme build`
+command.
+
+For example, this is roughly the command performed by the `slice` step for a
+theme package:
+
+    sencha theme capture -page sass/example/theme.html \
+                         -image build/theme-capture.png \
+                         -manifest build/theme-capture.json
+
+Once the image and slicer manifest are produced, the `sencha fs slice` command
+extracts the background images and sprites required for Internet Explorer.
 
 
-## sencha theme generate
+### Options
+  * `--image-file`, `-i` - The output image (e.g. "theme-capture.png")
+  * `--manifest`, `-m` - The output slice manifest (e.g. "theme-capture.json")
+  * `--page`, `-p` - The page to load for capturing theme contents
 
+### Syntax
 
+    sencha theme capture [options] 
 
 ## sencha theme slice
 
@@ -1445,6 +2117,10 @@ http://docs.sencha.com/ext-js/4-2/#!/guide/command_slice
   * `--out-dir`, `-o` - The root folder to which sliced images are written
   * `--quantized`, `-q` - Enables image quantization (default is true)
   * `--tolerate-conflicts`, `-t` - Tolerate conflicts in slice manifest
+
+### Syntax
+
+    sencha theme slice [options] 
 
 ## sencha upgrade
 
@@ -1470,12 +2146,26 @@ the `--force` option is ignored.
 
 
 ### Options
-  * `--force`, `-f` - Force instalation even if the specified version is already installed
+  * `--beta`, `-b` - Check for the latest beta or RC version (vs stable release)
+  * `--check`, `-c` - Only check for an upgrade but do not install it
+  * `--force`, `-f` - Force a (re)install even if the version is already installed
+
+### Syntax
+
+    sencha upgrade [options] [version=""]
 
 ## sencha which
 
+This command display the location of Sencha Cmd.
+
+    sencha which
+    C:\Users\Me\bin\Sencha\Cmd\3.1.0.220
 
 
 ### Options
   * `--output`, `-o` - Name of an output property file to write the location as a property
   * `--property`, `-p` - Name of the property to write to the output property file for the location
+
+### Syntax
+
+    sencha which [options] 

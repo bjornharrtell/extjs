@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 
 /**
@@ -217,7 +217,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * Defaults to an {@link #getId auto-assigned id}.
      *
-     * @since Ext 1
+     * @since 1.1.0
      */
 
      /**
@@ -261,7 +261,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * **Note**: to access the container of an item see {@link #ownerCt}.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
 
     /**
@@ -278,7 +278,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * **Note**: to access items within the Container see {@link #itemId}.
      * @readonly
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
@@ -316,7 +316,7 @@ Ext.define('Ext.AbstractComponent', {
      *         }
      *     }
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
@@ -439,7 +439,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * See also: {@link #method-render}.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
@@ -490,14 +490,14 @@ Ext.define('Ext.AbstractComponent', {
      * An {@link Ext.Template}, {@link Ext.XTemplate} or an array of strings to form an Ext.XTemplate. Used in
      * conjunction with the `{@link #data}` and `{@link #tplWriteMode}` configurations.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
 
     /**
      * @cfg {Object} data
      * The initial set of data to apply to the `{@link #tpl}` to update the content area of the Component.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
 
     /**
@@ -587,7 +587,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * See {@link Ext.enums.Widget} for list of all available xtypes.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
@@ -595,7 +595,7 @@ Ext.define('Ext.AbstractComponent', {
      * The Ext.(X)Template method to use when updating the content area of the Component.
      * See `{@link Ext.XTemplate#overwrite}` for information on default mode.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
     tplWriteMode: 'overwrite',
 
@@ -618,7 +618,7 @@ Ext.define('Ext.AbstractComponent', {
      * An optional extra CSS class that will be added to this component's Element. This can be useful
      * for adding customized styles to the component or any of its children using standard CSS rules.
      *
-     * @since Ext 1
+     * @since 1.1.0
      */
 
     /**
@@ -627,7 +627,7 @@ Ext.define('Ext.AbstractComponent', {
      * and removed when the mouse moves out. This can be useful for adding customized 'active' or 'hover' styles to the
      * component or any of its children using standard CSS rules.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
@@ -676,7 +676,7 @@ Ext.define('Ext.AbstractComponent', {
      *         ]
      *     });
      *
-     * @since Ext 1
+     * @since 1.1.0
      */
 
     /**
@@ -721,14 +721,14 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * @cfg {Boolean} hidden
      * `true` to hide the component.
-     * @since Ext 2
+     * @since 2.3.0
      */
     hidden: false,
 
     /**
      * @cfg {Boolean} disabled
      * `true` to disable the component.
-     * @since Ext 2
+     * @since 2.3.0
      */
     disabled: false,
 
@@ -768,7 +768,7 @@ Ext.define('Ext.AbstractComponent', {
      *     This is useful when a hidden Component must maintain measurable dimensions. Hiding using `display` results in a
      *     Component having zero dimensions.
      *
-     * @since Ext 1
+     * @since 1.1.0
      */
     hideMode: 'display',
 
@@ -792,7 +792,7 @@ Ext.define('Ext.AbstractComponent', {
      * Add either the `x-hidden` or the `x-hide-display` CSS class to prevent a brief flicker of the content before it
      * is rendered to the panel.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
 
     /**
@@ -802,7 +802,7 @@ Ext.define('Ext.AbstractComponent', {
      * the {@link #event-render} event is fired. This content is inserted into the body _before_ any configured {@link #contentEl}
      * is appended.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
 
     /**
@@ -874,7 +874,7 @@ Ext.define('Ext.AbstractComponent', {
      * `true` to automatically show the component upon creation. This config option may only be used for
      * {@link #floating} components or components that use {@link #autoRender}.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
     autoShow: false,
 
@@ -918,14 +918,14 @@ Ext.define('Ext.AbstractComponent', {
      *
      * See {@link Ext.enums.Plugin} for list of all ptypes.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
     /**
      * @property {Boolean} rendered
      * Indicates whether or not the component has been rendered.
      * @readonly
-     * @since Ext 1
+     * @since 1.1.0
      */
     rendered: false,
 
@@ -979,6 +979,9 @@ Ext.define('Ext.AbstractComponent', {
     contentPaddingProperty: 'padding',
     
     horizontalPosProp: 'left',
+
+    // private
+    borderBoxCls: Ext.baseCSSPrefix + 'border-box',
 
     /**
      * Creates new Component.
@@ -1037,21 +1040,21 @@ Ext.define('Ext.AbstractComponent', {
              * @param {Ext.Component} this
              * @param {Ext.container.Container} container Parent Container
              * @param {Number} pos position of Component
-             * @since Ext 3
+             * @since 3.4.0
              */
             'added',
             /**
              * @event disable
              * Fires after the component is disabled.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'disable',
             /**
              * @event enable
              * Fires after the component is enabled.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'enable',
             /**
@@ -1059,14 +1062,14 @@ Ext.define('Ext.AbstractComponent', {
              * Fires before the component is shown when calling the {@link Ext.Component#method-show show} method. Return `false` from an event
              * handler to stop the show.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'beforeshow',
             /**
              * @event show
              * Fires after the component is shown when calling the {@link Ext.Component#method-show show} method.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'show',
             /**
@@ -1074,7 +1077,7 @@ Ext.define('Ext.AbstractComponent', {
              * Fires before the component is hidden when calling the {@link Ext.Component#method-hide hide} method. Return `false` from an event
              * handler to stop the hide.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'beforehide',
             /**
@@ -1082,7 +1085,7 @@ Ext.define('Ext.AbstractComponent', {
              * Fires after the component is hidden. Fires after the component is hidden when calling the {@link Ext.Component#method-hide hide}
              * method.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'hide',
             /**
@@ -1090,7 +1093,7 @@ Ext.define('Ext.AbstractComponent', {
              * Fires when a component is removed from an Ext.container.Container
              * @param {Ext.Component} this
              * @param {Ext.container.Container} ownerCt Container which holds the component
-             * @since Ext 3
+             * @since 3.4.0
              */
             'removed',
             /**
@@ -1098,14 +1101,14 @@ Ext.define('Ext.AbstractComponent', {
              * Fires before the component is {@link #rendered}. Return `false` from an event handler to stop the
              * {@link #method-render}.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'beforerender',
             /**
              * @event render
              * Fires after the component markup is {@link #rendered}.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'render',
             /**
@@ -1115,7 +1118,7 @@ Ext.define('Ext.AbstractComponent', {
              * The `afterrender` event is fired after this Component has been {@link #rendered}, been postprocessed by any
              * `afterRender` method defined for the Component.
              * @param {Ext.Component} this
-             * @since Ext 3
+             * @since 3.4.0
              */
             'afterrender',
             /**
@@ -1131,14 +1134,14 @@ Ext.define('Ext.AbstractComponent', {
              * Fires before the component is {@link #method-destroy}ed. Return `false` from an event handler to stop the
              * {@link #method-destroy}.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'beforedestroy',
             /**
              * @event destroy
              * Fires after the component is {@link #method-destroy}ed.
              * @param {Ext.Component} this
-             * @since Ext 1
+             * @since 1.1.0
              */
             'destroy',
             /**
@@ -1428,6 +1431,17 @@ Ext.define('Ext.AbstractComponent', {
         }
         return me.mixins.animate.animate.apply(me, arguments);
     },
+    
+    setHiddenState: function(hidden){
+        var hierarchyState = this.getHierarchyState();
+        
+        this.hidden = hidden;
+        if (hidden) {
+            hierarchyState.hidden = true;
+        } else {
+            delete hierarchyState.hidden;
+        }
+    },
 
     onHide: function() {
         // Only lay out if there is an owning layout which might be affected by the hide
@@ -1520,15 +1534,35 @@ Ext.define('Ext.AbstractComponent', {
         plugin.destroy();
     },
 
-    // @private
-    // Finds a plugin by ptype in the plugins array
+    /**
+     * Retrieves plugin from this component's collection by its `ptype`.
+     * @param {String} ptype The Plugin's ptype as specified by the class's `alias` configuration.
+     * @return {Ext.AbstractPlugin} plugin instance.
+     */
     findPlugin: function(ptype) {
-        if (this.plugins) {
-            return Ext.Array.findBy(this.plugins, function(plugin) {
-                if (plugin.ptype === ptype) {
-                    return true;
-                }
-            });
+        var i,
+            plugins = this.plugins,
+            ln = plugins && plugins.length;
+        for (i = 0; i < ln; i++) {
+            if (plugins[i].ptype === ptype) {
+                return plugins[i];
+            }
+        }
+    },
+
+    /**
+     * Retrieves a plugin from this component's collection by its `pluginId`.
+     * @param {String} pluginId
+     * @return {Ext.AbstractPlugin} plugin instance.
+     */
+    getPlugin: function(pluginId) {
+        var i,
+            plugins = this.plugins,
+            ln = plugins && plugins.length;
+        for (i = 0; i < ln; i++) {
+            if (plugins[i].pluginId === pluginId) {
+                return plugins[i];
+            }
         }
     },
 
@@ -1832,7 +1866,7 @@ Ext.define('Ext.AbstractComponent', {
                 el = me['frame' + frameElement.toUpperCase()];
 
                 if (el) {
-                    el.addCls(baseClsUi + '-' + frameElement);
+                    el.removeCls(baseClsUi + '-' + frameElement);
                 }
             }
         }
@@ -1944,6 +1978,10 @@ Ext.define('Ext.AbstractComponent', {
         }
         if (y != null) {
             targetEl.setStyle('top', (typeof y == 'number') ? (y + 'px') : y);
+        }
+
+        if (Ext.isBorderBox && (!me.ownerCt || me.floating)) {
+            targetEl.addCls(me.borderBoxCls);
         }
 
         // Framed components need their width/height to apply to the frame, which is
@@ -2221,12 +2259,19 @@ Ext.define('Ext.AbstractComponent', {
      *     var owningTabPanel = grid.up('tabpanel');
      *
      * @param {String/Ext.Component} [selector] The simple selector component or actual component to test. If not passed the immediate owner/activater is returned.
+     * @param {String/Number/Ext.Component} [limit] This may be a selector upon which to stop the upward scan, or a limit of teh number of steps, or Component reference to stop on.
      * @return {Ext.container.Container} The matching ancestor Container (or `undefined` if no match was found).
      */
-    up: function (selector) {
-        var result = this.getRefOwner();
+    up: function (selector, limit) {
+        var result = this.getRefOwner(),
+            limitSelector = typeof limit === 'string',
+            limitCount = typeof limit === 'number',
+            limitComponent = limit && limit.isComponent,
+            steps = 0;
+
         if (selector) {
             for (; result; result = result.getRefOwner()) {
+                steps++;
                 if (selector.isComponent) {
                     if (result === selector) {
                         return result;
@@ -2235,6 +2280,17 @@ Ext.define('Ext.AbstractComponent', {
                     if (Ext.ComponentQuery.is(result, selector)) {
                         return result;
                     }
+                }
+
+                // Stop when we hit the limit selector
+                if (limitSelector && result.is(limit)) {
+                    return;
+                }
+                if (limitCount && steps === limit) {
+                    return;
+                }
+                if (limitComponent && result === limit) {
+                    return;
                 }
             }
         }
@@ -2409,7 +2465,7 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * Retrieves the top level element representing this component.
      * @return {Ext.dom.Element}
-     * @since Ext 1
+     * @since 1.1.0
      */
     getEl : function() {
         return this.el;
@@ -2531,7 +2587,7 @@ Ext.define('Ext.AbstractComponent', {
      * check whether this Component is descended from the xtype.
      * @return {Boolean} `true` if this component descends from the specified xtype, `false` otherwise.
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
     isXType: function(xtype, shallow) {
         if (shallow) {
@@ -2557,7 +2613,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * @return {String} The xtype hierarchy string
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
     getXTypes: function() {
         var self = this.self,
@@ -2593,7 +2649,7 @@ Ext.define('Ext.AbstractComponent', {
      * @param {Function} [callback] Only legitimate when using the `html` configuration. Callback to execute when
      * scripts have finished loading.
      *
-     * @since Ext 3
+     * @since 3.4.0
      */
     update : function(htmlOrData, loadScripts, cb) {
         var me = this,
@@ -2622,7 +2678,7 @@ Ext.define('Ext.AbstractComponent', {
      * Convenience function to hide or show this component by Boolean.
      * @param {Boolean} visible `true` to show, `false` to hide.
      * @return {Ext.Component} this
-     * @since Ext 1
+     * @since 1.1.0
      */
     setVisible : function(visible) {
         return this[visible ? 'show': 'hide']();
@@ -2639,7 +2695,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * @return {Boolean} `true` if this component is visible, `false` otherwise.
      *
-     * @since Ext 1
+     * @since 1.1.0
      */
     isVisible: function(deep) {
         var me = this,
@@ -2716,7 +2772,7 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * Enable the component
      * @param {Boolean} [silent=false] Passing `true` will suppress the `enable` event from being fired.
-     * @since Ext 1
+     * @since 1.1.0
      */
     enable: function(silent) {
         var me = this;
@@ -2742,7 +2798,7 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * Disable the component.
      * @param {Boolean} [silent=false] Passing `true` will suppress the `disable` event from being fired.
-     * @since Ext 1
+     * @since 1.1.0
      */
     disable: function(silent) {
         var me = this;
@@ -2861,7 +2917,7 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * @inheritdoc Ext.AbstractComponent#addCls
      * @deprecated 4.1 Use {@link #addCls} instead.
-     * @since Ext 2
+     * @since 2.3.0
      */
     addClass : function() {
         return this.addCls.apply(this, arguments);
@@ -2894,7 +2950,7 @@ Ext.define('Ext.AbstractComponent', {
     },
 
     //<debug>
-    // @since Ext 2
+    // @since 2.3.0
     removeClass : function() {
         if (Ext.isDefined(Ext.global.console)) {
             Ext.global.console.warn('Ext.Component: removeClass has been deprecated. Please use removeCls.');
@@ -2979,7 +3035,7 @@ Ext.define('Ext.AbstractComponent', {
     /**
      * Provides the link for Observable's `fireEvent` method to bubble up the ownership hierarchy.
      * @return {Ext.container.Container} the Container which owns this Component.
-     * @since Ext 3
+     * @since 3.4.0
      */
     getBubbleTarget : function() {
         return this.ownerCt;
@@ -3025,7 +3081,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * @template
      * @protected
-     * @since Ext 3
+     * @since 3.4.0
      */
     onAdded : function(container, pos) {
         var me = this;
@@ -3068,7 +3124,7 @@ Ext.define('Ext.AbstractComponent', {
      *
      * @template
      * @protected
-     * @since Ext 3
+     * @since 3.4.0
      */
     onRemoved : function(destroying) {
         var me = this;
@@ -3731,7 +3787,7 @@ Ext.define('Ext.AbstractComponent', {
 
     /**
      * Destroys the Component.
-     * @since Ext 1
+     * @since 1.1.0
      */
     destroy : function() {
         var me = this,
@@ -3794,22 +3850,6 @@ Ext.define('Ext.AbstractComponent', {
 
                 me.destroying = false;
                 me.isDestroyed = true;
-            }
-        }
-    },
-
-    /**
-     * Retrieves a plugin by its `pluginId` which has been bound to this component.
-     * @param {String} pluginId
-     * @return {Ext.AbstractPlugin} plugin instance.
-     */
-    getPlugin: function(pluginId) {
-        var i = 0,
-            plugins = this.plugins,
-            ln = plugins.length;
-        for (; i < ln; i++) {
-            if (plugins[i].pluginId === pluginId) {
-                return plugins[i];
             }
         }
     },

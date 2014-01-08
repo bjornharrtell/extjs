@@ -165,6 +165,7 @@ Ext.define('Ext.menu.CheckItem', {
         Ext.menu.Manager.registerCheckable(me);
 
         if (me.group) {
+            me.showCheckbox = false
             if (!(me.iconCls || me.icon || me.glyph)) {
                 me.iconCls = me.groupCls;
             }

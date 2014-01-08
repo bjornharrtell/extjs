@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class encapsulates the user interface for a tabular data set.
@@ -35,6 +35,7 @@ Ext.define('Ext.view.Table', {
     extend: 'Ext.view.View',
     alias: 'widget.tableview',
     requires: [
+        'Ext.grid.CellContext',
         'Ext.view.TableLayout',
         'Ext.view.NodeCache',
         'Ext.util.DelayedTask',
@@ -62,9 +63,15 @@ Ext.define('Ext.view.Table', {
     headerRowSelector: 'tr.' + Ext.baseCSSPrefix + 'grid-header-row',
 
     selectedItemCls: Ext.baseCSSPrefix + 'grid-row-selected',
+    beforeSelectedItemCls: Ext.baseCSSPrefix + 'grid-row-before-selected',
     selectedCellCls: Ext.baseCSSPrefix + 'grid-cell-selected',
     focusedItemCls: Ext.baseCSSPrefix + 'grid-row-focused',
+    beforeFocusedItemCls: Ext.baseCSSPrefix + 'grid-row-before-focused',
+    tableFocusedFirstCls: Ext.baseCSSPrefix + 'grid-table-focused-first',
+    tableSelectedFirstCls: Ext.baseCSSPrefix + 'grid-table-selected-first',
+    tableOverFirstCls: Ext.baseCSSPrefix + 'grid-table-over-first',
     overItemCls: Ext.baseCSSPrefix + 'grid-row-over',
+    beforeOverItemCls: Ext.baseCSSPrefix + 'grid-row-before-over',
     altRowCls:   Ext.baseCSSPrefix + 'grid-row-alt',
     dirtyCls: Ext.baseCSSPrefix + 'grid-dirty-cell',
     rowClsRe: new RegExp('(?:^|\\s*)' + Ext.baseCSSPrefix + 'grid-row-(first|last|alt)(?:\\s+|$)', 'g'),
@@ -125,13 +132,19 @@ Ext.define('Ext.view.Table', {
     tpl: '{%values.view.tableTpl.applyOut(values, out)%}',
 
     tableTpl: [
-        '<table id="{view.id}-table" class="' + Ext.baseCSSPrefix + '{view.id}-table ' + Ext.baseCSSPrefix + 'grid-table" border="0" cellspacing="0" cellpadding="0" style="{tableStyle}" tabIndex="-1">',
-            '{[values.view.renderColumnSizer(out)]}',
-            '{[values.view.renderTHead(values, out)]}',
-            '{[values.view.renderTFoot(values, out)]}',
+        '{%',
+            // Add the row/column line classes to the table element.
+            'var view=values.view,tableCls=["' + Ext.baseCSSPrefix + '" + view.id + "-table ' + Ext.baseCSSPrefix + 'grid-table"];',
+             'if (view.columnLines) tableCls[tableCls.length]=view.ownerCt.colLinesCls;',
+             'if (view.rowLines) tableCls[tableCls.length]=view.ownerCt.rowLinesCls;',
+        '%}',
+        '<table role="presentation" id="{view.id}-table" class="{[tableCls.join(" ")]}" border="0" cellspacing="0" cellpadding="0" style="{tableStyle}" tabIndex="-1">',
+            '{[view.renderColumnSizer(out)]}',
+            '{[view.renderTHead(values, out)]}',
+            '{[view.renderTFoot(values, out)]}',
             '<tbody id="{view.id}-body">',
             '{%',
-                'values.view.renderRows(values.rows, values.viewStartIndex, out);',
+                'view.renderRows(values.rows, values.viewStartIndex, out);',
             '%}',
             '</tbody>',
         '</table>',
@@ -144,7 +157,7 @@ Ext.define('Ext.view.Table', {
         '{%',
             'var dataRowCls = values.recordIndex === -1 ? "" : " ' + Ext.baseCSSPrefix + 'grid-data-row";',
         '%}',
-        '<tr {[values.rowId ? ("id=\\"" + values.rowId + "\\"") : ""]} ',
+        '<tr role="row" {[values.rowId ? ("id=\\"" + values.rowId + "\\"") : ""]} ',
             'data-boundView="{view.id}" ',
             'data-recordId="{record.internalId}" ',
             'data-recordIndex="{recordIndex}" ',
@@ -162,8 +175,8 @@ Ext.define('Ext.view.Table', {
     ],
 
     cellTpl: [
-        '<td class="{tdCls}" {tdAttr}>',
-            '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'grid-cell-inner"',
+        '<td role="gridcell" class="{tdCls}" {tdAttr} id="{[Ext.id()]}">',
+            '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'grid-cell-inner {innerCls}"',
                 'style="text-align:{align};<tpl if="style">{style}</tpl>">{value}</div>',
         '</td>', {
             priority: 0
@@ -369,6 +382,7 @@ Ext.define('Ext.view.Table', {
         // in AbstractView is to turn trackOver on if overItemCls is set.
         if (!me.trackOver) {
             me.overItemCls = null;
+            me.beforeOverItemCls = null;
         }
 
         // Convert grid scroll config to standard Component scrolling configurations.
@@ -493,12 +507,11 @@ Ext.define('Ext.view.Table', {
     },
 
     /**
-     * Get the columns used for generating a template via TableChunker.
-     * See {@link Ext.grid.header.Container#getGridColumns}.
+     * Get the leaf columns used for rendering the grid rows.
      * @private
      */
     getGridColumns: function() {
-        return this.headerCt.getGridColumns();
+        return this.ownerCt.columnManager.getColumns();
     },
 
     /**
@@ -508,7 +521,7 @@ Ext.define('Ext.view.Table', {
      * @param {Number} index The index
      */
     getHeaderAtIndex: function(index) {
-        return this.headerCt.getHeaderAtIndex(index);
+        return this.ownerCt.columnManager.getHeaderAtIndex(index);
     },
 
     /**
@@ -838,12 +851,10 @@ Ext.define('Ext.view.Table', {
     renderRows: function(rows, viewStartIndex, out) {
         var rowValues = this.rowValues,
             rowCount = rows.length,            
-            headerCt = this.getHeaderCt(),
             i;
 
         rowValues.view = this;
-        rowValues.columns = headerCt.getGridColumns();
-        rowValues.visibleColumns = headerCt.getVisibleGridColumns();
+        rowValues.columns = this.ownerCt.columnManager.getColumns();
 
         for (i = 0; i < rowCount; i++, viewStartIndex++) {
             rowValues.itemClasses.length = rowValues.rowClasses.length = 0;
@@ -851,7 +862,7 @@ Ext.define('Ext.view.Table', {
         }
 
         // Dereference objects since rowValues is a persistent on our prototype
-        rowValues.view = rowValues.columns = rowValues.visibleColumns = rowValues.record = null;
+        rowValues.view = rowValues.columns = rowValues.record = null;
     },
 
     /* Alternative column sizer element renderer.
@@ -909,7 +920,7 @@ Ext.define('Ext.view.Table', {
         rowValues.rowId = me.getRowId(record);
         rowValues.itemCls = rowValues.rowCls = '';
         if (!rowValues.columns) {
-            rowValues.columns = me.headerCt.getGridColumns();
+            rowValues.columns = me.ownerCt.columnManager.getColumns();
         }
 
         itemClasses.length = rowClasses.length = 0;
@@ -919,8 +930,13 @@ Ext.define('Ext.view.Table', {
         // The Feature which renders it must know how to decorate it.
         if (!isMetadataRecord) {
             itemClasses[0] = Ext.baseCSSPrefix + "grid-row";
-            if (selModel && selModel.isRowSelected && selModel.isRowSelected(record, rowIdx)) {
-                itemClasses.push(me.selectedItemCls);
+            if (selModel && selModel.isRowSelected) {
+                if (selModel.isRowSelected(rowIdx + 1)) {
+                    itemClasses.push(me.beforeSelectedItemCls);
+                }
+                if (selModel.isRowSelected(record)) {
+                    itemClasses.push(me.selectedItemCls);
+                }
             }
 
             if (me.stripeRows && rowIdx % 2 !== 0) {
@@ -967,6 +983,7 @@ Ext.define('Ext.view.Table', {
         cellValues.cellIndex = columnIndex;
         cellValues.align = column.align;
         cellValues.tdCls = column.tdCls;
+        cellValues.innerCls = column.innerCls;
         cellValues.style = cellValues.tdAttr = "";
         cellValues.unselectableAttr = me.enableTextSelection ? '' : 'unselectable="on"';
 
@@ -1198,23 +1215,50 @@ Ext.define('Ext.view.Table', {
         }
     },
 
+    setHighlightedItem: function(item) {
+        var me = this,
+            highlighted = me.highlightedItem;
+
+        if (highlighted && me.el.isAncestor(highlighted) && me.isRowStyleFirst(highlighted)) {
+            me.getRowStyleTableEl(highlighted).removeCls(me.tableOverFirstCls);
+        }
+
+        if (item && me.isRowStyleFirst(item)) {
+            me.getRowStyleTableEl(item).addCls(me.tableOverFirstCls);
+        }
+
+        me.callParent(arguments);
+    },
+
     // GridSelectionModel invokes onRowSelect as selection changes
     onRowSelect : function(rowIdx) {
-        this.addRowCls(rowIdx, this.selectedItemCls);
+        var me = this;
+
+        me.addRowCls(rowIdx, me.selectedItemCls);
+        if (me.isRowStyleFirst(rowIdx)) {
+            me.getRowStyleTableEl(rowIdx).addCls(me.tableSelectedFirstCls);
+        } else {
+            me.addRowCls(rowIdx - 1, me.beforeSelectedItemCls);
+        }
     },
 
     // GridSelectionModel invokes onRowDeselect as selection changes
     onRowDeselect : function(rowIdx) {
         var me = this;
 
-        me.removeRowCls(rowIdx, me.selectedItemCls);
-        me.removeRowCls(rowIdx, me.focusedItemCls);
+        me.removeRowCls(rowIdx, [me.selectedItemCls, me.focusedItemCls]);
+        if (me.isRowStyleFirst(rowIdx)) {
+            me.getRowStyleTableEl(rowIdx).removeCls([me.tableFocusedFirstCls, me.tableSelectedFirstCls]);
+        } else {
+            me.removeRowCls(rowIdx - 1, [me.beforeFocusedItemCls, me.beforeSelectedItemCls]);
+        }
     },
 
     onCellSelect: function(position) {
-        var cell = this.getCellByPosition(position, true);
+        var cell = this.getCellByPosition(position);
         if (cell) {
-            Ext.fly(cell).addCls(this.selectedCellCls);
+            cell.addCls(this.selectedCellCls);
+            this.scrollCellIntoView(cell);
         }
     },
 
@@ -1226,27 +1270,16 @@ Ext.define('Ext.view.Table', {
 
     },
 
-    onCellFocus: function(position) {
-        this.focusCell(position);
-    },
-
     getCellByPosition: function(position, returnDom) {
         if (position) {
-            var node   = this.getNode(position.row, true),
-                header = this.headerCt.getHeaderAtIndex(position.column);
+            var row   = this.getNode(position.row, true),
+                header = this.ownerCt.columnManager.getHeaderAtIndex(position.column);
 
-            if (header && node) {
-                return Ext.fly(node).down(this.getCellSelector(header), returnDom);
+            if (header && row) {
+                return Ext.fly(row).down(this.getCellSelector(header), returnDom);
             }
         }
         return false;
-    },
-
-    focus: function() {
-        var focusedRow = this.getFocusEl();
-        if (focusedRow) {
-            this.focusRow(focusedRow);
-        }
     },
 
     getFocusEl: function() {
@@ -1260,9 +1293,8 @@ Ext.define('Ext.view.Table', {
             if (!(result && me.el.contains(result))) {
                 
                 // Focus first visible row
-                if (me.all.getCount()) {
-                    me.focusRow(me.getFirstVisibleRowIndex());
-                    result = me.focusedRow;
+                if (me.all.getCount() && (result = me.getNode(me.all.item(0).dom, true))) {
+                    me.focusRow(result);
                 } else {
                     result = me.body;
                 }
@@ -1280,69 +1312,97 @@ Ext.define('Ext.view.Table', {
 
         if (highlight) {
             me.addRowCls(rowIdx, me.focusedItemCls);
+            if (me.isRowStyleFirst(rowIdx)) {
+                me.getRowStyleTableEl(rowIdx).addCls(me.tableFocusedFirstCls);
+            } else {
+                me.addRowCls(rowIdx - 1, me.beforeFocusedItemCls);
+            }
             if (!supressFocus) {
                 me.focusRow(rowIdx);
             }
             //this.el.dom.setAttribute('aria-activedescendant', row.id);
         } else {
             me.removeRowCls(rowIdx, me.focusedItemCls);
+            if (me.isRowStyleFirst(rowIdx)) {
+                me.getRowStyleTableEl(rowIdx).removeCls(me.tableFocusedFirstCls);
+            } else {
+                me.removeRowCls(rowIdx - 1, me.beforeFocusedItemCls);
+            }
+        }
+
+        if ((Ext.isIE6 || Ext.isIE7) && !me.ownerCt.rowLines) {
+            me.repaintRow(rowIdx)
+        }
+    },
+
+    focus: function(selectText, delay) {
+        var me = this,
+            saveScroll = Ext.isIE && !delay,
+            scrollPos;
+
+        // IE does horizontal scrolling when row is focused
+        if (saveScroll) {
+            scrollPos = me.el.dom.scrollLeft;
+        }
+        this.callParent(arguments);
+        if (saveScroll) {
+            me.el.dom.scrollLeft = scrollPos;
         }
     },
 
     /**
      * Focuses a particular row and brings it into view. Will fire the rowfocus event.
-     * @param {HTMLElement/String/Number/Ext.data.Model} rowIdx
-     * An HTMLElement template node, index of a template node, the id of a template node or the
+     * @param {HTMLElement/String/Number/Ext.data.Model} row An HTMLElement template node, index of a template node, the id of a template node or the
+     * @param {Boolean/Number} [delay] Delay the focus this number of milliseconds (true for 10 milliseconds).
      * record associated with the node.
      */
-    focusRow: function(rowIdx) {
+    focusRow: function(row, delay) {
         var me = this,
-            row,
+            rowIdx,
             gridCollapsed = me.ownerCt && me.ownerCt.collapsed,
             record;
 
         // Do not attempt to focus if hidden or owning grid is collapsed
-        if (me.isVisible(true) && !gridCollapsed && (row = me.getNode(rowIdx, true)) && me.el) {
+        if (me.isVisible(true) && !gridCollapsed && (row = me.getNode(row, true))) {
+            me.scrollRowIntoView(row);
             record = me.getRecord(row);
             rowIdx = me.indexInStore(row);
 
-            // Focusing the row scrolls it into view
             me.selModel.setLastFocused(record);
-            row.focus();
             me.focusedRow = row;
-            me.fireEvent('rowfocus', record, row, rowIdx);
+            me.focus(false, delay, function() {
+                me.fireEvent('rowfocus', record, row, rowIdx);
+            });
+        }
+    },
+
+    scrollRowIntoView: function(row) {
+        row = this.getNode(row, true);
+        if (row) {
+            Ext.fly(row).scrollIntoView(this.el, false);
         }
     },
 
     focusCell: function(position) {
         var me          = this,
             cell        = me.getCellByPosition(position),
-            record      = me.getRecord(position.row),
-            el          = me.el,
-            adjustmentX = 0,
-            elRegion    = el.getRegion(),
-            panel       = me.ownerCt,
-            cellRegion;
+            record      = me.getRecord(position.row);
 
-        this.focusRow(record);
+        me.focusRow(record);
         if (cell) {
-            // Viewable region must not include scrollbars, so use
-            // DOM client dimensions
-            elRegion.right = elRegion.left + el.dom.clientWidth;
-            cellRegion = cell.getRegion();
-
-            // cell is left
-            if (cellRegion.left < elRegion.left) {
-                adjustmentX = cellRegion.left - elRegion.left;
-            // cell is right
-            } else if (cellRegion.right > elRegion.right) {
-                adjustmentX = cellRegion.right - elRegion.right;
-            }
-
-            if (adjustmentX) {
-                panel.scrollByDeltaX(adjustmentX);
-            }
+            me.scrollCellIntoView(cell);
             me.fireEvent('cellfocus', record, cell, position);
+        }
+    },
+
+    scrollCellIntoView: function(cell) {
+        // Allow cell context object to be passed.
+        // TODO: change to .isCellContext check when implement cell context class
+        if (cell.row != null && cell.column != null) {
+            cell = this.getCellByPosition(cell);
+        }
+        if (cell) {
+            Ext.fly(cell).scrollIntoView(this.el, true);
         }
     },
 
@@ -1445,8 +1505,9 @@ Ext.define('Ext.view.Table', {
             oldRow, oldRowDom,
             newRowDom,
             newAttrs, attLen, attName, attrIndex,
-            overItemCls,
-            focusedItemCls,
+            overItemCls, beforeOverItemCls,
+            focusedItemCls, beforeFocusedItemCls,
+            selectedItemCls, beforeSelectedItemCls,
             columns;
 
         if (me.viewReady) {
@@ -1456,7 +1517,11 @@ Ext.define('Ext.view.Table', {
             // Row might not be rendered due to buffered rendering or being part of a collapsed group...
             if (oldRowDom) {
                 overItemCls = me.overItemCls;
+                beforeOverItemCls = me.overItemCls;
                 focusedItemCls = me.focusedItemCls;
+                beforeFocusedItemCls = me.beforeFocusedItemCls;
+                selectedItemCls = me.selectedItemCls;
+                beforeSelectedItemCls = me.beforeSelectedItemCls;
                 
                 index = me.indexInStore(record);
                 oldRow = Ext.fly(oldRowDom, '_internal');
@@ -1464,13 +1529,28 @@ Ext.define('Ext.view.Table', {
                 if (oldRow.hasCls(overItemCls)) {
                     Ext.fly(newRowDom).addCls(overItemCls);
                 }
+                if (oldRow.hasCls(beforeOverItemCls)) {
+                    Ext.fly(newRowDom).addCls(beforeOverItemCls);
+                }
                 if (oldRow.hasCls(focusedItemCls)) {
                     Ext.fly(newRowDom).addCls(focusedItemCls);
                 }
-                columns = me.headerCt.getGridColumns();
+                if (oldRow.hasCls(beforeFocusedItemCls)) {
+                    Ext.fly(newRowDom).addCls(beforeFocusedItemCls);
+                }
+                if (oldRow.hasCls(selectedItemCls)) {
+                    Ext.fly(newRowDom).addCls(selectedItemCls);
+                }
+                if (oldRow.hasCls(beforeSelectedItemCls)) {
+                    Ext.fly(newRowDom).addCls(beforeSelectedItemCls);
+                }
+                columns = me.ownerCt.columnManager.getColumns();
 
                 // Copy new row attributes across. Use IE-specific method if possible.
-                if (oldRowDom.mergeAttributes) {
+                // In IE10, there is a problem where the className will not get updated
+                // in the view, even though the className on the dom element is correct.
+                // See EXTJSIV-9462
+                if (Ext.isIE9m && oldRowDom.mergeAttributes) {
                     oldRowDom.mergeAttributes(newRowDom, true);
                 } else {
                     newAttrs = newRowDom.attributes;
@@ -1593,15 +1673,24 @@ Ext.define('Ext.view.Table', {
     },
 
     /**
-     * Refreshes the grid view. Saves and restores the scroll state, generates a new template, stripes rows and
-     * invalidates the scrollers.
+     * Refreshes the grid view. Sets the sort state and focuses the previously focused row.
      */
     refresh: function() {
-        var me = this;
+        var me = this,
+            hasFocus = me.el && me.el.isAncestor(Ext.Element.getActiveElement());
+
         me.callParent(arguments);
         me.headerCt.setSortState();
-        me.selModel.onLastFocusChanged(null, me.selModel.lastFocused);
-        
+
+        // Create horizontal stretcher element if no records in view and there is overflow of the header container.
+        // Element will be transient and destroyed by the next refresh.
+        if (me.el && !me.all.getCount() && me.headerCt && me.headerCt.tooNarrow) {
+            me.el.createChild({style:'position:absolute;height:1px;width:1px;left:' + (me.headerCt.getFullWidth() - 1) + 'px'});
+        }
+
+        if (hasFocus) {
+            me.selModel.onLastFocusChanged(null, me.selModel.lastFocused);
+        }
     },
 
     processItemEvent: function(record, row, rowIndex, e) {
@@ -1615,7 +1704,7 @@ Ext.define('Ext.view.Table', {
                 type = e.type,
                 features = me.features,
                 len = features.length,
-                i, result, feature;
+                i, result, feature, header;
 
             if (type == 'keydown' && !cell && selModel.getCurrentPosition) {
                 // CellModel, otherwise we can't tell which cell to invoke
@@ -1629,11 +1718,9 @@ Ext.define('Ext.view.Table', {
                     // so just jump out since the target for the event isn't valid
                     return false;
                 }
-                cellIndex = cell.cellIndex;
-                if (!(cellIndex || cellIndex === 0)) {
-                    // No cellIndex, probably using a div tpl factory, so fallback to the attribute
-                    cellIndex = Number(cell.getAttribute('data-cellIndex'));
-                }
+                // We can't use the cellIndex because we don't render hidden columns
+                header = me.getHeaderByCell(cell);
+                cellIndex = Ext.Array.indexOf(me.getGridColumns(), header);
             } else {
                 cellIndex = -1;
             }
@@ -1641,6 +1728,7 @@ Ext.define('Ext.view.Table', {
             result = me.fireEvent('uievent', type, me, cell, rowIndex, cellIndex, e, record, row);
 
             if (result === false || me.callParent(arguments) === false) {
+                me.selModel.onVetoUIEvent(type, me, cell, rowIndex, cellIndex, e, record, row);
                 return false;
             }
 
@@ -1779,19 +1867,33 @@ Ext.define('Ext.view.Table', {
             originalWidth = header.getWidth(),
             i = 0,
             ln = cells.length,
-            maxWidth;
+            hasPaddingBug = Ext.supports.ScrollWidthInlinePaddingBug,
+            columnSizer = me.body.select(me.getColumnSizerSelector(header)),
+            max = Math.max,
+            paddingAdjust, maxWidth;
 
-        // Set column width back to the minimum header width
-        me.body.select(me.getColumnSizerSelector(header)).setWidth(40);
+        if (hasPaddingBug && ln > 0) {
+            paddingAdjust = me.getCellPaddingAfter(cells[0]);
+        }
+
+        // Set column width to 1px so we can detect the content width by measuring scrollWidth
+        columnSizer.setWidth(1);
 
         // Allow for padding round text of header
         maxWidth = header.textEl.dom.offsetWidth + header.titleEl.getPadding('lr');
         for (; i < ln; i++) {
-            // Add 2 to avoid text-overflow:ellipsis truncation
-            maxWidth = Math.max(maxWidth, cells[i].scrollWidth + 2);
+            maxWidth = max(maxWidth, cells[i].scrollWidth);
         }
+        if (hasPaddingBug) {
+            // in some browsers, the "after" padding is not accounted for in the scrollWidth
+            maxWidth += paddingAdjust;
+        }
+
+        // 40 is the minimum column width.  TODO: should this be configurable?
+        maxWidth = max(maxWidth, 40);
+
         // Set column width back to original width
-        me.body.select(me.getColumnSizerSelector(header)).setWidth(originalWidth);
+        columnSizer.setWidth(originalWidth);
 
         return maxWidth;
     },
@@ -1808,9 +1910,9 @@ Ext.define('Ext.view.Table', {
 
     getHeaderByCell: function(cell) {
         if (cell) {
-            var m = cell.className.match(this.cellRe);
-            if (m && m[1]) {
-                return Ext.getCmp(m[1]);
+            var match = cell.className.match(this.cellRe);
+            if (match && match[1]) {
+                return this.ownerCt.columnManager.getHeaderById(match[1]);
             }
         }
         return false;
@@ -1828,10 +1930,7 @@ Ext.define('Ext.view.Table', {
      * @param {Function} verifierFn A function to verify the validity of the calculated position.
      * When using this function, you must return true to allow the newPosition to be returned.
      * @param {Object} scope Scope to run the verifierFn in
-     * @returns {Object} newPosition An object containing the following properties:
-     *
-     * - row - The row index
-     * - column - The column index
+     * @returns {Ext.grid.CellContext} An object encapsulating the unique cell position.
      *
      * @private
      */
@@ -1843,14 +1942,14 @@ Ext.define('Ext.view.Table', {
             return false;
         }
 
-        var me       = this,
-            row      = pos.row,
-            column   = pos.column,
-            rowCount = me.dataSource.getCount(),
-            firstCol = me.getFirstVisibleColumnIndex(),
-            lastCol  = me.getLastVisibleColumnIndex(),
-            newPos   = {row: row, column: column},
-            activeHeader = me.headerCt.getHeaderAtIndex(column);
+        var me           = this,
+            row          = pos.row,
+            column       = pos.column,
+            rowCount     = me.dataSource.getCount(),
+            lastCol      = me.ownerCt.columnManager.getColumns().length - 1,
+            newRow       = row,
+            newColumn    = column,
+            activeHeader = me.ownerCt.columnManager.getHeaderAtIndex(column);
 
         // no active header or its currently hidden
         if (!activeHeader || activeHeader.hidden || !rowCount) {
@@ -1869,41 +1968,41 @@ Ext.define('Ext.view.Table', {
                     }
                     if (!e.ctrlKey) {
                         // otherwise wrap to nextRow and firstCol
-                        newPos.row = me.walkRows(row, 1);
-                        if (newPos.row !== row) {
-                            newPos.column = firstCol;
+                        newRow = me.walkRows(row, 1);
+                        if (newRow !== row) {
+                            newColumn = 0;
                         }
                     }
                 // go right
                 } else {
                     if (!e.ctrlKey) {
-                        newPos.column = column + me.getRightGap(activeHeader);
+                        newColumn = column + 1;
                     } else {
-                        newPos.column = lastCol;
+                        newColumn = lastCol;
                     }
                 }
                 break;
 
             case 'left':
                 // has the potential to wrap
-                if (column === firstCol) {
+                if (column === 0) {
                     // if top row and first column, deny left
                     if (preventWrap || row === 0) {
                         return false;
                     }
                     if (!e.ctrlKey) {
                         // otherwise wrap to prevRow and lastCol
-                        newPos.row = me.walkRows(row, -1);
-                        if (newPos.row !== row) {
-                            newPos.column = lastCol;
+                        newRow = me.walkRows(row, -1);
+                        if (newRow !== row) {
+                            newColumn = lastCol;
                         }
                     }
                 // go left
                 } else {
                     if (!e.ctrlKey) {
-                        newPos.column = column + me.getLeftGap(activeHeader);
+                        newColumn = column - 1;
                     } else {
-                        newPos.column = firstCol;
+                        newColumn = 0;
                     }
                 }
                 break;
@@ -1915,10 +2014,10 @@ Ext.define('Ext.view.Table', {
                 // go up
                 } else {
                     if (!e.ctrlKey) {
-                        newPos.row = me.walkRows(row, -1);
+                        newRow = me.walkRows(row, -1);
                     } else {
                         // Go to first row by walking down from row -1
-                        newPos.row = me.walkRows(-1, 1);
+                        newRow = me.walkRows(-1, 1);
                     }
                 }
                 break;
@@ -1930,19 +2029,19 @@ Ext.define('Ext.view.Table', {
                 // go down
                 } else {
                     if (!e.ctrlKey) {
-                        newPos.row = me.walkRows(row, 1);
+                        newRow = me.walkRows(row, 1);
                     } else {
                         // Go to first row by walking up from beyond the last row
-                        newPos.row = me.walkRows(rowCount, -1);
+                        newRow = me.walkRows(rowCount, -1);
                     }
                 }
                 break;
         }
 
-        if (verifierFn && verifierFn.call(scope || window, newPos) !== true) {
+        if (verifierFn && verifierFn.call(scope || me, {row: newRow, column: newColumn}) !== true) {
             return false;
         } else {
-            return newPos;
+            return new Ext.grid.CellContext(me).setPosition(newRow, newColumn);
         }
     },
 
@@ -2055,51 +2154,12 @@ Ext.define('Ext.view.Table', {
         return result;
     },
 
-    getFirstVisibleColumnIndex: function() {
-        var firstVisibleHeader = this.getHeaderCt().getVisibleGridColumns()[0];
-
-        return firstVisibleHeader ? firstVisibleHeader.getIndex() : -1;
-    },
-
-    getLastVisibleColumnIndex: function() {
-        var visHeaders = this.getHeaderCt().getVisibleGridColumns(),
-            lastHeader = visHeaders[visHeaders.length - 1];
-
-        return lastHeader.getIndex();
-    },
-
     getHeaderCt: function() {
         return this.headerCt;
     },
 
-    // TODO: have this use the new Ext.grid.CellContext class
     getPosition: function(record, header) {
-        return {
-            row: this.dataSource.indexOf(record, true),
-            column: Ext.Array.indexOf(this.headerCt.getGridColumns(), header)
-        };
-    },
-
-    /**
-     * Determines the 'gap' between the closest adjacent header to the right
-     * that is not hidden.
-     * @private
-     */
-    getRightGap: function(activeHeader) {
-        var headerCt        = this.getHeaderCt(),
-            headers         = headerCt.getGridColumns(),
-            activeHeaderIdx = Ext.Array.indexOf(headers, activeHeader),
-            i               = activeHeaderIdx + 1,
-            nextIdx;
-
-        for (; i <= headers.length; i++) {
-            if (!headers[i].hidden) {
-                nextIdx = i;
-                break;
-            }
-        }
-
-        return nextIdx - activeHeaderIdx;
+        return new Ext.grid.CellContext(this).setPosition(record, header);
     },
 
     beforeDestroy: function() {
@@ -2110,8 +2170,8 @@ Ext.define('Ext.view.Table', {
         }
         me.callParent(arguments);
     },
-    
-    onDestroy: function(){
+
+    onDestroy: function() {
         var me = this,
             features = me.featuresMC,
             len,
@@ -2124,28 +2184,6 @@ Ext.define('Ext.view.Table', {
         }
         me.featuresMC = null;
         this.callParent(arguments);    
-    },
-
-    /**
-     * Determines the 'gap' between the closest adjacent header to the left
-     * that is not hidden.
-     * @private
-     */
-    getLeftGap: function(activeHeader) {
-        var headerCt        = this.getHeaderCt(),
-            headers         = headerCt.getGridColumns(),
-            activeHeaderIdx = Ext.Array.indexOf(headers, activeHeader),
-            i               = activeHeaderIdx - 1,
-            prevIdx;
-
-        for (; i >= 0; i--) {
-            if (!headers[i].hidden) {
-                prevIdx = i;
-                break;
-            }
-        }
-
-        return prevIdx - activeHeaderIdx;
     },
 
     // after adding a row stripe rows from then on
@@ -2189,5 +2227,57 @@ Ext.define('Ext.view.Table', {
                 }
             }
         }
+    },
+
+    repaintRow: function(rowIdx) {
+        var node = this.getNode(rowIdx),
+            tds = node.childNodes,
+            i = tds.length;
+
+        while (i--) {
+            tds[i].className = tds[i].className;
+        }
+    },
+
+    // private
+    // returns the table that gains a top border when the first grid row is focused, selected,
+    // or hovered.  Usually the main grid table but can be a sub-table, if a grouping
+    // feature is being used.
+    getRowStyleTableEl: function(item /* view item or row index */) {
+       var me = this;
+
+        if (!item.tagName) {
+            item = this.getNode(item);
+        }
+
+        return (me.isGrouping ? Ext.fly(item) : this.el).down('table.x-grid-table');
+    },
+
+    // private
+    // returns true if the row should be treated as the first row stylistically.  Typically
+    // only returns true for the first row in a grid.  Returns true for the first row
+    // in each group of a grouped grid.
+    isRowStyleFirst: function(item /* view item or row index */) {
+        var me = this,
+            index;
+            
+        // An item not in the view
+        if (item === -1) {
+            return false;
+        }
+
+        if (!item.tagName) {
+            index = item;
+            item = this.getNode(item);
+        } else {
+            index = me.indexOf(item);
+        }
+
+        return (!index || me.isGrouping && Ext.fly(item).hasCls(Ext.baseCSSPrefix + 'grid-group-row'));
+    },
+
+    getCellPaddingAfter: function(cell) {
+        return Ext.fly(cell).getPadding('r');
     }
+
 });

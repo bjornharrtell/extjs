@@ -648,7 +648,7 @@ Ext.define('Ext.chart.series.Pie', {
             rho = 1,
             theta = Math.atan2(y, x || 1),
             dg = theta * 180 / Math.PI,
-            prevDg;
+            prevDg, labelBox, width, height;
 
         opt.hidden = false;
 
@@ -669,7 +669,17 @@ Ext.define('Ext.chart.series.Pie', {
 
         switch (display) {
         case 'outside':
+            // calculate the distance to the pie's edge
             rho = Math.sqrt(x * x + y * y) * 2;
+
+            // add the distance from the label's center to its edge
+            label.setAttributes({rotation:{degrees: 0}}, true);
+            labelBox = label.getBBox();
+            width = labelBox.width/2 * Math.cos(theta) + 4;
+            height = labelBox.height/2 * Math.sin(theta) + 4;
+
+            rho += Math.sqrt(width*width + height*height);
+
             //update positions
             opt.x = rho * Math.cos(theta) + centerX;
             opt.y = rho * Math.sin(theta) + centerY;

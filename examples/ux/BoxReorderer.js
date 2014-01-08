@@ -80,7 +80,7 @@ Ext.define('Ext.ux.BoxReorderer', {
         me.container.on({
             scope: me,
             boxready: me.afterFirstLayout,
-            destroy: me.onContainerDestroy
+            beforedestroy: me.onContainerDestroy
         });
     },
 
@@ -88,8 +88,10 @@ Ext.define('Ext.ux.BoxReorderer', {
      * @private Clear up on Container destroy
      */
     onContainerDestroy: function() {
-        if (this.dd) {
-            this.dd.unreg();
+        var dd = this.dd;
+        if (dd) {
+            dd.unreg();
+            this.dd = null;
         }
     },
 

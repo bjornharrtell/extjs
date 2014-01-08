@@ -49,22 +49,40 @@ Ext.define('BigDataSimlet', {
 });
 
 Ext.onReady(function() {
-    Ext.data.Store.prototype.prefetch = Ext.Function.createInterceptor(Ext.data.Store.prototype.prefetch, function(options) {
-        if (!this.pagesRequested || !this.pagesRequested[options.page]) {
-            logPanel.log('Prefetch rows ' + options.start + '-' + (options.start + options.limit));
+    
+    Ext.define('StoreInfo', {
+        override: 'Ext.data.Store',
+        prefetch: function(options){
+            var page = options.page;
+        
+            if (!this.pageCached(page) && !this.pagePending(page)) {
+                logPanel.log('Prefetch rows ' + options.start + '-' + (options.start + options.limit));
+            }
+            this.callParent(arguments);
+        },
+    
+        onProxyPrefetch: function(operation) {
+            this.callParent(arguments);
+            logPanel.log('Prefetch returned ' + operation.start + '-' + (operation.start + operation.limit));
         }
     });
 
-    Ext.data.Store.prototype.onProxyPrefetch = Ext.Function.createSequence(Ext.data.Store.prototype.onProxyPrefetch, function(operation) {
-        logPanel.log('Prefetch returned ' + operation.start + '-' + (operation.start + operation.limit));
+    Ext.define('CacheInfo', {
+        override: 'Ext.util.LruCache',
+    
+        prune: function(){
+            this.callParent(arguments);
+            logPanel.log('Page cache contains pages ' + this.getKeys().join(',') + '<br>&#160;&#160;&#160;&#160;' + this.getCount() + ' records in cache');
+        }
     });
 
-    Ext.data.Store.prototype.PageMap.prototype.prune = Ext.Function.createSequence(Ext.data.Store.prototype.PageMap.prototype.prune, function() {
-        logPanel.log('Page cache contains pages ' + this.getKeys().join(',') + '<br>&#160;&#160;&#160;&#160;' + this.pageSize * this.getCount() + ' records in cache');
-    });
-
-    Ext.grid.plugin.BufferedRenderer.prototype.setBodyTop = Ext.Function.createSequence(Ext.grid.plugin.BufferedRenderer.prototype.setBodyTop, function(bodyTop) {
-        logPanel.log('Table moved to top: ' + bodyTop);
+    Ext.define('BufferInfo', {
+        override: 'Ext.grid.plugin.BufferedRenderer',
+    
+        setBodyTop: function(bodyTop) {
+            this.callParent(arguments);
+            logPanel.log('Table moved to top: ' + bodyTop);
+        }
     });
 
     var simlet = new BigDataSimlet(),
@@ -106,7 +124,7 @@ Ext.onReady(function() {
             }
         };
         if (groupSize) {
-            remoteGroup: buffered,
+            storeConfig.remoteGroup = buffered;
             storeConfig.groupField = 'field0';
         }
         return Ext.create('Ext.data.Store', storeConfig);
@@ -431,7 +449,7 @@ Ext.onReady(function() {
                     return summaryTypeNames[(colIdx - 1) % 5] + ': ' + Ext.util.Format.number(value, '0.00');
                 }
             };
-            if (i == 0 && groupSize > 1) {
+            if (i === 0 && groupSize > 1) {
                 delete columnSpec.summaryType;
                 delete columnSpec.summaryRenderer;
                 columnSpec.width = 150;

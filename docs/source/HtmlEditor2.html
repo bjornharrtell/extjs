@@ -29,7 +29,17 @@ Ext.define('Ext.layout.component.field.HtmlEditor', {
 </span><span id='Ext-layout-component-field-HtmlEditor-property-naturalWidth'>    naturalWidth: 300,
 </span>
 <span id='Ext-layout-component-field-HtmlEditor-method-beginLayout'>    beginLayout: function(ownerContext) {
-</span>        var owner = this.owner;
+</span>        var owner = this.owner,
+            dom;
+            
+        // In gecko, it can cause the browser to hang if we're running a layout with
+        // a heap of data in the textarea (think several images with data urls).
+        // So clear the value at the start, then re-insert it once we're done
+        if (Ext.isGecko) {
+            dom = owner.textareaEl.dom;
+            this.lastValue = dom.value;
+            dom.value = '';
+        }
         this.callParent(arguments);
         
         ownerContext.toolbarContext  = ownerContext.context.getCmp(owner.toolbar);
@@ -61,12 +71,17 @@ Ext.define('Ext.layout.component.field.HtmlEditor', {
     },
     
 <span id='Ext-layout-component-field-HtmlEditor-method-finishedLayout'>    finishedLayout: function(){
-</span>        this.callParent(arguments);
+</span>        var owner = this.owner;
+        
+        this.callParent(arguments);
         // In IE6 quirks sometimes the element requires repainting
         // to show properly.
         if (Ext.isIE9m &amp;&amp; Ext.isIEQuirks) {
-            this.owner.el.repaint();
+            owner.el.repaint();
         }    
+        if (Ext.isGecko) {
+            owner.textareaEl.dom.value = this.lastValue;
+        }
     },
     
 <span id='Ext-layout-component-field-HtmlEditor-method-publishOwnerWidth'>    publishOwnerWidth: function(ownerContext, width){

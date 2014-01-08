@@ -15,6 +15,9 @@ Ext.define('KitchenSink.view.button.MenuBottomButtons', {
             iconMedium: 'resources/images/icons/add24.gif',
             iconLarge: 'resources/images/icons/add.gif'
         },
+        access: {
+            width: 470
+        },
         neptune: {
             width: 475,
             glyph: 72

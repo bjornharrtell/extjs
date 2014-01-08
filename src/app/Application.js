@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Represents an Ext JS 4 application, which is typically a single page app using a {@link Ext.container.Viewport Viewport}.
@@ -92,6 +92,7 @@ Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
  *
  *     Ext.define('MyApp.app.Application', {
  *         extend: 'Ext.app.Application',
+ *         name: 'MyApp',
  *         ...
  *     });
  *
@@ -113,11 +114,12 @@ Ext.define('Ext.app.Application', {
     /**
      * @cfg {String} name
      * The name of your application. This will also be the namespace for your views, controllers
-     * models and stores. Don't use spaces or special characters in the name.
+     * models and stores. Don't use spaces or special characters in the name. **Application name
+     * is mandatory**.
      */
 
     /**
-     * @cfg {String[]} controllers
+     * @cfg {String/String[]} controllers
      * Names of controllers that the app uses.
      */
 
@@ -160,7 +162,7 @@ Ext.define('Ext.app.Application', {
     appProperty: 'app',
 
     /**
-     * @cfg {String[]} [namespaces]
+     * @cfg {String/String[]} [namespaces]
      *
      * The list of namespace prefixes used in the application to resolve dependencies
      * like Views and Stores:
@@ -209,19 +211,28 @@ Ext.define('Ext.app.Application', {
     onClassExtended: function(cls, data, hooks) {
         var Controller = Ext.app.Controller,
             proto = cls.prototype,
-            namespace = data.name,
             requires = [],
-            onBeforeClassCreated, paths, ns;
-            
-        data.$namespace = data.name;
-        Ext.app.addNamespaces(data.name);
+            onBeforeClassCreated, paths, namespace, ns, appFolder;
+        
+        // Ordinary inheritance does not work here so we collect
+        // necessary data from current class data and its superclass
+        namespace = data.name      || cls.superclass.name;
+        appFolder = data.appFolder || cls.superclass.appFolder;
+        
+        if (namespace) {
+            data.$namespace = namespace;
+            Ext.app.addNamespaces(namespace);
+        }
 
         if (data.namespaces) {
             Ext.app.addNamespaces(data.namespaces);
         }
 
         if (!data['paths processed']) {
-            Ext.Loader.setPath(data.name, data.appFolder || 'app');
+            if (namespace && appFolder) {
+                Ext.Loader.setPath(namespace, appFolder);
+            }
+            
             paths = data.paths;
 
             if (paths) {
@@ -237,6 +248,13 @@ Ext.define('Ext.app.Application', {
         }
 
         if (data.autoCreateViewport) {
+            //<debug>
+            if (!namespace) {
+                Ext.Error.raise("[Ext.app.Application] Can't resolve namespace for " +
+                                data.$className + ", did you forget to specify 'name' property?");
+            }
+            //</debug>
+            
             Controller.processDependencies(proto, requires, namespace, 'view', ['Viewport']);
         }
 
@@ -274,6 +292,8 @@ Ext.define('Ext.app.Application', {
         me.initNamespace();
         me.initControllers();
         me.onBeforeLaunch();
+        
+        me.finishInitControllers();
     },
 
     initNamespace: function() {
@@ -311,6 +331,17 @@ Ext.define('Ext.app.Application', {
 
         for (var i = 0, ln = controllers.length; i < ln; i++) {
             me.getController(controllers[i]);
+        }
+    },
+    
+    finishInitControllers: function() {
+        var me = this,
+            controllers, i, l;
+        
+        controllers = me.controllers.getRange();
+        
+        for (i = 0, l = controllers.length; i < l; i++) {
+            controllers[i].finishInit(me);
         }
     },
 

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * This class functions **between siblings of a {@link Ext.layout.container.VBox VBox} or {@link Ext.layout.container.HBox HBox}
@@ -136,34 +136,19 @@ Ext.define('Ext.resizer.Splitter', {
 
     beforeRender: function() {
         var me = this,
-            target = me.getCollapseTarget(),
-            collapseDir = me.getCollapseDirection(),
-            vertical = me.vertical,
-            fixedSizeProp = vertical ? 'width' : 'height',
-            stretchSizeProp = vertical ? 'height' : 'width',
-            cls;
+            target = me.getCollapseTarget();
 
         me.callParent();
-
-        if (!me.hasOwnProperty(stretchSizeProp)) {
-            me[stretchSizeProp] = '100%';
-        }
-        if (!me.hasOwnProperty(fixedSizeProp)) {
-            me[fixedSizeProp] = me.size;
-        }
 
         if (target.collapsed) {
             me.addCls(me.collapsedClsInternal);
         }
-        
-        cls = me.baseCls + '-' + me.orientation;
-        me.addCls(cls);
         if (!me.canResize) {
-            me.addCls(cls + '-noresize');
+            me.addCls(me.baseCls + '-noresize');
         }
-        
+
         Ext.applyIf(me.renderData, {
-            collapseDir: collapseDir,
+            collapseDir: me.getCollapseDirection(),
             collapsible: me.collapsible || target.collapsible
         });
 
@@ -171,7 +156,8 @@ Ext.define('Ext.resizer.Splitter', {
     },
 
     onRender: function() {
-        var me = this;
+        var me = this,
+            collapseEl;
 
         me.callParent(arguments);
 
@@ -199,6 +185,11 @@ Ext.define('Ext.resizer.Splitter', {
             // Relay the most important events to our owner (could open wider later):
             me.relayEvents(me.tracker, [ 'beforedragstart', 'dragstart', 'dragend' ]);
         }
+
+        collapseEl = me.collapseEl;
+        if (collapseEl) {
+            collapseEl.lastCollapseDirCls = me.collapseDirProps[me.collapseDirection].cls;
+        }
     },
 
     getCollapseDirection: function() {
@@ -223,9 +214,9 @@ Ext.define('Ext.resizer.Splitter', {
                 type = me.ownerCt.layout.type;
                 if (collapseTarget.isComponent) {
                     items = me.ownerCt.items;
-                    idx = Number(items.indexOf(collapseTarget) == items.indexOf(me) - 1) << 1 | Number(type == 'hbox');
+                    idx = Number(items.indexOf(collapseTarget) === items.indexOf(me) - 1) << 1 | Number(type === 'hbox');
                 } else {
-                    idx = Number(me.collapseTarget == 'prev') << 1 | Number(type == 'hbox');
+                    idx = Number(me.collapseTarget === 'prev') << 1 | Number(type === 'hbox');
                 }
 
                 // Read the data out the truth table
@@ -235,8 +226,7 @@ Ext.define('Ext.resizer.Splitter', {
             me.collapseDirection = dir;
         }
 
-        me.orientation = (dir == 'top' || dir == 'bottom') ? 'horizontal' : 'vertical';
-        me[me.orientation] = true;
+        me.setOrientation((dir === 'top' || dir === 'bottom') ? 'horizontal' : 'vertical');
 
         return dir;
     },
@@ -244,7 +234,8 @@ Ext.define('Ext.resizer.Splitter', {
     getCollapseTarget: function() {
         var me = this;
 
-        return me.collapseTarget.isComponent ? me.collapseTarget : me.collapseTarget == 'prev' ? me.previousSibling() : me.nextSibling();
+        return me.collapseTarget.isComponent ? me.collapseTarget
+                    : me.collapseTarget === 'prev' ? me.previousSibling() : me.nextSibling();
     },
     
     setCollapseEl: function(display){
@@ -270,6 +261,88 @@ Ext.define('Ext.resizer.Splitter', {
     onTargetExpand: function(target) {
         this.el.removeCls([this.collapsedClsInternal, this.collapsedCls]);
         this.setCollapseEl('');
+    },
+
+    collapseDirProps: {
+        top: {
+            cls: Ext.baseCSSPrefix + 'layout-split-top'
+        },
+        right: {
+            cls: Ext.baseCSSPrefix + 'layout-split-right'
+        },
+        bottom: {
+            cls: Ext.baseCSSPrefix + 'layout-split-bottom'
+        },
+        left: {
+            cls: Ext.baseCSSPrefix + 'layout-split-left'
+        }
+    },
+
+    orientationProps: {
+        horizontal: {
+            opposite: 'vertical',
+            fixedAxis: 'height',
+            stretchedAxis: 'width'
+        },
+        vertical: {
+            opposite: 'horizontal',
+            fixedAxis: 'width',
+            stretchedAxis: 'height'
+        }
+    },
+
+    applyCollapseDirection: function () {
+        var me = this,
+            collapseEl = me.collapseEl,
+            collapseDirProps = me.collapseDirProps[me.collapseDirection],
+            cls;
+
+        if (collapseEl) {
+            cls = collapseEl.lastCollapseDirCls;
+            if (cls) {
+                collapseEl.removeCls(cls);
+            }
+
+            collapseEl.addCls(collapseEl.lastCollapseDirCls = collapseDirProps.cls);
+        }
+    },
+
+    applyOrientation: function () {
+        var me = this,
+            orientation = me.orientation,
+            orientationProps = me.orientationProps[orientation],
+            defaultSize = me.size,
+            fixedSizeProp = orientationProps.fixedAxis,
+            stretchSizeProp = orientationProps.stretchedAxis,
+            cls = me.baseCls + '-';
+
+        me[orientation] = true;
+        me[orientationProps.opposite] = false;
+
+        if (!me.hasOwnProperty(fixedSizeProp) || me[fixedSizeProp] === '100%') {
+            me[fixedSizeProp] = defaultSize;
+        }
+        if (!me.hasOwnProperty(stretchSizeProp) || me[stretchSizeProp] === defaultSize) {
+            me[stretchSizeProp] = '100%';
+        }
+
+        me.removeCls(cls + orientationProps.opposite);
+        me.addCls(cls + orientation);
+    },
+
+    setOrientation: function (orientation) {
+        var me = this;
+
+        if (me.orientation !== orientation) {
+            me.orientation = orientation;
+            me.applyOrientation();
+        }
+    },
+    
+    updateOrientation: function () {
+        delete this.collapseDirection; // recompute
+        this.getCollapseDirection();
+        this.applyCollapseDirection();
     },
 
     toggleTargetCmp: function(e, t) {

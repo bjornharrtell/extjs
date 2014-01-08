@@ -1,0 +1,13 @@
+.#{$prefix}grid-group,
+.#{$prefix}grid-group-body,
+.#{$prefix}grid-group-hd {
+    zoom: 1;
+}
+
+.#{$prefix}grid-group-hd {
+    white-space: nowrap;
+}
+
+.#{$prefix}grid-row-body-hidden, .#{$prefix}grid-group-collapsed {
+    display: none;
+}

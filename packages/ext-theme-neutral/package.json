@@ -1,11 +1,11 @@
 {
     "name": "ext-theme-neutral",
-    "type": "THEME",
-    "version": "4.2.0.663",
+    "type": "theme",
+    "creator": "Sencha",
+    "summary": "Ext JS Neutral Theme",
+    "detailedDescription": "The neutral theme is a highly configurable, abstract base theme",
+    "version": "4.2.1",
     "compatVersion": "4.2.0",
-	"extend": "ext-theme-base",
-    "requires": [{
-		"name": "ext-theme-base",
-		"version": "4.2.0.663"
-	}]
+    "format": "1",
+    "extend": "ext-theme-base"
 }

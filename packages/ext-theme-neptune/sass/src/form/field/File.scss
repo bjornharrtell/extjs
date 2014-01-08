@@ -9,15 +9,13 @@
     border-color: $form-field-border-color;
     height: $form-field-height;
 
-    @if $include-ie {
-        // adjust height for content-box model
-        .#{$prefix}strict .#{$prefix}ie6 &,
-        .#{$prefix}strict .#{$prefix}ie7 & {
+    @if $include-content-box {
+        .#{$prefix}content-box & {
             height: $form-field-content-height;
         }
 
         @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
-            .#{$prefix}strict .#{$prefix}ie7 .#{$prefix}field-default-toolbar & {
+            .#{$prefix}content-box .#{$prefix}field-toolbar & {
                 height: $form-toolbar-field-content-height;
             }
         }

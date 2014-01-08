@@ -105,6 +105,14 @@ Ext.define('Ext.ModelManager', {
         this.types[name] = model;
         return model;
     },
+    
+<span id='Ext-ModelManager-method-unregisterType'>    /**
+</span>     * Unregisters a model definition. Generally used by stores with implicit model classes.
+     * @private
+     */
+    unregisterType: function(name) {
+        delete this.types[name];
+    },
 
 <span id='Ext-ModelManager-method-onModelDefined'>    /**
 </span>     * @private

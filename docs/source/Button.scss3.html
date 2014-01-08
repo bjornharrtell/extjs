@@ -19,150 +19,783 @@
 </span> * @class Ext.button.Button
  */
 
+<span id='Ext-button-Button-css_var-S-button-arrow-width'>/**
+</span> * @var {number}
+ * The default width for a button's {@link #cfg-menu} arrow
+ */
 $button-arrow-width: 12px !default;
+
+<span id='Ext-button-Button-css_var-S-button-arrow-height'>/**
+</span> * @var {number}
+ * The default height for a button's {@link #cfg-menu} arrow
+ */
 $button-arrow-height: 12px !default;
+
+<span id='Ext-button-Button-css_var-S-button-split-width'>/**
+</span> * @var {number}
+ * The default width for a {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-split-width: 14px !default;
+
+<span id='Ext-button-Button-css_var-S-button-split-height'>/**
+</span> * @var {number}
+ * The default height for a {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-split-height: 14px !default;
+
+<span id='Ext-button-Button-css_var-S-button-icon-spacing'>/**
+</span> * @var {number}
+ * The default space between a button's icon and text
+ */
 $button-icon-spacing: 4px !default;
 
+<span id='Ext-button-Button-css_var-S-button-small-border-radius'>/**
+</span> * @var {number}
+ * The default border-radius for a small {@link #scale} button
+ */
 $button-small-border-radius: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-border-width'>/**
+</span> * @var {number}
+ * The default border-width for a small {@link #scale} button
+ */
 $button-small-border-width: 1px !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-padding'>/**
+</span> * @var {number}
+ * The default padding for a small {@link #scale} button
+ */
 $button-small-padding: 2px !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-text-padding'>/**
+</span> * @var {number}
+ * The default horizontal padding to add to the left and right of the text element for
+ * a small {@link #scale} button
+ */
 $button-small-text-padding: 4px !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-size'>/**
+</span> * @var {number}
+ * The default font-size for a small {@link #scale} button
+ */
 $button-small-font-size: ceil($font-size * .9) !default; //11px
+
+<span id='Ext-button-Button-css_var-S-button-small-font-size-over'>/**
+</span> * @var {number}
+ * The default font-size for a small {@link #scale} button when the cursor is over the button
+ */
 $button-small-font-size-over: $button-small-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-size-focus'>/**
+</span> * @var {number}
+ * The default font-size for a small {@link #scale} button when the button is focused
+ */
 $button-small-font-size-focus: $button-small-font-size-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-size-pressed'>/**
+</span> * @var {number}
+ * The default font-size for a small {@link #scale} button when the button is pressed
+ */
 $button-small-font-size-pressed: $button-small-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-size-disabled'>/**
+</span> * @var {number}
+ * The default font-size for a small {@link #scale} button when the button is disabled
+ */
 $button-small-font-size-disabled: $button-small-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-weight'>/**
+</span> * @var {string}
+ * The default font-weight for a small {@link #scale} button
+ */
 $button-small-font-weight: normal !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-weight-over'>/**
+</span> * @var {string}
+ * The default font-weight for a small {@link #scale} button when the cursor is over the button
+ */
 $button-small-font-weight-over: $button-small-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-weight-focus'>/**
+</span> * @var {string}
+ * The default font-weight for a small {@link #scale} button when the button is focused
+ */
 $button-small-font-weight-focus: $button-small-font-weight-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-weight-pressed'>/**
+</span> * @var {string}
+ * The default font-weight for a small {@link #scale} button when the button is pressed
+ */
 $button-small-font-weight-pressed: $button-small-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-weight-disabled'>/**
+</span> * @var {string}
+ * The default font-weight for a small {@link #scale} button when the button is disabled
+ */
 $button-small-font-weight-disabled: $button-small-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-family'>/**
+</span> * @var {string}
+ * The default font-family for a small {@link #scale} button
+ */
 $button-small-font-family: $font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-family-over'>/**
+</span> * @var {string}
+ * The default font-family for a small {@link #scale} button when the cursor is over the button
+ */
 $button-small-font-family-over: $button-small-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-family-focus'>/**
+</span> * @var {string}
+ * The default font-family for a small {@link #scale} button when the button is focused
+ */
 $button-small-font-family-focus: $button-small-font-family-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-family-pressed'>/**
+</span> * @var {string}
+ * The default font-family for a small {@link #scale} button when the button is pressed
+ */
 $button-small-font-family-pressed: $button-small-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-font-family-disabled'>/**
+</span> * @var {string}
+ * The default font-family for a small {@link #scale} button when the button is disabled
+ */
 $button-small-font-family-disabled: $button-small-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-icon-size'>/**
+</span> * @var {number}
+ * The default icon size for a small {@link #scale} button
+ */
 $button-small-icon-size: 16px !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-arrow-width'>/**
+</span> * @var {number}
+ * The default width of a small {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-small-arrow-width: $button-arrow-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-arrow-height'>/**
+</span> * @var {number}
+ * The default height of a small {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-small-arrow-height: $button-arrow-height !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-split-width'>/**
+</span> * @var {number}
+ * The default width of a small {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-small-split-width: $button-split-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-small-split-height'>/**
+</span> * @var {number}
+ * The default height of a small {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-small-split-height: $button-split-height !default;
 
+<span id='Ext-button-Button-css_var-S-button-medium-border-radius'>/**
+</span> * @var {number}
+ * The default border-radius for a medium {@link #scale} button
+ */
 $button-medium-border-radius: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-border-width'>/**
+</span> * @var {number}
+ * The default border-width for a medium {@link #scale} button
+ */
 $button-medium-border-width: 1px !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-padding'>/**
+</span> * @var {number}
+ * The default padding for a medium {@link #scale} button
+ */
 $button-medium-padding: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-text-padding'>/**
+</span> * @var {number}
+ * The default horizontal padding to add to the left and right of the text element for
+ * a medium {@link #scale} button
+ */
 $button-medium-text-padding: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-size'>/**
+</span> * @var {number}
+ * The default font-size for a medium {@link #scale} button
+ */
 $button-medium-font-size: $font-size !default; //11px
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-size-over'>/**
+</span> * @var {number}
+ * The default font-size for a medium {@link #scale} button when the cursor is over the button
+ */
 $button-medium-font-size-over: $button-medium-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-size-focus'>/**
+</span> * @var {number}
+ * The default font-size for a medium {@link #scale} button when the button is focused
+ */
 $button-medium-font-size-focus: $button-medium-font-size-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-size-pressed'>/**
+</span> * @var {number}
+ * The default font-size for a medium {@link #scale} button when the button is pressed
+ */
 $button-medium-font-size-pressed: $button-medium-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-size-disabled'>/**
+</span> * @var {number}
+ * The default font-size for a medium {@link #scale} button when the button is disabled
+ */
 $button-medium-font-size-disabled: $button-medium-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-weight'>/**
+</span> * @var {string}
+ * The default font-weight for a medium {@link #scale} button
+ */
 $button-medium-font-weight: normal !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-weight-over'>/**
+</span> * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the cursor is over the button
+ */
 $button-medium-font-weight-over: $button-medium-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-weight-focus'>/**
+</span> * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the button is focused
+ */
 $button-medium-font-weight-focus: $button-medium-font-weight-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-weight-pressed'>/**
+</span> * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the button is pressed
+ */
 $button-medium-font-weight-pressed: $button-medium-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-weight-disabled'>/**
+</span> * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the button is disabled
+ */
 $button-medium-font-weight-disabled: $button-medium-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-family'>/**
+</span> * @var {string}
+ * The default font-family for a medium {@link #scale} button
+ */
 $button-medium-font-family: $font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-family-over'>/**
+</span> * @var {string}
+ * The default font-family for a medium {@link #scale} button when the cursor is over the button
+ */
 $button-medium-font-family-over: $button-medium-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-family-focus'>/**
+</span> * @var {string}
+ * The default font-family for a medium {@link #scale} button when the button is focused
+ */
 $button-medium-font-family-focus: $button-medium-font-family-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-family-pressed'>/**
+</span> * @var {string}
+ * The default font-family for a medium {@link #scale} button when the button is pressed
+ */
 $button-medium-font-family-pressed: $button-medium-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-font-family-disabled'>/**
+</span> * @var {string}
+ * The default font-family for a medium {@link #scale} button when the button is disabled
+ */
 $button-medium-font-family-disabled: $button-medium-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-icon-size'>/**
+</span> * @var {number}
+ * The default icon size for a medium {@link #scale} button
+ */
 $button-medium-icon-size: 24px !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-arrow-width'>/**
+</span> * @var {number}
+ * The default width of a medium {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-medium-arrow-width: $button-arrow-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-arrow-height'>/**
+</span> * @var {number}
+ * The default height of a medium {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-medium-arrow-height: $button-arrow-height !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-split-width'>/**
+</span> * @var {number}
+ * The default width of a medium {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-medium-split-width: $button-split-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-medium-split-height'>/**
+</span> * @var {number}
+ * The default height of a medium {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-medium-split-height: $button-split-height !default;
 
+<span id='Ext-button-Button-css_var-S-button-large-border-radius'>/**
+</span> * @var {number}
+ * The default border-radius for a large {@link #scale} button
+ */
 $button-large-border-radius: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-border-width'>/**
+</span> * @var {number}
+ * The default border-width for a large {@link #scale} button
+ */
 $button-large-border-width: 1px !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-padding'>/**
+</span> * @var {number}
+ * The default padding for a large {@link #scale} button
+ */
 $button-large-padding: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-text-padding'>/**
+</span> * @var {number}
+ * The default horizontal padding to add to the left and right of the text element for
+ * a large {@link #scale} button
+ */
 $button-large-text-padding: 3px !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-size'>/**
+</span> * @var {number}
+ * The default font-size for a large {@link #scale} button
+ */
 $button-large-font-size: $font-size !default; //11px
+
+<span id='Ext-button-Button-css_var-S-button-large-font-size-over'>/**
+</span> * @var {number}
+ * The default font-size for a large {@link #scale} button when the cursor is over the button
+ */
 $button-large-font-size-over: $button-large-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-size-focus'>/**
+</span> * @var {number}
+ * The default font-size for a large {@link #scale} button when the button is focused
+ */
 $button-large-font-size-focus: $button-large-font-size-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-size-pressed'>/**
+</span> * @var {number}
+ * The default font-size for a large {@link #scale} button when the button is pressed
+ */
 $button-large-font-size-pressed: $button-large-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-size-disabled'>/**
+</span> * @var {number}
+ * The default font-size for a large {@link #scale} button when the button is disabled
+ */
 $button-large-font-size-disabled: $button-large-font-size !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-weight'>/**
+</span> * @var {string}
+ * The default font-weight for a large {@link #scale} button
+ */
 $button-large-font-weight: normal !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-weight-over'>/**
+</span> * @var {string}
+ * The default font-weight for a large {@link #scale} button when the cursor is over the button
+ */
 $button-large-font-weight-over: $button-large-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-weight-focus'>/**
+</span> * @var {string}
+ * The default font-weight for a large {@link #scale} button when the button is focused
+ */
 $button-large-font-weight-focus: $button-large-font-weight-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-weight-pressed'>/**
+</span> * @var {string}
+ * The default font-weight for a large {@link #scale} button when the button is pressed
+ */
 $button-large-font-weight-pressed: $button-large-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-weight-disabled'>/**
+</span> * @var {string}
+ * The default font-weight for a large {@link #scale} button when the button is disabled
+ */
 $button-large-font-weight-disabled: $button-large-font-weight !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-family'>/**
+</span> * @var {string}
+ * The default font-family for a large {@link #scale} button
+ */
 $button-large-font-family: $font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-family-over'>/**
+</span> * @var {string}
+ * The default font-family for a large {@link #scale} button when the cursor is over the button
+ */
 $button-large-font-family-over: $button-large-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-family-focus'>/**
+</span> * @var {string}
+ * The default font-family for a large {@link #scale} button when the button is focused
+ */
 $button-large-font-family-focus: $button-large-font-family-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-family-pressed'>/**
+</span> * @var {string}
+ * The default font-family for a large {@link #scale} button when the button is pressed
+ */
 $button-large-font-family-pressed: $button-large-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-font-family-disabled'>/**
+</span> * @var {string}
+ * The default font-family for a large {@link #scale} button when the button is disabled
+ */
 $button-large-font-family-disabled: $button-large-font-family !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-icon-size'>/**
+</span> * @var {number}
+ * The default icon size for a large {@link #scale} button
+ */
 $button-large-icon-size: 32px !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-arrow-width'>/**
+</span> * @var {number}
+ * The default width of a large {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-large-arrow-width: $button-arrow-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-arrow-height'>/**
+</span> * @var {number}
+ * The default height of a large {@link #scale} button's {@link #cfg-menu} arrow
+ */
 $button-large-arrow-height: $button-arrow-height !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-split-width'>/**
+</span> * @var {number}
+ * The default width of a large {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-large-split-width: $button-split-width !default;
+
+<span id='Ext-button-Button-css_var-S-button-large-split-height'>/**
+</span> * @var {number}
+ * The default height of a large {@link #scale} {@link Ext.button.Split Split Button}'s arrow
+ */
 $button-large-split-height: $button-split-height !default;
 
-//base colors for the default button
+<span id='Ext-button-Button-css_var-S-button-default-base-color'>/**
+</span> * @var {color}
+ * The base color for the `default` button UI
+ */
 $button-default-base-color: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-base-color-over'>/**
+</span> * @var {color}
+ * The base color for the `default` button UI when the cursor is over the button
+ */
 $button-default-base-color-over: $button-default-base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-base-color-focus'>/**
+</span> * @var {color}
+ * The base color for the `default` button UI when the button is focused
+ */
 $button-default-base-color-focus: $button-default-base-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-base-color-pressed'>/**
+</span> * @var {color}
+ * The base color for the `default` button UI when the button is pressed
+ */
 $button-default-base-color-pressed: $button-default-base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-base-color-disabled'>/**
+</span> * @var {color}
+ * The base color for the `default` button UI when the button is disabled
+ */
 $button-default-base-color-disabled: $base-color !default;
 
+<span id='Ext-button-Button-css_var-S-button-default-border-color'>/**
+</span> * @var {color}
+ * The border-color for the `default` button UI
+ */
 $button-default-border-color: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-border-color-over'>/**
+</span> * @var {color}
+ * The border-color for the `default` button UI when the cursor is over the button
+ */
 $button-default-border-color-over: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-border-color-focus'>/**
+</span> * @var {color}
+ * The border-color for the `default` button UI when the button is focused
+ */
 $button-default-border-color-focus: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-border-color-pressed'>/**
+</span> * @var {color}
+ * The border-color for the `default` button UI when the button is pressed
+ */
 $button-default-border-color-pressed: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-border-color-disabled'>/**
+</span> * @var {color}
+ * The border-color for the `default` button UI when the button is disabled
+ */
 $button-default-border-color-disabled: $base-color !default;
 
+<span id='Ext-button-Button-css_var-S-button-default-background-color'>/**
+</span> * @var {color}
+ * The background-color for the `default` button UI
+ */
 $button-default-background-color: $button-default-base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-color-over'>/**
+</span> * @var {color}
+ * The background-color for the `default` button UI when the cursor is over the button
+ */
 $button-default-background-color-over: $button-default-base-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-color-focus'>/**
+</span> * @var {color}
+ * The background-color for the `default` button UI when the button is focused
+ */
 $button-default-background-color-focus: $button-default-background-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-color-pressed'>/**
+</span> * @var {color}
+ * The background-color for the `default` button UI when the button is pressed
+ */
 $button-default-background-color-pressed: $button-default-base-color-pressed !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-color-disabled'>/**
+</span> * @var {color}
+ * The background-color for the `default` button UI when the button is disabled
+ */
 $button-default-background-color-disabled: null !default;
 
+<span id='Ext-button-Button-css_var-S-button-default-background-gradient'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default` button UI.  Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
 $button-default-background-gradient: 'glossy-button' !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-gradient-over'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default` button UI when the cursor is over the button.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-default-background-gradient-over: 'glossy-button-over' !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-gradient-focus'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is focused.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-default-background-gradient-focus: $button-default-background-gradient-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-gradient-pressed'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is pressed.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-default-background-gradient-pressed: 'glossy-button-pressed' !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-background-gradient-disabled'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is disabled.  Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-default-background-gradient-disabled: 'glossy-button-disabled' !default;
 
-$button-default-background-gradient-color-stops: null !default;
-$button-default-background-gradient-color-stops-over: $button-default-background-gradient-color-stops !default;
-$button-default-background-gradient-color-stops-focus: $button-default-background-gradient-color-stops-over !default;
-$button-default-background-gradient-color-stops-pressed: $button-default-background-gradient-color-stops !default;
-$button-default-background-gradient-color-stops-disabled: $button-default-background-gradient-color-stops !default;
-
+<span id='Ext-button-Button-css_var-S-button-default-color'>/**
+</span> * @var {color}
+ * The text color for the `default` button UI
+ */
 $button-default-color: #000 !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-color-over'>/**
+</span> * @var {color}
+ * The text color for the `default` button UI when the cursor is over the button
+ */
 $button-default-color-over: $button-default-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-color-focus'>/**
+</span> * @var {color}
+ * The text color for the `default` button UI when the button is focused
+ */
 $button-default-color-focus: $button-default-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-color-pressed'>/**
+</span> * @var {color}
+ * The text color for the `default` button UI when the button is pressed
+ */
 $button-default-color-pressed: $button-default-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-color-disabled'>/**
+</span> * @var {color}
+ * The text color for the `default` button UI when the button is disabled
+ */
 $button-default-color-disabled: $button-default-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-glyph-color'>/**
+</span> * @var {color}
+ * The color of the {@link #glyph} icon for the `default` button UI
+ */
 $button-default-glyph-color: $button-default-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-default-glyph-opacity'>/**
+</span> * @var {color}
+ * The opacity of the {@link #glyph} icon for the `default` button UI
+ */
 $button-default-glyph-opacity: .5 !default;
 
+<span id='Ext-button-Button-css_var-S-button-toolbar-border-color'>/**
+</span> * @var {color}
+ * The border-color for the `default-toolbar` button UI
+ */
 $button-toolbar-border-color: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-border-color-over'>/**
+</span> * @var {color}
+ * The border-color for the `default-toolbar` button UI when the cursor is over the button
+ */
 $button-toolbar-border-color-over: $button-toolbar-border-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-border-color-focus'>/**
+</span> * @var {color}
+ * The border-color for the `default-toolbar` button UI when the button is focused
+ */
 $button-toolbar-border-color-focus: $button-toolbar-border-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-border-color-pressed'>/**
+</span> * @var {color}
+ * The border-color for the `default-toolbar` button UI when the button is pressed
+ */
 $button-toolbar-border-color-pressed: $button-toolbar-border-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-border-color-disabled'>/**
+</span> * @var {color}
+ * The border-color for the `default-toolbar` button UI when the button is disabled
+ */
 $button-toolbar-border-color-disabled: $button-toolbar-border-color !default;
 
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-color'>/**
+</span> * @var {color}
+ * The background-color for the `default-toolbar` button UI
+ */
 $button-toolbar-background-color: $base-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-color-over'>/**
+</span> * @var {color}
+ * The background-color for the `default-toolbar` button UI when the cursor is over the button
+ */
 $button-toolbar-background-color-over: $button-toolbar-background-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-color-focus'>/**
+</span> * @var {color}
+ * The background-color for the `default-toolbar` button UI when the button is focused
+ */
 $button-toolbar-background-color-focus: $button-toolbar-background-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-color-pressed'>/**
+</span> * @var {color}
+ * The background-color for the `default-toolbar` button UI when the button is pressed
+ */
 $button-toolbar-background-color-pressed: $button-toolbar-background-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-color-disabled'>/**
+</span> * @var {color}
+ * The background-color for the `default-toolbar` button UI when the button is disabled
+ */
 $button-toolbar-background-color-disabled: $button-toolbar-background-color !default;
 
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-gradient'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI.  Can be either the name of
+ * a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
 $button-toolbar-background-gradient: 'glossy-button' !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-gradient-over'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the cursor is over the
+ * button. Can be either the name of a predefined gradient or a list of color stops. Used
+ * as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-toolbar-background-gradient-over: 'glossy-button-over' !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-gradient-focus'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is focused.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-toolbar-background-gradient-focus: $button-toolbar-background-gradient-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-gradient-pressed'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is pressed.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-toolbar-background-gradient-pressed: 'glossy-button-pressed' !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-background-gradient-disabled'>/**
+</span> * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is disabled.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
 $button-toolbar-background-gradient-disabled: 'glossy-button-disabled' !default;
 
+<span id='Ext-button-Button-css_var-S-button-toolbar-color'>/**
+</span> * @var {color}
+ * The text color for the `default-toolbar` button UI
+ */
 $button-toolbar-color: #000 !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-color-over'>/**
+</span> * @var {color}
+ * The text color for the `default-toolbar` button UI when the cursor is over the button
+ */
 $button-toolbar-color-over: $button-toolbar-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-color-focus'>/**
+</span> * @var {color}
+ * The text color for the `default-toolbar` button UI when the button is focused
+ */
 $button-toolbar-color-focus: $button-toolbar-color-over !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-color-pressed'>/**
+</span> * @var {color}
+ * The text color for the `default-toolbar` button UI when the button is pressed
+ */
 $button-toolbar-color-pressed: $button-toolbar-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-color-disabled'>/**
+</span> * @var {color}
+ * The text color for the `default-toolbar` button UI when the button is disabled
+ */
 $button-toolbar-color-disabled: $button-toolbar-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-glyph-color'>/**
+</span> * @var {color}
+ * The color of the {@link #glyph} icon for the `default-toolbar` button UI
+ */
 $button-toolbar-glyph-color: $button-toolbar-color !default;
+
+<span id='Ext-button-Button-css_var-S-button-toolbar-glyph-opacity'>/**
+</span> * @var {color}
+ * The opacity of the {@link #glyph} icon for the `default-toolbar` button UI
+ */
 $button-toolbar-glyph-opacity: .5 !default;
 
 <span id='Ext-button-Button-css_var-S-button-include-ui-menu-arrows'>/**
@@ -211,6 +844,54 @@ $button-toolbar-opacity-disabled: .5 !default;
 </span> * @var {number} $button-toolbar-inner-opacity-disabled
  * opacity to apply to the toolbar button's inner elements (icon and text) when the buton is disabled
  */
-$button-toolbar-inner-opacity-disabled: 1 !default;</pre>
+$button-toolbar-inner-opacity-disabled: 1 !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; button UI
+ */
+$include-button-default-ui: $include-default-uis !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-small-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; button UI for &quot;small&quot; scale buttons
+ */
+$include-button-default-small-ui: $include-button-default-ui !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-medium-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; button UI for &quot;medium&quot; scale buttons
+ */
+$include-button-default-medium-ui: $include-button-default-ui !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-large-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default&quot; button UI for &quot;large&quot; scale buttons
+ */
+$include-button-default-large-ui: $include-button-default-ui !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-toolbar-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default-toolbar&quot; button UI
+ */
+$include-button-default-toolbar-ui: $include-default-uis !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-toolbar-small-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default-toolbar&quot; button UI for &quot;small&quot; scale buttons
+ */
+$include-button-default-toolbar-small-ui: $include-button-default-toolbar-ui !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-toolbar-medium-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default-toolbar&quot; button UI for &quot;medium&quot; scale buttons
+ */
+$include-button-default-toolbar-medium-ui: $include-button-default-toolbar-ui !default;
+
+<span id='Ext-button-Button-css_var-S-include-button-default-toolbar-large-ui'>/**
+</span> * @var {boolean}
+ * True to include the &quot;default-toolbar&quot; button UI for &quot;large&quot; scale buttons
+ */
+$include-button-default-toolbar-large-ui: $include-button-default-toolbar-ui !default;</pre>
 </body>
 </html>

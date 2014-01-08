@@ -15,9 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">// No padding when inside an Editor
-.#{$prefix}editor .#{$prefix}form-item-body {
-    padding-bottom: 0;
-}</pre>
+  <pre class="prettyprint lang-js">// EXTJSIV-9714: The overflow:hidden on .x-layer can cause the editor to not display
+// correctly in IE quirks/6/7 in some cases in RTL mode.  The tagName is included in this
+//selector to ensure a higher specificity than &quot;.x-layer&quot;
+div.#{$prefix}editor {
+    overflow: visible;
+}
+</pre>
 </body>
 </html>

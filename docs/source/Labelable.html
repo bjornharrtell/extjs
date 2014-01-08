@@ -127,11 +127,11 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
     labelableRenderTpl: [
 
         // body row. If a heighted Field (eg TextArea, HtmlEditor, this must greedily consume height.
-        '&lt;tr id=&quot;{id}-inputRow&quot; &lt;tpl if=&quot;inFormLayout&quot;&gt;id=&quot;{id}&quot;&lt;/tpl&gt;&gt;',
+        '&lt;tr role=&quot;presentation&quot; id=&quot;{id}-inputRow&quot; &lt;tpl if=&quot;inFormLayout&quot;&gt;id=&quot;{id}&quot;&lt;/tpl&gt; class=&quot;{inputRowCls}&quot;&gt;',
 
             // Label cell
             '&lt;tpl if=&quot;labelOnLeft&quot;&gt;',
-                '&lt;td id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot; {labelCellAttrs}&gt;',
+                '&lt;td role=&quot;presentation&quot; id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot; {labelCellAttrs}&gt;',
                     '{beforeLabelTpl}',
                     '&lt;label id=&quot;{id}-labelEl&quot; {labelAttrTpl}&lt;tpl if=&quot;inputId&quot;&gt; for=&quot;{inputId}&quot;&lt;/tpl&gt; class=&quot;{labelCls}&quot;',
                         '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;',
@@ -147,13 +147,13 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             '&lt;/tpl&gt;',
 
             // Body of the input. That will be an input element, or, from a TriggerField, a table containing an input cell and trigger cell(s)
-            '&lt;td class=&quot;{baseBodyCls} {fieldBodyCls}&quot; id=&quot;{id}-bodyEl&quot; colspan=&quot;{bodyColspan}&quot; role=&quot;presentation&quot;&gt;',
+            '&lt;td role=&quot;presentation&quot; class=&quot;{baseBodyCls} {fieldBodyCls} {extraFieldBodyCls}&quot; id=&quot;{id}-bodyEl&quot; colspan=&quot;{bodyColspan}&quot; role=&quot;presentation&quot;&gt;',
                 '{beforeBodyEl}',
 
                 // Label just sits on top of the input field if labelAlign === 'top'
                 '&lt;tpl if=&quot;labelAlign==\'top\'&quot;&gt;',
                     '{beforeLabelTpl}',
-                    '&lt;div id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot;&gt;',
+                    '&lt;div role=&quot;presentation&quot; id=&quot;{id}-labelCell&quot; style=&quot;{labelCellStyle}&quot;&gt;',
                         '&lt;label id=&quot;{id}-labelEl&quot; {labelAttrTpl}&lt;tpl if=&quot;inputId&quot;&gt; for=&quot;{inputId}&quot;&lt;/tpl&gt; class=&quot;{labelCls}&quot;',
                             '&lt;tpl if=&quot;labelStyle&quot;&gt; style=&quot;{labelStyle}&quot;&lt;/tpl&gt;',
                             // Required for Opera
@@ -175,15 +175,14 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
             '&lt;tpl if=&quot;msgTarget===\'side\'&quot;&gt;',
                 '{afterBodyEl}',
                 '&lt;/td&gt;',
-                '&lt;td id=&quot;{id}-sideErrorCell&quot; vAlign=&quot;{[values.labelAlign===\'top\' &amp;&amp; !values.hideLabel ? \'bottom\' : \'middle\']}&quot; style=&quot;{[values.autoFitErrors ? \'display:none\' : \'\']}&quot; width=&quot;{errorIconWidth}&quot;&gt;',
-                    '&lt;div id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgCls}&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
+                '&lt;td role=&quot;presentation&quot; id=&quot;{id}-sideErrorCell&quot; vAlign=&quot;{[values.labelAlign===\'top\' &amp;&amp; !values.hideLabel ? \'bottom\' : \'middle\']}&quot; style=&quot;{[values.autoFitErrors ? \'display:none\' : \'\']}&quot; width=&quot;{errorIconWidth}&quot;&gt;',
+                    '&lt;div role=&quot;presentation&quot; id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgCls}&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
                 '&lt;/td&gt;',
             '&lt;tpl elseif=&quot;msgTarget==\'under\'&quot;&gt;',
-                '&lt;div id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgClass}&quot; colspan=&quot;2&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
+                '&lt;div role=&quot;presentation&quot; id=&quot;{id}-errorEl&quot; class=&quot;{errorMsgClass}&quot; colspan=&quot;2&quot; style=&quot;display:none&quot;&gt;&lt;/div&gt;',
                 '{afterBodyEl}',
                 '&lt;/td&gt;',
             '&lt;/tpl&gt;',
-
         '&lt;/tr&gt;',
         {
             disableFormats: true
@@ -200,7 +199,7 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
 
 <span id='Ext-form-Labelable-property-htmlActiveErrorsTpl'>    htmlActiveErrorsTpl: [
 </span>        '&lt;tpl if=&quot;errors &amp;&amp; errors.length&quot;&gt;',
-            '&lt;ul class=&quot;{listCls}&quot;&gt;&lt;tpl for=&quot;errors&quot;&gt;&lt;li&gt;{.}&lt;/li&gt;&lt;/tpl&gt;&lt;/ul&gt;',
+            '&lt;ul class=&quot;{listCls}&quot;&gt;&lt;tpl for=&quot;errors&quot;&gt;&lt;li role=&quot;alert&quot;&gt;{.}&lt;/li&gt;&lt;/tpl&gt;&lt;/ul&gt;',
         '&lt;/tpl&gt;'
     ],
     
@@ -246,6 +245,9 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
      * The CSS class to be applied to the body content element.
      */
     baseBodyCls: Ext.baseCSSPrefix + 'form-item-body',
+
+<span id='Ext-form-Labelable-property-inputRowCls'>    // private
+</span>    inputRowCls: Ext.baseCSSPrefix + 'form-item-input-row',
 
 <span id='Ext-form-Labelable-cfg-fieldBodyCls'>    /**
 </span>     * @cfg {String} fieldBodyCls
@@ -449,8 +451,8 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
     ],
 
 <span id='Ext-form-Labelable-property-labelableRenderProps'>    // This is an array to avoid a split on every call to Ext.copyTo
-</span>    labelableRenderProps: [ 'allowBlank', 'id', 'labelAlign', 'fieldBodyCls', 'baseBodyCls',
-                            'clearCls', 'labelSeparator', 'msgTarget' ],
+</span>    labelableRenderProps: ['allowBlank', 'id', 'labelAlign', 'fieldBodyCls', 'extraFieldBodyCls', 
+        'baseBodyCls', 'clearCls', 'labelSeparator', 'msgTarget', 'inputRowCls'],
 
 <span id='Ext-form-Labelable-method-initLabelable'>    /**
 </span>     * Performs initialization of this mixin. Component classes using this mixin should call this method during their
@@ -689,7 +691,7 @@ Ext.define(&quot;Ext.form.Labelable&quot;, {
 
 <span id='Ext-form-Labelable-method-getLabelCellStyle'>    getLabelCellStyle: function() {
 </span>        var me = this,
-            hideLabelCell = me.hideLabel || (!me.fieldLabel &amp;&amp; me.hideEmptyLabel);
+            hideLabelCell = me.hideLabel || (!me.getFieldLabel() &amp;&amp; me.hideEmptyLabel);
 
         return hideLabelCell ? 'display:none;' : '';
     },

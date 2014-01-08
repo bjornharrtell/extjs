@@ -43,21 +43,37 @@ Ext.define('Ext.AbstractPlugin', {
      */
     isPlugin: true,
 
-<span id='Ext-AbstractPlugin-method-constructor'>    constructor: function(config) {
-</span>        this.pluginConfig = config;
+<span id='Ext-AbstractPlugin-method-constructor'>    /**
+</span>     * Instantiates the plugin.
+     * @param {Object} [config] Configuration object.
+     */
+    constructor: function(config) {
+        this.pluginConfig = config;
         Ext.apply(this, config);
     },
 
-<span id='Ext-AbstractPlugin-method-clonePlugin'>    clonePlugin: function(overrideCfg) {
-</span>        return new this.self(Ext.apply({}, overrideCfg, this.pluginConfig));
-    },
-    
-<span id='Ext-AbstractPlugin-method-setCmp'>    setCmp: function(cmp) {
-</span>        this.cmp = cmp;
+<span id='Ext-AbstractPlugin-method-clonePlugin'>    /**
+</span>     * Creates clone of the plugin.
+     * @param {Object} [overrideCfg] Additional config for the derived plugin.
+     */
+    clonePlugin: function(overrideCfg) {
+        return new this.self(Ext.apply({}, overrideCfg, this.pluginConfig));
     },
 
-<span id='Ext-AbstractPlugin-method-getCmp'>    getCmp: function() {
-</span>        return this.cmp;
+<span id='Ext-AbstractPlugin-method-setCmp'>    /**
+</span>     * Sets the component to which this plugin is attached.
+     * @param {Ext.Component} cmp Owner component.
+     */
+    setCmp: function(cmp) {
+        this.cmp = cmp;
+    },
+
+<span id='Ext-AbstractPlugin-method-getCmp'>    /**
+</span>     * Returns the component to which this plugin is attached.
+     * @return {Ext.Component} Owner component.
+     */
+    getCmp: function() {
+        return this.cmp;
     },
 
 <span id='Ext-AbstractPlugin-cfg-pluginId'>    /**
@@ -112,6 +128,20 @@ Ext.define('Ext.AbstractPlugin', {
      */
     disable: function() {
         this.disabled = true;
+    },
+
+<span id='Ext-AbstractPlugin-method-onClassExtended'>    // Private.
+</span>    // Inject a ptype property so that AbstractComponent.findPlugin(ptype) works.
+    onClassExtended: function(cls, data, hooks) {
+        var alias = data.alias;
+
+        // No ptype built into the class 
+        if (alias &amp;&amp; !data.ptype) {
+            if (Ext.isArray(alias)) {
+                alias = alias[0];
+            }
+            cls.prototype.ptype = alias.split('plugin.')[1];
+        }
     }
 });</pre>
 </body>

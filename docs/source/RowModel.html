@@ -94,10 +94,6 @@ Ext.define('Ext.selection.RowModel', {
 <span id='Ext-selection-RowModel-method-bindComponent'>    bindComponent: function(view) {
 </span>        var me = this;
 
-        me.views = me.views || [];
-        me.views.push(view);
-        me.bindStore(view.getStore(), true);
-
         view.on({
             itemmousedown: me.onRowMouseDown,
             itemclick: me.onRowClick,
@@ -334,8 +330,13 @@ Ext.define('Ext.selection.RowModel', {
         }
     },
     
-<span id='Ext-selection-RowModel-method-processSelection'>    processSelection: function(view, record, item, index, e) {
-</span>        this.selectWithEvent(record, e);
+<span id='Ext-selection-RowModel-method-onVetoUIEvent'>    // If the mousedown event is vetoed, we still want to treat it as though we've had
+</span>    // a mousedown because we don't want to proceed on click. For example, the click on
+    // an action column vetoes the mousedown event so the click isn't processed.
+    onVetoUIEvent: function(type, view, cell, rowIndex, cellIndex, e, record){
+        if (type == 'mousedown') {
+            this.mousedownAction = !this.isSelected(record);
+        }
     },
 
 <span id='Ext-selection-RowModel-method-onRowClick'>    onRowClick: function(view, record, item, index, e) {
@@ -344,6 +345,10 @@ Ext.define('Ext.selection.RowModel', {
         } else {
             this.processSelection(view, record, item, index, e);
         }
+    },
+    
+<span id='Ext-selection-RowModel-method-processSelection'>    processSelection: function(view, record, item, index, e) {
+</span>        this.selectWithEvent(record, e);
     },
 
 <span id='Ext-selection-RowModel-method-allowRightMouseSelection'>    /**
@@ -400,7 +405,7 @@ Ext.define('Ext.selection.RowModel', {
             rowIdx = views[0].indexOf(oldFocused);
             if (rowIdx != -1) {
                 for (; i &lt; viewsLn; i++) {
-                    views[i].onRowFocus(rowIdx, false);
+                    views[i].onRowFocus(rowIdx, false, true);
                 }
             }
         }
@@ -431,7 +436,7 @@ Ext.define('Ext.selection.RowModel', {
 
         do {
             position  = view.walkCells(position, direction, e, me.preventWrap);
-        } while(position &amp;&amp; (!view.headerCt.getHeaderAtIndex(position.column).getEditor(record) || !editingPlugin.startEditByPosition(position)));
+        } while (position &amp;&amp; (!position.columnHeader.getEditor(record) || !editingPlugin.startEditByPosition(position)));
     },
 
 <span id='Ext-selection-RowModel-method-getCurrentPosition'>    /**
@@ -440,16 +445,12 @@ Ext.define('Ext.selection.RowModel', {
     getCurrentPosition: function() {
         var firstSelection = this.selected.items[0];
         if (firstSelection) {
-            return {
-                row: this.store.indexOf(firstSelection),
-                column: 0
-            };
+            return new Ext.grid.CellContext(this.view).setPosition(this.store.indexOf(firstSelection), 0);
         }
     },
 
 <span id='Ext-selection-RowModel-method-selectByPosition'>    selectByPosition: function(position) {
-</span>        var record = this.store.getAt(position.row);
-        this.select(record);
+</span>        this.select(this.store.getAt(position.row));
     },
 
 <span id='Ext-selection-RowModel-method-selectNext'>    /**
@@ -466,7 +467,7 @@ Ext.define('Ext.selection.RowModel', {
             index = me.views[0].indexOf(record) + 1,
             success;
 
-        if(index === store.getCount() || index === 0) {
+        if (index === store.getCount() || index === 0) {
             success = false;
         } else {
             me.doSelect(index, keepExisting, suppressEvent);

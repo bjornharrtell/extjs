@@ -40,7 +40,7 @@ Ext.define('Ext.panel.AbstractPanel', {
 <span id='Ext-panel-AbstractPanel-cfg-baseCls'>    /**
 </span>     * @cfg {String} [baseCls=x-panel]
      * The base CSS class to apply to this panel's element.
-     * @since Ext 2
+     * @since 2.3.0
      */
     baseCls : Ext.baseCSSPrefix + 'panel',
 
@@ -55,7 +55,7 @@ Ext.define('Ext.panel.AbstractPanel', {
 </span>     * @cfg {Boolean} bodyBorder
      * A shortcut to add or remove the border on the body of a panel. In the classic theme
      * this only applies to a panel which has the {@link #frame} configuration set to `true`.
-     * @since Ext 2
+     * @since 2.3.0
      */
 
 <span id='Ext-panel-AbstractPanel-cfg-bodyStyle'>    /**
@@ -71,7 +71,7 @@ bodyStyle: {
 }
      * &lt;/code&gt;&lt;/pre&gt;
      *
-     * @since Ext 2
+     * @since 2.3.0
      */
 
 <span id='Ext-panel-AbstractPanel-cfg-bodyCls'>    /**
@@ -173,7 +173,7 @@ var panel = new Ext.panel.Panel({
 });&lt;/code&gt;&lt;/pre&gt;
      */
 
-<span id='Ext-panel-AbstractPanel-cfg-border'>    // @since Ext 2
+<span id='Ext-panel-AbstractPanel-cfg-border'>    // @since 2.3.0
 </span>    border: true,
 
 <span id='Ext-panel-AbstractPanel-property-emptyArray'>    /**
@@ -230,7 +230,7 @@ var panel = new Ext.panel.Panel({
      * items will only be matched by component id or itemId -- if you pass a numeric index only non-docked child components will be searched.
      * @param {String/Number} comp The component id, itemId or position to find
      * @return {Ext.Component} The component (if found)
-     * @since Ext 2
+     * @since 2.3.0
      */
     getComponent: function(comp) {
         var component = this.callParent(arguments);

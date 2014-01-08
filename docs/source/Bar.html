@@ -750,7 +750,7 @@ Ext.define('Ext.chart.series.Bar', {
         me.renderLabels();
     },
 
-<span id='Ext-chart-series-Bar-method-onCreateLabel'>    // @private handled when creating a label.
+<span id='Ext-chart-series-Bar-method-onCreateLabel'>    // @private called when a label is to be created.
 </span>    onCreateLabel: function(storeItem, item, i, display) {
         var me = this,
             surface = me.chart.surface,
@@ -765,7 +765,7 @@ Ext.define('Ext.chart.series.Bar', {
         }, endLabelStyle || {}));
     },
 
-<span id='Ext-chart-series-Bar-method-onPlaceLabel'>    // @private callback used when placing a label.
+<span id='Ext-chart-series-Bar-method-onPlaceLabel'>    // @private called when a label is to be positioned.
 </span>    onPlaceLabel: function(label, storeItem, item, i, display, animate, index) {
         // Determine the label's final position. Starts with the configured preferred value but
         // may get flipped from inside to outside or vice-versa depending on space.

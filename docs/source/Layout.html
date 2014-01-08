@@ -510,9 +510,10 @@ Ext.define('Ext.layout.Layout', {
         return [];
     },
 
-<span id='Ext-layout-Layout-method-afterRenderItem'>    // Placeholder empty functions for subclasses to extend
-</span>    afterRenderItem: Ext.emptyFn,
-<span id='Ext-layout-Layout-method-onAdd'>    onAdd : Ext.emptyFn,
+<span id='Ext-layout-Layout-method-onAdd'>    onAdd: function (item) {
+</span>        item.ownerLayout = this;
+    },
+<span id='Ext-layout-Layout-method-afterRenderItem'>    afterRenderItem: Ext.emptyFn,
 </span><span id='Ext-layout-Layout-method-onRemove'>    onRemove : Ext.emptyFn,
 </span><span id='Ext-layout-Layout-method-onDestroy'>    onDestroy : Ext.emptyFn,
 </span>

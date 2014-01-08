@@ -1,5 +1,4 @@
 .#{$prefix}column-header-trigger {
-    background: no-repeat left center;
     background-color: $grid-header-background-color;
     background-image: theme-background-image('grid/grid3-hd-btn');
 }
@@ -8,6 +7,5 @@
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}column-header-trigger {
         background-image: theme-background-image('grid/grid3-hd-btn-left');
-        background-position: right center;
     }
 }

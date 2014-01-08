@@ -135,7 +135,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
             target = e.getTarget(),
             length = neighbors.length,
             i, neighbor;
-            
+
         if (collapseEl &amp;&amp; target === splitter.collapseEl.dom) {
             return false;
         }
@@ -163,7 +163,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
 <span id='Ext-resizer-BorderSplitterTracker-method-performResize'>    performResize: function(e, offset) {
 </span>        var me = this,
             splitter = me.splitter,
-            collapseDirection = splitter.collapseDirection,
+            collapseDirection = splitter.getCollapseDirection(),
             collapseTarget = splitter.collapseTarget,
             // a vertical splitter adjusts horizontal dimensions
             adjusters = me.splitAdjusters[splitter.vertical ? 'horz' : 'vert'],
@@ -225,7 +225,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
     },
 
 <span id='Ext-resizer-BorderSplitterTracker-method-getCollapseDirection'>    getCollapseDirection: function() {
-</span>        return this.splitter.collapseDirection;
+</span>        return this.splitter.getCollapseDirection();
     }
 });
 </pre>

@@ -105,7 +105,7 @@ Ext.onReady(function() {
             name: 'acceptTerms',
             fieldLabel: 'Terms of Use',
             hideLabel: true,
-            style: 'margin-top:15px',
+            margin: '15 0 0 0',
             boxLabel: 'I have read and accept the <a href="#" class="terms">Terms of Use</a>.',
 
             // Listener to open the Terms of Use page link in a modal window
@@ -127,7 +127,7 @@ Ext.onReady(function() {
                                 contentEl: Ext.getDom('legalese'),
                                 width: 700,
                                 height: 400,
-                                bodyStyle: 'padding: 10px 20px;',
+                                bodyPadding: '10 20',
                                 autoScroll: true,
                                 
                                 buttons: [{
@@ -240,7 +240,11 @@ Ext.onReady(function() {
                     */
 
                     if (form.isValid()) {
-                        Ext.Msg.alert('Submitted Values', form.getValues(true));
+                        var out = [];
+                        Ext.Object.each(form.getValues(), function(key, value){
+                            out.push(key + '=' + value);
+                        });
+                        Ext.Msg.alert('Submitted Values', out.join('<br />'));
                     }
                 }
             }]

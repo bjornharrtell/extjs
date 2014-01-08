@@ -17,7 +17,7 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-panel-Tool'>/**
 </span> * This class is used to display small visual icons in the header of a panel. There are a set of
- * 25 icons that can be specified by using the {@link #type} config. The {@link #handler} config
+ * 25 icons that can be specified by using the {@link #type} config. The {@link #callback} config
  * can be used to provide a function that will respond to any click events. In general, this class
  * will not be instantiated directly, rather it will be created by specifying the {@link Ext.panel.Panel#tools}
  * configuration on the Panel itself.
@@ -30,24 +30,38 @@
  *         title: 'A Panel',
  *         tools: [{
  *             type: 'help',
- *             handler: function(){
+ *             callback: function() {
  *                 // show help here
  *             }
  *         }, {
  *             itemId: 'refresh',
  *             type: 'refresh',
  *             hidden: true,
- *             handler: function(){
+ *             callback: function() {
  *                 // do refresh
  *             }
  *         }, {
  *             type: 'search',
- *             handler: function(event, target, owner, tool){
+ *             callback: function (panel) {
  *                 // do search
- *                 owner.child('#refresh').show();
+ *                 panel.down('#refresh').show();
  *             }
  *         }]
  *     });
+ *
+ * The `callback` config was added in Ext JS 4.2.1 as an alternative to {@link #handler}
+ * to provide a more convenient list of arguments. In Ext JS 4.2.1 it is also possible to
+ * pass a method name instead of a direct function:
+ * 
+ *      tools: [{
+ *          type: 'help',
+ *          callback: 'onHelp',
+ *          scope: this
+ *      },
+ *      ...
+ * 
+ * The `callback` (or `handler`) name is looked up on the `scope` which will also be the
+ * `this` reference when the method is called.
  */
 Ext.define('Ext.panel.Tool', {
     extend: 'Ext.Component',
@@ -81,9 +95,26 @@ Ext.define('Ext.panel.Tool', {
     ],
 
 <span id='Ext-panel-Tool-cfg-renderTpl'>    renderTpl: [
-</span>        '&lt;img id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-img {baseCls}-{type}' +
+</span>        '&lt;img role=&quot;presentation&quot; id=&quot;{id}-toolEl&quot; src=&quot;{blank}&quot; class=&quot;{baseCls}-img {baseCls}-{type}' +
             '{childElCls}&quot; role=&quot;presentation&quot;/&gt;'
     ],
+
+<span id='Ext-panel-Tool-cfg-toolOwner'>    /**
+</span>     * @cfg {Ext.Component} toolOwner
+     * The owner to report to the `callback` method. Default is `null` for the `ownerCt`.
+     * @since 4.2
+     */
+    toolOwner: null,
+
+<span id='Ext-panel-Tool-cfg-callback'>    /**
+</span>     * @cfg {Function} callback A function to execute when the tool is clicked.
+     * @cfg {Ext.Component} callback.owner The logical owner of the tool. In a typical
+     * `Ext.panel.Panel`, this is set to the owning panel. This value comes from the
+     * `toolOwner` config.
+     * @cfg {Ext.panel.Tool} callback.tool The tool that is calling.
+     * @cfg {Ext.EventObject} callback.event The click event.
+     * @since 4.2
+     */
 
 <span id='Ext-panel-Tool-cfg-handler'>    /**
 </span>     * @cfg {Function} handler
@@ -97,7 +128,8 @@ Ext.define('Ext.panel.Tool', {
 
 <span id='Ext-panel-Tool-cfg-scope'>    /**
 </span>     * @cfg {Object} scope
-     * The scope to execute the {@link #handler} function. Defaults to the tool.
+     * The scope to execute the {@link #callback} or {@link #handler} function. Defaults
+     * to the tool.
      */
 
 <span id='Ext-panel-Tool-cfg-type'>    /**
@@ -286,7 +318,11 @@ Ext.define('Ext.panel.Tool', {
             e.stopEvent();
         }
 
-        Ext.callback(me.handler, me.scope || me, [e, target, me.ownerCt, me]);
+        if (me.handler) {
+            Ext.callback(me.handler, me.scope || me, [e, target, me.ownerCt, me]);
+        } else if (me.callback) {
+            Ext.callback(me.callback, me.scope || me, [me.toolOwner || me.ownerCt, me, e]);
+        }
         me.fireEvent('click', me, e);
         return true;
     },

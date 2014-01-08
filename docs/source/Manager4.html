@@ -20,25 +20,30 @@
  */
 Ext.define('Ext.button.Manager', {
     singleton: true,
-    
+
     alternateClassName: 'Ext.ButtonToggleManager',
-    
+
 <span id='Ext-button-Manager-property-groups'>    groups: {},
-</span>    
+</span>
+<span id='Ext-button-Manager-property-pressedButton'>    pressedButton: null,
+</span>
 <span id='Ext-button-Manager-property-buttonSelector'>    buttonSelector: '.' + Ext.baseCSSPrefix + 'btn',
-</span>    
-<span id='Ext-button-Manager-method-init'>    init: function(){
+</span>
+<span id='Ext-button-Manager-method-init'>    init: function() {
 </span>        var me = this;
-        if (me.initialized) {
-            return;
+        if (!me.initialized) {
+            Ext.getDoc().on({
+                keydown: me.onDocumentKeyDown,
+                mouseup: me.onDocumentMouseUp,
+                scope: me
+            });
+            me.initialized = true;
         }
-        Ext.getBody().on('keydown', me.onKeyDown, me);
-        me.initialized = true;
     },
-    
-<span id='Ext-button-Manager-method-onKeyDown'>    // Buttons must react to SPACE and ENTER to trigger the click handler.
+
+<span id='Ext-button-Manager-method-onDocumentKeyDown'>    // Buttons must react to SPACE and ENTER to trigger the click handler.
 </span>    // Now that they are `&lt;a&gt;` elements, we use a keydown listener.
-    onKeyDown: function(e) {
+    onDocumentKeyDown: function(e) {
         var k = e.getKey(),
             btn;
 
@@ -54,7 +59,27 @@ Ext.define('Ext.button.Manager', {
             }
         }
     },
-    
+
+<span id='Ext-button-Manager-method-onButtonMousedown'>    // Called by buton instances.
+</span>    // Track the button which was mousedowned upon so that the next *document* mouseup can be delivered to it
+    // in case mouse is moved outside of button element.
+    onButtonMousedown: function(button, e) {
+        var pressed = this.pressedButton;
+        if (pressed) {
+            pressed.onMouseUp(e);
+        }
+        this.pressedButton = button;
+    },
+
+<span id='Ext-button-Manager-method-onDocumentMouseUp'>    onDocumentMouseUp: function(e) {
+</span>        var pressed = this.pressedButton;
+        
+        if (pressed) {
+            pressed.onMouseUp(e);
+            this.pressedButton = null;
+        }
+    },
+
 <span id='Ext-button-Manager-method-toggleGroup'>    toggleGroup: function(btn, state) {
 </span>        if (state) {
             var g = this.groups[btn.toggleGroup],
@@ -68,17 +93,17 @@ Ext.define('Ext.button.Manager', {
             }
         }
     },
-    
+
 <span id='Ext-button-Manager-method-register'>    register: function(btn) {
 </span>        var me = this,
             groups = this.groups,
             group = groups[btn.toggleGroup];
-            
+
         me.init();
         if (!btn.toggleGroup) {
             return;
         }
-            
+
         if (!group) {
             group = groups[btn.toggleGroup] = [];
         }
@@ -92,7 +117,7 @@ Ext.define('Ext.button.Manager', {
         }
         var me = this,
             group = me.groups[btn.toggleGroup];
-            
+
         if (group) {
             Ext.Array.remove(group, btn);
             btn.un('toggle', me.toggleGroup, me);
@@ -106,7 +131,7 @@ Ext.define('Ext.button.Manager', {
         var g = this.groups[group],
             i = 0,
             len;
-            
+
         if (g) {
             for (len = g.length; i &lt; len; i++) {
                 if (g[i].pressed === true) {
@@ -116,7 +141,6 @@ Ext.define('Ext.button.Manager', {
         }
         return null;
     } 
-});
-</pre>
+});</pre>
 </body>
 </html>

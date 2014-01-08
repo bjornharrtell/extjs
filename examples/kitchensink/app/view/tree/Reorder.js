@@ -27,10 +27,12 @@ Ext.define('KitchenSink.view.tree.Reorder', {
             store: new Ext.data.TreeStore({
                 proxy: {
                     type: 'ajax',
-                    url: 'resources/data/tree/get-nodes.php',
+                    //<example>
                     extraParams: {
-                        path: 'extjs'
-                    }
+                        path: Ext.repoDevMode ? '' : 'extjs'
+                    },
+                    //</example>
+                    url: 'resources/data/tree/get-nodes.php'
                 },
                 root: {
                     text: 'Ext JS',

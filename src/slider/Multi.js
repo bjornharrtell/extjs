@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Slider which supports vertical or horizontal orientation, keyboard adjustments, configurable snapping, axis clicking
@@ -289,12 +289,6 @@ Ext.define('Ext.slider.Multi', {
              */
             'dragend'
         );
-
-        // Ensure that the maxValue is a snap point, and that the initial value is snapped.
-        if (me.increment) {
-            me.maxValue = Ext.Number.snapInRange(me.maxValue, me.increment, me.minValue);
-            me.value = me.normalizeValue(me.value);
-        }
 
         me.callParent();
 
@@ -580,10 +574,9 @@ Ext.define('Ext.slider.Multi', {
      */
     normalizeValue : function(v) {
         var me = this,
-            Num = Ext.Number,
-            snapFn = Num[me.zeroBasedSnapping ? 'snap' : 'snapInRange'];
+            snapFn = me.zeroBasedSnapping ? 'snap' : 'snapInRange';
 
-        v = snapFn.call(Num, v, me.increment, me.minValue, me.maxValue);
+        v = Ext.Number[snapFn](v, me.increment, me.minValue, me.maxValue);
         v = Ext.util.Format.round(v, me.decimalPrecision);
         v = Ext.Number.constrain(v, me.minValue, me.maxValue);
         return v;
@@ -596,19 +589,20 @@ Ext.define('Ext.slider.Multi', {
      */
     setMinValue : function(val) {
         var me = this,
-            i = 0,
             thumbs = me.thumbs,
             len = thumbs.length,
-            t;
+            thumb, i;
 
         me.minValue = val;
         if (me.rendered) {
             me.inputEl.dom.setAttribute('aria-valuemin', val);
         }
 
-        for (; i < len; ++i) {
-            t = thumbs[i];
-            t.value = t.value < val ? val : t.value;
+        for (i = 0; i < len; ++i) {
+            thumb = thumbs[i];
+            if (thumb.value < val) {
+                me.setValue(i, val, false);    
+            }
         }
         me.syncThumbs();
     },
@@ -620,19 +614,20 @@ Ext.define('Ext.slider.Multi', {
      */
     setMaxValue : function(val) {
         var me = this,
-            i = 0,
             thumbs = me.thumbs,
             len = thumbs.length,
-            t;
+            thumb, i;
 
         me.maxValue = val;
         if (me.rendered) {
             me.inputEl.dom.setAttribute('aria-valuemax', val);
         }
 
-        for (; i < len; ++i) {
-            t = thumbs[i];
-            t.value = t.value > val ? val : t.value;
+        for (i = 0; i < len; ++i) {
+            thumb = thumbs[i];
+            if (thumb.value > val) {
+                me.setValue(i, val, false);
+            }
         }
         me.syncThumbs();
     },

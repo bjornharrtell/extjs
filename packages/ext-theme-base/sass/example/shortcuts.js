@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /*
  * This file defines the core framework "shortcuts". These are the modes and states of the
@@ -122,39 +122,70 @@ Ext.theme.addShortcuts({
         }
     ],
 
-    'widget.tab': [
+    'widget.tabbar': [
         {
-            xtype: 'widget.tabpanel',
-            filename: 'tabpanel-{ui}',
-            config: {
-                height: 200,
-                width: 200,
-                items: [{
-                    title: 'Tab 1',
-                    html: 'test'
-                }, {
-                    title: 'Tab 2',
-                    html: 'test'
-                }]
-            }
-        },
-        {
-            xtype: 'widget.tabpanel',
+            xtype: 'widget.tabbar',
             filename: 'tab-bar-{ui}',
             folder: 'tab-bar',
-            delegate: '.' + Ext.baseCSSPrefix + 'tab-bar',
-            offsets: {
-                bottom: 3,
-                left: 1
-            },
             config: {
+                orientation: 'horizontal',
                 dock: 'top',
-                items: [{
-                    text: 'Tab 1'
-                }],
-                width: 300
+                width: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
             }
         },
+        {
+            xtype: 'widget.tabbar',
+            filename: 'tab-bar-{ui}',
+            folder: 'tab-bar',
+            config: {
+                orientation: 'vertical',
+                dock: 'right',
+                height: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        },
+        {
+            xtype: 'widget.tabbar',
+            filename: 'tab-bar-{ui}',
+            folder: 'tab-bar',
+            config: {
+                orientation: 'horizontal',
+                dock: 'bottom',
+                width: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        },
+        {
+            xtype: 'widget.tabbar',
+            filename: 'tab-bar-{ui}',
+            folder: 'tab-bar',
+            config: {
+                orientation: 'vertical',
+                dock: 'left',
+                height: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        }
+    ],
+
+    'widget.tab': [
         {
             filename: 'tab-{ui}-top',
             config: {
@@ -743,7 +774,23 @@ Ext.theme.addShortcuts({
     'widget.roweditorbuttons': [
         {
             config: {
-                ui: 'default',
+                position: 'bottom',
+                style: 'position:static',
+                rowEditor: {
+                    buttonUI: 'default-toolbar',
+                    saveBtnText: 'Update',
+                    cancelBtnText: 'Cancel',
+                    editingPlugin: {
+                        completeEdit: Ext.emptyFn,
+                        cancelEdit: Ext.emptyFn
+                    }
+                }
+            }
+        },
+        {
+            config: {
+                position: 'top',
+                style: 'position:static',
                 rowEditor: {
                     buttonUI: 'default-toolbar',
                     saveBtnText: 'Update',

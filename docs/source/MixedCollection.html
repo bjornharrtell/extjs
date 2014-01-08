@@ -111,7 +111,7 @@ Ext.define('Ext.util.MixedCollection', {
         }
 
         //sort the temporary array
-        Ext.Array.sort(items, function(a, b) {
+        Ext.Array.sort(c, function(a, b) {
             return fn(a[property], b[property]) * dsc ||
                 // In case of equality, ensure stable sort by comparing collection index
                 (a.index &lt; b.index ? -1 : 1);

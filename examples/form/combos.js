@@ -1,5 +1,6 @@
 Ext.require([
     'Ext.form.field.ComboBox',
+    'Ext.window.MessageBox',
     'Ext.form.FieldSet',
     'Ext.tip.QuickTipManager',
     'Ext.data.*'
@@ -82,6 +83,128 @@ function createStore() {
 Ext.onReady(function() {
     Ext.tip.QuickTipManager.init();
 
+    var bookStore = new Ext.data.Store({
+        proxy: {
+            type: 'jsonp',
+            startParam: 'startIndex',
+            limitParam: 'maxResults',
+            url: 'https://www.googleapis.com/books/v1/volumes',
+            reader: {
+                type: 'json',
+                totalProperty: 'totalItems',
+                root: 'items'
+            }
+        },
+        fields: [{
+            name: 'title',
+            mapping: function(raw) {
+                var result = raw.volumeInfo.title;
+                if (raw.volumeInfo.subtitle) {
+                    result = result + ' - ' + raw.volumeInfo.subtitle;
+                }
+                return result;
+            }
+        }, {
+            name: 'ISBN',
+            mapping: function(raw) {
+                var ids = raw.volumeInfo.industryIdentifiers;
+                return ids ? ids[0].identifier : 'No identifier for this book';
+            }
+        }]
+    });
+
+    var bookCombo = Ext.create('Ext.form.field.ComboBox', {
+        fieldLabel: 'Select Book',
+        renderTo: 'remoteQueryCombo',
+        displayField: 'title',
+        valueField: 'ISBN',
+        width: 500,
+        labelWidth: 130,
+        store: bookStore,
+        queryParam: 'q',
+        queryMode: 'remote',
+
+        // Do not use the default "all" for unbounded remote datasets.
+        // Issue the last query again.
+        // We could also have used the hideTrigger config
+        triggerAction: 'last',
+
+         listConfig: {
+            getInnerTpl: function() {
+                return '{%var value = this.field.getRawValue().replace(/([.?*+^$[\\]\\\\(){}|-])/g, "\\\\$1");%}' + 
+                    '{[values.title.replace(new RegExp(value, "i"), function(m) {return "<b>" + m + "</b>";})]}';
+            }
+        },
+        listeners: {
+            select: function() {
+                Ext.Msg.alert('Chosen book', 'Buying ISBN: ' + this.getValue());
+            }
+        }
+    });
+
+    var Country = Ext.define('Country', {
+            extend: 'Ext.data.Model',
+            fields: ['name', {
+                name: 'region',
+                mapping: 'region.value'
+            }]
+        }),
+        countryStore = new Ext.data.Store({
+            model: Country,
+            proxy: {
+                type: 'jsonp',
+                callbackKey: 'prefix',
+                limitParam: 'per_page',
+                url: 'http://api.worldbank.org/countries?format=jsonp',
+                reader: {
+                    type: 'json',
+
+                    // Response is an array where element [1] is the array of records
+                    getData: function(raw) {
+                        return raw[1];
+                    }
+                }
+            },
+            sorters: {
+                property: 'region'
+            },
+
+            // Data includes aggregates which are not countries
+            filters: {
+                fn: function(rec) {
+                    return rec.get('region') !== 'Aggregates'
+                }
+            },
+            // Load whole dataset.
+            // API only returns 25 by default.
+            pageSize: 1000,
+            autoLoad: true
+        });
+
+    var countryCombo = Ext.create('Ext.form.field.ComboBox', {
+        fieldLabel: 'Select Country',
+        renderTo: 'remoteLoadedCombo',
+        displayField: 'name',
+        width: 500,
+        labelWidth: 130,
+        store: countryStore,
+        queryMode: 'local',
+        tpl: '<ul class="x-list-plain">' +
+                '{% var lastRegion, region; %}' +
+                '<tpl for=".">' +
+                    '{% region = values.region;' +
+                    // Only show region headers when there are more than 10 choices
+                    'if (this.store.getCount() > 10 && region !== lastRegion) {' + 
+                        'lastRegion = region;%}' +
+                        '<li class="x-grid-group-hd x-grid-group-title">{region}</li>' +
+                    '{%}%}'+
+                    '<li class="x-boundlist-item">' +
+                        '{name}' +
+                    '</li>'+
+                '</tpl>'+
+            '</ul>'
+    });
+
     // Simple ComboBox using the data store
     var simpleCombo = Ext.create('Ext.form.field.ComboBox', {
         fieldLabel: 'Select a single state',
@@ -103,7 +226,6 @@ Ext.onReady(function() {
         labelWidth: 130,
         store: createStore(),
         queryMode: 'local',
-
         listConfig: {
             getInnerTpl: function() {
                 return '<div data-qtip="{name}. {slogan}">{name} ({abbr})</div>';
@@ -131,7 +253,6 @@ Ext.onReady(function() {
         forceSelection: true
     });
 
-
     ////// Collapsible code panels; ignore: /////
 
     Ext.select('pre.code').each(function(pre) {
@@ -141,8 +262,6 @@ Ext.onReady(function() {
             title: 'View code for this example',
             collapsible: true,
             collapsed: true
-        })
+        });
     });
-
-
 });

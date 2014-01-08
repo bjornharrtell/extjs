@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Base class for all Ext components.
@@ -206,6 +206,15 @@ Ext.define('Ext.Component', {
      * @cfg {Ext.util.Region/Ext.Element} constrainTo
      * A {@link Ext.util.Region Region} (or an element from which a Region measurement will be read) which is used
      * to constrain the component. Only applies when the component is floating.
+     */
+
+    /**
+     * @cfg {Object/String} constraintInsets
+     * An object or a string (in TRBL order) specifying insets from the configured {@link #constrainTo constrain region}
+     * within which this component must be constrained when positioning or sizing.
+     * example:
+     *
+     *    constraintInsets: '10 10 10 10' // Constrain with 10px insets from parent
      */
 
     /**
@@ -406,7 +415,7 @@ Ext.define('Ext.Component', {
      *
      * @template
      * @protected
-     * @since Ext 1
+     * @since 1.1.0
      */
     initComponent: function() {
         var me = this;
@@ -420,8 +429,6 @@ Ext.define('Ext.Component', {
         me.enableBubble(me.bubbleEvents);
     },
 
-
-    // @private
     afterRender: function() {
         var me = this;
 
@@ -498,6 +505,13 @@ Ext.define('Ext.Component', {
         }
 
         return me.callParent();
+    },
+    
+    beforeLayout: function(){
+        this.callParent(arguments);
+        if (this.floating) {
+            this.onBeforeFloatLayout();
+        }    
     },
     
     afterComponentLayout: function(){
@@ -689,7 +703,7 @@ Ext.define('Ext.Component', {
     /**
      * Shows this component by the specified {@link Ext.Component Component} or {@link Ext.Element Element}.
      * Used when this component is {@link #floating}.
-     * @param {Ext.Component/Ext.Element} component The {@link Ext.Component} or {@link Ext.Element} to show the component by.
+     * @param {Ext.Component/Ext.dom.Element} component The {@link Ext.Component} or {@link Ext.Element} to show the component by.
      * @param {String} [position] Alignment position as used by {@link Ext.util.Positionable#getAlignToXY}.
      * Defaults to `{@link #defaultAlign}`.
      * @param {Number[]} [offsets] Alignment offsets as used by {@link Ext.util.Positionable#getAlignToXY}.
@@ -905,6 +919,14 @@ Ext.define('Ext.Component', {
                 delete this.getHierarchyState().hidden;
                 // Render on first show if there is an autoRender config, or if this
                 // is a floater (Window, Menu, BoundList etc).
+                
+                // We suspend layouts here because floaters/autoRenders
+                // will layout when onShow is called. If the render succeeded,
+                // the layout will be trigger inside onShow, so we don't flush
+                // in the first block. If, for some reason we couldn't render, then
+                // we resume layouts and force a flush because we don't know if something
+                // will force it.
+                Ext.suspendLayouts();
                 if (!rendered && (me.autoRender || me.floating)) {
                     me.doAutoRender();
                     rendered = me.rendered;
@@ -912,8 +934,11 @@ Ext.define('Ext.Component', {
             
                 if (rendered) {
                     me.beforeShow();
+                    Ext.resumeLayouts();
                     me.onShow.apply(me, arguments);
                     me.afterShow.apply(me, arguments);
+                } else {
+                    Ext.resumeLayouts(true);
                 }
             } else {
                 me.onShowVeto();
@@ -1113,13 +1138,7 @@ Ext.define('Ext.Component', {
         var me = this,
             ghostPanel,
             fromSize,
-            toBox,
-            activeEl = Ext.Element.getActiveElement();
-
-        // If hiding a Component which is focused, or contains focus: blur the focused el. 
-        if (activeEl === me.el || me.el.contains(activeEl)) {
-            Ext.fly(activeEl).blur();
-        }
+            toBox;
 
         // Default to configured animate target if none passed
         animateTarget = me.getAnimateTarget(animateTarget);
@@ -1169,12 +1188,19 @@ Ext.define('Ext.Component', {
      * @protected
      */
     afterHide: function(cb, scope) {
-        var me = this;
-        delete me.hiddenByLayout;
+        var me = this,
+            activeEl = Ext.Element.getActiveElement();
+
+        me.hiddenByLayout = null;
 
         // we are the back-end method of onHide at this level, but our call to our parent
         // may need to be async... so callParent won't quite work here...
         Ext.AbstractComponent.prototype.onHide.call(me);
+
+        // If hiding a Component which is focused, or contains focus: blur the focused el. 
+        if (activeEl === me.el || me.el.contains(activeEl)) {
+            Ext.fly(activeEl).blur();
+        }
 
         Ext.callback(cb, scope || me);
         me.fireEvent('hide', me);
@@ -1218,11 +1244,13 @@ Ext.define('Ext.Component', {
      * Try to focus this component.
      * @param {Boolean} [selectText] If applicable, true to also select the text in this component
      * @param {Boolean/Number} [delay] Delay the focus this number of milliseconds (true for 10 milliseconds).
+     * @param {Function} [callback] Only needed if the `delay` parameter is used. A function to call upon focus.
+     * @param {Function} [scope] Only needed if the `delay` parameter is used. The scope (`this` reference) in which to execute the callback.
      * @return {Ext.Component} The focused Component. Usually <code>this</code> Component. Some Containers may
      * delegate focus to a descendant Component ({@link Ext.window.Window Window}s can do this through their
      * {@link Ext.window.Window#defaultFocus defaultFocus} config option.
      */
-    focus: function(selectText, delay) {
+    focus: function(selectText, delay, callback, scope) {
         var me = this,
             focusEl,
             focusElDom,
@@ -1233,9 +1261,9 @@ Ext.define('Ext.Component', {
             if (!me.focusTask) {
                 // One global DelayedTask to assign focus
                 // So that the last focus call wins.
-                me.self.prototype.focusTask = new Ext.util.DelayedTask(me.focus);
+                Ext.Component.prototype.focusTask = new Ext.util.DelayedTask(me.focus);
             }
-            me.focusTask.delay(Ext.isNumber(delay) ? delay : 10, null, me, [selectText, false]);
+            me.focusTask.delay(Ext.isNumber(delay) ? delay : 10, null, me, [selectText, false, callback, scope]);
             return me;
         }
 
@@ -1271,6 +1299,9 @@ Ext.define('Ext.Component', {
                 if (selectText === true) {
                     focusElDom.select();
                 }
+
+                // Call the callback when focus is done
+                Ext.callback(callback, scope);
             }
 
             // Focusing a floating Component brings it to the front of its stack.

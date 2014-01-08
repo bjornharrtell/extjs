@@ -127,6 +127,14 @@
     background-position: 0 ($tool-size * -23);
 }
 
+.#{$prefix}tool-resize {
+    background-position: 0 ($tool-size * -24);
+}
+
+.#{$prefix}tool-move {
+    background-position: 0 ($tool-size * -25);
+}
+
 .#{$prefix}tool-expand-bottom,
 .#{$prefix}tool-collapse-bottom {
     background-position: 0 ($tool-size * -13);
@@ -259,6 +267,14 @@
 
         .#{$prefix}tool-collapse {
             background-position: (-$tool-size) ($tool-size * -23);
+        }
+
+        .#{$prefix}tool-resize {
+            background-position: (-$tool-size) ($tool-size * -24);
+        }
+
+        .#{$prefix}tool-move {
+            background-position: (-$tool-size) ($tool-size * -25);
         }
         
         .#{$prefix}tool-expand-bottom,

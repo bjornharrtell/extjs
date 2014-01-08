@@ -1,11 +1,11 @@
 {
     "name": "ext-theme-classic-sandbox",
-    "type": "THEME",
-    "version": "4.2.0.663",
+    "type": "theme",
+    "creator": "Sencha",
+    "summary": "Ext JS Classic Sandbox Theme",
+    "detailedDescription": "The same visuals as the Classic Theme but in a CSS sandbox",
+    "version": "4.2.1",
     "compatVersion": "4.2.0",
-    "extend": "ext-theme-classic",
-    "requires": [{
-		"name": "ext-theme-classic",
-		"version": "4.2.0.663"
-	}]
+    "format": "1",
+    "extend": "ext-theme-classic"
 }

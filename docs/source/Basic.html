@@ -94,9 +94,7 @@ Ext.define('Ext.form.Basic', {
      */
     constructor: function(owner, config) {
         var me = this,
-            reader,
-            api,
-            fn;
+            reader;
 
 <span id='Ext-form-Basic-property-owner'>        /**
 </span>         * @property {Ext.container.Container} owner
@@ -123,15 +121,6 @@ Ext.define('Ext.form.Basic', {
         // Normalize the paramOrder to an Array
         if (Ext.isString(me.paramOrder)) {
             me.paramOrder = me.paramOrder.split(/[\s,|]/);
-        }
-        
-        if (me.api) {
-            api = me.api = Ext.apply({}, me.api);
-            for (fn in api) {
-                if (api.hasOwnProperty(fn)) {
-                    api[fn] = Ext.direct.Manager.parseMethod(api[fn]);
-                }
-            }
         }
         
         reader = me.reader;

@@ -202,7 +202,7 @@ Ext.define('Ext.form.field.TextArea', {
     },
     
 <span id='Ext-form-field-TextArea-method-stripReturns'>    stripReturns: function(value){
-</span>        if (value) {
+</span>        if (value &amp;&amp; typeof value === 'string') {
             value = value.replace(this.returnRe, '');
         }
         return value;

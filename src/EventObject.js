@@ -16,11 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
-//@require EventManager.js
-//@define Ext.EventObject
+// @tag dom,core
+// @require EventManager.js
+// @define Ext.EventObject
 
 /**
  * @class Ext.EventObject
@@ -586,8 +586,8 @@ Ext.getBody().on('click', function(e,t){
 });
 </code></pre>
      * @param {String/HTMLElement/Ext.Element} el The id, DOM element or Ext.Element to check
-     * @param {Boolean} related (optional) true to test if the related target is within el instead of the target
-     * @param {Boolean} allowEl (optional) true to also check if the passed element is the target or related target
+     * @param {Boolean} [related] `true` to test if the related target is within el instead of the target
+     * @param {Boolean} [allowEl] `true` to also check if the passed element is the target or related target
      * @return {Boolean}
      */
     within : function(el, related, allowEl){
@@ -596,7 +596,7 @@ Ext.getBody().on('click', function(e,t){
                 result;
 
             if (t) {
-                result = Ext.fly(el).contains(t);
+                result = Ext.fly(el, '_internal').contains(t);
                 if (!result && allowEl) {
                     result = t == Ext.getDom(el);
                 }
@@ -697,7 +697,7 @@ Ext.getBody().on('click', function(e,t){
         // IE9 has createEvent, but this code causes major problems with htmleditor (it
         // blocks all mouse events and maybe more). TODO
 
-        if (!Ext.isIE && document.createEvent) { // if (DOM compliant)
+        if (!Ext.isIE9m && document.createEvent) { // if (DOM compliant)
             API = {
                 createHtmlEvent: function (doc, type, bubbles, cancelable) {
                     var event = doc.createEvent('HTMLEvents');

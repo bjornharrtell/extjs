@@ -59,10 +59,10 @@ Ext.define('Ext.tab.Bar', {
 
 <span id='Ext-tab-Bar-cfg-renderTpl'>    // @private
 </span>    renderTpl: [
-        '&lt;div id=&quot;{id}-body&quot; class=&quot;{baseCls}-body {bodyCls} {bodyTargetCls}&lt;tpl if=&quot;ui&quot;&gt; {baseCls}-body-{ui}&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-body-{parent.ui}-{.}&lt;/tpl&gt;&lt;/tpl&gt;&quot;&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;',
+        '&lt;div id=&quot;{id}-body&quot; class=&quot;{baseCls}-body {bodyCls} {bodyTargetCls}{childElCls}&lt;tpl if=&quot;ui&quot;&gt; {baseCls}-body-{ui}&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-body-{parent.ui}-{.}&lt;/tpl&gt;&lt;/tpl&gt;&quot;&lt;tpl if=&quot;bodyStyle&quot;&gt; style=&quot;{bodyStyle}&quot;&lt;/tpl&gt;&gt;',
             '{%this.renderContainer(out,values)%}',
         '&lt;/div&gt;',
-        '&lt;div id=&quot;{id}-strip&quot; class=&quot;{baseCls}-strip {baseCls}-strip-{dock}',
+        '&lt;div id=&quot;{id}-strip&quot; class=&quot;{baseCls}-strip {baseCls}-strip-{dock}{childElCls}',
             '&lt;tpl if=&quot;ui&quot;&gt; {baseCls}-strip-{ui}',
                 '&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-strip-{parent.ui}-{.}&lt;/tpl&gt;',
             '&lt;/tpl&gt;&quot;&gt;',
@@ -171,14 +171,18 @@ Ext.define('Ext.tab.Bar', {
                 // tabs need to be shifted to the right by their width
                 while (i--) {
                     tab = items[i];
-                    tab.el.setStyle('left', tab.lastBox.width + 'px');
+                    if (tab.isVisible()) {
+                        tab.el.setStyle('left', tab.lastBox.width + 'px');
+                    }
                 }
             } else if (this.dock === 'left') {
                 // rotated 270 degrees around using the top left corner as the axis.
                 // tabs need to be shifted down by their height
                 while (i--) {
                     tab = items[i];
-                    tab.el.setStyle('left', -tab.lastBox.height + 'px');
+                    if (tab.isVisible()) {
+                        tab.el.setStyle('left', -tab.lastBox.height + 'px');
+                    }
                 }
             }
         }
@@ -470,10 +474,9 @@ Ext.define('Ext.tab.Bar', {
             // We don't fire the change event when setting the first tab.
             // Also no need to run a layout
             if (!initial) {
-            	me.fireEvent('change', me, tab, tab.card);
-
-            	// Ensure that after the currently in progress layout, the active tab is scrolled into view
-            	me.updateLayout();
+                me.fireEvent('change', me, tab, tab.card);
+                // Ensure that after the currently in progress layout, the active tab is scrolled into view
+                me.updateLayout();
             }
         }
     }

@@ -112,8 +112,8 @@ Ext.define('Ext.grid.locking.View', {
     },
 
 <span id='Ext-grid-locking-View-method-getGridColumns'>    getGridColumns: function() {
-</span>        var cols = this.lockedGrid.headerCt.getGridColumns();
-        return cols.concat(this.normalGrid.headerCt.getGridColumns());
+</span>        var cols = this.lockedGrid.headerCt.getVisibleGridColumns();
+        return cols.concat(this.normalGrid.headerCt.getVisibleGridColumns());
     },
 
 <span id='Ext-grid-locking-View-method-getEl'>    getEl: function(column){
@@ -204,6 +204,10 @@ Ext.define('Ext.grid.locking.View', {
             v = p ? p.view : this.normalView;
 
         v.focus();
+    },
+    
+<span id='Ext-grid-locking-View-method-focusRow'>    focusRow: function(row) {
+</span>        this.normalView.focusRow(row);
     },
 
 <span id='Ext-grid-locking-View-method-focusCell'>    focusCell: function(position) {

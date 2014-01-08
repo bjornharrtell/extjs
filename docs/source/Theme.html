@@ -140,7 +140,7 @@ function() {
 (function() {
     Ext.chart.theme = function(config, base) {
         config = config || {};
-        var i = 0, d = +new Date(), l, colors, color,
+        var i = 0, d = Ext.Date.now(), l, colors, color,
             seriesThemes, markerThemes,
             seriesTheme, markerTheme, 
             key, gradients = [],

@@ -29,19 +29,19 @@ Ext.define('Ext.tree.ViewDropZone', {
     allowParentInserts: false,
  
 <span id='Ext-tree-ViewDropZone-cfg-allowContainerDrop'>    /**
-</span>     * @cfg {String} allowContainerDrop
+</span>     * @cfg {Boolean} allowContainerDrop
      * True if drops on the tree container (outside of a specific tree node) are allowed.
      */
     allowContainerDrops: false,
 
 <span id='Ext-tree-ViewDropZone-cfg-appendOnly'>    /**
-</span>     * @cfg {String} appendOnly
+</span>     * @cfg {Boolean} appendOnly
      * True if the tree should only allow append drops (use for trees which are sorted).
      */
     appendOnly: false,
 
 <span id='Ext-tree-ViewDropZone-cfg-expandDelay'>    /**
-</span>     * @cfg {String} expandDelay
+</span>     * @cfg {Number} expandDelay
      * The delay in milliseconds to wait before expanding a target tree node while dragging a droppable node
      * over the target.
      */
@@ -232,7 +232,7 @@ Ext.define('Ext.tree.ViewDropZone', {
                     data.records.push(record.copy(undefined, true));
                 } else {
                     // If it's not a node, make a node copy
-                    data.records.push(new Model(record[record.persistenceProperty], record.getId()));
+                    data.records.push(new Model(record.data, record.getId()));
                 }
             }
         }
@@ -280,7 +280,16 @@ Ext.define('Ext.tree.ViewDropZone', {
 
             // Insert the records into the target node
             for (i = 0, len = data.records.length; i &lt; len; i++) {
-                argList[0] = data.records[i];
+                record = data.records[i];
+                if (!record.isNode) {
+                    if (record.isModel) {
+                        record = new Model(record.data, record.getId());
+                    } else {
+                        record = new Model(record);
+                    }
+                    data.records[i] = record;
+                }
+                argList[0] = record;
                 insertionMethod.apply(targetNode, argList);
             }
 

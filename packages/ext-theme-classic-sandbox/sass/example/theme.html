@@ -27,8 +27,7 @@
     <!--
     Load the Slicer core scripts
     -->
-    <script type="text/javascript" src="slicer.js"></script>
-    <script type="text/javascript" src="../../../ext-theme-base/sass/example/render.js"></script>
+    <script type="text/javascript" src="render.js"></script>
 
     <!--
     Load all manifests and shortcuts
@@ -42,6 +41,11 @@
             width: 400px;
             position: relative;
             overflow: visible;
+        }
+
+        .x-slicer-target,
+        .x-slicer-target * {
+            opacity: 1;
         }
     </style>
 </head>

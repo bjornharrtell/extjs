@@ -16,16 +16,16 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">.#{$prefix}form-cb-wrap {
-    line-height: $form-field-height;
+    height: $form-field-height;
     @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
         .#{$prefix}toolbar-item &amp; {
-            line-height: $form-toolbar-field-height;
+            height: $form-toolbar-field-height;
         }
     }
 }
 
 .#{$prefix}form-cb {
-    margin-top: round(($form-field-height - $form-checkbox-size) / 2) + $form-checkbox-vertical-position-adjust;
+    margin-top: round(($form-field-height - $form-checkbox-size) / 2);
     @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
         .#{$prefix}toolbar-item &amp; {
             margin-top: round(($form-toolbar-field-height - $form-checkbox-size) / 2);
@@ -54,6 +54,19 @@
 }
 
 /* boxLabel */
+.#{$prefix}form-cb-label {
+    margin-top: round(($form-field-height - $form-label-line-height) / 2);
+    font: $form-label-font;
+    .#{$prefix}toolbar-item &amp; {
+        @if $form-toolbar-label-font != $form-label-font {
+            font: $form-toolbar-label-font;
+        }
+        @if ($form-field-height != $form-toolbar-field-height) or ($form-label-line-height != $form-toolbar-label-line-height) {
+            margin-top: round(($form-toolbar-field-height - $form-toolbar-label-line-height) / 2);
+        }
+    }
+}
+
 .#{$prefix}form-cb-label-before {
     margin-right: $form-checkbox-label-spacing;
 }

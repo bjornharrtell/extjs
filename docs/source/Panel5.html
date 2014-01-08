@@ -418,6 +418,7 @@ Ext.define('Ext.tab.Panel', {
 </span>         * @property {Ext.tab.Bar} tabBar Internal reference to the docked TabBar
          */
         me.tabBar = new Ext.tab.Bar(Ext.apply({
+            ui: me.ui,
             dock: me.tabPosition,
             orientation: (tabPosition == 'top' || tabPosition == 'bottom') ? 'horizontal' : 'vertical',
             plain: me.plain,
@@ -555,6 +556,7 @@ Ext.define('Ext.tab.Panel', {
             cfg = item.tabConfig || {},
             defaultConfig = {
                 xtype: 'tab',
+                ui: me.tabBar.ui,
                 card: item,
                 disabled: item.disabled,
                 closable: item.closable,

@@ -1,5 +1,5 @@
 /**
- * @class Ext.Component
+ * @class Global_CSS
  */
 
 /**
@@ -28,6 +28,13 @@ $include-missing-images: true !default;
  * True to include Internet Explorer specific rules
  */
 $include-ie: true !default;
+
+/**
+ * @var {boolean} $include-content-box
+ * True to include rules for browsers that do not support the border-box model
+ * (IE6 strict and IE7 strict)
+ */
+$include-content-box: $include-ie !default;
 
 /**
  * @var {boolean} $include-ff
@@ -62,10 +69,6 @@ $include-webkit: true !default;
 $supports-border-radius: true !default;
 $supports-gradients: true !default;
 
-/**
- * @var {boolean} $compile-all
- * True to copile all CSS, even if above include rules are false
- */
 $compile-all: true !default;
 
 /**
@@ -80,10 +83,7 @@ $css-shadow-border-radius: 5px !default;
  */
 $include-shadow-images: true !default;
 
-/**
- * @var {boolean} $include-rtl
- * True to include right-to-left styles
- */
+// documented in rtl/util/Renderable
 $include-rtl: false !default;
 
 /**
@@ -101,4 +101,20 @@ $slicer-image-extension: 'gif' !default;
 /**
  * Default search path for images
  */
-$image-search-path: '.' !default
+$image-search-path: '.' !default;
+
+/**
+ * @var {boolean}
+ * True to include the default UI for each component.
+ */
+$include-default-uis: true !default;
+
+/**
+ * @var {string}
+ * The base path relative to the CSS output directory to use for theme resources.  For example
+ * if the theme's images live one directory up from the generated CSS output in a directory
+ * named 'foo/images/', you would need to set this variable to '../foo/' in order for the image
+ * paths in the CSS output to be generated correctly. By default this is the same as the
+ * CSS output directory.
+ */
+$theme-resource-path: '' !default;

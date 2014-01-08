@@ -1,5 +1,3 @@
-$grid-column-header-font: bold 13px helvetica !default;
+$grid-column-header-font-weight: bold !default;
 $grid-column-header-color: #666 !default;
-
-// TODO: if calculated, this could be removed
-$grid-column-align-right-margin: 16px !default;
+$grid-column-header-line-height: 15px !default;

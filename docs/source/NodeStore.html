@@ -113,6 +113,7 @@ Ext.define('Ext.data.NodeStore', {
                 collapse: me.onNodeCollapse,
                 append: me.onNodeAppend,
                 insert: me.onNodeInsert,
+                bulkremove: me.onBulkRemove,
                 remove: me.onNodeRemove,
                 sort: me.onNodeSort,
                 scope: me
@@ -134,6 +135,7 @@ Ext.define('Ext.data.NodeStore', {
                 collapse: me.onNodeCollapse,
                 append: me.onNodeAppend,
                 insert: me.onNodeInsert,
+                bulkremove: me.onBulkRemove,
                 remove: me.onNodeRemove,
                 sort: me.onNodeSort,
                 scope: me
@@ -223,6 +225,11 @@ Ext.define('Ext.data.NodeStore', {
                 }
             }
         }
+    },
+    
+<span id='Ext-data-NodeStore-method-onBulkRemove'>    // Triggered by NodeInterface's bubbled bulkremove event
+</span>    onBulkRemove: function(parent, childNodes, isMove) {
+        this.onNodeCollapse(parent, childNodes, true);
     },
 
 <span id='Ext-data-NodeStore-method-onNodeCollapse'>    // Triggered by a NodeInterface's bubbled &quot;collapse&quot; event.

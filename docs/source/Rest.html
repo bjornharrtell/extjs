@@ -165,7 +165,7 @@ Ext.define('Ext.data.proxy.Rest', {
             url       = me.getUrl(request),
             id        = record ? record.getId() : operation.id;
 
-        if (me.appendId &amp;&amp; (id != null)) {
+        if (me.appendId &amp;&amp; me.isValidId(id)) {
             if (!url.match(/\/$/)) {
                 url += '/';
             }
@@ -184,6 +184,10 @@ Ext.define('Ext.data.proxy.Rest', {
         request.url = url;
 
         return me.callParent(arguments);
+    },
+    
+<span id='Ext-data-proxy-Rest-method-isValidId'>    isValidId: function(id) {
+</span>        return id || id === 0;
     }
 });
 </pre>

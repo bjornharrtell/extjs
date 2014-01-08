@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @docauthor Jason Johnston <jason@sencha.com>
@@ -157,7 +157,6 @@ Ext.define('Ext.form.field.Text', {
     /**
      * @cfg {Boolean} [validateBlank=false]
      * Specify as `true` to modify the behaviour of {@link #allowBlank} so that blank values are not passed as valid, but are subject to any configure {@link #vtype} validation.
-     * @since 4.2.0
      */
     validateBlank: false,
 
@@ -377,8 +376,8 @@ Ext.define('Ext.form.field.Text', {
      * @private
      * If grow=true, invoke the autoSize method when the field's value is changed.
      */
-    onChange: function() {
-        this.callParent();
+    onChange: function(newVal, oldVal) {
+        this.callParent(arguments);
         this.autoSize();
     },
 

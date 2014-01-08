@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Represents a collection of a set of key and value pairs. Each key in the MixedCollection
@@ -114,7 +114,7 @@ Ext.define('Ext.util.MixedCollection', {
         }
 
         //sort the temporary array
-        Ext.Array.sort(items, function(a, b) {
+        Ext.Array.sort(c, function(a, b) {
             return fn(a[property], b[property]) * dsc ||
                 // In case of equality, ensure stable sort by comparing collection index
                 (a.index < b.index ? -1 : 1);

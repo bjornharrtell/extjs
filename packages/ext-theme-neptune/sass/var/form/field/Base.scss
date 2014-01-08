@@ -1,9 +1,9 @@
 $form-field-height: 24px !default;
 $form-toolbar-field-height: $form-field-height !default;
-$form-field-padding: 2px 6px 1px !default;
+$form-field-padding: 4px 6px 3px !default;
 $form-field-border-color: #c0c0c0 #d9d9d9 #d9d9d9 !default;
 $form-field-border-width: 1px !default;
-$form-field-invalid-border-color: #d94e37 !default;
+$form-field-invalid-border-color: $error-color !default;
 /**
  * @var {color} $form-field-focus-border-color
  * In the default neptune color scheme this is the same as $base-highlight-color

@@ -86,6 +86,7 @@ Ext.onReady(function() {
 
     // create the Grid
     var grid = Ext.create('Ext.grid.Panel', {
+        frame: true,
         store: store,
         columnLines: true,
         columns: [{
@@ -99,7 +100,7 @@ Ext.onReady(function() {
             }
         },{
             text     : 'Price',
-            width    : 97,
+            width    : 100,
             sortable : true,
             renderer : 'usMoney',
             dataIndex: 'price',
@@ -108,7 +109,7 @@ Ext.onReady(function() {
             }
         },{
             text     : 'Change',
-            width    : 97,
+            width    : 100,
             sortable : true,
             renderer : change,
             dataIndex: 'change',
@@ -117,7 +118,7 @@ Ext.onReady(function() {
             }
         },{
             text     : '% Change',
-            width    : 97,
+            width    : 100,
             sortable : true,
             renderer : pctChange,
             dataIndex: 'pctChange',
@@ -126,7 +127,7 @@ Ext.onReady(function() {
             }
         },{
             text     : 'Last Updated',
-            width    : 97,
+            width    : 105,
             sortable : true,
             renderer : Ext.util.Format.dateRenderer('m/d/Y'),
             dataIndex: 'lastChange',

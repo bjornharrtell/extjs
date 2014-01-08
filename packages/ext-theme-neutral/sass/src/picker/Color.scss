@@ -16,8 +16,8 @@
     background-color: $colorpicker-item-background-color;
     cursor: $colorpicker-item-cursor;
     padding: $colorpicker-item-padding;
-    @if $include-ie {
-        .#{$prefix}strict .#{$prefix}ie7 & {
+    @if $include-content-box {
+        .#{$prefix}content-box & {
             width: $colorpicker-item-width - horizontal($colorpicker-item-border-width) - horizontal($colorpicker-item-padding);
             height: $colorpicker-item-height - vertical($colorpicker-item-border-width) - vertical($colorpicker-item-padding);
         }

@@ -27,12 +27,16 @@ Ext.define('KitchenSink.view.grid.ArrayGrid', {
         classic: {
             width: 600,
             percentChangeColumnWidth: 75,
-            lastUpdatedColumnWidth: 85
+            lastUpdatedColumnWidth: 85,
+            green: 'green',
+            red: 'red'
         },
         neptune: {
             width: 650,
             percentChangeColumnWidth: 100,
-            lastUpdatedColumnWidth: 115
+            lastUpdatedColumnWidth: 115,
+            green: '#73b51e',
+            red: '#cf4c35'
         }
     },
     //</example>
@@ -59,9 +63,9 @@ Ext.define('KitchenSink.view.grid.ArrayGrid', {
                 sortable : true,
                 renderer : function(val) {
                     if (val > 0) {
-                        return '<span style="color:green;">' + val + '</span>';
+                        return '<span style="color:' + this.themeInfo.green + ';">' + val + '</span>';
                     } else if (val < 0) {
-                        return '<span style="color:red;">' + val + '</span>';
+                        return '<span style="color:' + this.themeInfo.red + ';">' + val + '</span>';
                     }
                     return val;
                 },
@@ -73,9 +77,9 @@ Ext.define('KitchenSink.view.grid.ArrayGrid', {
                 sortable : true,
                 renderer : function(val) {
                     if (val > 0) {
-                        return '<span style="color:green;">' + val + '%</span>';
+                        return '<span style="color:' + this.themeInfo.green + '">' + val + '%</span>';
                     } else if (val < 0) {
-                        return '<span style="color:red;">' + val + '%</span>';
+                        return '<span style="color:' + this.themeInfo.red + ';">' + val + '%</span>';
                     }
                     return val;
                 },

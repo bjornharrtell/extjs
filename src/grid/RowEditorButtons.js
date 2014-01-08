@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @private
@@ -27,21 +27,17 @@ Ext.define('Ext.grid.RowEditorButtons', {
     alias: 'widget.roweditorbuttons',
 
     frame: true,
+    shrinkWrap: true,
+    position: 'bottom',
 
     constructor: function(config) {
-        var rowEditor = config.rowEditor,
+        var me = this,
+            rowEditor = config.rowEditor,
             cssPrefix = Ext.baseCSSPrefix,
             plugin = rowEditor.editingPlugin;
 
         config = Ext.apply({
-            floating: {
-                shadow: false
-            },
             baseCls: cssPrefix + 'grid-row-editor-buttons',
-            layout: {
-                type: 'hbox',
-                align: 'middle'
-            },
             defaults: {
                 xtype: 'button',
                 ui: rowEditor.buttonUI,
@@ -61,18 +57,32 @@ Ext.define('Ext.grid.RowEditorButtons', {
                 text: rowEditor.cancelBtnText
             }]
         }, config);
-        this.callParent([config]);
+
+        me.callParent([config]);
+
+        me.addClsWithUI(me.position);
     },
 
-    getTargetEl: function() {
-        return this.el;
+    setButtonPosition: function(position) {
+        var me = this;
+
+        me.removeClsWithUI(me.position);
+        me.position = position;
+        me.addClsWithUI(position);
     },
 
-    // Work round position absolute 100% width bug in IEQuirks
-    afterComponentLayout: function() {
-        if (Ext.isIEQuirks && !this.componentLayoutCounter) {
-            this.el.setWidth(this.width = this.layout.innerCt.getWidth() + this.getFrameInfo().width);
-        }
-        this.callParent(arguments);        
+    getFramingInfoCls: function(){
+        return this.baseCls + '-' + this.ui + '-' + this.position;
+    },
+
+    getFrameInfo: function() {
+        var frameInfo = this.callParent();
+
+        // Trick Renderable into rendering the top framing elements, even though they
+        // are not needed in the default "bottom" position.  This allows us to flip the
+        // buttons into "top" position without re-rendering.
+        frameInfo.top = true;
+
+        return frameInfo;
     }
 });

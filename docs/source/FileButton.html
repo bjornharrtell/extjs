@@ -33,16 +33,10 @@ Ext.define('Ext.form.field.FileButton', {
 <span id='Ext-form-field-FileButton-cfg-preventDefault'>    preventDefault: false,
 </span>
 <span id='Ext-form-field-FileButton-cfg-renderTpl'>    renderTpl: [
-</span>        '&lt;div id=&quot;{id}-btnWrap&quot; class=&quot;{baseCls}-wrap',
+</span>        '&lt;span id=&quot;{id}-btnWrap&quot; class=&quot;{baseCls}-wrap',
             '&lt;tpl if=&quot;splitCls&quot;&gt; {splitCls}&lt;/tpl&gt;',
             '{childElCls}&quot; unselectable=&quot;on&quot;&gt;',
-            '&lt;a id=&quot;{id}-btnEl&quot; class=&quot;{baseCls}-button&quot; role=&quot;button&quot; hidefocus=&quot;on&quot; unselectable=&quot;on&quot;',
-
-                // If developer specified their own tabIndex...
-                '&lt;tpl if=&quot;tabIndex != null&gt;',
-                    ' tabIndex=&quot;{tabIndex}&quot;',
-                '&lt;/tpl&gt;',
-            '&gt;',
+            '&lt;span id=&quot;{id}-btnEl&quot; class=&quot;{baseCls}-button&quot;&gt;',
                 '&lt;span id=&quot;{id}-btnInnerEl&quot; class=&quot;{baseCls}-inner {innerCls}',
                     '{childElCls}&quot; unselectable=&quot;on&quot;&gt;',
                     '{text}',
@@ -53,9 +47,9 @@ Ext.define('Ext.form.field.FileButton', {
                     '&lt;tpl if=&quot;glyph &amp;&amp; glyphFontFamily&quot;&gt;font-family:{glyphFontFamily};&lt;/tpl&gt;&quot;&gt;',
                     '&lt;tpl if=&quot;glyph&quot;&gt;&amp;#{glyph};&lt;/tpl&gt;&lt;tpl if=&quot;iconCls || iconUrl&quot;&gt;&amp;#160;&lt;/tpl&gt;',
                 '&lt;/span&gt;',
-            '&lt;/a&gt;',
-        '&lt;/div&gt;',
-        '&lt;input id=&quot;{id}-fileInputEl&quot; class=&quot;{inputCls}&quot; type=&quot;file&quot; size=&quot;1&quot; name=&quot;{inputName}&quot;&gt;'
+            '&lt;/span&gt;',
+        '&lt;/span&gt;',
+        '&lt;input id=&quot;{id}-fileInputEl&quot; class=&quot;{childElCls} {inputCls}&quot; type=&quot;file&quot; size=&quot;1&quot; name=&quot;{inputName}&quot;&gt;'
     ],
     
 <span id='Ext-form-field-FileButton-method-getTemplateArgs'>    getTemplateArgs: function(){

@@ -14,5 +14,6 @@ Ext.define('KitchenSink.view.window.BasicWindow', {
     title: 'Window',
     autoScroll: true,
     bodyPadding: 10,
-    html: KitchenSink.DummyText.extraLongText
+    html: KitchenSink.DummyText.extraLongText,
+    constrain: true
 });

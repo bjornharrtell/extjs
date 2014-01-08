@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-Editing'>/**
+</span> * @class Ext.grid.plugin.Editing
+ */
+
+<span id='Ext-grid-plugin-Editing-css_var-S-grid-editor-height'>/**
+</span> * The height of grid editor text fields.  Defaults to $form-field-height.  If grid row
+ * height is smaller than $form-field-height, defaults to the grid row height.  Grid row
+ * height is caluclated by adding $grid-row-cell-line-height to the top and bottom values of
+ * $grid-cell-inner-padding.
+ */
+$grid-editor-height: if($grid-row-height &lt; $form-field-height, $grid-row-height, $form-field-height) !default;
+
+<span id='Ext-grid-plugin-Editing-css_var-S-grid-editor-padding'>/**
+</span> * The padding of grid editor text fields.
+ */
+$grid-editor-padding:
+    top($form-field-padding)
+    right($grid-cell-inner-padding) - $form-field-border-width
+    bottom($form-field-padding)
+    left($grid-cell-inner-padding) - $form-field-border-width !default;
+
+<span id='Ext-grid-plugin-Editing-css_var-S-grid-editor-font-size'>/**
+</span> * @var {number}
+ * The font size of the grid editor text
+ */
+$grid-editor-font-size: $grid-row-cell-font-size !default;
+
+<span id='Ext-grid-plugin-Editing-css_var-S-grid-editor-font-weight'>/**
+</span> * @var {string}
+ * The font-weight of the grid editor text
+ */
+$grid-editor-font-weight: $grid-row-cell-font-weight !default;
+
+<span id='Ext-grid-plugin-Editing-css_var-S-grid-editor-font-family'>/**
+</span> * @var {string}
+ * The font-family of the grid editor text
+ */
+$grid-editor-font-family: $grid-row-cell-font-family !default;
+
+// private
+$grid-editor-content-height: $grid-editor-height - vertical($grid-editor-padding) - vertical($form-field-border-width);
+
+// private
+$grid-editor-font: $grid-editor-font-weight #{$grid-editor-font-size}/#{$grid-editor-content-height} $grid-editor-font-family;
+</pre>
+</body>
+</html>

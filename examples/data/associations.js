@@ -94,6 +94,7 @@ Ext.define('CustomerGrid', {
                 dataIndex: 'name',
                 flex: 1
             }, {
+                width: 140,
                 text: 'Phone',
                 dataIndex: 'phone'
             }],

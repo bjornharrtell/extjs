@@ -53,11 +53,10 @@ Ext.define('Ext.menu.Manager', {
      */
     hideAll: function() {
         var active = this.active,
-        clone, menus, m, mLen;
+            menus, m, mLen;
 
         if (active &amp;&amp; active.length &gt; 0) {
-            clone = active.clone();
-            menus = clone.items;
+            menus = Ext.Array.slice(active.items);
             mLen  = menus.length;
 
             for (m = 0; m &lt; mLen; m++) {
@@ -131,7 +130,7 @@ Ext.define('Ext.menu.Manager', {
             // Because we use a buffer in IE, the target may have been removed from the
             // DOM by the time we get here, so the selector will never find the menu. In this
             // case, it's safer to not hide than menus than to do so
-            if (Ext.isIE9m &amp;&amp; !Ext.getBody().contains(e.target)) {
+            if (Ext.isIE9m &amp;&amp; !Ext.getDoc().contains(e.target)) {
                 doHide = false;
             }
             if (doHide) {

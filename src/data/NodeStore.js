@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Node Store
@@ -116,6 +116,7 @@ Ext.define('Ext.data.NodeStore', {
                 collapse: me.onNodeCollapse,
                 append: me.onNodeAppend,
                 insert: me.onNodeInsert,
+                bulkremove: me.onBulkRemove,
                 remove: me.onNodeRemove,
                 sort: me.onNodeSort,
                 scope: me
@@ -137,6 +138,7 @@ Ext.define('Ext.data.NodeStore', {
                 collapse: me.onNodeCollapse,
                 append: me.onNodeAppend,
                 insert: me.onNodeInsert,
+                bulkremove: me.onBulkRemove,
                 remove: me.onNodeRemove,
                 sort: me.onNodeSort,
                 scope: me
@@ -226,6 +228,11 @@ Ext.define('Ext.data.NodeStore', {
                 }
             }
         }
+    },
+    
+    // Triggered by NodeInterface's bubbled bulkremove event
+    onBulkRemove: function(parent, childNodes, isMove) {
+        this.onNodeCollapse(parent, childNodes, true);
     },
 
     // Triggered by a NodeInterface's bubbled "collapse" event.

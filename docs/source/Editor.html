@@ -190,11 +190,7 @@ Ext.define('Ext.Editor', {
         });
         me.mon(field, {
             scope: me,
-            blur: {
-                fn: me.onFieldBlur,
-                // slight delay to avoid race condition with startEdits (e.g. grid view refresh)
-                delay: 1
-            },
+            blur: me.onFieldBlur,
             specialkey: me.onSpecialKey
         });
 
@@ -353,7 +349,7 @@ Ext.define('Ext.Editor', {
             field.setValue(value);
             field.resumeEvents();
             me.realign(true);
-            field.focus(false, 10);
+            field.focus();
             if (field.autoSize) {
                 field.autoSize();
             }
@@ -481,8 +477,10 @@ Ext.define('Ext.Editor', {
             me.completeEdit();
             return;
         }
-        if (field.hasFocus) {
-            field.blur();
+        // Fields which mimic blur have to be told to fire t heir blur events.
+        // All other types of field are automatically blurred when an ancestor hides.
+        if (field.hasFocus &amp;&amp; field.triggerBlur) {
+            field.triggerBlur();
         }
         if (field.collapse) {
             field.collapse();

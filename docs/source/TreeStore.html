@@ -260,6 +260,7 @@ Ext.define('Ext.data.TreeStore', {
             // force rebuild
             reader.buildExtractors(true);
         }
+        return proxy;
     },
 
 <span id='Ext-data-TreeStore-method-onBeforeSort'>    // inherit docs
@@ -634,14 +635,6 @@ Ext.define('Ext.data.TreeStore', {
         --me.fillCount;
         
         return newNodes;
-    },
-    
-<span id='Ext-data-TreeStore-method-beginBulkRemove'>    beginBulkRemove: function(){
-</span>        this.fireEvent('beforebulkremove', this);
-    },
-    
-<span id='Ext-data-TreeStore-method-endBulkRemove'>    endBulkRemove: function(){
-</span>        this.fireEvent('bulkremovecomplete', this);    
     },
 
 <span id='Ext-data-TreeStore-method-sortByIndex'>    /**

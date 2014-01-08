@@ -15,7 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-window-MessageBox'>/**
+  <pre class="prettyprint lang-js">// @define Ext.MessageBox, Ext.Msg
+
+<span id='Ext-window-MessageBox'>/**
 </span> * Utility class for generating different styles of message boxes.  The singleton instance, Ext.MessageBox
  * alias `Ext.Msg` can also be used.
  *
@@ -125,11 +127,18 @@ Ext.define('Ext.window.MessageBox', {
 <span id='Ext-window-MessageBox-cfg-closeAction'>    closeAction: 'hide',
 </span><span id='Ext-window-MessageBox-cfg-resizable'>    resizable: false,
 </span><span id='Ext-window-MessageBox-cfg-title'>    title: '&amp;#160;',
-</span>    
+</span>
 <span id='Ext-window-MessageBox-property-defaultMinWidth'>    defaultMinWidth: 250,
 </span><span id='Ext-window-MessageBox-property-defaultMaxWidth'>    defaultMaxWidth: 600,
 </span><span id='Ext-window-MessageBox-property-defaultMinHeight'>    defaultMinHeight: 110,
 </span><span id='Ext-window-MessageBox-property-defaultMaxHeight'>    defaultMaxHeight: 500,
+</span>    
+<span id='Ext-window-MessageBox-cfg-minWidth'>    // Forcibly set these to null on the prototype to override anything set higher in
+</span>    // the hierarchy
+    minWidth: null,
+<span id='Ext-window-MessageBox-cfg-maxWidth'>    maxWidth: null,
+</span><span id='Ext-window-MessageBox-cfg-minHeight'>    minHeight: null,
+</span><span id='Ext-window-MessageBox-cfg-maxHeight'>    maxHeight: null,
 </span><span id='Ext-window-MessageBox-cfg-constrain'>    constrain: true,
 </span>
 <span id='Ext-window-MessageBox-cfg-cls'>    cls: [Ext.baseCSSPrefix + 'message-box', Ext.baseCSSPrefix + 'hide-offsets'],
@@ -138,7 +147,7 @@ Ext.define('Ext.window.MessageBox', {
 </span>        type: 'vbox',
         align: 'stretch'
     },
-    
+
 <span id='Ext-window-MessageBox-cfg-shrinkWrapDock'>    // We want to shrinkWrap around all docked items
 </span>    shrinkWrapDock: true,
 
@@ -219,8 +228,7 @@ Ext.define('Ext.window.MessageBox', {
             field.reset();
         }
 
-        // Important not to have focus remain in the hidden Window; Interferes with DnD.
-        btn.blur();
+        // Component.onHide blurs the active element if the Component contains the active element
         me.hide();
         me.userCallback(btn.itemId, value, me.cfg);
     },
@@ -228,7 +236,7 @@ Ext.define('Ext.window.MessageBox', {
 <span id='Ext-window-MessageBox-method-hide'>    hide: function() {
 </span>        var me = this,
             cls = me.cfg.cls;
-            
+
         me.dd.endDrag();
         me.progressBar.reset();
         if (cls) {
@@ -237,18 +245,26 @@ Ext.define('Ext.window.MessageBox', {
         me.callParent(arguments);
     },
 
-<span id='Ext-window-MessageBox-method-initComponent'>    initComponent: function() {
+<span id='Ext-window-MessageBox-method-constructor'>    constructor: function(cfg) {
+</span>        var me = this;
+
+        me.callParent(arguments);
+
+        // set the default min/max/Width/Height to the initially configured min/max/Width/Height
+        // so that it will be used as the default when reconfiguring.
+        me.minWidth = me.defaultMinWidth = (me.minWidth || me.defaultMinWidth);
+        me.maxWidth = me.defaultMaxWidth = (me.maxWidth || me.defaultMaxWidth);
+        me.minHeight = me.defaultMinHeight = (me.minHeight || me.defaultMinHeight);
+        me.maxHeight = me.defaultMaxHeight = (me.maxHeight || me.defaultMaxHeight);
+    },
+
+<span id='Ext-window-MessageBox-method-initComponent'>    initComponent: function(cfg) {
 </span>        var me = this,
             baseId = me.id,
             i, button;
 
         me.title = '&amp;#160;';
-        
-        me.minWidth = me.defaultMinWidth;
-        me.maxWidth = me.defaultMaxWidth;
-        me.minHeight = me.defaultMinHeight;
-        me.maxHeight = me.defaultMaxHeight;
-        
+
         me.topContainer = new Ext.container.Container({
             layout: 'hbox',
             padding: 10,
@@ -318,7 +334,7 @@ Ext.define('Ext.window.MessageBox', {
         me.on('close', me.onClose, me);
         me.callParent();
     },
-    
+
 <span id='Ext-window-MessageBox-method-onClose'>    onClose: function(){
 </span>        var btn = this.header.child('[type=close]');
         // Give a temporary itemId so it can act like the cancel button
@@ -328,20 +344,13 @@ Ext.define('Ext.window.MessageBox', {
     },
 
 <span id='Ext-window-MessageBox-method-onPromptKey'>    onPromptKey: function(textField, e) {
-</span>        var me = this,
-            blur;
+</span>        var me = this;
 
-        if (e.keyCode === Ext.EventObject.RETURN || e.keyCode === 10) {
+        if (e.keyCode === e.RETURN || e.keyCode === 10) {
             if (me.msgButtons.ok.isVisible()) {
-                blur = true;
                 me.msgButtons.ok.handler.call(me, me.msgButtons.ok);
             } else if (me.msgButtons.yes.isVisible()) {
                 me.msgButtons.yes.handler.call(me, me.msgButtons.yes);
-                blur = true;
-            }
-
-            if (blur) {
-                me.textField.blur();
             }
         }
     },
@@ -351,7 +360,8 @@ Ext.define('Ext.window.MessageBox', {
             buttons = 0,
             hideToolbar = true,
             oldButtonText = me.buttonText,
-            width, height, i, textArea, textField,
+            resizer = me.resizer,
+            resizeTracker, width, height, i, textArea, textField,
             msg, progressBar, msgButtons;
 
         // Restore default buttonText before reconfiguring.
@@ -362,15 +372,23 @@ Ext.define('Ext.window.MessageBox', {
         if (cfg.width) {
             width = cfg.width;
         }
-        
+
         if (cfg.height) {
             height = cfg.height;
         }
-        
+
         me.minWidth = cfg.minWidth || me.defaultMinWidth;
         me.maxWidth = cfg.maxWidth || me.defaultMaxWidth;
         me.minHeight = cfg.minHeight || me.defaultMinHeight;
         me.maxHeight = cfg.maxHeight || me.defaultMaxHeight;
+
+        if (resizer) {
+            resizeTracker = resizer.resizeTracker;
+            resizer.minWidth = resizeTracker.minWidth = me.minWidth;
+            resizer.maxWidth = resizeTracker.maxWidth = me.maxWidth;
+            resizer.minHeight = resizeTracker.minHeight = me.minHeight;
+            resizer.maxHeight = resizeTracker.maxHeight = me.maxHeight;
+        }
 
         // Default to allowing the Window to take focus.
         delete me.defaultFocus;
@@ -413,7 +431,7 @@ Ext.define('Ext.window.MessageBox', {
             if (width) {
                 me.setWidth(width);
             }
-            
+
             if (height) {
                 me.setHeight(height);
             }
@@ -745,11 +763,11 @@ Ext.define('Ext.window.MessageBox', {
         var me = this,
             iconCmp = me.iconComponent,
             cls = me.messageIconCls;
-            
+
         if (cls) {
             iconCmp.removeCls(cls);
         }
-        
+
         if (icon) {
             iconCmp.show();
             iconCmp.setSize(width || me.iconWidth, height || me.iconHeight);

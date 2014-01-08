@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A class which handles submission of data from {@link Ext.form.Basic Form}s and processes the returned response.
@@ -283,7 +283,8 @@ Ext.define('Ext.form.action.Submit', {
     handleResponse: function(response) {
         var form = this.form,
             errorReader = form.errorReader,
-            rs, errors, i, len, records;
+            rs, errors, i, len, records, result;
+            
         if (errorReader) {
             rs = errorReader.read(response);
             records = rs.records;
@@ -296,11 +297,21 @@ Ext.define('Ext.form.action.Submit', {
             if (errors.length < 1) {
                 errors = null;
             }
-            return {
+            result = {
                 success : rs.success,
                 errors : errors
             };
+        } else {
+            try {
+                result = Ext.decode(response.responseText);    
+            } catch (e) {
+                result = {
+                    success: false,
+                    errors: []
+                };
+            }
+            
         }
-        return Ext.decode(response.responseText);
+        return result;
     }
 });

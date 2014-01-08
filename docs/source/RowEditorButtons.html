@@ -24,21 +24,17 @@ Ext.define('Ext.grid.RowEditorButtons', {
     alias: 'widget.roweditorbuttons',
 
 <span id='Ext-grid-RowEditorButtons-cfg-frame'>    frame: true,
+</span><span id='Ext-grid-RowEditorButtons-cfg-shrinkWrap'>    shrinkWrap: true,
+</span><span id='Ext-grid-RowEditorButtons-property-position'>    position: 'bottom',
 </span>
 <span id='Ext-grid-RowEditorButtons-method-constructor'>    constructor: function(config) {
-</span>        var rowEditor = config.rowEditor,
+</span>        var me = this,
+            rowEditor = config.rowEditor,
             cssPrefix = Ext.baseCSSPrefix,
             plugin = rowEditor.editingPlugin;
 
         config = Ext.apply({
-            floating: {
-                shadow: false
-            },
             baseCls: cssPrefix + 'grid-row-editor-buttons',
-            layout: {
-                type: 'hbox',
-                align: 'middle'
-            },
             defaults: {
                 xtype: 'button',
                 ui: rowEditor.buttonUI,
@@ -58,19 +54,33 @@ Ext.define('Ext.grid.RowEditorButtons', {
                 text: rowEditor.cancelBtnText
             }]
         }, config);
-        this.callParent([config]);
+
+        me.callParent([config]);
+
+        me.addClsWithUI(me.position);
     },
 
-<span id='Ext-grid-RowEditorButtons-method-getTargetEl'>    getTargetEl: function() {
-</span>        return this.el;
+<span id='Ext-grid-RowEditorButtons-method-setButtonPosition'>    setButtonPosition: function(position) {
+</span>        var me = this;
+
+        me.removeClsWithUI(me.position);
+        me.position = position;
+        me.addClsWithUI(position);
     },
 
-<span id='Ext-grid-RowEditorButtons-method-afterComponentLayout'>    // Work round position absolute 100% width bug in IEQuirks
-</span>    afterComponentLayout: function() {
-        if (Ext.isIEQuirks &amp;&amp; !this.componentLayoutCounter) {
-            this.el.setWidth(this.width = this.layout.innerCt.getWidth() + this.getFrameInfo().width);
-        }
-        this.callParent(arguments);        
+<span id='Ext-grid-RowEditorButtons-method-getFramingInfoCls'>    getFramingInfoCls: function(){
+</span>        return this.baseCls + '-' + this.ui + '-' + this.position;
+    },
+
+<span id='Ext-grid-RowEditorButtons-method-getFrameInfo'>    getFrameInfo: function() {
+</span>        var frameInfo = this.callParent();
+
+        // Trick Renderable into rendering the top framing elements, even though they
+        // are not needed in the default &quot;bottom&quot; position.  This allows us to flip the
+        // buttons into &quot;top&quot; position without re-rendering.
+        frameInfo.top = true;
+
+        return frameInfo;
     }
 });</pre>
 </body>

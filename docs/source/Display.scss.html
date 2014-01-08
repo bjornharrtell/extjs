@@ -15,15 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}form-display-field {
-    font: $form-display-field-font;
-    color: $form-display-field-color;
-    line-height: $form-field-height;
-    @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
-        .#{$prefix}toolbar-item &amp; {
-            line-height: $form-toolbar-field-height;
-        }
-    }
+  <pre class="prettyprint lang-js">.#{$prefix}form-display-field-body {
+    vertical-align: top;
 }</pre>
 </body>
 </html>

@@ -67,6 +67,7 @@ Ext.define('Ext.util.Floating', {
         me.fixed = me.fixed &amp;&amp; !(Ext.isIE6 || Ext.isIEQuirks);
 
         me.el = new Ext.dom.Layer(Ext.apply({
+            preventSync  : true,
             hideMode     : me.hideMode,
             hidden       : me.hidden,
             shadow       : (typeof me.shadow != 'undefined') ? me.shadow : 'sides',
@@ -179,7 +180,13 @@ Ext.define('Ext.util.Floating', {
 <span id='Ext-util-Floating-method-onMouseDown'>    // @private
 </span>    // Mousedown brings to front, and programatically grabs focus *unless the mousedown was on a focusable element*
     onMouseDown: function (e) {
-        if (this.floating) {
+        var focusTask = this.focusTask;
+        
+        if (this.floating &amp;&amp;
+            // get out of here if there is already a pending focus.  This usually means
+            // that the handler for a mousedown on a child element set the focus on some
+            // other component, and we so not want to steal it back. See EXTJSIV-9458
+            (!focusTask || !focusTask.id)) {
             // If what was mousedowned upon is going to claim focus anyway, pass preventFocus as true.
             this.toFront(!!e.getTarget(':focusable'));
         }
@@ -197,8 +204,20 @@ Ext.define('Ext.util.Floating', {
         }
     },
     
+<span id='Ext-util-Floating-method-syncShadow'>    // @private
+</span>    syncShadow : function() {
+        if (this.floating) {
+            this.el.sync(true);
+        }
+    },
+    
+<span id='Ext-util-Floating-method-onBeforeFloatLayout'>    onBeforeFloatLayout: function(){
+</span>        this.el.preventSync = true;
+    },
+    
 <span id='Ext-util-Floating-method-onAfterFloatLayout'>    onAfterFloatLayout: function(){
-</span>        this.syncShadow();   
+</span>        delete this.el.preventSync;
+        this.syncShadow();   
     },
 
 <span id='Ext-util-Floating-method-syncHidden'>    /**
@@ -376,13 +395,6 @@ Ext.define('Ext.util.Floating', {
             this.center();    
         }
         delete this.needsCenter;
-    },
-
-<span id='Ext-util-Floating-method-syncShadow'>    // @private
-</span>    syncShadow : function() {
-        if (this.floating) {
-            this.el.sync(true);
-        }
     },
 
 <span id='Ext-util-Floating-method-fitContainer'>    // @private

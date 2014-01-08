@@ -144,16 +144,59 @@
         adjust-color($bg-color, $hue: -1.641deg, $saturation: 36.301%, $lightness: -2.549%)
     ));
 }
+
 /**
  * Creates a background gradient.
  *
+ * Example usage:
+ *     .foo {
+ *          @include background-gradient(#808080, matte, left);
+ *     }
+ *
  * @param {Color} $bg-color The background color of the gradient
- * @param {String/List} [$type] The type of gradient to be used. Can either
- * be a String which is a predefined gradient, or it can can be a list of
- * color_stops. If none is set, it will still set the `background-color`
- * to the $background-color.
+ * @param {String/List} [$type=$base-gradient] The type of gradient to be used. Can either
+ * be a String which is a predefined gradient name, or it can can be a list of color stops.
+ * If null is passed, this mixin will still set the `background-color` to $bg-color.
+ * The available predefined gradient names are:
+ *
+ * * bevel
+ * * glossy
+ * * recessed
+ * * matte
+ * * matte-reverse
+ * * panel-header
+ * * tabbar
+ * * tab
+ * * tab-active
+ * * tab-over
+ * * tab-disabled
+ * * grid-header
+ * * grid-header-over
+ * * grid-row-over
+ * * grid-cell-special
+ * * glossy-button
+ * * glossy-button-over
+ * * glossy-button-pressed
+ *
+ * Each of these gradient names corresponds to a function named linear-gradient[name].
+ * Themes can override these functions to customize the color stops that they return.
+ * For example, to override the glossy-button gradient function add a function named
+ * "linear-gradient-glossy-button" to a file named "sass/etc/mixins/background-gradient.scss"
+ * in your theme.  The function should return the result of calling the Compass linear-gradient
+ * function with the desired direction and color-stop information for the gradient.  For example:
+ *
+ *     @function linear-gradient-glossy-button($direction, $bg-color) {
+ *         @return linear-gradient($direction, color_stops(
+ *             mix(#fff, $bg-color, 10%),
+ *             $bg-color 50%,
+ *             mix(#000, $bg-color, 5%) 51%,
+ *             $bg-color
+ *         ));
+ *     }
+ *
  * @param {String} [$direction=top] The direction of the gradient. Can either be
  * `top` or `left`.
+ *
  * @member Global_CSS
  */
 @mixin background-gradient($bg-color, $type: $base-gradient, $direction: top) {

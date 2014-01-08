@@ -15,7 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag foundation,core
+  <pre class="prettyprint lang-js">// @tag foundation,core
+// @define Ext
+
 <span id='Ext'>/**
 </span> * @class Ext
  * @singleton
@@ -27,7 +29,7 @@ Ext._startTime = new Date().getTime();
         objectPrototype = Object.prototype,
         toString = objectPrototype.toString,
         enumerables = true,
-        enumerablesTest = { toString: 1 },
+        enumerablesTest = {toString: 1},
         emptyFn = function () {},
         // This is the &quot;$previous&quot; method of a hook function on an instance. When called, it
         // calls through the class prototype by the name of the called method.
@@ -37,7 +39,8 @@ Ext._startTime = new Date().getTime();
         },
         i,
         nonWhitespaceRe = /\S/,
-        ExtApp;
+        ExtApp,
+        iterableRe = /\[object\s*(?:Array|Arguments|\w*Collection|\w*List|HTML\s+document\.all\s+class)\]/;
 
     Function.prototype.$extIsFunction = true;
 
@@ -602,26 +605,36 @@ Ext._startTime = new Date().getTime();
         },
 
 <span id='Ext-method-isIterable'>        /**
-</span>         * Returns true if the passed value is iterable, false otherwise
+</span>         * Returns `true` if the passed value is iterable, that is, if elements of it are addressable using array
+         * notation with numeric indices, `false` otherwise.
+         *
+         * Arrays and function `arguments` objects are iterable. Also HTML collections such as `NodeList` and `HTMLCollection'
+         * are iterable.
+         *
          * @param {Object} value The value to test
          * @return {Boolean}
          */
         isIterable: function(value) {
-            var type = typeof value,
-                checkLength = false;
-            if (value &amp;&amp; type != 'string') {
-                // Functions have a length property, so we need to filter them out
-                if (type == 'function') {
-                    // In Safari, NodeList/HTMLCollection both return &quot;function&quot; when using typeof, so we need
-                    // to explicitly check them here.
-                    if (Ext.isSafari) {
-                        checkLength = value instanceof NodeList || value instanceof HTMLCollection;
-                    }
-                } else {
-                    checkLength = true;
-                }
+            // To be iterable, the object must have a numeric length property and must not be a string or function.
+            if (!value || typeof value.length !== 'number' || typeof value === 'string' || value.$extIsFunction) {
+                return false;
             }
-            return checkLength ? value.length !== undefined : false;
+
+            // Certain &quot;standard&quot; collections in IE (such as document.images) do not offer the correct
+            // Javascript Object interface; specifically, they lack the propertyIsEnumerable method.
+            // And the item property while it does exist is not typeof &quot;function&quot;
+            if (!value.propertyIsEnumerable) {
+                return !!value.item;
+            }
+
+            // If it is a regular, interrogatable JS object (not an IE ActiveX object), then...
+            // If it has its own property called &quot;length&quot;, but not enumerable, it's iterable
+            if (value.hasOwnProperty('length') &amp;&amp; !value.propertyIsEnumerable('length')) {
+                return true;
+            }
+
+            // Test against whitelist which includes known iterable collection types
+            return iterableRe.test(toString.call(value));
         }
     });
 
@@ -683,7 +696,9 @@ Ext._startTime = new Date().getTime();
                 if (enumerables) {
                     for (j = enumerables.length; j--;) {
                         k = enumerables[j];
-                        clone[k] = item[k];
+                        if (item.hasOwnProperty(k)) {
+                            clone[k] = item[k];
+                        }
                     }
                 }
             }

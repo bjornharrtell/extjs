@@ -27,42 +27,62 @@ Ext.define('Ext.grid.plugin.BufferedRendererTableView', {
 
 <span id='Ext-grid-plugin-BufferedRendererTableView-method-onAdd'>    // Listener function for the Store's add event
 </span>    onAdd: function(store, records, index) {
-        var bufferedRenderer = this.bufferedRenderer,
-            rows = this.all;
+        var me = this,
+            bufferedRenderer = me.bufferedRenderer,
+            rows = me.all;
 
         // The newly added records will put us over the buffered view size, so we cannot just add as normal.
-        if (bufferedRenderer &amp;&amp; (rows.getCount() + records.length) &gt; bufferedRenderer.viewSize) {
+        if (me.rendered &amp;&amp; bufferedRenderer &amp;&amp; (rows.getCount() + records.length) &gt; bufferedRenderer.viewSize) {
 
             // Index puts the new row(s) in the visible area, then we have to refresh the view
             if (index &lt; rows.startIndex + bufferedRenderer.viewSize &amp;&amp; (index + records.length) &gt; rows.startIndex) {
-                this.onDataRefresh();
+                me.refreshView();
             }
             // New rows outside of visible area, just ensure that the scroll range is updated
             else {
-                bufferedRenderer.stretchView(this, bufferedRenderer.getScrollHeight());
+                bufferedRenderer.stretchView(me, bufferedRenderer.getScrollHeight());
             }
         }
         // No BufferedRenderer present
         // or
         // View has not yet reached the viewSize: we can add as normal.
         else {
-            this.callParent([store, records, index]);
+            me.callParent([store, records, index]);
         }
     },
 
-<span id='Ext-grid-plugin-BufferedRendererTableView-method-onRemove'>    // Listener function for the Store's bulkremove event
-</span>    onRemove: function(store, records, indices) {
+<span id='Ext-grid-plugin-BufferedRendererTableView-method-onRemove'>    onRemove: function(store, records, indices) {
+</span>        var me = this,
+            bufferedRenderer = me.bufferedRenderer;
 
-        // If there's a BufferedRenderer, the view must refresh to keep the view correct
-        if (this.bufferedRenderer) {
-            this.onDataRefresh();
+        // Ensure all records are removed from the view
+        me.callParent([store, records, indices]);
+
+        // If there's a BufferedRenderer, the view must refresh to keep the view correct.
+        // Removing *may* have removed all of the rendered rows, leaving whitespace below the group header, 
+        // so the refresh will be needed to keep the buffer rendered zone valid - to pull records up from
+        // below the removed zone into visibility.
+        if (me.rendered &amp;&amp; bufferedRenderer) {
+            if (me.dataSource.getCount() &gt; bufferedRenderer.viewSize) {
+                me.refreshView();
+            }
+            // No overflow, still we have to ensure the scroll range is updated
+            else {
+                bufferedRenderer.stretchView(me, bufferedRenderer.getScrollHeight());
+            }
         }
-        // No BufferedRenderer present
-        // or
-        // View has not yet reached the viewSize: we can add as normal.
-        else {
-            this.callParent([store, records, indices]);
+    },
+
+<span id='Ext-view-Table-method-onDataRefresh'>    // When there's a buffered renderer present, store refresh events cause TableViews to go to scrollTop:0
+</span>    onDataRefresh: function() {
+        var me = this;
+
+        if (me.bufferedRenderer) {
+            // Clear NodeCache. Do NOT remove nodes from DOM - that would blur the view, and then refresh will not refocus after the refresh.
+            me.all.clear();
+            me.bufferedRenderer.onStoreClear();
         }
+        me.callParent();
     }
 });
 </pre>

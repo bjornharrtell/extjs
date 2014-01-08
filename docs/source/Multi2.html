@@ -287,12 +287,6 @@ Ext.define('Ext.slider.Multi', {
             'dragend'
         );
 
-        // Ensure that the maxValue is a snap point, and that the initial value is snapped.
-        if (me.increment) {
-            me.maxValue = Ext.Number.snapInRange(me.maxValue, me.increment, me.minValue);
-            me.value = me.normalizeValue(me.value);
-        }
-
         me.callParent();
 
         // only can use it if it exists.
@@ -577,10 +571,9 @@ Ext.define('Ext.slider.Multi', {
      */
     normalizeValue : function(v) {
         var me = this,
-            Num = Ext.Number,
-            snapFn = Num[me.zeroBasedSnapping ? 'snap' : 'snapInRange'];
+            snapFn = me.zeroBasedSnapping ? 'snap' : 'snapInRange';
 
-        v = snapFn.call(Num, v, me.increment, me.minValue, me.maxValue);
+        v = Ext.Number[snapFn](v, me.increment, me.minValue, me.maxValue);
         v = Ext.util.Format.round(v, me.decimalPrecision);
         v = Ext.Number.constrain(v, me.minValue, me.maxValue);
         return v;
@@ -593,19 +586,20 @@ Ext.define('Ext.slider.Multi', {
      */
     setMinValue : function(val) {
         var me = this,
-            i = 0,
             thumbs = me.thumbs,
             len = thumbs.length,
-            t;
+            thumb, i;
 
         me.minValue = val;
         if (me.rendered) {
             me.inputEl.dom.setAttribute('aria-valuemin', val);
         }
 
-        for (; i &lt; len; ++i) {
-            t = thumbs[i];
-            t.value = t.value &lt; val ? val : t.value;
+        for (i = 0; i &lt; len; ++i) {
+            thumb = thumbs[i];
+            if (thumb.value &lt; val) {
+                me.setValue(i, val, false);    
+            }
         }
         me.syncThumbs();
     },
@@ -617,19 +611,20 @@ Ext.define('Ext.slider.Multi', {
      */
     setMaxValue : function(val) {
         var me = this,
-            i = 0,
             thumbs = me.thumbs,
             len = thumbs.length,
-            t;
+            thumb, i;
 
         me.maxValue = val;
         if (me.rendered) {
             me.inputEl.dom.setAttribute('aria-valuemax', val);
         }
 
-        for (; i &lt; len; ++i) {
-            t = thumbs[i];
-            t.value = t.value &gt; val ? val : t.value;
+        for (i = 0; i &lt; len; ++i) {
+            thumb = thumbs[i];
+            if (thumb.value &gt; val) {
+                me.setValue(i, val, false);
+            }
         }
         me.syncThumbs();
     },

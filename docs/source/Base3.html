@@ -335,6 +335,8 @@ Ext.define('Ext.form.field.Base', {
         if (me.readOnly) {
             me.addCls(me.readOnlyCls);
         }
+        
+        me.addCls(Ext.baseCSSPrefix + 'form-type-' + me.inputType);
     },
 
 <span id='Ext-form-field-Base-method-getInputId'>    /**
@@ -662,11 +664,6 @@ Ext.define('Ext.form.field.Base', {
             eLen   = events.length,
             event;
 
-        // standardise buffer across all browsers + OS-es for consistent event order.
-        // (the 10ms buffer for Editors fixes a weird FF/Win editor issue when changing OS window focus)
-        if (me.inEditor) {
-            me.onBlur = Ext.Function.createBuffered(me.onBlur, 10);
-        }
         if (inputEl) {
             me.mon(inputEl, Ext.EventManager.getKeyEvent(), me.fireKey,  me);
 

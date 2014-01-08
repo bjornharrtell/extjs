@@ -162,6 +162,10 @@ Ext.define('Ext.layout.component.field.Trigger', {
         }    
     },
 
+<span id='Ext-layout-component-field-Trigger-method-publishInnerHeight'>    publishInnerHeight: function(ownerContext, height) {
+</span>        ownerContext.inputContext.setHeight(height - this.measureLabelErrorHeight(ownerContext));
+    },
+
 <span id='Ext-layout-component-field-Trigger-method-measureContentWidth'>    measureContentWidth: function (ownerContext) {
 </span>        var me = this,
             owner = me.owner,

@@ -40,6 +40,10 @@ Ext.define('Ext.menu.Item', {
     extend: 'Ext.Component',
     alias: 'widget.menuitem',
     alternateClassName: 'Ext.menu.TextItem',
+    
+    mixins: {
+        queryable: 'Ext.Queryable'
+    },
 
 <span id='Ext-menu-Item-property-activated'>    /**
 </span>     * @property {Boolean} activated
@@ -74,7 +78,7 @@ Ext.define('Ext.menu.Item', {
      * The delay in milliseconds to wait before hiding the menu after clicking the menu item.
      * This only has an effect when `hideOnClick: true`.
      */
-    clickHideDelay: 1,
+    clickHideDelay: 0,
 
 <span id='Ext-menu-Item-cfg-destroyMenu'>    /**
 </span>     * @cfg {Boolean} destroyMenu
@@ -384,7 +388,8 @@ Ext.define('Ext.menu.Item', {
     },
 
 <span id='Ext-menu-Item-method-onClick'>    onClick: function(e) {
-</span>        var me = this;
+</span>        var me = this,
+            clickHideDelay = me.clickHideDelay;
 
         if (!me.href) {
             e.stopEvent();
@@ -395,7 +400,11 @@ Ext.define('Ext.menu.Item', {
         }
 
         if (me.hideOnClick) {
-            me.deferHideParentMenusTimer = Ext.defer(me.deferHideParentMenus, me.clickHideDelay, me);
+            if (!clickHideDelay) {
+                me.deferHideParentMenus();
+            } else {
+                me.deferHideParentMenusTimer = Ext.defer(me.deferHideParentMenus, clickHideDelay, me);
+            }
         }
 
         Ext.callback(me.handler, me.scope || me, [me, e]);

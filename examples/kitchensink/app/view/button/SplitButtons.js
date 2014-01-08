@@ -16,6 +16,9 @@ Ext.define('KitchenSink.view.button.SplitButtons', {
             iconMedium: 'resources/images/icons/add24.gif',
             iconLarge: 'resources/images/icons/add.gif'
         },
+        access: {
+            width: 525
+        },
         neptune: {
             width: 570,
             glyph: 72

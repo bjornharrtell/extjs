@@ -154,7 +154,6 @@ Ext.define('Ext.form.field.Text', {
 <span id='Ext-form-field-Text-cfg-validateBlank'>    /**
 </span>     * @cfg {Boolean} [validateBlank=false]
      * Specify as `true` to modify the behaviour of {@link #allowBlank} so that blank values are not passed as valid, but are subject to any configure {@link #vtype} validation.
-     * @since 4.2.0
      */
     validateBlank: false,
 
@@ -374,8 +373,8 @@ Ext.define('Ext.form.field.Text', {
 </span>     * @private
      * If grow=true, invoke the autoSize method when the field's value is changed.
      */
-    onChange: function() {
-        this.callParent();
+    onChange: function(newVal, oldVal) {
+        this.callParent(arguments);
         this.autoSize();
     },
 

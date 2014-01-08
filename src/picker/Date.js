@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A date picker. This class is used by the Ext.form.field.Date field to allow browsing and selection of valid
@@ -75,15 +75,15 @@ Ext.define('Ext.picker.Date', {
                  // the href attribute is required for the :hover selector to work in IE6/7/quirks
                 '<a id="{id}-nextEl" class="{baseCls}-next {baseCls}-arrow" href="#" role="button" title="{nextText}" hidefocus="on" ></a>',
             '</div>',
-            '<table id="{id}-eventEl" class="{baseCls}-inner" cellspacing="0" role="presentation">',
-                '<thead role="presentation"><tr role="presentation">',
+            '<table id="{id}-eventEl" class="{baseCls}-inner" cellspacing="0" role="grid">',
+                '<thead role="presentation"><tr role="row">',
                     '<tpl for="dayNames">',
                         '<th role="columnheader" class="{parent.baseCls}-column-header" title="{.}">',
                             '<div class="{parent.baseCls}-column-header-inner">{.:this.firstInitial}</div>',
                         '</th>',
                     '</tpl>',
                 '</tr></thead>',
-                '<tbody role="presentation"><tr role="presentation">',
+                '<tbody role="presentation"><tr role="row">',
                     '<tpl for="days">',
                         '{#:this.isEndOfWeek}',
                         '<td role="gridcell" id="{[Ext.id()]}">',
@@ -212,11 +212,13 @@ Ext.define('Ext.picker.Date', {
     /**
      * @cfg {String[]} monthNames
      * An array of textual month names which can be overriden for localization support (defaults to Ext.Date.monthNames)
+     * @deprecated This config is deprecated. In future the month names will be retrieved from {@link Ext.Date}
      */
 
     /**
      * @cfg {String[]} dayNames
      * An array of textual day names which can be overriden for localization support (defaults to Ext.Date.dayNames)
+     * @deprecated This config is deprecated. In future the day names will be retrieved from {@link Ext.Date}
      */
 
     //<locale>
@@ -373,6 +375,14 @@ Ext.define('Ext.picker.Date', {
         me.cellCls = me.baseCls + '-cell';
         me.nextCls = me.baseCls + '-prevday';
         me.todayCls = me.baseCls + '-today';
+        
+        
+        if (!me.format) {
+            me.format = Ext.Date.defaultFormat;
+        }
+        if (!me.dayNames) {
+            me.dayNames = Ext.Date.dayNames;
+        }
         me.dayNames = me.dayNames.slice(me.startDay).concat(me.dayNames.slice(0, me.startDay));
 
         me.callParent();
@@ -539,11 +549,43 @@ Ext.define('Ext.picker.Date', {
                     me.update(eDate.add(me.activeDate, day, 7));
                 }
             },
-            pageUp : me.showNextMonth,
-            pageDown : me.showPrevMonth,
+
+            pageUp:function (e) {
+                if (e.altKey) {
+                    me.showPrevYear();
+                } else {
+                    me.showPrevMonth();
+                }
+            },
+
+            pageDown:function (e) {
+                if (e.altKey) {
+                    me.showNextYear();
+                } else {
+                    me.showNextMonth();
+                }
+            },
+
+            tab:function (e) {
+                me.doCancelFieldFocus = true;
+                me.handleTabClick(e);
+                delete me.doCancelFieldFocus;
+                return true;
+            },
+            
             enter : function(e){
                 e.stopPropagation();
                 return true;
+            },
+
+            //space: ???
+
+            home:function (e) {
+                me.update(eDate.getFirstDateOfMonth(me.activeDate));
+            },
+
+            end:function (e) {
+                me.update(eDate.getLastDateOfMonth(me.activeDate));
             }
         }, me.keyNavConfig));
 
@@ -551,6 +593,46 @@ Ext.define('Ext.picker.Date', {
             me.todayKeyListener = me.eventEl.addKeyListener(Ext.EventObject.SPACE, me.selectToday,  me);
         }
         me.update(me.value);
+    },
+
+    handleTabClick:function (e) {
+        var me = this,
+            t = me.getSelectedDate(me.activeDate),
+            handler = me.handler;
+
+        // The following code is like handleDateClick without the e.stopEvent()
+        if (!me.disabled && t.dateValue && !Ext.fly(t.parentNode).hasCls(me.disabledCellCls)) {
+            me.doCancelFocus = me.focusOnSelect === false;
+            me.setValue(new Date(t.dateValue));
+            delete me.doCancelFocus;
+            me.fireEvent('select', me, me.value);
+            if (handler) {
+                handler.call(me.scope || me, me, me.value);
+            }
+            me.onSelect();
+        }
+    },
+
+    getSelectedDate:function (date) {
+        var me = this,
+            t = date.getTime(),
+            cells = me.cells,
+            cls = me.selectedCls,
+            cellItems = cells.elements,
+            c,
+            cLen = cellItems.length,
+            cell;
+
+        cells.removeCls(cls);
+
+        for (c = 0; c < cLen; c++) {
+            cell = Ext.fly(cellItems[c]);
+
+            if (cell.dom.firstChild.dateValue == t) {
+                return cell.dom.firstChild;
+            }
+        }
+        return null;
     },
 
     /**
@@ -1004,7 +1086,7 @@ Ext.define('Ext.picker.Date', {
             i = 0,
             extraDays = 0,
             visible = me.isVisible(),
-            sel = +eDate.clearTime(date, true),
+            newDate = +eDate.clearTime(date, true),
             today = +eDate.clearTime(new Date()),
             min = me.minDate ? eDate.clearTime(me.minDate, true) : Number.NEGATIVE_INFINITY,
             max = me.maxDate ? eDate.clearTime(me.maxDate, true) : Number.POSITIVE_INFINITY,
@@ -1018,7 +1100,6 @@ Ext.define('Ext.picker.Date', {
             startingPos = firstOfMonth.getDay() - me.startDay,
             previousMonth = eDate.add(date, eDate.MONTH, -1),
             longDayFormat = me.longDayFormat,
-            disabled,
             prevStart,
             current,
             disableToday,
@@ -1050,7 +1131,6 @@ Ext.define('Ext.picker.Date', {
         }
 
         setCellClass = function(cell, cls){
-            disabled = false;
             value = +eDate.clearTime(current, true);
             cell.title = eDate.format(current, longDayFormat);
             // store dateValue number as an expando
@@ -1058,34 +1138,35 @@ Ext.define('Ext.picker.Date', {
             if(value == today){
                 cls += ' ' + me.todayCls;
                 cell.title = me.todayText;
+                
+                // Extra element for ARIA purposes
+                me.todayElSpan = Ext.DomHelper.append(cell.firstChild, {
+                    tag:'span',
+                    cls: Ext.baseCSSPrefix + 'hide-clip',
+                    html:me.todayText
+                }, true);
             }
-            if(value == sel){
+            if(value == newDate) {
                 cls += ' ' + me.selectedCls;
                 me.fireEvent('highlightitem', me, cell);
                 if (visible && me.floating) {
                     Ext.fly(cell.firstChild).focus(50);
                 }
             }
-            // disabling, once the cell is disabled we can short circuit
-            // the other more expensive checks
-            if(value < min) {
+
+            if (value < min) {
                 cls += ' ' + disabledCls;
                 cell.title = me.minText;
-                disabled = true;
             }
-            if (!disabled && value > max) {
+            else if (value > max) {
                 cls += ' ' + disabledCls;
                 cell.title = me.maxText;
-                disabled = true;
             }
-            if (!disabled && ddays) {
-                if(ddays.indexOf(current.getDay()) !== -1){
-                    cell.title = ddaysText;
-                    cls += ' ' + disabledCls;
-                    disabled = true;
-                }
+            else if (ddays && ddays.indexOf(current.getDay()) !== -1){
+                cell.title = ddaysText;
+                cls += ' ' + disabledCls;
             }
-            if(!disabled && ddMatch && format){
+            else if (ddMatch && format){
                 formatValue = eDate.dateFormat(current, format);
                 if(ddMatch.test(formatValue)){
                     cell.title = ddText.replace('%0', formatValue);
@@ -1131,7 +1212,6 @@ Ext.define('Ext.picker.Date', {
             } else {
                 me.fullUpdate(date, active);
             }
-            me.innerEl.dom.title = Ext.String.format(me.ariaTitle, Ext.Date.format(me.activeDate, me.ariaTitleDateFormat));
         }
         return me;
     },
@@ -1165,14 +1245,4 @@ Ext.define('Ext.picker.Date', {
             this.focus();
         }
     }
-},
-
-// After dependencies have loaded:
-function() {
-    var proto = this.prototype,
-        date = Ext.Date;
-
-    proto.monthNames = date.monthNames;
-    proto.dayNames   = date.dayNames;
-    proto.format     = date.defaultFormat;
 });

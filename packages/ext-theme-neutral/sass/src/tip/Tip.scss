@@ -1,3 +1,67 @@
+/**
+ * Creates a visual theme for a Ext.tip.Tip
+ *
+ * @param {string} $ui-label
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {color} [$ui-border-color=$tip-border-color]
+ * The border-color of the Tip
+ *
+ * @param {number} [$ui-border-width=$tip-border-width]
+ * The border-width of the Tip
+ *
+ * @param {number} [$ui-border-radius=$tip-border-radius]
+ * The border-radius of the Tip
+ *
+ * @param {color} [$ui-background-color=$tip-background-color]
+ * The background-color of the Tip
+ *
+ * @param {string/list} [$ui-background-gradient=$tip-background-gradient]
+ * The background-gradient of the Tip. Can be either the name of a predefined gradient or a
+ * list of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ *
+ * @param {number} [$ui-tool-spacing=$tip-tool-spacing]
+ * The space between {@link Ext.panel.Tool Tools} in the header
+ *
+ * @param {string} [$ui-tool-background-image=$tip-tool-background-image]
+ * The sprite to use for the header {@link Ext.panel.Tool Tools}
+ *
+ * @param {number/list} [$ui-header-body-padding=$tip-header-body-padding]
+ * The padding of the Tip header's body element
+ *
+ * @param {color} [$ui-header-color=$tip-header-color]
+ * The text color of the Tip header
+ *
+ * @param {number} [$ui-header-font-size=$tip-header-font-size]
+ * The font-size of the Tip header
+ *
+ * @param {string} [$ui-header-font-weight=$tip-header-font-weight]
+ * The font-weight of the Tip header
+ *
+ * @param {number/list} [$ui-body-padding=$tip-body-padding]
+ * The padding of the Tip body
+ *
+ * @param {color} [$ui-body-color=$tip-body-color]
+ * The text color of the Tip body
+ *
+ * @param {number} [$ui-body-font-size=$tip-body-font-size]
+ * The font-size of the Tip body
+ *
+ * @param {string} [$ui-body-font-weight=$tip-body-font-weight]
+ * The font-weight of the Tip body
+ *
+ * @param {color} [$ui-body-link-color=$tip-body-link-color]
+ * The text color of any anchor tags inside the Tip body
+ *
+ * @param {number} [$ui-inner-border-width=0]
+ * The inner border-width of the Tip
+ *
+ * @param {color} [$ui-inner-border-color=#fff]
+ * The inner border-color of the Tip
+ *
+ * @member Ext.tip.Tip
+ */
 @mixin extjs-tip-ui(
     $ui-label,
     $ui-border-color: $tip-border-color,
@@ -105,19 +169,21 @@
 
     overflow: hidden;
 
-    height: 0;
-    width: 0;
+    height: 10px;
+    width: 10px;
 
     border-style: solid;
     border-width: 5px;
     border-color: $tip-border-color;
 
     zoom: 1;
-}
-
-.#{$prefix}border-box .#{$prefix}tip-anchor {
-    width: 10px;
-    height: 10px;
+    
+    @if $include-content-box {
+        .#{$prefix}content-box & {
+            height: 0;
+            width: 0;
+        }
+    }
 }
 
 .#{$prefix}tip-anchor-top {
@@ -172,25 +238,29 @@
     }
 }
 
-@include extjs-tip-ui(
-    $ui-label: 'default'
-);
+@if $include-tip-default-ui {
+    @include extjs-tip-ui(
+        $ui-label: 'default'
+    );
+}
 
 @if $include-ext-form-field-base {
-    @include extjs-tip-ui(
-        $ui-label: 'form-invalid',
-        $ui-border-color: $tip-error-border-color,
-        $ui-border-width: $tip-error-border-width,
-        $ui-border-radius: $tip-error-border-radius,
-        $ui-background-color: $tip-error-background-color,
-        $ui-body-padding: $tip-error-body-padding,
-        $ui-body-color: $tip-error-body-color,
-        $ui-body-font-size: $tip-error-body-font-size,
-        $ui-body-font-weight: $tip-error-body-font-weight,
-        $ui-body-link-color: $tip-error-body-link-color,
-        $ui-inner-border-color: $tip-error-inner-border-color,
-        $ui-inner-border-width: $tip-error-inner-border-width
-    );
+    @if $include-tip-form-invalid-ui {
+        @include extjs-tip-ui(
+            $ui-label: 'form-invalid',
+            $ui-border-color: $tip-error-border-color,
+            $ui-border-width: $tip-error-border-width,
+            $ui-border-radius: $tip-error-border-radius,
+            $ui-background-color: $tip-error-background-color,
+            $ui-body-padding: $tip-error-body-padding,
+            $ui-body-color: $tip-error-body-color,
+            $ui-body-font-size: $tip-error-body-font-size,
+            $ui-body-font-weight: $tip-error-body-font-weight,
+            $ui-body-link-color: $tip-error-body-link-color,
+            $ui-inner-border-color: $tip-error-inner-border-color,
+            $ui-inner-border-width: $tip-error-inner-border-width
+        );
+    }
 
     .#{$prefix}tip-body-form-invalid {
         background: 1px 1px no-repeat;

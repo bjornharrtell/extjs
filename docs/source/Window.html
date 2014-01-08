@@ -245,8 +245,6 @@ Ext.define('Ext.window.Window', {
      */
     floating: true,
 
-<span id='Ext-window-Window-property-ariaRole'>    ariaRole: 'alertdialog',
-</span>
 <span id='Ext-window-Window-property-itemCls'>    itemCls: Ext.baseCSSPrefix + 'window-item',
 </span>    
 <span id='Ext-window-Window-property-initialAlphaNum'>    initialAlphaNum: /^[a-z0-9]/,
@@ -567,15 +565,6 @@ Ext.define('Ext.window.Window', {
             me.callParent(arguments);
         } else {
             focusDescendant.focus();
-        }
-    },
-
-<span id='Ext-window-Window-method-beforeLayout'>    beforeLayout: function () {
-</span>        var shadow = this.el.shadow;
-
-        this.callParent();
-        if (shadow) {
-            shadow.hide();
         }
     },
 

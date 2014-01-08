@@ -90,6 +90,9 @@ Ext.define('Ext.layout.container.HBox', {
 <span id='Ext-layout-container-HBox-property-names'>    names: {
 </span>        // parallel
         beforeX: 'left',
+        beforeScrollX: 'left',
+        beforeScrollerSuffix: '-before-scroller',
+        afterScrollerSuffix: '-after-scroller',
         leftCap: 'Left',
         afterX: 'right',
         width: 'width',
@@ -118,7 +121,6 @@ Ext.define('Ext.layout.container.HBox', {
         heightModel: 'heightModel',
         heightIndex: 1,
         y: 'y',
-        scrollTop: 'scrollTop',
         overflowY: 'overflowY',
         hasOverflowY: 'hasOverflowY',
         invalidateScrollY: 'invalidateScrollY',
@@ -134,7 +136,10 @@ Ext.define('Ext.layout.container.HBox', {
         setContentWidth: 'setContentWidth',
         setContentHeight: 'setContentHeight',
         setWidthInDom: 'setWidthInDom',
-        setHeightInDom: 'setHeightInDom'
+        setHeightInDom: 'setHeightInDom',
+        getScrollLeft: 'getScrollLeft',
+        setScrollLeft: 'setScrollLeft',
+        scrollTo: 'scrollTo'
     },
 
 <span id='Ext-layout-container-HBox-property-sizePolicy'>    sizePolicy: {

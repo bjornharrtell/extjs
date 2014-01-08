@@ -41,6 +41,9 @@ to builds of Sencha applications.
 
     <x-sencha-init/>
 
+This will also load any Ant tasks defined by any available Sencha Cmd "extensions" such as
+`x-compass-compile`.
+
 ## x-sencha-command
 
 This command is equivalent to the command line interface. The arguments are placed in the
@@ -104,16 +107,34 @@ As many JAR's as needed can be listed.
 This task generates output from templates in two basic modes: `file` and `dir`. That is,
 the template generator can be given a single source file or a source folder.
 
-### Template Engines
+### Templates
 
-The name of the template file determines the template engine used. Currently there are
-two supported template engines:
+The name of the source file determines if it should be processed as a "template":
 
- * `.tpl` = [XTemplate](http://docs.sencha.com/ext-js/4-1/#!/api/Ext.XTemplate)
- * `.vm` = [Velocity](http://velocity.apache.org/engine/devel/user-guide.html)
+ * `.tpl` = [XTemplate](http://docs.sencha.com/ext-js/4-2/#!/api/Ext.XTemplate)
 
-For example, `"foo.js.tpl"` would be used to generate `"foo.js"` using the XTemplate engine,
-while `"foo.js.vm"` uses Velocity.
+For example, `"foo.js.tpl"` would be used to generate `"foo.js"` using the XTemplate engine.
+
+### Merge Files
+
+In cases where a file may need to be changed from its original generated content (i.e.,
+regenerate the target), the `".merge"` suffix is very helpful. The primary use case for
+this is an application's `"app.js"` file.
+
+When processing a `".merge"` file, `x-generate` performs the following steps:
+
+  1. Move the target file (e.g., `"app.js"`) to the side (e.g., as `"app.js.$old"`).
+  2. Generate the new version of the file in the target location (e.g., `"app.js"`).
+  3. Using a data store, regenerate the base version (e.g., `"app.js.$base"`). That is,
+  the version generated the last time.
+  4. Perform a 3-way merge on these files and update the target file.
+  5. Report any merge conflicts.
+
+It is often the case (as with `"app.js"`) that a `".merge"` file is also a `".tpl"`. In
+the case of `"app.js"`, for example, the source file is `"app.js.tpl.merge"`.
+
+To enable this mode, `x-generate` must be given a `store` attribute which points at the
+data store (a JSON file).
 
 ### Sacred Files
 

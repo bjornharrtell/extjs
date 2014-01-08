@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A display-only text field which is not validated and not submitted. This is useful for when you want to display a
@@ -58,7 +58,7 @@ Ext.define('Ext.form.field.Display', {
     requires: ['Ext.util.Format', 'Ext.XTemplate'],
     alternateClassName: ['Ext.form.DisplayField', 'Ext.form.Display'],
     fieldSubTpl: [
-        '<div id="{id}"',
+        '<div id="{id}" role="input" ',
         '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>', 
         ' class="{fieldCls}">{value}</div>',
         {
@@ -68,10 +68,18 @@ Ext.define('Ext.form.field.Display', {
     ],
 
     /**
+     * @cfg {Boolean} readOnly
+     * @private
+     */
+    readOnly: true,
+
+    /**
      * @cfg {String} [fieldCls="x-form-display-field"]
      * The default CSS class for the field.
      */
     fieldCls: Ext.baseCSSPrefix + 'form-display-field',
+
+    fieldBodyCls: Ext.baseCSSPrefix + 'form-display-field-body',
 
     /**
      * @cfg {Boolean} htmlEncode
@@ -90,6 +98,12 @@ Ext.define('Ext.form.field.Display', {
      * The scope to execute the {@link #renderer} function. Defaults to this.
      */
 
+    noWrap: false,
+    
+    /**
+     * @cfg {Boolean} validateOnChange
+     * @private
+     */
     validateOnChange: false,
 
     initEvents: Ext.emptyFn,
@@ -113,8 +127,7 @@ Ext.define('Ext.form.field.Display', {
     },
 
     setRawValue: function(value) {
-        var me = this,
-            display;
+        var me = this;
             
         value = Ext.value(value, '');
         me.rawValue = value;
@@ -155,14 +168,6 @@ Ext.define('Ext.form.field.Display', {
      */
     /**
      * @cfg {Boolean} disabled
-     * @private
-     */
-    /**
-     * @cfg {Boolean} readOnly
-     * @private
-     */
-    /**
-     * @cfg {Boolean} validateOnChange
      * @private
      */
     /**

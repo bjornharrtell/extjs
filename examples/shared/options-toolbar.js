@@ -81,17 +81,6 @@
 
             location.search = Ext.Object.toQueryString(params);
         }
-        
-        function align() {
-            toolbar.alignTo(
-                document.body,
-                'tr-tr',
-                [
-                    (Ext.getScrollbarSize().width + 4) * (Ext.rootHierarchyState.rtl ? 1 : -1),
-                    -(document.body.scrollTop || document.documentElement.scrollTop)
-                ]
-            );
-        }
 
         var toolbar;
             
@@ -161,11 +150,29 @@
                     handler: function() {
                         toolbar.destroy();
                     }
-                }]
+                }],
+
+                // Extra constraint margins within default constrain region of parentNode
+                constraintInsets: '0 -' + (Ext.getScrollbarSize().width + 4) + ' 0 0'
             });
             toolbar.show();
-            align();
-            Ext.EventManager.onWindowResize(align);
+            toolbar.alignTo(
+                document.body,
+                Ext.optionsToolbarAlign || 'tr-tr',
+                [
+                    (Ext.getScrollbarSize().width + 4) * (Ext.rootHierarchyState.rtl ? 1 : -1),
+                    -(document.body.scrollTop || document.documentElement.scrollTop)
+                ]
+            );
+            
+            var constrainer = function() {
+                toolbar.doConstrain();
+            };
+            
+            Ext.EventManager.onWindowResize(constrainer);
+            toolbar.on('destroy', function() { 
+                Ext.EventManager.removeResizeListener(constrainer);
+            });
         }, 100);
 
     });

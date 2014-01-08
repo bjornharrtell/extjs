@@ -85,6 +85,8 @@ Ext.define('Ext.tree.View', {
         '{%',
             'this.processRowValues(values);',
             'this.nextTpl.applyOut(values, out, parent);',
+            'delete values.rowAttr[&quot;data-qtip&quot;];',
+            'delete values.rowAttr[&quot;data-qtitle&quot;];',
         '%}', {
             priority: 10,
             processRowValues: function(rowValues) {
@@ -312,7 +314,7 @@ Ext.define('Ext.tree.View', {
                 '&lt;td colspan=&quot;' + me.panel.headerCt.getColumnCount() + '&quot;&gt;',
                     '&lt;div class=&quot;' + me.nodeAnimWrapCls + '&quot;&gt;',
                         // Table has to have correct classes to get sized by the dynamic CSS rules
-                        '&lt;table class=&quot;' + Ext.baseCSSPrefix + me.id + '-table ' + Ext.baseCSSPrefix + 'grid-table&quot; border=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot;&gt;',
+                        '&lt;table class=&quot;' + Ext.baseCSSPrefix + me.id + '-table ' + Ext.baseCSSPrefix + 'grid-table&quot; style=&quot;border:0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot;&gt;',
                         columnSizer.join(''),
                         '&lt;tbody&gt;&lt;/tbody&gt;&lt;/table&gt;',
                     '&lt;/div&gt;',
@@ -420,22 +422,6 @@ Ext.define('Ext.tree.View', {
         // because the targetEl just got higher.
         if (animWrap.isAnimating) {
             me.onExpand(parent);
-        }
-    },
-
-<span id='Ext-tree-View-method-beginBulkUpdate'>    // These methods are triggered by:
-</span>    //  the TreeStore's beforebulkremove &amp; bulkremovecomplete events.
-    // In the case of a fully loaded tree (no async IO needed), the whole expansion will be bracketed by
-    // layout suspension, and will end with one refreshSize call.
-    beginBulkUpdate: function() {
-        if (this.rendered) {
-            Ext.suspendLayouts();
-        }
-    },
-<span id='Ext-tree-View-method-endBulkUpdate'>    endBulkUpdate: function(){
-</span>        if (this.rendered) {
-            this.refreshSize();
-            Ext.resumeLayouts(true);
         }
     },
 
@@ -803,9 +789,7 @@ Ext.define('Ext.tree.View', {
         me.mon(treeStore, {
             scope: me,
             beforefill: me.onBeforeFill,
-            fillcomplete: me.onFillComplete,
-            beforebulkremove: me.beginBulkUpdate,
-            bulkremovecomplete: me.endBulkUpdate
+            fillcomplete: me.onFillComplete
         });
 
         if (!treeStore.remoteSort) {
@@ -828,9 +812,7 @@ Ext.define('Ext.tree.View', {
         me.mun(treeStore, {
             scope: me,
             beforefill: me.onBeforeFill,
-            fillcomplete: me.onFillComplete,
-            beforebulkremove: me.beginBulkUpdate,
-            bulkremovecomplete: me.endBulkUpdate
+            fillcomplete: me.onFillComplete
         });
 
         if (!treeStore.remoteSort) {

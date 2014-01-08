@@ -81,13 +81,13 @@ a:hover {
     width: 738px;
 }
 
-h1#pagetitle div {
+h1#pagetitle span {
     position: absolute;
     top: 0;
     right: 0;
 }
 
-h1#pagetitle div a {
+h1#pagetitle span a {
     font-size: 13px;
     text-decoration: underline;
 }

@@ -1,24 +1,12 @@
-.#{$prefix}property-grid {
-    .#{$prefix}grid-row .#{$prefix}grid-property-name .#{$prefix}grid-cell-inner,
-    .#{$prefix}grid-row-over .#{$prefix}grid-property-name .#{$prefix}grid-cell-inner {
-        padding-left: 12px;
-        @if $grid-property-cell-background-image != null {
-            background-image: theme-background-image($grid-property-cell-background-image);
-        }
+@if $grid-property-cell-background-image != null {
+    .#{$prefix}grid-cell-inner-property-name {
+        background-image: theme-background-image($grid-property-cell-background-image);
         background-repeat: no-repeat;
-        background-position: -16px 2px;
-    }
-}
-
-.#{$prefix}grid-with-row-lines.#{$prefix}property-grid {
-    .#{$prefix}grid-row .#{$prefix}grid-property-name .#{$prefix}grid-cell-inner,
-    .#{$prefix}grid-row-over .#{$prefix}grid-property-name .#{$prefix}grid-cell-inner {
-        background-position: -16px 1px;
-    }
-}
-
-@if $include-ie {
-    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}grid-row .#{$prefix}grid-property-name .#{$prefix}grid-cell-inner {
-        background-position: -16px 2px;
+        @if $grid-property-cell-background-position != null {
+            background-position: $grid-property-cell-background-position;
+        }
+        @if $grid-property-cell-before-padding != null {
+            padding-left: $grid-property-cell-before-padding;
+        }
     }
 }

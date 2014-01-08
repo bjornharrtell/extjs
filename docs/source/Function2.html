@@ -15,8 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag foundation,core
-//@require Array.js
+  <pre class="prettyprint lang-js">// @tag foundation,core
+// @require Array.js
+// @define Ext.Function
 
 <span id='Ext-Function'>/**
 </span> * @class Ext.Function
@@ -390,11 +391,11 @@ Ext.Function = {
     createThrottled: function(fn, interval, scope) {
         var lastCallTime, elapsed, lastArgs, timer, execute = function() {
             fn.apply(scope || this, lastArgs);
-            lastCallTime = new Date().getTime();
+            lastCallTime = Ext.Date.now();
         };
 
         return function() {
-            elapsed = new Date().getTime() - lastCallTime;
+            elapsed = Ext.Date.now() - lastCallTime;
             lastArgs = arguments;
 
             clearTimeout(timer);

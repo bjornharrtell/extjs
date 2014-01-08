@@ -136,14 +136,14 @@ Ext.define('Ext.form.field.Checkbox', {
             '&lt;/label&gt;',
             '{afterBoxLabelTpl}',
         '&lt;/tpl&gt;',
-        // Creates not an actual checkbox, but a button which is given aria role=&quot;checkbox&quot; (If ARIA is required) and
-        // styled with a custom checkbox image. This allows greater control and consistency in
-        // styling, and using a button allows it to gain focus and handle keyboard nav properly.
-        '&lt;input type=&quot;button&quot; id=&quot;{id}&quot; {inputAttrTpl}',
+        // Creates an input of the configured type. By default, this is &quot;button&quot; to enable theming.
+        // When ARIA is enabled, this reverts to a &quot;checkbox&quot;
+        '&lt;input type=&quot;{inputTypeAttr}&quot; id=&quot;{id}&quot; {inputAttrTpl}',
             '&lt;tpl if=&quot;tabIdx&quot;&gt; tabIndex=&quot;{tabIdx}&quot;&lt;/tpl&gt;',
             '&lt;tpl if=&quot;disabled&quot;&gt; disabled=&quot;disabled&quot;&lt;/tpl&gt;',
             '&lt;tpl if=&quot;fieldStyle&quot;&gt; style=&quot;{fieldStyle}&quot;&lt;/tpl&gt;',
-            ' class=&quot;{fieldCls} {typeCls} {inputCls}&quot; autocomplete=&quot;off&quot; hidefocus=&quot;true&quot; /&gt;',
+            '&lt;tpl if=&quot;ariaAttrs&quot;&gt; {ariaAttrs}&lt;/tpl&gt;',
+            ' class=&quot;{fieldCls} {typeCls} {inputCls} {childElCls}&quot; autocomplete=&quot;off&quot; hidefocus=&quot;true&quot; /&gt;',
         '&lt;tpl if=&quot;boxLabel &amp;&amp; boxLabelAlign == \'after\'&quot;&gt;',
             '{beforeBoxLabelTpl}',
             '&lt;label id=&quot;{cmpId}-boxLabelEl&quot; {boxLabelAttrTpl} class=&quot;{boxLabelCls} {boxLabelCls}-{boxLabelAlign}&quot; for=&quot;{id}&quot;&gt;',
@@ -220,13 +220,9 @@ Ext.define('Ext.form.field.Checkbox', {
 </span>     * @cfg {String} [fieldCls='x-form-field']
      * The default CSS class for the checkbox
      */
-
-<span id='Ext-form-field-Checkbox-cfg-fieldBodyCls'>    /**
-</span>     * @cfg {String} [fieldBodyCls='x-form-cb-wrap']
-     * An extra CSS class to be applied to the body content element in addition to {@link #fieldBodyCls}.
-     * .
-     */
-    fieldBodyCls: Ext.baseCSSPrefix + 'form-cb-wrap',
+    
+<span id='Ext-form-field-Checkbox-property-extraFieldBodyCls'>    // private
+</span>    extraFieldBodyCls: Ext.baseCSSPrefix + 'form-cb-wrap',
 
 <span id='Ext-form-field-Checkbox-cfg-checked'>    /**
 </span>     * @cfg {Boolean} checked
@@ -293,7 +289,11 @@ Ext.define('Ext.form.field.Checkbox', {
 <span id='Ext-form-field-Checkbox-cfg-checkChangeEvents'>    // private overrides
 </span>    checkChangeEvents: [],
 <span id='Ext-form-field-Checkbox-cfg-inputType'>    inputType: 'checkbox',
-</span>
+</span>    
+<span id='Ext-form-field-Checkbox-property-inputTypeAttr'>    // private - the actual input type to use. inputType is just used to generate a class name
+</span>    inputTypeAttr: 'button',
+
+
 <span id='Ext-form-field-Checkbox-property-onRe'>    // private
 </span>    onRe: /^on$/i,
 
@@ -340,7 +340,8 @@ Ext.define('Ext.form.field.Checkbox', {
             disabled      : me.readOnly || me.disabled,
             boxLabel      : me.boxLabel,
             boxLabelCls   : me.boxLabelCls,
-            boxLabelAlign : me.boxLabelAlign
+            boxLabelAlign : me.boxLabelAlign,
+            inputTypeAttr : me.inputTypeAttr
         });
     },
 

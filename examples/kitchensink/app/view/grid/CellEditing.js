@@ -76,16 +76,13 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
                 editor: new Ext.form.field.ComboBox({
                     typeAhead: true,
                     triggerAction: 'all',
-                    selectOnTab: true,
                     store: [
                         ['Shade','Shade'],
                         ['Mostly Shady','Mostly Shady'],
                         ['Sun or Shade','Sun or Shade'],
                         ['Mostly Sunny','Mostly Sunny'],
                         ['Sunny','Sunny']
-                    ],
-                    lazyRender: true,
-                    listClass: 'x-combo-list-small'
+                    ]
                 })
             }, {
                 header: 'Price',

@@ -476,10 +476,11 @@ Ext.define('Ext.view.View', {
 <span id='Ext-view-View-method-handleMouseOverOrOut'>    handleMouseOverOrOut: function(e) {
 </span>        var me = this,
             isMouseout = e.type === 'mouseout',
-            nowOverItem = e[isMouseout ? 'getRelatedTarget' : 'getTarget'](me.dataRowSelector||me.itemSelector);
+            method = isMouseout ? e.getRelatedTarget : e.getTarget,
+            nowOverItem = method.call(e, me.itemSelector) || method.call(e, me.dataRowSelector);
 
         // If the mouse event of whatever type tells use that we are no longer over the current mouseOverItem...
-        if (!me.mouseOverItem || nowOverItem !== me.mouseoverItem) {
+        if (!me.mouseOverItem || nowOverItem !== me.mouseOverItem) {
 
             // First fire mouseleave for the item we just left
             if (me.mouseOverItem) {
@@ -646,11 +647,18 @@ Ext.define('Ext.view.View', {
 <span id='Ext-view-View-method-setHighlightedItem'>    // @private
 </span>    setHighlightedItem: function(item){
         var me = this,
-            highlighted = me.highlightedItem;
+            highlighted = me.highlightedItem,
+            overItemCls = me.overItemCls,
+            beforeOverItemCls = me.beforeOverItemCls,
+            previous;
 
         if (highlighted != item){
             if (highlighted) {
-                Ext.fly(highlighted).removeCls(me.overItemCls);
+                Ext.fly(highlighted).removeCls(overItemCls);
+                previous = highlighted.previousSibling;
+                if (beforeOverItemCls &amp;&amp; previous) {
+                    Ext.fly(previous).removeCls(beforeOverItemCls);
+                }
                 me.fireEvent('unhighlightitem', me, highlighted);
             }
 
@@ -658,6 +666,10 @@ Ext.define('Ext.view.View', {
 
             if (item) {
                 Ext.fly(item).addCls(me.overItemCls);
+                previous = item.previousSibling;
+                if (beforeOverItemCls &amp;&amp; previous) {
+                    Ext.fly(previous).addCls(beforeOverItemCls);
+                }
                 me.fireEvent('highlightitem', me, item);
             }
         }

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @private
@@ -45,6 +45,7 @@ Ext.define('Ext.grid.locking.Lockable', {
 
     requires: [
         'Ext.grid.locking.View',
+        'Ext.grid.header.Container',
         'Ext.grid.locking.HeaderContainer',
         'Ext.view.Table'
     ],
@@ -162,7 +163,7 @@ Ext.define('Ext.grid.locking.Lockable', {
         this.hasView = true;
 
         var me = this,
-            scrollbarHeight = Ext.getScrollbarSize().width,
+            scrollbarHeight = Ext.getScrollbarSize().height,
             store = me.store = Ext.StoreManager.lookup(me.store),
 
             // share the selection model
@@ -182,7 +183,8 @@ Ext.define('Ext.grid.locking.Lockable', {
             normalHeaderCt,
             lockedView,
             normalView,
-            listeners;
+            listeners,
+            bufferedRenderer = me.findPlugin('bufferedrenderer');
 
         allFeatures = me.constructLockableFeatures();
 
@@ -197,6 +199,7 @@ Ext.define('Ext.grid.locking.Lockable', {
 
         lockedGrid = Ext.apply({
             id: me.id + '-locked',
+            isLocked: true,
             ownerLockable: me,
             xtype: me.determineXTypeToCreate(true),
             store: store,
@@ -218,6 +221,7 @@ Ext.define('Ext.grid.locking.Lockable', {
 
         normalGrid = Ext.apply({
             id: me.id + '-normal',
+            isLocked: false,
             ownerLockable: me,
             xtype: me.determineXTypeToCreate(),
             store: store,
@@ -344,7 +348,7 @@ Ext.define('Ext.grid.locking.Lockable', {
         });
 
         // Set up listeners for the locked view. If its SelModel ever scrolls it, the normal view must sync
-        listeners = {
+        listeners = bufferedRenderer ? {} : {
             scroll: {
                 fn: me.onLockedViewScroll,
                 element: 'el',
@@ -381,7 +385,7 @@ Ext.define('Ext.grid.locking.Lockable', {
         lockedView.on(listeners);
 
         // Set up listeners for the normal view
-        listeners = {
+        listeners = bufferedRenderer ? {} : {
             scroll: {
                 fn: me.onNormalViewScroll,
                 element: 'el',
@@ -396,7 +400,7 @@ Ext.define('Ext.grid.locking.Lockable', {
 
         // The top grid, and the LockingView both need to have a headerCt which is usable.
         // It is part of their private API that framework code uses when dealing with a grid or grid view
-        me.headerCt = me.view.headerCt = new Ext.grid.locking.HeaderContainer(this);
+        me.headerCt = me.view.headerCt = new Ext.grid.locking.HeaderContainer(me);
 
         lockedHeaderCt.lockedCt = true;
         lockedHeaderCt.lockableInjected = true;
@@ -452,22 +456,46 @@ Ext.define('Ext.grid.locking.Lockable', {
         };
     },
 
-    processColumns: function(columns){
-        // split apart normal and lockedWidths
-        var i = 0,
-            len = columns.length,
-            lockedWidth = 0,
+    processColumns: function(columns) {
+        // split apart normal and locked 
+        var i,
+            len,
+            column,
+            cp = this.dummyHdrCtr || (this.self.prototype.dummyHdrCtr = new Ext.grid.header.Container()),
             lockedHeaders = [],
             normalHeaders = [],
-            column,
-            result;
+            lockedHeaderCt = {
+                itemId: 'lockedHeaderCt',
+                stretchMaxPartner: '^^>>#normalHeaderCt',
+                items: lockedHeaders
+            },
+            normalHeaderCt = {
+                itemId: 'normalHeaderCt',
+                stretchMaxPartner: '^^>>#lockedHeaderCt',
+                items: normalHeaders
+            },
+            result = {
+                lockedWidth: 0,
+                locked: lockedHeaderCt,
+                normal: normalHeaderCt
+            };
 
-        for (; i < len; ++i) {
+        // In case they specified a config object with items...
+        if (Ext.isObject(columns)) {
+            Ext.applyIf(lockedHeaderCt, columns);
+            Ext.applyIf(normalHeaderCt, columns);
+            Ext.apply(cp, columns);
+            columns = columns.items;
+        }
+
+        for (i = 0, len = columns.length; i < len; ++i) {
             column = columns[i];
 
-            // Convert configs to Column objects because we mutate them, and we must not mutate passed in config objects in case they are re-used.
+            // Use the HeaderContainer object to correctly configure and create the column.
+            // MUST instantiate now because the locked or autoLock config which we read here might be in the prototype.
+            // MUST use a Container instance so that defaults from an object columns config get applied.
             if (!column.isComponent) {
-                column = Ext.ComponentManager.create(columns[i], 'gridcolumn');
+                column = cp.lookupComponent(cp.applyDefaults(column));
             }
 
             // mark the column as processed so that the locked attribute does not
@@ -475,7 +503,7 @@ Ext.define('Ext.grid.locking.Lockable', {
             column.processed = true;
             if (column.locked || column.autoLock) {
                 if (!column.hidden) {
-                    lockedWidth += this.getColumnWidth(column) || Ext.grid.header.Container.prototype.defaultWidth;
+                    result.lockedWidth += this.getColumnWidth(column) || cp.defaultWidth;
                 }
                 lockedHeaders.push(column);
             } else {
@@ -485,20 +513,7 @@ Ext.define('Ext.grid.locking.Lockable', {
                 column.headerId = (column.initialConfig || column).id || ('h' + (++this.headerCounter));
             }
         }
-        result = {
-            lockedWidth: lockedWidth,
-            locked: {
-                items: lockedHeaders,
-                itemId: 'lockedHeaderCt',
-                stretchMaxPartner: '^^>>#normalHeaderCt'
-            },
-            normal: {
-                items: normalHeaders,
-                itemId: 'normalHeaderCt',
-                stretchMaxPartner: '^^>>#lockedHeaderCt'
-            }
-        };
-        this.fireEvent('processcolumns', this, result.lockedHeaders, result.normalHeaders);
+        this.fireEvent('processcolumns', this, lockedHeaders, normalHeaders);
         return result;
     },
 
@@ -874,11 +889,16 @@ Ext.define('Ext.grid.locking.Lockable', {
         activeHd = activeHd || normalHCt.getMenu().activeHeader;
         ownerCt = activeHd.ownerCt;
 
+        // isLockable will test for making the locked side too wide
+        if (!activeHd.isLockable()) {
+            return;
+        }
+
         // if column was previously flexed, get/set current width
         // and remove the flex
         if (activeHd.flex) {
             activeHd.width = activeHd.getWidth();
-            delete activeHd.flex;
+            activeHd.flex = null;
         }
 
         Ext.suspendLayouts();

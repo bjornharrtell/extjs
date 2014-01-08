@@ -10,7 +10,7 @@ if (SimpleTasksSettings.useLocalStorage && !Ext.supports.LocalStorage) {
         autoCreateViewport: true,
         controllers: ['Lists', 'Tasks'],
         launch: function() {
-            Ext.getCmp('options-toolbar').alignTo(document.body, 'br-br');
+            Ext.optionsToolbarAlign = 'br-br';
         }
     });
 }

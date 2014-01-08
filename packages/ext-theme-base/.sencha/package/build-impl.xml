@@ -77,75 +77,60 @@ this file in most cases.
     <target name="init" depends="init-local,find-cmd">
         <antcall target="-before-init"/>
 
-        <taskdef resource="com/sencha/ant/antlib.xml" classpath="${cmd.dir}/sencha.jar"/>
+        <taskdef resource="com/sencha/ant/antlib.xml" 
+                 classpath="${cmd.dir}/sencha.jar"
+                 loaderref="senchaloader"/>
+
         <x-sencha-init prefix=""/>
-        
+        <!-- Some operations require sencha.jar in the Ant classpath -->
+        <x-extend-classpath>
+            <jar path="${cmd.dir}/sencha.jar"/>
+        </x-extend-classpath>
+
         <!-- default the build environment to production if it is unset by this point -->
         <property name="args.environment" value="production"/>
-        
-        <!-- initialize the build.dir property from the workspace config after we've loaded it -->
-        <property name="build.dir"
-                  location="${package.build.dir}"/>
 
-        <property name="build.resources.dir" 
-                  location="${build.dir}/resources"/>
-        
-        <property name="package.resources.dir" 
-                  location="${package.dir}/resources"/>
-        
+        <x-load-properties file="${package.config.dir}/${args.environment}.properties" required="0"/>
+        <x-load-properties file="${package.config.dir}/build.properties" required="1"/>
+
         <condition property="package.resources.dir.exists">
-            <available file="${package.resources.dir}" type="dir" />
+            <available file="${package.resources.dir}" type="dir"/>
         </condition>
-        
-        <property name="package.sass.dir" 
-                  location="${package.dir}/sass"/>
         
         <condition property="package.sass.dir.exists">
             <available file="${package.sass.dir}" type="dir" />
         </condition>
-        
-        <property name="build.all.js" 
-                  value="${build.dir}/${package.name}.js"/>
-        
-        <property name="build.all.debug.js" 
-                  value="${build.dir}/${package.name}-debug.js"/>
-        
-        <property name="build.all.dev.js" 
-                  value="${build.dir}/${package.name}-dev.js"/>
 
-        <property name="build.all.scss" 
-                  value="${build.dir}/${package.name}-all-debug.scss"/>
-        
-        <property name="build.all.rtl.scss" 
-                  value="${build.dir}/${package.name}-all-rtl-debug.scss"/>
-        
-        <property name="build.all.css.debug" 
-                  value="${build.dir}/resources/${package.name}-all-debug.css"/>
-        
-        <property name="build.all.rtl.css.debug" 
-                  value="${build.dir}/resources/${package.name}-all-rtl-debug.css"/>
-        
-        <property name="build.all.css" 
-                  value="${build.dir}/resources/${package.name}-all.css"/>
-        
-        <property name="build.all.rtl.css" 
-                  value="${build.dir}/resources/${package.name}-all-rtl.css"/>
-        
-        <property name="build.all.ruby"
-                  value="${build.dir}/config.rb"/>
-        
-        <x-normalize-path path="${build.dir}/resources" property="image.search.path"/>
 
+        <if>
+            <not>
+                <isset property="package.framework"/>
+            </not>
+            <then>
+                <property name="skip.style" value="1"/>
+            </then>
+        </if>
+        
+        <if>
+            <isset property="skip.style"/>
+            <then>
+                <property name="skip.sass" value="1"/>
+                <property name="skip.capture" value="1"/>
+                <property name="skip.slice" value="1"/>
+            </then>
+        </if>
+        
         <if>
             <isset property="package.sass.dir.exists"/>
             <then>
+                <x-normalize-path path="${build.dir}/resources" property="image.search.path"/>
                 <property name="build.compile.sass.rtl">
                     sass
                         -etc=true
                         -vars=true
                         -rules=true
                         -class-name-vars=true
-                        -variable=$image-search-path:'${image.search.path}'
+                        -variable=$image-search-path:'${image.search.path}' !default
                         -variable=$theme-name: '${package.name}' !default
                         -output=${build.all.rtl.scss}
                     and
@@ -159,7 +144,7 @@ this file in most cases.
                         -vars=true
                         -rules=true
                         -class-name-vars=true
-                        -variable=$image-search-path:'${image.search.path}'
+                        -variable=$image-search-path:'${image.search.path}' !default
                         -variable=$theme-name: '${package.name}' !default
                         -output=${build.all.scss}
                     and
@@ -173,57 +158,132 @@ this file in most cases.
         <property name="build.compile.sass.rtl" value=""/>
         <property name="build.compile.sass" value=""/>
         
-        <!--
-        Options to pass to the "sencha fs slice" command.
-        -->
-        <property name="build.slice.options" value=""/>
-
-        <property name="pkg.build.dir" location="${workspace.build.dir}/${package.name}"/>
-        <property name="pkg.file.name" value="${package.name}.pkg"/>
-        <property name="pkg.includes" value="**/*"/>
-        <property name="pkg.excludes" value="package.json"/>
-
-        <!-- Some operations require sencha.jar in the Ant classpath -->
-        <x-extend-classpath>
-            <jar path="${cmd.dir}/sencha.jar"/>
-        </x-extend-classpath>
-        
-        <!--<x-verify-app-cmd-ver/>-->
-
-        <x-script-def name="x-load-json-cfg">
-            <script src="${cmd.dir}/ant/JSON.js"/>
-            <script src="${cmd.dir}/ant/ant-util.js"/>
-            importPackage(com.sencha.util);
-            importPackage(java.io);
-            
-            var packageDir = project.getProperty("package.dir"),
-                packageCfg = JSON.parse(
-                    FileUtil.readUnicodeFile(new File(packageDir, "package.json")));
-
-            project.setProperty("package.version", packageCfg.version);
-        </x-script-def>
-        
-        <x-load-json-cfg/>
-
         <if>
-            <not>
-                <isset property="package.framework"/>
-            </not>
+            <equals arg1="theme" arg2="${package.type}"/>
             <then>
-                <property name="skip.style" value="1"/>
+                <property name="build.compile.js.filter">
+                        union
+                            -tag=package-${package.name}
+                        and
+                        include
+                            -tag=package-${package.name}-base
+                </property>
             </then>
         </if>
         
+        <property name="build.compile.js.filter">
+            union
+                -tag=package-${package.name}
+        </property>
+        
+        <property name="build.compile.js.dev.subcommand">
+            -options=${build.compile.js.dev.options}
+                ${build.compile.js.filter}
+                and
+                concat
+                    -out=${build.all.dev.js}
+        </property>
+        
+        <property name="build.compile.js.debug.subcommand">
+            -options=${build.compile.js.debug.options}
+                ${build.compile.js.filter}
+                and
+                concatenate
+                    -output-file=${build.all.debug.js}
+        </property>
+
+        <property name="build.compile.js.subcommand">
+            -options=${build.compile.js.options}
+                ${build.compile.js.filter}
+                and
+                # TODO: exclude Ext.cmd.derive
+                # optimize
+                #    -define-rewrite
+                # and
+                concatenate
+                    ${build.compile.js.compress}
+                    -output-file=${build.all.js}
+        </property>
+
+        <property name="build.compile.js.command">
+            ${build.compile.js.dev.subcommand}
+                and
+            ${build.compile.js.debug.subcommand}
+                and
+            ${build.compile.js.subcommand}
+        </property>
+
+        <property name="build.compile.sass.rtl.filter">
+            include
+                -all
+        </property>
+
+        <property name="build.compile.sass.filter">
+            union
+                -not
+                -namespace=Ext.rtl
+        </property>
+
+        <property name="build.compile.sass.rtl.subcommand">
+            ${build.compile.sass.rtl.filter}
+            and
+            ${build.compile.sass.rtl}
+        </property>
+
+        <property name="build.compile.sass.subcommand">
+            ${build.compile.sass.filter}
+            and
+            ${build.compile.sass}
+        </property>
+
+        <property name="build.compile.sass.command">
+            ${build.compile.sass.rtl.subcommand}
+            and
+            ${build.compile.sass.subcommand}
+        </property>
         
         <if>
             <isset property="skip.style"/>
             <then>
-                <property name="skip.sass" value="1"/>
-                <property name="skip.capture" value="1"/>
-                <property name="skip.slice" value="1"/>
+                <property name="build.compile.command">
+                    compile
+                        ${build.compile.js.command}
+                </property>
             </then>
         </if>
         
+        <property name="build.compile.command">
+            compile
+                ${build.compile.sass.command}
+                and
+                ${build.compile.js.command}
+        </property>
+        
+        <property name="build.theme.capture.command">
+            theme
+                capture
+                    -page=${build.dir}/example/theme.html
+                    -image=${build.dir}/theme-capture.png
+                    -manifest=${build.dir}/theme-capture.json
+        </property>
+        
+        <property name="build.theme.slice.command">
+            fs
+                slice
+                    ${build.slice.options}
+                    -image=${build.dir}/theme-capture.png
+                    -manifest=${build.dir}/theme-capture.json
+                    -out=${build.resources.dir}
+        </property>
+
+        <fileset id="pkg.files" dir="${package.dir}" includes="${pkg.includes}">
+            <exclude name="${pkg.excludes}"/>
+            <exclude name="**/.sass-cache/**/*"/>
+            <exclude name="**/.sass-cache"/>
+            <exclude name="**/theme-capture.*"/>
+        </fileset>
+        <property name="build.pkg.manifest" value="pkg.files"/>
+
         <antcall target="-after-init"/>
     </target>
 
@@ -261,11 +321,43 @@ this file in most cases.
             cssdir="${build.dir}/resources"
             config="${build.all.ruby}"/>
         
-        <x-compress-css srcfile="${build.all.css.debug}"
-                        outfile="${build.all.css}"/>
+        
+        <macrodef name="x-compress-css-files">
+            <attribute name="dir"/>
+            <attribute name="prefix"/>
+            <attribute name="outprefix"/>
+            <sequential>
+                <x-split-css file="@{dir}/@{prefix}.css"
+                             outdir="${build.resources.dir}"
+                             limit="${build.css.selector.limit}"/>
 
-        <x-compress-css srcfile="${build.all.rtl.css.debug}"
-                        outfile="${build.all.rtl.css}"/>
+                <for param="cssfile">
+                    <fileset dir="@{dir}" includes="@{prefix}*.css"/>
+                    <sequential>
+                        <local name="css.output.name"/>
+                        <local name="pattern"/>
+                        <property name="pattern" value="(.*?)(@{prefix})(_\d{1,2})*\.css"/>
+                        <propertyregex property="css.output.name"
+                                       input="@{cssfile}"
+                                       regexp="${pattern}"
+                                       select="\1@{outprefix}\3.css"
+                                       override="true"/>
+                        <x-compress-css srcfile="@{cssfile}"
+                                        outfile="${css.output.name}"/>
+                    </sequential>
+                </for>
+            </sequential>
+        </macrodef>
+
+        <x-compress-css-files
+            dir="${build.resources.dir}"
+            prefix="${build.all.css.debug.prefix}"
+            outprefix="${build.all.css.prefix}"/>
+        
+        <x-compress-css-files
+            dir="${build.resources.dir}"
+            prefix="${build.all.rtl.css.debug.prefix}"
+            outprefix="${build.all.rtl.css.prefix}"/>
 
         <antcall target="-after-sass"/>
     </target>
@@ -279,12 +371,12 @@ this file in most cases.
             description="Performs the resource folder inheritance from base theme(s)">
         <antcall target="-before-inherit-resources"/>
         
-        <for list="${package.base.names}" param="base">
+        <for list="${package.base.packages}" param="base">
             <sequential>
                 <echo>Merging resources from base package @{base}</echo>
                 <local name="base.path"/>
                 <local name="base.resource.path"/>
-                <property name="base.path" location="../@{base}"/>
+                <property name="base.path" location="@{base}"/>
                 <property name="base.resource.path" location="${base.path}/resources"/>
                 <if>
                     <available file="${base.resource.path}" type="dir"/>
@@ -315,21 +407,12 @@ this file in most cases.
 
         <echo>Capture theme image to ${build.dir}/theme-capture.png</echo>
         <x-sencha-command dir="${package.dir}">
-            theme
-                capture
-                    -page=${build.dir}/example/theme.html
-                    -image=${build.dir}/theme-capture.png
-                    -manifest=${build.dir}/theme-capture.json
+            ${build.theme.capture.command}
         </x-sencha-command>
 
         <echo>Slicing theme images to ${build.resources.dir}</echo>
         <x-sencha-command dir="${package.dir}">
-            fs
-                slice
-                    ${build.slice.options}
-                    -image=${build.dir}/theme-capture.png
-                    -manifest=${build.dir}/theme-capture.json
-                    -out=${build.resources.dir}
+            ${build.theme.slice.command}
         </x-sencha-command>
 
         <antcall target="-after-slice"/>
@@ -340,7 +423,7 @@ this file in most cases.
     -->
     <target name="-before-copy-resources"/>
     <target name="-after-copy-resources"/>
-    <target name="copy-resources" depends="init" if="package.resources.dir.exists" unless="skip.slice"
+    <target name="copy-resources" depends="init" if="package.resources.dir.exists"
             description="Copy theme resources to folder">
         <antcall target="-before-copy-resources"/>
 
@@ -362,41 +445,7 @@ this file in most cases.
         
         <!--run compile command to generate concatenated output files for js and scss-->
         <x-sencha-command dir="${package.dir}">
-            compile
-                include
-                    -all
-                and
-                ${build.compile.sass.rtl}
-                and
-                exclude
-                    -namespace=Ext.rtl
-                and
-                ${build.compile.sass}
-                and
-                union
-                    -tag=package-${package.name}
-                and
-                concat
-                    -out=${build.all.dev.js}
-                and
-            
-            -options=debug:false
-                concatenate
-                    -output-file=${build.all.debug.js}
-                and
-            
-            -options=debug:false
-                # TODO: exclude Ext.cmd.derive
-                # optimize
-                #    -define-rewrite
-                # and
-            
-                concatenate
-                    +yui
-                    -output-file=${build.all.js}
-                and
-            
-                
+            ${build.compile.command}
         </x-sencha-command>
 
         <antcall target="-after-js"/>
@@ -409,55 +458,13 @@ this file in most cases.
     <target name="-after-pkg"/>
     <target name="pkg" depends="init" unless="skip.pkg"
             description="Builds the PKG file">
-        <local name="package.json.staging"/>
-
         <antcall target="-before-pkg"/>
 
-        
-        <property name="package.json.file"
-                  location="${package.dir}/package.json"/>
-        
-        <property name="package.deploy.json.name"
-                  value="package.deploy.json"/>
-        
-        <property name="package.json.staging" 
-                  value="${package.dir}/${package.deploy.json.name}"/>
-        
-        <zip destfile="${pkg.build.dir}/${pkg.file.name}">
-            <fileset
-                dir="${package.dir}"
-                includes="${pkg.includes}"
-                excludes="${pkg.excludes}"/>
-        </zip>
-
-        <x-script-def name="x-update-package-json">
-            <attribute name="from"/>
-            <attribute name="to"/>
-            <script src="${cmd.config.dir}/ant/JSON.js"/>
-            <script src="${cmd.config.dir}/ant/ant-util.js"/>
-            <![CDATA[
-                var pkgFile = attributes.get("from"),
-                    pkgTmpFile = attributes.get("to");
-                    config = readJson(pkgFile);
-                    
-                delete config.local;
-                writeJson(pkgTmpFile, config);
-            ]]>
-        </x-script-def>
-
-        <x-update-package-json
-            from="${package.json.file}"
-            to="${package.json.staging}"/>
-
-        <zip destfile="${pkg.build.dir}/${pkg.file.name}"
-             update="true">
-            <mappedresources>
-                <fileset dir="${package.dir}" includes="${package.deploy.json.name}"/>
-                <globmapper from="*" to="package.json"/>
-            </mappedresources>
-        </zip>
-
-        <delete file="${package.json.staging}"/>
+        <x-make-pkg dir="${package.dir}"
+                    files="${build.pkg.manifest}"
+                    pkg="${pkg.build.dir}/${pkg.file.name}"
+                    temp="${build.dir}/temp"
+                    />
 
         <antcall target="-after-pkg"/>
     </target>
@@ -487,22 +494,10 @@ this file in most cases.
 
     <target name=".help" depends="init"
             description="Provides help on the build script">
-        <local name="-alltargets"/>
-        <x-shell outputproperty="-alltargets">
-            ant -f ${ant.file} -p
-        </x-shell>
 
-        <!--
-        Remove the annoying "Default taret:.help" smashed on the end of the output.
-        -->
-        <script language="javascript">
-            var s = project.getProperty("-alltargets"),
-                n = s.indexOf('Default target:');
-            //self.log("all=" + n);
-            project.setProperty("-alltargets", s.substring(0, n));
-        </script>
+        <x-get-project-targets property="help.message"/>
 
-        <echo><![CDATA[${-alltargets}
+        <echo><![CDATA[${help.message}
 This is the main build script for your package.
 
 The following properties can be used to disable certain steps in the build

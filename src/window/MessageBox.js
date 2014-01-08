@@ -16,8 +16,10 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
+// @define Ext.MessageBox, Ext.Msg
+
 /**
  * Utility class for generating different styles of message boxes.  The singleton instance, Ext.MessageBox
  * alias `Ext.Msg` can also be used.
@@ -128,11 +130,18 @@ Ext.define('Ext.window.MessageBox', {
     closeAction: 'hide',
     resizable: false,
     title: '&#160;',
-    
+
     defaultMinWidth: 250,
     defaultMaxWidth: 600,
     defaultMinHeight: 110,
     defaultMaxHeight: 500,
+    
+    // Forcibly set these to null on the prototype to override anything set higher in
+    // the hierarchy
+    minWidth: null,
+    maxWidth: null,
+    minHeight: null,
+    maxHeight: null,
     constrain: true,
 
     cls: [Ext.baseCSSPrefix + 'message-box', Ext.baseCSSPrefix + 'hide-offsets'],
@@ -141,7 +150,7 @@ Ext.define('Ext.window.MessageBox', {
         type: 'vbox',
         align: 'stretch'
     },
-    
+
     // We want to shrinkWrap around all docked items
     shrinkWrapDock: true,
 
@@ -222,8 +231,7 @@ Ext.define('Ext.window.MessageBox', {
             field.reset();
         }
 
-        // Important not to have focus remain in the hidden Window; Interferes with DnD.
-        btn.blur();
+        // Component.onHide blurs the active element if the Component contains the active element
         me.hide();
         me.userCallback(btn.itemId, value, me.cfg);
     },
@@ -231,7 +239,7 @@ Ext.define('Ext.window.MessageBox', {
     hide: function() {
         var me = this,
             cls = me.cfg.cls;
-            
+
         me.dd.endDrag();
         me.progressBar.reset();
         if (cls) {
@@ -240,18 +248,26 @@ Ext.define('Ext.window.MessageBox', {
         me.callParent(arguments);
     },
 
-    initComponent: function() {
+    constructor: function(cfg) {
+        var me = this;
+
+        me.callParent(arguments);
+
+        // set the default min/max/Width/Height to the initially configured min/max/Width/Height
+        // so that it will be used as the default when reconfiguring.
+        me.minWidth = me.defaultMinWidth = (me.minWidth || me.defaultMinWidth);
+        me.maxWidth = me.defaultMaxWidth = (me.maxWidth || me.defaultMaxWidth);
+        me.minHeight = me.defaultMinHeight = (me.minHeight || me.defaultMinHeight);
+        me.maxHeight = me.defaultMaxHeight = (me.maxHeight || me.defaultMaxHeight);
+    },
+
+    initComponent: function(cfg) {
         var me = this,
             baseId = me.id,
             i, button;
 
         me.title = '&#160;';
-        
-        me.minWidth = me.defaultMinWidth;
-        me.maxWidth = me.defaultMaxWidth;
-        me.minHeight = me.defaultMinHeight;
-        me.maxHeight = me.defaultMaxHeight;
-        
+
         me.topContainer = new Ext.container.Container({
             layout: 'hbox',
             padding: 10,
@@ -321,7 +337,7 @@ Ext.define('Ext.window.MessageBox', {
         me.on('close', me.onClose, me);
         me.callParent();
     },
-    
+
     onClose: function(){
         var btn = this.header.child('[type=close]');
         // Give a temporary itemId so it can act like the cancel button
@@ -331,20 +347,13 @@ Ext.define('Ext.window.MessageBox', {
     },
 
     onPromptKey: function(textField, e) {
-        var me = this,
-            blur;
+        var me = this;
 
-        if (e.keyCode === Ext.EventObject.RETURN || e.keyCode === 10) {
+        if (e.keyCode === e.RETURN || e.keyCode === 10) {
             if (me.msgButtons.ok.isVisible()) {
-                blur = true;
                 me.msgButtons.ok.handler.call(me, me.msgButtons.ok);
             } else if (me.msgButtons.yes.isVisible()) {
                 me.msgButtons.yes.handler.call(me, me.msgButtons.yes);
-                blur = true;
-            }
-
-            if (blur) {
-                me.textField.blur();
             }
         }
     },
@@ -354,7 +363,8 @@ Ext.define('Ext.window.MessageBox', {
             buttons = 0,
             hideToolbar = true,
             oldButtonText = me.buttonText,
-            width, height, i, textArea, textField,
+            resizer = me.resizer,
+            resizeTracker, width, height, i, textArea, textField,
             msg, progressBar, msgButtons;
 
         // Restore default buttonText before reconfiguring.
@@ -365,15 +375,23 @@ Ext.define('Ext.window.MessageBox', {
         if (cfg.width) {
             width = cfg.width;
         }
-        
+
         if (cfg.height) {
             height = cfg.height;
         }
-        
+
         me.minWidth = cfg.minWidth || me.defaultMinWidth;
         me.maxWidth = cfg.maxWidth || me.defaultMaxWidth;
         me.minHeight = cfg.minHeight || me.defaultMinHeight;
         me.maxHeight = cfg.maxHeight || me.defaultMaxHeight;
+
+        if (resizer) {
+            resizeTracker = resizer.resizeTracker;
+            resizer.minWidth = resizeTracker.minWidth = me.minWidth;
+            resizer.maxWidth = resizeTracker.maxWidth = me.maxWidth;
+            resizer.minHeight = resizeTracker.minHeight = me.minHeight;
+            resizer.maxHeight = resizeTracker.maxHeight = me.maxHeight;
+        }
 
         // Default to allowing the Window to take focus.
         delete me.defaultFocus;
@@ -416,7 +434,7 @@ Ext.define('Ext.window.MessageBox', {
             if (width) {
                 me.setWidth(width);
             }
-            
+
             if (height) {
                 me.setHeight(height);
             }
@@ -748,11 +766,11 @@ Ext.define('Ext.window.MessageBox', {
         var me = this,
             iconCmp = me.iconComponent,
             cls = me.messageIconCls;
-            
+
         if (cls) {
             iconCmp.removeCls(cls);
         }
-        
+
         if (icon) {
             iconCmp.show();
             iconCmp.setSize(width || me.iconWidth, height || me.iconHeight);

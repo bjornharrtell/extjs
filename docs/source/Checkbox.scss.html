@@ -15,7 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}form-cb {
+  <pre class="prettyprint lang-js">.#{$prefix}form-cb-wrap {
+    vertical-align: top;
+}
+
+.#{$prefix}form-cb {
     vertical-align: top;
     overflow: hidden;
     padding: 0;
@@ -26,10 +30,9 @@
     }
 }
 
-@if $include-ie {
-    .#{$prefix}form-cb-label {
-        zoom: 1; // give the label element hasLayout so that IE will respect its line-height
-    }
+.#{$prefix}form-cb-label {
+    display: inline-block;
+    zoom: 1;
 }</pre>
 </body>
 </html>

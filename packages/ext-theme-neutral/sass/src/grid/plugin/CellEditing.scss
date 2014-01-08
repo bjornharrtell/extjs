@@ -1,45 +1,15 @@
-.#{$prefix}grid-cell-editor {
-    // Position editor text over underlying grid cell text
-    .#{$prefix}form-text {
-        padding: 0 $grid-cell-editor-field-padding-horizontal;
-    }
-    .#{$prefix}form-cb-wrap {
-        padding-top: $grid-cell-editor-checkbox-padding-top;
-    }
-}
-
-@if $include-ie {
-    .#{$prefix}ie {
-        .#{$prefix}grid-cell-editor .#{$prefix}form-text {
-            padding-left: $grid-cell-editor-field-padding-horizontal + 1;
-        }
-    }
-}
-
-@if $include-opera {
-    .#{$prefix}opera .#{$prefix}grid-cell-editor .#{$prefix}form-text {
-        padding-left: $grid-cell-editor-field-padding-horizontal + 1;
-    }
-}
-
 @if $include-ext-tree-panel {
-    .#{$prefix}grid-editor-on-text-node {
+    .#{$prefix}tree-cell-editor {
         .#{$prefix}form-text {
-            // specify padding left and padding right individually since we don't want to override padding-bottom (which can vary)
-            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal;
-            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal;
-        }
-    }
-    @if $include-ie {
-        .#{$prefix}ie .#{$prefix}grid-editor-on-text-node .#{$prefix}form-text {
-            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
-            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
-        }
-    }
-    @if $include-opera {
-        .#{$prefix}opera .#{$prefix}grid-editor-on-text-node .#{$prefix}form-text {
-            padding-left: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
-            padding-right: $grid-cell-treecolumn-editor-field-padding-horizontal + 1px;
+            $horizontal-padding: $tree-icon-spacing - $form-field-border-width; 
+            padding-left: $horizontal-padding;
+            padding-right: $horizontal-padding;
+
+            .#{$prefix}gecko & {
+                // firefox adds an additional px of horizontal space inside text inputs
+                padding-left: max(($horizontal-padding - 1), 0);
+                padding-right: max(($horizontal-padding - 1), 0);
+            }
         }
     }
 }

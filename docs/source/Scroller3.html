@@ -17,55 +17,16 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js">Ext.define('Ext.rtl.layout.container.boxOverflow.Scroller', {
     override: 'Ext.layout.container.boxOverflow.Scroller',
-    
-    scrollLeft: function(internal) {
-        var me = this,
-            layout = me.layout;
-        
-        if (layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
-            if (internal) {
-                me.scrollBy(me.scrollIncrement, false);
-            } else {
-                me.scrollRight(true);
-            }
-        } else {
-            me.callParent();
-        }
-    },
 
-    scrollRight: function(internal) {
-        var me = this,
-            layout = me.layout;
-        
+    getWheelDelta: function(e) {
+        var layout = this.layout,
+            delta = e.getWheelDelta();
+
         if (layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
-            if (internal) {
-                me.scrollBy(-me.scrollIncrement, false);
-            } else {
-                me.scrollLeft(true);
-            }
-        } else {
-            me.callParent();
+            delta = -delta;
         }
-    },
-    
-    atExtremeBefore: function(internal) {
-        var layout = this.layout;
-        
-        if (!internal &amp;&amp; layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
-            return this.atExtremeAfter(true);
-        } else {
-            return this.callParent();
-        }
-    },
-    
-    atExtremeAfter: function(internal) {
-        var layout = this.layout;
-        
-        if (!internal &amp;&amp; layout.direction === 'horizontal' &amp;&amp; layout.owner.getHierarchyState().rtl) {
-            return this.atExtremeBefore(true);
-        } else {
-            return this.callParent();
-        }
+
+        return delta;
     }
 });
 </pre>

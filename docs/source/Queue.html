@@ -126,6 +126,9 @@ Ext.define('Ext.fx.Queue', {
         }
         anim.on('afteranimate', function() {
             Ext.Array.remove(queue, anim);
+            if (queue.length === 0) {
+                me.targets.remove(anim.target);
+            }
             if (anim.remove) {
                 if (target.type == 'element') {
                     var el = Ext.get(target.id);
@@ -134,7 +137,9 @@ Ext.define('Ext.fx.Queue', {
                     }
                 }
             }
-        }, this);
+        }, me, {
+            single: true
+        });
         queue.push(anim);
     }
 });</pre>

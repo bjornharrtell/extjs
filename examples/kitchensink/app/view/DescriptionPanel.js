@@ -4,6 +4,7 @@ Ext.define('KitchenSink.view.DescriptionPanel', {
     id: 'description-panel',
     title: 'Description',
     autoScroll: true,
+    rtl: false,
 
     initComponent: function() {
         this.ui = (Ext.themeName === 'neptune') ? 'light' : 'default';

@@ -11,7 +11,7 @@
 
 @function nopx ($value) {
     @if $value == 0 {
-        @return $value;
+        @return 0;
     }
     @return $value / 1px;
 }
@@ -107,13 +107,7 @@
     $extra-padding-bottom: max(bottom($border-width) + $padding-bottom - $frame-bottom, 0);
     $extra-padding-left:   max(left($border-width)   + $padding-left   - $frame-left, 0);
 
-    // The data is encoded using a "background-image: url('blah#th-1-1-1-1-...')" format.
-    // The key to using background-image is to avoid the IE6 idiocy of always requesting
-    // background-images - if you just use "#..." it will request the CSS file again!
-    // Really - over the net! Not from the cache! Since we don't have a real image to
-    // send, we have use "about:blank"!
-    //
-    $framing-info: '#';
+    $framing-info: '';
 
     @if $table == true {
         $framing-info: $framing-info + 't';
@@ -244,11 +238,12 @@
                 @include border-radius(0px);
                 @if $background-color != null {
                     background-color: transparent;
-                }
-                @else {
+                } @else {
                     background: #fff;
                 }
-
+                @if $background-gradient != null {
+                    background-image: none;
+                }
             }
         }
 
@@ -257,9 +252,21 @@
         // matching on CSS3 browsers.
         //
         body.#{$prefix}nbr {
-            .#{$prefix}#{$cls-ui} {
-                /* Pass along Div/Table, Horz/Vert, border-radius and border-width: */
-                background-image: url('about:blank#{$framing-info}');
+            .#{$prefix}#{$cls-ui}-frameInfo {
+                // Pass along Div/Table, Horz/Vert, border-radius and border-width
+                // Here we're encoding the framing information in an arbitrary fashion so
+                // it can be parsed by the component and get information about the framing.
+                // Originally, this tried to embed the information using a background image
+                // pointing to about:blank#info however in IE with SSL, this would trigger
+                // the insecure content warning. We also tried encoding the info using a
+                // filter as follows (where framing-info is a string containg the encoded data):
+                // filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=false, src="ext-frame#{$framing-info}");
+                // However the filter property can only be read by IE, making it impossible
+                // to debug nocss3 mode in modern browsers. Font-family meets all the
+                // requirements for tunneling data to JavaScript. It can contain an
+                // arbitrary string value, which can be read in JS in any browser, and it
+                // does not trigger any network interactions.
+                font-family: #{$framing-info};
             }
         }
 

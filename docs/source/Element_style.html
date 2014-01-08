@@ -15,7 +15,7 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag dom,core
+  <pre class="prettyprint lang-js">// @tag dom,core
 <span id='Ext-dom-Element_style'>/**
 </span> */
 Ext.define('Ext.dom.Element_style', {
@@ -180,7 +180,7 @@ Element.override({
             width = dom.offsetWidth;
         }
 
-        // IE9/10 Direct2D dimension rounding bug
+        // IE9/10 Direct2D dimension rounding bug: https://sencha.jira.com/browse/EXTJSIV-603
         // there is no need make adjustments for this bug when the element is vertically
         // rotated because the width of a vertical element is its rotated height
         if (Ext.supports.Direct2DBug &amp;&amp; !me.vertical) {

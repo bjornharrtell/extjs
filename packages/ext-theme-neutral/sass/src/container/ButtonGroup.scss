@@ -1,10 +1,50 @@
 /**
- * Creates a visual theme of a button group.
+ * Creates a visual theme for a ButtonGroup.
+ *
+ * @param {string} $ui-label
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {color} [$ui-background-color=$btn-group-background-color]
+ * The background-color of the button group
+ *
+ * @param {color} [$ui-border-color=$btn-group-border-color]
+ * The border-color of the button group
+ *
+ * @param {number} [$ui-border-width=$btn-group-border-width]
+ * The border-width of the button group
+ *
+ * @param {number} [$ui-border-radius=$btn-group-border-radius]
+ * The border-radius of the button group
+ *
+ * @param {color} [$ui-inner-border-color=$btn-group-inner-border-color]
+ * The inner border-color of the button group
+ *
+ * @param {color} [$ui-header-background-color=$btn-group-header-background-color]
+ * The background-color of the header
+ *
+ * @param {string} [$ui-header-font=$btn-group-header-font]
+ * The font of the header
+ *
+ * @param {color} [$ui-header-color=$btn-group-header-color]
+ * The text color of the header
+ *
+ * @param {number} [$ui-header-line-height=$btn-group-header-line-height]
+ * The line-height of the header
+ *
+ * @param {number} [$ui-header-padding=$btn-group-header-padding]
+ * The padding of the header
+ *
+ * @param {number} [$ui-body-padding=$btn-group-padding]
+ * The padding of the body element
+ *
+ * @param {string} [$ui-tool-background-image=$btn-group-tool-background-image]
+ * Sprite image to use for header {@link Ext.panel.Tool Tools}
+ *
  * @member Ext.container.ButtonGroup
  */
 @mixin extjs-btn-group-ui(
     $ui-label,
-    $ui-base-color: null,
 
     // background
     $ui-background-color: $btn-group-background-color,
@@ -91,14 +131,17 @@
     }
 }
 
-@include extjs-btn-group-ui(
-    $ui-label: 'default'
-);
+@if $include-btn-group-default-ui {
+    @include extjs-btn-group-ui(
+        $ui-label: 'default'
+    );
+}
 
-@include extjs-btn-group-ui(
-    $ui-label: 'default-framed',
-    $ui-background-color: $btn-group-framed-background-color,
-    $ui-border-radius: $btn-group-framed-border-radius,
-    $ui-border-width: $btn-group-framed-border-width
-);
-
+@if $include-btn-group-default-framed-ui {
+    @include extjs-btn-group-ui(
+        $ui-label: 'default-framed',
+        $ui-background-color: $btn-group-framed-background-color,
+        $ui-border-radius: $btn-group-framed-border-radius,
+        $ui-border-width: $btn-group-framed-border-width
+    );
+}

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * The TreeStore is a store implementation that is backed by by an {@link Ext.data.Tree}.
@@ -263,6 +263,7 @@ Ext.define('Ext.data.TreeStore', {
             // force rebuild
             reader.buildExtractors(true);
         }
+        return proxy;
     },
 
     // inherit docs
@@ -637,14 +638,6 @@ Ext.define('Ext.data.TreeStore', {
         --me.fillCount;
         
         return newNodes;
-    },
-    
-    beginBulkRemove: function(){
-        this.fireEvent('beforebulkremove', this);
-    },
-    
-    endBulkRemove: function(){
-        this.fireEvent('bulkremovecomplete', this);    
     },
 
     /**

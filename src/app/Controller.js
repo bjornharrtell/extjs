@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Controllers are the glue that binds an application together. All they really do is listen for events (usually from
@@ -255,6 +255,10 @@ Ext.define('Ext.app.Controller', {
             var me = this,
                 strings = me.strings[kind],
                 o, absoluteName, shortName, name, j, subLn, getterName, getter;
+                
+             if (!Ext.isArray(names)) {
+                 names = [names];
+             }
 
             for (j = 0, subLn = names.length; j < subLn; j++) {
                 name = names[j];
@@ -341,7 +345,7 @@ Ext.define('Ext.app.Controller', {
     application: null,
 
     /**
-     * @cfg {String[]} models
+     * @cfg {String/String[]} models
      * Array of models to require from AppName.model namespace. For example:
      *
      *      Ext.define("MyApp.controller.Foo", {
@@ -367,7 +371,7 @@ Ext.define('Ext.app.Controller', {
      */
 
     /**
-     * @cfg {String[]} views
+     * @cfg {String/String[]} views
      * Array of views to require from AppName.view namespace and to generate getter methods for.
      * For example:
      *
@@ -393,7 +397,7 @@ Ext.define('Ext.app.Controller', {
      */
 
     /**
-     * @cfg {String[]} stores
+     * @cfg {String/String[]} stores
      * Array of stores to require from AppName.store namespace and to generate getter methods for.
      * For example:
      *
@@ -536,6 +540,19 @@ Ext.define('Ext.app.Controller', {
         if (!me._initialized) {
             me.init(app);
             me._initialized = true;
+        }
+    },
+    
+    finishInit: function(app) {
+        var me = this,
+            controllers = me.controllers,
+            controller, i, l;
+        
+        if (me._initialized && controllers && controllers.length) {
+            for (i = 0, l = controllers.length; i < l; i++) {
+                controller = me.getController(controllers[i]);
+                controller.finishInit(app);
+            }
         }
     },
 

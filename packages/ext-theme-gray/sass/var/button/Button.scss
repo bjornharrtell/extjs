@@ -16,12 +16,6 @@ $button-default-background-gradient-focus: 'matte' !default;
 $button-default-background-gradient-pressed: 'matte-reverse' !default;
 $button-default-background-gradient-disabled: 'matte' !default;
 
-$button-default-background-gradient-color-stops: null !default;
-$button-default-background-gradient-color-stops-over: null !default;
-$button-default-background-gradient-color-stops-focus: null !default;
-$button-default-background-gradient-color-stops-pressed: null !default;
-$button-default-background-gradient-color-stops-disabled: null !default;
-
 $button-toolbar-border-color-over: $button-default-border-color-over !default;
 $button-toolbar-border-color-focus: $button-default-border-color-focus !default;
 $button-toolbar-border-color-pressed: $button-default-border-color-pressed !default;
@@ -30,3 +24,7 @@ $button-toolbar-border-color-disabled: $button-default-border-color-disabled !de
 $button-toolbar-background-color-over: $button-default-base-color-over !default;
 $button-toolbar-background-color-focus: $button-default-base-color-focus !default;
 $button-toolbar-background-color-pressed: $button-default-base-color-pressed !default;
+
+$button-toolbar-background-gradient-over: $button-default-background-gradient-over !default;
+$button-toolbar-background-gradient-focus: $button-default-background-gradient-focus !default;
+$button-toolbar-background-gradient-pressed: $button-default-background-gradient-pressed !default;

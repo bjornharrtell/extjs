@@ -41,20 +41,20 @@
 Ext.define('Ext.data.writer.Writer', {
     alias: 'writer.base',
     alternateClassName: ['Ext.data.DataWriter', 'Ext.data.Writer'],
-    
+
 <span id='Ext-data-writer-Writer-cfg-writeAllFields'>    /**
 </span>     * @cfg {Boolean} writeAllFields
      * True to write all fields from the record to the server. If set to false it will only send the fields that were
      * modified. Note that any fields that have {@link Ext.data.Field#persist} set to false will still be ignored.
      */
     writeAllFields: true,
-    
+
 <span id='Ext-data-writer-Writer-cfg-dateFormat'>    /**
 </span>     * @cfg {String} dateFormat
      * This is used for each field of type date in the model to format the value before
      * it is sent to the server.
      */
-    
+
 <span id='Ext-data-writer-Writer-cfg-nameProperty'>    /**
 </span>     * @cfg {String} nameProperty
      * This property is used to read the key for each value that will be sent to the server. For example:
@@ -86,7 +86,7 @@ Ext.define('Ext.data.writer.Writer', {
      * If the value is not present, the field name will always be used.
      */
     nameProperty: 'name',
-    
+
 <span id='Ext-data-writer-Writer-cfg-writeRecordId'>    /**
 </span>     * @cfg {Boolean} [writeRecordId]
      * By default, each record's id is always included in the output for non-phantom records since in most
@@ -149,7 +149,6 @@ Ext.define('Ext.data.writer.Writer', {
             changes,
             field,
             key,
-            value,
             mappedIdProperty,
             f, fLen;
 
@@ -188,12 +187,18 @@ Ext.define('Ext.data.writer.Writer', {
 
         return data;
     },
-    
+
 <span id='Ext-data-writer-Writer-method-writeValue'>    writeValue: function(data, field, record){
-</span>        var name = field[this.nameProperty] || field.name,
+</span>        var name = field[this.nameProperty],
             dateFormat = this.dateFormat || field.dateWriteFormat || field.dateFormat,
             value = record.get(field.name);
-            
+
+        // Allow the nameProperty to yield a numeric value which may be zero.
+        // For example, using a field's numeric mapping to write an array for output.
+        if (name == null) {
+            name = field.name;
+        }
+
         if (field.serialize) {
             data[name] = field.serialize(value, record);
         } else if (field.type === Ext.data.Types.DATE &amp;&amp; dateFormat &amp;&amp; Ext.isDate(value)) {

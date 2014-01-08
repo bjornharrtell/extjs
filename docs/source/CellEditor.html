@@ -32,74 +32,37 @@ Ext.define('Ext.grid.CellEditor', {
     
 <span id='Ext-grid-CellEditor-method-onShow'>    /**
 </span>     * @private
-     * Hide the grid cell text when editor is shown.
-     *
-     * There are 2 reasons this needs to happen:
-     *
-     * 1. checkbox editor does not take up enough space to hide the underlying text.
-     *
-     * 2. When columnLines are turned off in browsers that don't support text-overflow:
-     *    ellipsis (firefox 6 and below and IE quirks), the text extends to the last pixel
-     *    in the cell, however the right border of the cell editor is always positioned 1px
-     *    offset from the edge of the cell (to give it the appearance of being &quot;inside&quot; the
-     *    cell.  This results in 1px of the underlying cell text being visible to the right
-     *    of the cell editor if the text is not hidden.
-     * 
-     * We can't just hide the entire cell, because then treecolumn's icons would be hidden
-     * as well.  We also can't just set &quot;color: transparent&quot; to hide the text because it is
-     * not supported by IE8 and below.  The only remaining solution is to remove the text
-     * from the text node and then add it back when the editor is hidden.
+     * Hides the grid cell inner element when a cell editor is shown.
      */
     onShow: function() {
         var me = this,
-            innerCell = me.boundEl.first(),
-            treeNode,
-            textNode;
+            innerCell = me.boundEl.first();
 
         if (innerCell) {
-            
-            // Extract text bearing node.
-            // TreeColumns have a .x-tree-node-text inline element (&lt;a&gt; or &lt;span&gt;)
             if (me.isForTree) {
-                treeNode = innerCell.child('.' + Ext.baseCSSPrefix + 'tree-node-text', true);
-                if (treeNode) {
-                    textNode = treeNode.firstChild;
-                }
-            } else {
-                textNode = innerCell.dom.lastChild;
+                innerCell = innerCell.child(me.treeNodeSelector);
             }
-
-            if (textNode &amp;&amp; textNode.nodeType === 3) {
-                // if the cell has a text node, save a reference to it
-                me.cellTextNode = textNode;
-                // save the cell text so we can add it back when we're done editing
-                me.cellTextValue = textNode.nodeValue;
-                // The text node has to have at least one character in it, or the cell borders
-                // in IE quirks mode will not show correctly, so let's use a non-breaking space.
-                textNode.nodeValue = me.emptyText;
-            }
+            innerCell.hide();
         }
+
         me.callParent(arguments);
     },
 
 <span id='Ext-grid-CellEditor-method-onHide'>    /**
 </span>     * @private
-     * Show the grid cell text when the editor is hidden by adding the text back to the text node
+     * Shows the grid cell inner element when a cell editor is hidden
      */
     onHide: function() {
         var me = this,
-            innerCell = me.boundEl.first(),
-            node = me.cellTextNode;
+            innerCell = me.boundEl.first();
 
-        if (innerCell &amp;&amp; node) {
-            // The value may have changed since we started, so only restore it
-            // if the value is the same as our space we set earlier
-            if (node.nodeValue == me.emptyText) {
-                node.nodeValue = me.cellTextValue;
+        if (innerCell) {
+            if (me.isForTree) {
+                innerCell = innerCell.child(me.treeNodeSelector);
             }
-            delete me.cellTextNode;
-            delete me.cellTextValue;
+            innerCell.show();
         }
+        
         me.callParent(arguments);
     },
 
@@ -112,7 +75,7 @@ Ext.define('Ext.grid.CellEditor', {
             field = me.field;
 
         me.callParent(arguments);
-        if (field.isXType('checkboxfield')) {
+        if (field.isCheckbox) {
             field.mon(field.inputEl, {
                 mousedown: me.onCheckBoxMouseDown,
                 click: me.onCheckBoxClick,
@@ -147,39 +110,36 @@ Ext.define('Ext.grid.CellEditor', {
         var me = this,
             boundEl = me.boundEl,
             innerCell = boundEl.first(),
-            children = innerCell.dom.childNodes,
-            childCount = children.length,
+            width = boundEl.getWidth(),
             offsets = Ext.Array.clone(me.offsets),
-            textSpan, width;
+            grid = me.grid,
+            xOffset;
 
-        // If the inner cell has more than one child, or the first child node is not a text node,
-        // let's assume this cell contains additional elements before the text node.
-        // This is the case for tree cells, but could also be used to accomodate grid cells that
-        // have a custom renderer that render, say, an icon followed by some text for example
-        // For now however, this support will only be used for trees.
-        if (me.isForTree &amp;&amp; (childCount &gt; 1 || (childCount === 1 &amp;&amp; children[0].nodeType !== 3))) {
-            // Get the inner cell's text bearing element
-            textSpan = innerCell.child('.' + Ext.baseCSSPrefix + 'tree-node-text');
-            // Calculate the left bound of the text node
-            // set the editor's x offset to the left bound position
-            offsets[0] = textSpan.getOffsetsTo(innerCell)[0];
-            // calculate the right bound of the text node (this is assumed to be the right edge of
-            // the inner cell, since we are assuming the text node is always the last node in the
-            // inner cell)
-            // Difference between right edge and text start..
-            // this will be used as the width for the editor.
-            width = innerCell.getWidth() - offsets[0];
+        if (me.isForTree) {
+            // When editing a tree, adjust the width and offsets of the editor to line
+            // up with the tree cell's text element
+            xOffset = me.getTreeNodeOffset(innerCell);
+            width -= Math.abs(xOffset);
+            offsets[0] += xOffset;
+        }
 
-            me.addCls(Ext.baseCSSPrefix + 'grid-cell-editor-on-text-node');
-        } else {
-            width = boundEl.getWidth() - 1;
+        if (grid.columnLines) {
+            // Subtract the column border width so that the editor displays inside the
+            // borders. The column border could be either on the left or the right depending
+            // on whether the grid is RTL - using the sum of both borders works in both modes. 
+            width -= boundEl.getBorderWidth('rl');
         }
 
         if (autoSize === true) {
             me.field.setWidth(width);
         }
 
-        me.alignTo(boundEl, me.alignment, offsets);
+        me.alignTo(innerCell, me.alignment, offsets);
+    },
+
+<span id='Ext-grid-CellEditor-method-getTreeNodeOffset'>    // private
+</span>    getTreeNodeOffset: function(innerCell) {
+        return innerCell.child(this.treeNodeSelector).getOffsetsTo(innerCell)[0];
     },
     
 <span id='Ext-grid-CellEditor-method-onEditorTab'>    onEditorTab: function(e){
@@ -189,14 +149,13 @@ Ext.define('Ext.grid.CellEditor', {
         }
     },
     
-<span id='Ext-grid-CellEditor-property-emptyText'>    emptyText: '\u00a0',
-</span>
-<span id='Ext-grid-CellEditor-cfg-alignment'>    alignment: &quot;tl-tl&quot;,
+<span id='Ext-grid-CellEditor-cfg-alignment'>    alignment: &quot;l-l&quot;,
 </span><span id='Ext-grid-CellEditor-cfg-hideEl'>    hideEl : false,
 </span><span id='Ext-grid-CellEditor-cfg-cls'>    cls: Ext.baseCSSPrefix + 'small-editor ' +
 </span>        Ext.baseCSSPrefix + 'grid-editor ' + 
         Ext.baseCSSPrefix + 'grid-cell-editor',
-<span id='Ext-grid-CellEditor-property-shim'>    shim: false,
+<span id='Ext-grid-CellEditor-property-treeNodeSelector'>    treeNodeSelector: '.' + Ext.baseCSSPrefix + 'tree-node-text',
+</span><span id='Ext-grid-CellEditor-property-shim'>    shim: false,
 </span><span id='Ext-grid-CellEditor-cfg-shadow'>    shadow: false
 </span>});</pre>
 </body>

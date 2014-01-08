@@ -16,10 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag extras,core
-//@require misc/JSON.js
+// @tag extras,core
+// @require misc/JSON.js
+// @define Ext
 
 /**
  * @class Ext
@@ -219,8 +220,8 @@ Ext.apply(Ext, {
      * {@link Ext.util.Observable} can be passed in.  Any number of elements and/or components can be
      * passed into this function in a single call as separate arguments.
      *
-     * @param {Ext.Element/Ext.Component/Ext.Element[]/Ext.Component[]...} args
-     * An {@link Ext.Element}, {@link Ext.Component}, or an Array of either of these to destroy
+     * @param {Ext.dom.Element/Ext.util.Observable/Ext.dom.Element[]/Ext.util.Observable[]...} args
+     * Any number of elements or components, or an Array of either of these to destroy.
      */
     destroy: function() {
         var ln = arguments.length,
@@ -231,11 +232,11 @@ Ext.apply(Ext, {
             if (arg) {
                 if (Ext.isArray(arg)) {
                     this.destroy.apply(this, arg);
-                }
-                else if (Ext.isFunction(arg.destroy)) {
+                } else if (arg.isStore) {
+                    arg.destroyStore();
+                } else if (Ext.isFunction(arg.destroy)) {
                     arg.destroy();
-                }
-                else if (arg.dom) {
+                } else if (arg.dom) {
                     arg.remove();
                 }
             }
@@ -243,28 +244,69 @@ Ext.apply(Ext, {
     },
 
     /**
-     * Execute a callback function in a particular scope. If no function is passed the call is ignored.
+     * Execute a callback function in a particular scope. If `callback` argument is a
+     * function reference, that is called. If it is a string, the string is assumed to
+     * be the name of a method on the given `scope`. If no function is passed the call
+     * is ignored.
      *
-     * For example, these lines are equivalent:
+     * For example, these calls are equivalent:
      *
-     *     Ext.callback(myFunc, this, [arg1, arg2]);
-     *     Ext.isFunction(myFunc) && myFunc.apply(this, [arg1, arg2]);
+     *      var myFunc = this.myFunc;
+     *
+     *      Ext.callback('myFunc', this, [arg1, arg2]);
+     *      Ext.callback(myFunc, this, [arg1, arg2]);
+     *
+     *      Ext.isFunction(myFunc) && this.myFunc(arg1, arg2);
      *
      * @param {Function} callback The callback to execute
      * @param {Object} [scope] The scope to execute in
      * @param {Array} [args] The arguments to pass to the function
      * @param {Number} [delay] Pass a number to delay the call by a number of milliseconds.
+     * @return The value returned by the callback or `undefined` (if there is a `delay`
+     * or if the `callback` is not a function).
      */
-    callback: function(callback, scope, args, delay){
-        if(Ext.isFunction(callback)){
+    callback: function (callback, scope, args, delay) {
+        var fn, ret;
+
+        if (Ext.isFunction(callback)){
+            fn = callback;
+        } else if (scope && Ext.isString(callback)) {
+            fn = scope[callback];
+            //<debug>
+            if (!fn) {
+                Ext.Error.raise('No method named "' + callback + '"');
+            }
+            //</debug>
+        }
+
+        if (fn) {
             args = args || [];
             scope = scope || window;
             if (delay) {
-                Ext.defer(callback, delay, scope, args);
+                Ext.defer(fn, delay, scope, args);
             } else {
-                callback.apply(scope, args);
+                ret = fn.apply(scope, args);
             }
         }
+
+        return ret;
+    },
+    
+    /**
+     * @private
+     */
+    resolveMethod: function(fn, scope) {
+        if (Ext.isFunction(fn)) {
+            return fn;
+        }
+        
+        //<debug>
+        if (!Ext.isObject(scope) || !Ext.isFunction(scope[fn])) {
+            Ext.Error.raise('No method named "' + fn + '"');
+        }
+        //</debug>
+        
+        return scope[fn];
     },
 
     /**
@@ -540,7 +582,7 @@ Opera 11.11 - Opera/9.80 (Windows NT 6.1; U; en) Presto/2.8.131 Version/11.11
     nullLog.info = nullLog.warn = nullLog.error = Ext.emptyFn;
 
     // also update Version.js
-    Ext.setVersion('extjs', '4.2.0.663');
+    Ext.setVersion('extjs', '4.2.1.883');
     Ext.apply(Ext, {
         /**
          * @property {String} SSL_SECURE_URL

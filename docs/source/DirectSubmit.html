@@ -113,10 +113,34 @@ Ext.define('Ext.form.action.DirectSubmit', {
 </span>
 <span id='Ext-form-action-DirectSubmit-method-doSubmit'>    doSubmit: function() {
 </span>        var me = this,
+            form = me.form,
+            api = form.api,
+            fn = api.submit,
             callback = Ext.Function.bind(me.onComplete, me),
-            formInfo = me.buildForm();
+            formInfo = me.buildForm(),
+            options;
+        
+        if (typeof fn !== 'function') {
+            //&lt;debug&gt;
+            var fnName = fn;
+            //&lt;/debug&gt;
             
-        me.form.api.submit(formInfo.formEl, callback, me);
+            api.submit = fn = Ext.direct.Manager.parseMethod(fn);
+            
+            //&lt;debug&gt;
+            if (!Ext.isFunction(fn)) {
+                Ext.Error.raise('Cannot resolve Ext.Direct API method ' + fnName);
+            }
+            //&lt;/debug&gt;
+        }
+        
+        if (me.timeout || form.timeout) {
+            options = {
+                timeout: me.timeout * 1000 || form.timeout * 1000
+            };
+        }
+        
+        fn.call(window, formInfo.formEl, callback, me, options);
         me.cleanup(formInfo);
     },
 

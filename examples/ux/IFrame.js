@@ -79,24 +79,28 @@ Ext.define('Ext.ux.IFrame', {
     },
 
     beforeDestroy: function () {
-        var me = this,
-            doc, prop;
+        this.cleanupListeners(true);
+        this.callParent();
+    },
+    
+    cleanupListeners: function(destroying){
+        var doc, prop;
 
-        if (me.rendered) {
+        if (this.rendered) {
             try {
-                doc = me.getDoc();
+                doc = this.getDoc();
                 if (doc) {
                     Ext.EventManager.removeAll(doc);
-                    for (prop in doc) {
-                        if (doc.hasOwnProperty && doc.hasOwnProperty(prop)) {
-                            delete doc[prop];
+                    if (destroying) {
+                        for (prop in doc) {
+                            if (doc.hasOwnProperty && doc.hasOwnProperty(prop)) {
+                                delete doc[prop];
+                            }
                         }
                     }
                 }
             } catch(e) { }
         }
-
-        me.callParent();
     },
 
     onLoad: function() {
@@ -126,7 +130,7 @@ Ext.define('Ext.ux.IFrame', {
             }
 
             // We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
-            Ext.EventManager.on(window, 'unload', me.beforeDestroy, me);
+            Ext.EventManager.on(this.getWin(), 'beforeunload', me.cleanupListeners, me);
 
             this.el.unmask();
             this.fireEvent('load', this);

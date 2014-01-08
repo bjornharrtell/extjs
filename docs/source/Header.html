@@ -58,7 +58,7 @@ Ext.define('Ext.panel.Header', {
 
 <span id='Ext-panel-Header-property-headingTpl'>    headingTpl: [
 </span>        // unselectable=&quot;on&quot; is required for Opera, other browsers inherit unselectability from the header
-        '&lt;span id=&quot;{id}-textEl&quot; class=&quot;{headerCls}-text {cls}-text&quot; unselectable=&quot;on&quot;&gt;{title}&lt;/span&gt;'
+        '&lt;span id=&quot;{id}-textEl&quot; class=&quot;{headerCls}-text {cls}-text {cls}-text-{ui}&quot; unselectable=&quot;on&quot;&gt;{title}&lt;/span&gt;'
     ],
 
 <span id='Ext-panel-Header-cfg-shrinkWrap'>    shrinkWrap: 3,
@@ -661,6 +661,17 @@ Ext.define('Ext.panel.Header', {
 
 <span id='Ext-panel-Header-method-getDockName'>    getDockName: function() {
 </span>        return this.dock;
+    },
+    
+<span id='Ext-panel-Header-method-getFramingInfoCls'>    getFramingInfoCls: function(){
+</span>        var me = this,
+            cls = me.callParent(),
+            owner = me.ownerCt;
+            
+        if (!me.expanding &amp;&amp; (owner &amp;&amp; owner.collapsed) || me.isCollapsedExpander) {
+            cls += '-' + owner.collapsedCls; 
+        }
+        return cls + '-' + me.dock;
     }
 });
 </pre>

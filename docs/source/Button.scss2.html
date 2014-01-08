@@ -16,7 +16,182 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-button-Button-css_mixin-extjs-button-ui'>/**
-</span> * Creates a visual theme of an Ext.Button
+</span> * Creates a visual theme for a Button
+ *
+ * @param {string} $ui
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {number} [$border-radius=0px]
+ * The border-radius of the button
+ *
+ * @param {number} [$border-width=0px]
+ * The border-width of the button
+ *
+ * @param {color} $border-color
+ * The border-color of the button
+ *
+ * @param {color} $border-color-over
+ * The border-color of the button when the cursor is over the button
+ *
+ * @param {color} $border-color-focus
+ * The border-color of the button when focused
+ *
+ * @param {color} $border-color-pressed
+ * The border-color of the button when pressed
+ *
+ * @param {color} $border-color-disabled
+ * The border-color of the button when disabled
+ *
+ * @param {number} $padding
+ * The amount of padding inside the border of the button on all sides
+ *
+ * @param {number} $text-padding
+ * The amount of horizontal space to add to the left and right of the button text
+ *
+ * @param {color} $background-color
+ * The background-color of the button
+ *
+ * @param {color} $background-color-over
+ * The background-color of the button when the cursor is over the button
+ *
+ * @param {color} $background-color-focus
+ * The background-color of the button when focused
+ *
+ * @param {color} $background-color-pressed
+ * The background-color of the button when pressed
+ *
+ * @param {color} $background-color-disabled
+ * The background-color of the button when disabled
+ *
+ * @param {string/list} $background-gradient
+ * The background-gradient for the button.  Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ *
+ * @param {string} $background-gradient-over
+ * The background-gradient to use when the cursor is over the button. Can be either the
+ * name of a predefined gradient or a list of color stops. Used as the `$type` parameter
+ * for {@link Global_CSS#background-gradient}.
+ *
+ * @param {string} $background-gradient-focus
+ * The background-gradient to use when the the button is focused. Can be either the name
+ * of a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string} $background-gradient-pressed
+ * The background-gradient to use when the the button is pressed. Can be either the name
+ * of a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string} $background-gradient-disabled
+ * The background-gradient to use when the the button is disabled. Can be either the name
+ * of a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {color} $color
+ * The text color of the button
+ *
+ * @param {color} $color-over
+ * The text color of the button when the cursor is over the button
+ *
+ * @param {color} $color-focus
+ * The text color of the button when the button is focused
+ *
+ * @param {color} $color-pressed
+ * The text color of the button when the button is pressed
+ *
+ * @param {color} $color-disabled
+ * The text color of the button when the button is disabled
+ *
+ * @param {number} $font-size
+ * The font-size of the button
+ *
+ * @param {number} $font-size-over
+ * The font-size of the button when the cursor is over the button
+ *
+ * @param {number} $font-size-focus
+ * The font-size of the button when the button is focused
+ *
+ * @param {number} $font-size-pressed
+ * The font-size of the button when the button is pressed
+ *
+ * @param {number} $font-size-disabled
+ * The font-size of the button when the button is disabled
+ *
+ * @param {string} $font-weight
+ * The font-weight of the button
+ *
+ * @param {string} $font-weight-over
+ * The font-weight of the button when the cursor is over the button
+ *
+ * @param {string} $font-weight-focus
+ * The font-weight of the button when the button is focused
+ *
+ * @param {string} $font-weight-pressed
+ * The font-weight of the button when the button is pressed
+ *
+ * @param {string} $font-weight-disabled
+ * The font-weight of the button when the button is disabled
+ *
+ * @param {string} $font-family
+ * The font-family of the button
+ *
+ * @param {string} $font-family-over
+ * The font-family of the button when the cursor is over the button
+ *
+ * @param {string} $font-family-focus
+ * The font-family of the button when the button is focused
+ *
+ * @param {string} $font-family-pressed
+ * The font-family of the button when the button is pressed
+ *
+ * @param {string} $font-family-disabled
+ * The font-family of the button when the button is disabled
+ *
+ * @param {number} $icon-size
+ * The size of the button icon
+ *
+ * @param {color} $glyph-color
+ * The color of the button's {@link #glyph} icon
+ *
+ * @param {number} [$glyph-opacity=1]
+ * The opacity of the button's {@link #glyph} icon
+ *
+ * @param {number} $arrow-width
+ * The width of the button's {@link #cfg-menu} arrow
+ *
+ * @param {number} $arrow-height
+ * The height of the button's {@link #cfg-menu} arrow
+ *
+ * @param {number} $split-width
+ * The width of a {@link Ext.button.Split Split Button}'s arrow
+ *
+ * @param {number} $split-height
+ * The height of a {@link Ext.button.Split Split Button}'s arrow
+ *
+ * @param {boolean} [$include-ui-menu-arrows=$button-include-ui-menu-arrows]
+ * True to include the UI name in the file name of the {@link #cfg-menu}
+ * arrow icon. Set this to false to share the same arrow bewteen multiple UIs.
+ *
+ * @param {boolean} [$include-ui-split-arrows=$button-include-ui-split-arrows]
+ * True to include the UI name in the file name of the {@link Ext.button.Split Split Button}'s
+ * arrow icon. Set this to false to share the same arrow bewteen multiple UIs.
+ *
+ * @param {boolean} [$include-split-noline-arrows=false]
+ * True to add a &quot;-noline&quot; suffix to the file name of the {@link Ext.button.Split Split Button}'s 
+ * arrow icon.  Used for hiding the split line when toolbar buttons are in their default
+ * state.
+ *
+ * @param {boolean} [$include-split-over-arrows=$button-include-split-over-arrows]
+ * True to use a separate icon for {@link Ext.button.Split Split Button}s when the cursor
+ * is over the button.  The over icon file name will have a &quot;-o&quot; suffix
+ *
+ * @param {number} [$opacity-disabled=1]
+ * The opacity of the button when it is disabled
+ *
+ * @param {number} [$inner-opacity-disabled=1]
+ * The opacity of the button's text and icon elements when when the button is disabled
+ * 
  * @member Ext.button.Button
  */
 @mixin extjs-button-ui(
@@ -496,19 +671,9 @@
     }
 
     @if not $supports-gradients or $compile-all {
-        @if $background-gradient != null {
-            .#{$prefix}nlg {
-                .#{$prefix}btn-#{$ui} {
-                    background-repeat: repeat-x;
-                    background-image: slicer-background-image(btn-#{$ui}, 'btn/btn-#{$ui}-bg');
-                }
-            }
-        }
-
         @if $background-gradient-over != null {
             .#{$prefix}nlg {
                 .#{$prefix}btn-#{$ui}-over {
-                    background-repeat: repeat-x;
                     background-image: slicer-background-image(btn-#{$ui}-over, 'btn/btn-#{$ui}-over-bg');
                 }
             }
@@ -517,7 +682,6 @@
         @if $background-gradient-focus != null {
             .#{$prefix}nlg {
                 .#{$prefix}btn-#{$ui}-focus {
-                    background-repeat: repeat-x;
                     background-image: slicer-background-image(btn-#{$ui}-focus, 'btn/btn-#{$ui}-focus-bg');
                 }
             }
@@ -527,7 +691,6 @@
             .#{$prefix}nlg {
                 .#{$prefix}btn-#{$ui}-menu-active,
                 .#{$prefix}btn-#{$ui}-pressed {
-                    background-repeat: repeat-x;
                     background-image: slicer-background-image(btn-#{$ui}-pressed, 'btn/btn-#{$ui}-pressed-bg');
                 }
             }
@@ -536,9 +699,14 @@
         @if $background-gradient-disabled != null {
             .#{$prefix}nlg {
                 .#{$prefix}btn-#{$ui}-disabled {
-                    background-repeat: repeat-x;
                     background-image: slicer-background-image(btn-#{$ui}-disabled, 'btn/btn-#{$ui}-disabled-bg');
                 }
+            }
+        }
+
+        @if not $supports-border-radius or $compile-all {
+            .#{$prefix}nbr .#{$prefix}btn-#{$ui} {
+                background-image: none;
             }
         }
     }
@@ -611,225 +779,39 @@
     @include x-slicer(btn-#{$ui}-disabled);
 }
 
-@include extjs-button-ui(
-    $ui: 'default-small',
-
-    $border-radius: $button-small-border-radius,
-    $border-width: $button-small-border-width,
-
-    $border-color: $button-default-border-color,
-    $border-color-over: $button-default-border-color-over,
-    $border-color-focus: $button-default-border-color-focus,
-    $border-color-pressed: $button-default-border-color-pressed,
-    $border-color-disabled: $button-default-border-color-disabled,
-
-    $padding: $button-small-padding,
-    $text-padding: $button-small-text-padding,
-
-    $background-color: $button-default-background-color,
-    $background-color-over: $button-default-background-color-over,
-    $background-color-focus: $button-default-background-color-focus,
-    $background-color-pressed: $button-default-background-color-pressed,
-    $background-color-disabled: $button-default-background-color-disabled,
-
-    $background-gradient: $button-default-background-gradient,
-    $background-gradient-over: $button-default-background-gradient-over,
-    $background-gradient-focus: $button-default-background-gradient-focus,
-    $background-gradient-pressed: $button-default-background-gradient-pressed,
-    $background-gradient-disabled: $button-default-background-gradient-disabled,
-
-    $color: $button-default-color,
-    $color-over: $button-default-color-over,
-    $color-focus: $button-default-color-focus,
-    $color-pressed: $button-default-color-pressed,
-    $color-disabled: $button-default-color-disabled,
-
-    $font-size: $button-small-font-size,
-    $font-size-over: $button-small-font-size-over,
-    $font-size-focus: $button-small-font-size-focus,
-    $font-size-pressed: $button-small-font-size-pressed,
-    $font-size-disabled: $button-small-font-size-disabled,
-
-    $font-weight: $button-small-font-weight,
-    $font-weight-over: $button-small-font-weight-over,
-    $font-weight-focus: $button-small-font-weight-focus,
-    $font-weight-pressed: $button-small-font-weight-pressed,
-    $font-weight-disabled: $button-small-font-weight-disabled,
-
-    $font-family: $button-small-font-family,
-    $font-family-over: $button-small-font-family-over,
-    $font-family-focus: $button-small-font-family-focus,
-    $font-family-pressed: $button-small-font-family-pressed,
-    $font-family-disabled: $button-small-font-family-disabled,
-
-    $icon-size: $button-small-icon-size,
-    $glyph-color: $button-default-glyph-color,
-    $glyph-opacity: $button-default-glyph-opacity,
-    $arrow-width: $button-small-arrow-width,
-    $arrow-height: $button-small-arrow-height,
-    $split-width: $button-small-split-width,
-    $split-height: $button-small-split-height,
-    $opacity-disabled: $button-opacity-disabled,
-    $inner-opacity-disabled: $button-inner-opacity-disabled
-);
-
-@include extjs-button-ui(
-    $ui: 'default-medium',
-
-    $border-radius: $button-medium-border-radius,
-    $border-width: $button-medium-border-width,
-
-    $border-color: $button-default-border-color,
-    $border-color-over: $button-default-border-color-over,
-    $border-color-focus: $button-default-border-color-focus,
-    $border-color-pressed: $button-default-border-color-pressed,
-    $border-color-disabled: $button-default-border-color-disabled,
-
-    $padding: $button-medium-padding,
-    $text-padding: $button-medium-text-padding,
-
-    $background-color: $button-default-background-color,
-    $background-color-over: $button-default-background-color-over,
-    $background-color-focus: $button-default-background-color-focus,
-    $background-color-pressed: $button-default-background-color-pressed,
-    $background-color-disabled: $button-default-background-color-disabled,
-
-    $background-gradient: $button-default-background-gradient,
-    $background-gradient-over: $button-default-background-gradient-over,
-    $background-gradient-focus: $button-default-background-gradient-focus,
-    $background-gradient-pressed: $button-default-background-gradient-pressed,
-    $background-gradient-disabled: $button-default-background-gradient-disabled,
-
-    $color: $button-default-color,
-    $color-over: $button-default-color-over,
-    $color-focus: $button-default-color-focus,
-    $color-pressed: $button-default-color-pressed,
-    $color-disabled: $button-default-color-disabled,
-
-    $font-size: $button-medium-font-size,
-    $font-size-over: $button-medium-font-size-over,
-    $font-size-focus: $button-medium-font-size-focus,
-    $font-size-pressed: $button-medium-font-size-pressed,
-    $font-size-disabled: $button-medium-font-size-disabled,
-
-    $font-weight: $button-medium-font-weight,
-    $font-weight-over: $button-medium-font-weight-over,
-    $font-weight-focus: $button-medium-font-weight-focus,
-    $font-weight-pressed: $button-medium-font-weight-pressed,
-    $font-weight-disabled: $button-medium-font-weight-disabled,
-
-    $font-family: $button-medium-font-family,
-    $font-family-over: $button-medium-font-family-over,
-    $font-family-focus: $button-medium-font-family-focus,
-    $font-family-pressed: $button-medium-font-family-pressed,
-    $font-family-disabled: $button-medium-font-family-disabled,
-
-    $icon-size: $button-medium-icon-size,
-    $glyph-color: $button-default-glyph-color,
-    $glyph-opacity: $button-default-glyph-opacity,
-    $arrow-width: $button-medium-arrow-width,
-    $arrow-height: $button-medium-arrow-height,
-    $split-width: $button-medium-split-width,
-    $split-height: $button-medium-split-height,
-    $opacity-disabled: $button-opacity-disabled,
-    $inner-opacity-disabled: $button-inner-opacity-disabled
-);
-
-@include extjs-button-ui(
-    $ui: 'default-large',
-
-    $border-radius: $button-large-border-radius,
-    $border-width: $button-large-border-width,
-
-    $border-color: $button-default-border-color,
-    $border-color-over: $button-default-border-color-over,
-    $border-color-focus: $button-default-border-color-focus,
-    $border-color-pressed: $button-default-border-color-pressed,
-    $border-color-disabled: $button-default-border-color-disabled,
-
-    $padding: $button-large-padding,
-    $text-padding: $button-large-text-padding,
-
-    $background-color: $button-default-background-color,
-    $background-color-over: $button-default-background-color-over,
-    $background-color-focus: $button-default-background-color-focus,
-    $background-color-pressed: $button-default-background-color-pressed,
-    $background-color-disabled: $button-default-background-color-disabled,
-
-    $background-gradient: $button-default-background-gradient,
-    $background-gradient-over: $button-default-background-gradient-over,
-    $background-gradient-focus: $button-default-background-gradient-focus,
-    $background-gradient-pressed: $button-default-background-gradient-pressed,
-    $background-gradient-disabled: $button-default-background-gradient-disabled,
-
-    $color: $button-default-color,
-    $color-over: $button-default-color-over,
-    $color-focus: $button-default-color-focus,
-    $color-pressed: $button-default-color-pressed,
-    $color-disabled: $button-default-color-disabled,
-
-    $font-size: $button-large-font-size,
-    $font-size-over: $button-large-font-size-over,
-    $font-size-focus: $button-large-font-size-focus,
-    $font-size-pressed: $button-large-font-size-pressed,
-    $font-size-disabled: $button-large-font-size-disabled,
-
-    $font-weight: $button-large-font-weight,
-    $font-weight-over: $button-large-font-weight-over,
-    $font-weight-focus: $button-large-font-weight-focus,
-    $font-weight-pressed: $button-large-font-weight-pressed,
-    $font-weight-disabled: $button-large-font-weight-disabled,
-
-    $font-family: $button-large-font-family,
-    $font-family-over: $button-large-font-family-over,
-    $font-family-focus: $button-large-font-family-focus,
-    $font-family-pressed: $button-large-font-family-pressed,
-    $font-family-disabled: $button-large-font-family-disabled,
-
-    $icon-size: $button-large-icon-size,
-    $glyph-color: $button-default-glyph-color,
-    $glyph-opacity: $button-default-glyph-opacity,
-    $arrow-width: $button-large-arrow-width,
-    $arrow-height: $button-large-arrow-height,
-    $split-width: $button-large-split-width,
-    $split-height: $button-large-split-height,
-    $opacity-disabled: $button-opacity-disabled,
-    $inner-opacity-disabled: $button-inner-opacity-disabled
-);
-
-@if $include-ext-toolbar-toolbar {
+@if $include-button-default-small-ui {
     @include extjs-button-ui(
-        $ui: 'default-toolbar-small',
+        $ui: 'default-small',
 
         $border-radius: $button-small-border-radius,
         $border-width: $button-small-border-width,
 
-        $border-color: $button-toolbar-border-color,
-        $border-color-over: $button-toolbar-border-color-over,
-        $border-color-focus: $button-toolbar-border-color-focus,
-        $border-color-pressed: $button-toolbar-border-color-pressed,
-        $border-color-disabled: $button-toolbar-border-color-disabled,
+        $border-color: $button-default-border-color,
+        $border-color-over: $button-default-border-color-over,
+        $border-color-focus: $button-default-border-color-focus,
+        $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-disabled: $button-default-border-color-disabled,
 
         $padding: $button-small-padding,
         $text-padding: $button-small-text-padding,
 
-        $background-color: $button-toolbar-background-color,
-        $background-color-over: $button-toolbar-background-color-over,
-        $background-color-focus: $button-toolbar-background-color-focus,
-        $background-color-pressed: $button-toolbar-background-color-pressed,
-        $background-color-disabled: $button-toolbar-background-color-disabled,
+        $background-color: $button-default-background-color,
+        $background-color-over: $button-default-background-color-over,
+        $background-color-focus: $button-default-background-color-focus,
+        $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-disabled: $button-default-background-color-disabled,
 
-        $background-gradient: $button-toolbar-background-gradient,
-        $background-gradient-over: $button-toolbar-background-gradient-over,
-        $background-gradient-focus: $button-toolbar-background-gradient-focus,
-        $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
-        $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+        $background-gradient: $button-default-background-gradient,
+        $background-gradient-over: $button-default-background-gradient-over,
+        $background-gradient-focus: $button-default-background-gradient-focus,
+        $background-gradient-pressed: $button-default-background-gradient-pressed,
+        $background-gradient-disabled: $button-default-background-gradient-disabled,
 
-        $color: $button-toolbar-color,
-        $color-over: $button-toolbar-color-over,
-        $color-focus: $button-toolbar-color-focus,
-        $color-pressed: $button-toolbar-color-pressed,
-        $color-disabled: $button-toolbar-color-disabled,
+        $color: $button-default-color,
+        $color-over: $button-default-color-over,
+        $color-focus: $button-default-color-focus,
+        $color-pressed: $button-default-color-pressed,
+        $color-disabled: $button-default-color-disabled,
 
         $font-size: $button-small-font-size,
         $font-size-over: $button-small-font-size-over,
@@ -850,51 +832,50 @@
         $font-family-disabled: $button-small-font-family-disabled,
 
         $icon-size: $button-small-icon-size,
-        $glyph-color: $button-toolbar-glyph-color,
-        $glyph-opacity: $button-toolbar-glyph-opacity,
+        $glyph-color: $button-default-glyph-color,
+        $glyph-opacity: $button-default-glyph-opacity,
         $arrow-width: $button-small-arrow-width,
         $arrow-height: $button-small-arrow-height,
         $split-width: $button-small-split-width,
         $split-height: $button-small-split-height,
-
-        $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
-
-        $opacity-disabled: $button-toolbar-opacity-disabled,
-        $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        $opacity-disabled: $button-opacity-disabled,
+        $inner-opacity-disabled: $button-inner-opacity-disabled
     );
+}
 
+@if $include-button-default-medium-ui {
     @include extjs-button-ui(
-        $ui: 'default-toolbar-medium',
+        $ui: 'default-medium',
 
         $border-radius: $button-medium-border-radius,
         $border-width: $button-medium-border-width,
 
-        $border-color: $button-toolbar-border-color,
-        $border-color-over: $button-toolbar-border-color-over,
-        $border-color-focus: $button-toolbar-border-color-focus,
-        $border-color-pressed: $button-toolbar-border-color-pressed,
-        $border-color-disabled: $button-toolbar-border-color-disabled,
+        $border-color: $button-default-border-color,
+        $border-color-over: $button-default-border-color-over,
+        $border-color-focus: $button-default-border-color-focus,
+        $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-disabled: $button-default-border-color-disabled,
 
         $padding: $button-medium-padding,
         $text-padding: $button-medium-text-padding,
 
-        $background-color: $button-toolbar-background-color,
-        $background-color-over: $button-toolbar-background-color-over,
-        $background-color-focus: $button-toolbar-background-color-focus,
-        $background-color-pressed: $button-toolbar-background-color-pressed,
-        $background-color-disabled: $button-toolbar-background-color-disabled,
+        $background-color: $button-default-background-color,
+        $background-color-over: $button-default-background-color-over,
+        $background-color-focus: $button-default-background-color-focus,
+        $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-disabled: $button-default-background-color-disabled,
 
-        $background-gradient: $button-toolbar-background-gradient,
-        $background-gradient-over: $button-toolbar-background-gradient-over,
-        $background-gradient-focus: $button-toolbar-background-gradient-focus,
-        $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
-        $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+        $background-gradient: $button-default-background-gradient,
+        $background-gradient-over: $button-default-background-gradient-over,
+        $background-gradient-focus: $button-default-background-gradient-focus,
+        $background-gradient-pressed: $button-default-background-gradient-pressed,
+        $background-gradient-disabled: $button-default-background-gradient-disabled,
 
-        $color: $button-toolbar-color,
-        $color-over: $button-toolbar-color-over,
-        $color-focus: $button-toolbar-color-focus,
-        $color-pressed: $button-toolbar-color-pressed,
-        $color-disabled: $button-toolbar-color-disabled,
+        $color: $button-default-color,
+        $color-over: $button-default-color-over,
+        $color-focus: $button-default-color-focus,
+        $color-pressed: $button-default-color-pressed,
+        $color-disabled: $button-default-color-disabled,
 
         $font-size: $button-medium-font-size,
         $font-size-over: $button-medium-font-size-over,
@@ -915,51 +896,50 @@
         $font-family-disabled: $button-medium-font-family-disabled,
 
         $icon-size: $button-medium-icon-size,
-        $glyph-color: $button-toolbar-glyph-color,
-        $glyph-opacity: $button-toolbar-glyph-opacity,
+        $glyph-color: $button-default-glyph-color,
+        $glyph-opacity: $button-default-glyph-opacity,
         $arrow-width: $button-medium-arrow-width,
         $arrow-height: $button-medium-arrow-height,
         $split-width: $button-medium-split-width,
         $split-height: $button-medium-split-height,
-
-        $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
-
-        $opacity-disabled: $button-toolbar-opacity-disabled,
-        $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        $opacity-disabled: $button-opacity-disabled,
+        $inner-opacity-disabled: $button-inner-opacity-disabled
     );
+}
 
+@if $include-button-default-large-ui {
     @include extjs-button-ui(
-        $ui: 'default-toolbar-large',
+        $ui: 'default-large',
 
         $border-radius: $button-large-border-radius,
         $border-width: $button-large-border-width,
 
-        $border-color: $button-toolbar-border-color,
-        $border-color-over: $button-toolbar-border-color-over,
-        $border-color-focus: $button-toolbar-border-color-focus,
-        $border-color-pressed: $button-toolbar-border-color-pressed,
-        $border-color-disabled: $button-toolbar-border-color-disabled,
+        $border-color: $button-default-border-color,
+        $border-color-over: $button-default-border-color-over,
+        $border-color-focus: $button-default-border-color-focus,
+        $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-disabled: $button-default-border-color-disabled,
 
         $padding: $button-large-padding,
         $text-padding: $button-large-text-padding,
 
-        $background-color: $button-toolbar-background-color,
-        $background-color-over: $button-toolbar-background-color-over,
-        $background-color-focus: $button-toolbar-background-color-focus,
-        $background-color-pressed: $button-toolbar-background-color-pressed,
-        $background-color-disabled: $button-toolbar-background-color-disabled,
+        $background-color: $button-default-background-color,
+        $background-color-over: $button-default-background-color-over,
+        $background-color-focus: $button-default-background-color-focus,
+        $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-disabled: $button-default-background-color-disabled,
 
-        $background-gradient: $button-toolbar-background-gradient,
-        $background-gradient-over: $button-toolbar-background-gradient-over,
-        $background-gradient-focus: $button-toolbar-background-gradient-focus,
-        $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
-        $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+        $background-gradient: $button-default-background-gradient,
+        $background-gradient-over: $button-default-background-gradient-over,
+        $background-gradient-focus: $button-default-background-gradient-focus,
+        $background-gradient-pressed: $button-default-background-gradient-pressed,
+        $background-gradient-disabled: $button-default-background-gradient-disabled,
 
-        $color: $button-toolbar-color,
-        $color-over: $button-toolbar-color-over,
-        $color-focus: $button-toolbar-color-focus,
-        $color-pressed: $button-toolbar-color-pressed,
-        $color-disabled: $button-toolbar-color-disabled,
+        $color: $button-default-color,
+        $color-over: $button-default-color-over,
+        $color-focus: $button-default-color-focus,
+        $color-pressed: $button-default-color-pressed,
+        $color-disabled: $button-default-color-disabled,
 
         $font-size: $button-large-font-size,
         $font-size-over: $button-large-font-size-over,
@@ -980,18 +960,218 @@
         $font-family-disabled: $button-large-font-family-disabled,
 
         $icon-size: $button-large-icon-size,
-        $glyph-color: $button-toolbar-glyph-color,
-        $glyph-opacity: $button-toolbar-glyph-opacity,
+        $glyph-color: $button-default-glyph-color,
+        $glyph-opacity: $button-default-glyph-opacity,
         $arrow-width: $button-large-arrow-width,
         $arrow-height: $button-large-arrow-height,
         $split-width: $button-large-split-width,
         $split-height: $button-large-split-height,
-
-        $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
-
-        $opacity-disabled: $button-toolbar-opacity-disabled,
-        $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        $opacity-disabled: $button-opacity-disabled,
+        $inner-opacity-disabled: $button-inner-opacity-disabled
     );
+}
+
+@if $include-ext-toolbar-toolbar {
+    @if $include-button-default-toolbar-small-ui {
+        @include extjs-button-ui(
+            $ui: 'default-toolbar-small',
+
+            $border-radius: $button-small-border-radius,
+            $border-width: $button-small-border-width,
+
+            $border-color: $button-toolbar-border-color,
+            $border-color-over: $button-toolbar-border-color-over,
+            $border-color-focus: $button-toolbar-border-color-focus,
+            $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-disabled: $button-toolbar-border-color-disabled,
+
+            $padding: $button-small-padding,
+            $text-padding: $button-small-text-padding,
+
+            $background-color: $button-toolbar-background-color,
+            $background-color-over: $button-toolbar-background-color-over,
+            $background-color-focus: $button-toolbar-background-color-focus,
+            $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-disabled: $button-toolbar-background-color-disabled,
+
+            $background-gradient: $button-toolbar-background-gradient,
+            $background-gradient-over: $button-toolbar-background-gradient-over,
+            $background-gradient-focus: $button-toolbar-background-gradient-focus,
+            $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
+            $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+
+            $color: $button-toolbar-color,
+            $color-over: $button-toolbar-color-over,
+            $color-focus: $button-toolbar-color-focus,
+            $color-pressed: $button-toolbar-color-pressed,
+            $color-disabled: $button-toolbar-color-disabled,
+
+            $font-size: $button-small-font-size,
+            $font-size-over: $button-small-font-size-over,
+            $font-size-focus: $button-small-font-size-focus,
+            $font-size-pressed: $button-small-font-size-pressed,
+            $font-size-disabled: $button-small-font-size-disabled,
+
+            $font-weight: $button-small-font-weight,
+            $font-weight-over: $button-small-font-weight-over,
+            $font-weight-focus: $button-small-font-weight-focus,
+            $font-weight-pressed: $button-small-font-weight-pressed,
+            $font-weight-disabled: $button-small-font-weight-disabled,
+
+            $font-family: $button-small-font-family,
+            $font-family-over: $button-small-font-family-over,
+            $font-family-focus: $button-small-font-family-focus,
+            $font-family-pressed: $button-small-font-family-pressed,
+            $font-family-disabled: $button-small-font-family-disabled,
+
+            $icon-size: $button-small-icon-size,
+            $glyph-color: $button-toolbar-glyph-color,
+            $glyph-opacity: $button-toolbar-glyph-opacity,
+            $arrow-width: $button-small-arrow-width,
+            $arrow-height: $button-small-arrow-height,
+            $split-width: $button-small-split-width,
+            $split-height: $button-small-split-height,
+
+            $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
+
+            $opacity-disabled: $button-toolbar-opacity-disabled,
+            $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        );
+    }
+
+    @if $include-button-default-toolbar-medium-ui {
+        @include extjs-button-ui(
+            $ui: 'default-toolbar-medium',
+
+            $border-radius: $button-medium-border-radius,
+            $border-width: $button-medium-border-width,
+
+            $border-color: $button-toolbar-border-color,
+            $border-color-over: $button-toolbar-border-color-over,
+            $border-color-focus: $button-toolbar-border-color-focus,
+            $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-disabled: $button-toolbar-border-color-disabled,
+
+            $padding: $button-medium-padding,
+            $text-padding: $button-medium-text-padding,
+
+            $background-color: $button-toolbar-background-color,
+            $background-color-over: $button-toolbar-background-color-over,
+            $background-color-focus: $button-toolbar-background-color-focus,
+            $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-disabled: $button-toolbar-background-color-disabled,
+
+            $background-gradient: $button-toolbar-background-gradient,
+            $background-gradient-over: $button-toolbar-background-gradient-over,
+            $background-gradient-focus: $button-toolbar-background-gradient-focus,
+            $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
+            $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+
+            $color: $button-toolbar-color,
+            $color-over: $button-toolbar-color-over,
+            $color-focus: $button-toolbar-color-focus,
+            $color-pressed: $button-toolbar-color-pressed,
+            $color-disabled: $button-toolbar-color-disabled,
+
+            $font-size: $button-medium-font-size,
+            $font-size-over: $button-medium-font-size-over,
+            $font-size-focus: $button-medium-font-size-focus,
+            $font-size-pressed: $button-medium-font-size-pressed,
+            $font-size-disabled: $button-medium-font-size-disabled,
+
+            $font-weight: $button-medium-font-weight,
+            $font-weight-over: $button-medium-font-weight-over,
+            $font-weight-focus: $button-medium-font-weight-focus,
+            $font-weight-pressed: $button-medium-font-weight-pressed,
+            $font-weight-disabled: $button-medium-font-weight-disabled,
+
+            $font-family: $button-medium-font-family,
+            $font-family-over: $button-medium-font-family-over,
+            $font-family-focus: $button-medium-font-family-focus,
+            $font-family-pressed: $button-medium-font-family-pressed,
+            $font-family-disabled: $button-medium-font-family-disabled,
+
+            $icon-size: $button-medium-icon-size,
+            $glyph-color: $button-toolbar-glyph-color,
+            $glyph-opacity: $button-toolbar-glyph-opacity,
+            $arrow-width: $button-medium-arrow-width,
+            $arrow-height: $button-medium-arrow-height,
+            $split-width: $button-medium-split-width,
+            $split-height: $button-medium-split-height,
+
+            $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
+
+            $opacity-disabled: $button-toolbar-opacity-disabled,
+            $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        );
+    }
+
+    @if $include-button-default-toolbar-large-ui {
+        @include extjs-button-ui(
+            $ui: 'default-toolbar-large',
+
+            $border-radius: $button-large-border-radius,
+            $border-width: $button-large-border-width,
+
+            $border-color: $button-toolbar-border-color,
+            $border-color-over: $button-toolbar-border-color-over,
+            $border-color-focus: $button-toolbar-border-color-focus,
+            $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-disabled: $button-toolbar-border-color-disabled,
+
+            $padding: $button-large-padding,
+            $text-padding: $button-large-text-padding,
+
+            $background-color: $button-toolbar-background-color,
+            $background-color-over: $button-toolbar-background-color-over,
+            $background-color-focus: $button-toolbar-background-color-focus,
+            $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-disabled: $button-toolbar-background-color-disabled,
+
+            $background-gradient: $button-toolbar-background-gradient,
+            $background-gradient-over: $button-toolbar-background-gradient-over,
+            $background-gradient-focus: $button-toolbar-background-gradient-focus,
+            $background-gradient-pressed: $button-toolbar-background-gradient-pressed,
+            $background-gradient-disabled: $button-toolbar-background-gradient-disabled,
+
+            $color: $button-toolbar-color,
+            $color-over: $button-toolbar-color-over,
+            $color-focus: $button-toolbar-color-focus,
+            $color-pressed: $button-toolbar-color-pressed,
+            $color-disabled: $button-toolbar-color-disabled,
+
+            $font-size: $button-large-font-size,
+            $font-size-over: $button-large-font-size-over,
+            $font-size-focus: $button-large-font-size-focus,
+            $font-size-pressed: $button-large-font-size-pressed,
+            $font-size-disabled: $button-large-font-size-disabled,
+
+            $font-weight: $button-large-font-weight,
+            $font-weight-over: $button-large-font-weight-over,
+            $font-weight-focus: $button-large-font-weight-focus,
+            $font-weight-pressed: $button-large-font-weight-pressed,
+            $font-weight-disabled: $button-large-font-weight-disabled,
+
+            $font-family: $button-large-font-family,
+            $font-family-over: $button-large-font-family-over,
+            $font-family-focus: $button-large-font-family-focus,
+            $font-family-pressed: $button-large-font-family-pressed,
+            $font-family-disabled: $button-large-font-family-disabled,
+
+            $icon-size: $button-large-icon-size,
+            $glyph-color: $button-toolbar-glyph-color,
+            $glyph-opacity: $button-toolbar-glyph-opacity,
+            $arrow-width: $button-large-arrow-width,
+            $arrow-height: $button-large-arrow-height,
+            $split-width: $button-large-split-width,
+            $split-height: $button-large-split-height,
+
+            $include-split-noline-arrows: $button-toolbar-include-split-noline-arrows,
+
+            $opacity-disabled: $button-toolbar-opacity-disabled,
+            $inner-opacity-disabled: $button-toolbar-inner-opacity-disabled
+        );
+    }
 }
 
 .#{$prefix}btn-icon-text-left {

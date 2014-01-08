@@ -16,11 +16,11 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
-//@require util/Event.js
-//@define Ext.EventManager
+// @tag dom,core
+// @require util/Event.js
+// @define Ext.EventManager
 
 /**
  * @class Ext.EventManager
@@ -36,6 +36,8 @@ Ext.EventManager = new function() {
         win = window,
         escapeRx = /\\/g,
         prefix = Ext.baseCSSPrefix,
+        // IE9strict addEventListener has some issues with using synthetic events
+        supportsAddEventListener = !Ext.isIE9 && 'addEventListener' in doc,
         readyEvent,
         initExtCss = function() {
             // find the body element
@@ -172,8 +174,8 @@ Ext.EventManager = new function() {
                     Ext.isBorderBox = true;
                 }
 
-                if(Ext.isBorderBox) {
-                    htmlCls.push(prefix + 'border-box');
+                if(!Ext.isBorderBox) {
+                    htmlCls.push(prefix + 'content-box');
                 }
                 if (Ext.isStrict) {
                     htmlCls.push(prefix + 'strict');
@@ -491,7 +493,8 @@ Ext.EventManager = new function() {
          *
          * @param {String} eventName The name of the event to listen for.
          *
-         * @param {Function} handler The handler function the event invokes.
+         * @param {Function/String} handler The handler function the event invokes. A String parameter
+         * is assumed to be method name in `scope` object, or Element object if no scope is provided.
          * @param {Ext.EventObject} handler.event The {@link Ext.EventObject EventObject} describing the event.
          * @param {Ext.dom.Element} handler.target The Element which was the target of the event.
          * Note that this may be filtered by using the `delegate` option.
@@ -525,7 +528,11 @@ Ext.EventManager = new function() {
             }
 
             var dom = element.dom || Ext.getDom(element),
-                bind, wrap, cache, id, cacheItem;
+                hasAddEventListener, bind, wrap, cache, id, cacheItem, capture;
+            
+            if (typeof fn === 'string') {
+                fn = Ext.resolveMethod(fn, scope || element);
+            }
 
             //<debug>
             if (!fn) {
@@ -548,8 +555,11 @@ Ext.EventManager = new function() {
             // add all required data into the event cache
             cache = EventManager.getEventListenerCache(element.dom ? element : dom, eventName);
             eventName = bind.eventName;
+
+            // In IE9 we prefer to use attachEvent but it's not available for some Elements (SVG)
+            hasAddEventListener = supportsAddEventListener || (Ext.isIE9 && !dom.attachEvent);
             
-            if (dom.attachEvent) {
+            if (!hasAddEventListener) {
                 id = EventManager.normalizeId(dom);
                 // If there's no id we don't have any events bound, so we never
                 // need to clone at this point.
@@ -567,14 +577,15 @@ Ext.EventManager = new function() {
                 }
             }
 
+            capture = !!options.capture;
             cache.push({
                 fn: fn,
                 wrap: wrap,
-                scope: scope
+                scope: scope,
+                capture: capture 
             });
 
-            
-            if (dom.attachEvent) {
+            if (!hasAddEventListener) {
                 // If cache length is 1, it means we're binding the first event
                 // for this element for this type
                 if (cache.length === 1) {
@@ -587,7 +598,7 @@ Ext.EventManager = new function() {
                     dom.attachEvent('on' + eventName, fn);
                 }
             } else {
-                dom.addEventListener(eventName, wrap, options.capture || false);
+                dom.addEventListener(eventName, wrap, capture);
             }
 
             if (dom == doc && eventName == 'mousedown') {
@@ -659,9 +670,19 @@ Ext.EventManager = new function() {
                 id, el = element.dom ? element : Ext.get(dom),
                 cache = EventManager.getEventListenerCache(el, eventName),
                 bindName = EventManager.normalizeEvent(eventName).eventName,
-                i = cache.length, j, cacheItem,
+                i = cache.length, j, cacheItem, hasRemoveEventListener,
                 listener, wrap;
+                
+            if (!dom) {
+                return;
+            }
 
+            // In IE9 we prefer to use detachEvent but it's not available for some Elements (SVG)
+            hasRemoveEventListener = supportsAddEventListener || (Ext.isIE9 && !dom.detachEvent);
+            
+            if (typeof fn === 'string') {
+                fn = Ext.resolveMethod(fn, scope || element);
+            }
 
             while (i--) {
                 listener = cache[i];
@@ -684,7 +705,7 @@ Ext.EventManager = new function() {
                         delete wrap.tasks;
                     }
 
-                    if (dom.detachEvent) {
+                    if (!hasRemoveEventListener) {
                         // if length is 1, we're removing the final event, actually
                         // unbind it from the element
                         id = EventManager.normalizeId(dom, true);
@@ -700,7 +721,7 @@ Ext.EventManager = new function() {
                             dom.detachEvent('on' + bindName, fn);
                         }
                     } else {
-                        dom.removeEventListener(bindName, wrap, false);
+                        dom.removeEventListener(bindName, wrap, listener.capture);
                     }
 
                     if (wrap && dom == doc && eventName == 'mousedown') {
@@ -1192,7 +1213,7 @@ Ext.EventManager = new function() {
     });
 
     // route "< ie9-Standards" to a legacy IE onReady implementation
-    if(!('addEventListener' in document) && document.attachEvent) {
+    if(!supportsAddEventListener && document.attachEvent) {
         Ext.apply( EventManager, {
             /* Customized implementation for Legacy IE.  The default implementation is configured for use
              *  with all other 'standards compliant' agents.

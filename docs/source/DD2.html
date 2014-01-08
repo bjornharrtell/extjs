@@ -97,23 +97,24 @@ Ext.define('Ext.panel.DD', {
     onInvalidDrop: function(target, e, id) {
         var me = this;
         
-        me.beforeInvalidDrop(target, e, id);
-        if (me.cachedTarget) {
-            if(me.cachedTarget.isNotifyTarget){
-                me.cachedTarget.notifyOut(me, e, me.dragData);
+        if (me.beforeInvalidDrop(target, e, id) !== false) {
+            if (me.cachedTarget) {
+                if(me.cachedTarget.isNotifyTarget){
+                    me.cachedTarget.notifyOut(me, e, me.dragData);
+                }
+                me.cacheTarget = null;
             }
-            me.cacheTarget = null;
-        }
 
-        if (me.afterInvalidDrop) {
-<span id='Ext-panel-DD-method-afterInvalidDrop'>            /**
-</span>             * An empty function by default, but provided so that you can perform a custom action
-             * after an invalid drop has occurred by providing an implementation.
-             * @param {Event} e The event object
-             * @param {String} id The id of the dropped element
-             * @method afterInvalidDrop
-             */
-            me.afterInvalidDrop(e, id);
+            if (me.afterInvalidDrop) {
+<span id='Ext-panel-DD-method-afterInvalidDrop'>                /**
+</span>                * An empty function by default, but provided so that you can perform a custom action
+                * after an invalid drop has occurred by providing an implementation.
+                * @param {Event} e The event object
+                * @param {String} id The id of the dropped element
+                * @method afterInvalidDrop
+                */
+                me.afterInvalidDrop(e, id);
+            }
         }
     }
 });</pre>

@@ -6,6 +6,10 @@
     border-width: 1px;
     border-color: $panel-body-border-color;
     border-style: $panel-body-border-style;
+    
+    .#{$prefix}grid-table {
+        width: 100%;
+    }
 }
 
 .#{$prefix}grid-row-summary {
@@ -17,4 +21,8 @@
         border-top-width: 0;
         font: $grid-row-cell-font;
     }
+}
+
+.#{$prefix}grid-with-row-lines .#{$prefix}grid-table-summary {
+    border: 0;
 }

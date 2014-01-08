@@ -1,35 +1,42 @@
 # Introduction to Sencha Cmd
 
 Sencha Cmd is a cross-platform command line tool that provides many automated tasks
-around the full life-cycle of your applications, from generating a new project to
+around the full life-cycle of your applications from generating a new project to
 deploying an application to production.
 
 {@img sencha-command-128.png}
 
-Sencha Cmd provides a collection of powerful, time-saving features that are designed to
+Sencha Cmd provides a collection of powerful time-saving features that 
 work together and in conjunction with the Sencha Ext JS and Sencha Touch frameworks.
 Sencha Cmd provides the following capabilities:
 
- - Code generation tools to generate entire applications and extend those applications
+ - Code Generation Tools: Code generation tools to generate entire applications and extend those applications
  with new MVC components.
- - A framework-aware, JavaScript compiler that knows the semantics of Sencha frameworks
+ - JS Compiler: A framework-aware, JavaScript compiler that knows the semantics of Sencha frameworks
  and can produce minimal footprint builds from your source. In the future, the compiler
  will optimize many of the high-level semantics provided by Sencha frameworks to reduce
  load time of your applications.
- - Native packaging to convert your Sencha Touch application into a first-class, mobile
+ - Web Server: Provides a lightweight web server that serves files from localhost.
+ - Packaging: Native packaging to convert a Sencha Touch application into a first-class, mobile
  application that has access to device functionality and can be distributed in App Stores.
- - Powerful code selection tools for tuning what is included in your application's final
+ - Management System: Distributed package management system for easy integration of packages (such as Ext JS
+ Themes) created by others or from the Sencha Package Repository.
+ - Build Scripts: Generated build script for applications and packages with "before" and "after" extension
+ points so you can customize the build process to fit your specific needs.
+ - Tuning Tools: Powerful code selection tools for tuning what is included in your application's final
  build, determine common code across pages and partition shared code into "packages" - all
  using high-level set operations to get builds exactly as you want them.
- - Workspace management to assist in sharing code between pages or applications.
- - Image extraction to convert CSS3 features (such as border-radius and linear-gradient)
+ - Workspace Management: Assists in sharing frameworks, packages and custom code between
+ applications.
+ - Image Capture: Converts CSS3 features (such as border-radius and linear-gradient)
  into sprites for legacy browsers.
- - Flexible configuration system that enables defaults to be specified for command options
+ - Flexible Configuration System: Enables defaults to be specified for command options
  at the application or workspace level or across all workspaces on a machine.
- - Robust logging to help you understand the inner workings of commands and facilitate
+ - Logging: Robust logging to help you understand the inner workings of commands and facilitate
  troubleshooting.
- - Integration with Apache Ant.
- - Code generation hooks that can be specific to one page or shared by all pages in the
+ - Third-party Software: Sencha Cmd includes a compatible version of Compass, Sass, and 
+ Apache Ant.
+ - Code Generation Hooks: Can be specific to one page or shared by all pages in the
  workspace, for example, to check coding conventions or guidelines as new models are
  generated).
 
@@ -43,8 +50,7 @@ can be used for older versions of Sencha frameworks or JavaScript in general.
 If you are using an older version of Ext JS, you may use Sencha Cmd's `build` command to
 build via your JSB file. In other words, Sencha Cmd can replace JSBuilder to produce a
 compressed build of the files described in a JSB file. Sencha Cmd will not update your JSB
-file as was done by the previous SDK Tools v2. If your build process requires this support,
-then you should wait to upgrade to Sencha Cmd.
+file as was done by the previous SDK Tools v2. 
 
 Sencha Touch 2.0.x requires [SDK Tools v2](http://www.sencha.com/products/sdk-tools).
 
@@ -55,32 +61,72 @@ Follow these steps to set up your system and start using Sencha Cmd:
  1. Download and install a
 [Java Run-time Environment or JRE](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 It is best to download the most up-to-date version available. The JRE version must be at
-least JRE 6.
- 2. Download and install [Compass](http://compass-style.org/). Compass may have its own
- system requirements. Compass is required for several features of Sencha Cmd.
+least JRE 6, JRE 7 is best.
+ 2. To build themes using Sass on Windows, download and install [Ruby 1.9.3](http://ruby-lang.org/).
+ Ruby is already provided by Mac OS X. Windows: Download Ruby 1.9.3.n from rubyinstaller.org. 
+ Download the RubyInstaller .exe file and run it.
  3. Download and install [Sencha Cmd](http://www.sencha.com/products/sencha-cmd).
- 4. Download the appropriate version of the [Ext JS SDK](http://www.sencha.com/products/extjs/)
- or [Sencha Touch SDK](http://www.sencha.com/products/touch/).
+ 4. Download the appropriate version of the [Ext JS SDK](http://www.sencha.com/products/extjs/) for
+ desktop applications or [Sencha Touch](http://www.sencha.com/products/touch/) for mobile applications.
  5. Extract the SDK to a local directory.
 
-Next, you need to verify that Sencha Cmd is working properly on your machine. Open a
-command line terminal, and run the following commands. Replace `/path/to/sdk` with the
-actual path to the SDK that you extracted to previously (**not the Sencha Cmd directory**).
+To verify that Sencha Cmd is working properly, open a command line, change directory to
+your application, and type the **sencha** command. 
 
-    cd /path/to/sdk
-    sencha
+You should see output that starts with:
 
-You should see output that starts like this:
-
-    Sencha Cmd v3.0.0
+    Sencha Cmd v3.1.n
     ...
 
-If the above message appears and the version number is 3.0.0 or higher you are all set.
+If this message appears and the version number is 3.1.n or higher, you are all set.
+
+## Sencha Cmd Web Server
+
+The Sencha Cmd web server lets you serve files from your applications directory. 
+Use this command to start the web server:
+
+    sencha fs web [-port 8000] start -map <dir_name>
+
+(You can use any available TCP port number or omit it and use the default.)
+
+To access the Sencha Cmd web server, use: 
+
+    http://localhost:8000/
+
+## Upgrading Sencha Cmd
+
+New to Sencha Cmd v3.1 is the `sencha upgrade` command. Once you have a version of Sencha
+Cmd with the `upgrade` command, you won't need to manually download Sencha
+Cmd updates again.
+
+Check for new updates to Sencha Cmd:
+
+    sencha upgrade --check
+
+Without the `--check` option, the `sencha upgrade` command downloads and installs the
+latest version if you don't already have it:
+
+    sencha upgrade
+
+If you want to check for pre-release (a.k.a. "beta") releases, use:
+
+    sencha upgrade --check --beta
+
+To install the latest beta version:
+
+    sencha upgrade --beta
+
+After the installer is done, start a new console or terminal
+to pick up the changes to your PATH environment variable.
+
+Because multiple versions of Sencha Cmd can be installed side-by-side, you can safely try
+the Beta channel and then uninstall the beta (or adjust the PATH) to go back to the stable
+version. Upgrading your applications using `sencha app upgrade` however, is something you
+may need "roll back" if you downgrade to an older Sencha Cmd.
 
 ## Command Basics
 
-All of the features provided by Sencha Cmd are arranged in categories (or modules) and
-commands.
+Sencha Cmd features are arranged in categories (or modules) and commands:
 
     sencha [category] [command] [options...] [arguments...]
 
@@ -94,45 +140,59 @@ For example, try this:
 
 And you should see this:
 
-    Sencha Cmd v3.0.0
+    Sencha Cmd v3.1.n
+    ...
 
-    OPTIONS
+    Options
+      * --cwd, -cw - Sets the directory from which commands should execute
       * --debug, -d - Sets log level to higher verbosity
-      * --plain, -p - enables plain logging output (no highlighting)
+      * --nologo, -n - Suppress the initial Sencha Cmd version display
+      * --plain, -pl - enables plain logging output (no highlighting)
       * --quiet, -q - Sets log level to warnings and errors only
-      * --sdk-path, -s - sets the path to the target sdk
+      * --sdk-path, -s - The location of the SDK to use for non-app commands
+      * --time, -ti - Display the execution time after executing all commands
 
-    CATEGORIES
-      * compile - Compile sources to produce concatenated output and metadata
-      * generate - Generate code like models and controllers or raw templates
-      * theme - Builds a set of theme images from a given html page
+    Categories
       * app - Perform various application build processes
+      * compass - Wraps execution of compass for sass compilation
+      * compile - Compile sources to produce concatenated output and metadata
+      * fs - Utility commands to work with files
+      * generate - Generates models, controllers, etc. or an entire application
+      * io - Create, deploy and manage applications on the Sencha.io cloud platform
+      * iofs - Manage Files stored in the Sencha.io cloud platform
+      * manifest - Extract class metadata
+      * package - Manages local and remote packages
+      * repository - Manage local repository and remote repository connections
+      * theme - Commands for low-level operations on themes
 
-    COMMANDS
+    Commands
       * ant - Invoke Ant with helpful properties back to Sencha Cmd
-      * build - Builds a project from a JSB3 file.
-      * config - Loads a config file or sets a configuration property
-      * help - Get help on using Sencha Cmd
+      * build - Builds a project from a legacy JSB3 file.
+      * config - Load a properties file or sets a configuration property
+      * help - Displays help for commands
+      * js - Executes arbitrary JavaScript file(s)
+      * upgrade - Upgrades Sencha Cmd
+      * which - Displays the path to the current version of Sencha Cmd
 
 ## Current Directory
 
-In many cases, Sencha Cmd requires you to set a specific current directory. Or it may
-just need to know details about the relevant SDK. This can be determined when Sencha Cmd
-is run from a generated application folder or, for some few commands, from an extracted
-SDK folder.
+In many cases, Sencha Cmd requires that you set a specific current directory. Or it may
+just need to know details about the relevant SDK. The appropriate SDK can be determined
+automatically by Sencha Cmd when it is run from a generated application folder or, for
+some few commands, from an extracted SDK folder.
 
-*Important.* For the following commands, Sencha Cmd needs to be run from the root folder
-of a generated application. They will fail if not run from such a folder.
+**Important** For the following commands, Sencha Cmd needs to be run from the root folder
+of a generated application. The commands fail if not run from the application's root folder.
 
-    * `sencha generate ...` (all commands other than `app` and `workspace`)
+    * `sencha generate ...` (for commands other than `app`, `package` and `workspace`)
     * `sencha app ...`
 
-To generate an application you can run the following command from an extracted SDK folder:
+To generate an application, run the following command from an extracted SDK folder:
 
     cd /path/to/SDK
     sencha generate app ...
 
-Or you can use the `-sdk` switch like so:
+Or you can use the `-sdk` switch:
 
     sencha -sdk /path/to/sdk generate app ...
 
@@ -141,6 +201,12 @@ application folder. If you are not running from a generated application, you may
 use the `-sdk` switch:
 
     sencha -sdk /path/to/sdk compile ...
+
+**Important** Do not specify the `-sdk` parameter for `sencha app` commands. As noted
+above, these commands must be run from the application's root folder and therefore 
+automatically know which SDK to use. Using `-sdk` on these commands causes Sencha Cmd
+to believe your current directory is the SDK specified which is not the proper current
+directory for an application.
 
 ## Developing Applications
 
@@ -183,16 +249,16 @@ batch file` on Windows, follow these steps:
       the case, add it to your PATH manually.
     - The environment variable `SENCHA_CMD_{version}` is set, with the value being
       the absolute path to the installation directory mentioned above. For example, if the
-      installed version is 3.0.0, a `SENCHA_CMD_3_0_0` must be set. If the output is
+      installed version is 3.1.0, a `SENCHA_CMD_3_1_0` must be set. If the output is
       empty, set the environment variable manually. To check, go to the command prompt (or
       Terminal) and run:
-        - Windows: `echo %SENCHA_CMD_3_0_0%`
-        - Other - `echo $SENCHA_CMD_3_0_0`
+        - Windows: `echo %SENCHA_CMD_3_1_0%`
+        - Other - `echo $SENCHA_CMD_3_1_0`
 
-### Compass is not a recognized command
+### Cannot find Ruby
 
-If you see an error related to not recognizing or finding `"compass"` this is likely because
-Compass is not installed or is not in your PATH. See the System Requirements above.
+If you see an error related to not recognizing or finding `"ruby"` this is likely because
+Ruby is not installed or is not in your PATH. See the previous System Requirements section.
 
 ### Wrong Current Directory
 

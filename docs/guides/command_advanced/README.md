@@ -16,7 +16,7 @@ The Installer lets you select a destination path, but changing this can have sid
 installed in a single base folder with sub-folders named by the version number. On Windows,
 the default install folder for a single-user installation looks like this:
 
-    C:\Users\myself\bin\Sencha\Cmd\3.0.0.181\
+    C:\Users\myself\bin\Sencha\Cmd\3.1.n.n\
 
 It is highly recommended that if you change this path, you preserve the last piece (that
 is, the version number) as well as install any other versions of Sencha Cmd in that same
@@ -32,25 +32,25 @@ To support such scenarios, Sencha Cmd looks at the required version as specified
 framework used by the application. It then delegates the command to the the proper version
 of Sencha Cmd.
 
-**Important.** For this to work properly, both versions must be installed in a folder
+**Important** For this to work properly, both versions must be installed in a folder
 named by their version number and located in a common parent folder.
 
 Alternatively, each installed version also provides a version-specific name for Sencha Cmd.
 This can be run as follows:
 
-    sencha-3.0.0 ....
+    sencha-3.1.n ....
 
-Finally, the installer also sets an environment variable of the form `SENCHA_CMD_3_0_0`,
+Finally, the installer also sets an environment variable of the form `SENCHA_CMD_3_n_n`,
 which can be used to adjust the PATH of the current console/shell, as follows.
 
-On Windows, this looks like this:
+On Windows, this looks like this (n is the current version):
 
-    set PATH=%SENCHA_CMD_3_0_0%;%PATH%
+    set PATH=%SENCHA_CMD_3_n_n%;%PATH%
     sencha ....
 
 On OSX/Linux, this looks like this:
 
-    set PATH=$SENCHA_CMD_3_0_0:$PATH
+    set PATH=$SENCHA_CMD_3_n_n:$PATH
     sencha ....
 
 ## Configuration
@@ -59,13 +59,13 @@ Any parameter that can be passed to Sencha Cmd on the command line can be set as
 configuration option in one of the configuration files discussed below. If you know the
 command line option, it is a simple matter to add that option to a configuration file.
 
-For example, to specify the `name` parameter for `sencha generate app` in the configuration,
+For example, to specify the `ignore` parameter for `sencha compile` in the configuration,
 add this line:
 
-    sencha.generate.app#name=MyApp
+    sencha.compile#ignore=attic
 
-This particular property is not meaningful to specify in a configuration file, but it serves
-to illustrate the syntax. The parts of the command that goes before the `#` are the Sencha
+This particular setting is not necessarily a recommended practice, but it just serves to
+illustrate the syntax. The parts of the command that goes before the `#` are the Sencha
 Cmd commands separated by dots. Following the `#` is the option name.
 
 To set global options (like `debug` logging), do this:
@@ -77,18 +77,55 @@ evolves.
 
 ### Configuration Files
 
-Configuration is applied in a simple cascade starting with the configuration file found
-in the Sencha Cmd folder called `"sencha.cfg"`. This contains the default configuration for
-Sencha Cmd. All properties in that file are loaded as Sencha Cmd launches.
+Similar to Apache Ant (on which many aspects of Sencha Cmd are based), configuration is
+applied in a "first-write-wins" model. This is essential to allow property values to be
+overridden by the command line.
 
-Following that base file, the framework, workspace and finally application configurations
-are loaded, overriding any commonly named properties. This is the order of configuration
-file loading:
+The process of loading configuration begins by searching from the current directory and
+proceeds up the file system until the Workspace is found. Along the way, Sencha Cmd looks
+detected the presence of an Application or Sencha Framework SDK. At the end of the loading
+process, Sencha Cmd will load any of the following files it detects in this order:
 
-  * `${cmd.dir}/sencha.cfg`
-  * `${framework.dir}/sencha.cfg`
-  * `${workspace.dir}/.sencha/workspace/sencha.cfg`
-  * `${app.dir}/.sencha/app/sencha.cfg`
+  * **`${app.dir}/.sencha/app/sencha.cfg`** - Application configuration when in an application
+  folder is the most specific and is loaded first.
+  * **`${package.dir}/.sencha/package/sencha.cfg`** - Package configuration when in a package
+  folder is the most specific and is loaded first.
+  * **`${workspace.dir}/.sencha/workspace/sencha.cfg`** - Workspace configuration is applied
+  next when you are in a workspace (or an app or package in the workspace).
+  * **`${framework.dir}/cmd/sencha.cfg`** - Based on the applicable framework for the app or
+  package at the current directory, those properties are loaded next.
+  * **`${home.dir}/.sencha/cmd/sencha.cfg`** - *(New to v3.1.1)* Your personal configuration
+  is loaded next. This will typically only set high-level properties.
+  * **`${cmd.dir}/../sencha.cfg`** - *(New to v3.1.1)* Local machine Cmd configuration is
+  loaded next. This will typically only set high-level properties. This is loaded from the
+  parent folder of the running Sencha Cmd, which is intended to be the folder that holds
+  the various installed versions of Sencha Cmd.
+  * **`${cmd.dir}/sencha.cfg`** - Lastly, the Sencha Cmd, version specific configuration is
+  loaded.
+
+This yields basically the same result as Sencha Cmd v3.0's approach which used a cascade
+that loaded the above files in reverse order but overwrote properties as it progressed.
+The key difference between Sencha Cmd v3.0 and v3.1 is that properties passed at the
+command line override those in these files. This is seen in the following command:
+
+    sencha config -prop foo=42 then ...
+
+This will set `"foo"` to 42 prior to the loading of config files, and in Sencha Cmd v3.1,
+this setting will "win".
+
+### Java System Properties
+
+There are certain Java System Properties that you may need to set for Sencha Cmd. The most
+typical are HTTP Proxy Server settings. The `"sencha.cfg"` file in your Cmd install folder
+has default settings for proxies that should enable detection of your system-defined proxy.
+For further information, consult the comments found in `"${cmd.dir}/sencha.cfg"`.
+
+**NOTE:** If you should need to change any of these settings, you may want to do so in the 
+`"${cmd.dir}/../sencha.cfg"` file instead so that these settings are preserved across Cmd
+upgrades.
+
+These properties will effect Sencha Cmd's ability to access the Web in order to perform
+`sencha upgrade` or to download packages. These options are new to Cmd v3.1.1.
 
 ## Command Line Details
 
@@ -104,9 +141,9 @@ starts with the letter "g", and likewise, `app` is the only command in that cate
 starts with an "a", the following commands are equivalent:
 
     sencha generate app MyApp ../MyApp
-    sencha g a MyApp ../MyApp
+    sencha gen ap MyApp ../MyApp
 
-**Important.** While this can be convenient at the console or terminal, it is not a good
+**Important** While this can be convenient at the console or terminal, it is not a good
 practice to use extremely short/terse prefixes in scripts. The use of such terse commands
 in scripts will needlessly confuse anyone trying to understand or maintain the script in
 the future and can break if the addition of new commands makes the short form ambiguous.
@@ -239,7 +276,6 @@ added.
 
 The actual target names will be slightly different based on which plugin you extend. For
 specifics, consult the comments in the respective `"plugin.xml"` file.
-
 
 **Note.** The default `"plugin.xml"` file imports [Ant Contrib](http://ant-contrib.sourceforge.net/)
 which provides many [useful tasks](http://ant-contrib.sourceforge.net/tasks/tasks/index.html).

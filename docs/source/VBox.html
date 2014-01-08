@@ -95,6 +95,9 @@ Ext.define('Ext.layout.container.VBox', {
 <span id='Ext-layout-container-VBox-property-names'>    names: {
 </span>        // parallel
         beforeX: 'top',
+        beforeScrollX: 'top',
+        beforeScrollerSuffix: '-before-scroller',
+        afterScrollerSuffix: '-after-scroller',
         leftCap: 'Top',
         afterX: 'bottom',
         width: 'height',
@@ -123,7 +126,6 @@ Ext.define('Ext.layout.container.VBox', {
         heightModel: 'widthModel',
         heightIndex: 0,
         y: 'x',
-        scrollTop: 'scrollLeft',
         overflowY: 'overflowX',
         hasOverflowY: 'hasOverflowX',
         invalidateScrollY: 'invalidateScrollX',
@@ -139,7 +141,10 @@ Ext.define('Ext.layout.container.VBox', {
         setContentWidth: 'setContentHeight',
         setContentHeight: 'setContentWidth',
         setWidthInDom: 'setHeightInDom',
-        setHeightInDom: 'setWidthInDom'
+        setHeightInDom: 'setWidthInDom',
+        getScrollLeft: 'getScrollTop',
+        setScrollLeft: 'setScrollTop',
+        scrollTo: 'scrollTo'
     },
 
 <span id='Ext-layout-container-VBox-property-sizePolicy'>    sizePolicy: {

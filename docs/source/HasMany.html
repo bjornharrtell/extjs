@@ -260,7 +260,8 @@ associations: [{
                     model        : associatedModel,
                     filters      : [filter],
                     remoteFilter : false,
-                    modelDefaults: modelDefaults
+                    modelDefaults: modelDefaults,
+                    disableMetaChangeEvent: true
                 });
                 
                 me[storeName] = Ext.data.AbstractStore.create(config);

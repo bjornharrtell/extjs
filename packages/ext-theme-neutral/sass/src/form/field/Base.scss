@@ -5,17 +5,28 @@
 .#{$prefix}form-item,
 .#{$prefix}form-field {
     font: $form-field-font;
+    @if $include-ext-toolbar-toolbar and $form-field-font != $form-toolbar-field-font {
+        .#{$prefix}toolbar-item & {
+            font: $form-toolbar-field-font;
+        }
+    }
 }
 
-input.#{$prefix}form-invalid-field,
-textarea.#{$prefix}form-invalid-field {
-    background-color: $form-field-invalid-background-color;
-    @if $form-field-invalid-background-image != null {
-        background-image: theme-background-image($form-field-invalid-background-image);
-        background-repeat: $form-field-invalid-background-repeat;
-        background-position: $form-field-invalid-background-position;
+.#{$prefix}form-type-text,
+.#{$prefix}form-type-password,
+.#{$prefix}form-type-number,
+.#{$prefix}form-type-email,
+.#{$prefix}form-type-search,
+.#{$prefix}form-type-tel {
+    textarea.#{$prefix}form-invalid-field, input.#{$prefix}form-invalid-field {
+        background-color: $form-field-invalid-background-color;
+        @if $form-field-invalid-background-image != null {
+            background-image: theme-background-image($form-field-invalid-background-image);
+            background-repeat: $form-field-invalid-background-repeat;
+            background-position: $form-field-invalid-background-position;
+        }
+        border-color: $form-field-invalid-border-color;
     }
-    border-color: $form-field-invalid-border-color;
 }
 
 @if $form-field-disabled-opacity != 1 {

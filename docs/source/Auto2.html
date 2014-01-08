@@ -247,7 +247,7 @@ Ext.define('Ext.layout.container.Auto', {
             // If the containers width is shrink wrapped a table-based outerCt/innerCt
             // is required in old IE.  See getRenderData() for more details on the criteria
             // used to determine if the container has shrink wrapped width.
-            '&lt;table id=&quot;{ownerId}-outerCt&quot; class=&quot;' + Ext.baseCSSPrefix + 'table-plain&quot;&gt;',
+            '&lt;table id=&quot;{ownerId}-outerCt&quot; class=&quot;' + Ext.plainTableCls + '&quot;&gt;',
                 '&lt;tr&gt;',
                     '&lt;td id=&quot;{ownerId}-innerCt&quot; style=&quot;vertical-align:top;padding:0;',
                         '{%this.renderPadding(out, values)%}&quot; class=&quot;{innerCtCls}&quot;&gt;',
@@ -283,7 +283,7 @@ Ext.define('Ext.layout.container.Auto', {
     // does not have renderBody or clearEl.  It is an empty shell so that the contents
     // of an already existing innerCt can be moved into it.
     tableTpl: [
-        '&lt;table id=&quot;{ownerId}-outerCt&quot; class=&quot;' + Ext.baseCSSPrefix + 'table-plain&quot;&gt;',
+        '&lt;table id=&quot;{ownerId}-outerCt&quot; class=&quot;' + Ext.plainTableCls + '&quot;&gt;',
             '&lt;tr&gt;',
                 '&lt;td id=&quot;{ownerId}-innerCt&quot; style=&quot;vertical-align:top;padding:0;',
                     '{%this.renderPadding(out, values)%}&quot; class=&quot;{innerCtCls}&quot;&gt;',
@@ -362,6 +362,7 @@ Ext.define('Ext.layout.container.Auto', {
             lastOuterCtWidth = me.lastOuterCtWidth || '',
             lastOuterCtHeight = me.lastOuterCtHeight || '',
             lastOuterCtTableLayout = me.lastOuterCtTableLayout || '',
+            state = ownerContext.state,
             overflowXStyle, overflowYStyle, outerCtWidth, outerCtHeight, outerCtTableLayout,
             deferWidth, hierarchyStateInner;
 
@@ -436,10 +437,11 @@ Ext.define('Ext.layout.container.Auto', {
             me.innerCt.setStyle('height', '');
             me.hasInnerCtPxHeight = false;
         }
-        
+
         // Begin with the scrollbar adjustment that we used last time - this is more likely
-        // to be correct than beginning with no adjustment at all
-        ownerContext.state.overflowAdjust = me.lastOverflowAdjust;
+        // to be correct than beginning with no adjustment at all, but only if it is not
+        // already defined - it may have already been set by invalidate()
+        state.overflowAdjust = state.overflowAdjust || me.lastOverflowAdjust;
     },
 
 <span id='Ext-layout-container-Auto-method-calculate'>    calculate: function(ownerContext) {
@@ -575,7 +577,7 @@ Ext.define('Ext.layout.container.Auto', {
             padding = owner[owner.contentPaddingProperty];
 
         if (me.managePadding &amp;&amp; padding) {
-            out.push('padding:', Ext.Element.unitizeBox(padding));
+            out.push('padding:', owner.unitizeBox(padding));
         }
     },
 
@@ -822,9 +824,26 @@ Ext.define('Ext.layout.container.Auto', {
     },
 
 <span id='Ext-layout-container-Auto-method-measureContentWidth'>    measureContentWidth: function (ownerContext) {
-</span>        // contentWidth includes padding, but not border, framing or margins
-        var contentWidth = this.outerCt.getWidth(),
-            target = ownerContext.target;
+</span>        var dom, style, old, contentWidth, target;
+            
+        // In the newer Chrome versions, it won't measure the
+        // width correctly without repainting the inner
+        // cell in some circumstances.
+        if (this.chromeCellMeasureBug) {
+            dom = this.innerCt.dom;
+            style = dom.style;
+            old = style.display;
+            
+            if (old == 'table-cell') {
+                style.display = '';
+                dom.offsetWidth;
+                style.display = old;
+            }    
+        }
+        
+        // contentWidth includes padding, but not border, framing or margins
+        contentWidth = this.outerCt.getWidth();
+        target = ownerContext.target;
 
         if (this.managePadding &amp;&amp; (target[target.contentPaddingProperty] === undefined)) {
             // if padding was not configured using the appropriate contentPaddingProperty
@@ -941,7 +960,8 @@ Ext.define('Ext.layout.container.Auto', {
                 (targetEl.dom.scrollWidth &gt; targetEl.dom.clientWidth)) {
                 // adjust the height for scrollbar size since it's not accounted for
                 // in the containerSize.
-                height -= scrollbarSize.height;
+                // IE8 in what passes for &quot;standards&quot; mode does not tolerate -ve sizes
+                height = Math.max(height - scrollbarSize.height, 0);
             }
 
             if (needsOuterHeight) {
@@ -982,6 +1002,8 @@ Ext.define('Ext.layout.container.Auto', {
 </span>        return this.innerCt;
     }
 
+}, function(){
+    this.prototype.chromeCellMeasureBug = Ext.isChrome &amp;&amp; Ext.chromeVersion &gt;= 26;
 });
 </pre>
 </body>

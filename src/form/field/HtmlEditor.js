@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Provides a lightweight HTML Editor component. Some toolbar features are not supported by Safari and will be
@@ -220,7 +220,8 @@ Ext.define('Ext.form.field.HtmlEditor', {
      */
     defaultValue: (Ext.isOpera || Ext.isIE6) ? '&#160;' : '&#8203;',
 
-    fieldBodyCls: Ext.baseCSSPrefix + 'html-editor-wrap',
+    // private
+    extraFieldBodyCls: Ext.baseCSSPrefix + 'html-editor-wrap',
 
     /**
      * @cfg {String} defaultButtonUI
@@ -665,12 +666,21 @@ Ext.define('Ext.form.field.HtmlEditor', {
                     selIdx = i;
                 }
                 option.style.fontFamily = lower;
-                select.add(option);    
+                
+                if (Ext.isIE) {
+                    select.add(option);
+                } else {
+                    select.options.add(option); 
+                }
             }
             // Old IE versions have a problem if we set the selected property
             // in the loop, so set it after.
             select.options[selIdx].selected = true;
         } 
+    },
+    
+    isEqual: function(value1, value2){
+        return this.isEqualAsString(value1, value2);
     },
 
     // @private
@@ -686,8 +696,10 @@ Ext.define('Ext.form.field.HtmlEditor', {
         // The input element is interrogated by the layout to extract height when labelAlign is 'top'
         // It must be set, and then switched between the iframe and the textarea
         me.inputEl = me.iframeEl;
-        
-        me.initDefaultFont();
+
+        if (me.enableFont) {        
+            me.initDefaultFont();
+        }
 
         // Start polling for when the iframe document is ready to be manipulated
         me.monitorTask = Ext.TaskManager.start({
@@ -825,7 +837,9 @@ Ext.define('Ext.form.field.HtmlEditor', {
 
     setValue: function(value) {
         var me = this,
-            textarea = me.textareaEl;
+            textarea = me.textareaEl,
+            inputCmp = me.inputCmp;
+            
         me.mixins.field.setValue.call(me, value);
         if (value === null || value === undefined) {
             value = '';
@@ -834,7 +848,12 @@ Ext.define('Ext.form.field.HtmlEditor', {
             textarea.dom.value = value;
         }
         me.pushValue();
-        return this;
+        
+        if (!me.rendered && me.inputCmp) {
+            me.inputCmp.data.value = value;
+        }
+        
+        return me;
     },
 
     /**
@@ -858,6 +877,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
         if (html.charCodeAt(0) === parseInt(this.defaultValue.replace(/\D/g, ''), 10)) {
             html = html.substring(1);
         }
+        
         return html;
     },
 
@@ -867,11 +887,13 @@ Ext.define('Ext.form.field.HtmlEditor', {
      */
     syncValue: function(){
         var me = this,
-            body, changed, html, bodyStyle, match;
+            body, changed, html, bodyStyle, match, textElDom;
 
         if (me.initialized) {
             body = me.getEditorBody();
             html = body.innerHTML;
+            textElDom = me.textareaEl.dom;
+            
             if (Ext.isWebKit) {
                 bodyStyle = body.getAttribute('style'); // Safari puts text-align styles on the body element!
                 match = bodyStyle.match(/text-align:(.*?);/i);
@@ -879,10 +901,18 @@ Ext.define('Ext.form.field.HtmlEditor', {
                     html = '<div style="' + match[0] + '">' + html + '</div>';
                 }
             }
+            
             html = me.cleanHtml(html);
+            
             if (me.fireEvent('beforesync', me, html) !== false) {
-                if (me.textareaEl.dom.value != html) {
-                    me.textareaEl.dom.value = html;
+                // Gecko inserts single <br> tag when input is empty
+                // and user toggles source mode. See https://sencha.jira.com/browse/EXTJSIV-8542
+                if (Ext.isGecko && textElDom.value === '' && html === '<br>') {
+                    html = '';
+                }
+                
+                if (textElDom.value !== html) {
+                    textElDom.value = html;
                     changed = true;
                 }
 
@@ -963,7 +993,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
                 }
             }
             focusEl = me.getFocusEl();
-            if (focusEl && (focusEl.isComponent || focusEl.dom)) {
+            if (focusEl && focusEl.focus) {
                 focusEl.focus();
             }
         }
@@ -1007,7 +1037,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
                 keyup: fn,
                 buffer:100
             });
-
+            
             // These events need to be relayed from the inner document (where they stop
             // bubbling) up to the outer document. This has to be done at the DOM level so
             // the event reaches listeners on elements like the document body. The effected
@@ -1022,12 +1052,20 @@ Ext.define('Ext.form.field.HtmlEditor', {
                 dblclick: fn,  // not sure again
                 scope: me
             });
-
+            
             if (Ext.isGecko) {
                 Ext.EventManager.on(doc, 'keypress', me.applyCommand, me);
             }
+            
             if (me.fixKeys) {
                 Ext.EventManager.on(doc, 'keydown', me.fixKeys, me);
+            }
+            if (me.fixKeysAfter) {
+                Ext.EventManager.on(doc, 'keyup', me.fixKeysAfter, me);
+            }
+
+            if (Ext.isIE9 && Ext.isStrict) {
+                Ext.EventManager.on(doc.documentElement, 'focus', me.focus, me);
             }
 
             // In old IEs, clicking on a toolbar button shifts focus from iframe
@@ -1221,9 +1259,21 @@ Ext.define('Ext.form.field.HtmlEditor', {
         }
 
         function updateButtons() {
+            var state;
+            
             for (i = 0, l = arguments.length, name; i < l; i++) {
-                name = arguments[i];
-                btns[name].toggle(doc.queryCommandState(name));
+                name  = arguments[i];
+                
+                // Firefox 18+ sometimes throws NS_ERROR_INVALID_POINTER exception
+                // See https://sencha.jira.com/browse/EXTJSIV-9766
+                try {
+                    state = doc.queryCommandState(name);
+                }
+                catch (e) {
+                    state = false;
+                }
+                
+                btns[name].toggle(state);
             }
         }
         if(me.enableFormat){
@@ -1348,9 +1398,12 @@ Ext.define('Ext.form.field.HtmlEditor', {
                     e.stopEvent();
                     if (!readOnly) {
                         range = doc.selection.createRange();
-                        if(range){
-                            range.collapse(true);
-                            range.pasteHTML('&#160;&#160;&#160;&#160;');
+                        if (range){
+                            if (range.collapse) {
+                                range.collapse(true);
+                                range.pasteHTML('&#160;&#160;&#160;&#160;');
+                            }
+                            
                             me.deferFocus();
                         }
                     }
@@ -1389,6 +1442,42 @@ Ext.define('Ext.form.field.HtmlEditor', {
         }
 
         return null; // not needed, so null
+    }()),
+    
+    // @private
+    fixKeysAfter: (function() {
+        if (Ext.isIE) {
+            return function(e) {
+                var me = this,
+                    k = e.getKey(),
+                    doc = me.getDoc(),
+                    readOnly = me.readOnly,
+                    innerHTML;
+                
+                if (!readOnly && (k === e.BACKSPACE || k === e.DELETE)) {
+                    innerHTML = doc.body.innerHTML;
+                    
+                    // If HtmlEditor had some input and user cleared it, IE inserts <p>&nbsp;</p>
+                    // which makes an impression that there is still some text, and creeps
+                    // into source mode when toggled. We don't want this.
+                    //
+                    // See https://sencha.jira.com/browse/EXTJSIV-8542
+                    // 
+                    // N.B. There is **small** chance that user could go to source mode,
+                    // type '<p>&nbsp;</p>', switch back to visual mode, type something else
+                    // and then clear it -- the code below would clear the <p> tag as well,
+                    // which could be considered a bug. However I see no way to distinguish
+                    // between offending markup being entered manually and generated by IE,
+                    // so this can be considered a nasty corner case.
+                    //
+                    if (innerHTML === '<p>&nbsp;</p>' || innerHTML === '<P>&nbsp;</P>') {
+                        doc.body.innerHTML = '';
+                    }
+                }
+            }
+        }
+        
+        return null;
     }()),
 
     /**

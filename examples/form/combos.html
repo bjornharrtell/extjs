@@ -13,7 +13,6 @@
 
     <!-- GC -->
 
-
     <!-- Example -->
     <script type="text/javascript" src="combos.js"></script>
     <style type="text/css">
@@ -36,13 +35,156 @@
 <body>
 
 <h1>Combo Boxes</h1>
+    <p>ComboBoxes can use any type of Ext.data.Store as a data source.</p>
+    <p>This means your data can be XML, JSON, arrays or any other supported format. It can be loaded using
+    Ajax, JSONP or locally.</p>
 <p>The js is not minified so it is readable. See <a href="combos.js">combos.js</a>.</p>
 
 <div class="example">
-    <h2>Data Sources</h2>
-    <p>The combo box can use any type of Ext.data.Store as its data source.
-    This means your data can be XML, JSON, arrays or any other supported format. It can be loaded using
-    Ajax, via script tags or locally. This combo uses local data from a JS array:</p>
+    <h2>Remote query mode</h2>
+    <p>This ComboBox uses <code>queryMode: 'remote'</code> to perform the query on a remote API which
+    returns book titles which match the typed string.</p>
+
+    <div id="remoteQueryCombo"></div>
+
+    <pre class="code x-hide-display" id="remoteQueryComboCode">
+    var bookStore = new Ext.data.Store({
+        proxy: {
+            type: 'jsonp',
+            startParam: 'startIndex',
+            limitParam: 'maxResults',
+            url: 'https://www.googleapis.com/books/v1/volumes',
+            reader: {
+                type: 'json',
+                totalProperty: 'totalItems',
+                root: 'items'
+            }
+        },
+        fields: [{
+            name: 'title',
+            mapping: function(raw) {
+                var result = raw.volumeInfo.title;
+                if (raw.volumeInfo.subtitle) {
+                    result = result + ' - ' + raw.volumeInfo.subtitle;
+                }
+                return result;
+            }
+        }, {
+            name: 'ISBN',
+            mapping: function(raw) {
+                var ids = raw.volumeInfo.industryIdentifiers;
+                return ids ? ids[0].identifier : 'No identifier for this book';
+            }
+        }]
+    });
+
+    var bookCombo = Ext.create('Ext.form.field.ComboBox', {
+        fieldLabel: 'Select Book',
+        renderTo: 'remoteQueryCombo',
+        displayField: 'title',
+        valueField: 'ISBN',
+        width: 500,
+        labelWidth: 130,
+        store: bookStore,
+        queryParam: 'q',
+        queryMode: 'remote',
+
+        // Do not use the default "all" for unbounded remote datasets.
+        // We could also have used the hideTrigger config
+        triggerAction: 'query',
+
+         listConfig: {
+            getInnerTpl: function() {
+                return '{%var value = this.field.getRawValue().replace(/([.?*+^$[\\]\\\\(){}|-])/g, "\\\\$1");%}' + 
+                    '{[values.title.replace(new RegExp(value, "i"), function(m) {return "&lt;b>" + m + "&lt;/b>";})]}';
+            }
+        },
+        listeners: {
+            select: function() {
+                Ext.Msg.alert('Chosen book', 'Buying ISBN: ' + this.getValue());
+            }
+        }
+    });
+    </pre>
+</div>
+
+<div class="example">
+    <h2>Remote loaded, local query mode</h2>
+    <p>This ComboBox uses remotely loaded data, to perform querying client side.</p>
+    <p>This is suitable when the dataset is not too big or dynamic to be manipulated locally</p>
+    <p>This example uses a custom template for the dropdown list to illustrate grouping.</p>
+
+    <div id="remoteLoadedCombo"></div>
+
+    <pre class="code x-hide-display" id="remoteLoadedComboCode">
+    var Country = Ext.define('Country', {
+            extend: 'Ext.data.Model',
+            fields: ['name', {
+                name: 'region',
+                mapping: 'region.value'
+            }]
+        }),
+        countryStore = new Ext.data.Store({
+            model: Country,
+            proxy: {
+                type: 'jsonp',
+                callbackKey: 'prefix',
+                limitParam: 'per_page',
+                url: 'http://api.worldbank.org/countries?format=jsonp',
+                reader: {
+                    type: 'json',
+
+                    // Response is an array where element [1] is the array of records
+                    getData: function(raw) {
+                        return raw[1];
+                    }
+                }
+            },
+            sorters: {
+                property: 'region'
+            },
+            
+            // Data includes aggregates which are not countries
+            filters: {
+                fn: function(rec) {
+                    return rec.get('region') !== 'Aggregates'
+                }
+            },
+            // Load whole dataset.
+            // API only returns 25 by default.
+            pageSize: 1000,
+            autoLoad: true
+        });
+
+    var countryCombo = Ext.create('Ext.form.field.ComboBox', {
+        fieldLabel: 'Select Country',
+        renderTo: 'remoteLoadedCombo',
+        displayField: 'name',
+        width: 500,
+        labelWidth: 130,
+        store: countryStore,
+        queryMode: 'local',
+        tpl: '&lt;ul class="x-list-plain">' +
+                '{% var lastRegion, region; %}' +
+                '&lt;tpl for=".">' +
+                    // Only show region headers when there are more than 10 choices
+                    'if (this.store.getCount() > 10 && region !== lastRegion) {' + 
+                    'if (region !== lastRegion) {' + 
+                        'lastRegion = region;%}' +
+                        '&lt;li class="x-grid-group-hd x-grid-group-title">{region}&lt;/li>' +
+                    '{%}%}'+
+                    '&lt;li class="x-boundlist-item">' +
+                        '{name}' +
+                    '&lt;/li>'+
+                '&lt;/tpl>'+
+            '&lt;/ul>'
+    });
+    </pre>
+</div>
+
+<div class="example">
+    <h2>Locally loaded data</h2>
+    <p>This ComboBox uses local data from a JS array:</p>
 
     <div id="simpleCombo"></div>
 
@@ -76,7 +218,7 @@ var simpleCombo = Ext.create('Ext.form.field.ComboBox', {
 
 <div class="example">
     <h2>Custom Item Templates</h2>
-    <p>The combo below uses the same data, but also illustrates how to use an optional
+    <p>This ComboBox uses the same data, but also illustrates how to use an optional
     custom template to create custom UI renditions for list items by overriding the getInnerTpl method. In this case
     each item shows the state's abbreviation, and has a QuickTip which displays the state's nickname when hovered over.</p>
 
@@ -116,7 +258,7 @@ var customTplCombo = Ext.create('Ext.form.field.ComboBox', {
 
 <div class="example">
     <h2>Multiple Selection</h2>
-    <p>The combo below uses the same data once again, but allows selecting multiple values.</p>
+    <p>This ComboBox uses the same data once again, but allows selecting multiple values.</p>
 
     <div id="multiSelectCombo"></div>
 

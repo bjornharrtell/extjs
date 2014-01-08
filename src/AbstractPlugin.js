@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * The AbstractPlugin class is the base class from which user-implemented plugins should inherit.
@@ -46,19 +46,35 @@ Ext.define('Ext.AbstractPlugin', {
      */
     isPlugin: true,
 
+    /**
+     * Instantiates the plugin.
+     * @param {Object} [config] Configuration object.
+     */
     constructor: function(config) {
         this.pluginConfig = config;
         Ext.apply(this, config);
     },
 
+    /**
+     * Creates clone of the plugin.
+     * @param {Object} [overrideCfg] Additional config for the derived plugin.
+     */
     clonePlugin: function(overrideCfg) {
         return new this.self(Ext.apply({}, overrideCfg, this.pluginConfig));
     },
-    
+
+    /**
+     * Sets the component to which this plugin is attached.
+     * @param {Ext.Component} cmp Owner component.
+     */
     setCmp: function(cmp) {
         this.cmp = cmp;
     },
 
+    /**
+     * Returns the component to which this plugin is attached.
+     * @return {Ext.Component} Owner component.
+     */
     getCmp: function() {
         return this.cmp;
     },
@@ -115,5 +131,19 @@ Ext.define('Ext.AbstractPlugin', {
      */
     disable: function() {
         this.disabled = true;
+    },
+
+    // Private.
+    // Inject a ptype property so that AbstractComponent.findPlugin(ptype) works.
+    onClassExtended: function(cls, data, hooks) {
+        var alias = data.alias;
+
+        // No ptype built into the class 
+        if (alias && !data.ptype) {
+            if (Ext.isArray(alias)) {
+                alias = alias[0];
+            }
+            cls.prototype.ptype = alias.split('plugin.')[1];
+        }
     }
 });

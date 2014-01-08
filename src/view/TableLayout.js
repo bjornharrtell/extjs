@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  *  Component layout for {@link Ext.view.Table}
@@ -64,15 +64,26 @@ Ext.define('Ext.view.TableLayout', {
     calculate: function(ownerContext) {
         var me = this,
             lockingPartner = me.lockingPartner,
-            contentHeight;
+            owner = me.owner,
+            contentHeight = 0,
+            emptyEl;
 
         // We can only complete our work (setting the CSS rules governing column widths) if the
         // Grid's HeaderContainer's ColumnLayout has set the widths of its columns.
         if (ownerContext.headerContext.hasProp('columnWidthsDone')) {
-            me.setColumnWidths(ownerContext);
+            if (!me.setColumnWidths(ownerContext)) {
+                me.done = false;
+                return;
+            }
             ownerContext.state.columnWidthsSynced = true;
             if (ownerContext.bodyContext) {
-                ownerContext.bodyContext.setHeight(contentHeight = ownerContext.bodyContext.el.dom.offsetHeight, false);
+                emptyEl = me.owner.el.down('.' + owner.ownerCt.emptyCls, true);
+                if (!emptyEl) {
+                    contentHeight = ownerContext.bodyContext.el.dom.offsetHeight;
+                    ownerContext.bodyContext.setHeight(contentHeight, false);
+                } else {
+                    contentHeight = emptyEl.offsetHeight;
+                }
                 ownerContext.setProp('contentHeight', contentHeight);
             }
             
@@ -103,10 +114,12 @@ Ext.define('Ext.view.TableLayout', {
         var me = this,
             owner = me.owner,
             context = ownerContext.context,
-            columns = me.headerCt.getGridColumns(),
+            columns = me.headerCt.getVisibleGridColumns(),
             column,
             i = 0, len = columns.length,
             tableWidth = 0,
+            columnLineWidth = 0,
+            childContext,
             colWidth,
             isContentBox = !Ext.isBorderBox;
 
@@ -118,17 +131,27 @@ Ext.define('Ext.view.TableLayout', {
         // Set column width corresponding to each header
         for (i = 0; i < len; i++) {
             column = columns[i];
-            // Ensure hidden columns are zero width, and visible column widths are correct
-            if (column.hidden || column.hiddenAncestor) {
-                colWidth = 0;
-            } else {
-                colWidth = context.getCmp(column).props.width;
-                tableWidth += colWidth;
-
-                // Browsers which cannot be switched to border box when doctype present (IE6 & IE7) - must subtract borders.
-                if (isContentBox) {
-                    colWidth -= context.getCmp(column).borderInfo.width;
+            childContext = context.getCmp(column);
+            colWidth = childContext.props.width;
+            if (isNaN(colWidth)) {
+                // We don't have a width set, so we need to trigger when this child
+                // actually gets a width assigned so we can continue. Technically this
+                // shouldn't happen however we have a bug inside ColumnLayout where
+                // columnWidthsDone is set incorrectly. This is just a workaround.
+                childContext.getProp('width');
+                return false;
+            }
+            tableWidth += colWidth;
+            // https://sencha.jira.com/browse/EXTJSIV-9263 - Browsers which cannot be switched to border box when doctype present (IE6 & IE7) - must subtract borders width from width of cells.
+            if (isContentBox && owner.columnLines) {
+                // https://sencha.jira.com/browse/EXTJSIV-9744 - default border width to 1 because
+                // We are looking at the *header* border widths and Neptune, being a borderless theme
+                // omits the border from the last column *HEADER*. But we are interrogating that to
+                // know the width of border lines between cells which are not omitted.
+                if (!columnLineWidth) {
+                    columnLineWidth = context.getCmp(column).borderInfo.width || 1;
                 }
+                colWidth -= columnLineWidth;
             }
 
             // Select column sizing <col> elements within every <table> within the grid.
@@ -139,9 +162,11 @@ Ext.define('Ext.view.TableLayout', {
             // faster than selecting all the cells in the column to be resized.
             // Column sizing using dynamic CSS rules is *extremely* expensive on IE.
             owner.body.select(owner.getColumnSizerSelector(column)).setWidth(colWidth);
+
         }
         // Set widths of all tables (includes tables embedded in RowWrap and Summary rows)
         owner.el.select(owner.getBodySelector()).setWidth(tableWidth);
+        return true;
     },
 
     finishedLayout: function() {

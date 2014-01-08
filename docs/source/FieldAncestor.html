@@ -126,6 +126,7 @@ Ext.define('Ext.form.FieldAncestor', {
         // impact on the error/valid state.
         me.monitor = new Ext.container.Monitor({
             scope: me,
+            selector: '[isFormField]',
             addHandler: me.onChildFieldAdd,
             removeHandler: me.onChildFieldRemove
         });

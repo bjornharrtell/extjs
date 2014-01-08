@@ -20,36 +20,36 @@
  */
 
 <span id='Ext-form-field-Base-css_var-S-form-field-height'>/**
-</span> * @var {measurement} $form-field-height
+</span> * @var {number} $form-field-height
  * Height for form fields.
  */
 $form-field-height: 22px !default;
 
 <span id='Ext-form-field-Base-css_var-S-form-toolbar-field-height'>/**
-</span> * @var {measurement} $form-toolbar-field-height
+</span> * @var {number} $form-toolbar-field-height
  * Height for form fields in toolbar.
  */
 $form-toolbar-field-height: $form-field-height !default;
 
 <span id='Ext-form-field-Base-css_var-S-form-field-padding'>/**
-</span> * @var {measurement} $form-field-padding
+</span> * @var {number} $form-field-padding
  * Padding around form fields.
  */
-$form-field-padding: 1px 3px !default;
+$form-field-padding: 1px 3px 2px !default;
 
 <span id='Ext-form-field-Base-css_var-S-form-field-font-size'>/**
-</span> * @var {measurement} $form-field-font-size
+</span> * @var {number} $form-field-font-size
  * Font size for form fields.
  */
 $form-field-font-size: $font-size !default;
 
 <span id='Ext-form-field-Base-css_var-S-form-field-font-family'>/**
-</span> * @var {font-family} $form-field-font-family
+</span> * @var {string} $form-field-font-family
  * Font family for form fields.
  */
 $form-field-font-family: $font-family !default;
 <span id='Ext-form-field-Base-css_var-S-form-field-font-weight'>/**
-</span> * @var {font-weight} $form-field-font-weight
+</span> * @var {string} $form-field-font-weight
  * Font weight for form fields.
  */
 $form-field-font-weight: normal !default;
@@ -58,6 +58,29 @@ $form-field-font-weight: normal !default;
  * Font for form fields.
  */
 $form-field-font: $form-field-font-weight $form-field-font-size $form-field-font-family !default;
+
+<span id='Ext-form-field-Base-css_var-S-form-toolbar-field-font-size'>/**
+</span> * @var {number} $form-toolbar-field-font-size
+ * Font size for toolbar form fields.
+ */
+$form-toolbar-field-font-size: $form-field-font-size !default;
+
+<span id='Ext-form-field-Base-css_var-S-form-toolbar-field-font-family'>/**
+</span> * @var {string} $form-toolbar-field-font-family
+ * Font family for toolbar form fields.
+ */
+$form-toolbar-field-font-family: $form-field-font-family !default;
+<span id='Ext-form-field-Base-css_var-S-form-toolbar-field-font-weight'>/**
+</span> * @var {string} $form-toolbar-field-font-weight
+ * Font weight for toolbar form fields.
+ */
+$form-toolbar-field-font-weight: $form-field-font-weight !default;
+<span id='Ext-form-field-Base-css_var-S-form-toolbar-field-font'>/**
+</span> * @var {font} $form-toolbar-field-font
+ * Font for toolbar form fields.
+ */
+$form-toolbar-field-font: $form-toolbar-field-font-weight $form-toolbar-field-font-size $form-toolbar-field-font-family !default;
+
 <span id='Ext-form-field-Base-css_var-S-form-field-color'>/**
 </span> * @var {color} $form-field-color
  * Text color for form fields.
@@ -77,7 +100,7 @@ $form-field-empty-color: gray !default;
 $form-field-border-color: $neutral-color !default;
 
 <span id='Ext-form-field-Base-css_var-S-form-field-border-width'>/**
-</span> * @var {measurement} $form-field-border-width
+</span> * @var {number} $form-field-border-width
  * Border width for form fields.
  */
 $form-field-border-width: 1px !default;
@@ -122,12 +145,12 @@ $form-field-invalid-background-color: #fff !default;
  */
 $form-field-invalid-background-image: 'grid/invalid_line' !default;
 <span id='Ext-form-field-Base-css_var-S-form-field-invalid-background-repeat'>/**
-</span> * @var {background-repeat} $form-field-invalid-background-repeat
+</span> * @var {string} $form-field-invalid-background-repeat
  * Background repeat for invalid form fields.
  */
 $form-field-invalid-background-repeat: repeat-x !default;
 <span id='Ext-form-field-Base-css_var-S-form-field-invalid-background-position'>/**
-</span> * @var {background-position} $form-field-invalid-background-position
+</span> * @var {string/list} $form-field-invalid-background-position
  * Background position for invalid form fields.
  */
 $form-field-invalid-background-position: bottom !default;

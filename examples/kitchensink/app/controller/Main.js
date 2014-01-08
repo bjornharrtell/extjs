@@ -9,7 +9,8 @@ Ext.define('KitchenSink.controller.Main', {
         'Companies',
         'Restaurants',
         'Files',
-        'States'
+        'States',
+        'BigData'
     ],
 
     refs: [
@@ -50,8 +51,51 @@ Ext.define('KitchenSink.controller.Main', {
             },
             'contentPanel': {
                 resize: 'centerContent'
+            },
+            'tool[regionTool]': {
+                click: 'onSetRegion'
             }
         });
+    },
+            
+    onSetRegion: function (tool) {
+        var panel = tool.toolOwner;
+
+        var regionMenu = panel.regionMenu || (panel.regionMenu =
+                Ext.widget({
+                    xtype: 'menu',
+                    items: [{
+                        text: 'North',
+                        checked: panel.region === 'north',
+                        group: 'mainregion',
+                        handler: function () {
+                            panel.setBorderRegion('north');
+                        }
+                    },{
+                        text: 'South',
+                        checked: panel.region === 'south',
+                        group: 'mainregion',
+                        handler: function () {
+                            panel.setBorderRegion('south');
+                        }
+                    },{
+                        text: 'East',
+                        checked: panel.region === 'east',
+                        group: 'mainregion',
+                        handler: function () {
+                            panel.setBorderRegion('east');
+                        }
+                    },{
+                        text: 'West',
+                        checked: panel.region === 'west',
+                        group: 'mainregion',
+                        handler: function () {
+                            panel.setBorderRegion('west');
+                        }
+                    }]
+                }));
+
+        regionMenu.showBy(tool.el);
     },
 
     afterViewportLayout: function() {
@@ -75,6 +119,7 @@ Ext.define('KitchenSink.controller.Main', {
             xtype = record.get('id'),
             alias = 'widget.' + xtype,
             contentPanel = this.getContentPanel(),
+            themeName = Ext.themeName,
             cmp;
 
         if (xtype) { // only leaf nodes have ids
@@ -84,7 +129,10 @@ Ext.define('KitchenSink.controller.Main', {
             var ViewClass = Ext.ClassManager.get(className);
             var clsProto = ViewClass.prototype;
             if (clsProto.themes) {
-                clsProto.themeInfo = clsProto.themes[Ext.themeName] || clsProto.themes.classic;
+                clsProto.themeInfo = clsProto.themes[themeName];
+                if (themeName === 'gray' || themeName === 'access') {
+                    clsProto.themeInfo = Ext.applyIf(clsProto.themeInfo || {}, clsProto.themes.classic);
+                }
             }
 
             cmp = new ViewClass();
@@ -109,20 +157,32 @@ Ext.define('KitchenSink.controller.Main', {
             }
         }
     },
-    
+
     onMaximizeClick: function(){
         var preview = this.getCodePreview(),
             code = preview.getEl().down('.prettyprint').dom.innerHTML;
-        
+
         var w = new Ext.window.Window({
-            autoShow: true,
+            rtl: false,
+            baseCls: 'x-panel',
+            maximized: true,
             title: 'Code Preview',
-            modal: true,
+            plain: true,
             cls: 'preview-container',
             autoScroll: true,
-            html: '<pre class="prettyprint">' + code + '</pre>'
+            bodyStyle: 'background-color:white',
+            html: '<pre class="prettyprint">' + code + '</pre>',
+            closable: false,
+            tools: [{
+                type: 'close',
+                handler: function() {
+                    w.hide(preview, function() {
+                        w.destroy();
+                    });
+                }
+            }]
         });
-        w.maximize();
+        w.show(preview);
     },
 
     processCodePreview: function (clsProto, text) {
@@ -254,7 +314,7 @@ Ext.define('KitchenSink.controller.Main', {
             overflowY = (body.getHeight() < (item.getHeight() + 40));
 
             if (overflowX && overflowY) {
-                align = 'tl-tl',
+                align = 'tl-tl';
                 offsets = [20, 20];
             } else if (overflowX) {
                 align = 'l-l';

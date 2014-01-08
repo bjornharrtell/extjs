@@ -16,10 +16,10 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
-//@require Ext.Supports
+// @tag dom,core
+// @require Ext.Supports
 
 /**
  * @private
@@ -45,6 +45,12 @@ Ext.define('Ext.dom.AbstractElement', {
          *
          * **This method does not retrieve {@link Ext.Component Component}s.** This method retrieves Ext.dom.Element
          * objects which encapsulate DOM elements. To retrieve a Component by its ID, use {@link Ext.ComponentManager#get}.
+         * 
+         * When passing an id, it should not include the `#` character that is used for a css selector.
+         * 
+         *     // For an element with id 'foo'
+         *     Ext.get('foo'); // Correct
+         *     Ext.get('#foo'); // Incorrect
          *
          * Uses simple caching to consistently return the same object. Automatically fixes if an object was recreated with
          * the same id via AJAX or DOM.

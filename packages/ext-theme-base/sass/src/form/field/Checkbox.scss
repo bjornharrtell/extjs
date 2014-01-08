@@ -1,3 +1,7 @@
+.#{$prefix}form-cb-wrap {
+    vertical-align: top;
+}
+
 .#{$prefix}form-cb {
     vertical-align: top;
     overflow: hidden;
@@ -9,8 +13,7 @@
     }
 }
 
-@if $include-ie {
-    .#{$prefix}form-cb-label {
-        zoom: 1; // give the label element hasLayout so that IE will respect its line-height
-    }
+.#{$prefix}form-cb-label {
+    display: inline-block;
+    zoom: 1;
 }

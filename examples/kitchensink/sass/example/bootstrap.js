@@ -5,6 +5,7 @@
  * metadata-driven class system features 
  */
 Ext.Loader.addClassPathMappings({
+  "Ext.Queryable": "../../../../../platform/src/Queryable.js",
   "Ext.util.Renderable": "../../../../../platform/src/util/Renderable.js",
   "Ext.util.Bindable": "../../../../../platform/src/util/Bindable.js",
   "Ext.state": "../../../../../platform/src/state",
@@ -51,6 +52,7 @@ Ext.Loader.addClassPathMappings({
   "Ext.layout.Context": "../../../../../platform/src/layout/Context.js",
   "Ext.draw": "../../../../../platform/src/draw",
   "Ext.AbstractComponent": "../../../../../platform/src/AbstractComponent.js",
+  " Ext.Msg": "../../../../src/window/MessageBox.js",
   "Ext.layout.ContextItem": "../../../../../platform/src/layout/ContextItem.js",
   "KitchenSink": "../../app",
   "Ext.diag": "../../../../../platform/src/diag",
@@ -73,15 +75,15 @@ Ext.ClassManager.addNameAlternateMappings({
   "Ext.ux.ajax.DataSimlet": [],
   "KitchenSink.store.Restaurants": [],
   "KitchenSink.store.Files": [],
-  "ExtThemeNeptune.toolbar.Paging": [],
   "KitchenSink.view.button.RightTextButtons": [],
+  "ExtThemeNeptune.toolbar.Paging": [],
   "KitchenSink.view.tab.BasicTabs": [],
   "Ext.ux.event.Driver": [],
   "Ext.ux.ajax.XmlSimlet": [],
   "KitchenSink.view.ThemeSwitcher": [],
   "KitchenSink.view.button.SplitBottomButtons": [],
-  "KitchenSink.view.button.LinkButtons": [],
   "Ext.ux.DataView.DragSelector": [],
+  "KitchenSink.view.button.LinkButtons": [],
   "KitchenSink.view.Navigation": [],
   "KitchenSink.view.grid.PropertyGrid": [],
   "KitchenSink.store.Companies": [],
@@ -92,6 +94,7 @@ Ext.ClassManager.addNameAlternateMappings({
     "Ext.ux.Multiselect"
   ],
   "KitchenSink.view.button.SplitButtons": [],
+  "ExtThemeNeptune.grid.column.RowNumberer": [],
   "KitchenSink.view.button.ToggleButtons": [],
   "KitchenSink.view.DescriptionPanel": [],
   "Ext.ux.PreviewPlugin": [],
@@ -115,9 +118,9 @@ Ext.ClassManager.addNameAlternateMappings({
   "Ext.ux.TabScrollerMenu": [],
   "ExtThemeNeptune.menu.Separator": [],
   "Ext.ux.IFrame": [],
+  "KitchenSink.controller.Main": [],
   "KitchenSink.view.toolbar.DockedToolbars": [],
   "KitchenSink.view.form.LoginForm": [],
-  "KitchenSink.controller.Main": [],
   "KitchenSink.view.tree.TreeGrid": [],
   "KitchenSink.view.panel.BasicPanels": [],
   "Ext.ux.form.SearchField": [],
@@ -127,8 +130,8 @@ Ext.ClassManager.addNameAlternateMappings({
   "KitchenSink.view.button.BasicButtons": [],
   "Ext.ux.TreePicker": [],
   "KitchenSink.view.grid.GroupedGrid": [],
-  "ExtThemeNeptune.picker.Month": [],
   "ExtThemeNeptune.grid.RowEditor": [],
+  "ExtThemeNeptune.picker.Month": [],
   "KitchenSink.model.dd.Simple": [],
   "Ext.ux.data.PagingMemoryProxy": [
     "Ext.data.PagingMemoryProxy"
@@ -136,6 +139,7 @@ Ext.ClassManager.addNameAlternateMappings({
   "KitchenSink.view.tab.FramedTabs": [],
   "ExtThemeNeptune.menu.Menu": [],
   "Ext.ux.BoxReorderer": [],
+  "KitchenSink.view.grid.RowExpander": [],
   "Ext.ux.grid.filter.Filter": [],
   "KitchenSink.view.dataview.MultiSortButton": [],
   "Ext.ux.GroupTabRenderer": [],
@@ -164,7 +168,9 @@ Ext.ClassManager.addNameAlternateMappings({
   "Ext.ux.layout.Center": [],
   "KitchenSink.view.Viewport": [],
   "KitchenSink.model.tree.Task": [],
+  "KitchenSink.data.BigData": [],
   "Ext.ux.DataView.Animated": [],
+  "KitchenSink.store.BigData": [],
   "ExtThemeNeptune.resizer.Splitter": [],
   "KitchenSink.view.tab.IconTabs": [],
   "Ext.ux.statusbar.StatusBar": [
@@ -172,6 +178,7 @@ Ext.ClassManager.addNameAlternateMappings({
   ],
   "KitchenSink.view.tree.XmlTree": [],
   "KitchenSink.view.button.LeftTextButtons": [],
+  "KitchenSink.view.grid.BigData": [],
   "KitchenSink.model.grid.Plant": [],
   "ExtThemeNeptune.layout.component.Dock": [],
   "KitchenSink.view.slider.SliderField": [],
@@ -191,9 +198,9 @@ Ext.ClassManager.addNameAlternateMappings({
   "KitchenSink.view.grid.ProgressBarPager": [],
   "KitchenSink.view.form.FormGrid": [],
   "KitchenSink.view.grid.ArrayGrid": [],
-  "KitchenSink.view.grid.MultipleSorting": [],
-  "KitchenSink.view.button.MenuButtons": [],
   "Ext.ux.DataView.Draggable": [],
+  "KitchenSink.view.button.MenuButtons": [],
+  "KitchenSink.view.grid.MultipleSorting": [],
   "KitchenSink.view.tree.CheckTree": [],
   "Ext.ux.TabCloseMenu": [],
   "KitchenSink.DummyText": [],
@@ -225,10 +232,10 @@ Ext.ClassManager.addNameAliasMappings({
   "Ext.ux.ajax.DataSimlet": [],
   "KitchenSink.store.Restaurants": [],
   "KitchenSink.store.Files": [],
-  "ExtThemeNeptune.toolbar.Paging": [],
   "KitchenSink.view.button.RightTextButtons": [
     "widget.right-text-buttons"
   ],
+  "ExtThemeNeptune.toolbar.Paging": [],
   "KitchenSink.view.tab.BasicTabs": [
     "widget.basic-tabs"
   ],
@@ -242,10 +249,10 @@ Ext.ClassManager.addNameAliasMappings({
   "KitchenSink.view.button.SplitBottomButtons": [
     "widget.split-bottom-buttons"
   ],
+  "Ext.ux.DataView.DragSelector": [],
   "KitchenSink.view.button.LinkButtons": [
     "widget.link-buttons"
   ],
-  "Ext.ux.DataView.DragSelector": [],
   "KitchenSink.view.Navigation": [
     "widget.navigation"
   ],
@@ -267,6 +274,7 @@ Ext.ClassManager.addNameAliasMappings({
   "KitchenSink.view.button.SplitButtons": [
     "widget.split-buttons"
   ],
+  "ExtThemeNeptune.grid.column.RowNumberer": [],
   "KitchenSink.view.button.ToggleButtons": [
     "widget.toggle-buttons"
   ],
@@ -320,13 +328,13 @@ Ext.ClassManager.addNameAliasMappings({
   "Ext.ux.IFrame": [
     "widget.uxiframe"
   ],
+  "KitchenSink.controller.Main": [],
   "KitchenSink.view.toolbar.DockedToolbars": [
     "widget.docked-toolbars"
   ],
   "KitchenSink.view.form.LoginForm": [
     "widget.login-form"
   ],
-  "KitchenSink.controller.Main": [],
   "KitchenSink.view.tree.TreeGrid": [
     "widget.tree-grid"
   ],
@@ -350,8 +358,8 @@ Ext.ClassManager.addNameAliasMappings({
   "KitchenSink.view.grid.GroupedGrid": [
     "widget.grouped-grid"
   ],
-  "ExtThemeNeptune.picker.Month": [],
   "ExtThemeNeptune.grid.RowEditor": [],
+  "ExtThemeNeptune.picker.Month": [],
   "KitchenSink.model.dd.Simple": [],
   "Ext.ux.data.PagingMemoryProxy": [
     "proxy.pagingmemory"
@@ -361,6 +369,9 @@ Ext.ClassManager.addNameAliasMappings({
   ],
   "ExtThemeNeptune.menu.Menu": [],
   "Ext.ux.BoxReorderer": [],
+  "KitchenSink.view.grid.RowExpander": [
+    "widget.row-expander-grid"
+  ],
   "Ext.ux.grid.filter.Filter": [],
   "KitchenSink.view.dataview.MultiSortButton": [
     "widget.dataview-multisort-sortbutton"
@@ -421,7 +432,9 @@ Ext.ClassManager.addNameAliasMappings({
   ],
   "KitchenSink.view.Viewport": [],
   "KitchenSink.model.tree.Task": [],
+  "KitchenSink.data.BigData": [],
   "Ext.ux.DataView.Animated": [],
+  "KitchenSink.store.BigData": [],
   "ExtThemeNeptune.resizer.Splitter": [],
   "KitchenSink.view.tab.IconTabs": [
     "widget.icon-tabs"
@@ -434,6 +447,9 @@ Ext.ClassManager.addNameAliasMappings({
   ],
   "KitchenSink.view.button.LeftTextButtons": [
     "widget.left-text-buttons"
+  ],
+  "KitchenSink.view.grid.BigData": [
+    "widget.big-data-grid"
   ],
   "KitchenSink.model.grid.Plant": [],
   "ExtThemeNeptune.layout.component.Dock": [],
@@ -470,13 +486,13 @@ Ext.ClassManager.addNameAliasMappings({
   "KitchenSink.view.grid.ArrayGrid": [
     "widget.array-grid"
   ],
-  "KitchenSink.view.grid.MultipleSorting": [
-    "widget.multi-sort-grid"
-  ],
+  "Ext.ux.DataView.Draggable": [],
   "KitchenSink.view.button.MenuButtons": [
     "widget.menu-buttons"
   ],
-  "Ext.ux.DataView.Draggable": [],
+  "KitchenSink.view.grid.MultipleSorting": [
+    "widget.multi-sort-grid"
+  ],
   "KitchenSink.view.tree.CheckTree": [
     "widget.check-tree"
   ],
@@ -515,3 +531,19 @@ Ext.ClassManager.addNameAliasMappings({
   ],
   "KitchenSink.model.Restaurant": []
 });
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/Component.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/panel/Panel.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/layout/component/Dock.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/toolbar/Toolbar.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/container/ButtonGroup.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/toolbar/Paging.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/picker/Month.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/form/field/HtmlEditor.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/panel/Table.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/grid/RowEditor.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/grid/column/RowNumberer.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/resizer/Splitter.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/menu/Menu.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/menu/Separator.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/panel/Tool.js");
+Ext.Loader.loadScript("../../../../../packages/ext-theme-neptune/overrides/tab/Tab.js");

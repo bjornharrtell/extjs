@@ -20,7 +20,8 @@
  */
 Ext.define('Ext.grid.header.DragZone', {
     extend: 'Ext.dd.DragZone',
-<span id='Ext-grid-header-DragZone-property-colHeaderCls'>    colHeaderCls: Ext.baseCSSPrefix + 'column-header',
+<span id='Ext-grid-header-DragZone-property-colHeaderSelector'>    colHeaderSelector: '.' + Ext.baseCSSPrefix + 'column-header',
+</span><span id='Ext-grid-header-DragZone-property-colInnerSelector'>    colInnerSelector: '.' + Ext.baseCSSPrefix + 'column-header-inner',
 </span><span id='Ext-grid-header-DragZone-property-maxProxyWidth'>    maxProxyWidth: 120,
 </span>
 <span id='Ext-grid-header-DragZone-method-constructor'>    constructor: function(headerCt) {
@@ -29,25 +30,27 @@ Ext.define('Ext.grid.header.DragZone', {
         this.callParent([headerCt.el]);
         this.proxy.el.addCls(Ext.baseCSSPrefix + 'grid-col-dd');
     },
-
+    
 <span id='Ext-grid-header-DragZone-method-getDDGroup'>    getDDGroup: function() {
 </span>        return 'header-dd-zone-' + this.headerCt.up('[scrollerOwner]').id;
     },
 
 <span id='Ext-grid-header-DragZone-method-getDragData'>    getDragData: function(e) {
-</span>        var header = e.getTarget('.'+this.colHeaderCls),
-            headerCmp,
-            ddel;
+</span>        if (e.getTarget(this.colInnerSelector)) {
+            var header = e.getTarget(this.colHeaderSelector),
+                headerCmp,
+                ddel;
 
-        if (header) {
-            headerCmp = Ext.getCmp(header.id);
-            if (!this.headerCt.dragging &amp;&amp; headerCmp.draggable &amp;&amp; !(headerCmp.isOnLeftEdge(e) || headerCmp.isOnRightEdge(e))) {
-                ddel = document.createElement('div');
-                ddel.innerHTML = Ext.getCmp(header.id).text;
-                return {
-                    ddel: ddel,
-                    header: headerCmp
-                };
+            if (header) {
+                headerCmp = Ext.getCmp(header.id);
+                if (!this.headerCt.dragging &amp;&amp; headerCmp.draggable &amp;&amp; !(headerCmp.isOnLeftEdge(e) || headerCmp.isOnRightEdge(e))) {
+                    ddel = document.createElement('div');
+                    ddel.innerHTML = Ext.getCmp(header.id).text;
+                    return {
+                        ddel: ddel,
+                        header: headerCmp
+                    };
+                }
             }
         }
         return false;

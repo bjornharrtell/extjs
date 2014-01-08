@@ -178,7 +178,7 @@ Ext.define('Ext.grid.plugin.RowEditing', {
             record         = context.record,
             newValues      = {},
             originalValues = {},
-            editors        = editor.items.items,
+            editors        = editor.query('&gt;[isFormField]'),
             e,
             eLen           = editors.length,
             name, item;
@@ -261,8 +261,7 @@ Ext.define('Ext.grid.plugin.RowEditing', {
                     scope: me,
                     columnresize: me.onColumnResize,
                     columnhide: me.onColumnHide,
-                    columnshow: me.onColumnShow,
-                    columnmove: me.onColumnMove
+                    columnshow: me.onColumnShow
                 });
             },
             single: true
@@ -307,7 +306,7 @@ Ext.define('Ext.grid.plugin.RowEditing', {
                 editor = me.getEditor();
 
             if (editor &amp;&amp; editor.onColumnRemove) {
-                editor.onColumnRemove(column);
+                editor.onColumnRemove(ct, column);
             }
             me.removeFieldAccessors(column);
         }
@@ -353,10 +352,14 @@ Ext.define('Ext.grid.plugin.RowEditing', {
         var me = this,
             editor = me.getEditor();
 
+        // Inject field accessors on move because if the move FROM the main headerCt and INTO a grouped header,
+        // the accessors will have been deleted but not added. They are added conditionally.
+        me.initFieldAccessors(column);
+
         if (editor &amp;&amp; editor.onColumnMove) {
             // Must adjust the toIdx to account for removal if moving rightwards
             // because RowEditor.onColumnMove just calls Container.move which does not do this.
-            editor.onColumnMove(column, fromIdx, toIdx - (toIdx &gt; fromIdx ? 1 : 0));
+            editor.onColumnMove(column, fromIdx, toIdx);
         }
     },
 

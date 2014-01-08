@@ -15,9 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag dom,core
-//@require ../Support.js
-//@define Ext.util.DelayedTask
+  <pre class="prettyprint lang-js">// @tag dom,core
+// @require ../Support.js
+// @define Ext.util.DelayedTask
 
 <span id='Ext-util-DelayedTask-method-constructor'><span id='Ext-util-DelayedTask'>/**
 </span></span> * @class Ext.util.DelayedTask
@@ -60,16 +60,22 @@
  */
 Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
     var me = this,
-        id,
         delay,
         call = function() {
-            clearInterval(id);
-            id = null;
+            clearInterval(me.id);
+            me.id = null;
             fn.apply(scope, args || []);
             Ext.EventManager.idleEvent.fire();
         };
 
     cancelOnDelay = typeof cancelOnDelay === 'boolean' ? cancelOnDelay : true;
+
+<span id='Ext-util-DelayedTask-property-id'>    /**
+</span>     * @property {Number} id
+     * The id of the currently pending invocation.  Will be set to `null` if there is no
+     * invocation pending.
+     */
+    me.id = null;
 
 <span id='Ext-util-DelayedTask-method-delay'>    /**
 </span>     * By default, cancels any pending timeout and queues a new one.
@@ -91,8 +97,8 @@ Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
         fn    = newFn    || fn;
         scope = newScope || scope;
         args  = newArgs  || args;
-        if (!id) {
-            id = setInterval(call, delay);
+        if (!me.id) {
+            me.id = setInterval(call, delay);
         }
     };
 
@@ -100,9 +106,9 @@ Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
 </span>     * Cancel the last queued timeout
      */
     me.cancel = function() {
-        if (id) {
-            clearInterval(id);
-            id = null;
+        if (me.id) {
+            clearInterval(me.id);
+            me.id = null;
         }
     };
 };</pre>

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @class Ext.chart.series.Area
@@ -480,17 +480,28 @@ Ext.define('Ext.chart.series.Area', {
 
     // @private
     onCreateLabel: function(storeItem, item, i, display) {
+        // TODO: Implement labels for Area charts. 
+        // The code in onCreateLabel() and onPlaceLabel() was originally copied
+        // from another Series but it cannot work because item.point[] doesn't
+        // exist in Area charts. Instead, the getPaths() methods above prepares
+        // item.pointsUp[] and item.pointsDown[] which don't have the same structure.
+        // In other series, there are as many 'items' as there are data points along the
+        // x-axis. In this series, there are as many 'items' as there are series
+        // (usually a much smaller number) and each pointsUp[] or pointsDown[] array 
+        // contains as many values as there are data points along the x-axis;
+        return null;
+
         var me = this,
             group = me.labelsGroup,
             config = me.label,
             bbox = me.bbox,
-            endLabelStyle = Ext.apply(config, me.seriesLabelStyle);
+            endLabelStyle = Ext.apply({}, config, me.seriesLabelStyle || {});
 
         return me.chart.surface.add(Ext.apply({
             'type': 'text',
             'text-anchor': 'middle',
             'group': group,
-            'x': item.point[0],
+            'x': Number(item.point[0]),
             'y': bbox.y + bbox.height / 2
         }, endLabelStyle || {}));
     },
@@ -504,23 +515,32 @@ Ext.define('Ext.chart.series.Area', {
             format = config.renderer,
             field = config.field,
             bbox = me.bbox,
-            x = item.point[0],
-            y = item.point[1],
-            bb, width, height;
+            x = Number(item.point[i][0]),
+            y = Number(item.point[i][1]),
+            labelBox, width, height;
 
         label.setAttributes({
             text: format(storeItem.get(field[index]), label, storeItem, item, i, display, animate, index),
             hidden: true
         }, true);
 
-        bb = label.getBBox();
-        width = bb.width / 2;
-        height = bb.height / 2;
+        labelBox = label.getBBox();
+        width = labelBox.width / 2;
+        height = labelBox.height / 2;
 
-        x = x - width < bbox.x? bbox.x + width : x;
-        x = (x + width > bbox.x + bbox.width) ? (x - (x + width - bbox.x - bbox.width)) : x;
-        y = y - height < bbox.y? bbox.y + height : y;
-        y = (y + height > bbox.y + bbox.height) ? (y - (y + height - bbox.y - bbox.height)) : y;
+        //correct label position to fit into the box
+        if (x < bbox.x + width) {
+            x = bbox.x + width;
+        } else if (x + width > bbox.x + bbox.width) {
+            x = bbox.x + bbox.width - width;
+        }
+
+        y = y - height;
+        if (y < bbox.y + height) {
+            y += 2 * height;
+        } else if (y + height > bbox.y + bbox.height) {
+            y -= 2 * height;
+        }
 
         if (me.chart.animate && !me.chart.resizing) {
             label.show(true);
@@ -535,7 +555,7 @@ Ext.define('Ext.chart.series.Area', {
                 x: x,
                 y: y
             }, true);
-            if (resizing) {
+            if (resizing && me.animation) {
                 me.animation.on('afteranimate', function() {
                     label.show(true);
                 });

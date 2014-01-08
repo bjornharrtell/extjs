@@ -15,7 +15,7 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag dom,core
+  <pre class="prettyprint lang-js">// @tag dom,core
 <span id='Ext-dom-Element-method-constructor'><span id='Ext-dom-Element'>/**
 </span></span> * @class Ext.dom.Element
  * @alternateClassName Ext.Element
@@ -1111,8 +1111,8 @@ Ext.define('Ext.dom.Element', function(Element) {
                 // directly, but somewhere up the line they have an orphan
                 // parent.
                 // -------------------------------------------------------
-                if (!d.parentNode || (!d.offsetParent &amp;&amp; !Ext.getElementById(eid))) {
-                    if (d &amp;&amp; Ext.enableListenerCollection) {
+                if (d &amp;&amp; (!d.parentNode || (!d.offsetParent &amp;&amp; !Ext.getElementById(eid)))) {
+                    if (Ext.enableListenerCollection) {
                         Ext.EventManager.removeAll(d);
                     }
                     delete EC[eid];
@@ -1303,7 +1303,10 @@ Ext.define('Ext.dom.Element', function(Element) {
                 nodeType, newAttrs, attLen, attName;
 
             // Copy top node's attributes across. Use IE-specific method if possible.
-            if (dest.mergeAttributes) {
+            // In IE10, there is a problem where the className will not get updated
+            // in the view, even though the className on the dom element is correct.
+            // See EXTJSIV-9462
+            if (Ext.isIE9m &amp;&amp; dest.mergeAttributes) {
                 dest.mergeAttributes(source, true);
 
                 // EXTJSIV-6803. IE's mergeAttributes appears not to make the source's &quot;src&quot; value available until after the image is ready.

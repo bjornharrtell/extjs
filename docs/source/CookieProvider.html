@@ -68,7 +68,7 @@ Ext.define('Ext.state.CookieProvider', {
     constructor : function(config){
         var me = this;
         me.path = &quot;/&quot;;
-        me.expires = new Date(new Date().getTime()+(1000*60*60*24*7)); //7 days
+        me.expires = new Date(Ext.Date.now() + (1000*60*60*24*7)); //7 days
         me.domain = null;
         me.secure = false;
         me.callParent(arguments);

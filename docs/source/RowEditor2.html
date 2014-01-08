@@ -24,19 +24,6 @@
         } else {
             this.callParent(arguments);
         }
-    },
-
-    // Workaround for http://code.google.com/p/chromium/issues/detail?id=174656
-    getLocalX: function() {
-        var grid = this.editingPlugin.grid,
-            view = grid.normalGrid ? grid.normalGrid.view : grid.view,
-            viewSize = view.componentLayout.lastComponentSize,
-            hasOverflow = viewSize.contentHeight &gt; viewSize.height;
-
-        // Only work back past the incorrect right origin if there is overflow, and we're not in a locking grid
-        // (if we are, the RowEditor is rendered to the outer container) and we're in RTL mode and we have the
-        // X origin bug.
-        return hasOverflow &amp;&amp; !grid.normalGrid &amp;&amp; grid.getHierarchyState().rtl &amp;&amp; Ext.supports.xOriginBug ? -Ext.getScrollbarSize().width : 0;
     }
 });
 </pre>

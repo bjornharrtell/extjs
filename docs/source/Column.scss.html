@@ -15,33 +15,76 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">.#{$prefix}column {
-    float: left;
+  <pre class="prettyprint lang-js">.#{$prefix}column-header {
+    position: absolute;
+    overflow: hidden;
+    background-repeat: repeat-x;
+}
+
+.#{$prefix}column-header-inner {
+    zoom: 1;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.#{$prefix}column-header-text {
+    white-space: nowrap;
+    background-repeat: no-repeat;
+    // in all version of IE except for 8 strict, left and right padding are
+    // automatically reversed on inline elements when the direction property
+    // is &quot;rtl&quot;. triggering hasLayout corrects this bug in IE6/7/quirks, and
+    // display: inline-block is used for IE9/10
+    zoom: 1;
+    display: inline-block;
+}
+
+.#{$prefix}column-header-trigger {
+    display: none;
+    height: 100%;
+    background-repeat: no-repeat;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
 }
 
 @if $include-rtl {
-    .#{$prefix}rtl &gt; .#{$prefix}column {
-        float: right;
-    }
-
-    // In IE6 and IEquirks, any RTL ancestor element triggers RTL behaviour.
-    @if $include-ie {
-        .#{$prefix}ie6, .#{$prefix}quirks .#{$prefix}ie {
-            .#{$prefix}rtl .#{$prefix}column {
-                float: right;
-            }
-        }
+    .#{$prefix}rtl.#{$prefix}column-header-trigger {
+        left: 0;
+        right: auto;
     }
 }
 
-@if $include-ie {
-    .#{$prefix}ie6 .#{$prefix}column {
-        display: inline; /*prevent IE6 double-margin bug*/
+.#{$prefix}column-header-over, .#{$prefix}column-header-open {
+    .#{$prefix}column-header-trigger {
+        display: block;
     }
+}
 
-    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}form-layout-table, .#{$prefix}quirks .#{$prefix}ie .#{$prefix}form-layout-table tbody tr.#{$prefix}form-item {
-        position: relative;
+.#{$prefix}column-header-align-right {
+    text-align: right;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}column-header-align-right {
+        text-align: left;
     }
-}</pre>
+}
+
+.#{$prefix}column-header-align-left {
+    text-align: left;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}column-header-align-left {
+        text-align: right;
+    }
+}
+
+.#{$prefix}column-header-align-center {
+    text-align: center;
+}
+</pre>
 </body>
 </html>

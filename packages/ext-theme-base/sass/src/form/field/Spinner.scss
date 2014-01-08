@@ -1,5 +1,4 @@
 .#{$prefix}form-spinner-up,
 .#{$prefix}form-spinner-down {
-    font-size: 0; /*for IE*/
-    border-bottom: 0;
+    font-size: 0; // prevents the spinner trigger from being to tall in IE
 }

@@ -15,9 +15,9 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">//@tag extras,core
-//@require ../Ext-more.js
-//@define Ext.util.Format
+  <pre class="prettyprint lang-js">// @tag extras,core
+// @require ../Ext-more.js
+// @define Ext.util.Format
 
 <span id='Ext-util-Format'>/**
 </span> * @class Ext.util.Format
@@ -77,18 +77,24 @@
 (function() {
     Ext.ns('Ext.util');
 
-    Ext.util.Format = {};
-    var UtilFormat     = Ext.util.Format,
+    var UtilFormat     = Ext.util.Format = {},
         stripTagsRE    = /&lt;\/?[^&gt;]+&gt;/gi,
         stripScriptsRe = /(?:&lt;script.*?&gt;)((\n|\r|.)*?)(?:&lt;\/script&gt;)/ig,
         nl2brRe        = /\r?\n/g,
+        allHashes      = /^#+$/,
+
+        // Match a format string characters to be able to detect remaining &quot;literal&quot; characters
+        formatPattern = /[\d,\.#]+/,
 
         // A RegExp to remove from a number format string, all characters except digits and '.'
-        formatCleanRe  = /[^\d\.]/g,
+        formatCleanRe  = /[^\d\.#]/g,
 
         // A RegExp to remove from a number format string, all characters except digits and the local decimal separator.
         // Created on first use. The local decimal separator character must be initialized for this to be created.
-        I18NFormatCleanRe;
+        I18NFormatCleanRe,
+
+        // Cache ofg number formatting functions keyed by format string
+        formatFns = {};
 
     Ext.apply(UtilFormat, {
         //&lt;locale&gt;
@@ -227,7 +233,7 @@
                 negativeSign = '-';
             }
             decimals = Ext.isDefined(decimals) ? decimals : UtilFormat.currencyPrecision;
-            format += format + (decimals &gt; 0 ? '.' : '');
+            format += (decimals &gt; 0 ? '.' : '');
             for (; i &lt; decimals; i++) {
                 format += '0';
             }
@@ -290,15 +296,29 @@
          * @param {Number/String} size The numeric value to format
          * @return {String} The formatted file size
          */
-        fileSize : function(size) {
-            if (size &lt; 1024) {
-                return size + &quot; bytes&quot;;
-            } else if (size &lt; 1048576) {
-                return (Math.round(((size*10) / 1024))/10) + &quot; KB&quot;;
-            } else {
-                return (Math.round(((size*10) / 1048576))/10) + &quot; MB&quot;;
-            }
-        },
+        fileSize : (function(){
+            var byteLimit = 1024,
+                kbLimit = 1048576,
+                mbLimit = 1073741824;
+                
+            return function(size) {
+                var out;
+                if (size &lt; byteLimit) {
+                    if (size === 1) {
+                        out = '1 byte';    
+                    } else {
+                        out = size + ' bytes';
+                    }
+                } else if (size &lt; kbLimit) {
+                    out = (Math.round(((size*10) / byteLimit))/10) + ' KB';
+                } else if (size &lt; mbLimit) {
+                    out = (Math.round(((size*10) / kbLimit))/10) + ' MB';
+                } else {
+                    out = (Math.round(((size*10) / mbLimit))/10) + ' GB';
+                }
+                return out;
+            };
+        })(),
 
 <span id='Ext-util-Format-method-math'>        /**
 </span>         * It does simple math for use in a template, for example:
@@ -365,9 +385,7 @@
          * - `0,000` - (123,456) show comma and digits, no precision
          * - `0,000.00` - (123,456.78) show comma and digits, 2 precision
          * - `0,0.00` - (123,456.78) shortcut method, show comma and digits, 2 precision
-         *
-         * To allow specification of the formatting string using UK/US grouping characters (,) and
-         * decimal (.) for international numbers, add /i to the end. For example: 0.000,00/i
+         * - `0.####` - (123,456,789) Allow maximum 4 decimal places, but do not right pad with zeroes
          *
          * @param {Number} v The number to format.
          * @param {String} format The way you would like to format this text.
@@ -377,96 +395,127 @@
             if (!formatString) {
                 return v;
             }
-            v = Ext.Number.from(v, NaN);
-            if (isNaN(v)) {
-                return '';
-            }
-            var comma = UtilFormat.thousandSeparator,
-                dec   = UtilFormat.decimalSeparator,
-                neg   = v &lt; 0,
-                hasComma,
-                psplit,
-                fnum,
-                cnum,
-                parr,
-                j,
-                m,
-                n,
-                i;
+            var formatFn = formatFns[formatString];
 
-            v = Math.abs(v);
+            // Generate formatting function to be cached and reused keyed by the format string.
+            // This results in a 100% performance increase over analyzing the format string each invocation.
+            if (!formatFn) {
 
-            // The &quot;/i&quot; suffix allows caller to use a locale-specific formatting string.
-            // Clean the format string by removing all but numerals and the decimal separator.
-            // Then split the format string into pre and post decimal segments according to *what* the
-            // decimal separator is. If they are specifying &quot;/i&quot;, they are using the local convention in the format string.
-            if (formatString.substr(formatString.length - 2) == '/i') {
-                if (!I18NFormatCleanRe) {
-                    I18NFormatCleanRe = new RegExp('[^\\d\\' + UtilFormat.decimalSeparator + ']','g');
-                }
-                formatString = formatString.substr(0, formatString.length - 2);
-                hasComma = formatString.indexOf(comma) != -1;
-                psplit = formatString.replace(I18NFormatCleanRe, '').split(dec);
-            } else {
-                hasComma = formatString.indexOf(',') != -1;
-                psplit = formatString.replace(formatCleanRe, '').split('.');
-            }
+                var originalFormatString = formatString,
+                    comma = UtilFormat.thousandSeparator,
+                    decimalSeparator = UtilFormat.decimalSeparator,
+                    hasComma,
+                    splitFormat,
+                    extraChars,
+                    precision = 0,
+                    multiplier,
+                    trimTrailingZeroes,
+                    code;
 
-            if (psplit.length &gt; 2) {
-                //&lt;debug&gt;
-                Ext.Error.raise({
-                    sourceClass: &quot;Ext.util.Format&quot;,
-                    sourceMethod: &quot;number&quot;,
-                    value: v,
-                    formatString: formatString,
-                    msg: &quot;Invalid number format, should have no more than 1 decimal&quot;
-                });
-                //&lt;/debug&gt;
-            } else if (psplit.length &gt; 1) {
-                v = Ext.Number.toFixed(v, psplit[1].length);
-            } else {
-                v = Ext.Number.toFixed(v, 0);
-            }
-
-            fnum = v.toString();
-
-            psplit = fnum.split('.');
-
-            if (hasComma) {
-                cnum = psplit[0];
-                parr = [];
-                j = cnum.length;
-                m = Math.floor(j / 3);
-                n = cnum.length % 3 || 3;
-
-                for (i = 0; i &lt; j; i += n) {
-                    if (i !== 0) {
-                        n = 3;
+                // The &quot;/i&quot; suffix allows caller to use a locale-specific formatting string.
+                // Clean the format string by removing all but numerals and the decimal separator.
+                // Then split the format string into pre and post decimal segments according to *what* the
+                // decimal separator is. If they are specifying &quot;/i&quot;, they are using the local convention in the format string.
+                if (formatString.substr(formatString.length - 2) == '/i') {
+                    if (!I18NFormatCleanRe) {
+                        I18NFormatCleanRe = new RegExp('[^\\d\\' + UtilFormat.decimalSeparator + ']','g');
                     }
+                    formatString = formatString.substr(0, formatString.length - 2);
+                    hasComma = formatString.indexOf(comma) != -1;
+                    splitFormat = formatString.replace(I18NFormatCleanRe, '').split(decimalSeparator);
+                } else {
+                    hasComma = formatString.indexOf(',') != -1;
+                    splitFormat = formatString.replace(formatCleanRe, '').split('.');
+                }
+                extraChars = formatString.replace(formatPattern, '');
 
-                    parr[parr.length] = cnum.substr(i, n);
-                    m -= 1;
-                }
-                fnum = parr.join(comma);
-                if (psplit[1]) {
-                    fnum += dec + psplit[1];
-                }
-            } else {
-                if (psplit[1]) {
-                    fnum = psplit[0] + dec + psplit[1];
-                }
-            }
+                if (splitFormat.length &gt; 2) {
+                    //&lt;debug&gt;
+                    Ext.Error.raise({
+                        sourceClass: &quot;Ext.util.Format&quot;,
+                        sourceMethod: &quot;number&quot;,
+                        value: v,
+                        formatString: formatString,
+                        msg: &quot;Invalid number format, should have no more than 1 decimal&quot;
+                    });
+                    //&lt;/debug&gt;
+                } else if (splitFormat.length === 2) {
+                    precision = splitFormat[1].length;
 
-            if (neg) {
+                    // Formatting ending in .##### means maximum 5 trailing significant digits
+                    trimTrailingZeroes = allHashes.test(splitFormat[1]);
+                }
+                
+                // The function we create is called immediately and returns a closure which has access to vars and some fixed values; RegExes and the format string.
+                code = [
+                    'var utilFormat=Ext.util.Format,extNumber=Ext.Number,neg,fnum,parts' +
+                        (hasComma ? ',thousandSeparator,thousands=[],j,n,i' : '') +
+                        (extraChars  ? ',formatString=&quot;' + formatString + '&quot;,formatPattern=/[\\d,\\.#]+/' : '') +
+                        (trimTrailingZeroes ? ',trailingZeroes=/\\.?0+$/;' : ';') +
+                    'return function(v){' +
+                    'if(typeof v!==&quot;number&quot;&amp;&amp;isNaN(v=extNumber.from(v,NaN)))return&quot;&quot;;' +
+                    'neg=v&lt;0;',
+                    'fnum=Ext.Number.toFixed(Math.abs(v), ' + precision + ');'
+                ];
+
+                if (hasComma) {
+                    // If we have to insert commas...
+                    
+                    // split the string up into whole and decimal parts if there are decimals
+                    if (precision) {
+                        code[code.length] = 'parts=fnum.split(&quot;.&quot;);';
+                        code[code.length] = 'fnum=parts[0];';
+                    }
+                    code[code.length] =
+                        'if(v&gt;=1000) {';
+                            code[code.length] = 'thousandSeparator=utilFormat.thousandSeparator;' +
+                            'thousands.length=0;' +
+                            'j=fnum.length;' +
+                            'n=fnum.length%3||3;' +
+                            'for(i=0;i&lt;j;i+=n){' +
+                                'if(i!==0){' +
+                                    'n=3;' +
+                                '}' +
+                                'thousands[thousands.length]=fnum.substr(i,n);' +
+                            '}' +
+                            'fnum=thousands.join(thousandSeparator);' + 
+                        '}';
+                    if (precision) {
+                        code[code.length] = 'fnum += utilFormat.decimalSeparator+parts[1];';
+                    }
+                    
+                } else if (precision) {
+                    // If they are using a weird decimal separator, split and concat using it
+                    code[code.length] = 'if(utilFormat.decimalSeparator!==&quot;.&quot;){' +
+                        'parts=fnum.split(&quot;.&quot;);' +
+                        'fnum=parts[0]+utilFormat.decimalSeparator+parts[1];' +
+                    '}';
+                }
+
+                if (trimTrailingZeroes) {
+                    code[code.length] = 'fnum=fnum.replace(trailingZeroes,&quot;&quot;);';
+                }
+
                 /*
                  * Edge case. If we have a very small negative number it will get rounded to 0,
                  * however the initial check at the top will still report as negative. Replace
                  * everything but 1-9 and check if the string is empty to determine a 0 value.
                  */
-                neg = fnum.replace(/[^1-9]/g, '') !== '';
-            }
+                code[code.length] = 'if(neg&amp;&amp;fnum!==&quot;' + (precision ? '0.' + Ext.String.repeat('0', precision) : '0') + '&quot;)fnum=&quot;-&quot;+fnum;';
 
-            return (neg ? '-' : '') + formatString.replace(/[\d,?\.?]+/, fnum);
+                code[code.length] = 'return ';
+
+                // If there were extra characters around the formatting string, replace the format string part with the formatted number.
+                if (extraChars) {
+                    code[code.length] = 'formatString.replace(formatPattern, fnum);';
+                } else {
+                    code[code.length] = 'fnum;';
+                }
+                code[code.length] = '};'
+
+                formatFn = formatFns[originalFormatString] = Ext.functionFactory('Ext', code.join(''))(Ext);
+            }
+            return formatFn(v);
         },
 
 <span id='Ext-util-Format-method-numberRenderer'>        /**

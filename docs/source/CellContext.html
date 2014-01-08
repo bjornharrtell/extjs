@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-CellContext'>/**
+</span> * Internal utility class that provides a unique cell context.
+ * @private
+ */
+Ext.define('Ext.grid.CellContext', {
+
+<span id='Ext-grid-CellContext-property-isCellContext'>    /**
+</span>     * @property {Boolean} isCellContext
+     * @readonly
+     * `true` in this class to identify an object as an instantiated CellContext, or subclass thereof.
+     */
+    isCellContext: true,
+    
+<span id='Ext-grid-CellContext-method-constructor'>    constructor: function(view) {
+</span>        this.view = view;
+    },
+    
+<span id='Ext-grid-CellContext-method-setPosition'>    // Selection row/record &amp; column/columnHeader
+</span>    setPosition: function(row, col) {
+        var me = this;
+
+        // We were passed {row: 1, column: 2, view: myView}
+        if (arguments.length === 1) {
+            if (row.view) {
+                me.view = row.view;
+            }
+            col = row.column;
+            row = row.row;
+        }
+
+        me.setRow(row);
+        me.setColumn(col);
+        return me;
+    },
+
+<span id='Ext-grid-CellContext-method-setRow'>    setRow: function(row) {
+</span>        var me = this;
+        if (row !== undefined) {
+            // Row index passed
+            if (typeof row === 'number') {
+                me.row = Math.max(Math.min(row, me.view.dataSource.getCount() - 1), 0);
+                me.record = me.view.dataSource.getAt(row);
+            }
+            // row is a Record
+            else if (row.isModel) {
+                me.record = row;
+                me.row = me.view.indexOf(row);
+            }
+            // row is a grid row
+            else if (row.tagName) {
+                me.record = me.view.getRecord(row);
+                me.row = me.view.indexOf(me.record);
+            }
+        }
+    },
+    
+<span id='Ext-grid-CellContext-method-setColumn'>    setColumn: function(col) {
+</span>        var me = this,
+            columnManager = me.view.ownerCt.columnManager;
+        if (col !== undefined) {
+            // column index passed
+            if (typeof col === 'number') {
+                me.column = col;
+                me.columnHeader = columnManager.getHeaderAtIndex(col);
+            }
+            // column Header passed
+            else if (col.isHeader) {
+                me.columnHeader = col;
+                me.column = columnManager.getHeaderIndex(col);
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

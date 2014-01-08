@@ -5,7 +5,7 @@
         zoom: 1;
         *display: inline;
     }
-
+    outline: 0;
     cursor: pointer;
     white-space: nowrap;
     vertical-align: middle;
@@ -14,6 +14,7 @@
 
 .#{$prefix}btn-wrap {
     position: relative;
+    display: block;
 }
 
 .#{$prefix}btn-button {
@@ -21,7 +22,6 @@
     display: block;
     text-decoration: none;
     overflow: hidden;
-    outline: 0;
     zoom: 1;
 }
 

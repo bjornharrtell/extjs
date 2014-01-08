@@ -79,14 +79,9 @@ Ext.define('Ext.selection.CheckboxModel', {
 
 <span id='Ext-selection-CheckboxModel-method-beforeViewRender'>    beforeViewRender: function(view) {
 </span>        var me = this,
-            views = me.views,
             owner;
             
         me.callParent(arguments);
-        
-        if (Ext.Array.indexOf(views, view) === -1) {
-            views.push(view);
-        }
 
         // if we have a locked header, only hook up to the first
         if (!me.hasLockedHeader() || view.headerCt.lockedCt) {
@@ -217,6 +212,7 @@ Ext.define('Ext.selection.CheckboxModel', {
         return {
             isCheckerHd: showCheck,
             text : '&amp;#160;',
+            clickTargetName: 'el',
             width: me.headerWidth,
             sortable: false,
             draggable: false,
@@ -282,7 +278,7 @@ Ext.define('Ext.selection.CheckboxModel', {
      */
     onSelectChange: function() {
         this.callParent(arguments);
-        if (!this.bulkChange) {
+        if (!this.suspendChange) {
             this.updateHeaderState();
         }
     },
@@ -311,10 +307,17 @@ Ext.define('Ext.selection.CheckboxModel', {
     },
     
 <span id='Ext-selection-CheckboxModel-method-maybeFireSelectionChange'>    maybeFireSelectionChange: function(fireEvent) {
-</span>        if (fireEvent &amp;&amp; !this.bulkChange) {
+</span>        if (fireEvent &amp;&amp; !this.suspendChange) {
             this.updateHeaderState();
         }
         this.callParent(arguments);
+    },
+    
+<span id='Ext-selection-CheckboxModel-method-resumeChanges'>    resumeChanges: function(){
+</span>        this.callParent();
+        if (!this.suspendChange) {
+            this.updateHeaderState();
+        }
     },
 
 <span id='Ext-selection-CheckboxModel-method-updateHeaderState'>    /**

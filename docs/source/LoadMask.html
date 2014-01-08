@@ -322,7 +322,6 @@ Ext.define('Ext.LoadMask', {
         if (!store.proxy.isSynchronous) {
             result.beforeLoad = beforeLoad;
             result.load = load;
-            result.prefetch = load;
         }
         return result;
     },

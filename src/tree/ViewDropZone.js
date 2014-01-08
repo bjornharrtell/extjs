@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @private
@@ -32,19 +32,19 @@ Ext.define('Ext.tree.ViewDropZone', {
     allowParentInserts: false,
  
     /**
-     * @cfg {String} allowContainerDrop
+     * @cfg {Boolean} allowContainerDrop
      * True if drops on the tree container (outside of a specific tree node) are allowed.
      */
     allowContainerDrops: false,
 
     /**
-     * @cfg {String} appendOnly
+     * @cfg {Boolean} appendOnly
      * True if the tree should only allow append drops (use for trees which are sorted).
      */
     appendOnly: false,
 
     /**
-     * @cfg {String} expandDelay
+     * @cfg {Number} expandDelay
      * The delay in milliseconds to wait before expanding a target tree node while dragging a droppable node
      * over the target.
      */
@@ -235,7 +235,7 @@ Ext.define('Ext.tree.ViewDropZone', {
                     data.records.push(record.copy(undefined, true));
                 } else {
                     // If it's not a node, make a node copy
-                    data.records.push(new Model(record[record.persistenceProperty], record.getId()));
+                    data.records.push(new Model(record.data, record.getId()));
                 }
             }
         }
@@ -283,7 +283,16 @@ Ext.define('Ext.tree.ViewDropZone', {
 
             // Insert the records into the target node
             for (i = 0, len = data.records.length; i < len; i++) {
-                argList[0] = data.records[i];
+                record = data.records[i];
+                if (!record.isNode) {
+                    if (record.isModel) {
+                        record = new Model(record.data, record.getId());
+                    } else {
+                        record = new Model(record);
+                    }
+                    data.records[i] = record;
+                }
+                argList[0] = record;
                 insertionMethod.apply(targetNode, argList);
             }
 

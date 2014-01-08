@@ -231,6 +231,21 @@ Ext.define('Ext.picker.Color', {
             }
         }
     },
+    
+<span id='Ext-picker-Color-method-clear'>    /**
+</span>     * Clears any selection and sets the value to `null`.
+     */
+    clear: function(){
+        var me = this,
+            value = me.value,
+            el;
+            
+        if (value &amp;&amp; me.rendered) {
+            el = me.el.down('a.color-' + value);
+            el.removeCls(me.selectedCls);
+        }
+        me.value = null;  
+    },
 
 <span id='Ext-picker-Color-method-getValue'>    /**
 </span>     * Get the currently selected color value.

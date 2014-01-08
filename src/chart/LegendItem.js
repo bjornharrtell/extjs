@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @class Ext.chart.LegendItem
@@ -37,7 +37,6 @@ Ext.define('Ext.chart.LegendItem', {
     
     // These are cached for quick lookups
     label: undefined,
-    mask:  undefined,
     
     // Position of the item, relative to the upper-left corner of the legend box
     x: 0,
@@ -66,8 +65,6 @@ Ext.define('Ext.chart.LegendItem', {
         me.setAttributes({
             hidden: false
         }, true);
-        
-        me.mask = me.createMask(config);
         
         me.yFieldIndex = index;
 
@@ -120,31 +117,6 @@ Ext.define('Ext.chart.LegendItem', {
             text: me.getLabelText(),
             style: {
                 cursor: 'pointer'
-            }
-        }));
-    },
-    
-    /**
-     * @private Creates mask sprite.
-     */
-    createMask: function(config) {
-        var me = this,
-            surface = me.surface,
-            legend = me.legend,
-            bbox;
-        
-        bbox = me.getBBox();
-        
-        return me.add('mask', surface.add({
-            type: 'rect',
-            x: bbox.x,
-            y: bbox.y,
-            width: bbox.width || 20,
-            height: bbox.height || 20,
-            zIndex: (me.zIndex || 0) + 1,
-            fill: legend.boxFill,
-            style: {
-                'cursor': 'pointer'
             }
         }));
     },
@@ -252,9 +224,6 @@ Ext.define('Ext.chart.LegendItem', {
         
         me.label.setStyle({
             'font-weight': 'bold'
-        });
-        me.mask.setStyle({
-            'cursor': 'pointer'
         });
         me.series._index = me.yFieldIndex;
         me.series.highlightItem();

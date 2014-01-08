@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Layout class for {@link Ext.form.field.HtmlEditor} fields. Sizes textarea and iframe elements.
@@ -32,7 +32,17 @@ Ext.define('Ext.layout.component.field.HtmlEditor', {
     naturalWidth: 300,
 
     beginLayout: function(ownerContext) {
-        var owner = this.owner;
+        var owner = this.owner,
+            dom;
+            
+        // In gecko, it can cause the browser to hang if we're running a layout with
+        // a heap of data in the textarea (think several images with data urls).
+        // So clear the value at the start, then re-insert it once we're done
+        if (Ext.isGecko) {
+            dom = owner.textareaEl.dom;
+            this.lastValue = dom.value;
+            dom.value = '';
+        }
         this.callParent(arguments);
         
         ownerContext.toolbarContext  = ownerContext.context.getCmp(owner.toolbar);
@@ -64,12 +74,17 @@ Ext.define('Ext.layout.component.field.HtmlEditor', {
     },
     
     finishedLayout: function(){
+        var owner = this.owner;
+        
         this.callParent(arguments);
         // In IE6 quirks sometimes the element requires repainting
         // to show properly.
         if (Ext.isIE9m && Ext.isIEQuirks) {
-            this.owner.el.repaint();
+            owner.el.repaint();
         }    
+        if (Ext.isGecko) {
+            owner.textareaEl.dom.value = this.lastValue;
+        }
     },
     
     publishOwnerWidth: function(ownerContext, width){

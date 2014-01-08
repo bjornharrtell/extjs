@@ -20,6 +20,9 @@
  * their options the first time they are shown. ListFilter utilizes the
  * {@link Ext.ux.grid.menu.ListMenu} component.
  *
+ * List filters are also able to create their own list of values from  all unique values of
+ * the specified {@link #dataIndex} field in the store at first time of filter invocation.
+ *
  * Although not shown here, this class accepts all configuration options
  * for {@link Ext.ux.grid.menu.ListMenu}.
  *
@@ -42,11 +45,15 @@ Ext.define('Ext.ux.grid.filter.ListFilter', {
     alias: 'gridfilter.list',
 
 <span id='Ext-ux-grid-filter-ListFilter-cfg-options'>    /**
-</span>     * @cfg {Array} options
+</span>     * @cfg {Array} [options]
      * `data` to be used to implicitly create a data store
      * to back this list when the data source is **local**. If the
      * data for the list is remote, use the {@link #store}
      * config instead.
+     *
+     * If neither store nor {@link #options} is specified, then the choices list is automatically
+     * populated from all unique values of the specified {@link #dataIndex} field in the store at first
+     * time of filter invocation.
      *
      * Each item within the provided array may be in one of the
      * following formats:
@@ -105,10 +112,14 @@ Ext.define('Ext.ux.grid.filter.ListFilter', {
      */
     phpMode : false,
 <span id='Ext-ux-grid-filter-ListFilter-cfg-store'>    /**
-</span>     * @cfg {Ext.data.Store} store
+</span>     * @cfg {Ext.data.Store} [store]
      * The {@link Ext.data.Store} this list should use as its data source
      * when the data source is **remote**. If the data for the list
      * is local, use the {@link #options} config instead.
+     *
+     * If neither store nor {@link #options} is specified, then the choices list is automatically
+     * populated from all unique values of the specified {@link #dataIndex} field in the store at first
+     * time of filter invocation.
      */
 
 <span id='Ext-ux-grid-filter-ListFilter-method-init'>    /**

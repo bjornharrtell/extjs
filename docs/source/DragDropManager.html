@@ -469,7 +469,7 @@ Ext.define('Ext.dd.DragDropManager', {
         // if the mouseup event happens outside of the browser window. When the 
         // mouse comes back, any drag will still be active
         // http://msdn.microsoft.com/en-us/library/ms537630(VS.85).aspx
-        if (Ext.isIE &amp;&amp; el.setCapture) {
+        if (Ext.isIE9m &amp;&amp; el.setCapture) {
             el.setCapture();
         }
 

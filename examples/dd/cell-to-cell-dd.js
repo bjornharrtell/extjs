@@ -107,7 +107,8 @@ Ext.onReady(function () {
                 ptype: 'celldragdrop',
                 // remove text from source cell and replace with value of emptyText
                 applyEmptyText: true,
-
+                dropBackgroundColor: Ext.themeName === 'neptune' ? '#a4ce6c' : 'green',
+                noDropBackgroundColor: Ext.themeName === 'neptune' ? '#d86f5d' : 'red',
                 //emptyText: Ext.String.htmlEncode('<<foo>>'),
 
                 // will only allow drops of the same type

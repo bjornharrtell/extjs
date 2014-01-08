@@ -23,27 +23,29 @@
  * be true.
  */
 @function theme-background-image($path, $extension: $image-extension, $nocheck: false) {
-    $path: theme-image($path + '.' + $extension, $relative-image-path-for-uis);
+    $path: file_join($relative-image-path-for-uis, $path + '.' + $extension);
+    $background-image: none;
 
     @if $path {
-        @if $nocheck == true {
-            @return url($path);
+        @if $nocheck {
+            $background-image: $path;
+        } @else if theme_image_exists($image-search-path, $path) {
+            $background-image: $path;
+        } @else {
+            @warn &quot;@theme-background-image: Theme image not found: #{$path}&quot;;
+            @if $include-missing-images {
+                $background-image: $path;
+            }
         }
 
-        $exists: theme_image_exists($image-search-path, $path);
-        @if $exists == true {
-            @return url($path);
+        @if $background-image != none {
+            $background-image: url(file_join($theme-resource-path, $path));
         }
-
-        @warn &quot;@theme-background-image: Theme image not found: #{$path}&quot;;
-        @if $include-missing-images {
-            @return url($path);
-        }
-        @return none;
-    }
-    @else {
+    } @else {
         @warn &quot;@theme-background-image: No arguments passed&quot;;
     }
+
+    @return $background-image;
 }
 </pre>
 </body>

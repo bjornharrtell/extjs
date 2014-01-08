@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Private utility class for Ext.BorderSplitter.
@@ -138,7 +138,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
             target = e.getTarget(),
             length = neighbors.length,
             i, neighbor;
-            
+
         if (collapseEl && target === splitter.collapseEl.dom) {
             return false;
         }
@@ -166,7 +166,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
     performResize: function(e, offset) {
         var me = this,
             splitter = me.splitter,
-            collapseDirection = splitter.collapseDirection,
+            collapseDirection = splitter.getCollapseDirection(),
             collapseTarget = splitter.collapseTarget,
             // a vertical splitter adjusts horizontal dimensions
             adjusters = me.splitAdjusters[splitter.vertical ? 'horz' : 'vert'],
@@ -228,6 +228,6 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
     },
 
     getCollapseDirection: function() {
-        return this.splitter.collapseDirection;
+        return this.splitter.getCollapseDirection();
     }
 });

@@ -16,9 +16,9 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
-//@tag dom,core
+// @tag dom,core
 /**
  */
 Ext.define('Ext.dom.Element_scroll', {
@@ -104,17 +104,9 @@ Ext.define('Ext.dom.Element_scroll', {
      * @return {Ext.dom.Element} this
      */
     setScrollLeft: function(left){
-        this.dom.scrollLeft = this.normalizeScrollLeft(left);
+        this.dom.scrollLeft = left;
         return this;
     },
-    
-    /**
-     * @private
-     * Normalize the scroll left pos for setting.
-     * @param {Number} left The new left scroll position.
-     * @return {Number} The normalized scroll left position.
-     */
-    normalizeScrollLeft: Ext.identityFn,
     
     /**
      * Sets the top scroll position
@@ -157,10 +149,10 @@ Ext.define('Ext.dom.Element_scroll', {
         }
 
         if (deltaX) {
-            me.scrollTo('left', Math.max(Math.min(me.getScrollLeft() + deltaX, dom.scrollWidth - dom.clientWidth), 0), animate);
+            me.scrollTo('left', me.constrainScrollLeft(dom.scrollLeft + deltaX), animate);
         }
         if (deltaY) {
-            me.scrollTo('top', Math.max(Math.min(dom.scrollTop + deltaY, dom.scrollHeight - dom.clientHeight), 0), animate);
+            me.scrollTo('top', me.constrainScrollTop(dom.scrollTop + deltaY), animate);
         }
 
         return me;
@@ -178,15 +170,11 @@ Ext.define('Ext.dom.Element_scroll', {
     scrollTo: function(side, value, animate) {
         //check if we're scrolling top or left
         var top = /top/i.test(side),
-            prop = 'scroll' + (top ? 'Top' : 'Left'),
             me = this,
+            prop = top ? 'scrollTop' : 'scrollLeft',
             dom = me.dom,
-            animCfg,
-            prop;
+            animCfg;
 
-        if (!top) {
-            value = me.normalizeScrollLeft(value);
-        }
         if (!animate || !me.anim) {
             // just setting the value, so grab the direction
             dom[prop] = value;
@@ -212,10 +200,11 @@ Ext.define('Ext.dom.Element_scroll', {
      * to scroll.  Should be a string (id), dom node, or Ext.Element.
      * @param {Boolean} [hscroll=true] False to disable horizontal scroll.
      * @param {Boolean/Object} [animate] true for the default animation or a standard Element
+     * @param {Boolean} [highlight=false] true to {@link #highlight} the element when it is in view.
      * animation config object
      * @return {Ext.dom.Element} this
      */
-    scrollIntoView: function(container, hscroll, animate) {
+    scrollIntoView: function(container, hscroll, animate, highlight) {
         var me = this,
             dom = me.dom,
             offsets = me.getOffsetsTo(container = Ext.getDom(container) || Ext.getBody().dom),
@@ -233,14 +222,18 @@ Ext.define('Ext.dom.Element_scroll', {
             newPos;
 
         // Highlight upon end of scroll
-        if (animate) {
-            animate = Ext.apply({
-                listeners: {
-                    afteranimate: function() {
-                        me.scrollChildFly.attach(dom).highlight();
+        if (highlight) {
+            if (animate) {
+                animate = Ext.apply({
+                    listeners: {
+                        afteranimate: function() {
+                            me.scrollChildFly.attach(dom).highlight();
+                        }
                     }
-                }
-            }, animate);
+                }, animate);
+            } else {
+                me.scrollChildFly.attach(dom).highlight();
+            }
         }
 
         if (dom.offsetHeight > ctClientHeight || top < ctScrollTop) {
@@ -291,27 +284,40 @@ Ext.define('Ext.dom.Element_scroll', {
         if (!this.isScrollable()) {
             return false;
         }
-        var el = this.dom,
-            l = el.scrollLeft, t = el.scrollTop,
-            w = el.scrollWidth, h = el.scrollHeight,
-            cw = el.clientWidth, ch = el.clientHeight,
-            scrolled = false, v,
-            hash = {
-                l: Math.min(l + distance, w - cw),
-                r: v = Math.max(l - distance, 0),
-                t: Math.max(t - distance, 0),
-                b: Math.min(t + distance, h - ch)
-            };
+        var me = this,
+            dom = me.dom,
+            side = direction === 'r' || direction === 'l' ? 'left' : 'top',
+            scrolled = false,
+            currentScroll, constrainedScroll;
 
-        hash.d = hash.b;
-        hash.u = hash.t;
-
-        direction = direction.substr(0, 1);
-        if ((v = hash[direction]) > -1) {
-            scrolled = true;
-            this.scrollTo(direction == 'l' || direction == 'r' ? 'left' : 'top', v, this.anim(animate));
+        if (direction === 'r') {
+            distance = -distance;
         }
+
+        if (side === 'left') {
+            currentScroll = dom.scrollLeft;
+            constrainedScroll = me.constrainScrollLeft(currentScroll + distance);
+        } else {
+            currentScroll = dom.scrollTop;
+            constrainedScroll = me.constrainScrollTop(currentScroll + distance);
+        }
+
+        if (constrainedScroll !== currentScroll) {
+            this.scrollTo(side, constrainedScroll, animate);
+            scrolled = true;
+        }
+
         return scrolled;
+    },
+
+    constrainScrollLeft: function(left) {
+        var dom = this.dom;
+        return Math.max(Math.min(left, dom.scrollWidth - dom.clientWidth), 0);
+    },
+
+    constrainScrollTop: function(top) {
+        var dom = this.dom;
+        return Math.max(Math.min(top, dom.scrollHeight - dom.clientHeight), 0);
     }
 }, function() {
     this.prototype.scrollChildFly = new this.Fly();

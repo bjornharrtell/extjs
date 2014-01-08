@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * Simple header class which is used for on {@link Ext.panel.Panel} and {@link Ext.window.Window}.
@@ -61,7 +61,7 @@ Ext.define('Ext.panel.Header', {
 
     headingTpl: [
         // unselectable="on" is required for Opera, other browsers inherit unselectability from the header
-        '<span id="{id}-textEl" class="{headerCls}-text {cls}-text" unselectable="on">{title}</span>'
+        '<span id="{id}-textEl" class="{headerCls}-text {cls}-text {cls}-text-{ui}" unselectable="on">{title}</span>'
     ],
 
     shrinkWrap: 3,
@@ -664,5 +664,16 @@ Ext.define('Ext.panel.Header', {
 
     getDockName: function() {
         return this.dock;
+    },
+    
+    getFramingInfoCls: function(){
+        var me = this,
+            cls = me.callParent(),
+            owner = me.ownerCt;
+            
+        if (!me.expanding && (owner && owner.collapsed) || me.isCollapsedExpander) {
+            cls += '-' + owner.collapsedCls; 
+        }
+        return cls + '-' + me.dock;
     }
 });

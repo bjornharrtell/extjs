@@ -15,6 +15,30 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">$grid-checkcolumn-disabled-opacity: 0.3 !default;</pre>
+  <pre class="prettyprint lang-js">.#{$prefix}grid-cell-inner-checkcolumn {
+    padding: $grid-checkcolumn-cell-padding;
+
+    @if $grid-no-row-lines-show-focus-border {
+        .#{$prefix}grid-no-row-lines .#{$prefix}grid-row-focused &amp; {
+            padding-top: top($grid-checkcolumn-cell-padding) - $grid-row-cell-border-width;
+            padding-bottom: bottom($grid-checkcolumn-cell-padding) - $grid-row-cell-border-width;
+        }
+    }
+}
+
+.#{$prefix}grid-checkcolumn {
+    width: $form-checkbox-size;
+    height: $form-checkbox-size;
+    background: theme-background-image($form-checkbox-image) 0 0 no-repeat;
+
+    .#{$prefix}item-disabled &amp; {
+        @include opacity($grid-checkcolumn-disabled-opacity);
+    }
+}
+
+.#{$prefix}grid-checkcolumn-checked {
+    background-position: 0 (0 - $form-checkbox-size);
+}
+</pre>
 </body>
 </html>

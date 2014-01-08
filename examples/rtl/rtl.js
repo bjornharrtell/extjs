@@ -24,6 +24,10 @@ Ext.onReady(function() {
         extend: 'Ext.data.Model',
         fields: [ 'foo', 'bar', 'baz', 'zork', 'gork', 'bork' ]
     });
+    
+    Ext.ComponentManager.onAvailable('options-toolbar', function(toolbar){
+        toolbar.down('button').hide();
+    });
 
     Ext.create('Ext.container.Viewport', {
         layout: 'border',

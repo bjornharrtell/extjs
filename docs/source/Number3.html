@@ -117,9 +117,15 @@ Ext.define('Ext.form.field.Number', {
 </span>     * @cfg {RegExp} maskRe
      * @private
      */
+     
+<span id='Ext-form-field-Number-cfg-allowExponential'>    /**
+</span>     * @cfg {Boolean} [allowExponential=true]
+     * Set to `false` to disallow Exponential number notation
+     */
+    allowExponential: true,
 
 <span id='Ext-form-field-Number-cfg-allowDecimals'>    /**
-</span>     * @cfg {Boolean} allowDecimals
+</span>     * @cfg {Boolean} [allowDecimals=true]
      * False to disallow decimal values
      */
     allowDecimals : true,
@@ -338,12 +344,19 @@ Ext.define('Ext.form.field.Number', {
         // Build regexes for masking and stripping based on the configured options
         if (me.disableKeyFilter !== true) {
             allowed = me.baseChars + '';
-            if (me.allowDecimals) {
-                allowed += me.decimalSeparator;
+            
+            if (me.allowExponential) {
+                allowed += me.decimalSeparator + 'e+-';
             }
-            if (me.minValue &lt; 0) {
-                allowed += '-';
+            else {
+                if (me.allowDecimals) {
+                    allowed += me.decimalSeparator;
+                }
+                if (me.minValue &lt; 0) {
+                    allowed += '-';
+                }
             }
+            
             allowed = Ext.String.escapeRegex(allowed);
             me.maskRe = new RegExp('[' + allowed + ']');
             if (me.autoStripChars) {

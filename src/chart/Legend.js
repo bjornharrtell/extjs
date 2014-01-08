@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @class Ext.chart.Legend
@@ -285,9 +285,9 @@ Ext.define('Ext.chart.Legend', {
                 for (j = 0, lj = fields.length; j < lj; j++) {
                     item = me.createLegendItem(series, j);
                     items.push(item);
-                };
+                }
             }
-        };
+        }
         
         me.alignItems();
     },
@@ -305,7 +305,7 @@ Ext.define('Ext.chart.Legend', {
             for (i = 0; i < len; i++) {
                 items[i].destroy();
             }
-        };
+        }
         
         //empty array
         items.length = [];
@@ -317,31 +317,21 @@ Ext.define('Ext.chart.Legend', {
      */
     alignItems: function() {
         var me = this,
-            items = me.items,
             padding = me.padding,
-            spacingOffset = 2,
             vertical = me.isVertical,
             mfloor = Math.floor,
-            mmax = Math.max,
-            dim, maxWidth, maxHeight, totalWidth, totalHeight, spacing;
+            dim, maxWidth, maxHeight, totalWidth, totalHeight;
         
         dim = me.updateItemDimensions();
 
-        maxWidth    = dim.maxWidth,
-        maxHeight   = dim.maxHeight,
-        totalWidth  = dim.totalWidth,
-        totalHeight = dim.totalHeight,
-        spacing     = dim.spacing;
+        maxWidth    = dim.maxWidth;
+        maxHeight   = dim.maxHeight;
+        totalWidth  = dim.totalWidth;
+        totalHeight = dim.totalHeight;
 
         // Store the collected dimensions for later
         me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2);
-        
-        if (vertical && items.length === 1) {
-            spacingOffset = 1;
-        }
-        
-        me.height = mfloor((vertical ? totalHeight - spacingOffset * spacing : maxHeight) + (padding * 2));
-        me.itemHeight = maxHeight;
+        me.height = mfloor((vertical ? totalHeight : maxHeight) + padding * 2);
     },
     
     updateItemDimensions: function() {
@@ -370,30 +360,24 @@ Ext.define('Ext.chart.Legend', {
             width  = bbox.width;
             height = bbox.height;
 
-            if (i === 0) {
-                spacing = vertical ? padding + height / 2 : padding;
-            }
-            else {
-                spacing = itemSpacing / (vertical ? 2 : 1);
-            }
+            spacing = (i === 0 ? 0 : itemSpacing);
             
             // Set the item's position relative to the legend box
-            item.x = mfloor(vertical ? padding : totalWidth + spacing);
-            item.y = mfloor(vertical ? totalHeight + spacing : padding + height / 2);
+            item.x = padding + mfloor(vertical ? 0 : totalWidth + spacing);
+            item.y = padding + mfloor(vertical ? totalHeight + spacing : 0) + height / 2;
 
             // Collect cumulative dimensions
-            totalWidth  += width + spacing;
-            totalHeight += height + spacing;
+            totalWidth  += spacing + width;
+            totalHeight += spacing + height;
             maxWidth     = mmax(maxWidth, width);
             maxHeight    = mmax(maxHeight, height);
-        };
+        }
 
         return {
             totalWidth:  totalWidth,
             totalHeight: totalHeight,
             maxWidth:    maxWidth,
-            maxHeight:   maxHeight,
-            spacing:     spacing
+            maxHeight:   maxHeight
         };
     },
     
@@ -419,8 +403,8 @@ Ext.define('Ext.chart.Legend', {
         return {
             x: Math.round(me.x) - me.boxStrokeWidth / 2,
             y: Math.round(me.y) - me.boxStrokeWidth / 2,
-            width: me.width,
-            height: me.height
+            width: me.width + me.boxStrokeWidth,
+            height: me.height + me.boxStrokeWidth
         };
     },
 
@@ -465,7 +449,6 @@ Ext.define('Ext.chart.Legend', {
             x, y,
             legendWidth = me.width,
             legendHeight = me.height,
-            padding = me.padding,
             chart = me.chart,
             chartBBox = chart.chartBBox,
             insets = chart.insetPadding,
@@ -520,7 +503,7 @@ Ext.define('Ext.chart.Legend', {
             // Update the position of each item
             for (i = 0, l = items.length; i < l; i++) {
                 items[i].updatePosition();
-            };
+            }
 
             bbox = me.getBBox();
 

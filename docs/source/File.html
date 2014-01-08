@@ -131,11 +131,9 @@ Ext.define('Ext.form.field.File', {
      * rendered.
      */
 
-<span id='Ext-form-field-File-cfg-fieldBodyCls'>    /**
-</span>     * @cfg {String} [fieldBodyCls='x-form-file-wrap']
-     * An extra CSS class to be applied to the body content element in addition to {@link #baseBodyCls}.
-     */
-    fieldBodyCls: Ext.baseCSSPrefix + 'form-file-wrap',
+
+<span id='Ext-form-field-File-property-extraFieldBodyCls'>    // private
+</span>    extraFieldBodyCls: Ext.baseCSSPrefix + 'form-file-wrap',
 
 <span id='Ext-form-field-File-cfg-readOnly'>    /**
 </span>     * @cfg {Boolean} readOnly
@@ -177,7 +175,7 @@ Ext.define('Ext.form.field.File', {
             ui: me.ui,
             disabled: me.disabled,
             text: me.buttonText,
-            style: me.buttonOnly ? '' : 'margin-left:' + me.buttonMargin + 'px',
+            style: me.buttonOnly ? '' : me.getButtonMarginProp() + me.buttonMargin + 'px',
             inputName: me.getName(),
             listeners: {
                 scope: me,
@@ -268,6 +266,10 @@ Ext.define('Ext.form.field.File', {
 </span>        Ext.destroyMembers(this, 'button');
         delete this.fileInputEl;
         this.callParent();
+    },
+
+<span id='Ext-form-field-File-method-getButtonMarginProp'>    getButtonMarginProp: function() {
+</span>        return 'margin-left:';
     }
 });</pre>
 </body>

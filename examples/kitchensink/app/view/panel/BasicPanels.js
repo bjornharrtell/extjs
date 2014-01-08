@@ -2,6 +2,9 @@ Ext.define('KitchenSink.view.panel.BasicPanels', {
     extend: 'Ext.Container',
     xtype: 'basic-panels',
     width: 660,
+    requires: [
+        'Ext.layout.container.Table'
+    ],
 
     layout: {
         type: 'table',

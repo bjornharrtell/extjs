@@ -51,7 +51,7 @@ Ext.onReady(function(){
             '<p>Company: {company}</p>',
             '<p>Location: {city}, {state}</p>',
             '<p>Kids: ',
-            '<tpl for="kids" if="age &eq;%eq; \'Abe Elias\'>',
+            '<tpl for="kids">',
                 '<tpl if="age &gt; 1"><p>{#}. {parent.name}\'s kid - {name}</p></tpl>',
             '</tpl></p>'
         ],

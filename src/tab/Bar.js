@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @author Ed Spencer
@@ -62,10 +62,10 @@ Ext.define('Ext.tab.Bar', {
 
     // @private
     renderTpl: [
-        '<div id="{id}-body" class="{baseCls}-body {bodyCls} {bodyTargetCls}<tpl if="ui"> {baseCls}-body-{ui}<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl></tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
+        '<div id="{id}-body" class="{baseCls}-body {bodyCls} {bodyTargetCls}{childElCls}<tpl if="ui"> {baseCls}-body-{ui}<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl></tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
             '{%this.renderContainer(out,values)%}',
         '</div>',
-        '<div id="{id}-strip" class="{baseCls}-strip {baseCls}-strip-{dock}',
+        '<div id="{id}-strip" class="{baseCls}-strip {baseCls}-strip-{dock}{childElCls}',
             '<tpl if="ui"> {baseCls}-strip-{ui}',
                 '<tpl for="uiCls"> {parent.baseCls}-strip-{parent.ui}-{.}</tpl>',
             '</tpl>">',
@@ -174,14 +174,18 @@ Ext.define('Ext.tab.Bar', {
                 // tabs need to be shifted to the right by their width
                 while (i--) {
                     tab = items[i];
-                    tab.el.setStyle('left', tab.lastBox.width + 'px');
+                    if (tab.isVisible()) {
+                        tab.el.setStyle('left', tab.lastBox.width + 'px');
+                    }
                 }
             } else if (this.dock === 'left') {
                 // rotated 270 degrees around using the top left corner as the axis.
                 // tabs need to be shifted down by their height
                 while (i--) {
                     tab = items[i];
-                    tab.el.setStyle('left', -tab.lastBox.height + 'px');
+                    if (tab.isVisible()) {
+                        tab.el.setStyle('left', -tab.lastBox.height + 'px');
+                    }
                 }
             }
         }
@@ -473,10 +477,9 @@ Ext.define('Ext.tab.Bar', {
             // We don't fire the change event when setting the first tab.
             // Also no need to run a layout
             if (!initial) {
-            	me.fireEvent('change', me, tab, tab.card);
-
-            	// Ensure that after the currently in progress layout, the active tab is scrolled into view
-            	me.updateLayout();
+                me.fireEvent('change', me, tab, tab.card);
+                // Ensure that after the currently in progress layout, the active tab is scrolled into view
+                me.updateLayout();
             }
         }
     }

@@ -158,7 +158,7 @@ Ext.define('Ext.tree.Panel', {
 <span id='Ext-tree-Panel-method-constructor'>    constructor: function(config) {
 </span>        config = config || {};
         if (config.animate === undefined) {
-            config.animate = Ext.isDefined(this.animate) ? this.animate : Ext.enableFx;
+            config.animate = Ext.isBoolean(this.animate) ? this.animate : Ext.enableFx;
         }
         this.enableAnimations = config.animate;
         delete config.animate;
@@ -278,7 +278,7 @@ Ext.define('Ext.tree.Panel', {
 </span>    // Hook into the TreeStore.
     // Do not callParent in TreePanel's bindStore
     // The TreeStore is only relevant to the tree - the View has its own NodeStore
-    bindStore: function(store) {
+    bindStore: function(store, initial) {
         var me = this;
 
         me.store = store;
@@ -386,6 +386,10 @@ Ext.define('Ext.tree.Panel', {
 
         // TreeStore must have an upward link to the TreePanel so that nodes can find their owning tree in NodeInterface.getOwnerTree
         store.ownerTree = me;
+        
+        if (!initial) {
+            me.view.setRootNode(me.getRootNode());
+        }
     },
 
 <span id='Ext-tree-Panel-method-unbindStore'>    // @private

@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * @author Ed Spencer
@@ -40,6 +40,7 @@ Ext.define('Ext.tab.Tab', {
     isTab: true,
 
     baseCls: Ext.baseCSSPrefix + 'tab',
+    closeElOverCls: Ext.baseCSSPrefix + 'tab-close-btn-over',
 
     /**
      * @cfg {String} activeCls
@@ -145,6 +146,10 @@ Ext.define('Ext.tab.Tab', {
 
         return result;
     },
+    
+    getFramingInfoCls: function(){
+        return this.baseCls + '-' + this.ui + '-' + this.position;
+    },
 
     beforeRender: function() {
         var me = this,
@@ -188,6 +193,10 @@ Ext.define('Ext.tab.Tab', {
         me.setElOrientation();
 
         me.callParent(arguments);
+
+        if (me.closable) {
+            me.closeEl.addClsOnOver(me.closeElOverCls);
+        }
 
         me.keyNav = new Ext.util.KeyNav(me.el, {
             enter: me.onEnterKey,
@@ -275,13 +284,14 @@ Ext.define('Ext.tab.Tab', {
 
         if (me.closable) {
             if (!closeEl) {
-                me.closeEl = me.btnWrap.insertSibling({
+                closeEl = me.closeEl = me.btnWrap.insertSibling({
                     tag: 'a',
                     cls: me.baseCls + '-close-btn',
                     href: '#',
                     title: me.closeText
                 }, 'after');
             }
+            closeEl.addClsOnOver(me.closeElOverCls);
         } else if (closeEl) {
             closeEl.remove();
             delete me.closeEl;

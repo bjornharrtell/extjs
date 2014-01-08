@@ -81,7 +81,7 @@ Ext.define('Ext.util.Renderable', {
 <span id='Ext-util-Renderable-property-frameCls'>    frameCls: Ext.baseCSSPrefix + 'frame',
 </span>
 <span id='Ext-util-Renderable-property-frameIdRegex'>    frameIdRegex: /[\-]frame\d+[TMB][LCR]$/,
-</span>
+</span>    
 <span id='Ext-util-Renderable-property-frameElNames'>    frameElNames: ['TL','TC','TR','ML','MC','MR','BL','BC','BR'],
 </span>
 <span id='Ext-util-Renderable-property-frameTpl'>    frameTpl: [
@@ -112,7 +112,7 @@ Ext.define('Ext.util.Renderable', {
 
 <span id='Ext-util-Renderable-property-frameTableTpl'>    frameTableTpl: [
 </span>        '{%this.renderDockedItems(out,values,0);%}',
-        '&lt;table class=&quot;', Ext.baseCSSPrefix, 'table-plain', '&quot; cellpadding=&quot;0&quot;&gt;&lt;tbody&gt;',
+        '&lt;table class=&quot;', Ext.plainTableCls, '&quot; cellpadding=&quot;0&quot;&gt;&lt;tbody&gt;',
             '&lt;tpl if=&quot;top&quot;&gt;',
                 '&lt;tr&gt;',
                     '&lt;tpl if=&quot;left&quot;&gt;&lt;td id=&quot;{fgid}TL&quot; class=&quot;{frameCls}-tl {baseCls}-tl {baseCls}-{ui}-tl&lt;tpl for=&quot;uiCls&quot;&gt; {parent.baseCls}-{parent.ui}-{.}-tl&lt;/tpl&gt;{frameElCls}&quot; role=&quot;presentation&quot;&gt;&lt;/td&gt;&lt;/tpl&gt;',
@@ -484,9 +484,6 @@ Ext.define('Ext.util.Renderable', {
             i, frameElNames, len, suffix, frameGenId, frameData;
 
         me.initStyles(protoEl);
-        if (frameInfo) {
-            protoEl.setStyle('background-image', 'none');
-        }
         protoEl.writeTo(config);
         protoEl.flush();
 
@@ -668,8 +665,7 @@ Ext.define('Ext.util.Renderable', {
             y = me.y,
             lastBox = null,
             width, height,
-            el = me.el,
-            body;
+            el = me.el;
 
         me.applyRenderSelectors();
 
@@ -770,7 +766,6 @@ Ext.define('Ext.util.Renderable', {
                 // Set configured styles on pre-rendered Component's element
                 me.initStyles(el);
                 if (me.allowDomMove !== false) {
-                    //debugger; // TODO
                     if (nextSibling) {
                         container.dom.insertBefore(el.dom, nextSibling);
                     } else {
@@ -786,7 +781,7 @@ Ext.define('Ext.util.Renderable', {
             me.finishRender(position);
         }
 
-        Ext.resumeLayouts(!container.isDetachedBody);
+        Ext.resumeLayouts(!me.hidden &amp;&amp; !container.isDetachedBody);
     },
 
 <span id='Ext-util-Renderable-method-ensureAttachedToBody'>    /**
@@ -947,7 +942,7 @@ Ext.define('Ext.util.Renderable', {
 
 <span id='Ext-util-Renderable-method-getFrameInfo'>    /**
 </span>     * @private
-     * On render, reads an encoded style attribute, &quot;background-position&quot; from the style of this Component's element.
+     * On render, reads an encoded style attribute, &quot;filter&quot; from the style of this Component's element.
      * This information is memoized based upon the CSS class name of this Component's element.
      * Because child Components are rendered as textual HTML as part of the topmost Container, a dummy div is inserted
      * into the document to receive the document element's CSS class name, and therefore style attributes.
@@ -960,11 +955,10 @@ Ext.define('Ext.util.Renderable', {
 
         var me = this,
             frameInfoCache = me.frameInfoCache,
-            el = me.el || me.protoEl,
-            cls = el.dom ? el.dom.className : el.classList.join(' '),
+            cls = me.getFramingInfoCls() + '-frameInfo',
             frameInfo = frameInfoCache[cls],
             max = Math.max,
-            styleEl, pos, info, frameTop, frameRight, frameBottom, frameLeft,
+            styleEl, match, info, frameTop, frameRight, frameBottom, frameLeft,
             borderWidthT, borderWidthR, borderWidthB, borderWidthL,
             paddingT, paddingR, paddingB, paddingL,
             borderRadiusTL, borderRadiusTR, borderRadiusBR, borderRadiusBL;
@@ -972,31 +966,28 @@ Ext.define('Ext.util.Renderable', {
         if (frameInfo == null) {
             // Get the singleton frame style proxy with our el class name stamped into it.
             styleEl = Ext.fly(me.getStyleProxy(cls), 'frame-style-el');
-            info = styleEl.getStyle('background-image');
+            info = styleEl.getStyle('font-family');
 
-            pos = info.indexOf('about:blank#');
-            if (pos &lt; 0) {
-                frameInfo = false;
-            } else {
+            if (info) {
                 // The framing data is encoded as
                 // 
-                //                   D=div|T=table
-                //                   |   H=horz|V=vert
-                //                   |   |
-                //                   |   |
-                //      about:blank#[DT][HV]-[T-R-B-L]-[T-R-B-L]-[T-R-B-L]
-                //                          /       /  |       |  \      \
-                //                        /        /   |       |   \      \
-                //                      /         /   /         \   \      \
-                //                    /          /    border-width   \      \
-                //                  border-radius                      padding
+                //         D=div|T=table
+                //         |   H=horz|V=vert
+                //         |   |
+                //         |   |
+                //        [DT][HV]-[T-R-B-L]-[T-R-B-L]-[T-R-B-L]
+                //                /       /  |       |  \      \
+                //              /        /   |       |   \      \
+                //            /         /   /         \   \      \
+                //          /          /    border-width   \      \
+                //        border-radius                      padding
                 //
                 // The first 2 chars hold the div/table and horizontal/vertical flags.
                 // The 3 sets of TRBL 4-tuples are the CSS3 values for border-radius,
                 // border-width and padding, respectively.
                 //
-                info = info.substring(pos+12).split('-');
-
+                info = info.split('-');
+                
                 borderRadiusTL = parseInt(info[1], 10);
                 borderRadiusTR = parseInt(info[2], 10);
                 borderRadiusBR = parseInt(info[3], 10);
@@ -1054,6 +1045,8 @@ Ext.define('Ext.util.Renderable', {
                         bl: borderRadiusBL
                     }
                 };
+            } else {
+                frameInfo = false;
             }
 
             //&lt;debug error&gt;
@@ -1073,6 +1066,10 @@ Ext.define('Ext.util.Renderable', {
         me.frameSize = frameInfo;
 
         return frameInfo;
+    },
+    
+<span id='Ext-util-Renderable-method-getFramingInfoCls'>    getFramingInfoCls: function(){
+</span>        return this.baseCls + '-' + this.ui;
     },
 
 <span id='Ext-util-Renderable-method-getStyleProxy'>    /**

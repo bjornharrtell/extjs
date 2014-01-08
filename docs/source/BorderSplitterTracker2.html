@@ -26,7 +26,7 @@
     },
 
     getCollapseDirection: function() {
-        var direction = this.splitter.collapseDirection;
+        var direction = this.splitter.getCollapseDirection();
         if (!this.splitter.getHierarchyState().rtl !== !Ext.rootHierarchyState.rtl) {
             direction = this.rtlDirections[direction];
         }

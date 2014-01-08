@@ -226,7 +226,7 @@ Ext.define('Ext.data.Store', {
         'Ext.data.proxy.Memory',
         'Ext.data.reader.Json',
         'Ext.data.writer.Json',
-        'Ext.util.LruCache',
+        'Ext.data.PageMap',
         'Ext.data.Group'
     ],
 
@@ -234,7 +234,6 @@ Ext.define('Ext.data.Store', {
         'Ext.ModelManager',
         'Ext.util.Grouper'
     ],
-
 
 <span id='Ext-data-Store-cfg-remoteSort'>    /**
 </span>     * @cfg {Boolean} [remoteSort=false]
@@ -498,6 +497,13 @@ Ext.define('Ext.data.Store', {
                 property : groupField,
                 direction: config.groupDir || me.groupDir
             }];
+        
+            // Allow a custom getGroupString implementation to prevail
+            if (config.getGroupString || (me.getGroupString !== Ext.data.Store.prototype.getGroupString)) {
+                groupers[0].getGroupString = function(record) {
+                    return me.getGroupString(record);
+                }
+            }
         }
         delete config.groupers;
 
@@ -510,11 +516,12 @@ Ext.define('Ext.data.Store', {
 
         me.groups = new Ext.util.MixedCollection(false, Ext.data.Store.groupIdFn);
 
+        // AbstractStore.constructor initializes the sorters collection
         me.callParent([config]);
         // don't use *config* anymore from here on... use *me* instead...
 
         if (me.buffered) {
-            me.data = new me.PageMap({
+            me.data = new Ext.data.PageMap({
                 store: me,
                 keyFn: Ext.data.Store.recordIdFn,
                 pageSize: me.pageSize,
@@ -560,6 +567,9 @@ Ext.define('Ext.data.Store', {
             me.remoteSort = true;
         }
 
+        // Keep sorters updated with prepended groupers so that subsequent adds work
+        me.sorters.insert(0, me.groupers.getRange());
+
         proxy = me.proxy;
         data = me.inlineData;
 
@@ -569,6 +579,7 @@ Ext.define('Ext.data.Store', {
             me.pageSize = me.defaultPageSize;
         }
 
+        // Load inline data
         if (data) {
             if (proxy instanceof Ext.data.proxy.Memory) {
                 proxy.data = data;
@@ -576,20 +587,18 @@ Ext.define('Ext.data.Store', {
             } else {
                 me.add.apply(me, [data]);
             }
-
-            // If remote sort, the MemoryProxy does it.
-            if (!me.remoteSort) {
-                me.sort();
+            
+            // If there are sorters (These will include any groupers by this stage) and we are sorting locally,
+            // then call group. This will sort, and create groups only if this store has groupers.
+            if (me.sorters.items.length &amp;&amp; !me.remoteSort) {
+                me.group(null, null, true);
             }
+
             delete me.inlineData;
-        } else if (me.autoLoad) {
+        }
+        else if (me.autoLoad) {
             // Defer the load until after the current event handler has finished and set up any associated views.
             Ext.defer(me.load, 1, me, [ typeof me.autoLoad === 'object' ? me.autoLoad : undefined ]);
-        }
-
-        // Beginning grouped, group using existing grouper collection but suppress events
-        if (me.groupers.items.length &amp;&amp; !me.remoteGroup) {
-            me.group(null, null, true);
         }
     },
 
@@ -664,43 +673,43 @@ Ext.define('Ext.data.Store', {
     group: function(groupers, direction, /* private - for initial group */ suppressEvent) {
         var me = this,
             grouper,
-            newGroupers,
-            oldGroupers = me.groupers.getRange(),
-            i, gLen = oldGroupers.length;
+            newGroupers;
 
-        // remove existing groupers from the sorter set
-        for (i = 0; i &lt; gLen; i++) {
-            me.sorters.remove(oldGroupers[i]);
-        }
+        // If we were passed groupers, we replace the existing groupers in the sorter collection with the new ones
+        if (groupers) {
 
-        if (Ext.isArray(groupers)) {
-            newGroupers = groupers;
-        } else if (Ext.isObject(groupers)) {
-            newGroupers = [groupers];
-        } else if (Ext.isString(groupers)) {
-            grouper = me.groupers.get(groupers);
+            // remove existing groupers from the sorter set
+            me.sorters.removeAll(me.groupers.items);
 
-            if (!grouper) {
-                grouper = {
-                    property : groupers,
-                    direction: direction || 'ASC'
-                };
-                newGroupers = [grouper];
-            } else if (direction === undefined) {
-                grouper.toggle();
-            } else {
-                grouper.setDirection(direction);
+            if (Ext.isArray(groupers)) {
+                newGroupers = groupers;
+            } else if (Ext.isObject(groupers)) {
+                newGroupers = [groupers];
+            } else if (Ext.isString(groupers)) {
+                grouper = me.groupers.get(groupers);
+
+                if (!grouper) {
+                    grouper = {
+                        property : groupers,
+                        direction: direction || 'ASC'
+                    };
+                    newGroupers = [grouper];
+                } else if (direction === undefined) {
+                    grouper.toggle();
+                } else {
+                    grouper.setDirection(direction);
+                }
             }
-        }
 
-        // If we were passed groupers, replace our grouper collection
-        if (newGroupers &amp;&amp; newGroupers.length) {
-            me.groupers.clear();
-            me.groupers.addAll(me.decodeGroupers(newGroupers));
+            // If we were passed groupers, replace our grouper collection
+            if (newGroupers &amp;&amp; newGroupers.length) {
+                me.groupers.clear();
+                me.groupers.addAll(me.decodeGroupers(newGroupers));
+            }
+
+            // Groupers are prepended into sorter set
+            me.sorters.insert(0, me.groupers.items);
         }
-        
-        // Groupers are prepended into sorter set
-        me.sorters.insert(0, me.groupers.getRange());
 
         if (me.remoteGroup) {
             if (me.buffered) {
@@ -720,38 +729,40 @@ Ext.define('Ext.data.Store', {
             }
         }
     },
-    
+
 <span id='Ext-data-Store-method-getGroupField'>    getGroupField: function(){
 </span>        var first = this.groupers.first(),
             group;
-            
+
         if (first) {
             group = first.property;
         }   
         return group; 
     },
-    
+
 <span id='Ext-data-Store-method-constructGroups'>    constructGroups: function(){
 </span>        var me = this,
             data = this.data.items,
             len = data.length,
             groups = me.groups,
             groupValue, i, group, rec;
-            
+
         groups.clear();
-        
-        for (i = 0; i &lt; len; ++i) {
-            rec = data[i];
-            groupValue = me.getGroupString(rec);
-            group = groups.get(groupValue);
-            if (!group) {
-                group = new Ext.data.Group({
-                    key: groupValue,
-                    store: me
-                });
-                groups.add(groupValue, group);
+
+        if (me.isGrouped()) {
+            for (i = 0; i &lt; len; ++i) {
+                rec = data[i];
+                groupValue = me.getGroupString(rec);
+                group = groups.get(groupValue);
+                if (!group) {
+                    group = new Ext.data.Group({
+                        key: groupValue,
+                        store: me
+                    });
+                    groups.add(groupValue, group);
+                }
+                group.add(rec);
             }
-            group.add(rec);
         }
     },
 
@@ -1054,7 +1065,7 @@ Ext.define('Ext.data.Store', {
                 me.sort();
                 me.resumeEvents();
             }
-            
+
             if (me.isGrouped()) {
                 me.updateGroupsOnAdd(out);
             }
@@ -1067,13 +1078,13 @@ Ext.define('Ext.data.Store', {
         }
         return out;
     },
-    
+
 <span id='Ext-data-Store-method-updateGroupsOnAdd'>    updateGroupsOnAdd: function(records) {
 </span>        var me = this,
             groups = me.groups,
             len = records.length,
             i, groupName, group, rec;
-            
+
         for (i = 0; i &lt; len; ++i) {
             rec = records[i];
             groupName = me.getGroupString(rec);
@@ -1087,18 +1098,18 @@ Ext.define('Ext.data.Store', {
             group.add(rec);
         }
     },
-    
+
 <span id='Ext-data-Store-method-updateGroupsOnRemove'>    updateGroupsOnRemove: function(records) {
 </span>        var me = this,
             groups = me.groups,
             len = records.length,
             i, groupName, group, rec;
-            
+
         for (i = 0; i &lt; len; ++i) {
             rec = records[i];
             groupName = me.getGroupString(rec);
             group = groups.getByKey(groupName);
-            
+
             if (group) {
                 group.remove(rec);
                 if (group.records.length === 0) {
@@ -1107,15 +1118,23 @@ Ext.define('Ext.data.Store', {
             }
         }
     },
-    
+
 <span id='Ext-data-Store-method-updateGroupsOnUpdate'>    updateGroupsOnUpdate: function(record, modifiedFieldNames){
 </span>        var me = this,
             groupField = me.getGroupField(),
             groupName = me.getGroupString(record),
             groups = me.groups,
             len, i, items, group;
-            
+
         if (modifiedFieldNames &amp;&amp; Ext.Array.indexOf(modifiedFieldNames, groupField) !== -1) {
+
+            // Sorting is remote for buffered stores, we cannot update a field which is a sort key
+            if (me.buffered) {
+                Ext.Error.raise({
+                    msg: 'Cannot move records between groups in a buffered store record'
+                });
+            }
+
             // First find the old group and remove the record
             items = groups.items;
             for (i = 0, len = items.length; i &lt; len; ++i) {
@@ -1125,7 +1144,7 @@ Ext.define('Ext.data.Store', {
                     break;
                 }
             }
-            groups.getByKey(groupName);
+            group = groups.getByKey(groupName);
             if (!group) {
                 group = groups.add(new Ext.data.Group({
                     key: groupName,
@@ -1133,12 +1152,17 @@ Ext.define('Ext.data.Store', {
                 }));
             }
             group.add(record);
-            
-            // At this point we know that we're sorted, so re-insert the record
-            me.suspendEvents();
-            me.remove(record);
-            me.addSorted(record);
-            me.resumeEvents();
+
+            // At this point we know that we're sorted, so re-insert the record.
+            // Without adding to the &quot;removed&quot; list or firing events!
+            me.data.remove(record);
+            me.data.insert(me.data.findInsertionIndex(record, me.generateComparator()), record);
+
+            // Keep subsequent indices up to date
+            for (i = 0, len = this.getCount(); i &lt; len; i++) {
+                me.data.items[i].index = i;
+            }
+
         } else {
             // some other field changed, just mark the group as dirty
             groups.getByKey(groupName).setDirty();    
@@ -1168,7 +1192,7 @@ Ext.define('Ext.data.Store', {
         var me = this,
             records,
             length, isSorted;
-            
+
         //&lt;debug&gt;
         if (me.buffered) {
             Ext.Error.raise({
@@ -1232,7 +1256,7 @@ Ext.define('Ext.data.Store', {
 
         return record;
     },
-    
+
 <span id='Ext-data-Store-method-onUpdate'>    onUpdate: function(record, type, modifiedFieldNames){
 </span>        if (this.isGrouped()) {
             this.updateGroupsOnUpdate(record, modifiedFieldNames);
@@ -1447,22 +1471,36 @@ Ext.define('Ext.data.Store', {
      * and `{@link #event-clear}` events from being fired.
      */
     removeAll: function(silent) {
-        var me = this;
-
-        // Use the remove range interface to remove the entire record set, passing the silent flag.
-        // The remove range interface does not fire individual remove events.
-        me.remove({
-            start: 0,
-            end: me.getCount() - 1
-        }, false, silent);
-
-        // Special handling to synch the PageMap only for removeAll
-        // TODO: handle other store/data modifications WRT buffered Stores.
-        if (me.data) {
-            me.data.clear();
+        var me = this,
+            snapshot = me.snapshot,
+            data = me.data;
+            
+        if (snapshot) {
+            snapshot.removeAll(data.getRange());
         }
-        if (silent !== true) {
-            me.fireEvent('clear', me);
+
+        if (me.buffered) {
+            if (data) {
+                if (silent) {
+                    me.suspendEvent('clear');
+                }
+                data.clear();
+                if (silent) {
+                    me.resumeEvent('clear');
+                }
+            }            
+        }
+
+        else {
+            // Use the remove range interface to remove the entire record set, passing the silent flag to mute the bulkremove event.
+            // The remove range interface does not fire individual remove events.
+            me.remove({
+                start: 0,
+                end: me.getCount() - 1
+            }, false, silent);
+            if (silent !== true) {
+                me.fireEvent('clear', me);
+            }
         }
     },
 
@@ -1585,6 +1623,10 @@ Ext.define('Ext.data.Store', {
             records = operation.getRecords(),
             successful = operation.wasSuccessful();
 
+        if (me.isDestroyed) {
+            return;
+        }
+        
         if (resultSet) {
             me.totalCount = resultSet.total;
         }
@@ -1664,7 +1706,7 @@ Ext.define('Ext.data.Store', {
      * {@link Ext.util.MixedCollection MixedCollection}. See MixedCollection's
      * {@link Ext.util.MixedCollection#filter filter} method for filter syntax.
      * Alternatively, pass in a property string.
-     * 
+     *
      * If no parameters are passed, the Store's existing filter set is applied.
      * @param {String} [value] value to filter by (only if using a property string as the first argument)
      */
@@ -1682,37 +1724,43 @@ Ext.define('Ext.data.Store', {
             doLocalSort = me.sorters.length &amp;&amp; me.sortOnFilter &amp;&amp; !me.remoteSort,
             length = decoded.length;
 
+        // Merge new filters into current filter set.
         for (i = 0; i &lt; length; i++) {
             me.filters.replace(decoded[i]);
         }
 
-        if (me.remoteFilter) {
-            // So that prefetchPage does not consider the store to be fully loaded if the local count is equal to the total count
-            delete me.totalCount;
+        filters = me.filters.items;
 
-            // For a buffered Store, we have to clear the prefetch cache because the dataset will change upon filtering.
-            // Then we must prefetch the new page 1, and when that arrives, reload the visible part of the Store
-            // via the guaranteedrange event
-            if (me.buffered) {
-                me.data.clear();
-                me.loadPage(1);
+        // If there are filters, filter the data.
+        // This method can not cut a filter set down to zero, it can only add or replace,
+        // so if there are no filters, the store is not filtered, and they did not pass a filter.
+        if (filters.length) {
+            if (me.remoteFilter) {
+                // So that prefetchPage does not consider the store to be fully loaded if the local count is equal to the total count
+                delete me.totalCount;
+
+                // For a buffered Store, we have to clear the prefetch cache because the dataset will change upon filtering.
+                // Then we must prefetch the new page 1, and when that arrives, reload the visible part of the Store
+                // via the guaranteedrange event
+                if (me.buffered) {
+                    me.data.clear();
+                    me.loadPage(1);
+                } else {
+                    // Reset to the first page, the filter is likely to produce a smaller data set
+                    me.currentPage = 1;
+                    //the load function will pick up the new filters and request the filtered data from the proxy
+                    me.load();
+                }
             } else {
-                // Reset to the first page, the filter is likely to produce a smaller data set
-                me.currentPage = 1;
-                //the load function will pick up the new filters and request the filtered data from the proxy
-                me.load();
-            }
-        } else {
-<span id='Ext-data-Store-property-snapshot'>            /**
-</span>             * @property {Ext.util.MixedCollection} snapshot
-             * A pristine (unfiltered) collection of the records in this store. This is used to reinstate
-             * records when a filter is removed or changed
-             */
-            if (me.filters.getCount()) {
+<span id='Ext-data-Store-property-snapshot'>                /**
+</span>                * @property {Ext.util.MixedCollection} snapshot
+                * A pristine (unfiltered) collection of the records in this store. This is used to reinstate
+                * records when a filter is removed or changed
+                */
                 me.snapshot = me.snapshot || me.data.clone();
 
                 // Filter the unfiltered dataset using the filter set
-                me.data = me.snapshot.filter(me.filters.items);
+                me.data = me.snapshot.filter(filters);
 
                 // Groups will change when filters change
                 me.constructGroups();
@@ -1725,8 +1773,8 @@ Ext.define('Ext.data.Store', {
                     me.fireEvent('refresh', me);
                 }
             }
+            me.fireEvent('filterchange', me, filters);
         }
-        me.fireEvent('filterchange', me, me.filters.items);
     },
 
 <span id='Ext-data-Store-method-clearFilter'>    /**
@@ -1802,16 +1850,17 @@ Ext.define('Ext.data.Store', {
             if (applyFilters !== false) {
 
                 // Not gone down to zero filters - re-filter Store
-                if (me.filters.getCount()) {
+                if (me.filters.length) {
                     me.filter();
                 }
-                
+
                 // No filters left - let clearFilter do its thing.
                 else {
                     me.clearFilter();
                 }
+            } else {
+                me.fireEvent('filterchange', me, me.filters.items);
             }
-            me.fireEvent('filterchange', me, me.filters.items);
         }
     },
 
@@ -1835,10 +1884,11 @@ Ext.define('Ext.data.Store', {
             me.filters.replace(decoded[i]);
         }
 
-        if (applyFilters !== false) {
+        if (applyFilters !== false &amp;&amp; me.filters.length) {
             me.filter();
+        } else {
+            me.fireEvent('filterchange', me, me.filters.items);
         }
-        me.fireEvent('filterchange', me, me.filters.items);
     },
 
 <span id='Ext-data-Store-method-isFiltered'>    /**
@@ -2083,7 +2133,11 @@ Ext.define('Ext.data.Store', {
             i;
 
         // We only have to do the unjoining if not buffered. PageMap will unjoin its records when it clears itself.
-        if (!me.buffered) {
+        // There is a potential for a race condition in stores configured with autoDestroy: true;
+        // if loading was initiated but didn't complete by the time the store is destroyed,
+        // the data MC may not have been created yet so we have to check for its existence
+        // here and below.
+        if (!me.buffered &amp;&amp; me.data) {
             records = me.data.items;
             i = records.length;
             while (i--) {
@@ -2092,7 +2146,10 @@ Ext.define('Ext.data.Store', {
         }
 
         // Remove all data from the Collection/PageMap. PageMap will perform unjoining.
-        me.data.clear();
+        if (me.data) {
+            me.data.clear();
+        }
+        
         if (isLoad !== true || me.clearRemovedOnLoad) {
             me.removed.length = 0;
         }
@@ -2151,14 +2208,14 @@ Ext.define('Ext.data.Store', {
             // It should not be processed by onProxyPrefetch.
             if (options.callback) {
                 prefetchOptions = Ext.apply({}, options);
-                delete options.callback;
+                delete prefetchOptions.callback;
             }
 
             // Load the first page in the range, which will give us the initial total count.
             // Once it is loaded, go ahead and prefetch any subsequent pages, if necessary.
             // The prefetchPage has a check to prevent us loading more than the totalCount,
             // so we don't want to blindly load up &lt;n&gt; pages where it isn't required. 
-            me.on('prefetch', function(records, successful, operation) {
+            me.on('prefetch', function(store, records, successful, operation) {
 
                 if (successful) {
                     // If there is data in the dataset, we can go ahead and add the pageAdded listener which waits for the visible range
@@ -2169,9 +2226,10 @@ Ext.define('Ext.data.Store', {
                         me.data.on('pageAdded', waitForRequestedRange);
 
                         // As soon as we have the size of the dataset, ensure we are not waiting for more than can ever arrive,
-                        // And make sure we never ask for pages beyond the end of the dataset.
                         loadEndIdx = Math.min(loadEndIdx, dataSetSize - 1);
-                        endPage = me.getPageFromRecordIndex(loadEndIdx);
+
+                        // And make sure we never ask for pages beyond the end of the dataset.
+                        endPage = me.getPageFromRecordIndex(Math.min(loadEndIdx + me.leadingBufferZone, dataSetSize - 1));
 
                         for (i = startPage + 1; i &lt;= endPage; ++i) {
                             me.prefetchPage(i, prefetchOptions);
@@ -2240,8 +2298,8 @@ Ext.define('Ext.data.Store', {
                 groupers: me.groupers.items,
 
                 // Generation # of the page map to which the requested records belong.
-                // If page map is cleared while this request is in flight, the generation will increment and the payload will be rejected
-                generation: me.data.generation
+                // If page map is cleared while this request is in flight, the pageMapGeneration will increment and the payload will be rejected
+                pageMapGeneration: me.data.pageMapGeneration
             }, options);
 
             operation = new Ext.data.Operation(options);
@@ -2264,8 +2322,8 @@ Ext.define('Ext.data.Store', {
      *
      * This is called when the page map is cleared.
      *
-     * Any requests which still make it through will be for the previous page map generation
-     * (generation is incremented upon clear), and so will be rejected upon arrival.
+     * Any requests which still make it through will be for the previous pageMapGeneration
+     * (pageMapGeneration is incremented upon clear), and so will be rejected upon arrival.
      */
     onPageMapClear: function() {
         var me = this,
@@ -2339,9 +2397,9 @@ Ext.define('Ext.data.Store', {
             successful = operation.wasSuccessful(),
             page = operation.page;
 
-        // Only cache the data if the operation was invoked for the current generation of the page map.
-        // If the generation has changed since the request was fired off, it will have been cancelled.
-        if (operation.generation === me.data.generation) {
+        // Only cache the data if the operation was invoked for the current pageMapGeneration.
+        // If the pageMapGeneration has changed since the request was fired off, it will have been cancelled.
+        if (operation.pageMapGeneration === me.data.pageMapGeneration) {
 
             if (resultSet) {
                 me.totalCount = resultSet.total;
@@ -2408,6 +2466,15 @@ Ext.define('Ext.data.Store', {
      */
     pageCached: function(page) {
         return this.data &amp;&amp; this.data.hasPage(page);
+    },
+    
+<span id='Ext-data-Store-method-pagePending'>    /**
+</span>     * Determines if a request for a page is currently running
+     * @private
+     * @param {Number} page The page to check for
+     */
+    pagePending: function(page) {
+        return !!this.pageRequests[page];
     },
 
 <span id='Ext-data-Store-method-rangeSatisfied'>    /**
@@ -2584,6 +2651,12 @@ Ext.define('Ext.data.Store', {
      *
      * When store is filtered, finds records only within filter.
      *
+     * **IMPORTANT
+     *
+     * If this store is {@link #buffered}, this can ONLY find records which happen to be cached in the page cache.
+     * This will be parts of the dataset around the currently visible zone, or recently visited zones if the pages
+     * have not yet been purged from the cache.**
+     *
      * @param {String} fieldName The name of the Record field to test.
      * @param {String/RegExp} value Either a string that the field value
      * should begin with, or a RegExp to test against the field.
@@ -2602,6 +2675,12 @@ Ext.define('Ext.data.Store', {
 </span>     * Finds the first matching Record in this store by a specific field value.
      *
      * When store is filtered, finds records only within filter.
+     *
+     * **IMPORTANT
+     *
+     * If this store is {@link #buffered}, this can ONLY find records which happen to be cached in the page cache.
+     * This will be parts of the dataset around the currently visible zone, or recently visited zones if the pages
+     * have not yet been purged from the cache.**
      *
      * @param {String} fieldName The name of the Record field to test.
      * @param {String/RegExp} value Either a string that the field value
@@ -2645,6 +2724,12 @@ Ext.define('Ext.data.Store', {
      *
      * When store is filtered, finds records only within filter.
      *
+     * **IMPORTANT
+     *
+     * If this store is {@link #buffered}, this can ONLY find records which happen to be cached in the page cache.
+     * This will be parts of the dataset around the currently visible zone, or recently visited zones if the pages
+     * have not yet been purged from the cache.**
+     *
      * @param {String} fieldName The name of the Record field to test.
      * @param {Object} value The value to match the field against.
      * @param {Number} [startIndex=0] The index to start searching at
@@ -2662,6 +2747,12 @@ Ext.define('Ext.data.Store', {
      * If the function returns `true` it is considered a match.
      *
      * When store is filtered, finds records only within filter.
+     *
+     * **IMPORTANT
+     *
+     * If this store is {@link #buffered}, this can ONLY find records which happen to be cached in the page cache.
+     * This will be parts of the dataset around the currently visible zone, or recently visited zones if the pages
+     * have not yet been purged from the cache.**
      *
      * @param {Function} fn The function to be called. It will be passed the following parameters:
      *  @param {Ext.data.Model} fn.record The record to test for filtering. Access field values
@@ -2743,11 +2834,11 @@ Ext.define('Ext.data.Store', {
      * @param {Number} start The starting index. Defaults to zero for non {@link #buffered} Stores.
      * @param {Number} end The ending index. Defaults to the last Record for non {@link #buffered} Stores.
      * @param {Object} [options] Used when the Store is {@link #buffered] and the range may not be available synchronously.
-     * @param {Object} options.callback A function to call when the range becomes available.
-     * @param {Ext.data.Model[]} options.callback.range The requested range of records.
-     * @param {Number} options.callback.start The delivered start index.
-     * @param {Number} options.callback.end The delivered end index
-     * @param {Number} options.callback.options The passed options object.
+     *  @param {Object} options.callback A function to call when the range becomes available.
+     *  @param {Ext.data.Model[]} options.callback.range The requested range of records.
+     *   @param {Number} options.callback.start The delivered start index.
+     *   @param {Number} options.callback.end The delivered end index
+     *   @param {Number} options.callback.options The passed options object.
      * @return {Ext.data.Model[]} An array of records **if the records are immediately available**. For {@link #buffered}
      * stores, you should pass the callback option **unless you know that the range will be present** - see {@link #rangeCached}.
      */
@@ -2768,7 +2859,7 @@ Ext.define('Ext.data.Store', {
             lastRequestStart = me.lastRequestStart,
             pageAddHandler,
             result;
-            
+
         options = Ext.apply({
             prefetchStart: start,
             prefetchEnd: end
@@ -2819,13 +2910,13 @@ Ext.define('Ext.data.Store', {
             me.primeCache(start, end, start &lt; lastRequestStart ? -1 : 1);
         } else {
             result = me.data.getRange(start, end);
-            
+
             // Someone *may* use the callback interface to process their results even if the store is not buffered and always synchronous
             if (options.callback) {
                 options.callback.call(options.scope || me, result, start, end, options)
             }
         }
-        
+
         return result;
     },
 
@@ -2861,7 +2952,6 @@ Ext.define('Ext.data.Store', {
     indexOf: function(record) {
         return this.data.indexOf(record);
     },
-
 
 <span id='Ext-data-Store-method-indexOfTotal'>    /**
 </span>     * Get the index within the entire dataset. From 0 to the totalCount.
@@ -3152,14 +3242,18 @@ Ext.define('Ext.data.Store', {
             return this.getAggregate(fn, scope, this.data.items, args);
         }
     },
-    
+
 <span id='Ext-data-Store-method-getAggregate'>    getAggregate: function(fn, scope, records, args){
 </span>        args = args || [];
         return fn.apply(scope || this, [records].concat(args));
     },
-    
+
 <span id='Ext-data-Store-method-onIdChanged'>    onIdChanged: function(rec, oldId, newId, oldInternalId){
-</span>        this.data.updateKey(oldInternalId, newId);
+</span>        var snapshot = this.snapshot;
+        if (snapshot) {
+            snapshot.updateKey(oldInternalId, newId);
+        }
+        this.data.updateKey(oldInternalId, newId);
         this.callParent(arguments);
     },
 
@@ -3232,197 +3326,6 @@ Ext.define('Ext.data.Store', {
     // Just for binding to Views which are instantiated with no Store defined.
     // They will be able to run and render fine, and be bound to a generated Store later.
     Ext.regStore('ext-empty-store', {fields: [], proxy: 'memory'});
-
-<span id='Ext-data-Store-PageMap'>    /**
-</span>     * @class Ext.data.Store.PageMap
-     * @extends Ext.util.LruCache
-     * Private class for use by only Store when configured `buffered: true`.
-     * @private
-     */
-    this.prototype.PageMap = new Ext.Class({
-        extend: 'Ext.util.LruCache',
-
-        // Maintain a generation counter, so that the Store can reject incoming pages destined for the previous generation
-        clear: function(initial) {
-            var me = this;
-            me.generation = (me.generation ||0) + 1;
-            me.callParent(arguments);
-        },
-
-        forEach: function(fn, scope) {
-            var me = this,
-                pageNumbers = Ext.Object.getKeys(me.map),
-                pageCount = pageNumbers.length,
-                i, j,
-                page,
-                pageSize;
-
-            for (i = 0; i &lt; pageCount; i++) {
-                pageNumbers[i] = Number(pageNumbers[i]);
-            }
-            Ext.Array.sort(pageNumbers);
-            scope = scope || me;
-            for (i = 0; i &lt; pageCount; i++) {
-                page = me.getPage(pageNumbers[i]);
-                pageSize = page.length;
-                for (j = 0; j &lt; pageSize; j++) {
-                    if (fn.call(scope, page[j]) === false) {
-                        return;
-                    }
-                }
-            }
-        },
-
-<span id='Ext-data-Store-PageMap-method-findBy'>       /**
-</span>        * Returns the first record in this page map which elicits a true return value from the
-        * passed selection function.
-        * @param {Function} fn The selection function to execute for each item.
-        * @param {Mixed} fn.rec The record.
-        * @param {Object} scope (optional) The scope (`this` reference) in which the
-        * function is executed. Defaults to this PageMap.
-        * @return {Object} The first record in this page map which returned true from the selection
-        * function, or null if none was found.
-        */
-        findBy: function(fn, scope) {
-            var me = this,
-                result = null;
-
-            scope = scope || me;
-            me.forEach(function(rec) {
-                if (fn.call(scope, rec)) {
-                    result = rec;
-                    return false;
-                }
-            });
-            return result;
-        },
-
-        getPageFromRecordIndex: this.prototype.getPageFromRecordIndex,
-
-        addAll: function(records) {
-            //&lt;debug&gt;
-            if (this.getCount()) {
-                Ext.Error.raise('Cannot addAll to a non-empty PageMap');
-            }
-            //&lt;/debug&gt;
-            this.addPage(1, records);
-        },
-
-        addPage: function(pageNumber, records) {
-            var me = this,
-                lastPage = pageNumber + Math.floor((records.length - 1) / me.pageSize),
-                startIdx,
-                page;
-
-            // Account for being handed a block of records spanning several pages.
-            // This can happen when loading from a MemoryProxy before a viewSize has been determined.
-            for (startIdx = 0; pageNumber &lt;= lastPage; pageNumber++, startIdx += me.pageSize) {
-                page = Ext.Array.slice(records, startIdx, startIdx + me.pageSize);
-                me.add(pageNumber, page);
-                me.fireEvent('pageAdded', pageNumber, page);
-            }
-        },
-
-        getCount: function() {
-            var result = this.callParent();
-            if (result) {
-                result = (result - 1) * this.pageSize + this.last.value.length;
-            }
-            return result;
-        },
-
-        indexOf: function(record) {
-            return record ? record.index : -1;
-        },
-
-        insert: function() {
-            //&lt;debug&gt;
-            Ext.Error.raise('insert operation not suppported into buffered Store');
-            //&lt;/debug&gt;
-        },
-
-        remove: function() {
-            //&lt;debug&gt;
-            Ext.Error.raise('remove operation not suppported from buffered Store');
-            //&lt;/debug&gt;
-        },
-
-        removeAt: function() {
-            //&lt;debug&gt;
-            Ext.Error.raise('removeAt operation not suppported from buffered Store');
-            //&lt;/debug&gt;
-        },
-
-        getPage: function(pageNumber) {
-            return this.get(pageNumber);
-        },
-
-        hasRange: function(start, end) {
-            var pageNumber = this.getPageFromRecordIndex(start),
-                endPageNumber = this.getPageFromRecordIndex(end);
-
-            for (; pageNumber &lt;= endPageNumber; pageNumber++) {
-                if (!this.hasPage(pageNumber)) {
-                    return false;
-                }
-            }
-            return true;
-        },
-
-        hasPage: function(pageNumber) {
-            // We must use this.get to trigger an access so that the page which is checked for presence is not eligible for pruning
-            return !!this.get(pageNumber);
-        },
-
-        getAt: function(index) {
-            return this.getRange(index, index)[0];
-        },
-
-        getRange: function(start, end) {
-            if (!this.hasRange(start, end)) {
-                Ext.Error.raise('PageMap asked for range which it does not have');
-            }
-            var me = this,
-                startPageNumber = me.getPageFromRecordIndex(start),
-                endPageNumber = me.getPageFromRecordIndex(end),
-                dataStart = (startPageNumber - 1) * me.pageSize,
-                dataEnd = (endPageNumber * me.pageSize) - 1,
-                pageNumber = startPageNumber,
-                result = [],
-                sliceBegin, sliceEnd, doSlice,
-                i = 0, len;
-
-            for (; pageNumber &lt;= endPageNumber; pageNumber++) {
-
-                // First and last pages will need slicing to cut into the actual wanted records
-                if (pageNumber == startPageNumber) {
-                    sliceBegin = start - dataStart;
-                    doSlice = true;
-                } else {
-                    sliceBegin = 0;
-                    doSlice = false;
-                }
-                if (pageNumber == endPageNumber) {
-                    sliceEnd = me.pageSize - (dataEnd - end);
-                    doSlice = true;
-                }
-
-                // First and last pages will need slicing
-                if (doSlice) {
-                    Ext.Array.push(result, Ext.Array.slice(me.getPage(pageNumber), sliceBegin, sliceEnd));
-                } else {
-                    Ext.Array.push(result, me.getPage(pageNumber));
-                }
-            }
-
-            // Inject the dataset ordinal position into the record as the index
-            for (len = result.length; i &lt; len; i++) {
-                result[i].index = start++;
-            }
-            return result;
-        }
-    });
-});
-</pre>
+});</pre>
 </body>
 </html>

@@ -43,21 +43,22 @@ div.#{$prefix}lbl-top-err-icon {
 .#{$prefix}form-item-label {
     color: $form-label-font-color;
     font: $form-label-font;
+    margin-top: round(($form-field-height - $form-label-line-height) / 2);
     @if $include-ext-toolbar-toolbar {
         .#{$prefix}toolbar-item &amp; {
-            font-size: $toolbar-font-size;
-            @if $form-toolbar-label-line-height != $form-label-line-height {
-                line-height: $form-toolbar-label-line-height
+            @if $form-label-font != $form-toolbar-label-font {
+                font: $form-toolbar-label-font;
+            }
+            @if ($form-field-height != $form-toolbar-field-height) or ($form-label-line-height != $form-toolbar-label-line-height) {
+                margin-top: round(($form-toolbar-field-height - $form-toolbar-label-line-height) / 2);
             }
         }
     }
 }
 
-// form items within auto, anchor, vbox checkboxgroup, and table layouts have bottom margin of 5px
 .#{$prefix}autocontainer-form-item,
 .#{$prefix}anchor-form-item,
 .#{$prefix}vbox-form-item,
-.#{$prefix}checkboxgroup-form-item,
 .#{$prefix}table-form-item {
     margin-bottom: $form-item-margin-bottom;
 }

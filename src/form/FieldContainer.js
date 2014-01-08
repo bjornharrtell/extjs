@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * FieldContainer is a derivation of {@link Ext.container.Container Container} that implements the
@@ -164,6 +164,9 @@ Ext.define('Ext.form.FieldContainer', {
     combineErrors: false,
 
     maskOnDisable: false,
+    // If we allow this to mark with the invalidCls it will cascade to all
+    // child fields, let them handle themselves
+    invalidCls: '',
 
     fieldSubTpl: '<div id="{id}-containerEl" class="{containerElCls}">{%this.renderContainer(out,values)%}</div>',
 
@@ -196,6 +199,10 @@ Ext.define('Ext.form.FieldContainer', {
             labelable.x += (me.labelWidth + me.labelPad);
         }
         me.callParent(arguments);
+        if (me.combineLabels) {
+            labelable.oldHideLabel = labelable.hideLabel;
+            labelable.hideLabel = true;
+        }
         me.updateLabel();
     },
 
@@ -207,6 +214,9 @@ Ext.define('Ext.form.FieldContainer', {
         var me = this;
         me.callParent(arguments);
         if (!isDestroying) {
+            if (me.combineLabels) {
+                labelable.hideLabel = labelable.oldHideLabel;
+            }
             me.updateLabel();
         }   
     },

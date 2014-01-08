@@ -144,7 +144,7 @@ Ext.onReady(function() {
                                 width:          65,
 
                                 xtype:          'combo',
-                                mode:           'local',
+                                queryMode:      'local',
                                 value:          'mrs',
                                 triggerAction:  'all',
                                 forceSelection: true,
@@ -153,7 +153,6 @@ Ext.onReady(function() {
                                 name:           'title',
                                 displayField:   'name',
                                 valueField:     'value',
-                                queryMode: 'local',
                                 store:          Ext.create('Ext.data.Store', {
                                     fields : ['name', 'value'],
                                     data   : [
@@ -175,8 +174,7 @@ Ext.onReady(function() {
                                 flex : 1,
                                 name : 'lastName',
                                 fieldLabel: 'Last',
-                                allowBlank: false,
-                                margins: '0'
+                                allowBlank: false
                             }
                         ]
                     }

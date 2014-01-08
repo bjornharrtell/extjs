@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A custom HeaderContainer for the {@link Ext.grid.property.Grid}.
@@ -49,6 +49,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
 
     // @private
     nameColumnCls: Ext.baseCSSPrefix + 'grid-property-name',
+    nameColumnInnerCls: Ext.baseCSSPrefix + 'grid-cell-inner-property-name',
 
     /**
      * Creates new HeaderContainer.
@@ -61,6 +62,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
         me.grid = grid;
         me.store = store;
         me.callParent([{
+            isRootHeader: true,
             enableColumnResize: Ext.isDefined(grid.enableColumnResize) ? grid.enableColumnResize : me.enableColumnResize,
             enableColumnMove: Ext.isDefined(grid.enableColumnMove) ? grid.enableColumnMove : me.enableColumnMove,
             items: [{
@@ -71,7 +73,8 @@ Ext.define('Ext.grid.property.HeaderContainer', {
                 renderer: Ext.Function.bind(me.renderProp, me),
                 itemId: grid.nameField,
                 menuDisabled :true,
-                tdCls: me.nameColumnCls
+                tdCls: me.nameColumnCls,
+                innerCls: me.nameColumnInnerCls
             }, {
                 header: me.valueText,
                 renderer: Ext.Function.bind(me.renderCell, me),

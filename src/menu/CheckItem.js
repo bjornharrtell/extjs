@@ -16,7 +16,7 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Build date: 2013-03-11 22:33:40 (aed16176e68b5e8aa1433452b12805c0ad913836)
+Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 */
 /**
  * A menu item that contains a togglable checkbox by default, but that can also be a part of a radio group.
@@ -168,6 +168,7 @@ Ext.define('Ext.menu.CheckItem', {
         Ext.menu.Manager.registerCheckable(me);
 
         if (me.group) {
+            me.showCheckbox = false
             if (!(me.iconCls || me.icon || me.glyph)) {
                 me.iconCls = me.groupCls;
             }

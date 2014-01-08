@@ -17,7 +17,8 @@
     <target name="init-antcontrib" depends="find-cmd">
         <echo>Using Sencha Cmd from ${cmd.dir}</echo>
 
-        <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <taskdef resource="net/sf/antcontrib/antlib.xml"
+                 loaderref="senchaloader">
             <classpath>
                 <pathelement location="${cmd.dir}/lib/ant-contrib-1.0b3.jar"/>
                 <pathelement location="${cmd.dir}/lib/commons-httpclient-3.0.1.jar"/>
@@ -28,7 +29,9 @@
     </target>
 
     <target name="init-sencha-cmd" depends="init-antcontrib">
-        <taskdef resource="com/sencha/ant/antlib.xml" classpath="${cmd.dir}/sencha.jar"/>
+        <taskdef resource="com/sencha/ant/antlib.xml" 
+                 classpath="${cmd.dir}/sencha.jar"
+                 loaderref="senchaloader"/>
     </target>
 
     <target name="init-all" depends="init-sencha-cmd">
