@@ -121,7 +121,7 @@ Ext.define("Ext.locale.fa.toolbar.Paging", {
     nextText: "صفحه بعد",
     lastText: "صفحه آخر",
     refreshText: "بازخوانی",
-    displayMsg: "نمایش {0} - {1} of {2}",
+    displayMsg: "نمایش {0} - {1} از {2}",
     emptyMsg: 'داده ای برای نمایش وجود ندارد'
 });
 
