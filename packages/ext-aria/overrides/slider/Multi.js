@@ -27,16 +27,12 @@ Ext.define('Ext.aria.slider.Multi', {
         return attrs;
     },
     
-    ariaGetFocusCls: function() {
-        return this.ariaFocusCls;
-    },
-    
     getSubTplData: function() {
         var me = this,
             fmt = Ext.util.Format.attributes,
             data, attrs;
         
-        data  = me.callParent();
+        data  = me.callParent(arguments);
         attrs = me.ariaGetRenderAttributes();
         
         // Role is rendered separately

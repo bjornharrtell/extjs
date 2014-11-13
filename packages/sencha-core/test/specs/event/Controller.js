@@ -7,7 +7,7 @@ describe("Ext.event.Controller", function() {
             stack = new Ext.event.ListenerStack();
             controller.setListenerStacks([stack]);
             fn = function() {},
-            scope = null,
+            scope = {},
             options = {};
         });
 
@@ -114,7 +114,7 @@ describe("Ext.event.Controller", function() {
                                 me.twoCalled = true;
                                 me.totalCalled++;
                                 e.pause();
-                                setTimeout(function() {
+                                Ext.defer(function() {
                                     e.resume();
                                 }, 100);
                             },

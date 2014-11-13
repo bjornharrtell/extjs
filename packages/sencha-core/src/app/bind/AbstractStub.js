@@ -185,36 +185,36 @@ Ext.define('Ext.app.bind.AbstractStub', {
         }
     },
 
-    collect: function() {
-        var children = this.children,
-            bindings = this.bindings,
-            totalCount = 0,
-            count = 0,
-            child,
-            key;
-        
-        if (children) {
-            for (key in children) {
-                child = children[key];
-                count = child.collect();
-                if (count === 0) {
-                    // The child (and any deep children) have no bindings,
-                    // so we can consider it a dead node.
-                    child.destroy();
-                    delete children[key];
-                }
-                totalCount += count;
-            }
-        }
-        
-        if (bindings) {
-            totalCount += bindings.length;
-        }
-        
-        return totalCount;
-    },
-
     privates: {
+        collect: function() {
+            var children = this.children,
+                bindings = this.bindings,
+                totalCount = 0,
+                count = 0,
+                child,
+                key;
+            
+            if (children) {
+                for (key in children) {
+                    child = children[key];
+                    count = child.collect();
+                    if (count === 0) {
+                        // The child (and any deep children) have no bindings,
+                        // so we can consider it a dead node.
+                        child.destroy();
+                        delete children[key];
+                    }
+                    totalCount += count;
+                }
+            }
+            
+            if (bindings) {
+                totalCount += bindings.length;
+            }
+            
+            return totalCount;
+        },
+        
         getScheduler: function () {
             var owner = this.owner;
             return owner && owner.getScheduler();

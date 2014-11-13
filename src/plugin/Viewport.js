@@ -193,6 +193,23 @@ Ext.define('Ext.plugin.Viewport', {
                     // override here to prevent an extraneous warning
                     applyTargetCls: function (targetCls) {
                         this.el.addCls(targetCls);
+                    },
+                    
+                    // Override here to prevent tabIndex set/reset on the body
+                    disableTabbing: function() {
+                        var el = this.el;
+                        
+                        if (el) {
+                            el.saveChildrenTabbableState();
+                        }
+                    },
+                    
+                    enableTabbing: function() {
+                        var el = this.el;
+                        
+                        if (el) {
+                            el.restoreChildrenTabbableState();
+                        }
                     }
                 }
             });

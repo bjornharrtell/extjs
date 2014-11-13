@@ -69,12 +69,6 @@ Ext.define('Ext.chart.Markers', {
                 return this.getBBoxFor(categoryInstances[index], isWithoutTransform);
             }
         }
-        return {
-            x: Infinity,
-            y: Infinity,
-            width: -Infinity,
-            height: -Infinity
-        };
     },
 
     getBBox: function () { return null; },
@@ -89,15 +83,14 @@ Ext.define('Ext.chart.Markers', {
             i, ln = me.instances.length;
         mat.toContext(ctx);
         template.preRender(surface, ctx, clipRect);
-        template.useAttributes(ctx);
+        template.useAttributes(ctx, clipRect);
         for (i = 0; i < ln; i++) {
             if (instances[i].hidden || instances[i].revision !== revisions[instances[i].category]) {
                 continue;
             }
             ctx.save();
             template.attr = instances[i];
-            template.applyTransformations();
-            template.useAttributes(ctx);
+            template.useAttributes(ctx, clipRect);
             template.render(surface, ctx, clipRect);
             ctx.restore();
         }

@@ -63,12 +63,10 @@ Ext.define('KitchenSink.view.charts.bar.Basic', {
             flipXY: true,
             store: this.myDataStore,
             insetPadding: 40,
-            theme: 'Sky',
-            interactions: 'itemhighlight',
             sprites: [{
                 type: 'text',
                 text: 'Bar Charts - Basic Bar',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -76,15 +74,15 @@ Ext.define('KitchenSink.view.charts.bar.Basic', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012 - Internet Explorer',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 480
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 490
+                y: 495
             }],
             axes: [{
                 type: 'numeric',
@@ -107,8 +105,8 @@ Ext.define('KitchenSink.view.charts.bar.Basic', {
                     minGapWidth: 10
                 },
                 highlight: {
+                    fillStyle: 'rgba(249, 204, 157, 1.0)',
                     strokeStyle: 'black',
-                    fillStyle: '#57cbd1',
                     radius: 10
                 },
                 label: {

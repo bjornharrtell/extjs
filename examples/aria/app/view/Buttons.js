@@ -2,23 +2,17 @@ Ext.define('Aria.view.Buttons', {
     extend:'Ext.container.Container',
     alias:'widget.mysimplebuttons',
     title:'Buttons',
-
-    width:400,
-
-    layout:{
-        type:'hbox',
-        defaultMargins:{
-            top:6,
-            bottom:6,
-            left:6,
-            right:6
-        }
+    
+    defaults: {
+        margin: 6
     },
+
+    layout: 'hbox',
 
     initComponent:function () {
         var me = this;
 
-        Ext.applyIf(me, {
+        Ext.apply(me, {
             items:[
                 {
                     xtype:'button',

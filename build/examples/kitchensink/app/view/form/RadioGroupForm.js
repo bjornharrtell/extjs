@@ -149,8 +149,8 @@ Ext.define('KitchenSink.view.form.RadioGroupForm', {
                 {boxLabel: 'Item 1', name: 'rb-horiz-1', inputValue: 1},
                 {boxLabel: 'Item 2', name: 'rb-horiz-1', inputValue: 2, checked: true},
                 {boxLabel: 'Item 3', name: 'rb-horiz-1', inputValue: 3},
-                {boxLabel: 'Item 1', name: 'rb-horiz-2', inputValue: 1, checked: true},
-                {boxLabel: 'Item 2', name: 'rb-horiz-2', inputValue: 2}
+                {boxLabel: 'Item 4', name: 'rb-horiz-2', inputValue: 4},
+                {boxLabel: 'Item 5', name: 'rb-horiz-2', inputValue: 5}
             ]
         },{
             xtype: 'radiogroup',

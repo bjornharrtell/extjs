@@ -19,6 +19,11 @@
         cursor: pointer;
         white-space: nowrap;
         text-decoration: none;
+        overflow: hidden;
+        // buttons are position:relative because they may contain an absolutely positioned
+        // pseudo element for imitating box-shadow in IE8 when used in a segmented button
+        // see extjs-button-ui
+        position: relative;
         > .#{$prefix}frame {
             height: 100%;
             width: 100%;
@@ -35,7 +40,6 @@
         vertical-align: middle;
         display: table-cell;
         white-space: nowrap;
-        overflow: hidden;
         line-height: 0;
     }
 
@@ -144,6 +148,13 @@
             // line-height and being taller than specified by $icon-size.
             line-height: 0;
         }
+    }
+
+    .#{$prefix}#{$base-cls}-mc {
+        // buttons and tabs can have a focus outline on the btnWrap element.  The default
+        // overflow:hidden styling of the frame body hides the outline, so override it to
+        // overflow:visible.
+        overflow: visible;
     }
 }
 

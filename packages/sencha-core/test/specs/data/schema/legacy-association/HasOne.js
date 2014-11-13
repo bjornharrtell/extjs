@@ -138,6 +138,17 @@ describe("Ext.data.association.HasOne_legacy", function() {
             
             Ext.undefine('spec.Bar');
         });
+
+        it("should use the name parameter as the role", function() {
+            Ext.define('spec.Foo', {
+                extend: 'Ext.data.Model',
+                hasOne: {
+                    model: 'spec.Profile',
+                    name: 'noobfile'
+                }
+            });
+            expectGetSet('getNoobfile', 'setNoobfile');
+        });
     });
     
     describe("getter", function() {
@@ -497,6 +508,8 @@ describe("Ext.data.association.HasOne_legacy", function() {
                 fields: ['id'],
                 hasOne: 'spec.Child'
             });
+            
+            spyOn(Ext.log, 'warn');
             
             Ext.define('spec.Child', {
                 extend: 'Ext.data.Model',

@@ -207,6 +207,11 @@ Ext.define('Ext.form.field.Date', {
     startDay: 0,
     //</locale>
 
+    /**
+     * @inheritdoc
+     */
+    valuePublishEvent: ['select', 'blur'],
+
     initComponent : function(){
         var me = this,
             isString = Ext.isString,
@@ -332,10 +337,12 @@ Ext.define('Ext.form.field.Date', {
      * @return {String[]} All validation errors for this field
      */
     getErrors: function(value) {
+        value = arguments.length > 0 ? value : this.formatDate(this.processRawValue(this.getRawValue()));
+
         var me = this,
             format = Ext.String.format,
             clearTime = Ext.Date.clearTime,
-            errors = me.callParent(arguments),
+            errors = me.callParent([value]),
             disabledDays = me.disabledDays,
             disabledDatesRE = me.disabledDatesRE,
             minValue = me.minValue,
@@ -347,7 +354,7 @@ Ext.define('Ext.form.field.Date', {
             day,
             time;
 
-        value = me.formatDate(value || me.processRawValue(me.getRawValue()));
+        
 
         if (value === null || value.length < 1) { // if it's blank and textfield didn't flag it then it's valid
              return errors;
@@ -494,10 +501,9 @@ Ext.define('Ext.form.field.Date', {
         // for a floating component.
         return new Ext.picker.Date({
             pickerField: me,
-            renderTo: document.body,
             floating: true,
+            focusable: false, // Key events are listened from the input field which is never blurred
             hidden: true,
-            focusOnShow: true,
             minDate: me.minValue,
             maxDate: me.maxValue,
             disabledDatesRE: me.disabledDatesRE,
@@ -516,17 +522,9 @@ Ext.define('Ext.form.field.Date', {
             keyNavConfig: {
                 esc: function() {
                     me.collapse();
-                    me.focus();
                 }
             }
         });
-    },
-
-    onDownArrow: function(e) {
-        this.callParent(arguments);
-        if (this.isExpanded) {
-            this.getPicker().focus();
-        }
     },
 
     onSelect: function(m, d) {
@@ -535,7 +533,6 @@ Ext.define('Ext.form.field.Date', {
         me.setValue(d);
         me.fireEvent('select', me, d);
         me.collapse();
-        me.focus(false, 50);
     },
 
     /**
@@ -548,13 +545,14 @@ Ext.define('Ext.form.field.Date', {
     },
 
     // private
-    beforeBlur: function(){
+    onBlur: function(e) {
         var me = this,
             v = me.rawToValue(me.getRawValue());
 
         if (Ext.isDate(v)) {
             me.setValue(v);
         }
+        me.callParent([e]);
     }
 
     /**

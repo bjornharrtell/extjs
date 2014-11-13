@@ -128,7 +128,7 @@ Ext.define('Ext.chart.series.Cartesian', {
     getSprites: function () {
         var me = this,
             chart = this.getChart(),
-            animation = chart && chart.getAnimation(),
+            animation = me.getAnimation() || chart && chart.getAnimation(),
             itemInstancing = me.getItemInstancing(),
             sprites = me.sprites, sprite;
 
@@ -153,12 +153,18 @@ Ext.define('Ext.chart.series.Cartesian', {
     },
 
     provideLegendInfo: function (target) {
-        var style = this.getSubStyleWithTheme();
+        var me = this,
+            style = me.getSubStyleWithTheme(),
+            fill = style.fillStyle;
+
+        if (Ext.isArray(fill)) {
+            fill = fill[0];
+        }
         target.push({
-            name: this.getTitle() || this.getYField() || this.getId(),
-            mark: style.fillStyle || style.strokeStyle || 'black',
-            disabled: false,
-            series: this.getId(),
+            name: me.getTitle() || me.getYField() || me.getId(),
+            mark: (Ext.isObject(fill) ? fill.stops && fill.stops[0].color : fill) || style.strokeStyle || 'black',
+            disabled: me.getHidden(),
+            series: me.getId(),
             index: 0
         });
     },

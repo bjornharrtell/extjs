@@ -22,7 +22,6 @@ Ext.define('Aria.view.Form', {
     },
     
     width: 320,
-    title: 'Personal Information',
     bodyPadding: 12,
     autoScroll: true,
     
@@ -62,10 +61,6 @@ Ext.define('Aria.view.Form', {
     }],
     
     items:[{
-        xtype: 'displayfield',
-        fieldLabel: 'Purpose',
-        value: 'Section 508 compliance'
-    }, {
         xtype: 'textfield',
         fieldLabel: 'Name',
         name: 'name',
@@ -161,13 +156,13 @@ Ext.define('Aria.view.Form', {
         }]
     }, {
         xtype: 'fieldset',
-        title: 'Drop Down FieldSet',
-        collapsible: true,
+        title: 'Description',
+//         collapsible: true,
         columnWidth: 0.5,
         layout: 'anchor',
         items: [{
             xtype: 'textarea',
-            fieldLabel: 'Description',
+            fieldLabel: 'Note',
             name: 'description'
         }, {
             xtype: 'numberfield',
@@ -180,9 +175,9 @@ Ext.define('Aria.view.Form', {
         }]
     }, {
         xtype: 'fieldset',
-        title: 'Checkbox FieldSet',
+        title: 'Personal information',
         columnWidth: 0.5,
-        checkboxToggle: true,
+//         checkboxToggle: true,
         layout: 'anchor',
         items: [{
             xtype: 'textfield',

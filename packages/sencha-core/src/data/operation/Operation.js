@@ -17,6 +17,12 @@ Ext.define('Ext.data.operation.Operation', {
          * {@link Ext.data.Batch Batch} to see if a series of Operations can be executed in parallel or not.
          */
         synchronous: false,
+
+        /**
+         * @cfg {String} url
+         * The url for this operation. Typically this will be provided by a proxy and not configured here.
+         */
+        url: '',
         
         /**
          * @cfg {Object} params

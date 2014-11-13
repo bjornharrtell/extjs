@@ -92,8 +92,8 @@ Ext.define('Ext.chart.Tip', {
             return;
         }
         clearTimeout(this.tipTimeout);
-        this.tipTimeout = setTimeout(function() {
+        this.tipTimeout = Ext.defer(function() {
             tooltip.delayHide();
-        }, 0);
+        }, 1);
     }
 });

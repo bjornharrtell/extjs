@@ -4,6 +4,8 @@
  * Plots a bullet graph based upon the input {@link #values} array.
  *
  * See <a href="http://en.wikipedia.org/wiki/Bullet_graph">Bullet graphs Wikipedia Page</a> for more information.
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Bullet', {
     extend: 'Ext.sparkline.Base',

@@ -84,6 +84,10 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 '</div>',
             '</div>'
         ].join(''),
+        tabbableSelector = 'a[href],button,iframe,input,select,textarea,[tabindex]',
+        tabbableRe = /^BUTTON|IFRAME|INPUT|SELECT|TEXTAREA$/,
+        tabbableSavedFlagAttribute = 'data-tabindexsaved',
+        tabbableSavedAttribute = 'data-savedtabindex',
         scriptTagRe = /(?:<script([^>]*)?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         replaceScriptTagRe = /(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         srcRe = /\ssrc=([\'\"])(.*?)\1/i,
@@ -165,15 +169,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             getViewportWidth: function() {
                 return (!Ext.isStrict && !Ext.isOpera) ? document.body.clientWidth :
                        Ext.isIE9m ? DOC.documentElement.clientWidth : WIN.innerWidth;
-            },
-
-            addListener: function(element, eventName, handler) {
-                element = Ext.getDom(element);
-                if (element.addEventListener) {
-                    element.addEventListener(eventName, handler, false);
-                } else {
-                    element.attachEvent('on' + eventName, handler);
-                }
             }
         },
 
@@ -1370,34 +1365,20 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         isFocusable: function (/* private - assume it's the focusEl of a Component */ asFocusEl) {
             var me = this,
                 dom = me.dom,
-                tabIndexAttr = dom.getAttributeNode('tabIndex'),
-                tabIndex,
+                hasTabIndex = dom.hasAttribute('tabindex'),
+                tabIndex = hasTabIndex && dom.getAttribute('tabindex'),
                 nodeName = dom.nodeName,
                 canFocus = false;
 
-            // Certain browsers always report zero in the absence of the tabIndex attribute.
-            // Testing the specified property (Standards: http://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-862529273)
-            // Should filter out these cases.
-            // The exceptions are IE6 to IE8. In these browsers all elements will yield a tabIndex
-            // and therefore all elements will appear to be focusable.
-            // This adversely affects modal Floating components.
-            // These listen for the TAB key, and then test whether the event target === last focusable
-            // or first focusable element, and forcibly to a circular navigation.
-            // We cannot know the true first or last focusable element, so this problem still exists for IE6,7,8
-            // See Ext.util.Floating
-            if (tabIndexAttr && tabIndexAttr.specified) {
-                tabIndex = tabIndexAttr.value;
-            }
             if (dom && !dom.disabled) {
-                // A tabIndex of -1 means it has to be programatically focused, so that needs FocusManager,
-                // and it has to be the focus holding el of a Component within the Component tree.
-                if (tabIndex == -1) { // note that the value is a string
-                    canFocus = Ext.enableFocusManager && asFocusEl;
+                // A tabIndex of -1 means it has to be programmatically focused
+                if (tabIndex == "-1") { // note that the value is a string
+                    canFocus = asFocusEl;
                 }
                 else {
                     // See if it's a naturally focusable element
                     if (focusRe.test(nodeName)) {
-                        if ((nodeName !== 'a') || dom.href) {
+                        if ((nodeName !== 'A') || dom.href) {
                             canFocus = true;
                         }
                     }
@@ -1410,17 +1391,23 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             }
             return canFocus;
         },
-
+        
         /**
-         * Returns true if this element is masked. Also re-centers any displayed message within the mask.
+         * Returns true if this element is masked. Also re-centers any displayed message
+         * within the mask.
+         *
+         * @param {Boolean} [deep] Go up the DOM hierarchy to determine if any parent
+         * element is masked.
+         *
          * @return {Boolean}
          */
-        isMasked: function() {
+        isMasked: function(deep) {
             var me = this,
                 data = me.getData(),
                 maskEl = data.maskEl,
                 maskMsg = data.maskMsg,
-                hasMask = false; 
+                hasMask = false,
+                parent;
 
             if (maskEl && maskEl.isVisible()) {
                 if (maskMsg) {
@@ -1428,6 +1415,14 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 }
                 hasMask = true;
             }
+            else if (deep) {
+                parent = me.findParentNode();
+                
+                if (parent) {
+                    return Ext.fly(parent).isMasked(deep);
+                }
+            }
+            
             return hasMask;
         },
 
@@ -1516,9 +1511,15 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 maskMsg.setDisplayed(false);
             }
 
+            // When masking the body, don't touch its tabbable state
             if (dom === DOC.body) {
                 maskEl.addCls(Ext.baseCSSPrefix + 'mask-fixed');
             }
+            else {
+                me.saveTabbableState();
+            }
+            
+            me.saveChildrenTabbableState();
 
             // ie will not expand full height automatically
             if (Ext.isIE9m && dom !== DOC.body && me.isStyle('height', 'auto')) {
@@ -1554,7 +1555,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                             e.enableIEAsync();
                         }
                         //</feature>
-                        timer = setTimeout(Ext.Function.bind(handler, scope||me, [e]), delay);
+                        timer = Ext.defer(handler, delay, scope || me, [e]);
                     },
                     mouseenter: function() {
                         clearTimeout(timer);
@@ -1566,14 +1567,15 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         },
 
         /**
-         * Returns true if this element needs an explicit tabIndex to make it focusable. Input fields, text areas, buttons
-         * anchors elements **with an href** etc do not need a tabIndex, but structural elements do.
+         * Returns true if this element needs an explicit tabIndex to make it focusable.
+         * Input fields, text areas, buttons, anchors elements **with an href** etc
+         * do not need a tabIndex, but structural elements do.
          */
         needsTabIndex: function() {
             var me = this;
 
             if (me.dom) {
-                if ((me.dom.nodeName === 'a') && (!me.dom.href)) {
+                if ((me.dom.nodeName === 'A') && (!me.dom.href)) {
                     return true;
                 }
                 return !focusRe.test(me.dom.nodeName);
@@ -1790,12 +1792,56 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         // private
         scrollChildIntoView: function(child, hscroll) {
-            scrollFly = scrollFly || new Ext.dom.Fly();
-            scrollFly.attach(Ext.getDom(child)).scrollIntoView(this, hscroll);
+            // scrollFly is used inside scrollInfoView, must use a method-unique fly here
+            Ext.fly(child).scrollIntoView(this, hscroll);
         },
 
         /**
          * Scrolls this element into view within the passed container.
+         *
+         *       Ext.create('Ext.data.Store', {
+         *           storeId:'simpsonsStore',
+         *           fields:['name', 'email', 'phone'],
+         *           data:{'items':[
+         *               { 'name': 'Lisa',  "email":"lisa@simpsons.com",  "phone":"555-111-1224"  },
+         *               { 'name': 'Bart',  "email":"bart@simpsons.com",  "phone":"555-222-1234" },
+         *               { 'name': 'Homer', "email":"homer@simpsons.com",  "phone":"555-222-1244"  },
+         *               { 'name': 'Marge', "email":"marge@simpsons.com", "phone":"555-222-1254"  },
+         *               { 'name': 'Milhouse', "email":"milhouse@simpsons.com",  "phone":"555-222-1244"  },
+         *               { 'name': 'Willy', "email":"willy@simpsons.com", "phone":"555-222-1254"  },
+         *               { 'name': 'Skinner', "email":"skinner@simpsons.com",  "phone":"555-222-1244"  },
+         *               { 'name': 'Hank (last row)', "email":"hank@simpsons.com", "phone":"555-222-1254"  }
+         *           ]},
+         *           proxy: {
+         *               type: 'memory',
+         *               reader: {
+         *                   type: 'json',
+         *                   rootProperty: 'items'
+         *               }
+         *           }
+         *       });
+         *       
+         *       var grid = Ext.create('Ext.grid.Panel', {
+         *           title: 'Simpsons',
+         *           store: Ext.data.StoreManager.lookup('simpsonsStore'),
+         *           columns: [
+         *               { text: 'Name',  dataIndex: 'name', width: 125 },
+         *               { text: 'Email', dataIndex: 'email', flex: 1 },
+         *               { text: 'Phone', dataIndex: 'phone' }
+         *           ],
+         *           height: 190,
+         *           width: 400,
+         *           renderTo: Ext.getBody(),
+         *           tbar: [{
+         *               text: 'Scroll row 7 into view',
+         *               handler: function () {
+         *                   var view = grid.getView();
+         *                   
+         *                   Ext.get(view.getRow(7)).scrollIntoView(view.getEl(), null, true);
+         *               }
+         *           }]
+         *       });
+         * 
          * @param {String/HTMLElement/Ext.Element} [container=document.body] The container element
          * to scroll.  Should be a string (id), dom node, or Ext.Element.
          * @param {Boolean} [hscroll=true] False to disable horizontal scroll.
@@ -1869,7 +1915,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
             return me;
         },
-
+        
         //<feature legacyBrowser>
         // private
         // used to ensure the mouseup event is captured if it occurs outside of the
@@ -2020,7 +2066,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             id  = Ext.id();
             html += '<span id="' + id + '" role="presentation"></span>';
 
-            interval = setInterval(function() {
+            interval = Ext.interval(function() {
                 var hd,
                     match,
                     attrs,
@@ -2888,6 +2934,12 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
                 me.removeCls([XMASKED, XMASKEDRELATIVE]);
             }
+            
+            me.restoreChildrenTabbableState();
+            
+            if (me.dom !== DOC.body) {
+                me.restoreTabbableState();
+            }
         },
 
         /**
@@ -2965,6 +3017,223 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             me.addCls(Element.unselectableCls);
 
             return me;
+        },
+        
+        privates: {
+            /**
+             * Checks whether this element can be tabbed into.
+             * @return {Boolean} True if the element is tabbable.
+             * @private
+             */
+            isTabbable: function() {
+                var me = this,
+                    dom = me.dom,
+                    tag = dom.nodeName,
+                    editable = dom.isContentEditable,
+                    hasIdx, idx;
+            
+                // Disabled elements are not tabbable. The value does not matter,
+                // if the "disabled" attribute is set then the element is disabled;
+                // unless it's editable, which makes all modern browsers ignore
+                // element's disabledness. Not IE8 though.
+                if (dom.hasAttribute('disabled') && (Ext.isIE8 || !editable)) {
+                    return false;
+                }
+            
+                // Invisible elements are not tabbable as well.
+                if (!me.isVisible(true)) {
+                    return false;
+                }
+            
+                hasIdx = dom.hasAttribute('tabindex');
+                idx    = hasIdx && dom.getAttribute('tabindex') - 0;
+            
+                if (tag === 'A') {
+                    // Anchor with href is naturally tabbable, unless it has tabIndex < 0
+                    if (dom.href) {
+                        return hasIdx && idx < 0 ? false : true;
+                    }
+                
+                    // Anchor w/o href is tabbable if it has tabIndex >= 0,
+                    // or if it's editable 
+                    else {
+                        if (editable) {
+                            return !hasIdx || (hasIdx && idx >= 0) ? true : false;
+                        }
+                        else {
+                            return hasIdx && idx >= 0 ? true : false;
+                        }
+                    }
+                }
+            
+                // If an element has contenteditable="true" or is naturally tabbable,
+                // then it is a potential candidate unless its tabIndex is < 0.
+                // <object> element is naturally tabbable only in IE8.
+                else if (editable || tabbableRe.test(tag) || (Ext.isIE8 && tag === 'OBJECT')) {
+                    return hasIdx && idx < 0 ? false : true;
+                }
+
+                // That leaves non-editable elements that can only be made tabbable
+                // by slapping tabIndex >= 0 on them
+                else {
+                    if (hasIdx && idx >= 0) {
+                        return true;
+                    }
+                }
+            
+                return false;
+            },
+            
+            // @private
+            selectTabbableElements: function(asDom, selector, /* private */ limit, backward) {
+                var selection, nodes, node, el, i, len, to, step;
+            
+                asDom = asDom != undefined ? asDom : true;
+            
+                nodes = this.dom.querySelectorAll(selector || tabbableSelector);
+                len   = nodes.length;
+            
+                if (!len) {
+                    return nodes;
+                }
+            
+                if (backward) {
+                    i    = len - 1;
+                    to   = 0;
+                    step = -1;
+                }
+                else {
+                    i    = 0;
+                    to   = len - 1;
+                    step = 1;
+                }
+            
+                selection = [];
+            
+                // We're only interested in the elements that an user can *tab into*,
+                // not all programmatically focusable elements. So we have to filter
+                // these out.
+                for (;; i += step) {
+                    if ((step > 0 && i > to) || (step < 0 && i < to)) {
+                        break;
+                    }
+                
+                    node = nodes[i];
+                    el   = asDom ? Ext.fly(node) : Ext.get(node);
+                
+                    if (el.isTabbable()) {
+                        selection.push(asDom ? node : el);
+                    }
+                
+                    if (selection.length >= limit) {
+                        return selection;
+                    }
+                }
+            
+                return selection;
+            },
+        
+            // @private
+            selectFirstTabbableElement: function(asDom, selector) {
+                var els = this.selectTabbableElements(asDom, selector, 1, false);
+            
+                return els[0];
+            },
+        
+            // @private
+            selectLastTabbableElement: function(asDom, selector) {
+                var els = this.selectTabbableElements(asDom, selector, 1, true);
+            
+                return els[0];
+            },
+        
+            // @private
+            saveTabbableState: function(attribute) {
+                var dom = this.dom;
+            
+                // Prevent tabIndex from being munged more than once
+                if (dom.hasAttribute(tabbableSavedFlagAttribute)) {
+                    return;
+                }
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                // tabIndex could be set on both naturally tabbable and generic elements.
+                // Either way we need to save it to restore later.
+                if (dom.hasAttribute('tabindex')) {
+                    dom.setAttribute(attribute, dom.getAttribute('tabindex'));
+                }
+            
+                // When no tabIndex is specified, that means a naturally tabbable element.
+                else {
+                    dom.setAttribute(attribute, 'none');
+                }
+            
+                // We disable the tabbable state by setting tabIndex to -1.
+                // The element can still be focused programmatically though.
+                dom.setAttribute('tabindex', -1);
+                dom.setAttribute(tabbableSavedFlagAttribute, true);
+            
+                return this;
+            },
+        
+            // @private
+            restoreTabbableState: function(attribute) {
+                var dom = this.dom,
+                    idx;
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                if (!dom.hasAttribute(tabbableSavedFlagAttribute) ||
+                    !dom.hasAttribute(attribute)) {
+                    return;
+                }
+            
+                idx = dom.getAttribute(attribute);
+            
+                // That is a naturally tabbable element
+                if (idx === 'none') {
+                    dom.removeAttribute('tabindex');
+                }
+                else {
+                    dom.setAttribute('tabindex', idx);
+                }
+            
+                dom.removeAttribute(attribute);
+                dom.removeAttribute(tabbableSavedFlagAttribute);
+            
+                return this;
+            },
+        
+            // @private
+            saveChildrenTabbableState: function(attribute) {
+                var children, child, i, len;
+                if (this.dom) {
+                    children = this.selectTabbableElements();
+
+                    for (i = 0, len = children.length; i < len; i++) {
+                        child = Ext.fly(children[i]);
+                        child.saveTabbableState(attribute);
+                    }
+                }
+                return this;
+            },
+        
+            // @private
+            restoreChildrenTabbableState: function(attribute) {
+                var children, child, i, len;
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                children = this.dom.querySelectorAll('[' + attribute + ']');
+            
+                for (i = 0, len = children.length; i < len; i++) {
+                    child = Ext.fly(children[i]);
+                    child.restoreTabbableState(attribute);
+                }
+            
+                return this;
+            }
         },
 
         deprecated: {
@@ -3263,8 +3532,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
     proto._init(Element);
     delete proto._init;
-    // Alias for addListener
-    Element.on = Element.addListener;
 
     // TODO: move touch scroller detection elsewhere
     if (Ext.os.is.iOS || Ext.os.is.Android) {
@@ -4071,6 +4338,10 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         if (Ext.isIE10) {
             bodyCls.push(Ext.baseCSSPrefix + 'ie10');
+        }
+        
+        if (Ext.isIE11) {
+            bodyCls.push(Ext.baseCSSPrefix + 'ie11');
         }
 
         if (Ext.isGecko) {

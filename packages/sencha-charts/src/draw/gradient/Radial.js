@@ -1,42 +1,47 @@
 /**
  * Radial gradient.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'circle',
- *         cx: 50,
- *         cy: 50,
- *         r: 100,
- *         fillStyle: {
- *           type: 'radial',
- *           start: {
- *             x: 0,
- *             y: 0,
- *             r: 0
- *           },
- *           end: {
- *             x: 0,
- *             y: 0,
- *             r: 1
- *           },
- *           stops: [
- *             {
- *               offset: 0,
- *               color: 'white'
- *             },
- *             {
- *               offset: 1,
- *               color: 'blue'
- *             }
- *           ]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'circle',
+ *                 cx: 100,
+ *                 cy: 100,
+ *                 r: 100,
+ *                 fillStyle: {
+ *                     type: 'radial',
+ *                     start: {
+ *                         x: 0,
+ *                         y: 0,
+ *                         r: 0
+ *                     },
+ *                     end: {
+ *                         x: 0,
+ *                         y: 0,
+ *                         r: 1
+ *                     },
+ *                     stops: [
+ *                         {
+ *                             offset: 0,
+ *                             color: 'white'
+ *                         },
+ *                         {
+ *                             offset: 1,
+ *                             color: 'blue'
+ *                         }
+ *                     ]
+ *                 }
+ *             }]
  *         }
- *       }]
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
-Ext.define("Ext.draw.gradient.Radial", {
+Ext.define('Ext.draw.gradient.Radial', {
     extend: 'Ext.draw.gradient.Gradient',
     type: 'radial',
     config: {

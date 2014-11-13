@@ -376,6 +376,13 @@
                         // mixing the text color with the background color
                         color: mix($ui-header-color, $ui-header-background-color, 40%);
                     }
+
+                    @if $include-rtl {
+                        &.#{$prefix}rtl:after {
+                            right: auto;
+                            left: 0;
+                        }
+                    }
                 }
             }
 

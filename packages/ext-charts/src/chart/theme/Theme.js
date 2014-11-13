@@ -9,7 +9,6 @@ Ext.chart = Ext.chart || {};
 
 Ext.define('Ext.chart.theme.Theme', (
 
-// This callback is executed right after when the class is created. This scope refers to the newly created class itself
 function() {
    /* Theme constructor: takes either a complex object with styles like:
   

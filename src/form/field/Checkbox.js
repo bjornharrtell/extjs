@@ -120,7 +120,7 @@ Ext.define('Ext.form.field.Checkbox', {
                 '{afterBoxLabelTpl}',
             '</tpl>',
             '<input type="button" id="{id}" data-ref="inputEl" role="{role}" {inputAttrTpl}',
-                '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+                '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
                 '<tpl if="disabled"> disabled="disabled"</tpl>',
                 '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
                 ' class="{fieldCls} {typeCls} {typeCls}-{ui} {inputCls} {inputCls}-{ui} {childElCls} {afterLabelCls}" autocomplete="off" hidefocus="true" />',
@@ -285,6 +285,7 @@ Ext.define('Ext.form.field.Checkbox', {
     // private overrides
     checkChangeEvents: [],
     inputType: 'checkbox',
+    isTextInput: false,
     ariaRole: 'checkbox',
     
     // private
@@ -331,13 +332,13 @@ Ext.define('Ext.form.field.Checkbox', {
         return me.callParent();
     },
 
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var me = this,
             boxLabel = me.boxLabel,
             boxLabelAlign = me.boxLabelAlign,
             labelAlignedBefore = boxLabel && boxLabelAlign === 'before';
 
-        return Ext.apply(me.callParent(), {
+        return Ext.apply(me.callParent(arguments), {
             disabled: me.readOnly || me.disabled,
             wrapInnerCls: me.wrapInnerCls,
             boxLabel: boxLabel,
@@ -484,9 +485,7 @@ Ext.define('Ext.form.field.Checkbox', {
         var me = this,
             handler = me.handler;
 
-        if (handler) {
-            handler.call(me.scope || me, me, newVal);
-        }
+        Ext.callback(me.handler, me.scope, [me, newVal], 0, me);
 
         me.callParent(arguments);
 

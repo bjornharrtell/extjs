@@ -16,6 +16,9 @@ Ext.define('Ext.tab.Tab', {
      * `true` in this class to identify an object as an instantiated Tab, or subclass thereof.
      */
     isTab: true,
+    
+    // Unlike Buttons, Tabs should not be focusable by default
+    tabIndex: -1,
 
     baseCls: Ext.baseCSSPrefix + 'tab',
     closeElOverCls: Ext.baseCSSPrefix + 'tab-close-btn-over',

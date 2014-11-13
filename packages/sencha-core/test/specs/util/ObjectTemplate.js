@@ -9,19 +9,28 @@ describe('Ext.util.ObjectTemplate', function () {
 
     context.text = 'Don';
 
+    var fn1 = function() {},
+        fn2 = function() {},
+        fn3 = function() {},
+        fn4 = function() {},
+        fn5 = function() {};
+
     beforeEach(function () {
         tpl = new Ext.util.ObjectTemplate({
             foo: 42,
+            rootFn: fn1,
             bar: 'Hello {text}',
             baz: '{direct}',
             array: [
                 427,
                 'Hey {text} {object.property}',
                 '{object.property}',
-                '{direct}'
+                '{direct}',
+                fn2
             ],
             object: {
                 prop: 3,
+                objFn: fn3,
                 tpl: 'Yo {text}',
                 value: '{direct}',
                 items: [
@@ -30,9 +39,11 @@ describe('Ext.util.ObjectTemplate', function () {
                     {
                         v: '{direct}',
                         x: 1,
-                        s: '-- {text}'
+                        s: '-- {text}',
+                        innerFn: fn4
                     },
-                    'Oy {text}'
+                    'Oy {text}',
+                    fn5
                 ]
             }
         });
@@ -52,11 +63,15 @@ describe('Ext.util.ObjectTemplate', function () {
         it('should map values on the root', function () {
             expect(output.baz).toBe(false);
         });
+
+        it('should pass through functions on the root', function() {
+            expect(output.rootFn).toBe(fn1);
+        });
     });
 
     describe('array on the root', function () {
         it('should have the correct length', function () {
-            expect(output.array.length).toBe(4);
+            expect(output.array.length).toBe(5);
         });
         it('should pass through numbers', function () {
             expect(output.array[0]).toBe(427);
@@ -69,6 +84,9 @@ describe('Ext.util.ObjectTemplate', function () {
         });
         it('should pull primitives through simple name expansions', function () {
             expect(output.array[3]).toBe(false);
+        });
+        it('should pass through functions', function() {
+            expect(output.array[4]).toBe(fn2);
         });
     });
 
@@ -85,11 +103,15 @@ describe('Ext.util.ObjectTemplate', function () {
             it('should map values', function () {
                 expect(output.object.value).toBe(false);
             });
+
+            it('should pass through functions', function () {
+                expect(output.object.objFn).toBe(fn3);
+            });
         });
 
         describe('an array property', function () {
             it('should have the correct length', function () {
-                expect(output.object.items.length).toBe(4);
+                expect(output.object.items.length).toBe(5);
             });
             it('should pass through numbers', function () {
                 expect(output.object.items[0]).toBe(77);
@@ -99,6 +121,9 @@ describe('Ext.util.ObjectTemplate', function () {
             });
             it('should apply XTemplate', function () {
                 expect(output.object.items[3]).toBe('Oy Don');
+            });
+            it('should pass through functions', function () {
+                expect(output.object.items[4]).toBe(fn5);
             });
         });
 
@@ -111,6 +136,9 @@ describe('Ext.util.ObjectTemplate', function () {
             });
             it('should apply XTemplate', function () {
                 expect(output.object.items[2].s).toBe('-- Don');
+            });
+            it('should pass through numbers', function () {
+                expect(output.object.items[2].innerFn).toBe(fn4);
             });
         });
     });

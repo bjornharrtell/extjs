@@ -43,6 +43,30 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
         me.tbar = [
             '->',
             {
+                xtype: 'segmentedbutton',
+                width: 200,
+                defaults: { ui: 'default-toolbar' },
+                items: [
+                    {
+                        text: 'Stack',
+                        pressed: true
+                    },
+                    {
+                        text: 'Group'
+                    }
+                ],
+                listeners: {
+                    toggle: function (segmentedButton, button, pressed) {
+                        var chart = this.up('panel').down('cartesian'),
+                            series = chart.getSeries()[0],
+                            value = segmentedButton.getValue();
+                        series.setStacked(value === 0);
+                        chart.redraw();
+
+                    }
+                }
+            },
+            {
                 text: 'Preview',
                 handler: function() {
                     me.down('cartesian').preview();
@@ -58,7 +82,6 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
             legend: {
                 docked: 'bottom'
             },
-            interactions: ['itemhighlight'],
             store: this.myDataStore,
             insetPadding: {
                 top: 40,
@@ -69,7 +92,7 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
             sprites: [{
                 type: 'text',
                 text: 'Column Charts - Stacked Columns',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -77,15 +100,15 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 380
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 390
+                y: 395
             }],
             axes: [{
                 type: 'numeric',

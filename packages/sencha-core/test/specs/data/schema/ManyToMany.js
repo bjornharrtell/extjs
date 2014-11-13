@@ -135,6 +135,20 @@ describe("Ext.data.schema.ManyToMany", function() {
     
     afterEach(function() {
         Ext.data.Model.schema.clear(true);
+        Ext.undefine('spec.many2many.Base');
+        Ext.undefine('spec.many2many.User');
+        Ext.undefine('spec.many2many.Group');
+        Ext.undefine('spec.many2many.User2');
+        Ext.undefine('spec.many2many.Group2');
+        Ext.undefine('spec.many2many.User3');
+        Ext.undefine('spec.many2many.Group3');
+        Ext.undefine('spec.many2many.User4');
+        Ext.undefine('spec.many2many.Group4');
+        Ext.undefine('spec.many2many.User5');
+        Ext.undefine('spec.many2many.Group5');
+        Ext.undefine('spec.many2many.FooBase');
+        Ext.undefine('spec.many2many.foo.bar.Thing');
+        Ext.undefine('spec.many2many.foo.Goo');
     });
 
     //-------------------------------------------------------------------------

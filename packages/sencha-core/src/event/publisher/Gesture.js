@@ -285,7 +285,7 @@ Ext.define('Ext.event.publisher.Gesture', {
         e.changedTouches = changedTouches;
     },
 
-    onDelegatedEvent: function(e) {
+    doDelegatedEvent: function(e) {
         var me = this;
 
         // call parent method to dispatch the browser event (e.g. touchstart, mousemove)
@@ -383,6 +383,16 @@ Ext.define('Ext.event.publisher.Gesture', {
     },
 
     onTargetTouchMove: function(e) {
+        if (Ext.elevateFunction) {
+            // using [e] is faster than using arguments in most browsers
+            // http://jsperf.com/passing-arguments
+            Ext.elevateFunction(this.doTargetTouchMove, this, [e]);
+        } else {
+            this.doTargetTouchMove(e);
+        }
+    },
+
+    doTargetTouchMove: function(e) {
         // handle touchmove if the target el was removed from dom mid-gesture.
         // see onTouchStart/onTargetTouchEnd for further explanation
         if (!Ext.getBody().contains(e.target)) {
@@ -391,6 +401,16 @@ Ext.define('Ext.event.publisher.Gesture', {
     },
 
     onTargetTouchEnd: function(e) {
+        if (Ext.elevateFunction) {
+            // using [e] is faster than using arguments in most browsers
+            // http://jsperf.com/passing-arguments
+            Ext.elevateFunction(this.doTargetTouchEnd, this, [e]);
+        } else {
+            this.doTargetTouchEnd(e);
+        }
+    },
+
+    doTargetTouchEnd: function(e) {
         var me = this,
             target = e.target;
 

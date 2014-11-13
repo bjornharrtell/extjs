@@ -73,8 +73,7 @@ Ext.define('ExecDashboard.view.main.Main', {
     },
 
     listeners: {
-        tabchange: 'onTabChange',
-        scope: 'controller'
+        tabchange: 'onTabChange'
     },
 
     defaults: {

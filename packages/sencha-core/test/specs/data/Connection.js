@@ -610,6 +610,17 @@ describe("Ext.data.Connection", function() {
                 });
                 expect(request.xhr.headers['X-Requested-With']).toEqual('bar');
             });
+
+            it("should have the request option take precedence over the class option", function() {
+                makeConnection({
+                    useDefaultXhrHeader: true
+                });
+                request = connection.request({
+                    url: 'foo',
+                    useDefaultXhrHeader: false
+                });
+                expect(request.xhr.headers['X-Requested-With']).toBeUndefined();
+            });
         }); 
 
         describe("content type", function(){
@@ -1184,7 +1195,7 @@ describe("Ext.data.Connection", function() {
         });
     });
 
-    describe("binaryData", function(){
+    ('swfobject' in window ? describe : xdescribe)("binaryData", function(){
         var nativeBinaryPost =  Ext.isChrome ||
             (Ext.isSafari && Ext.isDefined(window.Uint8Array)) ||
             (Ext.isGecko && Ext.isDefined(window.Uint8Array));

@@ -39,11 +39,10 @@
  *             {header: 'Phone', dataIndex: 'phone'}
  *         ],
  *         selType: 'rowmodel',
- *         plugins: [
- *             Ext.create('Ext.grid.plugin.RowEditing', {
- *                 clicksToEdit: 1
- *             })
- *         ],
+ *         plugins: {
+ *             ptype: 'rowediting',
+ *             clicksToEdit: 1
+ *         },
  *         height: 200,
  *         width: 400,
  *         renderTo: Ext.getBody()

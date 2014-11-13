@@ -46,7 +46,8 @@ Ext.define('Ext.util.Filter', {
          * The value you want to match against. Required unless a {@link #filterFn} is passed.
          * 
          * Can be a regular expression which will be used as a matcher or any other value
-         * such as an object or an array of objects.
+         * such as an object or an array of objects. This value is compared using the configured
+         * {@link #operator}.
          */
         value: null,
 
@@ -100,12 +101,20 @@ Ext.define('Ext.util.Filter', {
          *
          * Possible values are:
          *
-         *    * <
-         *    * <=
-         *    * =
-         *    * &gt;=
-         *    * &gt;
-         *    * !=
+         *    * `<`
+         *    * `<=`
+         *    * `=`
+         *    * `&gt;=`
+         *    * `&gt;`
+         *    * `!=`
+         *    * `in`
+         *    * `like`
+         *
+         * The `in` operator expects this filter's {@link #cfg-value} to be an array and matches
+         * values that are present in that array.
+         * 
+         * The `like` operator matches values that contain this filter's {@link #cfg-value} as a
+         * substring.
          */
         operator: null,
 

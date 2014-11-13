@@ -308,6 +308,86 @@ describe("Ext.data.ChainedStore", function() {
                     expect(spy).toHaveBeenCalled();
                     expect(spy.callCount).toBe(1);
                 });
+
+                it('should fire the update event on both source and chained Stores', function() {
+                    store = new Ext.data.ArrayStore({
+                        fields: ['f1'],
+                        data: [['f1value']]
+                    });
+                    var chained = new Ext.data.ChainedStore({
+                            source: store
+                        }),
+                        sourceFiredUpdate,
+                        chainedFiredUpdate,
+                        rec = store.getAt(0);
+
+                    store.on('update', function()  {
+                        sourceFiredUpdate = true;
+                    });
+                    chained.on('update', function(){
+                        chainedFiredUpdate = true;
+                    });
+
+                    // There's one record in each store
+                    expect(store.getCount()).toBe(1);
+                    expect(chained.getCount()).toBe(1);
+
+                    rec.set('f1', 'f1 updated');
+
+                    // Should be no change
+                    expect(store.getCount()).toBe(1);
+                    expect(chained.getCount()).toBe(1);
+
+                    // Both stores fire the update event
+                    expect(sourceFiredUpdate).toBe(true);
+                    expect(chainedFiredUpdate).toBe(true);
+
+                    chained.destroy();
+                });
+
+                it('should NOT fire the update event on the chained Store if the record is filtered out of the source', function() {
+                    store = new Ext.data.ArrayStore({
+                        fields: ['f1'],
+                        data: [['f1value']],
+                        filters: {
+                            property: 'f1',
+                            value: 'f1Value'
+                        }
+                    });
+                    var chained = new Ext.data.ChainedStore({
+                            source: store
+                        }),
+                        sourceFiredUpdate,
+                        chainedFiredUpdate,
+                        rec = store.getAt(0);
+
+                    store.on('update', function() {
+                        sourceFiredUpdate = true;
+                    });
+                    chained.on('update', function() {
+                        chainedFiredUpdate = true;
+                    });
+
+                    // There's one record in each store
+                    expect(store.getCount()).toBe(1);
+                    expect(chained.getCount()).toBe(1);
+
+                    // Will filter the record out of source because "f1 updated" won't match "f1value"
+                    rec.set('f1', 'f1 updated');
+
+                    // The only record is filtered out
+                    expect(store.getCount()).toBe(0);
+                    expect(chained.getCount()).toBe(0);
+                    
+                    // Source should have fired the update event
+                    expect(sourceFiredUpdate).toBe(true);
+
+                    // Chained store no longer contains the filtered record,
+                    // so should not have fired the update event
+                    expect(chainedFiredUpdate).toBeFalsy();
+
+                    chained.destroy();
+                });
             });
         });
     });
@@ -761,52 +841,172 @@ describe("Ext.data.ChainedStore", function() {
     });
 
     describe("updating", function() {
+        var spy;
+
         beforeEach(function() {
             createStore();
+            spy = jasmine.createSpy();
         });
 
-        it("should fire the update event on the source & pass the store, record, type & modified fields", function() {
-            var spy = jasmine.createSpy(),
-                args;
+        describe("via set", function() {
+            it("should fire the update event on the source & pass the store, record, type & modified fields", function() {
+                var args;
 
-            source.on('update', spy);
-            abeRec.set('name', 'foo');
-            expect(spy).toHaveBeenCalled();
-            expect(spy.callCount).toBe(1);
+                source.on('update', spy);
+                abeRec.set('name', 'foo');
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
 
-            args = spy.mostRecentCall.args;
-            expect(args[0]).toBe(source);
-            expect(args[1]).toBe(abeRec);
-            expect(args[2]).toBe(Ext.data.Model.EDIT);
-            expect(args[3]).toEqual(['name']);
-        });
-
-        it("should fire the update event on the store & pass the store, record, type & modified fields", function() {
-            var spy = jasmine.createSpy(),
-                args;
-
-            store.on('update', spy);
-            abeRec.set('name', 'foo');
-            expect(spy).toHaveBeenCalled();
-            expect(spy.callCount).toBe(1);
-
-            args = spy.mostRecentCall.args;
-            expect(args[0]).toBe(store);
-            expect(args[1]).toBe(abeRec);
-            expect(args[2]).toBe(Ext.data.Model.EDIT);
-            expect(args[3]).toEqual(['name']);
-        });
-
-        it("should fire the event on the source first, then the store", function() {
-            var order = [];
-            source.on('update', function() {
-                order.push('source');
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(source);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.EDIT);
+                expect(args[3]).toEqual(['name']);
             });
-            store.on('update', function() {
-                order.push('store');
+
+            it("should fire the update event on the store & pass the store, record, type & modified fields", function() {
+                var args;
+
+                store.on('update', spy);
+                abeRec.set('name', 'foo');
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
+
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(store);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.EDIT);
+                expect(args[3]).toEqual(['name']);
             });
-            edRec.set('name', 'foo');
-            expect(order).toEqual(['source', 'store']);
+
+            it("should fire the event on the source first, then the store", function() {
+                var order = [];
+                source.on('update', function() {
+                    order.push('source');
+                });
+                store.on('update', function() {
+                    order.push('store');
+                });
+                edRec.set('name', 'foo');
+                expect(order).toEqual(['source', 'store']);
+            });
+
+            it("should not fire the event if the record is filtered out of the store", function() {
+                source.filter('name', 'Aaron');
+                store.on('update', spy);
+                abeRec.set('name', 'Foo');
+                expect(spy).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("via commit", function() {
+            it("should fire the update event on the source & pass the store, record, type & modified fields", function() {
+                var args;
+
+                abeRec.set('name', 'foo');
+                source.on('update', spy);
+                abeRec.commit();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
+
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(source);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.COMMIT);
+                expect(args[3]).toBeNull();
+            });
+
+            it("should fire the update event on the store & pass the store, record, type & modified fields", function() {
+                var args;
+
+                abeRec.set('name', 'foo');
+                store.on('update', spy);
+                abeRec.commit();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
+
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(store);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.COMMIT);
+                expect(args[3]).toBeNull();
+            });
+
+            it("should fire the event on the source first, then the store", function() {
+                var order = [];
+                edRec.set('name', 'foo');
+                source.on('update', function() {
+                    order.push('source');
+                });
+                store.on('update', function() {
+                    order.push('store');
+                });
+                edRec.commit();
+                expect(order).toEqual(['source', 'store']);
+            });
+
+            it("should not fire the event if the record is filtered out of the store", function() {
+                source.filter('name', 'Aaron');
+                abeRec.set('name', 'Foo');
+                store.on('update', spy);
+                abeRec.commit();
+                expect(spy).not.toHaveBeenCalled();
+            });
+        });
+        
+        describe("via reject", function() {
+            it("should fire the update event on the source & pass the store, record, type & modified fields", function() {
+                var args;
+
+                abeRec.set('name', 'foo');
+                source.on('update', spy);
+                abeRec.reject();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
+
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(source);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.REJECT);
+                expect(args[3]).toBeNull();
+            });
+
+            it("should fire the update event on the store & pass the store, record, type & modified fields", function() {
+                var args;
+
+                abeRec.set('name', 'foo');
+                store.on('update', spy);
+                abeRec.reject();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.callCount).toBe(1);
+
+                args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(store);
+                expect(args[1]).toBe(abeRec);
+                expect(args[2]).toBe(Ext.data.Model.REJECT);
+                expect(args[3]).toBeNull();
+            });
+
+            it("should fire the event on the source first, then the store", function() {
+                var order = [];
+                edRec.set('name', 'foo');
+                source.on('update', function() {
+                    order.push('source');
+                });
+                store.on('update', function() {
+                    order.push('store');
+                });
+                edRec.reject();
+                expect(order).toEqual(['source', 'store']);
+            });
+
+            it("should not fire the event if the record is filtered out of the store", function() {
+                source.filter('name', 'Aaron');
+                abeRec.set('name', 'Foo');
+                store.on('update', spy);
+                abeRec.reject();
+                expect(spy).not.toHaveBeenCalled();
+            });
         });
     });   
 });

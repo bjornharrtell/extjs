@@ -12,6 +12,11 @@ Ext.define('Ext.data.session.ChildChangesVisitor', {
         this.callParent(arguments);
     },
 
+    setupOptions: function(options) {
+        this.callParent([options]);
+        options.serialize = false;
+    },
+
     onDirtyRecord: function(record) {
         if (this.callParent(arguments) !== false) {
             // We have a record that we have updated in ourselves, but not in the parent.

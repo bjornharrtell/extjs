@@ -3,6 +3,8 @@
  *
  * Plots bars based upon "win"/"draw" or "lose" status of the input {@link #values} array. Positive values mean
  * a win, zero a draw, and negative a lose. 
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.TriState', {
     extend: 'Ext.sparkline.BarBase',

@@ -307,7 +307,8 @@ Ext.define('Ext.draw.Container', {
     /**
      * Downloads an image or PDF of the chart or opens it in a separate browser tab/window
      * if the download can't be triggered. The exact behavior is platform and browser
-     * specific.
+     * specific. For more consistent results on mobile devices use the {@link #preview}
+     * method instead.
      *
      * @param {Object} [config] The following config options are supported:
      *

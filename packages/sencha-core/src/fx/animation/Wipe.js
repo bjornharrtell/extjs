@@ -112,11 +112,5 @@ Ext.define('Ext.fx.animation.Wipe', {
         to.set('mask-position-y', maskToY);
 
         // me.setEasing(out ? 'ease-in' : 'ease-out');
-    },
-
-    getData: function() {
-        this.refresh();
-
-        return this.callParent(arguments);
     }
 });

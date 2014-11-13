@@ -343,6 +343,9 @@ Ext.define('Ext.util.Collection', {
      *
      * @param {Number} details.at The index in the collection where the add occurred.
      *
+     * @param {Object} details.atItem The item after which the new items were inserted or
+     * `null` if at the beginning of the collection.
+     * 
      * @param {Object[]} details.items The items that are now added to the collection.
      *
      * @param {Array} [details.keys] If available this array holds the keys (extracted by
@@ -1541,7 +1544,7 @@ Ext.define('Ext.util.Collection', {
      * @param {String/Number} [oldKey] Passed if the item's key was also modified.
      * @since 5.0.0
      */
-    itemChanged: function (item, modified, oldKey) {
+    itemChanged: function (item, modified, oldKey, /* private */ meta) {
         var me = this,
             keyChanged = oldKey === 0 || !!oldKey,
             filtered = me.filtered && me.getAutoFilter(),
@@ -1549,7 +1552,10 @@ Ext.define('Ext.util.Collection', {
             itemMovement = 0,
             items = me.items,
             last = me.length - 1,
-            sorted = me.sorted && last, // one item is not really sorted
+            sorted = me.sorted && last > 0, // one or zero items is not really sorted
+                                            // CAN be called on an empty Collection
+                                            // A TreeStore can call afterEdit on a hidden root before
+                                            // any child nodes exist in the store.
             source = me.getSource(),
             toAdd,
             toRemove = 0,
@@ -1561,7 +1567,7 @@ Ext.define('Ext.util.Collection', {
 
         // We are owned, we cannot react, inform owning collection.
         if (source && !source.updating) {
-            source.itemChanged(item, oldKey);
+            source.itemChanged(item, modified, oldKey, meta);
         }
 
         // Root Collection has been informed.
@@ -1642,7 +1648,8 @@ Ext.define('Ext.util.Collection', {
                 filtered: itemFiltered,
                 oldIndex: index,
                 newIndex: newIndex,
-                wasFiltered: wasFiltered
+                wasFiltered: wasFiltered,
+                meta: meta
             };
 
             if (keyChanged) {
@@ -1698,7 +1705,10 @@ Ext.define('Ext.util.Collection', {
                 details.oldIndex++;
             }
 
-            me.notify('itemchange', [details]);
+            // Divergence depending on whether the record if filtered out at this level in a chaining hierarchy.
+            // Child collections of this collection will not care about filtereditemchange because the record is not in them.
+            // Stores however will still need to know because the record *is* in them, just filtered.
+            me.notify(itemFiltered ? 'filtereditemchange' : 'itemchange', [details]);
 
             me.endUpdate();
         }
@@ -2078,7 +2088,9 @@ Ext.define('Ext.util.Collection', {
                 if (insertAt === length) {
                     // appending
                     items.push.apply(items, addItems);
-
+                    // The indices may have been regenerated, so we need to check if they have been
+                    // and update them 
+                    indices = me.indices;
                     if (indices) {
                         for (i = 0; i < newCount; ++i) {
                             indices[newKeys[i]] = insertAt + i;
@@ -2096,6 +2108,7 @@ Ext.define('Ext.util.Collection', {
 
                 me.length += newCount;
                 adds.at = insertAt;
+                adds.atItem = insertAt === 0 ? null : items[insertAt - 1];
                 ++me.generation;
                 me.notify('add', [ adds ]);
             }
@@ -2202,6 +2215,26 @@ Ext.define('Ext.util.Collection', {
         }
     },
 
+    findInsertIndex: function(item) {
+        var source = this.getSource(),
+            sourceItems = source.items,
+            i = source.indexOf(item) - 1,
+            sourceItem, index;
+
+        while (i > -1) {
+            sourceItem = sourceItems[i];
+            index = this.indexOf(sourceItem);
+            if (index > -1) {
+                return index + 1;
+            }
+            --i;
+        }
+        // If we get here we didn't find any item in the parent before us, so insert
+        // at the start
+        return 0;
+
+    },
+
     //-------------------------------------------------------------------------
     // Calls from the source Collection:
 
@@ -2216,11 +2249,26 @@ Ext.define('Ext.util.Collection', {
      */
     onCollectionAdd: function (source, details) {
         var me = this,
-            atItem = source.getAt(details.at),
-            index = atItem ? me.indexOf(atItem) : -1,
+            atItem = details.atItem,
             items = details.items,
-            filtered,
+            filtered, index,
             copy, i, item, n;
+
+        if (atItem) {
+            index = me.indexOf(atItem);
+            if (index === -1) {
+                // We can't find the reference item in our collection, which means it's probably
+                // filtered out, so we need to search for an appropriate index. Pass the first item
+                // and work back to find
+                index = me.findInsertIndex(items[0]);
+            } else {
+                // We also have that item in our collection, we need to insert after it, so increment
+                ++index;
+            }
+        } else {
+            // If there was no atItem, must be at the front of the collection
+            index = 0;
+        }
 
         if (me.getAutoFilter() && me.filtered) {
             for (i = 0, n = items.length; i < n; ++i) {
@@ -2304,8 +2352,12 @@ Ext.define('Ext.util.Collection', {
         // Restore updatekey events
         delete this.onCollectionUpdateKey;
 
-        this.itemChanged(details.item, details.modified, details.oldKey);
+        this.itemChanged(details.item, details.modified, details.oldKey, details.meta);
     },
+
+    // If our source collection informs us that a filtered out item has changed, we do not care
+    // We contain only the filtered in items of the source collection.
+    onCollectionFilteredItemChange: null,
 
     /**
      * This method is called when the `source` collection refreshes. This is equivalent to
@@ -2664,17 +2716,19 @@ Ext.define('Ext.util.Collection', {
     },
 
     _eventToMethodMap: {
-        add:              'onCollectionAdd',
-        beforeitemchange: 'onCollectionBeforeItemChange',
-        beginupdate:      'onCollectionBeginUpdate',
-        endupdate:        'onCollectionEndUpdate',
-        itemchange:       'onCollectionItemChange',
-        refresh:          'onCollectionRefresh',
-        remove:           'onCollectionRemove',
-        sort:             'onCollectionSort',
-        filter:           'onCollectionFilter',
-        filteradd:        'onCollectionFilterAdd',
-        updatekey:        'onCollectionUpdateKey'
+        add:                'onCollectionAdd',
+        beforeitemchange:   'onCollectionBeforeItemChange',
+        beginupdate:        'onCollectionBeginUpdate',
+        endupdate:          'onCollectionEndUpdate',
+        itemchange:         'onCollectionItemChange',
+        filtereditemchange: 'onCollectionFilteredItemChange',
+        refresh:            'onCollectionRefresh',
+        remove:             'onCollectionRemove',
+        beforesort:         'beforeCollectionSort',
+        sort:               'onCollectionSort',
+        filter:             'onCollectionFilter',
+        filteradd:          'onCollectionFilterAdd',
+        updatekey:          'onCollectionUpdateKey'
     },
 
     /**
@@ -3148,10 +3202,12 @@ Ext.define('Ext.util.Collection', {
 
         me.indices = null;
 
+        me.notify('beforesort', [me.getSorters()]);
+
         if (me.length) {
             Ext.Array.sort(me.items, sortFn);
         }
-        
+
         // Even if there's no data, notify interested parties.
         // Eg: Stores must react and fire their refresh and sort events.
         me.notify('sort');
@@ -3282,10 +3338,12 @@ Ext.define('Ext.util.Collection', {
     onEndUpdateSorters: function (sorters) {
         var me = this,
             was = me.sorted,
-            is = me.grouped || (!!sorters && (sorters.length > 0));  // booleanize sorters
+            is = me.grouped || (sorters && (sorters.length > 0));
 
         if (was || is) {
-            me.sorted = is;
+             // ensure flag property is a boolean.
+             // sorters && (sorters.length > 0) may evaluate to null
+            me.sorted = !!is;
             me.onSortChange(sorters);
         }
     },
@@ -3369,6 +3427,7 @@ Ext.define('Ext.util.Collection', {
                 //  at newIndex == 4 we come here (oldIndex == 4), push 50 & 51 and break
                 adds[count++] = {
                     at: items.length,
+                    itemAt: items[items.length - 1],
                     items: (addItems = [])
                 };
                 if (count > 1) {
@@ -3389,6 +3448,7 @@ Ext.define('Ext.util.Collection', {
             //  at newIndex == 2 we will push 20
             adds[count++] = {
                 at: items.length,
+                itemAt: items[items.length - 1],
                 items: (addItems = [ newItem ])
             };
             if (count > 1) {

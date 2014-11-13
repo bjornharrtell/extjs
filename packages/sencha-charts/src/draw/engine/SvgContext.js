@@ -6,11 +6,11 @@
 Ext.define('Ext.draw.engine.SvgContext', {
     /**
      * @private
-     * Properties to be saved/restored in `save` and `restore` method.
+     * Properties to be saved/restored in the `save` and `restore` methods.
      */
     toSave: ["strokeOpacity", "strokeStyle", "fillOpacity", "fillStyle", "globalAlpha", "lineWidth", "lineCap",
              "lineJoin", "lineDash", "lineDashOffset", "miterLimit", "shadowOffsetX", "shadowOffsetY", "shadowBlur",
-             "shadowColor", "globalCompositeOperation", "position"],
+             "shadowColor", "globalCompositeOperation", "position", "fillGradient", "strokeGradient"],
 
     "strokeOpacity": 1,
     "strokeStyle": "none",
@@ -33,7 +33,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
 
     constructor: function (SvgSurface) {
         this.surface = SvgSurface;
-        this.status = [];
+        this.state = [];
         this.matrix = new Ext.draw.Matrix();
         this.path = null;
         this.clear();
@@ -115,7 +115,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
         }
         this.position = 0;
         obj.matrix = this.matrix.clone();
-        this.status.push(obj);
+        this.state.push(obj);
         this.group = group;
         return group;
     },
@@ -125,7 +125,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
      */
     restore: function () {
         var toSave = this.toSave,
-            obj = this.status.pop(),
+            obj = this.state.pop(),
             children = this.group.dom.childNodes,
             key, i;
         
@@ -423,8 +423,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
                 tspan.dom.removeChild(tspan.dom.firstChild);
             }
             this.surface.setElementAttributes(tspan, {
-                "alignment-baseline": "middle",
-                "baseline-shift": "-50%"
+                "alignment-baseline": "alphabetic"
             });
             tspan.dom.appendChild(document.createTextNode(Ext.String.htmlDecode(text)));
         }
@@ -454,8 +453,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
                 tspan.dom.removeChild(tspan.dom.firstChild);
             }
             this.surface.setElementAttributes(tspan, {
-                "alignment-baseline": "middle",
-                "baseline-shift": "-50%"
+                "alignment-baseline": "alphabetic"
             });
             tspan.dom.appendChild(document.createTextNode(Ext.String.htmlDecode(text)));
         }

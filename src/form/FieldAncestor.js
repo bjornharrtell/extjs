@@ -25,6 +25,9 @@ Ext.define('Ext.form.FieldAncestor', {
         id: 'fieldAncestor',
         after: {
             initInheritedState: 'initFieldInheritedState'
+        },
+        before: {
+            destroy: 'onBeforeDestroy'
         }
     },
 
@@ -74,7 +77,7 @@ Ext.define('Ext.form.FieldAncestor', {
      * Fires when the validity state of any one of the {@link Ext.form.field.Field} instances within this
      * container changes.
      * @param {Ext.form.FieldAncestor} this
-     * @param {Ext.form.Labelable} The Field instance whose validity changed
+     * @param {Ext.form.Labelable} field The Field instance whose validity changed
      * @param {String} isValid The field's new validity state
      */
 
@@ -83,7 +86,7 @@ Ext.define('Ext.form.FieldAncestor', {
      * Fires when the active error message is changed for any one of the {@link Ext.form.Labelable} instances
      * within this container.
      * @param {Ext.form.FieldAncestor} this
-     * @param {Ext.form.Labelable} The Labelable instance whose active error was changed
+     * @param {Ext.form.Labelable} field The Labelable instance whose active error was changed
      * @param {String} error The active error message
      */
 
@@ -183,10 +186,9 @@ Ext.define('Ext.form.FieldAncestor', {
      * @protected
      */
     onFieldErrorChange: Ext.emptyFn,
-    
-    beforeDestroy: function(){
+
+    onBeforeDestroy: function(){
         this.monitor.unbind();
-        this.callParent();
     }
 
 });

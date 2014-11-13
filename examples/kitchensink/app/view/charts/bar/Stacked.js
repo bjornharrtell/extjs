@@ -61,11 +61,10 @@ Ext.define('KitchenSink.view.charts.bar.Stacked', {
             store: this.myDataStore,
             insetPadding: 40,
             flipXY: true,
-            interactions: 'itemhighlight',
             sprites: [{
                 type: 'text',
                 text: 'Bar Charts - Stacked Bars',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -73,15 +72,15 @@ Ext.define('KitchenSink.view.charts.bar.Stacked', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 480
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 490
+                y: 495
             }],
             axes: [{
                 type: 'numeric',

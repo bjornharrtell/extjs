@@ -64,6 +64,10 @@ $slicer-map-size: 0 !default;
     @return sliceit($cls, 'sides-rtl', $path, $extension);
 }
 
+@function slicer-frame($cls, $frame-info) {
+    @return add-slice($cls, 'frame:' + $frame-info);
+}
+
 @function slicer-background-stretch($cls, $stretch) {
     @return add-slice($cls, 'stretch:' + $stretch);
 }
@@ -73,14 +77,16 @@ $slicer-map-size: 0 !default;
     $slices: map_get($slicer-map, $cls);
 
     @if $slices != '' {
-
+        // We don't need to use the $prefix for x-cmd-slicer and doing so would make it
+        // difficult for Cmd to know what class to add...
         /*<if slicer>*/
-        .#{$prefix}#{$cls}:after {
+        .x-cmd-slicer.#{$prefix}#{$cls}:before {
             display: none;
-            content: "x-slicer:#{$slices}";
+            // We need to override content when slicing:
+            content: "x-slicer:#{$slices}" !important;
         }
         /*</if slicer>*/
-// add a comment line to ensure the end directive gets its own lines
+// add a comment line to ensure the end directive gets its own line
         /* */
     }
 }

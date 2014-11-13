@@ -68,7 +68,6 @@ Ext.define('Ext.panel.Header', {
         title: {
             $value: {
                 ariaRole: 'presentation',
-                focusable: false,
                 xtype: 'title',
                 flex: 1
             },
@@ -231,7 +230,7 @@ Ext.define('Ext.panel.Header', {
             title.headerRole = me.headerRole;
             configHasRotation = ('rotation' in title);
 
-            title = new Ext.panel.Title(title);
+            title = Ext.create(title);
             
             // avoid calling the title's rotation updater on initial startup in the default scenario
             if (!configHasRotation && me.vertical && me.titleRotation === 'default') {

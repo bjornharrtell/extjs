@@ -60,12 +60,12 @@ Ext.define('KitchenSink.view.charts.radial.Marked', {
                 docked: 'right'
             },
             store: this.myDataStore,
-            insetPadding: 40,
-            interactions: ['rotate', 'itemhighlight'],
+            insetPadding: '40 40 60 40',
+            interactions: ['rotate'],
             sprites: [{
                 type: 'text',
                 text: 'Radar Charts - Marked',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -73,15 +73,15 @@ Ext.define('KitchenSink.view.charts.radial.Marked', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 480
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 490
+                y: 495
             }],
             axes: [{
                 type: 'numeric',
@@ -141,7 +141,7 @@ Ext.define('KitchenSink.view.charts.radial.Marked', {
                     trackMouse: true,
                     style: 'background: #fff',
                     renderer: function(storeItem, item) {
-                        this.setTitle(storeItem.get('month') + ': ' + storeItem.get('data2') + '%');
+                        this.setHtml(storeItem.get('month') + ': ' + storeItem.get('data2') + '%');
                     }
                 }
             }, {

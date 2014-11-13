@@ -85,7 +85,7 @@ Ext.define('Ext.panel.Title', {
     renderTpl:
         '<tpl if="iconMarkup && iconBeforeTitle">{iconMarkup}</tpl>' +
         // unselectable="on" is required for Opera, other browsers inherit unselectability from the header
-        '<div id="{id}-textEl" data-ref="textEl" class="{textCls} {textCls}-{ui} {itemCls}" unselectable="on"' +
+        '<div id="{id}-textEl" data-ref="textEl" class="{textCls} {textCls}-{ui} {itemCls}{childElCls}" unselectable="on"' +
             '<tpl if="headerRole">' +
                 ' role="{headerRole}"' +
             '</tpl>' +
@@ -242,7 +242,7 @@ Ext.define('Ext.panel.Title', {
         var me = this,
             iconAlign, renderData;
 
-        renderData = {
+        renderData = Ext.apply({
             text: me.getText(),
             headerRole: me.headerRole,
             id: me.id,
@@ -251,8 +251,8 @@ Ext.define('Ext.panel.Title', {
             textCls: me._textCls,
             iconMarkup: null,
             iconBeforeTitle: null
-        };
-        
+        }, me.callParent());
+
         if (me._hasIcon()) {
             iconAlign = me.getIconAlign();
             renderData.iconMarkup = me.getIconMarkup();

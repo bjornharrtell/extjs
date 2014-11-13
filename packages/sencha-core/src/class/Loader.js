@@ -133,7 +133,7 @@
  */
 Ext.Loader = new function() {
 // @define Ext.Loader
-// @require Ext.Boot
+// @require Ext.Base
 // @require Ext.Class
 // @require Ext.ClassManager
 // @require Ext.Function
@@ -547,24 +547,6 @@ Ext.Loader = new function() {
                 Ext.Array.push(Loader.classesLoading, missingClassNames);
                 //</debug>
 
-                // We may have come through a requirement triggered via
-                // an async load, so we need this to prevent going back
-                // through a sync load of the file we just async loaded.
-                // This is because the onLoad of the script element has
-                // yet to fire.
-                // TODO: for non IE9m browsers, Boot.js should switch
-                // to async ajax of content and then globalEval once
-                // content has arrived
-                Ext.each(missingClassNames, function(name, index) {
-                    Manager.onExists(function() {
-                        var key = Ext.Boot.canonicalUrl(urls[index]),
-                            entry = Ext.Boot.scripts[key];
-                        if (entry && !entry.done) {
-                            Ext.Boot.notifyAll(entry);
-                        }
-                    }, Loader, name);
-                });
-
                 // We check for existence here (onExists vs onCreated) because overrides
                 // can come into existence but pause before being created until the target
                 // of the override has been created, which may not happen. For normal
@@ -646,7 +628,7 @@ Ext.Loader = new function() {
             }
             //<debug>
             else {
-                Ext.Error.raise("[Ext.Loader] Some requested files failed to load.");
+                Ext.log.error("[Ext.Loader] Some requested files failed to load.");
             }
             //</debug>
 

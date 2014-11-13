@@ -235,18 +235,27 @@ Ext.define('Ext.data.schema.Schema', {
                     // A function (assume that a constructor is the Class).
                     ret = entity;
                 } else if (Ext.isString(entity)) {
-                    for (name in instances) {
-                        schema = instances[name];
-                        match = schema.getEntity(entity);
-                        if (match) {
-                            if (ret) {
-                                Ext.Error.raise('Ambiguous entity name "' + entity + 
+                    ret = Ext.ClassManager.get(entity);
+
+                    // If we've found a singleton or non-Entity class by that name, ignore it.
+                    if (ret && (!ret.prototype || !ret.prototype.isEntity)) {
+                        ret = null;
+                    }
+                    if (!ret) {
+                        for (name in instances) {
+                            schema = instances[name];
+                            match = schema.getEntity(entity);
+                            if (match) {
+                                if (ret) {
+                                    Ext.Error.raise('Ambiguous entity name "' + entity +
                                         '". Defined by schema "' + ret.schema.type +
                                         '" and "' + name + '"');
+                                }
+                                ret = match;
                             }
-                            ret = match;
                         }
                     }
+
                     if (!ret) {
                         Ext.Error.raise('No such Entity "' + entity + '".');
                     }
@@ -280,6 +289,16 @@ Ext.define('Ext.data.schema.Schema', {
         defaultIdentifier: null,
 
         /**
+        * @cfg {Number} keyCheckDelay
+        * The time to wait (in ms) before checking for null foreign keys on records that
+        * will cause them to be dropped. This is useful for allowing records to be moved to a different
+        * source.
+        * @private
+        * @since 5.0.1
+        */
+        keyCheckDelay: 10,
+
+        /**
          * @cfg {String/Object/Ext.data.schema.Namer} namer
          * Specifies or configures the name generator for the schema.
          */
@@ -306,10 +325,7 @@ Ext.define('Ext.data.schema.Schema', {
          */
         proxy: {
             type: 'ajax',
-            url: '{prefix}/{entityName}',
-            reader: {
-                type: 'json'
-            }
+            url: '{prefix}/{entityName}'
         },
 
         /**
@@ -642,7 +658,7 @@ Ext.define('Ext.data.schema.Schema', {
         //<debug>
         if (association in associations) {
             Ext.Error.raise('Duplicate association: "' + association + '" declared by ' +
-                    entityName + '.' + referenceField.name + ' (collides with ' +
+                    entityName + (referenceField ? ('.' + referenceField.name) : '') + ' (collides with ' +
                     associations[association].definedBy.entityName + ')');
         }
         if (referenceField && referenceField.definedBy === entities[rightType]) {
@@ -1072,8 +1088,9 @@ Ext.define('Ext.data.schema.Schema', {
             }
             assoc.legacy = true;
             assoc.type = this.getEntityName(assoc.model);
-            if (assoc.associatedName) {
-                assoc.role = assoc.associatedName;
+            var name = assoc.associatedName || assoc.name;
+            if (name) {
+                assoc.role = name;
             }
             return assoc;
         },
@@ -1094,9 +1111,15 @@ Ext.define('Ext.data.schema.Schema', {
 
         clear: function(clearNamespace) {
             // for testing
-            var me = this;
+            var me = this,
+                timer = me.timer;
 
             delete me.setConfig;
+
+            if (timer) {
+                window.clearTimeout(timer);
+                me.timer = null;
+            }
 
             me.associations = {};
             me.associationEntityMap = {};
@@ -1155,6 +1178,54 @@ Ext.define('Ext.data.schema.Schema', {
         decorateModel: function (association) {
             this.applyDecoration(association.left);
             this.applyDecoration(association.right);
+        },
+
+        processKeyChecks: function(processAll) {
+            var me = this,
+                keyCheckQueue = me.keyCheckQueue,
+                timer = me.timer,
+                len, i, item;
+
+            if (timer) {
+                window.clearTimeout(timer);
+                me.timer = null;
+            }
+
+            if (!keyCheckQueue) {
+                return;
+            }
+
+            // It's possible that processing a drop may cause another drop
+            // to occur. If we're trying to forcibly resolve the state, then
+            // we need to trigger all the drops at once. With processAll: false,
+            // the loop will jump out after the first iteration.
+            do {
+                keyCheckQueue = me.keyCheckQueue;
+                me.keyCheckQueue = [];
+
+                for (i = 0, len = keyCheckQueue.length; i < len; ++i) {
+                    item = keyCheckQueue[i];
+                    item.role.checkKeyForDrop(item.record);
+                }
+            } while (processAll && me.keyCheckQueue.length);
+        },
+
+        queueKeyCheck: function(record, role) {
+            var me = this,
+                keyCheckQueue = me.keyCheckQueue,
+                timer = me.timer;
+
+            if (!keyCheckQueue) {
+                me.keyCheckQueue = keyCheckQueue = [];
+            }
+            keyCheckQueue.push({
+                record: record,
+                role: role
+            });
+
+            if (!timer) {
+                me.timer = timer = Ext.Function.defer(me.processKeyChecks, me.getKeyCheckDelay(), me);
+            }
         },
 
         rankEntities: function () {

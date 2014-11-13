@@ -374,7 +374,7 @@ Ext.define('Ext.data.Connection', {
                 options: options,
                 async: async,
                 binary: options.binary || me.getBinary(),
-                timeout: setTimeout(function() {
+                timeout: Ext.defer(function() {
                     request.timedout = true;
                     me.abort(request);
                 }, options.timeout || me.getTimeout())
@@ -471,7 +471,8 @@ Ext.define('Ext.data.Connection', {
             id: id,
             name: id,
             cls: Ext.baseCSSPrefix + 'hidden-display',
-            src: Ext.SSL_SECURE_URL
+            src: Ext.SSL_SECURE_URL,
+            tabIndex: -1
         });
 
         document.body.appendChild(frame);
@@ -786,6 +787,7 @@ Ext.define('Ext.data.Connection', {
             jsonData = options.jsonData,
             xmlData = options.xmlData,
             type = 'Content-Type',
+            useHeader = Ext.isDefined(options.useDefaultXhrHeader) ? options.useDefaultXhrHeader : me.getUseDefaultXhrHeader(),
             key,
             header;
 
@@ -804,7 +806,7 @@ Ext.define('Ext.data.Connection', {
             headers[type] = contentType;
         }
 
-        if (me.getUseDefaultXhrHeader() && !headers['X-Requested-With']) {
+        if (useHeader && !headers['X-Requested-With']) {
             headers['X-Requested-With'] = me.getDefaultXhrHeader();
         }
 

@@ -103,6 +103,14 @@ Ext.define('Ext.chart.series.Polar', {
         return this.getChart().getAxis(newAxis) || oldAxis;
     },
 
+    getXRange: function () {
+        return [this.dataRange[0], this.dataRange[2]];
+    },
+
+    getYRange: function () {
+        return [this.dataRange[1], this.dataRange[3]];
+    },
+
     themeColorCount: function() {
         var me = this,
             store = me.getStore(),

@@ -41,6 +41,7 @@ Ext.onReady(function(){
 
     // create the grid
     var grid = Ext.create('Ext.grid.Panel', {
+        bufferedRenderer: false,
         store: store,
         columns: [
             {text: "Author", width: 120, dataIndex: 'Author', sortable: true},

@@ -270,18 +270,6 @@ Ext.feature = {
         }
     },{
         /**
-         * @property TimeoutActualLateness True if the browser passes the "actualLateness" parameter to
-         * setTimeout. See: https://developer.mozilla.org/en/DOM/window.setTimeout
-         * @type {Boolean}
-         */
-        name: 'TimeoutActualLateness',
-        fn: function () {
-            setTimeout(function() {
-                Ext.supports.TimeoutActualLateness = arguments.length !== 0;
-            }, 0);
-        }
-    },{
-        /**
          * @property Canvas `true` if the device supports Canvas.
          * @type {Boolean}
          */
@@ -714,10 +702,10 @@ Ext.feature = {
                 i;
             for (i = 0; i < domPrefixes.length; i++) {
                 if (doc.documentElement.style[domPrefixes[i]] !== undefined) {
-                    return true;
+                    pass = true;
                 }
             }
-            return pass;
+            return pass && !Ext.isIE9;
         }
     },
 
@@ -799,7 +787,7 @@ Ext.feature = {
     {
         name: 'Direct2DBug',
         fn: function(doc) {
-            return Ext.isString(doc.documentElement.style.msTransformOrigin) && Ext.isIE10m;
+            return Ext.isString(doc.documentElement.style.msTransformOrigin) && Ext.isIE9m;
         }
     },
 
@@ -1148,9 +1136,28 @@ Ext.feature = {
 
             return width === 50;
         }
+    },
+    
+    /**
+     * @property FocusinFocusoutEvents
+     * @private
+     * @type {Boolean}
+     * `true` if the browser supports focusin and focusout events:
+     * https://developer.mozilla.org/en-US/docs/Web/Events/focusin
+     * At this point, only Firefox does not, see this bug:
+     * https://bugzilla.mozilla.org/show_bug.cgi?id=687787
+     */
+    {
+        name: 'FocusinFocusoutEvents',
+        // There is no reliable way to feature detect focusin/focusout event support.
+        // window.onfocusin will return undefined both in Chrome (where it is supported)
+        // and in Firefox (where it is not supported); adding an element and trying to
+        // focus it will fail when the browser window itself is not focused.
+        fn: function() {
+            return !Ext.isGecko;
+        }
     }
-
-
+    
     //</feature>
     ]
 };

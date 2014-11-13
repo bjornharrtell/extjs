@@ -238,7 +238,7 @@ Ext.define('Ext.data.soap.Proxy', {
                 bodyTpl: me.getBodyTpl(action)
             }),
             request = new Ext.data.Request({
-                url: me.getUrl() + '?' + me.getOerationParam + '=' + soapOperation,
+                url: me.getUrl() + '?' + me.getOperationParam() + '=' + soapOperation,
                 method: 'POST',
                 action: action,
                 operation: operation,

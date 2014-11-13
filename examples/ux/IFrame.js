@@ -1,10 +1,3 @@
-/*!
- * Ext JS Library
- * Copyright(c) 2006-2014 Sencha Inc.
- * licensing@sencha.com
- * http://www.sencha.com/license
- */
-
 /**
  * Barebones iframe implementation. For serious iframe work, see the
  * ManagedIFrame extension
@@ -20,17 +13,14 @@ Ext.define('Ext.ux.IFrame', {
     src: 'about:blank',
 
     renderTpl: [
-        '<iframe src="{src}" name="{frameName}" width="100%" height="100%" frameborder="0"></iframe>'
+        '<iframe src="{src}" id="{id}-iframeEl" data-ref="iframeEl" name="{frameName}" width="100%" height="100%" frameborder="0"></iframe>'
     ],
+    childEls: ['iframeEl'],
 
     initComponent: function () {
         this.callParent();
 
         this.frameName = this.frameName || this.id + '-frame';
-
-        Ext.apply(this.renderSelectors, {
-            iframeEl: 'iframe'
-        });
     },
 
     initEvents : function() {
@@ -85,7 +75,7 @@ Ext.define('Ext.ux.IFrame', {
             try {
                 doc = this.getDoc();
                 if (doc) {
-                    Ext.EventManager.removeAll(doc);
+                    Ext.get(doc).un(this._docListeners);
                     if (destroying) {
                         for (prop in doc) {
                             if (doc.hasOwnProperty && doc.hasOwnProperty(prop)) {
@@ -105,32 +95,32 @@ Ext.define('Ext.ux.IFrame', {
 
         if (doc) {
             try {
-                Ext.EventManager.removeAll(doc);
-
                 // These events need to be relayed from the inner document (where they stop
                 // bubbling) up to the outer document. This has to be done at the DOM level so
                 // the event reaches listeners on elements like the document body. The effected
                 // mechanisms that depend on this bubbling behavior are listed to the right
                 // of the event.
-                Ext.EventManager.on(doc, {
-                    mousedown: fn, // menu dismisal (MenuManager) and Window onMouseDown (toFront)
-                    mousemove: fn, // window resize drag detection
-                    mouseup: fn,   // window resize termination
-                    click: fn,     // not sure, but just to be safe
-                    dblclick: fn,  // not sure again
-                    scope: me
-                });
+                Ext.get(doc).on(
+                    me._docListeners = {
+                        mousedown: fn, // menu dismisal (MenuManager) and Window onMouseDown (toFront)
+                        mousemove: fn, // window resize drag detection
+                        mouseup: fn,   // window resize termination
+                        click: fn,     // not sure, but just to be safe
+                        dblclick: fn,  // not sure again
+                        scope: me
+                    }
+                );
             } catch(e) {
                 // cannot do this xss
             }
 
             // We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
-            Ext.EventManager.on(this.getWin(), 'beforeunload', me.cleanupListeners, me);
+            Ext.get(this.getWin()).on('beforeunload', me.cleanupListeners, me);
 
             this.el.unmask();
             this.fireEvent('load', this);
 
-        } else if(me.src && me.src != '') {
+        } else if (me.src) {
 
             this.el.unmask();
             this.fireEvent('error', this);
@@ -145,13 +135,13 @@ Ext.define('Ext.ux.IFrame', {
         var iframeEl = this.iframeEl,
 
             // Get the left-based iframe position
-            iframeXY = Ext.Element.getTrueXY(iframeEl),
+            iframeXY = iframeEl.getTrueXY(),
             originalEventXY = event.getXY(),
 
             // Get the left-based XY position.
-            // This is because the consumer of the injected event (Ext.EventManager) will
+            // This is because the consumer of the injected event will
             // perform its own RTL normalization.
-            eventXY = Ext.EventManager.getPageXY(event.browserEvent);
+            eventXY = event.getTrueXY();
 
         // the event from the inner document has XY relative to that document's origin,
         // so adjust it to use the origin of the iframe in the outer document:

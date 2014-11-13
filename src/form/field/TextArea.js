@@ -58,7 +58,7 @@ Ext.define('Ext.form.field.TextArea', {
             '<tpl if="maxLength !== undefined"> maxlength="{maxLength}"</tpl>',
             '<tpl if="readOnly"> readonly="readonly"</tpl>',
             '<tpl if="disabled"> disabled="disabled"</tpl>',
-            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
             ' class="{fieldCls} {typeCls} {typeCls}-{ui} {inputCls}" ',
             '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
             ' autocomplete="off">\n',
@@ -102,8 +102,6 @@ Ext.define('Ext.form.field.TextArea', {
      * relevant when {@link #grow} is true. Equivalent to setting overflow: hidden.
      */
     preventScrollbars: false,
-
-    setGrowSizePolicy: Ext.emptyFn,
     
     returnRe: /\r/g,
 
@@ -125,10 +123,10 @@ Ext.define('Ext.form.field.TextArea', {
     //</debug>
 
     // private
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var me = this,
             fieldStyle = me.getFieldStyle(),
-            ret = me.callParent();
+            ret = me.callParent(arguments);
 
         if (me.grow) {
             if (me.preventScrollbars) {
@@ -230,7 +228,7 @@ Ext.define('Ext.form.field.TextArea', {
         var me = this,
             inputEl, inputHeight, height, curWidth, value;
 
-        if (me.grow && me.rendered) {
+        if (me.grow && me.rendered && me.getSizeModel().height.auto) {
             inputEl = me.inputEl;
             //subtract border/padding to get the available width for the text
             curWidth = inputEl.getWidth(true);

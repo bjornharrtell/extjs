@@ -505,7 +505,7 @@ Ext.define('Ext.util.LocalStorage', {
                 me.el.setAttribute('xdata', Ext.encode(me.data));
                 me.el.save(me.id);
             } else if (!me._timer) {
-                me._timer = setTimeout(me._flushFn, delay);
+                me._timer = Ext.defer(me._flushFn, delay);
             }
         },
 

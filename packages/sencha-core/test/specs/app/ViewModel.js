@@ -670,12 +670,8 @@ describe("Ext.app.ViewModel", function() {
                                 });
                             });
                             notify();
-                            if (bindFirst) {
-                                expect(spy.callCount).toBe(1);
-                                expectArgs(null);
-                            } else {
-                                expect(spy).not.toHaveBeenCalled();
-                            }
+                            expect(spy.callCount).toBe(1);
+                            expectArgs(null, undefined);
                         });
 
                         it("should set the child value correctly when overwriting a hierarchy over multiple ticks", function() {
@@ -715,6 +711,20 @@ describe("Ext.app.ViewModel", function() {
                             expect(xxx).toHaveBeenCalled();
                             expect(baz).toHaveBeenCalled();
                             expect(bar).toHaveBeenCalled();
+                        });
+
+                        it("should be able to expand an existing object path", function() {
+                            run(function() {
+                                bindNotify('{foo.bar.baz.xxx}', spy);
+                            }, function() {
+                                viewModel.set({
+                                    foo: null
+                                })
+                            });
+                            notify();
+                            setNotify('foo.bar.baz.xxx', 1);
+                            expect(spy.callCount).toBe(1);
+                            expectArgs(1, undefined);
                         });
 
                         if (bindFirst) {
@@ -1201,6 +1211,30 @@ describe("Ext.app.ViewModel", function() {
                         expectArgs('Foo');
                     });
 
+                    it("should publish even if the field value is undefined", function() {
+                        makeUser(1);
+                        bindNotify('{user.name}', spy);
+                        setNotify('user', user);
+                        expectArgs(undefined);
+                    });
+
+                    it("should not publish an undefined value if it's a known association key", function() {
+                        Ext.define('spec.Post', {
+                            extend: 'Ext.data.Model',
+                            fields: ['content', {
+                                name: 'userId',
+                                reference: 'User'
+                            }]
+                        });
+                        var post = new spec.Post({
+                            id: 1
+                        });
+                        bindNotify('{post.user}', spy);
+                        setNotify('post', post);
+                        expect(spy).not.toHaveBeenCalled();
+                        Ext.undefine('spec.Post');
+                    });
+
                     it("should react to a change on the field", function() {
                         makeUser(1, {
                             name: 'Foo'
@@ -1268,6 +1302,23 @@ describe("Ext.app.ViewModel", function() {
                         user.reject();
                         notify();
                         expectArgs('Foo', 'Bar');
+                    });
+
+                    it("should react to changes via commit", function() {
+                        makeUser(1, {
+                            name: 'Foo'
+                        });
+                        bindNotify('{user.name}', spy);
+                        setNotify('user', user);
+                        spy.reset();
+                        user.set('name', 'Bar', {
+                            silent: true
+                        });
+                        notify();
+                        expect(spy).not.toHaveBeenCalled();
+                        user.commit();
+                        notify();
+                        expectArgs('Bar', 'Foo');
                     });
 
                     it("should publish when setting a new model", function() {
@@ -1346,13 +1397,21 @@ describe("Ext.app.ViewModel", function() {
                         completeNotify({});
                         expect(spy).toHaveBeenCalled();
                     });
+
+                    it("should not publish a field while loading", function() {
+                        makeUser(1);
+                        bindNotify('{user.name}', spy);
+                        user.load();
+                        setNotify('user', user);
+                        expect(spy).not.toHaveBeenCalled();
+                    });
                 });
 
                 describe("links", function() {
                     it("should accept the entityName", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: 'User',
+                            type: 'User',
                             id: 18
                         });
                         completeNotify({});
@@ -1364,7 +1423,7 @@ describe("Ext.app.ViewModel", function() {
                     it("should accept the full class name", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: 'spec.User',
+                            type: 'spec.User',
                             id: 18
                         });
                         completeNotify({});
@@ -1376,7 +1435,7 @@ describe("Ext.app.ViewModel", function() {
                     it("should accept a model type", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: spec.User,
+                            type: spec.User,
                             id: 18
                         });
                         completeNotify({});
@@ -1401,17 +1460,60 @@ describe("Ext.app.ViewModel", function() {
                     it("should create a record with the matching id", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: 'spec.User',
+                            type: 'spec.User',
                             id: 18
                         });
                         completeNotify({});
                         expect(spy.mostRecentCall.args[0].getId()).toBe(18);
                     });
 
+                    it("should raise an exception if id is not specified", function() {
+                        expect(function() {
+                            viewModel.linkTo('theUser', {
+                                type: 'spec.User'
+                            });
+                        }).toThrow();
+                    });
+
+                    describe("with create: true", function() {
+                        it("should create a phantom record with create: true", function() {
+                            bindNotify('{theUser}', spy);
+                            viewModel.linkTo('theUser', {
+                                type: 'spec.User',
+                                create: true
+                            });
+                            notify();
+                            expect(spy.mostRecentCall.args[0].phantom).toBe(true);
+                        });
+
+                        it("should not load from the server", function() {
+                            spy = spyOn(User.getProxy(), 'read');
+                            viewModel.linkTo('theUser', {
+                                type: 'spec.User',
+                                create: true
+                            });
+                            notify();
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        if (withSession) {
+                            it("should push the phantom into the session", function() {
+                                bindNotify('{theUser}', spy);
+                                viewModel.linkTo('theUser', {
+                                    type: 'spec.User',
+                                    create: true
+                                });
+                                notify();
+                                user = spy.mostRecentCall.args[0];
+                                expect(user.session).toBe(session);
+                            });
+                        }
+                    });
+
                     it("should request the data from the server", function() {
                         spy = spyOn(User.getProxy(), 'read');
                         viewModel.linkTo('theUser', {
-                            reference: 'spec.User',
+                            type: 'spec.User',
                             id: 18
                         });
                         expect(spy.mostRecentCall.args[0].getId()).toBe(18);
@@ -1420,7 +1522,7 @@ describe("Ext.app.ViewModel", function() {
                     it("should not publish until the record returns", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: 'User',
+                            type: 'User',
                             id: 18
                         });
                         expect(spy).not.toHaveBeenCalled();
@@ -1429,13 +1531,13 @@ describe("Ext.app.ViewModel", function() {
                     it("should be able to change the link at runtime", function() {
                         bindNotify('{theUser}', spy);
                         viewModel.linkTo('theUser', {
-                            reference: 'User',
+                            type: 'User',
                             id: 18
                         });
                         completeNotify({});
                         spy.reset();
                         viewModel.linkTo('theUser', {
-                            reference: 'User',
+                            type: 'User',
                             id: 34
                         });
                         completeNotify({});
@@ -1448,7 +1550,7 @@ describe("Ext.app.ViewModel", function() {
                             makeUser(22);
                             bindNotify('{theUser}', spy);
                             viewModel.linkTo('theUser', {
-                                reference: 'User',
+                                type: 'User',
                                 id: 22
                             });
                             notify();
@@ -1460,7 +1562,7 @@ describe("Ext.app.ViewModel", function() {
                             // Not there...
                             expect(session.peekRecord('User', 89)).toBeNull();
                             viewModel.linkTo('theUser', {
-                                reference: 'User',
+                                type: 'User',
                                 id: 89
                             });
                             user = session.getRecord('User', 89);
@@ -1492,58 +1594,167 @@ describe("Ext.app.ViewModel", function() {
             });
 
             describe("stores", function() {
-                var User, user, store;
+                var User;
 
                 beforeEach(function() {
                     User = Ext.define('spec.User', {
                         extend: 'Ext.data.Model',
                         fields: ['id', 'name', 'age', 'group']
                     });
-                    store = new Ext.data.Store({
-                        model: User,
-                        proxy: {
-                            type: 'ajax',
-                            url: 'foo'
-                        }
+                    
+                    Ext.define('spec.Comment', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'text', {
+                            name: 'userId',
+                            reference: 'User'
+                        }]
                     });
                 });
 
                 afterEach(function() {
-                    store.destroy();
-                    store = User = user = null;
+                    User = null;
                     Ext.undefine('spec.User');
+                    Ext.undefine('spec.Comment');
                 });
 
-                it("should publish when setting the value", function() {
-                    bindNotify('{store}', spy);
-                    setNotify('store', store);
-                    expectArgs(store, undefined);
+                describe("publishing", function() {
+                    var store;
+
+                    beforeEach(function() {
+                        store = new Ext.data.Store({
+                            model: User,
+                            proxy: {
+                                type: 'ajax',
+                                url: 'foo'
+                            }
+                        });
+                    });
+
+                    afterEach(function() {
+                        store.destroy();
+                        store = null;
+                    });
+
+                    it("should publish when setting the value", function() {
+                        bindNotify('{store}', spy);
+                        setNotify('store', store);
+                        expectArgs(store, undefined);
+                    });
+
+                    it("should not publish if loading when attached", function() {
+                        bindNotify('{store}', spy);
+                        store.load();
+                        setNotify('store', store);
+                        expect(spy).not.toHaveBeenCalled();
+                    });
+
+                    it("should not publish if the store is loading during a notify", function() {
+                        bindNotify('{store}', spy);
+                        viewModel.set('store', store);
+                        store.load();
+                        notify();
+                        expect(spy).not.toHaveBeenCalled();
+                    });
+
+                    it("should publish when the store completes the load", function() {
+                        bindNotify('{store}', spy);
+                        store.load();
+                        setNotify('store', store);
+                        completeNotify([]);
+                        expectArgs(store, undefined);
+                    });
                 });
 
-                it("should not publish if loading when attached", function() {
-                    bindNotify('{store}', spy);
-                    store.load();
-                    setNotify('store', store);
-                    expect(spy).not.toHaveBeenCalled();
+                describe("loading associated stores", function() {
+                    var user;
+
+                    beforeEach(function() {
+                        // Passing session here will be ignored if we're running the non-session specs
+                        user = new User({
+                            id: 1
+                        }, session);
+                    });
+
+                    afterEach(function() {
+                        user = null;
+                    });
+                    
+                    it("should create/load the store if it's never been loaded", function() {
+                        // We don't have a reference to the store, so spy on everything here
+                        var loadSpy = spyOn(Ext.data.Store.prototype, 'load').andCallThrough();
+                        bindNotify('{user.comments}', Ext.emptyFn);
+                        setNotify('user', user);
+                        expect(loadSpy).toHaveBeenCalled();
+                        expect(loadSpy.mostRecentCall.object.getModel().$className).toBe('spec.Comment');
+                    });
+
+                    it("should not load if the store is loading", function() {
+                        var comments = user.comments();
+                        comments.load();
+                        spyOn(comments, 'load');
+                        bindNotify('{user.comments}', Ext.emptyFn);
+                        setNotify('user', user);
+                        expect(comments.load).not.toHaveBeenCalled();
+                        complete([]);
+                    });
+
+                    it("should not load if the store has been loaded", function() {
+                        var comments = user.comments();
+                        comments.load();
+                        complete([]);
+                        spyOn(comments, 'load');
+                        bindNotify('{user.comments}', Ext.emptyFn);
+                        setNotify('user', user);
+                        expect(comments.load).not.toHaveBeenCalled();
+                    });
+
+                    it("should not load if the data has been load via nested-loading", function() {
+                        var store = new Ext.data.Store({
+                            model: 'spec.User'
+                        });
+                        store.loadRawData([{
+                            id: 100,
+                            comments: [{
+                                id: 1,
+                                userId: 100,
+                                text: 'Foo'
+                            }, {
+                                id: 2,
+                                userId: 100,
+                                text: 'Bar'
+                            }]
+                        }]);
+
+                        user = store.first();
+
+                        var comments = user.comments();
+                        spyOn(comments, 'load');
+                        bindNotify('{user.comments}', Ext.emptyFn);
+                        setNotify('user', user);
+                        expect(comments.load).not.toHaveBeenCalled();
+                        store.destroy();
+                    });
+
+                    if (withSession) {
+                        it("should load if the store has been filled with data from session but not loaded", function() {
+                            session.createRecord('Comment', {
+                                id: 1,
+                                userId: 1,
+                                text: 'Foo'
+                            });
+
+                            var comments = user.comments();
+                            // Store will be created because we know the userId FK.
+                            // However we know we don't have the full data set, so
+                            // need to load it from the server
+                            expect(comments.getCount()).toBe(1);
+                            spyOn(comments, 'load');
+                            bindNotify('{user.comments}', Ext.emptyFn);
+                            setNotify('user', user);
+                            expect(comments.load).toHaveBeenCalled();
+                        });
+                    }
                 });
-
-                it("should not publish if the store is loading during a notify", function() {
-                    bindNotify('{store}', spy);
-                    viewModel.set('store', store);
-                    store.load();
-                    notify();
-                    expect(spy).not.toHaveBeenCalled();
-                });
-
-                it("should publish when the store completes the load", function() {
-                    bindNotify('{store}', spy);
-                    store.load();
-                    setNotify('store', store);
-                    completeNotify([]);
-                    expectArgs(store, undefined);
-                });
-
-
             });
 
             describe("associations", function() {
@@ -1558,6 +1769,11 @@ describe("Ext.app.ViewModel", function() {
                             }]
                         });
 
+                        Ext.define('spec.Organization', {
+                            extend: 'Ext.data.Model',
+                            fields: ['id', 'name']
+                        });
+
                         Post = Ext.define('spec.Post', {
                             extend: 'Ext.data.Model',
                             fields: ['id', 'content', {
@@ -1570,6 +1786,7 @@ describe("Ext.app.ViewModel", function() {
                     afterEach(function() {
                         Ext.undefine('spec.User');
                         Ext.undefine('spec.Post');
+                        Ext.undefine('spec.Organization');
                         User = Post = user = post = posts = null;
                     });
 
@@ -1720,11 +1937,6 @@ describe("Ext.app.ViewModel", function() {
                         }
 
                         it("should be able to load multiple levels", function() {
-                            Ext.define('spec.Organization', {
-                                extend: 'Ext.data.Model',
-                                fields: ['id', 'name']
-                            });
-
                             makePost(1, {
                                 userId: 17
                             });
@@ -1740,8 +1952,6 @@ describe("Ext.app.ViewModel", function() {
                                 name: 'Org1'
                             });
                             expectArgs('Org1');
-
-                            Ext.undefine('spec.Organization');
                         });
                     });
 
@@ -2695,7 +2905,7 @@ describe("Ext.app.ViewModel", function() {
                 });
 
                 viewModel.linkTo('rec', {
-                    reference: 'User',
+                    type: 'User',
                     id: 1
                 });
 
@@ -2771,7 +2981,7 @@ describe("Ext.app.ViewModel", function() {
             });
 
             viewModel.linkTo('theUser', {
-                reference: 'User',
+                type: 'User',
                 id: 42
             });
         });
@@ -3004,7 +3214,7 @@ describe("Ext.app.ViewModel", function() {
 
                     expect(scheduler.passes).toBe(2);
                     expect(calls).toBe(2);
-                    expect(value).toBe('Length must be greater than 1');
+                    expect(value).toBe('Length must be at least 1');
                 });
             });
         }); // delivering validation messages
@@ -3289,7 +3499,7 @@ describe("Ext.app.ViewModel", function() {
             
             it("should not deliver until a record is loaded", function() {
                 viewModel.linkTo('aUser', {
-                    reference: 'User',
+                    type: 'User',
                     id: 1
                 });
                 viewModel.bind({
@@ -3307,15 +3517,15 @@ describe("Ext.app.ViewModel", function() {
             
             it("should not deliver until all records are loaded", function() {
                 viewModel.linkTo('aUser1', {
-                    reference: 'User',
+                    type: 'User',
                     id: 1
                 });
                 viewModel.linkTo('aUser2', {
-                    reference: 'User',
+                    type: 'User',
                     id: 2
                 });
                 viewModel.linkTo('aUser3', {
-                    reference: 'User',
+                    type: 'User',
                     id: 3
                 });
 
@@ -3350,7 +3560,7 @@ describe("Ext.app.ViewModel", function() {
             
             it("should not deliver until nested dependencies are loaded", function() {
                 viewModel.linkTo('aUser', {
-                    reference: 'User',
+                    type: 'User',
                     id: 1
                 });
                 viewModel.bind({
@@ -3379,14 +3589,9 @@ describe("Ext.app.ViewModel", function() {
     });
 
     describe("stores", function() {
-        var User, Project;
+        var User;
         beforeEach(function() {
             createViewModel();
-            Project = Ext.define('spec.Project', {
-                extend: 'Ext.data.Model',
-                fields: ['id', 'name', 'code']
-            });
-            
             User = Ext.define('spec.User', {
                 extend: 'Ext.data.Model',
                 fields: ['id', 'name', {
@@ -3457,7 +3662,7 @@ describe("Ext.app.ViewModel", function() {
             });
             notify();
             var users = viewModel.getStore('users');
-            expect(users.getSession()).toBeUndefined();
+            expect(users.getSession()).toBeNull();
         });
         
         it("should attach to the session if session: true is specified", function() {
@@ -4372,6 +4577,133 @@ describe("Ext.app.ViewModel", function() {
             expect(childVM.getScheduler()).toBe(viewModel.getScheduler());
             childVM.destroy();
             childVM = null;
+        });
+    });
+
+    // These tests reach deep into the internals of the view model to track the stubs, however
+    // it's good to have some specs for these to ensure stubs are not being cleaned up out of turn.
+    describe("collect", function() {
+        function peekStub(path, vm) {
+            vm = vm || viewModel;
+
+            var stub = vm.getRoot(),
+                parts = path.split('.'),
+                key
+
+            while (parts.length) {
+                key = parts.shift();
+                stub = stub.children && stub.children[key];
+                if (!stub) {
+                    return null;
+                }
+            }
+            return stub;
+        }
+
+        function forceCollect(vm) {
+            vm = vm || viewModel;
+            vm.collectTimeout = 0;
+            vm.collect();
+        }
+
+        beforeEach(function() {
+            createViewModel();
+        });
+
+        it("should not collect a stub with a binding", function() {
+            var binding = bindNotify('{foo}', Ext.emptyFn);
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+        });
+
+        it("should collect a stub when the only binding is destroyed", function() {
+            var binding = bindNotify('{foo}', Ext.emptyFn);
+            binding.destroy();
+            forceCollect();
+            expect(peekStub('foo')).toBeNull();
+        });
+
+        it("should not collect a stub where only one of many bindings are destroyed", function() {
+            var b1 = viewModel.bind('{foo}', Ext.emptyFn),
+                b2 = viewModel.bind('{foo}', Ext.emptyFn);
+
+            notify();
+            b1.destroy();
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+        });
+
+        it("should not collect a stub that has a pending store binding", function() {
+            viewModel.setStores({
+                foo: {
+                    filters: [{
+                        property: 'name',
+                        value: '{value}'
+                    }]
+                }
+            });
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+        });
+
+        it("should not collect formulas", function() {
+            viewModel.setFormulas({
+                foo: function(get) {
+                    return 1;
+                }
+            });
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+        });
+
+        it("should not collect parent stubs if there are any bindings below it", function() {
+            var binding = bindNotify('{foo.bar.baz.x}', Ext.emptyFn);
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+            expect(peekStub('foo.bar')).not.toBeNull();
+            expect(peekStub('foo.bar.baz')).not.toBeNull();
+            expect(peekStub('foo.bar.baz.x')).not.toBeNull();
+        });
+
+        it("should collect parent stubs when all child bindings are destroyed", function() {
+            var binding = bindNotify('{foo.bar.baz.x}', Ext.emptyFn);
+            binding.destroy();
+            forceCollect();
+            expect(peekStub('foo')).toBeNull();
+            expect(peekStub('foo.bar')).toBeNull();
+            expect(peekStub('foo.bar.baz')).toBeNull();
+            expect(peekStub('foo.bar.baz.x')).toBeNull();
+        });
+
+        it("should collect up to the point where no child bindings exist", function() {
+            var b1 = bindNotify('{foo.bar.baz.x}', Ext.emptyFn),
+                b2 = bindNotify('{foo.bar}');
+
+            b1.destroy();
+            forceCollect();
+            expect(peekStub('foo')).not.toBeNull();
+            expect(peekStub('foo.bar')).not.toBeNull();
+            expect(peekStub('foo.bar.baz')).toBeNull();
+            expect(peekStub('foo.bar.baz.x')).toBeNull();
+        });
+
+        it("should not collect stubs with bindings to a parent viewmodel", function() {
+            viewModel.set('foo', 1);
+            var child = new Ext.app.ViewModel({
+                parent: viewModel
+            });
+            var binding = child.bind('{foo}', Ext.emptyFn);
+            binding.destroy();
+            forceCollect(child);
+            expect(peekStub('foo', child)).not.toBeNull();
+            child.destroy();
+        });
+
+        it("should auto collect on destroy", function() {
+            viewModel.collectTimeout = 0;
+            var binding = bindNotify('{foo}', Ext.emptyFn);
+            binding.destroy();
+            expect(peekStub('foo')).toBeNull();
         });
     });
 });

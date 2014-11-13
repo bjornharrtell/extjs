@@ -120,7 +120,7 @@ Ext.define('Ext.util.ElementContainer', {
          *     Ext.create('Ext.Component', {
          *         renderTo: Ext.getBody(),
          *         renderTpl: [
-         *             '<h1 id="{id}-title">{title}</h1>',
+         *             '<h1 id="{id}-title" data-ref="title">{title}</h1>',
          *             '<p>{msg}</p>',
          *         ],
          *         renderData: {

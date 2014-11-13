@@ -812,13 +812,6 @@ Ext.define('Ext.util.Format', function () {
         escapeRegex : Ext.String.escapeRegex,
 
         /**
-         * Alias for {@link Ext.String#format}.
-         * @method
-         * @inheritdoc Ext.String#format
-         */
-        format: Ext.String.format,
-
-        /**
          * Alias for {@link Ext.String#htmlDecode}.
          * @method
          * @inheritdoc Ext.String#htmlDecode

@@ -152,7 +152,7 @@ Ext.Factory.prototype = {
             }
         }
 
-        return new klass(config);
+        return klass.isInstance ? klass : new klass(config);
     },
 
     fixNameRe: /\.[a-z]/ig,

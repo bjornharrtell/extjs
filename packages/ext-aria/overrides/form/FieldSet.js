@@ -1,10 +1,6 @@
 Ext.define('Ext.aria.form.FieldSet', {
     override: 'Ext.form.FieldSet',
     
-    requires: [
-        'Ext.aria.container.Container'
-    ],
-    
     expandText: 'Expand',
     collapseText: 'Collapse',
 

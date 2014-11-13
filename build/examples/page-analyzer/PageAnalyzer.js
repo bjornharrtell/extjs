@@ -6,8 +6,8 @@ Ext.Loader.setConfig({
 Ext.Loader.setPath({
     'Ext.ux': '../ux/',
     'PageAnalyzer': './',
-    'Ext.draw': '../../../packages/ext-charts/src/draw',
-    'Ext.chart': '../../../packages/ext-charts/src/chart'
+    'Ext.draw': '../../packages/ext-charts/src/draw',
+    'Ext.chart': '../../packages/ext-charts/src/chart'
 });
 
 Ext.require([
@@ -995,7 +995,7 @@ Ext.define('PageAnalyzer.MainForm', {
         var states = this.states,
             target = this.target;
 
-        if (target && target.Ext && target.Ext.isReady) {
+        if (target && target.Ext && target.Ext.isDomReady && (Ext.isReady || target.Ext.env.Ready.blocks === 1)) {
 
             if (target._layoutRuns && target.Ext._readyTime) {
                 return states.ready;
@@ -1097,8 +1097,7 @@ Ext.define('PageAnalyzer.MainForm', {
             if (me.reloading) {
                 Ext.log('firing ready event in target document');
                 me.reloading = false;
-                me.target.Ext._continueFireReady = true;
-                me.target.Ext.EventManager.readyEvent.fire();
+                me.target.Ext.env.Ready.unblock();
             }
             me.updateLayoutRuns();
         }

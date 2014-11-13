@@ -270,7 +270,7 @@ Ext.define('Ext.grid.column.Action', {
 
     // Renderer closure iterates through items creating an <img> element for each and tagging with an identifying
     // class name x-action-col-{n}
-    defaultRenderer: function(v, cellValues, record, rowIdx, colIdx, store, view){
+    defaultRenderer: function(v, cellValues, record, rowIdx, colIdx, store, view) {
         var me = this,
             prefix = Ext.baseCSSPrefix,
             scope = me.origScope || me,
@@ -309,9 +309,9 @@ Ext.define('Ext.grid.column.Action', {
         return ret;
     },
 
-    updater: function(cell, value) {
+    updater: function(cell, value, record, view, dataSource) {
         var cellValues = {};
-        cell.firstChild.innerHTML = Ext.grid.column.Action.prototype.defaultRenderer.call(this, value, cellValues);
+        cell.firstChild.innerHTML = this.defaultRenderer(value, cellValues, record, null, null, dataSource, view);
         Ext.fly(cell).addCls(cellValues.tdCls);
     },
 
@@ -363,7 +363,7 @@ Ext.define('Ext.grid.column.Action', {
 
     /**
      * @private
-     * Process and refire events routed from the GridView's processEvent method.
+     * Process and refire events routed from the Ext.panel.Table's processEvent method.
      * Also fires any configured click handlers. By default, cancels the mousedown event to prevent selection.
      * Returns the event handler's status to allow canceling of GridView's bubbling process.
      */

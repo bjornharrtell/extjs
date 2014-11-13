@@ -34,12 +34,6 @@ Ext.define('Ext.form.trigger.Trigger', {
      */
 
     /**
-     * @cfg {Boolean} focusFieldOnClick
-     * `true` to focus the field's input element after the trigger is clicked.
-     */
-    focusFieldOnClick: false,
-
-    /**
      * @cfg {Function/String} [handler]
      * Function to run when trigger is clicked or tapped.
      */
@@ -227,7 +221,7 @@ Ext.define('Ext.form.trigger.Trigger', {
                 preventDefault: true,
                 handler: me.onClick,
                 listeners: {
-                    mouseup: me.onMouseUp,
+                    mousedown: me.onClickRepeaterMouseDown,
                     scope: me
                 },
                 scope: me
@@ -235,7 +229,7 @@ Ext.define('Ext.form.trigger.Trigger', {
         } else {
             me.field.mon(el, {
                 click: me.onClick,
-                mouseup: me.onMouseUp,
+                mousedown: me.onMouseDown,
                 scope: me
             });
         }
@@ -284,10 +278,28 @@ Ext.define('Ext.form.trigger.Trigger', {
         return this.field.resolveListenerScope(scope);
     },
 
-    onMouseUp: function() {
-        if (this.focusFieldOnClick) {
+    onMouseDown: function(e) {
+        // If it was a genuine mousedown, NOT a touch, then focus the input field.
+        // Usually, the field will be focused, but the mousedown on the trigger
+        // might be the user's first comntact with the field.
+        if (!e.parentEvent || e.parentEvent.type === 'mousedown') {
             this.field.inputEl.focus();
         }
+
+        // Stop the mousedown from blurring our field
+        e.preventDefault();
+    },
+
+    onClickRepeaterMouseDown: function(clickRepeater, e) {
+        // If it was a genuine mousedown, NOT a touch, then focus the input field.
+        // Usually, the field will be focused, but the mousedown on the trigger
+        // might be the user's first comntact with the field.
+        if (!e.parentEvent || e.parentEvent.type === 'mousedown') {
+            this.field.inputEl.focus();
+        }
+
+        // Stop the mousedown from blurring our field
+        e.preventDefault();
     },
 
     /**

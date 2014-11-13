@@ -16,15 +16,13 @@ Ext.define('Ext.TaskQueue', {
         this.writeQueue = [];
 
         this.run = Ext.Function.bind(this.run, this);
-        this.watch = Ext.Function.bind(this.watch, this);
-
         // iOS has a nasty bug which causes pending requestAnimationFrame to not release
         // the callback when the WebView is switched back and forth from / to being background process
         // We use a watchdog timer to workaround this, and restore the pending state correctly if this happens
         // This timer has to be set as an interval from the very beginning and we have to keep it running for
         // as long as the app lives, setting it later doesn't seem to work
         if (Ext.os.is.iOS) {
-            setInterval(this.watch, 500);
+            Ext.interval(this.watch, 500, this);
         }
     },
 
@@ -44,7 +42,7 @@ Ext.define('Ext.TaskQueue', {
             this.pending = true;
             this.mode = mode;
             if (mode) {
-                setTimeout(this.run, 1);
+                Ext.defer(this.run, 1, this);
             } else {
                 Ext.Function.requestAnimationFrame(this.run);
             }

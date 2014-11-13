@@ -452,6 +452,16 @@ Ext.define('Ext.data.reader.Reader', {
     },
 
     /**
+     * Returns the shared null result set.
+     * @return {Ext.data.Result} The null result set.
+     * 
+     * @private
+     */
+    getNullResultSet: function() {
+        return this.nullResultSet;
+    },
+
+    /**
      * Creates an object that identifies a read error occurred.
      * @param {String} msg An error message to include
      * @return {Object} An error object
@@ -594,6 +604,11 @@ Ext.define('Ext.data.reader.Reader', {
                     record = me.extractRecord(node, readOptions, entityType, includes,
                                               fieldExtractorInfo);
                 }
+
+                if (record.isModel) {
+                    // Trees need to be able to access the raw data (the XML node) in order to process its children.
+                    record.raw = node;
+                }
             }
             if (record.onLoad) {
                 record.onLoad();
@@ -643,6 +658,12 @@ Ext.define('Ext.data.reader.Reader', {
     },
     
     getFieldExtractorInfo: function(extractors) {
+        // If the base Ext.data.Model class is being used, there will be no extractor info
+        // The raw data block will be imported unchanged.
+        if (!extractors) {
+            return;
+        }
+
         var type = this.$className,
             extractor = extractors[type];
             

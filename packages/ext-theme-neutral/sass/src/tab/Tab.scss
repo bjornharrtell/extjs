@@ -8,11 +8,20 @@
  * @param {color} [$ui-background-color=$tab-base-color]
  * The background-color of Tabs
  *
+ * @param {color} [$ui-background-color-focus=$tab-base-color-focus]
+ * The background-color of focused Tabs
+ *
  * @param {color} [$ui-background-color-over=$tab-base-color-over]
  * The background-color of hovered Tabs
  *
  * @param {color} [$ui-background-color-active=$tab-base-color-active]
  * The background-color of the active Tab
+ *
+ * @param {color} [$ui-background-color-focus-over=$tab-base-color-focus-over]
+ * The background-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-background-color-focus-active=$tab-base-color-focus-active]
+ * The background-color of the active Tab when focused
  *
  * @param {color} [$ui-background-color-disabled=$tab-base-color-disabled]
  * The background-color of disabled Tabs
@@ -22,6 +31,24 @@
  *
  * @param {number/list} [$ui-border-width=$tab-border-width]
  * The border-width of Tabs
+ *
+ * @param {number/list} [$ui-border-width-focus=$tab-border-width-focus]
+ * The border-width of focused Tabs
+ *
+ * @param {number/list} [$ui-border-width-over=$tab-border-width-over]
+ * The border-width of hovered Tabs
+ *
+ * @param {number/list} [$ui-border-width-active=$tab-border-width-active]
+ * The border-width of active Tabs
+ *
+ * @param {number/list} [$ui-border-width-focus-over=$tab-border-width-focus-over]
+ * The border-width of focused hovered Tabs
+ *
+ * @param {number/list} [$ui-border-width-focus-active=$tab-border-width-focus-active]
+ * The border-width of active Tabs when focused
+ *
+ * @param {number/list} [$ui-border-width-disabled=$tab-border-width-disabled]
+ * The border-width of disabled Tabs
  *
  * @param {number/list} [$ui-margin=$tab-margin]
  * The border-width of Tabs
@@ -35,12 +62,21 @@
  * @param {color} [$ui-border-color=$tab-border-color]
  * The border-color of Tabs
  *
+ * @param {color} [$ui-border-color-focus=$tab-border-color-focus]
+ * The border-color of focused Tabs
+ *
  * @param {color} [$ui-border-color-over=$tab-border-color-over]
  * The border-color of hovered Tabs
  *
  * @param {color} [$ui-border-color-active=$tab-border-color-active]
  * The border-color of the active Tab
  *
+ * @param {color} [$ui-border-color-focus-over=$tab-border-color-focus-over]
+ * The border-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-border-color-focus-active=$tab-border-color-focus-active]
+ * The border-color of the active Tab when focused
+
  * @param {color} [$ui-border-color-disabled=$tab-border-color-disabled]
  * The border-color of disabled Tabs
  *
@@ -53,11 +89,20 @@
  * @param {number} [$ui-font-size=$tab-font-size]
  * The font-size of Tabs
  *
+ * @param {number} [$ui-font-size-focus=$tab-font-size-focus]
+ * The font-size of focused Tabs
+ *
  * @param {number} [$ui-font-size-over=$tab-font-size-over]
  * The font-size of hovered Tabs
  *
  * @param {number} [$ui-font-size-active=$tab-font-size-active]
  * The font-size of the active Tab
+ *
+ * @param {number} [$ui-font-size-focus-over=$tab-font-size-focus-over]
+ * The font-size of focused hovered Tabs
+ *
+ * @param {number} [$ui-font-size-focus-active=$tab-font-size-focus-active]
+ * The font-size of the active Tab when focused
  *
  * @param {number} [$ui-font-size-disabled=$tab-font-size-disabled]
  * The font-size of disabled Tabs
@@ -65,11 +110,20 @@
  * @param {string} [$ui-font-weight=$tab-font-weight]
  * The font-weight of Tabs
  *
+ * @param {string} [$ui-font-weight-focus=$tab-font-weight-focus]
+ * The font-weight of focused Tabs
+ *
  * @param {string} [$ui-font-weight-over=$tab-font-weight-over]
  * The font-weight of hovered Tabs
  *
  * @param {string} [$ui-font-weight-active=$tab-font-weight-active]
  * The font-weight of the active Tab
+ *
+ * @param {string} [$ui-font-weight-focus-over=$tab-font-weight-focus-over]
+ * The font-weight of focused hovered Tabs
+ *
+ * @param {string} [$ui-font-weight-focus-active=$tab-font-weight-focus-active]
+ * The font-weight of the active Tab when focused
  *
  * @param {string} [$ui-font-weight-disabled=$tab-font-weight-disabled]
  * The font-weight of disabled Tabs
@@ -77,11 +131,20 @@
  * @param {string} [$ui-font-family=$tab-font-family]
  * The font-family of Tabs
  *
+ * @param {string} [$ui-font-family-focus=$tab-font-family-focus]
+ * The font-family of focused Tabs
+ *
  * @param {string} [$ui-font-family-over=$tab-font-family-over]
  * The font-family of hovered Tabs
  *
  * @param {string} [$ui-font-family-active=$tab-font-family-active]
  * The font-family of the active Tab
+ *
+ * @param {string} [$ui-font-family-focus-over=$tab-font-family-focus-over]
+ * The font-family of focused hovered Tabs
+ *
+ * @param {string} [$ui-font-family-focus-active=$tab-font-family-focus-active]
+ * The font-family of the active Tab when focused
  *
  * @param {string} [$ui-font-family-disabled=$tab-font-family-disabled]
  * The font-family of disabled Tabs
@@ -92,11 +155,20 @@
  * @param {color} [$ui-color=$tab-color]
  * The text color of Tabs
  *
+ * @param {color} [$ui-color-focus=$tab-color-focus]
+ * The text color of focused Tabs
+ *
  * @param {color} [$ui-color-over=$tab-color-over]
  * The text color of hovered Tabs
  *
  * @param {color} [$ui-color-active=$tab-color-active]
  * The text color of the active Tab
+ *
+ * @param {color} [$ui-color-focus-over=$tab-color-focus-over]
+ * The text color of focused hovered Tabs
+ *
+ * @param {color} [$ui-color-focus-active=$tab-color-focus-active]
+ * The text color of the active Tab when focused
  *
  * @param {color} [$ui-color-disabled=$tab-color-disabled]
  * The text color of disabled Tabs
@@ -104,6 +176,11 @@
  * @param {string/list} [$ui-background-gradient=$tab-background-gradient]
  * The background-gradient for Tabs. Can be either the name of a predefined gradient
  * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string/list} [$ui-background-gradient-focus=$tab-background-gradient-focus]
+ * The background-gradient for focused Tabs. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  *
  * @param {string/list} [$ui-background-gradient-over=$tab-background-gradient-over]
@@ -116,6 +193,16 @@
  * or a list of color stops. Used as the `$type` parameter for 
  * {@link Global_CSS#background-gradient}.
  *
+ * @param {string/list} [$ui-background-gradient-focus-over=$tab-background-gradient-focus-over]
+ * The background-gradient for focused hovered Tabs. Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string/list} [$ui-background-gradient-focus-active=$tab-background-gradient-focus-active]
+ * The background-gradient for the active Tab when focused. Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
  * @param {string/list} [$ui-background-gradient-disabled=$tab-background-gradient-disabled]
  * The background-gradient for disabled Tabs. Can be either the name of a predefined gradient
  * or a list of color stops. Used as the `$type` parameter for 
@@ -124,8 +211,80 @@
  * @param {number} [$ui-inner-border-width=$tab-inner-border-width]
  * The inner border-width of Tabs
  *
+ * @param {number} [$ui-inner-border-width-focus=$tab-inner-border-width-focus]
+ * The inner border-width of focused Tabs
+ *
+ * @param {number} [$ui-inner-border-width-over=$tab-inner-border-width-over]
+ * The inner border-width of hovered Tabs
+ *
+ * @param {number} [$ui-inner-border-width-active=$tab-inner-border-width-active]
+ * The inner border-width of active Tabs
+ *
+ * @param {number} [$ui-inner-border-width-focus-over=$tab-inner-border-width-focus-over]
+ * The inner border-width of focused hovered Tabs
+ *
+ * @param {number} [$ui-inner-border-width-focus-active=$tab-inner-border-width-focus-active]
+ * The inner border-width of active Tabs when focused
+ *
+ * @param {number} [$ui-inner-border-width-disabled=$tab-inner-border-width-disabled]
+ * The inner border-width of disabled Tabs
+ *
  * @param {color} [$ui-inner-border-color=$tab-inner-border-color]
  * The inner border-color of Tabs
+ *
+ * @param {color} [$ui-inner-border-color-focus=$tab-inner-border-color-focus]
+ * The inner border-color of focused Tabs
+ *
+ * @param {color} [$ui-inner-border-color-over=$tab-inner-border-color-over]
+ * The inner border-color of hovered Tabs
+ *
+ * @param {color} [$ui-inner-border-color-active=$tab-inner-border-color-active]
+ * The inner border-color of active Tabs
+ *
+ * @param {color} [$ui-inner-border-color-focus-over=$tab-inner-border-color-focus-over]
+ * The inner border-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-inner-border-color-focus-active=$tab-inner-border-color-focus-active]
+ * The inner border-color of active Tabs when focused
+ *
+ * @param {color} [$ui-inner-border-color-disabled=$tab-inner-border-color-disabled]
+ * The inner border-color of disabled Tabs
+ *
+ * @param {boolean} [$ui-inner-border-collapse=$tab-inner-border-collapse]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ *
+ * @param {boolean} [$ui-inner-border-collapse-focus=$tab-inner-border-collapse-focus]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused
+ *
+ * @param {boolean} [$ui-inner-border-collapse-over=$tab-inner-border-collapse-over]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is hovered
+ *
+ * @param {boolean} [$ui-inner-border-collapse-active=$tab-inner-border-collapse-active]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is active
+ *
+ * @param {boolean} [$ui-inner-border-collapse-focus-over=$tab-inner-border-collapse-focus-over]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused and hovered
+ *
+ * @param {boolean} [$ui-inner-border-collapse-focus-active=$tab-inner-border-collapse-focus-active]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused and active
+ *
+ * @param {boolean} [$ui-inner-border-collapse-disabled=$tab-inner-border-collapse-disabled]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is disabled
+ *
+ * @param {number} [$ui-body-outline-width-focus=$tab-body-outline-width-focus]
+ * The body outline width of focused Tabs
+ *
+ * @param {string} [$ui-body-outline-style-focus=$tab-body-outline-style-focus]
+ * The body outline-style of focused Tabs
+ *
+ * @param {color} [$ui-body-outline-color-focus=$tab-body-outline-color-focus]
+ * The body outline color of focused Tabs
  *
  * @param {number} [$ui-icon-width=$tab-icon-width]
  * The width of the Tab close icon
@@ -142,11 +301,20 @@
  * @param {color} [$ui-glyph-color=$tab-glyph-color]
  * The color of Tab glyph icons
  *
+ * @param {color} [$ui-glyph-color-focus=$tab-glyph-color-focus]
+ * The color of a Tab glyph icon when the Tab is focused
+ *
  * @param {color} [$ui-glyph-color-over=$tab-glyph-color-over]
  * The color of a Tab glyph icon when the Tab is hovered
  *
  * @param {color} [$ui-glyph-color-active=$tab-glyph-color-active]
  * The color of a Tab glyph icon when the Tab is active
+ *
+ * @param {color} [$ui-glyph-color-focus-over=$tab-glyph-color-focus-over]
+ * The color of a Tab glyph icon when the Tab is focused and hovered
+ *
+ * @param {color} [$ui-glyph-color-focus-active=$tab-glyph-color-focus-active]
+ * The color of a Tab glyph icon when the Tab is focused and active
  *
  * @param {color} [$ui-glyph-color-disabled=$tab-glyph-color-disabled]
  * The color of a Tab glyph icon when the Tab is disabled
@@ -181,63 +349,119 @@
  * @param {number} [$ui-closable-icon-spacing=$tab-closable-icon-spacing]
  * The space in between the text and the close button
  *
- * @param {color} [$ui-border-bottom-color=$tabbar-strip-border-color]
- * The bottom border color of inactive tabs.
- *
  * @member Ext.tab.Tab
  */ 
 @mixin extjs-tab-ui(
     $ui,
     
-    $ui-background-color: $tab-base-color,
-    $ui-background-color-over: $tab-base-color-over,
-    $ui-background-color-active: $tab-base-color-active,
-    $ui-background-color-disabled: $tab-base-color-disabled,
+    $ui-background-color: null,
+    $ui-background-color-focus: null,
+    $ui-background-color-over: null,
+    $ui-background-color-active: null,
+    $ui-background-color-focus-over: null,
+    $ui-background-color-focus-active: null,
+    $ui-background-color-disabled: null,
+
     $ui-border-radius: $tab-border-radius,
     $ui-border-width: $tab-border-width,
     $ui-margin: $tab-margin,
     $ui-padding: $tab-padding,
     $ui-text-padding: $tab-text-padding,
-    $ui-border-color: $tab-border-color,
-    $ui-border-color-over: $tab-border-color-over,
-    $ui-border-color-active: $tab-border-color-active,
-    $ui-border-color-disabled: $tab-border-color-disabled,
+
+    $ui-border-color: null,
+    $ui-border-color-focus: null,
+    $ui-border-color-over: null,
+    $ui-border-color-active: null,
+    $ui-border-color-focus-over: null,
+    $ui-border-color-focus-active: null,
+    $ui-border-color-disabled: null,
+
     $ui-cursor: $tab-cursor,
     $ui-cursor-disabled: $tab-cursor-disabled,
-    $ui-font-size: $tab-font-size,
-    $ui-font-size-over: $tab-font-size-over,
-    $ui-font-size-active: $tab-font-size-active,
-    $ui-font-size-disabled: $tab-font-size-disabled,
-    $ui-font-weight: $tab-font-weight,
-    $ui-font-weight-over: $tab-font-weight-over,
-    $ui-font-weight-active: $tab-font-weight-active,
-    $ui-font-weight-disabled: $tab-font-weight-disabled,
-    $ui-font-family: $tab-font-family,
-    $ui-font-family-over: $tab-font-family-over,
-    $ui-font-family-active: $tab-font-family-active,
-    $ui-font-family-disabled: $tab-font-family-disabled,
-    $ui-line-height: $tab-line-height,
-    $ui-color: $tab-color,
-    $ui-color-over: $tab-color-over,
-    $ui-color-active: $tab-color-active,
-    $ui-color-disabled: $tab-color-disabled,
-    $ui-background-gradient: $tab-background-gradient,
-    $ui-background-gradient-over: $tab-background-gradient-over,
-    $ui-background-gradient-active: $tab-background-gradient-active,
-    $ui-background-gradient-disabled: $tab-background-gradient-disabled,
 
-    $ui-inner-border-width: $tab-inner-border-width,
-    $ui-inner-border-color: $tab-inner-border-color,
+    $ui-font-size: null,
+    $ui-font-size-focus: null,
+    $ui-font-size-over: null,
+    $ui-font-size-active: null,
+    $ui-font-size-focus-over: null,
+    $ui-font-size-focus-active: null,
+    $ui-font-size-disabled: null,
+
+    $ui-font-weight: null,
+    $ui-font-weight-focus: null,
+    $ui-font-weight-over: null,
+    $ui-font-weight-active: null,
+    $ui-font-weight-focus-over: null,
+    $ui-font-weight-focus-active: null,
+    $ui-font-weight-disabled: null,
+
+    $ui-font-family: null,
+    $ui-font-family-focus: null,
+    $ui-font-family-over: null,
+    $ui-font-family-active: null,
+    $ui-font-family-focus-over: null,
+    $ui-font-family-focus-active: null,
+    $ui-font-family-disabled: null,
+
+    $ui-line-height: $tab-line-height,
+
+    $ui-color: null,
+    $ui-color-focus: null,
+    $ui-color-over: null,
+    $ui-color-active: null,
+    $ui-color-focus-over: null,
+    $ui-color-focus-active: null,
+    $ui-color-disabled: null,
+
+    $ui-background-gradient: null,
+    $ui-background-gradient-focus: null,
+    $ui-background-gradient-over: null,
+    $ui-background-gradient-active: null,
+    $ui-background-gradient-focus-over: null,
+    $ui-background-gradient-focus-active: null,
+    $ui-background-gradient-disabled: null,
+
+    $ui-inner-border-width: null,
+    $ui-inner-border-width-focus: null,
+    $ui-inner-border-width-over: null,
+    $ui-inner-border-width-active: null,
+    $ui-inner-border-width-focus-over: null,
+    $ui-inner-border-width-focus-active: null,
+    $ui-inner-border-width-disabled: null,
+
+    $ui-inner-border-color: null,
+    $ui-inner-border-color-focus: null,
+    $ui-inner-border-color-over: null,
+    $ui-inner-border-color-active: null,
+    $ui-inner-border-color-focus-over: null,
+    $ui-inner-border-color-focus-active: null,
+    $ui-inner-border-color-disabled: null,
+
+    $ui-inner-border-collapse: null,
+    $ui-inner-border-collapse-focus: null,
+    $ui-inner-border-collapse-over: null,
+    $ui-inner-border-collapse-active: null,
+    $ui-inner-border-collapse-focus-over: null,
+    $ui-inner-border-collapse-focus-active: null,
+    $ui-inner-border-collapse-disabled: null,
+
+    $ui-body-outline-width-focus: $tab-body-outline-width-focus,
+    $ui-body-outline-style-focus: $tab-body-outline-style-focus,
+    $ui-body-outline-color-focus: $tab-body-outline-color-focus,
 
     $ui-icon-width: $tab-icon-width,
     $ui-icon-height: $tab-icon-height,
     $ui-icon-spacing: $tab-icon-spacing,
     $ui-icon-background-position: $tab-icon-background-position,
 
-    $ui-glyph-color: $tab-glyph-color,
-    $ui-glyph-color-over: $tab-glyph-color-over,
-    $ui-glyph-color-active: $tab-glyph-color-active,
-    $ui-glyph-color-disabled: $tab-glyph-color-disabled,
+    $ui-glyph-color: null,
+    $ui-glyph-color-focus: null,
+    $ui-glyph-color-over: null,
+    $ui-glyph-color-active: null,
+    $ui-glyph-color-focus-over: null,
+    $ui-glyph-color-focus-active: null,
+    $ui-glyph-color-disabled: null,
+
     $ui-glyph-opacity: $tab-glyph-opacity,
     $ui-glyph-opacity-disabled: $tab-glyph-opacity-disabled,
 
@@ -249,10 +473,551 @@
     $ui-closable-icon-height: $tab-closable-icon-height,
     $ui-closable-icon-top: $tab-closable-icon-top,
     $ui-closable-icon-right: $tab-closable-icon-right,
-    $ui-closable-icon-spacing: $tab-closable-icon-spacing,
-    
-    $ui-border-bottom-color: $tabbar-strip-border-color
+    $ui-closable-icon-spacing: $tab-closable-icon-spacing
 ) {
+
+    @if $ui-background-color == null {
+        $ui-background-color: $tab-base-color;
+
+        @if $ui-background-color-focus == null {
+            $ui-background-color-focus: $tab-base-color-focus;
+        }
+
+        @if $ui-background-color-disabled == null {
+            $ui-background-color-disabled: $tab-base-color-disabled;
+        }
+    } @else {
+        @if $ui-background-color-focus == null {
+            $ui-background-color-focus: $ui-background-color;
+        }
+
+        @if $ui-background-color-disabled == null {
+            $ui-background-color-disabled: $ui-background-color;
+        }
+    }
+
+    @if $ui-background-color-over == null {
+        $ui-background-color-over: $tab-base-color-over;
+
+        @if $ui-background-color-focus-over == null {
+            $ui-background-color-focus-over: $tab-base-color-focus-over;
+        }
+    } @else {
+        @if $ui-background-color-focus-over == null {
+            $ui-background-color-focus-over: $ui-background-color-over;
+        }
+    }
+
+    @if $ui-background-color-active == null {
+        $ui-background-color-active: $tab-base-color-active;
+
+        @if $ui-background-color-focus-active == null {
+            $ui-background-color-focus-active: $tab-base-color-focus-active;
+        }
+    } @else {
+        @if $ui-background-color-focus-active == null {
+            $ui-background-color-focus-active: $ui-background-color-active;
+        }
+    }
+
+    @if $ui-border-color == null {
+        $ui-border-color: $tab-border-color;
+
+        @if $ui-border-color-focus == null {
+            $ui-border-color-focus: $tab-border-color-focus;
+        }
+
+        @if $ui-border-color-disabled == null {
+            $ui-border-color-disabled: $tab-border-color-disabled;
+        }
+    } @else {
+        @if $ui-border-color-focus == null {
+            $ui-border-color-focus: $ui-border-color;
+        }
+
+        @if $ui-border-color-disabled == null {
+            $ui-border-color-disabled: $ui-border-color;
+        }
+    }
+
+    @if $ui-border-color-over == null {
+        $ui-border-color-over: $tab-border-color-over;
+
+        @if $ui-border-color-focus-over == null {
+            $ui-border-color-focus-over: $tab-border-color-focus-over;
+        }
+    } @else {
+        @if $ui-border-color-focus-over == null {
+            $ui-border-color-focus-over: $ui-border-color-over;
+        }
+    }
+
+    @if $ui-border-color-active == null {
+        $ui-border-color-active: $tab-border-color-active;
+
+        @if $ui-border-color-focus-active == null {
+            $ui-border-color-focus-active: $tab-border-color-focus-active;
+        }
+    } @else {
+        @if $ui-border-color-focus-active == null {
+            $ui-border-color-focus-active: $ui-border-color-active;
+        }
+    }
+
+    @if $ui-font-size == null {
+        $ui-font-size: $tab-font-size;
+
+        @if $ui-font-size-focus == null {
+            $ui-font-size-focus: $tab-font-size-focus;
+        }
+
+        @if $ui-font-size-over == null {
+            $ui-font-size-over: $tab-font-size-over;
+        }
+
+        @if $ui-font-size-active == null {
+            $ui-font-size-active: $tab-font-size-active;
+        }
+
+        @if $ui-font-size-focus-over == null {
+            $ui-font-size-focus-over: $tab-font-size-focus-over;
+        }
+
+        @if $ui-font-size-focus-active == null {
+            $ui-font-size-focus-active: $tab-font-size-focus-active;
+        }
+
+        @if $ui-font-size-disabled == null {
+            $ui-font-size-disabled: $tab-font-size-disabled;
+        }
+    } @else {
+        @if $ui-font-size-focus == null {
+            $ui-font-size-focus: $ui-font-size;
+        }
+
+        @if $ui-font-size-over == null {
+            $ui-font-size-over: $ui-font-size;
+        }
+
+        @if $ui-font-size-active == null {
+            $ui-font-size-active: $ui-font-size;
+        }
+
+        @if $ui-font-size-focus-over == null {
+            $ui-font-size-focus-over: $ui-font-size-focus;
+        }
+
+        @if $ui-font-size-focus-active == null {
+            $ui-font-size-focus-active: $ui-font-size-focus;
+        }
+
+        @if $ui-font-size-disabled == null {
+            $ui-font-size-disabled: $ui-font-size;
+        }
+    }
+
+    @if $ui-font-weight == null {
+        $ui-font-weight: $tab-font-weight;
+
+        @if $ui-font-weight-focus == null {
+            $ui-font-weight-focus: $tab-font-weight-focus;
+        }
+
+        @if $ui-font-weight-over == null {
+            $ui-font-weight-over: $tab-font-weight-over;
+        }
+
+        @if $ui-font-weight-active == null {
+            $ui-font-weight-active: $tab-font-weight-active;
+        }
+
+        @if $ui-font-weight-focus-over == null {
+            $ui-font-weight-focus-over: $tab-font-weight-focus-over;
+        }
+
+        @if $ui-font-weight-focus-active == null {
+            $ui-font-weight-focus-active: $tab-font-weight-focus-active;
+        }
+
+        @if $ui-font-weight-disabled == null {
+            $ui-font-weight-disabled: $tab-font-weight-disabled;
+        }
+    } @else {
+        @if $ui-font-weight-focus == null {
+            $ui-font-weight-focus: $ui-font-weight;
+        }
+
+        @if $ui-font-weight-over == null {
+            $ui-font-weight-over: $ui-font-weight;
+        }
+
+        @if $ui-font-weight-active == null {
+            $ui-font-weight-active: $ui-font-weight;
+        }
+
+        @if $ui-font-weight-focus-over == null {
+            $ui-font-weight-focus-over: $ui-font-weight-focus;
+        }
+
+        @if $ui-font-weight-focus-active == null {
+            $ui-font-weight-focus-active: $ui-font-weight-focus;
+        }
+
+        @if $ui-font-weight-disabled == null {
+            $ui-font-weight-disabled: $ui-font-weight;
+        }
+    }
+
+    @if $ui-font-family == null {
+        $ui-font-family: $tab-font-family;
+
+        @if $ui-font-family-focus == null {
+            $ui-font-family-focus: $tab-font-family-focus;
+        }
+
+        @if $ui-font-family-over == null {
+            $ui-font-family-over: $tab-font-family-over;
+        }
+
+        @if $ui-font-family-active == null {
+            $ui-font-family-active: $tab-font-family-active;
+        }
+
+        @if $ui-font-family-focus-over == null {
+            $ui-font-family-focus-over: $tab-font-family-focus-over;
+        }
+
+        @if $ui-font-family-focus-active == null {
+            $ui-font-family-focus-active: $tab-font-family-focus-active;
+        }
+
+        @if $ui-font-family-disabled == null {
+            $ui-font-family-disabled: $tab-font-family-disabled;
+        }
+    } @else {
+        @if $ui-font-family-focus == null {
+            $ui-font-family-focus: $ui-font-family;
+        }
+
+        @if $ui-font-family-over == null {
+            $ui-font-family-over: $ui-font-family;
+        }
+
+        @if $ui-font-family-active == null {
+            $ui-font-family-active: $ui-font-family;
+        }
+
+        @if $ui-font-family-focus-over == null {
+            $ui-font-family-focus-over: $ui-font-family-focus;
+        }
+
+        @if $ui-font-family-focus-active == null {
+            $ui-font-family-focus-active: $ui-font-family-focus;
+        }
+
+        @if $ui-font-family-disabled == null {
+            $ui-font-family-disabled: $ui-font-family;
+        }
+    }
+
+    @if $ui-color == null {
+        $ui-color: $tab-color;
+
+        @if $ui-color-focus == null {
+            $ui-color-focus: $tab-color-focus;
+        }
+
+        @if $ui-color-disabled == null {
+            $ui-color-disabled: $tab-color-disabled;
+        }
+    } @else {
+        @if $ui-color-focus == null {
+            $ui-color-focus: $ui-color;
+        }
+
+        @if $ui-color-disabled == null {
+            $ui-color-disabled: $ui-color;
+        }
+    }
+
+    @if $ui-color-over == null {
+        $ui-color-over: $tab-color-over;
+
+        @if $ui-color-focus-over == null {
+            $ui-color-focus-over: $tab-color-focus-over;
+        }
+    } @else {
+        @if $ui-color-focus-over == null {
+            $ui-color-focus-over: $ui-color-over;
+        }
+    }
+
+    @if $ui-color-active == null {
+        $ui-color-active: $tab-color-active;
+
+        @if $ui-color-focus-active == null {
+            $ui-color-focus-active: $tab-color-focus-active;
+        }
+    } @else {
+        @if $ui-color-focus-active == null {
+            $ui-color-focus-active: $ui-color-active;
+        }
+    }
+
+    @if $ui-background-gradient == null {
+        $ui-background-gradient: $tab-background-gradient;
+
+        @if $ui-background-gradient-focus == null {
+            $ui-background-gradient-focus: $tab-background-gradient-focus;
+        }
+
+        @if $ui-background-gradient-disabled == null {
+            $ui-background-gradient-disabled: $tab-background-gradient-disabled;
+        }
+    } @else {
+        @if $ui-background-gradient-focus == null {
+            $ui-background-gradient-focus: $ui-background-gradient;
+        }
+
+        @if $ui-background-gradient-disabled == null {
+            $ui-background-gradient-disabled: $ui-background-gradient;
+        }
+    }
+
+    @if $ui-background-gradient-over == null {
+        $ui-background-gradient-over: $tab-background-gradient-over;
+
+        @if $ui-background-gradient-focus-over == null {
+            $ui-background-gradient-focus-over: $tab-background-gradient-focus-over;
+        }
+    } @else {
+        @if $ui-background-gradient-focus-over == null {
+            $ui-background-gradient-focus-over: $ui-background-gradient-over;
+        }
+    }
+
+    @if $ui-background-gradient-active == null {
+        $ui-background-gradient-active: $tab-background-gradient-active;
+
+        @if $ui-background-gradient-focus-active == null {
+            $ui-background-gradient-focus-active: $tab-background-gradient-focus-active;
+        }
+    } @else {
+        @if $ui-background-gradient-focus-active == null {
+            $ui-background-gradient-focus-active: $ui-background-gradient-active;
+        }
+    }
+
+    @if $ui-inner-border-width == null {
+        $ui-inner-border-width: $tab-inner-border-width;
+
+        @if $ui-inner-border-width-focus == null {
+            $ui-inner-border-width-focus: $tab-inner-border-width-focus;
+        }
+
+        @if $ui-inner-border-width-over == null {
+            $ui-inner-border-width-over: $tab-inner-border-width-over;
+        }
+
+        @if $ui-inner-border-width-active == null {
+            $ui-inner-border-width-active: $tab-inner-border-width-active;
+        }
+
+        @if $ui-inner-border-width-focus-over == null {
+            $ui-inner-border-width-focus-over: $tab-inner-border-width-focus-over;
+        }
+
+        @if $ui-inner-border-width-focus-active == null {
+            $ui-inner-border-width-focus-active: $tab-inner-border-width-focus-active;
+        }
+
+        @if $ui-inner-border-width-disabled == null {
+            $ui-inner-border-width-disabled: $tab-inner-border-width-disabled;
+        }
+    } @else {
+        @if $ui-inner-border-width-focus == null {
+            $ui-inner-border-width-focus: $ui-inner-border-width;
+        }
+
+        @if $ui-inner-border-width-over == null {
+            $ui-inner-border-width-over: $ui-inner-border-width;
+        }
+
+        @if $ui-inner-border-width-active == null {
+            $ui-inner-border-width-active: $ui-inner-border-width;
+        }
+
+        @if $ui-inner-border-width-focus-over == null {
+            $ui-inner-border-width-focus-over: $ui-inner-border-width-focus;
+        }
+
+        @if $ui-inner-border-width-focus-active == null {
+            $ui-inner-border-width-focus-active: $ui-inner-border-width-focus;
+        }
+
+        @if $ui-inner-border-width-disabled == null {
+            $ui-inner-border-width-disabled: $ui-inner-border-width;
+        }
+    }
+
+    @if $ui-inner-border-color == null {
+        $ui-inner-border-color: tab-inner-border-color($ui-background-color, $ui-border-color);
+
+        @if $ui-inner-border-color-focus == null {
+            $ui-inner-border-color-focus: $tab-inner-border-color-focus;
+        }
+
+        @if $ui-inner-border-color-over == null {
+            $ui-inner-border-color-over: $tab-inner-border-color-over;
+        }
+
+        @if $ui-inner-border-color-active == null {
+            $ui-inner-border-color-active: $tab-inner-border-color-active;
+        }
+
+        @if $ui-inner-border-color-focus-over == null {
+            $ui-inner-border-color-focus-over: $tab-inner-border-color-focus-over;
+        }
+
+        @if $ui-inner-border-color-focus-active == null {
+            $ui-inner-border-color-focus-active: $tab-inner-border-color-focus-active;
+        }
+
+        @if $ui-inner-border-color-disabled == null {
+            $ui-inner-border-color-disabled: $tab-inner-border-color-disabled;
+        }
+    } @else {
+        @if $ui-inner-border-color-focus == null {
+            $ui-inner-border-color-focus: tab-inner-border-color-focus($ui-background-color-focus, $ui-border-color-focus);
+        }
+
+        @if $ui-inner-border-color-over == null {
+            $ui-inner-border-color-over: tab-inner-border-color-over($ui-background-color-over, $ui-border-color-over);
+        }
+
+        @if $ui-inner-border-color-active == null {
+            $ui-inner-border-color-active: tab-inner-border-color-active($ui-background-color-active, $ui-border-color-active);
+        }
+
+        @if $ui-inner-border-color-focus-over == null {
+            $ui-inner-border-color-focus-over: tab-inner-border-color-focus-over($ui-background-color-focus-over, $ui-border-color-focus-over);
+        }
+
+        @if $ui-inner-border-color-focus-active == null {
+            $ui-inner-border-color-focus-active: tab-inner-border-color-focus-active($ui-background-color-focus-active, $ui-border-color-focus-active);
+        }
+
+        @if $ui-inner-border-color-disabled == null {
+            $ui-inner-border-color-disabled: tab-inner-border-color-disabled($ui-background-color-disabled, $ui-border-color-disabled);
+        }
+    }
+
+    @if $ui-inner-border-collapse == null {
+        $ui-inner-border-collapse: $tab-inner-border-collapse;
+
+        @if $ui-inner-border-collapse-focus == null {
+            $ui-inner-border-collapse-focus: $tab-inner-border-collapse-focus;
+        }
+
+        @if $ui-inner-border-collapse-over == null {
+            $ui-inner-border-collapse-over: $tab-inner-border-collapse-over;
+        }
+
+        @if $ui-inner-border-collapse-active == null {
+            $ui-inner-border-collapse-active: $tab-inner-border-collapse-active;
+        }
+
+        @if $ui-inner-border-collapse-focus-over == null {
+            $ui-inner-border-collapse-focus-over: $tab-inner-border-collapse-focus-over;
+        }
+
+        @if $ui-inner-border-collapse-focus-active == null {
+            $ui-inner-border-collapse-focus-active: $tab-inner-border-collapse-focus-active;
+        }
+
+        @if $ui-inner-border-collapse-disabled == null {
+            $ui-inner-border-collapse-disabled: $tab-inner-border-collapse-disabled;
+        }
+    } @else {
+        @if $ui-inner-border-collapse-focus == null {
+            $ui-inner-border-collapse-focus: $ui-inner-border-collapse;
+        }
+
+        @if $ui-inner-border-collapse-over == null {
+            $ui-inner-border-collapse-over: $ui-inner-border-collapse;
+        }
+
+        @if $ui-inner-border-collapse-active == null {
+            $ui-inner-border-collapse-active: $ui-inner-border-collapse;
+        }
+
+        @if $ui-inner-border-collapse-focus-over == null {
+            $ui-inner-border-collapse-focus-over: $ui-inner-border-collapse-focus;
+        }
+
+        @if $ui-inner-border-collapse-focus-active == null {
+            $ui-inner-border-collapse-focus-active: $ui-inner-border-collapse-focus;
+        }
+
+        @if $ui-inner-border-collapse-disabled == null {
+            $ui-inner-border-collapse-disabled: $ui-inner-border-collapse;
+        }
+    }
+
+    @if $ui-glyph-color == null {
+        $ui-glyph-color: $tab-glyph-color;
+
+        @if $ui-glyph-color-focus == null {
+            $ui-glyph-color-focus: $tab-glyph-color-focus;
+        }
+
+        @if $ui-glyph-color-disabled == null {
+            $ui-glyph-color-disabled: $tab-glyph-color-disabled;
+        }
+    } @else {
+        @if $ui-glyph-color-focus == null {
+            $ui-glyph-color-focus: $ui-glyph-color;
+        }
+
+        @if $ui-glyph-color-disabled == null {
+            $ui-glyph-color-disabled: $ui-glyph-color;
+        }
+    }
+
+    @if $ui-glyph-color-over == null {
+        $ui-glyph-color-over: $tab-glyph-color-over;
+
+        @if $ui-glyph-color-focus-over == null {
+            $ui-glyph-color-focus-over: $tab-glyph-color-focus-over;
+        }
+    } @else {
+        @if $ui-glyph-color-focus-over == null {
+            $ui-glyph-color-focus-over: $ui-glyph-color-over;
+        }
+    }
+
+    @if $ui-glyph-color-active == null {
+        $ui-glyph-color-active: $tab-glyph-color-active;
+
+        @if $ui-glyph-color-focus-active == null {
+            $ui-glyph-color-focus-active: $tab-glyph-color-focus-active;
+        }
+    } @else {
+        @if $ui-glyph-color-focus-active == null {
+            $ui-glyph-color-focus-active: $ui-glyph-color-active;
+        }
+    }
+
+    $inner-border-max: max(
+        max(top($ui-inner-border-width) right($ui-inner-border-width) bottom($ui-inner-border-width) left($ui-inner-border-width))
+        max(top($ui-inner-border-width-focus) right($ui-inner-border-width-focus) bottom($ui-inner-border-width-focus) left($ui-inner-border-width-focus))
+        max(top($ui-inner-border-width-over) right($ui-inner-border-width-over) bottom($ui-inner-border-width-over) left($ui-inner-border-width-over))
+        max(top($ui-inner-border-width-active) right($ui-inner-border-width-active) bottom($ui-inner-border-width-active) left($ui-inner-border-width-active))
+        max(top($ui-inner-border-width-disabled) right($ui-inner-border-width-disabled) bottom($ui-inner-border-width-disabled) left($ui-inner-border-width-disabled))
+    );
+
+    $frame-size: frame-size($ui-border-width, $inner-border-max, $ui-border-radius);
+
     @include x-frame(
         $cls: 'tab',
         $ui: $ui + '-top',
@@ -262,6 +1027,7 @@
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
         $padding: $ui-padding,
+        $inner-border-width: $ui-inner-border-width,
         $table: true
     );
 
@@ -274,6 +1040,7 @@
         $background-gradient: $ui-background-gradient,
         $background-direction: bottom,
         $padding: rotate180($ui-padding),
+        $inner-border-width: $ui-inner-border-width,
         $table: true
     );
 
@@ -286,6 +1053,7 @@
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
         $padding: $ui-padding,
+        $inner-border-width: $ui-inner-border-width,
         $table: true
     );
 
@@ -298,6 +1066,7 @@
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
         $padding: $ui-padding,
+        $inner-border-width: $ui-inner-border-width,
         $table: true
     );
 
@@ -305,6 +1074,9 @@
         border-color: $ui-border-color;
         @if not is-null($ui-cursor) {
             cursor: $ui-cursor;
+        }
+        @if not is-null($ui-inner-border-width) and not is-null($ui-inner-border-color) and $ui-inner-border-width != 0 {
+            @include inner-border($ui-inner-border-width, $ui-inner-border-color);
         }
     }
 
@@ -327,11 +1099,99 @@
             }
         }
 
-        @if $ui-inner-border-width != 0 {
+        @if not is-null($ui-inner-border-width) and not is-null($ui-inner-border-color) and $ui-inner-border-width != 0 {
             @include inner-border(
-                $width: $ui-inner-border-width,
-                $color: $ui-inner-border-color
+                if(
+                    $ui-inner-border-collapse,
+                    top($ui-inner-border-width) right($ui-inner-border-width) 0 left($ui-inner-border-width),
+                    $ui-inner-border-width
+                ),
+                $ui-inner-border-color
             );
+        }
+
+        @if not is-null($ui-inner-border-width-focus) and not is-null($ui-inner-border-color-focus) {
+            &.#{$prefix}tab-focus {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus,
+                        top($ui-inner-border-width-focus) right($ui-inner-border-width-focus) 0 left($ui-inner-border-width-focus),
+                        $ui-inner-border-width-focus
+                    ),
+                    $ui-inner-border-color-focus
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-over) and not is-null($ui-inner-border-color-over) {
+            &.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-over,
+                        top($ui-inner-border-width-over) right($ui-inner-border-width-over) 0 left($ui-inner-border-width-over),
+                        $ui-inner-border-width-over
+                    ),
+                    $ui-inner-border-color-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-over) and not is-null($ui-inner-border-color-focus-over) and
+                ($ui-inner-border-width-focus-over != $ui-inner-border-width-over or
+                $ui-inner-border-color-focus-over != $ui-inner-border-color-over or
+                $ui-inner-border-collapse-focus-over != $ui-inner-border-collapse-over) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-over,
+                        top($ui-inner-border-width-focus-over) right($ui-inner-border-width-focus-over) 0 left($ui-inner-border-width-focus-over),
+                        $ui-inner-border-width-focus-over
+                    ),
+                    $ui-inner-border-color-focus-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-active) and not is-null($ui-inner-border-color-active) {
+            &.#{$prefix}tab.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-active,
+                        top($ui-inner-border-width-active) right($ui-inner-border-width-active) 0 left($ui-inner-border-width-active),
+                        $ui-inner-border-width-active
+                    ),
+                    $ui-inner-border-color-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-active) and not is-null($ui-inner-border-color-focus-active) and
+                ($ui-inner-border-width-focus-active != $ui-inner-border-width-active or
+                $ui-inner-border-color-focus-active != $ui-inner-border-color-active or
+                $ui-inner-border-collapse-focus-active != $ui-inner-border-collapse-active) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-active,
+                        top($ui-inner-border-width-focus-active) right($ui-inner-border-width-focus-active) 0 left($ui-inner-border-width-focus-active),
+                        $ui-inner-border-width-focus-active
+                    ),
+                    $ui-inner-border-color-focus-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-disabled) and not is-null($ui-inner-border-color-disabled) {
+            &.#{$prefix}tab.#{$prefix}tab-disabled {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-disabled,
+                        top($ui-inner-border-width-disabled) right($ui-inner-border-width-disabled) 0 left($ui-inner-border-width-disabled),
+                        $ui-inner-border-width-disabled
+                    ),
+                    $ui-inner-border-color-disabled
+                );
+            }
         }
     }
 
@@ -354,13 +1214,99 @@
             }
         }
 
-        @if $ui-inner-border-width != 0 {
+        @if not is-null($ui-inner-border-width) and not is-null($ui-inner-border-color) and $ui-inner-border-width != 0 {
             @include inner-border(
-                // suppress the bottom and left inner border, since the bottom pixel is
-                // stretched by the slicer, and the left border connects to the tab strip
-                $width: top($ui-inner-border-width) right($ui-inner-border-width) 0 0,
-                $color: $ui-inner-border-color
+                if(
+                    $ui-inner-border-collapse,
+                    top($ui-inner-border-width) right($ui-inner-border-width) bottom($ui-inner-border-width) 0,
+                    $ui-inner-border-width
+                ),
+                $ui-inner-border-color
             );
+        }
+
+        @if not is-null($ui-inner-border-width-focus) and not is-null($ui-inner-border-color-focus) {
+            &.#{$prefix}tab-focus {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus,
+                        top($ui-inner-border-width-focus) right($ui-inner-border-width-focus) bottom($ui-inner-border-width-focus) 0,
+                        $ui-inner-border-width-focus
+                    ),
+                    $ui-inner-border-color-focus
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-over) and not is-null($ui-inner-border-color-over) {
+            &.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-over,
+                        top($ui-inner-border-width-over) right($ui-inner-border-width-over) bottom($ui-inner-border-width-over) 0,
+                        $ui-inner-border-width-over
+                    ),
+                    $ui-inner-border-color-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-over) and not is-null($ui-inner-border-color-focus-over) and
+                ($ui-inner-border-width-focus-over != $ui-inner-border-width-over or
+                $ui-inner-border-color-focus-over != $ui-inner-border-color-over or
+                $ui-inner-border-collapse-focus-over != $ui-inner-border-collapse-over) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-over,
+                        top($ui-inner-border-width-focus-over) right($ui-inner-border-width-focus-over) bottom($ui-inner-border-width-focus-over) 0,
+                        $ui-inner-border-width-focus-over
+                    ),
+                    $ui-inner-border-color-focus-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-active) and not is-null($ui-inner-border-color-active) {
+            &.#{$prefix}tab.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-active,
+                        top($ui-inner-border-width-active) right($ui-inner-border-width-active) bottom($ui-inner-border-width-active) 0,
+                        $ui-inner-border-width-active
+                    ),
+                    $ui-inner-border-color-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-active) and not is-null($ui-inner-border-color-focus-active) and
+                ($ui-inner-border-width-focus-active != $ui-inner-border-width-active or
+                $ui-inner-border-color-focus-active != $ui-inner-border-color-active or
+                $ui-inner-border-collapse-focus-active != $ui-inner-border-collapse-active) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-active,
+                        top($ui-inner-border-width-focus-active) right($ui-inner-border-width-focus-active) bottom($ui-inner-border-width-focus-active) 0,
+                        $ui-inner-border-width-focus-active
+                    ),
+                    $ui-inner-border-color-focus-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-disabled) and not is-null($ui-inner-border-color-disabled) {
+            &.#{$prefix}tab.#{$prefix}tab-disabled {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-disabled,
+                        top($ui-inner-border-width-disabled) right($ui-inner-border-width-disabled) bottom($ui-inner-border-width-disabled) 0,
+                        $ui-inner-border-width-disabled
+                    ),
+                    $ui-inner-border-color-disabled
+                );
+            }
         }
     }
 
@@ -383,11 +1329,99 @@
             }
         }
 
-        @if $ui-inner-border-width != 0 {
+        @if not is-null($ui-inner-border-width) and not is-null($ui-inner-border-color) and $ui-inner-border-width != 0 {
             @include inner-border(
-                $width: flip-vertical($ui-inner-border-width),
-                $color: $ui-inner-border-color
+                if(
+                    $ui-inner-border-collapse,
+                    0 right($ui-inner-border-width) top($ui-inner-border-width) left($ui-inner-border-width),
+                    $ui-inner-border-width
+                ),
+                $ui-inner-border-color
             );
+        }
+
+        @if not is-null($ui-inner-border-width-focus) and not is-null($ui-inner-border-color-focus) {
+            &.#{$prefix}tab-focus {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus,
+                        0 right($ui-inner-border-width-focus) top($ui-inner-border-width-focus) left($ui-inner-border-width-focus),
+                        $ui-inner-border-width-focus
+                    ),
+                    $ui-inner-border-color-focus
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-over) and not is-null($ui-inner-border-color-over) {
+            &.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-over,
+                        0 right($ui-inner-border-width-over) top($ui-inner-border-width-over) left($ui-inner-border-width-over),
+                        $ui-inner-border-width-over
+                    ),
+                    $ui-inner-border-color-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-over) and not is-null($ui-inner-border-color-focus-over) and
+                ($ui-inner-border-width-focus-over != $ui-inner-border-width-over or
+                $ui-inner-border-color-focus-over != $ui-inner-border-color-over or
+                $ui-inner-border-collapse-focus-over != $ui-inner-border-collapse-over) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-over,
+                        0 right($ui-inner-border-width-focus-over) top($ui-inner-border-width-focus-over) left($ui-inner-border-width-focus-over),
+                        $ui-inner-border-width-focus-over
+                    ),
+                    $ui-inner-border-color-focus-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-active) and not is-null($ui-inner-border-color-active) {
+            &.#{$prefix}tab.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-active,
+                        0 right($ui-inner-border-width-active) top($ui-inner-border-width-active) left($ui-inner-border-width-active),
+                        $ui-inner-border-width-active
+                    ),
+                    $ui-inner-border-color-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-active) and not is-null($ui-inner-border-color-focus-active) and
+                ($ui-inner-border-width-focus-active != $ui-inner-border-width-active or
+                $ui-inner-border-color-focus-active != $ui-inner-border-color-active or
+                $ui-inner-border-collapse-focus-active != $ui-inner-border-collapse-active) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-active,
+                        0 right($ui-inner-border-width-focus-active) top($ui-inner-border-width-focus-active) left($ui-inner-border-width-focus-active),
+                        $ui-inner-border-width-focus-active
+                    ),
+                    $ui-inner-border-color-focus-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-disabled) and not is-null($ui-inner-border-color-disabled) {
+            &.#{$prefix}tab.#{$prefix}tab-disabled {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-disabled,
+                        0 right($ui-inner-border-width-disabled) top($ui-inner-border-width-disabled) left($ui-inner-border-width-disabled),
+                        $ui-inner-border-width-disabled
+                    ),
+                    $ui-inner-border-color-disabled
+                );
+            }
         }
     }
 
@@ -410,13 +1444,99 @@
             }
         }
 
-        @if $ui-inner-border-width != 0 {
+        @if not is-null($ui-inner-border-width) and not is-null($ui-inner-border-color) and $ui-inner-border-width != 0 {
             @include inner-border(
-                // suppress the bottom and right inner border, since the bottom pixel is
-                // stretched by the slicer, and the right border connects to the tab strip
-                $width: top($ui-inner-border-width) 0 0 left($ui-inner-border-width),
-                $color: $ui-inner-border-color
+                if(
+                    $ui-inner-border-collapse,
+                    top($ui-inner-border-width) 0 bottom($ui-inner-border-width) left($ui-inner-border-width),
+                    $ui-inner-border-width
+                ),
+                $ui-inner-border-color
             );
+        }
+
+        @if not is-null($ui-inner-border-width-focus) and not is-null($ui-inner-border-color-focus) {
+            &.#{$prefix}tab-focus {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus,
+                        top($ui-inner-border-width-focus) 0 bottom($ui-inner-border-width-focus) left($ui-inner-border-width-focus),
+                        $ui-inner-border-width-focus
+                    ),
+                    $ui-inner-border-color-focus
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-over) and not is-null($ui-inner-border-color-over) {
+            &.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-over,
+                        top($ui-inner-border-width-over) 0 bottom($ui-inner-border-width-over) left($ui-inner-border-width-over),
+                        $ui-inner-border-width-over
+                    ),
+                    $ui-inner-border-color-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-over) and not is-null($ui-inner-border-color-focus-over) and
+                ($ui-inner-border-width-focus-over != $ui-inner-border-width-over or
+                $ui-inner-border-color-focus-over != $ui-inner-border-color-over or
+                $ui-inner-border-collapse-focus-over != $ui-inner-border-collapse-over) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-over {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-over,
+                        top($ui-inner-border-width-focus-over) 0 bottom($ui-inner-border-width-focus-over) left($ui-inner-border-width-focus-over),
+                        $ui-inner-border-width-focus-over
+                    ),
+                    $ui-inner-border-color-focus-over
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-active) and not is-null($ui-inner-border-color-active) {
+            &.#{$prefix}tab.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-active,
+                        top($ui-inner-border-width-active) 0 bottom($ui-inner-border-width-active) left($ui-inner-border-width-active),
+                        $ui-inner-border-width-active
+                    ),
+                    $ui-inner-border-color-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-focus-active) and not is-null($ui-inner-border-color-focus-active) and
+                ($ui-inner-border-width-focus-active != $ui-inner-border-width-active or
+                $ui-inner-border-color-focus-active != $ui-inner-border-color-active or
+                $ui-inner-border-collapse-focus-active != $ui-inner-border-collapse-active) {
+            &.#{$prefix}tab-focus.#{$prefix}tab-active {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-focus-active,
+                        top($ui-inner-border-width-focus-active) 0 bottom($ui-inner-border-width-focus-active) left($ui-inner-border-width-focus-active),
+                        $ui-inner-border-width-focus-active
+                    ),
+                    $ui-inner-border-color-focus-active
+                );
+            }
+        }
+
+        @if not is-null($ui-inner-border-width-disabled) and not is-null($ui-inner-border-color-disabled) {
+            &.#{$prefix}tab.#{$prefix}tab-disabled {
+                @include inner-border(
+                    if(
+                        $ui-inner-border-collapse-disabled,
+                        top($ui-inner-border-width-disabled) 0 bottom($ui-inner-border-width-disabled) left($ui-inner-border-width-disabled),
+                        $ui-inner-border-width-disabled
+                    ),
+                    $ui-inner-border-color-disabled
+                );
+            }
         }
     }
 
@@ -513,223 +1633,362 @@
         }
     }
 
-    .#{$prefix}tab-over.#{$prefix}tab-#{$ui} {
-        @if $ui-border-color-over != $ui-border-color {
-            border-color: $ui-border-color-over;
+    .#{$prefix}tab-focus.#{$prefix}tab-#{$ui} {
+        @if $ui-border-color-focus != $ui-border-color {
+            border-color: $ui-border-color-focus;
         }
 
-        @if $ui-background-color-over != $ui-background-color {
-            background-color: $ui-background-color-over;
+        @if $ui-background-color-focus != $ui-background-color {
+            background-color: $ui-background-color-focus;
+        }
+
+        @if not is-null($ui-body-outline-width-focus) and $ui-body-outline-width-focus != 0 {
+            .#{$prefix}tab-button:before {
+                // use pseudo element for displaying focus outline instead of putting it on
+                // the tab-wrap element so that it does not overlap the close icon
+                position: absolute;
+                content: ' ';
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+
+                $outline-color: if(not is-null($ui-body-outline-color-focus), $ui-body-outline-color-focus, $color);
+                $outline-style: if(not is-null($ui-body-outline-style-focus), $ui-body-outline-style-focus, dotted);
+                outline: $ui-body-outline-width-focus $outline-style $outline-color;
+            }
+
+            &.#{$prefix}tab-closable {
+                .#{$prefix}tab-button:before {
+                    // make sure the focus border does not overlap the close icon
+                    right: $ui-closable-icon-width + $ui-closable-icon-spacing;
+                }
+            }
         }
 
         .#{$prefix}tab-inner-#{$ui} {
-            @if $ui-color-over != $ui-color {
-                color: $ui-color-over;
+            @if $ui-color-focus != $ui-color {
+                color: $ui-color-focus;
             }
-            @if $ui-font-weight-over != $ui-font-weight {
-                font-weight: $ui-font-weight-over;
+            @if $ui-font-weight-focus != $ui-font-weight {
+                font-weight: $ui-font-weight-focus;
             }
-            @if $ui-font-size-over != $ui-font-size {
-                font-size: $ui-font-size-over;
+            @if $ui-font-size-focus != $ui-font-size {
+                font-size: $ui-font-size-focus;
             }
-            @if $ui-font-family-over != $ui-font-family {
-                font-family: $ui-font-family-over;
+            @if $ui-font-family-focus != $ui-font-family {
+                font-family: $ui-font-family-focus;
             }
         }
 
-        .#{$prefix}tab-glyph {
-            color: $ui-glyph-color-over;
-            // In IE8 and below when a glyph contains partially transparent pixels, we 
-            // can't apply an opacity filter to the glyph element, because IE8m will render
-            //  the partially transparent pixels of the glyph as black. To work around this,
-            // we emulate the approximate color that the glyph would have if it had opacity
-            // applied by mixing the glyph color with the tab's background-color.
-            @if $ui-background-color != transparent {
-                .#{$prefix}ie8m & {
-                    color: mix($ui-glyph-color-over, $ui-background-color-over, $ui-glyph-opacity * 100);
+        @if $ui-glyph-color-focus != $ui-glyph-color {
+            .#{$prefix}tab-glyph {
+                color: $ui-glyph-color-focus;
+                // In IE8 and below when a glyph contains partially transparent pixels, we
+                // can't apply an opacity filter to the glyph element, because IE8m will render
+                //  the partially transparent pixels of the glyph as black. To work around this,
+                // we emulate the approximate color that the glyph would have if it had opacity
+                // applied by mixing the glyph color with the tab's background-color.
+                @if $ui-background-color != transparent {
+                    .#{$prefix}ie8m & {
+                        color: mix($ui-glyph-color-focus, $ui-background-color-focus, $ui-glyph-opacity * 100);
+                    }
                 }
             }
         }
     }
 
-    @if not is-null($ui-background-gradient-over) {
-        .#{$prefix}tab-over {
+    .#{$prefix}tab-over {
+        &.#{$prefix}tab-#{$ui} {
+            @if $ui-border-color-over != $ui-border-color {
+                border-color: $ui-border-color-over;
+            }
+
+            @if $ui-background-color-over != $ui-background-color {
+                background-color: $ui-background-color-over;
+            }
+
+            .#{$prefix}tab-inner-#{$ui} {
+                @if $ui-color-over != $ui-color {
+                    color: $ui-color-over;
+                }
+                @if $ui-font-weight-over != $ui-font-weight {
+                    font-weight: $ui-font-weight-over;
+                }
+                @if $ui-font-size-over != $ui-font-size {
+                    font-size: $ui-font-size-over;
+                }
+                @if $ui-font-family-over != $ui-font-family {
+                    font-family: $ui-font-family-over;
+                }
+            }
+
+            @if $ui-glyph-color-over != $ui-glyph-color {
+                .#{$prefix}tab-glyph {
+                    color: $ui-glyph-color-over;
+                    // In IE8 and below when a glyph contains partially transparent pixels, we
+                    // can't apply an opacity filter to the glyph element, because IE8m will render
+                    //  the partially transparent pixels of the glyph as black. To work around this,
+                    // we emulate the approximate color that the glyph would have if it had opacity
+                    // applied by mixing the glyph color with the tab's background-color.
+                    @if $ui-background-color-over != transparent {
+                        .#{$prefix}ie8m & {
+                            color: mix($ui-glyph-color-over, $ui-background-color-over, $ui-glyph-opacity * 100);
+                        }
+                    }
+                }
+            }
+        }
+
+        @if not is-null($ui-background-gradient-over) {
             &.#{$prefix}tab-#{$ui}-top,
             &.#{$prefix}tab-#{$ui}-left,
             &.#{$prefix}tab-#{$ui}-right {
                 @include background-gradient($ui-background-color-over, $ui-background-gradient-over, top);
-
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-over.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-over-bg');
-                    }
-                }
             }
             &.#{$prefix}tab-#{$ui}-bottom {
                 @include background-gradient($ui-background-color-over, $ui-background-gradient-over, bottom);
+            }
+        }
+    }
 
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-over.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-over-bg');
+    .#{$prefix}tab-focus.#{$prefix}tab-over {
+        &.#{$prefix}tab-#{$ui} {
+            @if $ui-border-color-focus-over != $ui-border-color-over {
+                border-color: $ui-border-color-focus-over;
+            }
+
+            @if $ui-background-color-focus-over != $ui-background-color-over {
+                background-color: $ui-background-color-focus-over;
+            }
+
+            .#{$prefix}tab-inner-#{$ui} {
+                @if $ui-color-focus-over != $ui-color-over {
+                    color: $ui-color-focus-over;
+                }
+                @if $ui-font-weight-focus-over != $ui-font-weight-over {
+                    font-weight: $ui-font-weight-focus-over;
+                }
+                @if $ui-font-size-focus-over != $ui-font-size-over {
+                    font-size: $ui-font-size-focus-over;
+                }
+                @if $ui-font-family-focus-over != $ui-font-family-over {
+                    font-family: $ui-font-family-focus-over;
+                }
+            }
+
+            @if $ui-glyph-color-focus-over != $ui-glyph-color-over {
+                .#{$prefix}tab-glyph {
+                    color: $ui-glyph-color-focus-over;
+                    // In IE8 and below when a glyph contains partially transparent pixels, we
+                    // can't apply an opacity filter to the glyph element, because IE8m will render
+                    //  the partially transparent pixels of the glyph as black. To work around this,
+                    // we emulate the approximate color that the glyph would have if it had opacity
+                    // applied by mixing the glyph color with the tab's background-color.
+                    @if $ui-background-color-focus-over != transparent {
+                        .#{$prefix}ie8m & {
+                            color: mix($ui-glyph-color-focus-over, $ui-background-color-focus-over, $ui-glyph-opacity * 100);
+                        }
                     }
                 }
             }
         }
+
+        @if not is-null($ui-background-gradient-focus-over) and
+                ($ui-background-gradient-focus-over != $ui-background-gradient-over or
+                $ui-background-color-focus-over != $ui-background-color-over) {
+            &.#{$prefix}tab-#{$ui}-top,
+            &.#{$prefix}tab-#{$ui}-left,
+            &.#{$prefix}tab-#{$ui}-right {
+                @include background-gradient($ui-background-color-focus-over, $ui-background-gradient-focus-over, top);
+            }
+            &.#{$prefix}tab-#{$ui}-bottom {
+                @include background-gradient($ui-background-color-focus-over, $ui-background-gradient-focus-over, bottom);
+            }
+        }
     }
 
-    .#{$prefix}tab-active.#{$prefix}tab-#{$ui} {
-        @if $ui-border-color-active != $ui-border-color {
-            border-color: $ui-border-color-active;
-        }
-        background-color: $ui-background-color-active;
+    // add x-tab class to increase specificity over .x-tab-focus.x-tab-over
+    .#{$prefix}tab.#{$prefix}tab-active {
+        &.#{$prefix}tab-#{$ui} {
+            @if $ui-border-color-active != $ui-border-color {
+                border-color: $ui-border-color-active;
+            }
+            background-color: $ui-background-color-active;
 
-        .#{$prefix}tab-inner-#{$ui} {
-            @if $ui-color-active != $ui-color {
-                color: $ui-color-active;
+            .#{$prefix}tab-inner-#{$ui} {
+                @if $ui-color-active != $ui-color {
+                    color: $ui-color-active;
+                }
+                @if $ui-font-weight-active != $ui-font-weight {
+                    font-weight: $ui-font-weight-active;
+                }
+                @if $ui-font-size-active != $ui-font-size {
+                    font-size: $ui-font-size-active;
+                }
+                @if $ui-font-family-active != $ui-font-family {
+                    font-family: $ui-font-family-active;
+                }
             }
-            @if $ui-font-weight-active != $ui-font-weight {
-                font-weight: $ui-font-weight-active;
-            }
-            @if $ui-font-size-active != $ui-font-size {
-                font-size: $ui-font-size-active;
-            }
-            @if $ui-font-family-active != $ui-font-family {
-                font-family: $ui-font-family-active;
-            }
-        }
 
-        .#{$prefix}tab-glyph {
-            color: $ui-glyph-color-active;
-            // In IE8 and below when a glyph contains partially transparent pixels, we 
-            // can't apply an opacity filter to the glyph element, because IE8m will render
-            //  the partially transparent pixels of the glyph as black. To work around this,
-            // we emulate the approximate color that the glyph would have if it had opacity
-            // applied by mixing the glyph color with the tab's background-color.
-            @if $ui-background-color != transparent {
-                .#{$prefix}ie8 & {
-                    color: mix($ui-glyph-color-active, $ui-background-color-active, $ui-glyph-opacity * 100);
+            .#{$prefix}tab-glyph {
+                color: $ui-glyph-color-active;
+                // In IE8 and below when a glyph contains partially transparent pixels, we
+                // can't apply an opacity filter to the glyph element, because IE8m will render
+                //  the partially transparent pixels of the glyph as black. To work around this,
+                // we emulate the approximate color that the glyph would have if it had opacity
+                // applied by mixing the glyph color with the tab's background-color.
+                @if $ui-background-color-active != transparent {
+                    .#{$prefix}ie8 & {
+                        color: mix($ui-glyph-color-active, $ui-background-color-active, $ui-glyph-opacity * 100);
+                    }
                 }
             }
         }
-    }
 
-    .#{$prefix}tab-active {
-        &.#{$prefix}tab-#{$ui}-top,
-        &.#{$prefix}tab-#{$ui}-left,
-        &.#{$prefix}tab-#{$ui}-right {
-            @if not is-null($ui-background-gradient-active) {
+        @if not is-null($ui-background-gradient-active) {
+            &.#{$prefix}tab-#{$ui}-top,
+            &.#{$prefix}tab-#{$ui}-left,
+            &.#{$prefix}tab-#{$ui}-right {
                 @include background-gradient($ui-background-color-active, $ui-background-gradient-active, top);
-
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-active.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-active-bg');
-                    }
-                }
             }
-        }
 
-        &.#{$prefix}tab-#{$ui}-bottom {
-            @if not is-null($ui-background-gradient-active) {
+            &.#{$prefix}tab-#{$ui}-bottom {
                 @include background-gradient($ui-background-color-active, $ui-background-gradient-active, bottom);
+            }
+        }
+    }
 
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-active.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-active-bg');
+    .#{$prefix}tab-focus.#{$prefix}tab-active {
+        &.#{$prefix}tab-#{$ui} {
+            @if $ui-border-color-focus-active != $ui-border-color-active {
+                border-color: $ui-border-color-focus-active;
+            }
+
+            @if $ui-background-color-focus-active != $ui-background-color-active {
+                background-color: $ui-background-color-focus-active;
+            }
+
+            .#{$prefix}tab-inner-#{$ui} {
+                @if $ui-color-focus-active != $ui-color-active {
+                    color: $ui-color-focus-active;
+                }
+                @if $ui-font-weight-focus-active != $ui-font-weight-active {
+                    font-weight: $ui-font-weight-focus-active;
+                }
+                @if $ui-font-size-focus-active != $ui-font-size-active {
+                    font-size: $ui-font-size-focus-active;
+                }
+                @if $ui-font-family-focus-active != $ui-font-family-active {
+                    font-family: $ui-font-family-focus-active;
+                }
+            }
+
+            @if $ui-glyph-color-focus-active != $ui-glyph-color-active {
+                .#{$prefix}tab-glyph {
+                    color: $ui-glyph-color-focus-active;
+                    // In IE8 and below when a glyph contains partially transparent pixels, we
+                    // can't apply an opacity filter to the glyph element, because IE8m will render
+                    //  the partially transparent pixels of the glyph as black. To work around this,
+                    // we emulate the approximate color that the glyph would have if it had opacity
+                    // applied by mixing the glyph color with the tab's background-color.
+                    @if $ui-background-color-active != transparent {
+                        .#{$prefix}ie8 & {
+                            color: mix($ui-glyph-color-focus-active, $ui-background-color-focus-active, $ui-glyph-opacity * 100);
+                        }
                     }
                 }
             }
         }
+
+        @if not is-null($ui-background-gradient-focus-active) and
+                ($ui-background-gradient-focus-active != $ui-background-gradient-active or
+                $ui-background-color-focus-active != $ui-background-color-active) {
+            &.#{$prefix}tab-#{$ui}-top,
+            &.#{$prefix}tab-#{$ui}-left,
+            &.#{$prefix}tab-#{$ui}-right {
+                @include background-gradient($ui-background-color-focus-active, $ui-background-gradient-focus-active, top);
+            }
+
+            &.#{$prefix}tab-#{$ui}-bottom {
+                @include background-gradient($ui-background-color-focus-active, $ui-background-gradient-focus-active, bottom);
+            }
+        }
     }
 
-    .#{$prefix}tab-disabled.#{$prefix}tab-#{$ui} {
-        @if $ui-border-color-disabled != $ui-border-color {
-            border-color: $ui-border-color-disabled;
-        }
+    // add x-tab class to increase specificity over .x-tab.x-tab-active/.x-focus.x-active
+    .#{$prefix}tab.#{$prefix}tab-disabled {
+        &.#{$prefix}tab-#{$ui} {
+            @if $ui-border-color-disabled != $ui-border-color {
+                border-color: $ui-border-color-disabled;
+            }
 
-        @if $ui-opacity-disabled != 1 {
-            @include opacity($ui-opacity-disabled);
-        }
+            @if $ui-background-color-disabled != $ui-background-color {
+                background-color: $ui-background-color-disabled;
+            }
 
-        @if not is-null($ui-cursor-disabled) {
-            cursor: $ui-cursor-disabled;
-        }
+            @if $ui-opacity-disabled != 1 {
+                @include opacity($ui-opacity-disabled);
+            }
 
-        .#{$prefix}tab-inner-#{$ui} {
-            @if $ui-color-disabled != $ui-color {
-                color: $ui-color-disabled;
+            @if not is-null($ui-cursor-disabled) {
+                cursor: $ui-cursor-disabled;
             }
-            @if $ui-font-weight-disabled != $ui-font-weight {
-                font-weight: $ui-font-weight-disabled;
-            }
-            @if $ui-font-size-disabled != $ui-font-size {
-                font-size: $ui-font-size-disabled;
-            }
-            @if $ui-font-family-disabled != $ui-font-family {
-                font-family: $ui-font-family-disabled;
-            }
-            @if $ui-text-opacity-disabled != 1 {
-                @include opacity($ui-text-opacity-disabled);
-            }
-        }
-        
-        @if $ui-icon-opacity-disabled != 1 {
-            .#{$prefix}tab-icon-el-#{$ui} {
-                @include opacity($ui-icon-opacity-disabled);
-            }
-        }
 
-        .#{$prefix}tab-glyph {
-            color: $ui-glyph-color-disabled;
-            @if $ui-glyph-opacity-disabled != 1 {
-                // do not use the opacity mixin because we do not want IE's filter version of
-                // opacity to be included.  We emulate the opacity setting in IE8m by mixing
-                // the icon color into the background color. (see below)
-                opacity: $ui-glyph-opacity-disabled;
+            .#{$prefix}tab-inner-#{$ui} {
+                @if $ui-color-disabled != $ui-color {
+                    color: $ui-color-disabled;
+                }
+                @if $ui-font-weight-disabled != $ui-font-weight {
+                    font-weight: $ui-font-weight-disabled;
+                }
+                @if $ui-font-size-disabled != $ui-font-size {
+                    font-size: $ui-font-size-disabled;
+                }
+                @if $ui-font-family-disabled != $ui-font-family {
+                    font-family: $ui-font-family-disabled;
+                }
+                @if $ui-text-opacity-disabled != 1 {
+                    @include opacity($ui-text-opacity-disabled);
+                }
             }
-            filter: none; // override opacity from tab-icon-el
-            // In IE8 and below when a glyph contains partially transparent pixels, we 
-            // can't apply an opacity filter to the glyph element, because IE8m will render
-            //  the partially transparent pixels of the glyph as black. To work around this,
-            // we emulate the approximate color that the glyph would have if it had opacity
-            // applied by mixing the glyph color with the tab's background-color.
-            @if $ui-background-color != transparent {
-                .#{$prefix}ie8 & {
-                    color: mix($ui-glyph-color-disabled, $ui-background-color-disabled, $ui-glyph-opacity-disabled * 100);
+
+            @if $ui-icon-opacity-disabled != 1 {
+                .#{$prefix}tab-icon-el-#{$ui} {
+                    @include opacity($ui-icon-opacity-disabled);
+                }
+            }
+
+            .#{$prefix}tab-glyph {
+                color: $ui-glyph-color-disabled;
+                @if $ui-glyph-opacity-disabled != 1 {
+                    // do not use the opacity mixin because we do not want IE's filter version of
+                    // opacity to be included.  We emulate the opacity setting in IE8m by mixing
+                    // the icon color into the background color. (see below)
+                    opacity: $ui-glyph-opacity-disabled;
+                }
+                filter: none; // override opacity from tab-icon-el
+                // In IE8 and below when a glyph contains partially transparent pixels, we
+                // can't apply an opacity filter to the glyph element, because IE8m will render
+                //  the partially transparent pixels of the glyph as black. To work around this,
+                // we emulate the approximate color that the glyph would have if it had opacity
+                // applied by mixing the glyph color with the tab's background-color.
+                @if $ui-background-color != transparent {
+                    .#{$prefix}ie8 & {
+                        color: mix($ui-glyph-color-disabled, $ui-background-color-disabled, $ui-glyph-opacity-disabled * 100);
+                    }
                 }
             }
         }
-    }
-
-    $disabled-border-color: $ui-border-color-disabled $ui-border-color-disabled $ui-border-bottom-color;
-
-    .#{$prefix}tab-disabled {
-        &.#{$prefix}tab-#{$ui}-top,
-        &.#{$prefix}tab-#{$ui}-left,
-        &.#{$prefix}tab-#{$ui}-right {
-            border-color: $disabled-border-color;
-
-            @if not is-null($ui-background-gradient-disabled) {
+        @if not is-null($ui-background-gradient-disabled) {
+            &.#{$prefix}tab-#{$ui}-top,
+            &.#{$prefix}tab-#{$ui}-left,
+            &.#{$prefix}tab-#{$ui}-right {
                 @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, top);
-
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-disabled.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-disabled-bg');
-                    }
-                }
             }
-        }
 
-        &.#{$prefix}tab-#{$ui}-bottom {
-            border-color: rotate180($disabled-border-color);
-
-            @if not is-null($ui-background-gradient-disabled) {
+            &.#{$prefix}tab-#{$ui}-bottom {
                 @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, bottom);
-
-                @if $include-slicer-gradient {
-                    .#{$prefix}nlg & {
-                        background-image: slicer-background-image('tab-disabled.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-disabled-bg');
-                    }
-                }
             }
         }
     }
@@ -740,39 +1999,43 @@
         }
 
         $states:
-            (over $ui-background-color-over $ui-background-gradient-over)
-            (active $ui-background-color-active $ui-background-gradient-active)
-            (disabled $ui-background-color-disabled $ui-background-gradient-disabled);
+            (over '.#{$prefix}tab-over' 'tab-over' $ui-background-color-over)
+            (focus '.#{$prefix}tab-focus' 'tab-focus' $ui-background-color-focus)
+            (focus-over '.#{$prefix}tab-focus.#{$prefix}tab-over' 'tab-focus.#{$prefix}tab-over' $ui-background-color-focus-over)
+            (active '.#{$prefix}tab.#{$prefix}tab-active' 'tab-active' $ui-background-color-active)
+            (focus-active '.#{$prefix}tab-focus.#{$prefix}tab-active' 'tab-focus.#{$prefix}tab-active' $ui-background-color-focus-active)
+            (disabled '.#{$prefix}tab.#{$prefix}tab-disabled' 'tab-disabled' $ui-background-color-disabled);
 
         @each $side in top right bottom left {
             @each $item in $states {
                 $state: nth($item, 1);
-                $bgcolor: nth($item, 2);
-                $gradient: nth($item, 3);
+                $cls: nth($item, 2);
+                $id-prefix: nth($item, 3);
+                $bgcolor: nth($item, 4);
 
-                .#{$prefix}tab-#{$state} {
+                #{$cls} {
                     .#{$prefix}tab-#{$ui}-#{$side}-tl,
                     .#{$prefix}tab-#{$ui}-#{$side}-bl,
                     .#{$prefix}tab-#{$ui}-#{$side}-tr,
                     .#{$prefix}tab-#{$ui}-#{$side}-br,
                     .#{$prefix}tab-#{$ui}-#{$side}-tc,
                     .#{$prefix}tab-#{$ui}-#{$side}-bc {
-                        background-image: slicer-corner-sprite('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-corners');
+                        background-image: slicer-corner-sprite('#{$id-prefix}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-corners');
                     }
 
                     .#{$prefix}tab-#{$ui}-#{$side}-ml,
                     .#{$prefix}tab-#{$ui}-#{$side}-mr {
-                        background-image: slicer-sides-sprite('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-sides');
+                        background-image: slicer-sides-sprite('#{$id-prefix}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-sides');
                     }
 
                     .#{$prefix}tab-#{$ui}-#{$side}-mc {
                         background-color: $bgcolor;
-                        @if not is-null($gradient) {
-                            background-repeat: repeat-x;
-                            background-image: slicer-frame-background-image('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-fbg');
-                        }
+                        background-repeat: repeat-x;
+                        background-image: slicer-frame-background-image('#{$id-prefix}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-fbg');
                     }
                 }
+
+                $frame: slicer-frame('#{$id-prefix}.#{$prefix}tab-#{$ui}-#{$side}', $frame-size);
             }
         }
 
@@ -864,6 +2127,10 @@
     $stretch: slicer-background-stretch(tab-#{$ui}-right, left);
     $stretch: slicer-background-stretch(tab-#{$ui}-bottom, top);
     $stretch: slicer-background-stretch(tab-#{$ui}-left, right);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-#{$ui}-left', right);
     $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-top', bottom);
     $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-right', left);
     $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-bottom', top);
@@ -872,10 +2139,22 @@
     $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-right', left);
     $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-bottom', top);
     $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-left', right);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-left', right);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-left', right);
     $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-top', bottom);
     $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-right', left);
     $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-bottom', top);
     $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-left', right);
+    @include x-slicer('tab-focus.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-focus.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-focus.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-focus.#{$prefix}tab-#{$ui}-left');
     @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-top');
     @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-right');
     @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-bottom');
@@ -884,6 +2163,14 @@
     @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-right');
     @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-bottom');
     @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-left');
+    @include x-slicer('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-focus.#{$prefix}tab-over.#{$prefix}tab-#{$ui}-left');
+    @include x-slicer('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-focus.#{$prefix}tab-active.#{$prefix}tab-#{$ui}-left');
     @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-top');
     @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-right');
     @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-bottom');

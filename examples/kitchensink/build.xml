@@ -50,23 +50,20 @@
     </target>
 
     <target name="-after-build" depends="init">
-        <copy todir="${build.dir}/lib/" overwrite="true">
+        <copy todir="${build.out.base.path}/../lib/" overwrite="true">
             <fileset dir="${app.dir}/lib/" includes="**/*"/>
         </copy>
-        <copy todir="${build.page.dir}" overwrite="true">
-            <fileset dir="${app.dir}" includes="app/**/*"/>
-        </copy>
-        <copy todir="${build.page.dir}" overwrite="true">
+        <copy todir="${build.out.base.path}/.." overwrite="true">
             <fileset dir="${app.dir}" includes="sass/**/*"/>
         </copy>
-    </target>
-
-    <target name="-after-resources">
-        <copy todir="${build.page.dir}/resources">
+        <copy todir="${build.out.base.path}/.." overwrite="true">
+            <fileset dir="${app.dir}" includes="app/**/*"/>
+        </copy>
+        <copy todir="${build.out.base.path}/../resources">
             <fileset dir="${app.dir}/resources" includes="**/*"/>
         </copy>
     </target>
-    
+
     <!--regenerate the example page to pick up changes to relative path to packages-->
     <target name="-before-capture">
         <local name="pkg.rel.path"/>

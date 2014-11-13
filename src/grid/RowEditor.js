@@ -105,6 +105,7 @@ Ext.define('Ext.grid.RowEditor', {
         form = me.getForm();
         form.trackResetOnLoad = true;
         form.on('validitychange', me.onValidityChange, me);
+        form.on('errorchange', me.onErrorChange, me);
     },
 
     //
@@ -149,13 +150,18 @@ Ext.define('Ext.grid.RowEditor', {
     },
 
     onValidityChange: function(form, valid) {
-        var me = this;
-            
+        this.updateButton(valid);
+        this.isValid = valid;
+    },
+
+    onErrorChange: function() {
+        var me = this,
+            valid;
+
         if (me.errorSummary && me.isVisible()) {
+            valid = me.getForm().isValid();
             me[valid ? 'hideToolTip' : 'showToolTip']();
         }
-        me.updateButton(valid);
-        me.isValid = valid;
     },
 
     updateButton: function(valid){
@@ -573,10 +579,16 @@ Ext.define('Ext.grid.RowEditor', {
             deltaY = 0;
 
         if (context) {
-            deltaY = Ext.fly(context.row).getOffsetsTo(scrollingViewDom)[1] - body.getBorderPadding().beforeY;
-            if (deltaY > 0) {
+            deltaY = Ext.fly(context.row).getOffsetsTo(scrollingViewDom)[1];
+            if (deltaY < 0) {
+                deltaY -= body.getBorderPadding().beforeY;
+            }
+            else if (deltaY > 0) {
                 deltaY = Math.max(deltaY + me.getHeight() + me.floatingButtons.getHeight() -
                     scrollingViewDom.clientHeight - body.getBorderWidth('b'), 0);
+                if (deltaY > 0) {
+                    deltaY -= body.getBorderPadding().afterY;
+                }
             }
         }
         return deltaY;
@@ -917,7 +929,8 @@ Ext.define('Ext.grid.RowEditor', {
 
     onShow: function() {
         var me = this;
-        
+
+        me.previousFocus = Ext.Element.getActiveElement();
         me.callParent(arguments);
         if (me.needsSyncFieldWidths) {
             me.suspendLayouts();
@@ -932,6 +945,7 @@ Ext.define('Ext.grid.RowEditor', {
     onHide: function() {
         var me = this;
 
+        me.previousFocus.focus();
         me.callParent(arguments);
         if (me.tooltip) {
             me.hideToolTip();
@@ -943,9 +957,7 @@ Ext.define('Ext.grid.RowEditor', {
     },
 
     isDirty: function() {
-        var me = this,
-            form = me.getForm();
-        return form.isDirty();
+        return this.getForm().isDirty();
     },
 
     getToolTip: function() {
@@ -1006,12 +1018,14 @@ Ext.define('Ext.grid.RowEditor', {
             errors    = [],
             fields    = me.query('>[isFormField]'),
             length    = fields.length,
-            i;
+            i, msg, fieldErrors, field;
 
         for (i = 0; i < length; i++) {
-            errors = errors.concat(
-                Ext.Array.map(fields[i].getErrors(), me.createErrorListItem)
-            );
+            field = fields[i];
+            fieldErrors = field.getErrors();
+            if (fieldErrors.length) {
+                errors.push(me.createErrorListItem(fieldErrors[0], field.column.text));
+            }
         }
 
         // Only complain about unsaved changes if all the fields are valid
@@ -1022,7 +1036,8 @@ Ext.define('Ext.grid.RowEditor', {
         return '<ul class="' + Ext.plainListCls + '">' + errors.join('') + '</ul>';
     },
 
-    createErrorListItem: function(e) {
+    createErrorListItem: function(e, name) {
+        e = name ? name + ': ' + e : e;
         return '<li class="' + this.errorCls + '">' + e + '</li>';
     },
 

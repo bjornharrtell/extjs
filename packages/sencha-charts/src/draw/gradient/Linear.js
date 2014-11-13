@@ -1,34 +1,39 @@
 /**
  * Linear gradient.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'circle',
- *         cx: 50,
- *         cy: 50,
- *         r: 100,
- *         fillStyle: {
- *           type: 'linear',
- *           degrees: 0,
- *           stops: [
- *             {
- *               offset: 0,
- *               color: 'white'
- *             },
- *             {
- *               offset: 1,
- *               color: 'blue'
- *             }
- *           ]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'circle',
+ *                 cx: 50,
+ *                 cy: 50,
+ *                 r: 100,
+ *                 fillStyle: {
+ *                     type: 'linear',
+ *                     degrees: 0,
+ *                     stops: [
+ *                         {
+ *                             offset: 0,
+ *                             color: 'white'
+ *                         },
+ *                         {
+ *                             offset: 1,
+ *                             color: 'blue'
+ *                         }
+ *                     ]
+ *                 }
+ *             }]
  *         }
- *       }]
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 
-Ext.define("Ext.draw.gradient.Linear", {
+Ext.define('Ext.draw.gradient.Linear', {
     extend: 'Ext.draw.gradient.Gradient',
     type: 'linear',
     config: {

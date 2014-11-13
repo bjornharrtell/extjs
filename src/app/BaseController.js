@@ -336,7 +336,6 @@ Ext.define('Ext.app.BaseController', {
      */
     updateControl: function(control) {
         if (control) {
-            this.ensureId && this.ensureId();
             this.control(control);
         }
     },
@@ -347,7 +346,6 @@ Ext.define('Ext.app.BaseController', {
      */
     updateListen: function(listen) {
         if (listen) {
-            this.ensureId && this.ensureId();
             this.listen(listen);
         }
     },
@@ -571,14 +569,17 @@ Ext.define('Ext.app.BaseController', {
     },
     
     destroy: function() {
-        var bus = this.eventbus;
+        var me = this,
+            bus = me.eventbus;
 
-        Ext.app.route.Router.disconnectAll(this);
+        Ext.app.route.Router.disconnectAll(me);
 
         if (bus) {
-            bus.unlisten(this);
-            this.eventbus = null;
+            bus.unlisten(me);
+            me.eventbus = null;
         }
+        me.clearListeners();
+        me.callParent();
     },
 
     /**

@@ -88,6 +88,10 @@ Ext.define('Ext.grid.filters.Filters', {
         'Ext.grid.filters.filter.*'
     ],
 
+    mixins: [
+        'Ext.util.StoreHolder'
+    ],
+
     alias: 'plugin.gridfilters',
 
     pluginId: 'gridfilters',
@@ -219,7 +223,7 @@ Ext.define('Ext.grid.filters.Filters', {
         }
 
         if (!filter.type) {
-            model = me.store.model;
+            model = me.store.getModel();
             // If no filter type given, first try to get it from the data field.
             field = model && model.getField(column.dataIndex);
             type = field && field.type;
@@ -228,7 +232,7 @@ Ext.define('Ext.grid.filters.Filters', {
                            column.defaultFilterType || 'string';
         }
 
-        return column.filter = Ext.Factory.gridFilter(filter);
+        return (column.filter = Ext.Factory.gridFilter(filter));
     },
 
     onAdd: function (headerCt, column, index) {
@@ -287,11 +291,12 @@ Ext.define('Ext.grid.filters.Filters', {
     },
 
     createMenuItem: function (menu, ownerGridId) {
-        var me = this;
+        var me = this,
+            item;
 
         me.sep = menu.add('-');
 
-        return me.menuItems[ownerGridId] = menu.add({
+        item = menu.add({
             checked: false,
             itemId: 'filters',
             text: me.menuFilterText,
@@ -300,36 +305,26 @@ Ext.define('Ext.grid.filters.Filters', {
                 checkchange: me.onCheckChange
             }
         });
+
+        return (me.menuItems[ownerGridId] = item);
     },
 
     /**
      * Handler called by the grid 'beforedestroy' event
      */
     destroy: function () {
+        this.bindStore(null);
         Ext.destroyMembers(this, 'menuItem', 'sep');
         this.callParent();
     },
 
-    /**
-     * Changes the data store bound to this view and refreshes it.
-     * @param {Ext.data.Store} store The store to bind to this view
-     */
-    bindStore: function (store) {
-        var me = this;
+    onUnbindStore: function(store) {
+        store.getFilters().un('remove', this.onFilterRemove, this);
+    },
 
-        // Set up correct listeners
-        if (store) {
-            if (me.store) {
-                me.store.destroyStore();
-                me.store.getFilters().un('remove', me.onFilterRemove, me);
-            }
-
-            // `local` used to be a config, but it should be determined by the store.
-            me.local = !store.remoteFilter;
-            store.getFilters().on('remove', me.onFilterRemove, me);
-        }
-
-        me.store = store;
+    onBindStore: function(store, initial, propName) {
+        this.local = !store.getRemoteFilter();
+        store.getFilters().on('remove', this.onFilterRemove, this);
     },
 
     onFilterRemove: function (filterCollection, list) {
@@ -339,16 +334,21 @@ Ext.define('Ext.grid.filters.Filters', {
         // (settingValue === undefined).
         var len = list.items.length,
             columnManager = this.grid.columnManager,
-            i, item, filter;
+            i, item, filter, header;
 
         for (i = 0; i < len; i++) {
             item = list.items[i];
 
-            filter = columnManager.getHeaderByDataIndex(item.getProperty()).filter;
+            header = columnManager.getHeaderByDataIndex(item.getProperty());
+            if (header) {
+                // Even though the store may be filtered by this dataIndex, doesn't necessarily
+                // mean we have a grid filter attached for it, so we need to do an extra check
+                filter = header.filter;
 
-            if (!filter.settingValue) {
-                // This is only called on the filter if called from outside of the gridfilters UI.
-                filter.onFilterRemove(item.getOperator());
+                if (filter && !filter.settingValue) {
+                    // This is only called on the filter if called from outside of the gridfilters UI.
+                    filter.onFilterRemove(item.getOperator());
+                }
             }
         }
     },
@@ -407,8 +407,9 @@ Ext.define('Ext.grid.filters.Filters', {
                 suppressNextFilter = false;
             }
 
+            column = grid.columnManager.getHeaderByDataIndex(dataIndex);
             // We only create filters that map to an existing column.
-            if (column = grid.columnManager.getHeaderByDataIndex(dataIndex)) {
+            if (column) {
                 columnFilter = column.filter;
 
                 if (!columnFilter || (columnFilter && !columnFilter.isGridFilter)) {
@@ -436,15 +437,6 @@ Ext.define('Ext.grid.filters.Filters', {
         if (filters) {
             this.addFilter(filters);
         }
-    },
-
-    /**
-     * Returns a filter for the given dataIndex, if one exists.
-     * @param {String} dataIndex The dataIndex of the desired filter object.
-     * @return {Ext.grid.filter.Filter}
-     */
-    getFilter: function (dataIndex) {
-        return this.filters.get(dataIndex);
     },
 
     /**

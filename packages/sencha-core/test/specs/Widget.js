@@ -153,7 +153,7 @@ describe("Ext.Widget", function() {
                 expect(widget.element.id).toBe(id);
             });
 
-            it("should add a listener to the main element", function() {
+            itFiresMouseEvents("should add a listener to the main element", function() {
                 var scope;
 
                 defineWidget(first, {
@@ -181,7 +181,7 @@ describe("Ext.Widget", function() {
                 widget.destroy();
             });
 
-            it("should add listeners to child elements", function() {
+            itFiresMouseEvents("should add listeners to child elements", function() {
                 var fooScope, barScope, bazScope, jazzScope;
 
                 defineWidget(first, {
@@ -269,4 +269,1909 @@ describe("Ext.Widget", function() {
     makeSuite(true);
     makeSuite(false);
 
+    describe("listener scope resolution", function() {
+        var spies, scopes, Widget, widget, Parent, parent, Grandparent, grandparent,
+            Controller, ParentController, GrandparentController;
+
+        function defineParent(cfg) {
+            Parent = Ext.define(null, Ext.apply({
+                extend: 'Ext.Container',
+                onFoo: spies.parent
+            }, cfg));
+        }
+
+        function defineGrandparent(cfg) {
+            Grandparent = Ext.define(null, Ext.apply({
+                extend: 'Ext.Container',
+                onFoo: spies.grandparent
+            }, cfg));
+        }
+
+        function expectScope(scope) {
+            var scopes = {
+                    widget: widget,
+                    controller: widget.getController(),
+                    parent: parent,
+                    parentController: parent && parent.getController(),
+                    grandparent: grandparent,
+                    grandparentController: grandparent && grandparent.getController()
+                },
+                name, spy;
+
+            for (name in spies) {
+                spy = spies[name];
+
+                if (name === scope) {
+                    expect(spy).toHaveBeenCalled();
+                    expect(spy.mostRecentCall.object).toBe(scopes[name]);
+                } else {
+                    expect(spy).not.toHaveBeenCalled();
+                }
+            }
+        }
+
+        beforeEach(function() {
+            spies = {
+                widget: jasmine.createSpy(),
+                controller: jasmine.createSpy(),
+                parent: jasmine.createSpy(),
+                parentController: jasmine.createSpy(),
+                grandparent: jasmine.createSpy(),
+                grandparentController: jasmine.createSpy()
+            };
+
+            Controller = Ext.define(null, {
+                extend: 'Ext.app.ViewController',
+                onFoo: spies.controller
+            });
+
+            ParentController = Ext.define(null, {
+                extend: 'Ext.app.ViewController',
+                onFoo: spies.parentController
+            });
+
+            GrandparentController = Ext.define(null, {
+                extend: 'Ext.app.ViewController',
+                onFoo: spies.grandparentController
+            });
+        });
+
+        afterEach(function() {
+            if (widget) {
+                widget.destroy();
+            }
+            if (parent) {
+                parent.destroy();
+            }
+            if (grandparent) {
+                grandparent.destroy();
+            }
+        });
+
+        describe("listener declared on class body", function() {
+            function defineWidget(cfg) {
+                Widget = Ext.define(null, Ext.merge({
+                    extend: 'Ext.Widget',
+                    listeners: {
+                        foo: 'onFoo'
+                    },
+                    onFoo: spies.widget
+                }, cfg));
+            }
+
+            it("should resolve to the widget with unspecified scope", function() {
+                defineWidget();
+                widget = new Widget();
+                widget.fireEvent('foo');
+                expectScope('widget');
+            });
+
+            it("should fail with scope:'controller'", function() {
+                defineWidget({
+                    listeners: {
+                        scope: 'controller'
+                    }
+                });
+                widget = new Widget();
+                expect(function() {
+                    widget.fireEvent('foo');
+                }).toThrow();
+            });
+
+            it("should resolve to the widget with scope:'this'", function() {
+                defineWidget({
+                    listeners: {
+                        scope: 'this'
+                    }
+                });
+                widget = new Widget();
+                widget.fireEvent('foo');
+                expectScope('widget');
+            });
+
+            describe("with view controller", function() {
+                it("should resolve to the view controller with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope", function() {
+                it("should resolve to the widget with unspecified scope", function() {
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope", function() {
+                it("should resolve to the widget with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        defaultListenerScope: true
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should resolve to the view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the parent with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+                });
+
+                it("should resolve to the parent view controller with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController(),
+                        defaultListenerScope: true
+                    })
+                });
+
+                it("should resolve to the parent with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parent');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the grandparent with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+                });
+
+                it("should resolve to the grandparent view controller with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController(),
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the grandparent with unspecified scope", function() {
+                    defineWidget();
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparent');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and view controller on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+                });
+
+                it("should resolve to the child view controller with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the child view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and view controller on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+                });
+
+                it("should resolve to the child view controller with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the child view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the child view controller with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the child view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on parent and defaultListenerScope on child", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+                });
+
+                it("should resolve to the widget with unspecified scope", function() {
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the child view controller with unspecified scope", function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the child view controller with scope:'controller'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on grandparent and defaultListenerScope on child", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+                });
+
+                it("should resolve to the widget with unspecified scope", function() {
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'controller'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        listeners: {
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with scope declared on inner object", function() {
+                it("should resolve to controller with unspecified outer scope", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        controller: new Controller(),
+                        listeners: {
+                            foo: {
+                                fn: 'onFoo',
+                                scope: 'controller'
+                            }
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+
+                it("should resolve to controller with outer scope of controller", function() {
+                    defineWidget({
+                        defaultListenerScope: true,
+                        controller: new Controller(),
+                        listeners: {
+                            scope: 'controller',
+                            foo: {
+                                fn: 'onFoo',
+                                scope: 'controller'
+                            }
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expectScope('controller');
+                });
+            });
+
+            describe("with handler declared as a function reference", function() {
+                var handler;
+
+                beforeEach(function() {
+                    handler = jasmine.createSpy();
+                });
+
+                it("should use the component as the default scope", function() {
+                    defineWidget({
+                        listeners: {
+                            foo: handler
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                // Can't use an object as the scope of a listener declared on the class body
+                // because the config system will fork the listeners object so it can apply
+                // the instanceConfig without mutating the class config
+                xit("should use an arbitrary object as the scope", function() {
+                    var scope = {};
+
+                    Widget = Ext.define(null, {
+                        extend: 'Ext.Widget',
+                        listeners: {
+                            foo: handler,
+                            scope: scope
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(scope);
+                });
+
+                it("should use the component with scope:'this'", function() {
+                    defineWidget({
+                        listeners: {
+                            foo: handler,
+                            scope: 'this'
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    defineWidget({
+                        listeners: {
+                            foo: handler,
+                            scope: 'controller'
+                        }
+                    });
+                    expect(function() {
+                        widget = new Widget({
+                            id: 'myWidget'
+                        });
+                    }).toThrow("Cannot resolve scope 'controller' for 'foo' listener declared on Observable: 'myWidget'");
+
+                    // error thrown during widget construction, must clean dom manually
+                    Ext.get('myWidget').destroy();
+                });
+
+                it("should use the component with scope:'this' specified on an inner object", function() {
+                    defineWidget({
+                        listeners: {
+                            foo: {
+                                fn: handler,
+                                scope: 'this'
+                            }
+                        }
+                    });
+                    widget = new Widget();
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                it("should fail with scope:'controller' specified on an inner object", function() {
+                    defineWidget({
+                        listeners: {
+                            foo: {
+                                fn: handler,
+                                scope: 'controller'
+                            }
+                        }
+                    });
+                    expect(function() {
+                        widget = new Widget({
+                            id: 'myWidget'
+                        });
+                    }).toThrow("Cannot resolve scope 'controller' for 'foo' listener declared on Observable: 'myWidget'");
+
+                    // error thrown during widget construction, must clean dom manually
+                    Ext.get('myWidget').destroy();
+                });
+            });
+        });
+
+        describe("listener declared on instance config", function() {
+            function defineWidget(cfg) {
+                Widget = Ext.define(null, Ext.merge({
+                    extend: 'Ext.Widget',
+                    onFoo: spies.widget
+                }, cfg));
+            }
+
+            it("should resolve to the widget with unspecified scope", function() {
+                defineWidget();
+                widget = new Widget({
+                    listeners: {
+                        foo: 'onFoo'
+                    }
+                });
+                widget.fireEvent('foo');
+                expectScope('widget');
+            });
+
+            it("should fail with scope:'controller'", function() {
+                defineWidget();
+                widget = new Widget({
+                    listeners: {
+                        foo: 'onFoo',
+                        scope: 'controller'
+                    }
+                });
+                expect(function() {
+                    widget.fireEvent('foo');
+                }).toThrow();
+            });
+
+            it("should resolve to the widget with scope:'this'", function() {
+                defineWidget();
+                widget = new Widget({
+                    listeners: {
+                        foo: 'onFoo',
+                        scope: 'this'
+                    }
+                });
+                widget.fireEvent('foo');
+                expectScope('widget');
+            });
+
+            describe("with view controller", function() {
+                beforeEach(function() {
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                });
+
+                it("should resolve to the widget with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope", function() {
+                beforeEach(function() {
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the widget with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope", function() {
+                beforeEach(function() {
+                    defineWidget({
+                        controller: new Controller(),
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the widget with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        defaultListenerScope: true
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the parent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the parent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController(),
+                        defaultListenerScope: true
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the parent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parent');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        defaultListenerScope: true
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the grandparent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the grandparent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller and defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController(),
+                        defaultListenerScope: true
+                    });
+                    defineWidget();
+                });
+
+                it("should resolve to the grandparent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparent');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and view controller on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                });
+
+                it("should resolve to the parent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and view controller on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                });
+
+                it("should resolve to the grandparent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and defaultListenerScope on parent", function() {
+                beforeEach(function() {
+                    defineParent({
+                        defaultListenerScope: true
+                    });
+
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                });
+
+                it("should resolve to the parent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on parent and defaultListenerScope on child", function() {
+                beforeEach(function() {
+                    defineParent({
+                        controller: new ParentController()
+                    });
+
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the parent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the parent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('parentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    parent = new Parent({
+                        items: widget
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on child and defaultListenerScope on grandparent", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        defaultListenerScope: true
+                    });
+
+                    defineWidget({
+                        controller: new Controller()
+                    });
+                });
+
+                it("should resolve to the grandparent with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparent');
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    expect(function() {
+                        widget.fireEvent('foo');
+                    }).toThrow();
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with view controller on grandparent and defaultListenerScope on child", function() {
+                beforeEach(function() {
+                    defineGrandparent({
+                        controller: new GrandparentController()
+                    });
+
+                    defineWidget({
+                        defaultListenerScope: true
+                    });
+                });
+
+                it("should resolve to the grandparent view controller with unspecified scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the grandparent view controller with scope:'controller'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'controller'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('grandparentController');
+                });
+
+                it("should resolve to the widget with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: 'onFoo',
+                            scope: 'this'
+                        }
+                    });
+                    grandparent = new Grandparent({
+                        items: {
+                            items: widget
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expectScope('widget');
+                });
+            });
+
+            describe("with handler declared as a function reference", function() {
+                var handler;
+
+                beforeEach(function() {
+                    defineWidget();
+                    handler = jasmine.createSpy();
+                });
+
+                it("should use the component as the default scope", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: handler
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                it("should use an arbitrary object as the scope", function() {
+                    var scope = {};
+
+                    widget = new Widget({
+                        listeners: {
+                            foo: handler,
+                            scope: scope
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(scope);
+                });
+
+                it("should use the component with scope:'this'", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: handler,
+                            scope: 'this'
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                it("should fail with scope:'controller'", function() {
+                    expect(function() {
+                        widget = new Widget({
+                            id: 'myWidget',
+                            listeners: {
+                                foo: handler,
+                                scope: 'controller'
+                            }
+                        });
+                    }).toThrow("Cannot resolve scope 'controller' for 'foo' listener declared on Observable: 'myWidget'");
+
+                    // error thrown during widget construction, must clean dom manually
+                    Ext.get('myWidget').destroy();
+                });
+
+                it("should use the component with scope:'this' specified on an inner object", function() {
+                    widget = new Widget({
+                        listeners: {
+                            foo: {
+                                fn: handler,
+                                scope: 'this'
+                            }
+                        }
+                    });
+                    widget.fireEvent('foo');
+                    expect(handler).toHaveBeenCalled();
+                    expect(handler.mostRecentCall.object).toBe(widget);
+                });
+
+                it("should fail with scope:'controller' specified on an inner object", function() {
+                    expect(function() {
+                        widget = new Widget({
+                            id: 'myWidget',
+                            listeners: {
+                                foo: {
+                                    fn: handler,
+                                    scope: 'controller'
+                                }
+                            }
+                        });
+                    }).toThrow("Cannot resolve scope 'controller' for 'foo' listener declared on Observable: 'myWidget'");
+
+                    // error thrown during widget construction, must clean dom manually
+                    Ext.get('myWidget').destroy();
+                });
+            });
+        });
+    });
 });

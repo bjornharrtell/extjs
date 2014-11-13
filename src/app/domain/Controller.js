@@ -1,7 +1,7 @@
 /**
  * This class implements the controller event domain. All classes extending from
- * {@link Ext.app.Controller} are included in this domain. The selectors are simply id's or the
- * wildcard "*" to match any controller.
+ * {@link Ext.app.Controller} are included in this domain. The selectors are simply id, 
+ * alias, or the wildcard "*" to match any controller.
  * 
  * @private
  */

@@ -22,9 +22,9 @@ Ext.onReady(function(){
         maxValue: 100
     });
 
-    // This Should allow values 65, 67, 69, 71, 73 and 75
+    // This Should allow values 65, 67, 69, 71, 73 and 74
     // The initial value of 66 should get normalized to 67
-    // The max value of 74 will also be normalized to 75.
+    // The max value of 74 will be restricted to 74.
     Ext.create('Ext.slider.Single', {
         renderTo: 'increment-slider-minValue',
         hideLabel: true,

@@ -109,7 +109,11 @@
 }
 
 @mixin inner-border($width: 1px, $color: #fff, $blur: 0px) {
-    @if inner-border-usesingle($width, $color) {
+    @if max($width) == 0 {
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+    } @else if inner-border-usesingle($width, $color) {
         $spread: inner-border-spread($width);
         $hoff: inner-border-hoff($width, $spread);
         $voff: inner-border-voff($width, $spread);

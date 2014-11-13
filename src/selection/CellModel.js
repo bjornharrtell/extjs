@@ -37,11 +37,10 @@
  *     });
  */
 Ext.define('Ext.selection.CellModel', {
-    extend: 'Ext.selection.Model',
+    extend: 'Ext.selection.DataViewModel',
     alias: 'selection.cellmodel',
     requires: [
-        'Ext.grid.CellContext',
-        'Ext.util.KeyNav'
+        'Ext.grid.CellContext'
     ],
 
     /**
@@ -67,12 +66,6 @@ Ext.define('Ext.selection.CellModel', {
      */
     preventWrap: false,
 
-    // private property to use when firing a deselect when no old selection exists.
-    noSelection: {
-        row: -1,
-        column: -1
-    },
-
     /**
      * @event deselect
      * Fired after a cell is deselected
@@ -93,79 +86,42 @@ Ext.define('Ext.selection.CellModel', {
 
     bindComponent: function(view) {
         var me = this,
-            grid = view.ownerCt;
-        me.primaryView = view;
-        me.views = me.views || [];
-        me.views.push(view);
-        me.bindStore(view.getStore(), true);
+            // view.grid is present during View construction, before the view has been
+            // added as a child of the Panel, and an upward link it still needed.
+            grid = view.grid || view.ownerCt;
 
-        view.on({
-            cellclick: me.onCellClick,
-            refresh: me.onViewRefresh,
-            scope: me
-        });
+        // DataViewModel's bindComponent
+        me.callParent([view]);
+
         if (grid.optimizedColumnMove !== false) {
             grid.on('columnmove', me.onColumnMove, me);
         }
-
-        if (me.enableKeyNav) {
-            me.initKeyNav(view);
-        }
     },
 
-    initKeyNav: function(view) {
+    getViewListeners: function() {
         var me = this;
-
-        if (!view.rendered) {
-            view.on('render', Ext.Function.bind(me.initKeyNav, me, [view], 0), me, {single: true});
-            return;
-        }
-
-        view.el.set({
-            tabIndex: -1
-        });
-
-        // view.el has tabIndex -1 to allow for
-        // keyboard events to be passed to it.
-        me.keyNav = new Ext.util.KeyNav({
-            target: view.el,
-            ignoreInputFields: true,
-            up: me.onKeyUp,
-            down: me.onKeyDown,
-            right: me.onKeyRight,
-            left: me.onKeyLeft,
-            tab: me.onKeyTab,
+        
+        return {
+            refresh: me.onViewRefresh,
             scope: me
-        });
+        };
     },
 
     getHeaderCt: function() {
-        var selection = this.getCurrentPosition(),
+        var selection = this.navigationModel.getPosition(),
             view = selection ? selection.view : this.primaryView;
 
         return view.headerCt;
     },
 
-    onKeyUp: function(e) {
-        this.doMove('up', e);
-    },
+    // Selection blindly follows focus. For now.
+    onNavigate: function(e) {
+        // It was a navigate out event.
+        if (!e.record) {
+            return;
+        }
 
-    onKeyDown: function(e) {
-        this.doMove('down', e);
-    },
-
-    onKeyLeft: function(e) {
-        this.doMove('left', e);
-    },
-
-    onKeyRight: function(e) {
-        this.doMove('right', e);
-    },
-
-    doMove: function(direction, e){
-        this.keyNavigation = true;
-        this.move(direction, e);
-        this.keyNavigation = false;
+        this.setPosition(e.position);
     },
 
     selectWithEvent: function(record, e) {
@@ -175,7 +131,7 @@ Ext.define('Ext.selection.CellModel', {
     select: function(pos, keepExisting, suppressEvent) {
         var me = this,
             row,
-            oldPos = me.getCurrentPosition(),
+            oldPos = me.getPosition(),
             store = me.view.store;
 
         if (pos || pos === 0) {
@@ -204,57 +160,74 @@ Ext.define('Ext.selection.CellModel', {
         }
     },
 
-    deselect: function(record, suppressEvent){
-        this.selectByPosition(null, suppressEvent);    
-    },
-
-    move: function(dir, e) {
-        var me = this,
-            pos = me.getCurrentPosition(),
-            newPos;
-
-        if (pos) {
-            // Calculate the new row and column position
-            newPos = pos.view.walkCells(pos, dir, e, me.preventWrap);
-            // If walk was successful, select new Position
-            if (newPos) {
-                return me.setCurrentPosition(newPos);
-            }
-        }
-        // <debug>
-        // Enforce code correctness in unbuilt source.
-        return null;
-        // </debug>
-    },
-
     /**
      * Returns the current position in the format {row: row, column: column}
+     * @deprecated 5.0.1 This API uses column indices which include hidden columns in the count. Use {@link #getPosition} instead.
      */
     getCurrentPosition: function() {
         // If it's during a select, return nextSelection since we buffer
         // the real selection until after the event fires
+        var position = this.selecting ? this.nextSelection : this.selection;
+
+        // This is the previous Format of the private CellContext class which was used here.
+        // Do not return a CellContext so that if this object is passed into setCurrentPosition, it will be
+        // read in the legacy (including hidden columns) way.
+        return position ? {
+            view: position.view,
+            record: position.record,
+            row: position.rowIdx,
+            columnHeader: position.column,
+            // IMPORTANT: The historic API for columns has been to include hidden columns
+            // in the index. So we must report the index of the column in the "all" ColumnManager.
+            column: position.view.getColumnManager().indexOf(position.column)
+        } : position;
+    },
+
+    /**
+     * Returns the current position in the format {row: row, column: column}
+     * @return {Ext.grid.CellContext} A CellContext object describing the current cell.
+     */
+    getPosition: function() {
         return this.selecting ? this.nextSelection : this.selection;
     },
 
     /**
-     * Sets the current position
-     * @param {Object} position The position to set.
+     * Sets the current position.
+     * @deprecated 5.0.1 This API uses column indices which include hidden columns in the count. Use {@link #setPosition} instead.
+     * @param {Ext.grid.CellContext/Object} position The position to set. May be an object of the form `{row:1, column:2}`
      * @param {Boolean} suppressEvent True to suppress selection events
      */
     setCurrentPosition: function(pos, suppressEvent, /* private */ preventCheck) {
+        if (pos && !pos.isCellContext) {
+            pos = new Ext.grid.CellContext(this.view).setPosition({
+                row: pos.row,
+                // IMPORTANT: The historic API for columns has been to include hidden columns
+                // in the index. So we must index into the "all" ColumnManager.
+                column: typeof pos.column === 'number' ? this.view.getColumnManager().getColumns()[pos.column] : pos.column
+            });
+        }
+        return this.setPosition(pos, suppressEvent, preventCheck)
+    },
+
+    /**
+     * Sets the current position.
+     *
+     * Note that if passing a column index, it is the index within the *visible* column set.
+     *
+     * @param {Ext.grid.CellContext/Object} position The position to set. May be an object of the form `{row:1, column:2}`
+     * @param {Boolean} suppressEvent True to suppress selection events
+     */
+    setPosition: function(pos, suppressEvent, /* private */ preventCheck) {
         var me = this,
             last = me.selection;
 
-        // onSelectChange uses lastSelection and nextSelection
-        me.lastSelection = last;
-
         // Normalize it into an Ext.grid.CellContext if necessary
         if (pos) {
-            pos = pos.isCellContext ? pos : new Ext.grid.CellContext(me.primaryView).setPosition(pos);
+            pos = pos.isCellContext ? pos.clone() : new Ext.grid.CellContext(me.view).setPosition(pos);
         }
         if (!preventCheck && last) {
             // If the position is the same, jump out & don't fire the event
-            if (pos && (pos.record === last.record && pos.columnHeader === last.columnHeader && pos.view === last.view)) {
+            if (pos && (pos.record === last.record && pos.column === last.column && pos.view === last.view)) {
                 pos = null;
             } else {
                 me.onCellDeselect(me.selection, suppressEvent);
@@ -280,28 +253,27 @@ Ext.define('Ext.selection.CellModel', {
     isCellSelected: function(view, row, column) {
         var me = this,
             testPos,
-            pos = me.getCurrentPosition();
+            pos = me.getPosition();
 
         if (pos && pos.view === view) {
             testPos = new Ext.grid.CellContext(view).setPosition({
                 row: row,
-                column: column
+                // IMPORTANT: The historic API for columns has been to include hidden columns
+                // in the index. So we must index into the "all" ColumnManager.
+                column: typeof column === 'number' ? view.getColumnManager().getColumns()[column] : column
             });
-            return (testPos.record === pos.record) && (testPos.columnHeader === pos.columnHeader);
+            return (testPos.record === pos.record) && (testPos.column === pos.column);
         }
     },
 
     // Keep selection model in consistent state upon record deletion.
-    onStoreRemove: function(store, records, indexes) {
+    onStoreRemove: function(store, records, indices) {
         var me = this,
-            pos = me.getCurrentPosition();
+            pos = me.getPosition();
 
         me.callParent(arguments);
         if (pos && store.getCount() && store.indexOf(pos.record) !== -1) {
-            me.setCurrentPosition({
-                row: pos.record,
-                column: pos.columnHeader
-            }, true, true);
+            pos.setRow(pos.record);
         } else {
             me.selection = null;
         }
@@ -314,14 +286,11 @@ Ext.define('Ext.selection.CellModel', {
     
     onStoreAdd: function() {
         var me = this,
-            pos = me.getCurrentPosition();
+            pos = me.getPosition();
 
         me.callParent(arguments);
         if (pos) {
-            me.setCurrentPosition({
-                row: pos.record,
-                column: pos.columnHeader
-            }, true, true);
+            pos.setRow(pos.record);
         } else {
             me.selection = null;
         }
@@ -333,24 +302,16 @@ Ext.define('Ext.selection.CellModel', {
      * IMPORTANT* Due to V4.0.0 history, the cellIndex here is the index within ALL columns, including hidden.
      */
     onCellClick: function(view, cell, cellIndex, record, row, recordIndex, e) {
-        var newPos;
-
         // Record index will be -1 if the clicked record is a metadata record and not selectable
         if (recordIndex !== -1) {
-            newPos = new Ext.grid.CellContext(view).setPosition({
-                view: view,
-                row: row,
-                // Use getColumnManager() in this context because cellIndex includes hidden columns
-                column: view.ownerCt.getColumnManager().getHeaderAtIndex(cellIndex)
-            });
-            this.setCurrentPosition(newPos);
+            this.setPosition(e.position);
         }
     },
 
     // notify the view that the cell has been selected to update the ui
     // appropriately and bring the cell into focus
     onCellSelect: function(position, supressEvent) {
-        if (position && position.row !== undefined && position.row > -1) {
+        if (position && position.rowIdx !== undefined && position.rowIdx > -1) {
             this.doSelect(position.record, /*keepExisting*/false, supressEvent);
         }
     },
@@ -358,7 +319,7 @@ Ext.define('Ext.selection.CellModel', {
     // notify view that the cell has been deselected to update the ui
     // appropriately
     onCellDeselect: function(position, supressEvent) {
-        if (position && position.row !== undefined) {
+        if (position && position.rowIdx !== undefined) {
             this.doDeselect(position.record, supressEvent);
         }
     },
@@ -367,27 +328,33 @@ Ext.define('Ext.selection.CellModel', {
         var me = this,
             pos,
             eventName,
-            view;
+            view,
+            nm;
 
         if (isSelected) {
             pos = me.nextSelection;
             eventName = 'select';
         } else {
-            pos = me.lastSelection || me.noSelection;
+            pos = me.selection;
             eventName = 'deselect';
         }
 
         // CellModel may be shared between two sides of a Lockable.
         // The position must include a reference to the view in which the selection is current.
-        // Ensure we use the view specifiied by the position.
+        // Ensure we use the view specified by the position.
         view = pos.view || me.primaryView;
 
-        if ((suppressEvent || me.fireEvent('before' + eventName, me, record, pos.row, pos.column)) !== false &&
+        if ((suppressEvent || me.fireEvent('before' + eventName, me, record, pos.rowIdx, pos.colIdx)) !== false &&
                 commitFn() !== false) {
 
             if (isSelected) {
+                // Focus the cell unless we are configured not to do so, or the NavigationModel reports
+                // that that position is already focused.
                 if (!me.preventFocus) {
-                    view.focusCell(pos, true);
+                    nm = view.getNavigationModel();
+                    if (!pos.isEqual(nm.getPosition())) {
+                        nm.setPosition(pos, null, null, null, true);
+                    }
                 }
                 view.onCellSelect(pos);
             } else {
@@ -396,24 +363,7 @@ Ext.define('Ext.selection.CellModel', {
             }
 
             if (!suppressEvent) {
-                me.fireEvent(eventName, me, record, pos.row, pos.column);
-            }
-        }
-    },
-
-    // Tab key from the View's KeyNav, *not* from an editor.
-    onKeyTab: function(e, t) {
-        var me = this,
-            pos = me.getCurrentPosition(),
-            editingPlugin;
-
-        if (pos) {
-            editingPlugin = pos.view.editingPlugin;
-            // If we were in editing mode, but just focused on a non-editable cell, behave as if we tabbed off an editable field
-            if (editingPlugin && me.wasEditing) {
-                me.onEditorTab(editingPlugin, e);
-            } else {
-                me.move(e.shiftKey ? 'left' : 'right', e);
+                me.fireEvent(eventName, me, record, pos.rowIdx, pos.colIdx);
             }
         }
     },
@@ -421,32 +371,32 @@ Ext.define('Ext.selection.CellModel', {
     onEditorTab: function(editingPlugin, e) {
         var me = this,
             direction = e.shiftKey ? 'left' : 'right',
-            pos = me.getCurrentPosition(),
+            pos = editingPlugin.context,
             position  = pos.view.walkCells(pos, direction, e, me.preventWrap);
 
         // Navigation had somewhere to go.... not hit the buffers.
         if (position) {
             // If we were able to begin editing clear the wasEditing flag. It gets set during navigation off an active edit.
-            if (editingPlugin.startEdit(position.record, position.columnHeader)) {
+            if (editingPlugin.startEdit(position.record, position.column)) {
                 me.wasEditing = false;
             }
             // If we could not continue editing...
             // bring the cell into view.
             // Set a flag that we should go back into editing mode upon next onKeyTab call
             else {
-                me.setCurrentPosition(position);
+                position.view.getNavigationModel().setPosition(position, null, e);
                 me.wasEditing = true;
             }
         }
     },
 
     refresh: function() {
-        var pos = this.getCurrentPosition(),
+        var pos = this.getPosition(),
             selRowIdx;
 
         // Synchronize the current position's row with the row of the last selected record.
         if (pos && (selRowIdx = this.store.indexOf(this.selected.last())) !== -1) {
-            pos.row = selRowIdx;
+            pos.rowIdx = selRowIdx;
         }
     },
 
@@ -478,25 +428,25 @@ Ext.define('Ext.selection.CellModel', {
 
     onViewRefresh: function(view) {
         var me = this,
-            pos = me.getCurrentPosition(),
+            pos = me.getPosition(),
             newPos,
             headerCt = view.headerCt,
-            record, columnHeader;
+            record, column;
 
         // Re-establish selection of the same cell coordinate.
         // DO NOT fire events because the selected 
         if (pos && pos.view === view) {
             record = pos.record;
-            columnHeader = pos.columnHeader;
+            column = pos.column;
 
             // After a refresh, recreate the selection using the same record and grid column as before
-            if (!columnHeader.isDescendantOf(headerCt)) {
+            if (!column.isDescendantOf(headerCt)) {
                 // column header is not a child of the header container
                 // this happens when the grid is reconfigured with new columns
                 // make a best effor to select something by matching on id, then text, then dataIndex
-                columnHeader = headerCt.queryById(columnHeader.id) || 
-                               headerCt.down('[text="' + columnHeader.text + '"]') ||
-                               headerCt.down('[dataIndex="' + columnHeader.dataIndex + '"]');
+                column = headerCt.queryById(column.id) || 
+                               headerCt.down('[text="' + column.text + '"]') ||
+                               headerCt.down('[dataIndex="' + column.dataIndex + '"]');
             }
 
             // If we have a columnHeader (either the column header that already exists in
@@ -504,12 +454,12 @@ Ext.define('Ext.selection.CellModel', {
             // AND the record still exists in the store (or a record matching the id of
             // the previously selected record) We are ok to go ahead and set the selection
             if (pos.record) {
-                if (columnHeader && (view.store.indexOfId(record.getId()) !== -1)) {
+                if (column && (view.store.indexOfId(record.getId()) !== -1)) {
                     newPos = new Ext.grid.CellContext(view).setPosition({
                         row: record,
-                        column: columnHeader
+                        column: column
                     });
-                    me.setCurrentPosition(newPos);
+                    me.setPosition(newPos);
                 }
             } else {
                 me.selection = null;
@@ -517,7 +467,8 @@ Ext.define('Ext.selection.CellModel', {
         }
     },
 
+    // @private. Used internally by CellEditing
     selectByPosition: function(position, suppressEvent) {
-        this.setCurrentPosition(position, suppressEvent);
+        this.setPosition(position, suppressEvent);
     }
 });

@@ -109,15 +109,15 @@ Ext.define('Ext.util.Event', function() {
 
     createListener: function(fn, scope, o, caller) {
         var me = this,
-            preventClimb = scope === 'this' || scope === 'controller',
+            namedScope = (scope in Ext._namedScopes),
             listener = {
                 fn: fn,
                 scope: scope,
                 ev: me,
                 caller: caller,
-                preventClimb: preventClimb,
-                defaultScope: preventClimb ? scope : undefined,
-                lateBound: (typeof fn === 'string' && (!scope || preventClimb))
+                namedScope: namedScope,
+                defaultScope: namedScope ? scope : undefined,
+                lateBound: (typeof fn === 'string' && (!scope || namedScope))
             },
             handler = fn,
             allowLookup = true;
@@ -158,7 +158,7 @@ Ext.define('Ext.util.Event', function() {
             listener = listeners[i];
             if (listener) {
                 s = listener.scope;
-                checkScope = (listener.lateBound && !listener.preventClimb) ? undefined : (scope || this.observable); 
+                checkScope = (listener.lateBound && !listener.namedScope) ? undefined : (scope || this.observable);
 
                 // Compare the listener's scope with *JUST THE PASSED SCOPE* if one is passed, and only fall back to the owning Observable if none is passed.
                 // We cannot use the test (s == scope || s == this.observable)
@@ -292,7 +292,8 @@ Ext.define('Ext.util.Event', function() {
         var observable = this.observable,
             fn = forceLookup ? listener.fn : listener.fireFn,
             scope = listener.scope,
-            caller = listener.caller;
+            caller = listener.caller,
+            namedScope;
             
         //<debug>
         var name = fn;
@@ -301,7 +302,18 @@ Ext.define('Ext.util.Event', function() {
             scope = (caller || observable).resolveListenerScope(listener.defaultScope);
             fn = scope[fn];
         } else {
-            scope = scope || observable;
+            if (listener.allowLookup) {
+                namedScope = Ext._namedScopes[scope];
+                //<debug>
+                if (namedScope && namedScope.isController) {
+                    // If the user declared the listener fn as a function reference, not a
+                    // string, controller scope is invalid
+                    Ext.Error.raise("Cannot resolve scope 'controller' for '" + listener.ev.name +
+                        "' listener declared on Observable: '" + observable.id + "'");
+                }
+                //</debug>
+            }
+            scope = (scope && !namedScope) ? scope : observable;
         }
         // We can only ever be firing one event at a time, so just keep
         // overwriting tghe object we've got in our closure, otherwise we'll be

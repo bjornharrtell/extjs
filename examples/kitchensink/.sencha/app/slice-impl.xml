@@ -8,7 +8,7 @@
         <local name="app.example.scss.tmp"/>
         <property name="app.example.scss.tmp" value="${app.example.scss}.tmp"/>
         <x-normalize-path 
-            path="${build.dir}/resources" 
+            path="${build.out.resources.dir}" 
             property="image.search.path"/>
         
         <x-compile refid="${compiler.ref.id}">
@@ -78,13 +78,8 @@
             config="${app.example.compass.config}"/>
     </target>
 
-    <!--
-    Generates theme images for Ext JS 4.2+ apps using theme packages
-    '-detect-app-build-properties' is defined in js-impl.xml
-    -->
-    <target name="-slice-app-theme" depends="-detect-app-build-properties">
-        <x-ant-call target="-compass-compile-slicer-css"/>
-
+    <!-- Produces a bootstrap.js file for ext 4.2 slicer pages -->
+    <target name="-generate-slicer-bootstrap" unless="framework.isV5">
         <local name="relpath"/>
         <x-get-relative-path from="${bootstrap.base.path}"
                              to="${framework.packages.dir}"
@@ -106,7 +101,28 @@ Ext.Boot.loadSync([
 ]);
 ]]>
         </x-bootstrap>
-       
+
+    </target>
+    
+    <!-- Produces a bootstrap.js / bootstrap.json pair for ext 5 slicer pages -->
+    <target name="-generate-slicer-manifest" if="framework.isV5">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+                slicer-manifest
+                    -basePath=${bootstrap.base.path}
+                    -cssFile=${app.example.css.file}
+                    -out=${bootstrap.example.json}
+                and
+                microload
+                    -operation=microloader
+                    -microloaderPath=${build.slicer.microloader.file}
+                    -bootPath=${build.boot.file}
+                    -out=${bootstrap.example.js}
+            ]]>
+        </x-compile>
+    </target>
+    
+    <target name="-capture-theme-image">
         <echo>Capture theme image to ${build.capture.png}</echo>
         <x-sencha-command>
             <![CDATA[
@@ -117,7 +133,9 @@ Ext.Boot.loadSync([
                         -manifest=${build.capture.json}
             ]]>
         </x-sencha-command>
-
+    </target>
+    
+    <target name="-slice-theme-images">
         <echo>Slicing theme images to ${build.resources.dir}</echo>
         <x-sencha-command>
             <![CDATA[
@@ -126,9 +144,22 @@ Ext.Boot.loadSync([
                         ${build.slice.options}
                         -image=${build.capture.png}
                         -manifest=${build.capture.json}
-                        -out=${build.resources.dir}
+                        -out=${build.out.slicer.path}
             ]]>
         </x-sencha-command>
+    </target>
+    
+    <!--
+    Generates theme images for Ext JS 4.2+ apps using theme packages
+    '-detect-app-build-properties' is defined in js-impl.xml
+    -->
+    <target name="-slice-app-theme" 
+            depends="-detect-app-build-properties,
+                     -compass-compile-slicer-css,
+                     -generate-slicer-bootstrap,
+                     -generate-slicer-manifest,
+                     -capture-theme-image,
+                     -slice-theme-images">
     </target>
 
     <macrodef name="x-build-theme">

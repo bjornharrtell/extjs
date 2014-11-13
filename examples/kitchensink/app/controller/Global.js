@@ -18,7 +18,8 @@ Ext.define('KitchenSink.controller.Global', {
         'GeoData',
         'StandardCharts',
         'Pie',
-        'StockPrice'
+        'StockPrice',
+        'LinearGeoData'
     ],
 
     config: {
@@ -30,7 +31,8 @@ Ext.define('KitchenSink.controller.Global', {
                 selectionchange: 'onBreadcrumbNavSelectionChange'
             },
             'thumbnails': {
-                itemclick: 'onThumbnailClick'
+                itemclick: 'onThumbnailClick',
+                itemdblclick: 'onThumbnailClick'
             },
             '#codePreview tool[type=maximize]': {
                 click: 'onMaximizeClick'
@@ -87,19 +89,12 @@ Ext.define('KitchenSink.controller.Global', {
             navigationBreadcrumb = me.getNavigationBreadcrumb(),
             store = Ext.StoreMgr.get('navigation'),
             node = store.getNodeById(id),
-            text = node.get('text'),
             contentPanel = me.getContentPanel(),
             themeName = Ext.themeName,
             thumbnails = me.getThumbnails(),
             codePreview = me.getCodePreview(),
-            description, cmp, className, ViewClass, clsProto, thumbnailsStore;
-
-        if (navigationTree && navigationTree.isVisible()) {
-            navigationTree.getSelectionModel().select(node);
-            navigationTree.getView().focusNode(node);
-        } else {
-            navigationBreadcrumb.setSelection(node);
-        }
+            hasTree = navigationTree && navigationTree.isVisible(),
+            cmp, className, ViewClass, clsProto, thumbnailsStore;
 
         Ext.suspendLayouts();
 
@@ -108,6 +103,13 @@ Ext.define('KitchenSink.controller.Global', {
                 contentPanel.remove(thumbnails, false); // remove thumbnail view without destroying
             } else {
                 contentPanel.removeAll(true);
+            }
+
+            if (hasTree) {
+                navigationTree.getSelectionModel().select(node);
+                navigationTree.getView().focusNode(node);
+            } else {
+                navigationBreadcrumb.setSelection(node);
             }
 
             contentPanel.body.addCls('kitchensink-example');
@@ -149,6 +151,9 @@ Ext.define('KitchenSink.controller.Global', {
                 cmp.show();
             }
         } else {
+            if (!hasTree) {
+                navigationBreadcrumb.setSelection(node);
+            }
             thumbnailsStore = me.getThumbnailsStore();
             thumbnailsStore.removeAll();
             thumbnailsStore.add(node.childNodes);

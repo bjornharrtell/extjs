@@ -141,7 +141,7 @@ Ext.define('Ext.dd.ScrollManager', {
               : me.frequency;
 
         if (group === undefined || me.ddmInstance.dragCurrent.ddGroup === group) {
-            proc.id = setInterval(me.doScroll, freq);
+            proc.id = Ext.interval(me.doScroll, freq);
         }
     },
 

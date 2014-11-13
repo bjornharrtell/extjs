@@ -2,6 +2,8 @@
  * @class Ext.sparkline.Discrete
  *
  * Plots a series of thin vertical lines based upon the input {@link #values} array.
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Discrete', {
     extend: 'Ext.sparkline.BarBase',

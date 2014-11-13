@@ -17,6 +17,7 @@ Ext.define('KitchenSink.view.grid.GridPlugins', {
     xtype: 'grid-plugins',
     
     bodyStyle: 'background-color:transparent',
+    border: false,
     //<example>
     exampleTitle: 'Grid Plugins',
     otherContent: [{

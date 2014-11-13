@@ -24,7 +24,7 @@ Ext.define('Ticket.view.login.LoginModel', {
 
             // Associate this store with the data session (an Ext.data.Session).
             // This ensures the Organization records are cached and distinct going forward.
-            isolated: false
+            session: true
         }
     }
 });

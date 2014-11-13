@@ -150,7 +150,7 @@ Ext.define('KitchenSink.view.charts.other.TipCharts', {
             sprites: [{
                 type: 'text',
                 text: 'Chart with Chart and grid in Tips',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position

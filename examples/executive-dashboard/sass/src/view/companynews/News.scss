@@ -204,6 +204,10 @@
             margin-top: 0;
         }
     }
+
+    .x-grid-item-focused .x-grid-cell-inner:before {
+        display: none;
+    }
 }
 
 #news-menu {

@@ -20,6 +20,7 @@ Ext.define('KitchenSink.view.form.FieldReplicator', {
     frame: true,
     bodyPadding: 5,
     resizable: true,
+    minHeight: 200,
 
     fieldDefaults: {
         labelWidth: 70,

@@ -1,11 +1,11 @@
 /**
  * The Animation modifier.
  *
- * Sencha Touch allows users to use transitional animation on sprites. Simply set the duration
+ * Sencha Charts allow users to use transitional animation on sprites. Simply set the duration
  * and easing in the animation modifier, then all the changes to the sprites will be animated.
  *
  * Also, you can use different durations and easing functions on different attributes by using
- * {@link #customDuration} and {@link #customEasings}.
+ * {@link #customDurations} and {@link #customEasings}.
  *
  * By default, an animation modifier will be created during the initialization of a sprite.
  * You can get the modifier of `sprite` by `sprite.fx`.
@@ -35,14 +35,37 @@ Ext.define('Ext.draw.modifier.Animation', {
         duration: 0,
 
         /**
-         * @cfg {Object} customEasings Overrides the default easing function for defined attributes.
+         * @cfg {Object} customEasings Overrides the default easing function for defined attributes. E.g.:
+         *
+         *     // Assuming the sprite the modifier is applied to is a 'circle'.
+         *     customEasings: {
+         *         r: 'easeOut',
+         *         'fillStyle,strokeStyle': 'linear',
+         *         'cx,cy': function (p, n) {
+         *             p = 1 - p;
+         *             n = n || 1.616;
+         *             return 1 - p * p * ((n + 1) * p - n);
+         *         }
+         *     }
          */
         customEasings: {},
 
         /**
-         * @cfg {Object} customDuration Overrides the default duration for defined attributes.
+         * @cfg {Object} customDurations Overrides the default duration for defined attributes. E.g.:
+         *
+         *     // Assuming the sprite the modifier is applied to is a 'circle'.
+         *     customDurations: {
+         *         r: 1000,
+         *         'fillStyle,strokeStyle': 2000,
+         *         'cx,cy': 1000
+         *     }
          */
-        customDuration: {}
+        customDurations: {},
+
+        /**
+         * @deprecated Use {@link #customDurations} instead.
+         */
+        customDuration: null
     },
 
     constructor: function () {
@@ -61,7 +84,7 @@ Ext.define('Ext.draw.modifier.Animation', {
             attr.animating = false;
             attr.timers = {};
             attr.animationOriginal = Ext.Object.chain(attr);
-            attr.animationOriginal.upperLevel = attr;
+            attr.animationOriginal.prototype = attr;
         }
         if (this._previous) {
             this._previous.prepareAttributes(attr.animationOriginal);
@@ -69,7 +92,6 @@ Ext.define('Ext.draw.modifier.Animation', {
     },
 
     updateSprite: function (sprite) {
-        // Apply the config that was configured in the sprite.
         this.setConfig(sprite.config.fx);
     },
 
@@ -85,21 +107,25 @@ Ext.define('Ext.draw.modifier.Animation', {
         }
     },
 
-    applyCustomEasings: function (newCustomEasing, oldCustomEasing) {
-        oldCustomEasing = oldCustomEasing || {};
-        var attr, attrs, easing, i, ln;
+    applyCustomEasings: function (newEasings, oldEasings) {
+        oldEasings = oldEasings || {};
+        var any, key, attrs, easing, i, ln;
 
-        for (attr in newCustomEasing) {
-            easing = newCustomEasing[attr];
-            attrs = attr.split(',');
+        for (key in newEasings) {
+            any = true;
+            easing = newEasings[key];
+            attrs = key.split(',');
             if (typeof easing === 'string') {
                 easing = Ext.draw.TimingFunctions.easingMap[easing];
             }
             for (i = 0, ln = attrs.length; i < ln; i++) {
-                oldCustomEasing[attrs[i]] = easing;
+                oldEasings[attrs[i]] = easing;
             }
         }
-        return oldCustomEasing;
+        if (any) {
+            this.anySpecialAnimations = any;
+        }
+        return oldEasings;
     },
 
     /**
@@ -113,8 +139,8 @@ Ext.define('Ext.draw.modifier.Animation', {
     setEasingOn: function (attrs, easing) {
         attrs = Ext.Array.from(attrs).slice();
         var customEasings = {},
-            i = 0,
-            ln = attrs.length;
+            ln = attrs.length,
+            i = 0;
 
         for (; i < ln; i++) {
             customEasings[attrs[i]] = easing;
@@ -134,21 +160,37 @@ Ext.define('Ext.draw.modifier.Animation', {
         }
     },
 
-    applyCustomDuration: function (newCustomDuration, oldCustomDuration) {
-        oldCustomDuration = oldCustomDuration || {};
-        var attr, duration, attrs, i, ln, anySpecialAnimations = this.anySpecialAnimations;
+    applyCustomDurations: function (newDurations, oldDurations) {
+        oldDurations = oldDurations || {};
+        var any, key, duration, attrs, i, ln;
 
-        for (attr in newCustomDuration) {
-            duration = newCustomDuration[attr];
-            attrs = attr.split(',');
-            anySpecialAnimations = true;
-
+        for (key in newDurations) {
+            any = true;
+            duration = newDurations[key];
+            attrs = key.split(',');
             for (i = 0, ln = attrs.length; i < ln; i++) {
-                oldCustomDuration[attrs[i]] = duration;
+                oldDurations[attrs[i]] = duration;
             }
         }
-        this.anySpecialAnimations = anySpecialAnimations;
-        return oldCustomDuration;
+        if (any) {
+            this.anySpecialAnimations = any;
+        }
+        return oldDurations;
+    },
+
+    /**
+     * @private
+     * @deprecated
+     * @since 5.0.1.
+     */
+    applyCustomDuration: function (newDuration, oldDuration) {
+        if (newDuration) {
+            this.getCustomDurations();
+            this.setCustomDurations(newDuration);
+            //<debug>
+            Ext.log.warn("'customDuration' config is deprecated. Use 'customDurations' config instead.");
+            //</debug>
+        }
     },
 
     /**
@@ -168,7 +210,7 @@ Ext.define('Ext.draw.modifier.Animation', {
         for (; i < ln; i++) {
             customDurations[attrs[i]] = duration;
         }
-        this.setCustomDuration(customDurations);
+        this.setCustomDurations(customDurations);
     },
 
     /**
@@ -180,7 +222,7 @@ Ext.define('Ext.draw.modifier.Animation', {
         var i = 0, ln = attrs.length;
 
         for (; i < ln; i++) {
-            delete this._customDuration[attrs[i]];
+            delete this._customDurations[attrs[i]];
         }
     },
 
@@ -225,7 +267,7 @@ Ext.define('Ext.draw.modifier.Animation', {
             parsers = this._sprite.self.def._animationProcessors,
             defaultEasing = this._easing,
             defaultDuration = this._duration,
-            customDuration = this._customDuration,
+            customDurations = this._customDurations,
             customEasings = this._customEasings,
             anySpecial = this.anySpecialAnimations,
             any = this.anyAnimation || anySpecial,
@@ -252,7 +294,7 @@ Ext.define('Ext.draw.modifier.Animation', {
             for (name in changes) {
                 newValue = changes[name];
                 startValue = attr[name];
-                if (newValue !== startValue && any && startValue !== undefined && startValue !== null && (parser = parsers[name])) {
+                if (newValue !== startValue && startValue !== undefined && startValue !== null && (parser = parsers[name])) {
                     // If this property is animating.
 
                     // Figure out the desired duration and easing.
@@ -263,9 +305,14 @@ Ext.define('Ext.draw.modifier.Animation', {
                         if (name in customEasings) {
                             easing = customEasings[name];
                         }
-                        if (name in customDuration) {
-                            duration = customDuration[name];
+                        if (name in customDurations) {
+                            duration = customDurations[name];
                         }
+                    }
+
+                    // Transitions betweens color and gradient or between gradients are not supported.
+                    if (startValue && startValue.isGradient || newValue && newValue.isGradient) {
+                        duration = 0;
                     }
 
                     // If the property is animating
@@ -377,7 +424,7 @@ Ext.define('Ext.draw.modifier.Animation', {
      * @inheritdoc
      */
     popUp: function (attr, changes) {
-        attr = attr.upperLevel;
+        attr = attr.prototype;
         changes = this.setAttrs(attr, changes);
         if (this._next) {
             return this._next.popUp(attr, changes);

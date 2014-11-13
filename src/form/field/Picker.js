@@ -275,8 +275,16 @@ Ext.define('Ext.form.field.Picker', {
      * @return {Ext.Component} The picker component
      */
     getPicker: function() {
-        var me = this;
-        return me.picker || (me.picker = me.createPicker());
+        var me = this,
+            picker = me.picker;
+
+        if (!picker) {
+            me.picker = picker = me.createPicker();
+            // For upward component searches.
+            picker.ownerCmp = me;
+        }
+
+        return me.picker;
     },
 
     // @private
@@ -294,8 +302,6 @@ Ext.define('Ext.form.field.Picker', {
     /**
      * @method
      * Creates and returns the component to be used as this field's picker. Must be implemented by subclasses of Picker.
-     * The current field should also be passed as a configuration option to the picker component as the pickerField
-     * property.
      */
     createPicker: Ext.emptyFn,
 
@@ -303,7 +309,7 @@ Ext.define('Ext.form.field.Picker', {
      * Handles the trigger click; by default toggles between expanding and collapsing the picker component.
      * @protected
      */
-    onTriggerClick: function() {
+    onTriggerClick: function(e) {
         var me = this;
         if (!me.readOnly && !me.disabled) {
             if (me.isExpanded) {
@@ -311,36 +317,12 @@ Ext.define('Ext.form.field.Picker', {
             } else {
                 me.expand();
             }
-            // Always focus input on collapse.
-            // On expand, only focus if the trigger event is NOT a touch event
-            if (!Ext.supports.TouchEvents) {
-                me.inputEl.focus();
-            }
         }
     },
 
     onOtherFocus: function(dom) {
         if (this.hasFocus && !this.owns(dom)) {
             this.callParent([dom]);
-        }
-    },
-
-    triggerBlur: function() {
-        this.callParent(arguments);
-
-        // Hide picker (if visible), and remove all attendant listeners
-        this.collapse();
-    },
-
-    mimicBlur: function(e) {
-        var me = this,
-            picker = me.picker;
-
-        // Continue blur processing for events which are NOT within this component's descedant tree
-        if (!picker || !me.owns(e.target)) {
-            me.callParent(arguments);
-        } else {
-            me.inputEl.focus();
         }
     },
 

@@ -54,5 +54,41 @@ $grid-column-header-border-width: 1px !default;
  */
 $grid-column-header-border-style: solid !default;
 
+/**
+ * @var {color}
+ * The text color of focused grid column headers
+ */
+$grid-column-header-focus-color: #000 !default;
+
+/**
+ * @var {color}
+ * The background-color of focused grid column headers
+ */
+$grid-column-header-focus-background-color: 'none' !default;
+
+/**
+ * @var {number}
+ * The border-width of focused grid column headers
+ */
+$grid-column-header-focus-border-width: 1px !default;
+
+/**
+ * @var {string}
+ * The border-style of focused grid column headers
+ */
+$grid-column-header-focus-border-style: solid !default;
+
+/**
+ * @var {number}
+ * The spacing between column header element border and inner focus border
+ */
+$grid-column-header-focus-border-inset: 0px !default;
+
+/**
+ * @var {color}
+ * The border color of focused grid column headers
+ */
+$grid-column-header-focus-border-color: #333 !default;
+
 // private
 $grid-header-height: $grid-column-header-line-height + vertical($grid-header-padding);

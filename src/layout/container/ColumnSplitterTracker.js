@@ -3,6 +3,18 @@
 Ext.define('Ext.layout.container.ColumnSplitterTracker', {
     extend: 'Ext.resizer.SplitterTracker',
 
+    // We move the splitter el. Add the proxy class.
+    onStart: function(e) {
+        Ext.apply(this.getSplitter().el.dom.style, { top : 0, left : 0} );
+        this.callParent(arguments);
+    },
+
+    endDrag: function () {
+        var me = this;
+        me.callParent(arguments); // this calls onEnd
+        me.getSplitter().el.dom.style.left = 0;
+    },
+
     performResize: function(e, offset) {
         var me        = this,
             prevCmp   = me.getPrevCmp(),
@@ -22,7 +34,6 @@ Ext.define('Ext.layout.container.ColumnSplitterTracker', {
             nextCmp.columnWidth = nextWidth * ratio;
         }
 
-        splitter.el.dom.style.left = '';
         owner.updateLayout();
     }
 });

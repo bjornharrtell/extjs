@@ -39,6 +39,8 @@ Ext.define('Ext.draw.engine.Svg', {
                             tag: 'svg',
                             reference: 'svgElement',
                             namespace: "http://www.w3.org/2000/svg",
+                            width: '100%',
+                            height: '100%',
                             version: 1.1
                         }
                     ]
@@ -155,24 +157,14 @@ Ext.define('Ext.draw.engine.Svg', {
             ctx.restore();
             return;
         }
-        try {
-            sprite.element = ctx.save();
-            sprite.preRender(this);
-            sprite.useAttributes(ctx, rect);
-            if (false === sprite.render(this, ctx, [0, 0, rect[2], rect[3]])) {
-                return false;
-            }
-            sprite.setDirty(false);
+        sprite.element = ctx.save();
+        sprite.preRender(this);
+        sprite.useAttributes(ctx, rect);
+        if (false === sprite.render(this, ctx, [0, 0, rect[2], rect[3]])) {
+            return false;
         }
-        catch (e) {
-            //<debug>
-            Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
-        }
-        finally {
-            ctx.restore();
-        }
+        sprite.setDirty(false);
+        ctx.restore();
     },
 
     flatten: function (size, surfaces) {

@@ -48,7 +48,9 @@ Ext.define('Ext.form.field.Hidden', {
     alternateClassName: 'Ext.form.Hidden',
 
     // private
+    focusable: false,
     inputType : 'hidden',
+    isTextInput: false,
     hideLabel: true,
     hidden: true,
     

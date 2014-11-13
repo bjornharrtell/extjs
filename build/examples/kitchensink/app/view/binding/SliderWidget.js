@@ -53,29 +53,32 @@ Ext.define('KitchenSink.view.binding.SliderWidget', {
     items: [{
         fieldLabel: 'Red',
         defaults: {
-            maxValue: 255
+            maxValue: 255,
+            minValue: 0
         },
         items: [
             { xtype: 'numberfield', width: 100, bind: '{red}', margin: '0 10 0 0' },
-            { xtype: 'sliderwidget', flex: 1, bind: '{red}' }
+            { xtype: 'sliderwidget', flex: 1, bind: '{red}', publishOnComplete: false }
         ]
     },{
         fieldLabel: 'Green',
         defaults: {
-            maxValue: 255
+            maxValue: 255,
+            minValue: 0
         },
         items: [
             { xtype: 'numberfield', width: 100, bind: '{green}', margin: '0 10 0 0' },
-            { xtype: 'sliderwidget', flex: 1, bind: '{green}' }
+            { xtype: 'sliderwidget', flex: 1, bind: '{green}', publishOnComplete: false }
         ]
     },{
         fieldLabel: 'Blue',
         defaults: {
-            maxValue: 255
+            maxValue: 255,
+            minValue: 0
         },
         items: [
             { xtype: 'numberfield', width: 100, bind: '{blue}', margin: '0 10 0 0' },
-            { xtype: 'sliderwidget', flex: 1, bind: '{blue}' }
+            { xtype: 'sliderwidget', flex: 1, bind: '{blue}', publishOnComplete: false }
         ]
     }, {
         xtype: 'component',

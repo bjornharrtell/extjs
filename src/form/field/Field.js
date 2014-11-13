@@ -29,10 +29,19 @@ Ext.define('Ext.form.field.Field', {
         /**
          * @cfg {Boolean/String} validation
          * This property, when a `String`, contributes its value to the error state of this
-         * instance as reported by `getErrors`. This property is implicitly bound when the
-         * `value` of this field is bound based on `{@link Ext.Component#modelValidation}`.
+         * instance as reported by `getErrors`.
          */
-        validation: null
+        validation: null,
+
+        /**
+         * @cfg {Ext.data.Field} validationField
+         * When binding is used with a model, this maps to the underlying {@link Ext.data.field.Field} if
+         * it is available. This can be used to validate the value against the model field without needing
+         * to push the value back into the model.
+         *
+         * @private
+         */
+        validationField: null
     },
 
     /**
@@ -77,6 +86,13 @@ Ext.define('Ext.form.field.Field', {
     validateOnChange: true,
 
     /**
+     * @cfg {String[]/String} valuePublishEvent
+     * The event name(s) to use to publish the {@link #value} {@link #bind} for this field.
+     * @since 5.0.1
+     */
+    valuePublishEvent: 'change',
+
+    /**
      * @private
      */
     suspendCheckChange: 0,
@@ -115,7 +131,11 @@ Ext.define('Ext.form.field.Field', {
      * their own initialization process.
      */
     initField: function() {
-        this.initValue();
+        var me = this,
+            valuePublishEvent = me.valuePublishEvent,
+            len, i;
+
+        me.initValue();
         
         //<debug>
         var badNames = [
@@ -132,6 +152,15 @@ Ext.define('Ext.form.field.Field', {
             );
         }
         //</debug>
+
+        // Vast majority of cases won't be an array
+        if (Ext.isString(valuePublishEvent)) {
+            me.on(valuePublishEvent, me.publishValue, me);
+        } else {
+            for (i = 0, len = valuePublishEvent.length; i < len; ++i) {
+                me.on(valuePublishEvent[i], me.publishValue, me);
+            }
+        }
     },
 
     /**
@@ -340,12 +369,13 @@ Ext.define('Ext.form.field.Field', {
         }
 
         me.checkDirty();
-        me.publishValue(newVal);
     },
 
-    publishValue: function (value) {
-        if (this.rendered) {
-            this.publishState('value', value);
+    publishValue: function () {
+        var me = this;
+
+        if (me.rendered && !me.getErrors().length) {
+            me.publishState('value', me.getValue());
         }
     },
 
@@ -397,7 +427,16 @@ Ext.define('Ext.form.field.Field', {
      */
     getErrors: function (value) {
         var errors = [],
-            validation = this.getValidation();
+            validationField = this.getValidationField(),
+            validation = this.getValidation(),
+            result;
+
+        if (validationField) {
+            result = validationField.validate(value);
+            if (result !== true) {
+                errors.push(result);
+            }
+        }
 
         if (validation && validation !== true) {
             errors.push(validation);
@@ -507,7 +546,11 @@ Ext.define('Ext.form.field.Field', {
      */
     clearInvalid: Ext.emptyFn,
 
-    updateValidation: function () {
-        this.validate();
+    updateValidation: function(validation, oldValidation) {
+        // Only validate if the validation is changing, not when we initial set it,
+        // otherwise it will mark the field invalid as soon as it is bound.
+        if (oldValidation) {
+            this.validate();    
+        }
     }
 });

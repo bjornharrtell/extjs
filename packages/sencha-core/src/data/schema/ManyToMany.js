@@ -93,23 +93,23 @@ Ext.define('Ext.data.schema.ManyToMany', {
 
         digitRe: /^\d+$/,
 
-        validateAssociationRecords: function(session, associatedEntity, records) {
+        validateAssociationRecords: function(session, associatedEntity, leftRecords) {
             var slice = session.getMatrixSlice(this.inverse, associatedEntity.id),
                 members = slice.members,
                 cls = this.cls,
                 ret = [], 
-                seen, i, len, id, member;
+                seen, i, len, id, member, leftRecord;
 
-            if (records) {
+            if (leftRecords) {
                 seen = {};
                 // Loop over the records returned by the server and
                 // check they all still belong
-                for (i = 0, len = records.length; i < len; ++i) {
-                    rec = records[i];
-                    id = rec.id;
+                for (i = 0, len = leftRecords.length; i < len; ++i) {
+                    leftRecord = leftRecords[i];
+                    id = leftRecord.id;
                     member = members[id];
                     if (!(member && member[2] === -1)) {
-                        ret.push(rec);
+                        ret.push(leftRecord);
                     }
                     seen[id] = true;
                 }
@@ -119,9 +119,9 @@ Ext.define('Ext.data.schema.ManyToMany', {
             for (id in members) {
                 member = members[id];
                 if (!seen || !seen[id] && (member && member[2] !== -1)) {
-                    rec = session.peekRecord(cls, id);
-                    if (rec) {
-                        ret.push(rec);
+                    leftRecord = session.peekRecord(cls, id);
+                    if (leftRecord) {
+                        ret.push(leftRecord);
                     }
                 }
             }
@@ -132,22 +132,22 @@ Ext.define('Ext.data.schema.ManyToMany', {
             var me = this,
                 entityType = me.inverse.cls,
                 items = associationData.R,
-                id, record, store;
+                id, rightRecord, store, leftRecords;
 
             if (items) {
                 for (id in items) {
-                    record = session.peekRecord(entityType, id);
-                    if (record) {
-                        records = session.getEntityList(me.cls, items[id]);
-                        store = me.getAssociatedItem(record);
+                    rightRecord = session.peekRecord(entityType, id);
+                    if (rightRecord) {
+                        leftRecords = session.getEntityList(me.cls, items[id]);
+                        store = me.getAssociatedItem(rightRecord);
                         if (store) {
-                            records = me.validateAssociationRecords(session, record, records);
-                            store.loadRecords(records);
+                            leftRecords = me.validateAssociationRecords(session, rightRecord, leftRecords);
+                            store.loadRecords(leftRecords);
                             store.complete = true;
-                            me.onAddToMany(store, records, true);
+                            me.onAddToMany(store, leftRecords, true);
                         } else {
                             // We don't have a store. Create it and add the records.
-                            record[me.getterName](null, null, records);
+                            rightRecord[me.getterName](null, null, leftRecords);
                         }
                     } else {
                         session.onInvalidAssociationEntity(entityType, id);
@@ -158,27 +158,35 @@ Ext.define('Ext.data.schema.ManyToMany', {
             me.processMatrixBlock(session, associationData.D, -1);
         },
 
-        checkMembership: function(session, record, matrix) {
-            var side = this.left ? matrix.right : matrix.left,
-                entityType = side.inverse.role.cls,
-                inverse = this.inverse,
-                slices = side.slices,
-                slice, id, members, member, inverseRecord;
+        checkMembership: function(session, rightRecord) {
+            var matrix = session.getMatrix(this.association, true),
+                side, entityType, inverse, slice, slices,
+                id, members, member, leftRecord, store;
+
+            if (!matrix) {
+                return;
+            }
+
+            side = this.left ? matrix.right : matrix.left;
+            entityType = side.inverse.role.cls;
+            inverse = this.inverse;
+            slices = side.slices;
+                
 
             if (slices) {
-                slice = slices[record.id];
+                slice = slices[rightRecord.id];
                 if (slice) {
                     members = slice.members;
                     for (id in members) {
                         member = members[id];
                         if (member[2] !== -1) {
                             // Do we have the record in the session? If so, do we also have the store?
-                            inverseRecord = session.peekRecord(entityType, id);
-                            if (inverseRecord) {
-                                store = inverse.getAssociatedItem(inverseRecord);
+                            leftRecord = session.peekRecord(entityType, id);
+                            if (leftRecord) {
+                                store = inverse.getAssociatedItem(leftRecord);
                                 if (store) {
                                     store.matrixUpdate = 1;
-                                    store.add(record);
+                                    store.add(rightRecord);
                                     store.matrixUpdate = 0;
                                 }
                             }
@@ -188,20 +196,20 @@ Ext.define('Ext.data.schema.ManyToMany', {
             }
         },
 
-        processMatrixBlock: function(session, items, state) {
+        processMatrixBlock: function(session, leftKeys, state) {
             var inverse = this.inverse,
                 digitRe = this.digitRe,
                 slice, id;
 
-            if (items) {
-                for (id in items) {
+            if (leftKeys) {
+                for (id in leftKeys) {
                     // We may not have the record available to pull out the id, so the best we can
                     // do here is try to detect a number id.
                     if (digitRe.test(id)) {
                         id = parseInt(id, 10);
                     }
                     slice = session.getMatrixSlice(inverse, id);
-                    slice.update(items[id], state);
+                    slice.update(leftKeys[id], state);
                 }
             }
         },
@@ -209,19 +217,19 @@ Ext.define('Ext.data.schema.ManyToMany', {
         createGetter: function() {
             var me = this;
 
-            return function (options, scope, records) {
+            return function (options, scope, leftRecords) {
                 // 'this' refers to the Model instance inside this function
                 var session = this.session,
                     hadRecords;
 
                 if (session) {
-                    hadRecords = !!records;
-                    records = me.validateAssociationRecords(session, this, records);
-                    if (!hadRecords && !records.length) {
-                        records = null;
+                    hadRecords = !!leftRecords;
+                    leftRecords = me.validateAssociationRecords(session, this, leftRecords);
+                    if (!hadRecords && !leftRecords.length) {
+                        leftRecords = null;
                     }
                 }
-                return me.getAssociatedStore(this, options, scope, records, hadRecords);
+                return me.getAssociatedStore(this, options, scope, leftRecords, hadRecords);
             };
         },
 
@@ -231,15 +239,17 @@ Ext.define('Ext.data.schema.ManyToMany', {
          * the matrix what it already knows. Otherwise we need to tell the matrix of the
          * changes on this side so that they can be reflected on the other side.
          */
-        onAddToMany: function (store, records, load) {
+        onAddToMany: function (store, leftRecords, load) {
             if (!store.matrixUpdate) {
                 store.matrixUpdate = 1;
                 // By default the "load" param is really the index, but we call this manually in a few
                 // spots to indicate it's a default load
-                store.matrix.update(records, load === true ? 0 : 1);
+                store.matrix.update(leftRecords, load === true ? 0 : 1);
                 store.matrixUpdate = 0;
             }
         },
+
+        onLoadMany: Ext.emptyFn,
 
         /*
          * This method is called when records are removed from the association store. The
@@ -254,24 +264,23 @@ Ext.define('Ext.data.schema.ManyToMany', {
             }
         },
 
-        read: function(record, node, fromReader, readOptions) {
+        read: function(rightRecord, node, fromReader, readOptions) {
             var me = this,
-                // We use the inverse role here since we're setting ourselves
-                // on the other record
-                key = me.inverse.role,
-                result = me.callParent([ record, node, fromReader, readOptions ]);
+                result = me.callParent([ rightRecord, node, fromReader, readOptions ]);
             
             // Did the root exist in the data?
             if (result.getReadRoot()) {
                 // Create the store and dump the data
-                record[me.getterName](null, null, result.getRecords());
+                rightRecord[me.getterName](null, null, result.getRecords());
+                // Inline associations should *not* arrive on the "data" object:
+                delete rightRecord.data[me.role];
             }
             
         },
 
         onMatrixUpdate: function (matrixSlice, id, state) {
             var store = matrixSlice.store,
-                index, record, entry;
+                index, leftRecord, entry;
 
             if (store && !store.loading && !store.matrixUpdate) {
                 store.matrixUpdate = 1;
@@ -283,10 +292,10 @@ Ext.define('Ext.data.schema.ManyToMany', {
                     }
                 } else if (index < 0) {
                     entry = store.getSession().getEntry(this.type, id);
-                    record = entry && entry.record;
+                    leftRecord = entry && entry.record;
 
-                    if (record) {
-                        store.add(record);
+                    if (leftRecord) {
+                        store.add(leftRecord);
                     }
                 }
 

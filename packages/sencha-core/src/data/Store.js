@@ -246,6 +246,7 @@ Ext.define('Ext.data.Store', {
         /**
          * @cfg {Ext.data.Model} [associatedEntity]
          * The owner of this store if the store is used as part of an association.
+         * 
          * @private
          */
         associatedEntity: null,
@@ -253,8 +254,20 @@ Ext.define('Ext.data.Store', {
         /**
          * @cfg {Ext.data.schema.Role} [role]
          * The role for the {@link #associatedEntity}.
+         *
+         * @private
          */
-        role: null
+        role: null,
+
+        /**
+         * @cfg {Ext.data.Session} session
+         * The session for this store. By specifying a session, it ensures any records that are
+         * added to this store are also included in the session. This store does not become a member
+         * of the session itself.
+         *
+         * @since  5.0.0
+         */
+        session: null
     },
 
     /**
@@ -341,13 +354,14 @@ Ext.define('Ext.data.Store', {
 
         me.callParent(arguments);
 
+        me.getData().addObserver(this);
+
         // See applyData for the details.
         data = me.inlineData;
         if (data) {
             delete me.inlineData;
             me.loadInlineData(data);
         }
-        me.getData().addObserver(this);
 
     },
 
@@ -417,7 +431,6 @@ Ext.define('Ext.data.Store', {
             // a refresh event later which will already take care of updating
             // any views bound to this store
             me.suspendEvents();
-            me.fireEvent('clear', me);
             me.loadData(data);
             me.resumeEvents();
         }
@@ -485,26 +498,37 @@ Ext.define('Ext.data.Store', {
             records = info.items,
             len = records.length,
             lastChunk = !info.next,
-            i, sync, record,
-            removed = me.getRemovedRecords();
-        
-        if (me.ignoreCollectionAdd) {
-            return;
-        }
+            removed = me.getRemovedRecords(),
+            ignoreAdd = me.ignoreCollectionAdd,
+            session = me.getSession(),
+            i, sync, record;
+
 
         for (i = 0; i < len; ++i) {
             record = records[i];
-            
-            record.join(me);
-            if (removed && removed.length) {
-                Ext.Array.remove(removed, record);
+
+            if (session) {
+                session.adopt(record);
             }
-            sync = sync || record.phantom || record.dirty;
+            
+            // If ignoring, we don't want to do anything other than pull
+            // the added records into the session    
+            if (!ignoreAdd) {
+                record.join(me);
+                if (removed && removed.length) {
+                    Ext.Array.remove(removed, record);
+                }
+                sync = sync || record.phantom || record.dirty;
+            }
+        }
+
+        if (ignoreAdd) {
+            return;
         }
         
         me.fireEvent('add', me, records, info.at);
         // If there is a next property, that means there is another range that needs
-        // to be removed after this. Wait until everything is gone before firign datachanged
+        // to be removed after this. Wait until everything is gone before firing datachanged
         // since it should be a bulk operation
         if (lastChunk) {
             me.fireEvent('datachanged', me);
@@ -513,21 +537,36 @@ Ext.define('Ext.data.Store', {
         // Addition means a sync is needed.
         me.needsSync = me.needsSync || sync;
     },
-    
+
+    // If our source collection informs us that a filtered out item has changed, we must still fire the events...
+    onCollectionFilteredItemChange: function() {
+        this.onCollectionItemChange.apply(this, arguments);
+    },
+
     onCollectionItemChange: function(collection, info) {
         var me = this,
             record = info.item,
-            modifiedFieldNames = info.modified;
-        
-        if (me.contains(record)) {
-            me.onUpdate(record, 'edit', modifiedFieldNames);
-            me.fireEvent('update', me, record, 'edit', modifiedFieldNames);
-        }
+            modifiedFieldNames = info.modified || null,
+            type = info.meta;
+
+        // Inform any interested parties that a record has been mutated.
+        // This will be inboked on TreeStores in which the invoking record
+        // is an descendant of a collapsed node, and so *will not be contained by this store
+        me.onUpdate(record, type, modifiedFieldNames, info);
+        me.fireEvent('update', me, record, type, modifiedFieldNames, info);
+    },
+
+    afterCommit: function(record, modifiedFieldNames) {
+        this.getData().itemChanged(record, modifiedFieldNames || null, undefined, Ext.data.Model.COMMIT);
     },
 
     afterEdit: function(record, modifiedFieldNames) {
         this.needsSync = this.needsSync || record.dirty;
-        this.getData().itemChanged(record, modifiedFieldNames);
+        this.getData().itemChanged(record, modifiedFieldNames || null, undefined, Ext.data.Model.EDIT);
+    },
+
+    afterReject: function(record) {
+        this.getData().itemChanged(record, null, undefined, Ext.data.Model.REJECT);
     },
 
     afterDrop: function(record) {
@@ -536,10 +575,15 @@ Ext.define('Ext.data.Store', {
     
     onCollectionFilterAdd: function(collection, items) {
         var len = items.length,
-            i;
+            session = this.getSession(),
+            i, record;
         
         for (i = 0; i < len; ++i) {
-            items[i].join(this);
+            record = items[i];
+            record.join(this);
+            if (session) {
+                session.adopt(record);
+            }
         }
     },
 
@@ -596,9 +640,10 @@ Ext.define('Ext.data.Store', {
      * @return {Ext.data.Model}
      */
     createModel: function(record) {
+        var session = this.getSession();
         if (!record.isModel) {
             var Model = this.getModel();
-            record = new Model(record, this.getSession());
+            record = new Model(record);
         }
         return record;
     },
@@ -689,7 +734,7 @@ Ext.define('Ext.data.Store', {
         if (!silent) {
             me.fireEvent('remove', me, records, index, isMove);
             // If there is a next property, that means there is another range that needs
-            // to be removed after this. Wait until everything is gone before firign datachanged
+            // to be removed after this. Wait until everything is gone before firing datachanged
             // since it should be a bulk operation
             if (lastChunk) {
                 me.fireEvent('datachanged', me);
@@ -733,21 +778,20 @@ Ext.define('Ext.data.Store', {
      * Individual record `{@link #event-remove}` events are not fired by this method.
      *
      * @param {Boolean} [silent=false] Pass `true` to prevent the `{@link #event-clear}` event from being fired.
+     *
+     * @return {Ext.data.Model[]} The removed records.
      */
     removeAll: function(silent) {
         var me = this,
             data = me.getData(),
             hasClear = me.hasListeners.clear,
-            records;
+            records = data.getRange();
 
         // We want to remove and mute any events here
         if (data.length) {
             // Explicit true here, we never want to fire remove events
             me.removeIsSilent = true;
             me.callObservers('BeforeRemoveAll');
-            if (hasClear) {
-                records = data.getRange();
-            }
             data.removeAll();
             if (!silent) {
                 me.fireEvent('clear', me, records);
@@ -755,6 +799,7 @@ Ext.define('Ext.data.Store', {
             }
             me.callObservers('AfterRemoveAll', [!!silent]);
         }
+        return records;
     },
 
     /**
@@ -813,7 +858,8 @@ Ext.define('Ext.data.Store', {
      */
     load: function(options) {
         var me = this,
-            pageSize = me.getPageSize();
+            pageSize = me.getPageSize(),
+            session;
 
         if (typeof options === 'function') {
             options = {
@@ -835,6 +881,13 @@ Ext.define('Ext.data.Store', {
         }
 
         options.addRecords = options.addRecords || false;
+
+        if (!options.recordCreator) {
+            session = me.getSession();
+            if (session) {
+                options.recordCreator = session.recordCreator;
+            }
+        }
 
         return me.callParent([options]);
     },
@@ -878,12 +931,18 @@ Ext.define('Ext.data.Store', {
         }
     },
 
+    getUnfiltered: function() {
+        var data = this.getData();
+        
+        return data.getSource() || data;
+    },
+
     getNewRecords: function() {
-        return this.getData().createFiltered(this.filterNew).getRange();
+        return this.getUnfiltered().createFiltered(this.filterNew).getRange();
     },
 
     getUpdatedRecords: function() {
-        return this.getData().createFiltered(this.filterUpdated).getRange();
+        return this.getUnfiltered().createFiltered(this.filterUpdated).getRange();
     },
 
     /**
@@ -1029,12 +1088,13 @@ Ext.define('Ext.data.Store', {
     },
 
     // private
-    clearData: function(isLoad) {
+    clearData: function(isLoad, data) {
         var me = this,
-            data = me.getData(),
             removed = me.removed,
             records,
             i, len;
+
+        data = data || me.getData();
 
         // We only have to do the unjoining if not buffered. PageMap will unjoin its records when it clears itself.
         // There is a potential for a race condition in stores configured with autoDestroy: true;
@@ -1060,6 +1120,8 @@ Ext.define('Ext.data.Store', {
 
     onIdChanged: function(rec, oldId, newId){
         this.getData().updateKey(rec, oldId);
+        // This event is used internally
+        this.fireEvent('idchanged', this, rec, oldId, newId);
     },
 
     /**
@@ -1089,13 +1151,12 @@ Ext.define('Ext.data.Store', {
         return item.phantom === true;
     },
 
-    // Ideally in the future this will use getModifiedRecords, where there will be a param
-    // to getNewRecords & getUpdatedRecords to indicate whether to get only the valid
-    // records or grab all of them
+    filterRejects: function(item) {
+        return item.phantom || item.dirty;
+    },
+
     getRejectRecords: function() {
-        // Return phantom records + updated records
-        var newOnly = this.getData().createFiltered(this.filterNew).getRange();
-        return Ext.Array.push(newOnly, this.getUpdatedRecords());
+        return this.getData().createFiltered(this.filterRejects).getRange();
     },
 
     /**
@@ -1135,15 +1196,23 @@ Ext.define('Ext.data.Store', {
     
     onDestroy: function() {
         var me = this,
-            task = me.loadTask;
+            task = me.loadTask,
+            data = me.getData(),
+            source = data.getSource();
         
         me.callParent();
+        me.setSession(null);
         me.observers = null;
         if (task) {
             task.cancel();
             me.loadTask = null;
         }
-        me.getData().destroy();
+        // If we are filtered, we want to unjoin everything.
+        me.clearData(false, source || data);
+        data.destroy();
+        if (source) {
+            source.destroy();
+        }
         me.setData(null);
     }
 

@@ -16,9 +16,5 @@ Ext.define('Ext.aria.form.field.Display', {
         attrs['aria-readonly'] = true;
         
         return attrs;
-    },
-    
-    ariaGetFocusCls: function() {
-        return this.ariaFocusCls;
     }
 });

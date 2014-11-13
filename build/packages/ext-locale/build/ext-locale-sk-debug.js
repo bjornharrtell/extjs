@@ -149,4 +149,3 @@ Ext.define("Ext.locale.sk.window.MessageBox", {
 Ext.define("Ext.locale.sk.Component", {	
     override: "Ext.Component"
 });
-

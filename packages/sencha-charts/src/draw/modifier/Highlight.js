@@ -41,6 +41,7 @@ Ext.define('Ext.draw.modifier.Highlight', {
         if (!attr.hasOwnProperty('highlightOriginal')) {
             attr.highlighted = false;
             attr.highlightOriginal = Ext.Object.chain(attr);
+            attr.highlightOriginal.prototype = attr;
         }
         if (this._previous) {
             this._previous.prepareAttributes(attr.highlightOriginal);

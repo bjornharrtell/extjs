@@ -12,17 +12,17 @@ Ext.define('Ext.dashboard.DropZone', {
         increment: 200
     },
 
+    containerScroll : true,
+
     // This causes overflow to go hidden during the drag so that we don't cause panels to
     // wrap by triggering overflow.
-    overClass: 'x-dashboard-dd-over',
+    overClass: Ext.baseCSSPrefix + 'dashboard-dd-over',
 
     constructor: function (dashboard, cfg) {
         this.dashboard = dashboard;
-        Ext.dd.ScrollManager.register(dashboard.body);
+        dashboard.body.ddScrollConfig = this.ddScrollConfig;
 
         this.callParent([dashboard.body, cfg]);
-
-        dashboard.body.ddScrollConfig = this.ddScrollConfig;
     },
 
     getOverEvent: function (dd, e, data) {
@@ -35,10 +35,10 @@ Ext.define('Ext.dashboard.DropZone', {
             y = xy[1] - bodyBox.y,
             over = {
                 columnIndex: 0,
-                column: items[0],
+                column: null,
                 dashboard: dashboard,
                 above: null,
-                extensible : ((items.length + 1) / 2 < (dashboard.maxColumns || 1)),
+                extensible : false,
                 beforeAfter : 0,
                 data: data,
                 panel: data.panel,
@@ -48,60 +48,48 @@ Ext.define('Ext.dashboard.DropZone', {
             },
             t, ht, i, k, item, w, childCount, childItems, childItem;
 
-        //DragZone is left of container bounds
-        if (x < 0 && over.extensible) {
-            //console.log('left of everything: x=' + x, 'extensible:', over.extensible);
-            over.beforeAfter = -1;
+        for (i = 0; i < count; i += 2) {
+            item = items[i];
+            w = item.lastBox.width;
+            if (items[i+1]) {
+                w += items[i+1].lastBox.width;
+            }
 
-        //DragZone is right of container bounds
-        } else if (x > bodyBox.width) {
-            //console.log('right of everything: x=' + x, 'extensible:', over.extensible);
-            over.beforeAfter = over.extensible ? 1 : 0;
-            over.columnIndex = count - 1;
-        } else {
+            //if (x < w) {
+            if (e.within(item.el)) {
+                over.columnIndex = i;
+                over.column = item;
+                over.extensible = this.isRowExtensible(item.rowIndex);
 
-        //DragZone is intra-column
-            for (i = 0; i < count; i += 2) {
-                item = items[i];
-                w = item.lastBox.width;
-                if (items[i+1]) {
-                    w += items[i+1].lastBox.width;
-                }
+                t = Math.min(80, w * 0.2);
+                over.beforeAfter = t = (over.extensible && ((x < t) ? -1 : ((x > w - t) ? 1 : 0)));
 
-                if (x < w) {
-                    over.columnIndex = i;
-                    over.column = item;
-
+                if (!t || !over.extensible) {
                     childItems = item.items.items;
-                    t = Math.min(80, w * 0.2);
-                    over.beforeAfter = t = (over.extensible && ((x < t) ? -1 : ((x > w - t) ? 1 : 0)));
-
-                    if (!t || !over.extensible) {
-                        // if we are not on an edge OR reached maxColumns (which means "insert the panel in
-                        // between the columns"), we need to dig one more level down
-                        //console.log('inside of column ' + i + ': x=' + x + ', y=' + y);
-                        for (k = 0, childCount = childItems.length; k < childCount; ++k) {
-                            childItem = childItems[k];
-                            ht = childItem.el.getHeight();
-                            //console.log(childItem.id + '.ht = ' + ht);
-                            if (y < ht / 2) {
-                                //console.log('above child ' + k);
-                                // if mouse is above the current child's top, Y coord, it
-                                // is considered as "above" the previous child
-                                over.above = childItem;
-                                break;
-                            }
-                            //console.log('below child ' + k);
-                            y -= ht;
+                    // if we are not on an edge OR reached maxColumns (which means "insert the panel in
+                    // between the columns"), we need to dig one more level down
+                    //console.log('inside of column ' + i + ': x=' + x + ', y=' + y);
+                    for (k = 0, childCount = childItems.length; k < childCount; ++k) {
+                        childItem = childItems[k];
+                        ht = childItem.el.getHeight();
+                        //console.log(childItem.id + '.ht = ' + ht);
+                        if (y < ht / 2) {
+                            //console.log('above child ' + k);
+                            // if mouse is above the current child's top, Y coord, it
+                            // is considered as "above" the previous child
+                            over.above = childItem;
+                            break;
                         }
-
+                        //console.log('below child ' + k);
+                        y -= ht;
                     }
 
-                    break;
                 }
 
-                x -= w;
+                break;
             }
+
+            x -= w;
         }
 
         return over;
@@ -111,50 +99,84 @@ Ext.define('Ext.dashboard.DropZone', {
         var me = this,
             dashboard = me.dashboard,
             over = me.getOverEvent(dd, e, data),
-            colEl = over.column.el,
+            colEl = over.column && over.column.el,
             proxy = dd.proxy,
             proxyProxy,
             aboveItem = over.above,
-            colWidth, width;
+            colWidth, width = 0,
+            padding,
+            hasListeners = dashboard.hasListeners;
 
         data.lastOver = over;
 
-        if (dashboard.fireEvent('validatedrop', over) !== false &&
-            dashboard.fireEvent('beforedragover', over) !== false) {
+        if ((!hasListeners.validatedrop || dashboard.fireEvent('validatedrop', over) !== false) &&
+            (!hasListeners.beforedragover || dashboard.fireEvent('beforedragover', over) !== false ))
+            {
+
             proxyProxy = dd.panelProxy.getProxy();
 
             // make sure proxy width is fluid in different width columns
             proxy.getProxy().setWidth('auto');
 
-            if (over.beforeAfter ) {
+            if ( colEl) {
 
-                dd.panelProxy.moveProxy(colEl.dom, colEl.dom.firstChild);
+                width = colWidth = colEl.getWidth();
+                // A floating column was targeted
+                if (over.beforeAfter) {
 
-                colWidth = colEl.getWidth();
-                width = colWidth / 2;
-                proxyProxy.setWidth(width);
+                    dd.panelProxy.moveProxy(colEl.dom, colEl.dom.firstChild);
 
-            } else {
-                if (aboveItem) {
-                    dd.panelProxy.moveProxy(aboveItem.el.dom.parentNode, aboveItem.el.dom);
+                    width = colWidth / 2;
+                    proxyProxy.setWidth(width);
+
                 } else {
-                    dd.panelProxy.moveProxy(colEl.dom, null);
-                }
-                proxyProxy.setWidth('auto');
-            }
+                    if (aboveItem) {
+                        dd.panelProxy.moveProxy(aboveItem.el.dom.parentNode, aboveItem.el.dom);
+                    } else {
+                        dd.panelProxy.moveProxy(colEl.dom, null);
+                    }
+                    proxyProxy.setWidth('auto');
 
-            if (over.beforeAfter > 0) {
-                proxyProxy.setStyle('margin-left', (colWidth - width - colEl.getPadding('lr')) + 'px');
+                }
+                if (width) {
+                    //proxy.getProxy().setWidth(width);
+                }
+                proxyProxy.setStyle({
+                    'float': 'none',
+                    'clear' : 'none',
+                    'margin-left': (over.beforeAfter > 0) ? (colWidth - width - colEl.getPadding('lr')) + 'px' : '',
+                    'margin-top' : '7px'
+                });
+
             } else {
-                proxyProxy.setStyle('margin-left', '');
+                padding = dashboard.body.getPadding('lr');
+                proxyProxy.setStyle({
+                    'float' : 'left',
+                    'clear' : 'left',
+                    'margin': '0 7px 0 7px'
+                });
+                proxyProxy.setWidth(dashboard.body.getWidth() - padding);
+
+                // Target the innerCt for the move
+                dd.panelProxy.moveProxy(dashboard.body.dom.firstChild.firstChild, null);
             }
 
             this.scrollPos = dashboard.body.getScroll();
 
-            dashboard.fireEvent('dragover', over);
+            if (hasListeners.dragover) {
+                dashboard.fireEvent('dragover', over);
+            }
         }
 
         return over.status;
+    },
+
+    isRowExtensible : function(rowIndex) {
+      var me = this,
+          dashboard = me.dashboard,
+          maxColumns = dashboard.getMaxColumns() || 1;
+
+      return Ext.Array.from(dashboard.query('>dashboard-column[rowIndex=' + rowIndex + ']')).length < maxColumns;
     },
 
     notifyDrop: function (dd, e, data) {
@@ -163,12 +185,13 @@ Ext.define('Ext.dashboard.DropZone', {
         var dashboard = this.dashboard,
             over = data.lastOver,
             panel = over.panel,
-            side = over.beforeAfter,
             fromCt = panel.ownerCt,
             toCt = over.column,
+            side = toCt ? over.beforeAfter : 1,
             currentIndex = fromCt.items.indexOf(panel),
-            newIndex = over.above ? toCt.items.indexOf(over.above) : toCt.items.getCount(),
-            colIndex, newCol;
+            newIndex = toCt ? (over.above ? toCt.items.indexOf(over.above) : toCt.items.getCount()) : 0,
+            colIndex, newCol,
+            hasListeners = dashboard.hasListeners;
 
 //        console.log('DROP: ' + panel.id + '@' + currentIndex +
 //                // ' from ' + fromCt.id +
@@ -194,8 +217,8 @@ Ext.define('Ext.dashboard.DropZone', {
             }
         }
 
-        if (dashboard.fireEvent('validatedrop', over) === false ||
-            dashboard.fireEvent('beforedrop', over) === false) {
+        if ((hasListeners.validatedrop && dashboard.fireEvent('validatedrop', over) === false) ||
+            (hasListeners.beforedrop && dashboard.fireEvent('beforedrop', over) === false)) {
             return;
         }
 
@@ -204,11 +227,23 @@ Ext.define('Ext.dashboard.DropZone', {
         panel.isMoving = true;
         if (side) {
             colIndex = dashboard.items.indexOf(toCt);
-            if (side > 0) {
+
+            // inserting into new Row ?
+            if (colIndex < 0) {
+                colIndex = dashboard.items.getCount();
+            } else if (side > 0) {
                 ++colIndex;
             }
+
             newCol = dashboard.createColumn();
-            newCol.columnWidth = toCt.columnWidth = toCt.columnWidth / 2;
+
+            if (toCt) {
+                newCol.columnWidth = toCt.columnWidth = toCt.columnWidth / 2;
+                delete toCt.width;
+            } else {
+                newCol.columnWidth = 1;  //full row
+            }
+
             toCt = dashboard.insert(colIndex, newCol);
             newIndex = 0;
         }
@@ -217,21 +252,14 @@ Ext.define('Ext.dashboard.DropZone', {
         panel.el.dom.style.display = '';
 
         toCt.insert(newIndex, panel);
-        if (fromCt.items.getCount() === 0) {
-            toCt.columnWidth += fromCt.columnWidth;
-        }
 
         panel.isMoving = false;
 
-        panel.updateLayout();
+        toCt.updateLayout();
         Ext.resumeLayouts(true);
 
-        dashboard.fireEvent('drop', over);
-    },
-
-    // unregister the dropzone from ScrollManager
-    unreg: function() {
-        Ext.dd.ScrollManager.unregister(this.dashboard.body);
-        this.callParent();
+        if (hasListeners.drop) {
+            dashboard.fireEvent('drop', over);
+        }
     }
 });

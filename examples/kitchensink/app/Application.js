@@ -7,7 +7,8 @@ Ext.define('KitchenSink.Application', {
         'Ext.state.CookieProvider',
         'Ext.window.MessageBox',
         'Ext.tip.QuickTipManager',
-        'KitchenSink.*'
+        'KitchenSink.*',
+        'Ext.chart.*'
     ],
 
     controllers: [

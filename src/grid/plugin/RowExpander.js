@@ -66,6 +66,13 @@ Ext.define('Ext.grid.plugin.RowExpander', {
      */
     headerWidth: 24,
     
+    /**
+     * @cfg {Boolean} [bodyBefore=false]
+     * Configure as `true` to put the row expander body *before* the data row.
+     * 
+     */
+    bodyBefore: false,
+
     rowBodyTrSelector: '.' + Ext.baseCSSPrefix + 'grid-rowbody-tr',
     rowBodyHiddenCls: Ext.baseCSSPrefix + 'grid-row-body-hidden',
     rowCollapsedCls: Ext.baseCSSPrefix + 'grid-row-collapsed',
@@ -137,6 +144,7 @@ Ext.define('Ext.grid.plugin.RowExpander', {
             featuresCfg = {
                 ftype: 'rowbody',
                 rowExpander: me,
+                bodyBefore: me.bodyBefore,
                 recordsExpanded: me.recordsExpanded,
                 rowBodyHiddenCls: me.rowBodyHiddenCls,
                 rowCollapsedCls: me.rowCollapsedCls,

@@ -72,6 +72,8 @@ $button-toolbar-background-color: $button-default-background-color;
 $button-default-color: white;
 $button-toolbar-color: $button-default-color;
 
+$button-toolbar-inner-border-color-focus: mix($button-toolbar-background-color, $button-toolbar-color, 20%) !default;
+
 $button-small-font-size: $exec-font-size-content;
 $button-small-font-weight: $exec-font-bold;
 

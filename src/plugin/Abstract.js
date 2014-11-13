@@ -39,8 +39,10 @@ Ext.define('Ext.plugin.Abstract', {
      * @param {Object} [config] Configuration object.
      */
     constructor: function(config) {
-        this.pluginConfig = config;
-        Ext.apply(this, config);
+        if (config) {
+            this.pluginConfig = config;
+            Ext.apply(this, config);
+        }
     },
 
     /**

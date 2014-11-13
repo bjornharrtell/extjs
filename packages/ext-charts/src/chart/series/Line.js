@@ -929,9 +929,12 @@ Ext.define('Ext.chart.series.Line', {
                 x: x,
                 y: y
             }, true);
-            if (resizing && me.animation) {
-                me.animation.on('afteranimate', function() {
-                    label.show(true);
+            if (resizing && chart.animate) {
+                me.on({
+                    single: true,
+                    afterrender: function() {
+                        label.show(true);
+                    }
                 });
             } else {
                 label.show(true);

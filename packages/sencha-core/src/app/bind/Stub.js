@@ -21,14 +21,18 @@ Ext.define('Ext.app.bind.Stub', {
     statics: {
         populateValues: function(value, owner, path, stub) {
             var children = stub && stub.children,
-                child, key;
+                child, key, hadValue;
 
             // Keep track of the fact that we've had a value set. We may get set
             // to undefined in the future, we only need to know whether we
             // are initially in an undefined state
-            owner.hadValue[path] = true;
+            hadValue = value !== undefined;
+            if (!owner.hadValue[path]) {
+                owner.hadValue[path] = hadValue;
+            }
+
             if (stub) {
-                stub.hadValue = true;
+                stub.hadValue = hadValue;
             }
 
             if (value && value.constructor === Object) {
@@ -52,7 +56,7 @@ Ext.define('Ext.app.bind.Stub', {
             }
         }
         me.hadValue = owner.hadValue[path];
-        me.path = name;
+        me.path = path;
     },
     
     destroy: function() {
@@ -74,17 +78,32 @@ Ext.define('Ext.app.bind.Stub', {
         me.callParent();
     },
 
-    collect: function() {
-        var me = this,
-            result = me.callParent(),
-            storeBinding = me.storeBinding ? 1 : 0;
-        
-        return result + storeBinding;
-    },
-
     bindValidation: function (callback, scope) {
         var parent = this.parent;
         return parent && parent.descend([this.validationKey, this.name]).bind(callback, scope);
+    },
+
+    bindValidationField: function(callback, scope) {
+        var parent = this.parent,
+            name = this.name,
+            lateBound = typeof callback === 'string',
+            ret;
+
+        if (parent) {
+            ret = parent.bind(function(value) {
+                var field = null;
+                if (value && value.isModel) {
+                    field = value.getField(name);
+                }
+                if (lateBound) {
+                    scope[callback](field, null, this);
+                } else {
+                    callback.call(scope, field, null, this);
+                }
+            });
+        }
+
+        return ret || null;
     },
 
     descend: function (path, index) {
@@ -141,6 +160,9 @@ Ext.define('Ext.app.bind.Stub', {
             parentData[name] = ret = {};
             // We're implicitly setting a value on the object here
             me.hadValue = me.owner.hadValue[me.path] = true;
+            // If we're creating the parent data object, invalidate the dirty
+            // flag on our children.
+            me.invalidate(true, true);
         }
 
         return ret;
@@ -180,28 +202,43 @@ Ext.define('Ext.app.bind.Stub', {
         var me = this,
             parent = me.parent,
             loading = false,
-            value;
+            associations, parentValue, value, loadSet;
         
         if (parent && !(loading = parent.isLoading())) {
-            value = me.inspectValue(me.getParentValue());
+            parentValue = me.getParentValue();
+            value = me.inspectValue(parentValue);
             // If we get a value back, it's something we can ask for the loading state
             if (value) {
                 loading = value.isLoading();
             } else {
-                loading = !me.hadValue && me.getRawValue() === undefined;
+                if (parentValue && parentValue.isModel) {
+                    associations = parentValue.associations;
+                    // At this point, we know the value is not a record or a store, otherwise
+                    // something would have been returned from inspectValue. We also check here
+                    // that we are not a defined association, because we don't treat it like a field.
+                    // Otherwise, we are a field on a model, so we're never in a loading state.
+                    if (!(associations && me.name in associations)) {
+                        loading = false;
+                        loadSet = true;
+                    }
+                }
+
+                if (!loadSet) {
+                    loading = !me.hadValue && me.getRawValue() === undefined;
+                }
             }
         }
 
         return loading;
     },
 
-    invalidate: function (deep) {
+    invalidate: function (deep, dirtyOnly) {
         var me = this,
             children = me.children,
             name;
 
         me.dirty = true;
-        if (!me.isLoading()) {
+        if (!dirtyOnly && !me.isLoading()) {
             if (!me.scheduled) {
                 // If we have no children, we're a leaf
                 me.schedule();
@@ -210,7 +247,7 @@ Ext.define('Ext.app.bind.Stub', {
 
         if (deep && children) {
             for (name in children) {
-                children[name].invalidate(deep);
+                children[name].invalidate(deep, dirtyOnly);
             }
         }
     },
@@ -258,6 +295,11 @@ Ext.define('Ext.app.bind.Stub', {
 
     afterLoad: function(record) {
         this.invalidate(true);
+    },
+
+    afterCommit: function(record) {
+        // Essentially the same as an edit, but we don't know what changed.
+        this.afterEdit(record, null);
     },
 
     afterEdit: function(record, modifiedFieldNames) {
@@ -376,6 +418,15 @@ Ext.define('Ext.app.bind.Stub', {
     },
 
     privates: {
+        collect: function() {
+            var me = this,
+                result = me.callParent(),
+                storeBinding = me.storeBinding ? 1 : 0,
+                formula = me.formula ? 1 : 0;
+            
+            return result + storeBinding + formula;
+        },
+        
         getParentValue: function() {
             var me = this;
             // Cache the value of the parent here. Inside onSchedule we clear the value
@@ -407,7 +458,7 @@ Ext.define('Ext.app.bind.Stub', {
                         boundValue.$associatedStore = true;
                     }
                 } else if (name === me.validationKey) {
-                    boundValue = parentData.getValidation(true);
+                    boundValue = parentData.getValidation();
                     // Binding a new one, reset the generation
                     me.lastValidationGeneration = null;
                 }
@@ -432,7 +483,7 @@ Ext.define('Ext.app.bind.Stub', {
                     } else {
                         // Only want to trigger automatic loading if we've come from an association. Otherwise leave
                         // the user in charge of that.
-                        if (boundValue.$associatedStore && !boundValue.getCount() && !boundValue.loadCount && !boundValue.hasPendingLoad()) {
+                        if (boundValue.$associatedStore && !boundValue.complete && !boundValue.hasPendingLoad()) {
                             boundValue.load();
                         }
                         // We only want to listen for the first load, since the actual

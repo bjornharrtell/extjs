@@ -9,7 +9,7 @@ Ext.define('Ext.draw.ContainerBase', {
 
     layout: 'container',
 
-    // adds a listener to this draw container's element. If the element does not yet exist
+    // Adds a listener to this draw container's element. If the element does not yet exist
     // addition of the listener will be deferred until onRender.  Useful when listeners
     // need to be attached during initConfig.
     addElementListener: function() {
@@ -22,6 +22,14 @@ Ext.define('Ext.draw.ContainerBase', {
             me.on('render', function() {
                 me.el.on.apply(me.el, args);
             });
+        }
+    },
+
+    removeElementListener: function() {
+        var me = this,
+            args = arguments;
+        if (me.rendered) {
+            me.el.un.apply(me.el, args);
         }
     },
 

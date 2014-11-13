@@ -168,42 +168,42 @@ Ext.define('Aria.view.Toolbar', {
                 text:'Button w/ Menu',
                 iconCls: 'bmenu',  // <-- icon
                 menu: menu  // assign menu by instance
-            }, {
-                text: 'Users',
-                menu: {
-                    xtype: 'menu',
-                    plain: true,
-                    items: {
-                        xtype: 'buttongroup',
-                        title: 'User options',
-                        columns: 2,
-                        defaults: {
-                            xtype: 'button',
-                            scale: 'large',
-                            iconAlign: 'left',
-                            handler: onButtonClick
-                        },
-                        items: [{
-                            text: 'User<br/>manager',
-                            width: 90,
-                            displayText: 'User manager'
-                        },{
-                            tooltip: 'Add user',
-                            width: 100,
-                            text: 'Add user'
-                        },{
-                            colspan: 2,
-                            text: 'Import',
-                            scale: 'small',
-                            width: 130
-                        },{
-                            colspan: 2,
-                            text: 'Who is online?',
-                            scale: 'small',
-                            width: 130
-                        }]
-                    }
-                }
+//             }, {
+//                 text: 'Users',
+//                 menu: {
+//                     xtype: 'menu',
+//                     plain: true,
+//                     items: {
+//                         xtype: 'buttongroup',
+//                         title: 'User options',
+//                         columns: 2,
+//                         defaults: {
+//                             xtype: 'button',
+//                             scale: 'large',
+//                             iconAlign: 'left',
+//                             handler: onButtonClick
+//                         },
+//                         items: [{
+//                             text: 'User<br/>manager',
+//                             width: 90,
+//                             displayText: 'User manager'
+//                         },{
+//                             tooltip: 'Add user',
+//                             width: 100,
+//                             text: 'Add user'
+//                         },{
+//                             colspan: 2,
+//                             text: 'Import',
+//                             scale: 'small',
+//                             width: 130
+//                         },{
+//                             colspan: 2,
+//                             text: 'Who is online?',
+//                             scale: 'small',
+//                             width: 130
+//                         }]
+//                     }
+//                 }
             },
             '-', {
                 text: 'Toggle Me',

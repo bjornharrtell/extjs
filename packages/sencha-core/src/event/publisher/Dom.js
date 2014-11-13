@@ -9,6 +9,8 @@ Ext.define('Ext.event.publisher.Dom', {
         'Ext.event.Event',
         'Ext.GlobalEvents'
     ],
+    
+    reEnterCount: 0,
 
     targetType: 'element',
 
@@ -47,7 +49,8 @@ Ext.define('Ext.event.publisher.Dom', {
         beforeunload: 1,
         error: 1,
         DOMContentLoaded: 1,
-        DOMFrameContentLoaded: 1
+        DOMFrameContentLoaded: 1,
+        hashchange: 1
     },
 
     /**
@@ -140,7 +143,7 @@ Ext.define('Ext.event.publisher.Dom', {
         }
 
         me.initHandlers();
-
+        
         if (handledEvents) {
             // If the publisher has handledEvents we attach listeners up front for those
             // events. Dom publisher does not have a list of event names, but attaches
@@ -599,7 +602,17 @@ Ext.define('Ext.event.publisher.Dom', {
         return hasDispatched;
     },
 
-    onDelegatedEvent: function(e, invokeAfter) {
+    onDelegatedEvent: function(e) {
+        if (Ext.elevateFunction) {
+            // using [e] is faster than using arguments in most browsers
+            // http://jsperf.com/passing-arguments
+            Ext.elevateFunction(this.doDelegatedEvent, this, [e]);
+        } else {
+            this.doDelegatedEvent(e);
+        }
+    },
+
+    doDelegatedEvent: function(e, invokeAfter) {
         var me = this,
             type = e.type,
             event;
@@ -617,7 +630,9 @@ Ext.define('Ext.event.publisher.Dom', {
 
         Ext.frameStartTime = e.timeStamp;
 
+        me.reEnterCount++;
         me.publish(type, event.target, event);
+        me.reEnterCount--;
 
         if (invokeAfter !== false) {
             me.afterEvent(event);
@@ -632,6 +647,16 @@ Ext.define('Ext.event.publisher.Dom', {
      * @private
      */
     onDirectEvent: function(e) {
+        if (Ext.elevateFunction) {
+            // using [e] is faster than using arguments in most browsers
+            // http://jsperf.com/passing-arguments
+            Ext.elevateFunction(this.doDirectEvent, this, [e]);
+        } else {
+            this.doDirectEvent(e);
+        }
+    },
+
+    doDirectEvent: function(e) {
         var me = this,
             type = e.type,
             event = new Ext.event.Event(e),
@@ -685,12 +710,14 @@ Ext.define('Ext.event.publisher.Dom', {
 
         // Since natural DOM propagation has occurred, no emulated propagation is needed.
         // Simply dispatch the event.
+        me.reEnterCount++;
         dispatcher.dispatchDirectEvent(
             targetType,
             '#' + id,
             eventName,
             [event, target]
         );
+        me.reEnterCount--;
 
         me.afterEvent(event);
     },
@@ -723,10 +750,6 @@ Ext.define('Ext.event.publisher.Dom', {
             self = Ext.event.publisher.Dom,
             GlobalEvents = Ext.GlobalEvents;
 
-        if (GlobalEvents.hasListeners.idle && !GlobalEvents.idleEventMask[type]) {
-            GlobalEvents.fireEvent('idle');
-        }
-
         // It is important that the following time stamps are captured after the handlers
         // have been invoked because they need to represent the "exit" time, so that they
         // can be compared against the next "entry" time into onDelegatedEvent or
@@ -748,6 +771,10 @@ Ext.define('Ext.event.publisher.Dom', {
             // emulated mouse events on multi-input devices that have touch events,
             // e.g. Chrome on Window8 with touch-screen (see isEventBlocked).
             self.lastTouchEndTime = Ext.now();
+        }
+
+        if (!this.reEnterCount && GlobalEvents.hasListeners.idle && !GlobalEvents.idleEventMask[type]) {
+            GlobalEvents.fireEvent('idle');
         }
     },
 

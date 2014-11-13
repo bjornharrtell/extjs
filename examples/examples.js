@@ -378,19 +378,17 @@ Ext.samples = {
                 }
             ]
         },
-        /*
         {
             "title": "Accessibility",
             "items": [
                 {
-                    "text": "ARIA example",
+                    "text": "ARIA demo",
                     "url": "aria/",
                     "icon": "keyboard",
                     "desc": "Shows Ext JS's comprehensive keyboard support for users who have difficulty using a pointing device"
                 }
             ]
         },
-        */
         {
             "title": "Miscellaneous",
             "items": [

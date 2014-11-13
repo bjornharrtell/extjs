@@ -37,8 +37,10 @@ Ext.define('Ext.chart.interactions.ItemHighlight', {
         } else if (!me.highlightItem) {
             item = me.getItemForEvent(e);
             chart = me.getChart();
-            chart.setHighlightItem(item);
-            me.sync();
+            if (item !== chart.getHighlightItem()) {
+                chart.setHighlightItem(item);
+                me.sync();
+            }
 
             if (this.isMousePointer) {
                 if ( me.tipItem && (!item || me.tipItem.field !== item.field || me.tipItem.record !== item.record) ) {
@@ -79,6 +81,9 @@ Ext.define('Ext.chart.interactions.ItemHighlight', {
 
     onHighlightGesture: function (e) {
         // A click/tap on an item makes its highlight sticky. It requires another click/tap to unhighlight.
+        if (this.isMousePointer) {
+            return;
+        }
         var me = this,
             item = me.getItemForEvent(e);
         if (me.highlightItem && item && (me.highlightItem.index === item.index)) {

@@ -19,6 +19,23 @@ Ext.define('Ext.rtl.slider.Multi', {
         delete this._rtlInnerWidth;
     },
     
+    onKeyDown: function(e) {
+        var key;
+        
+        if (this.getInherited().rtl) {
+            key = e.getKey();
+        
+            if (key === e.RIGHT) {
+                e.keyCode = e.LEFT;
+            }
+            else if (key === e.LEFT) {
+                e.keyCode = e.RIGHT;
+            }
+        }
+        
+        return this.callParent([e]);
+    },
+    
     transformTrackPoints: function(pos){
         var left, innerWidth;
         
@@ -33,17 +50,5 @@ Ext.define('Ext.rtl.slider.Multi', {
         } else {
             return this.callParent(arguments);
         }
-    },
-    
-    getSubTplData : function() {
-        var me = this,
-            data = me.callParent(),
-            rtlCls = me._rtlCls;
-        
-        if (rtlCls && me.getInherited().rtl) {
-            data.childElCls = ' ' + rtlCls;
-        }
-
-        return data;
     }
 });

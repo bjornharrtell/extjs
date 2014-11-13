@@ -16,6 +16,10 @@ Ext.define('Ext.toolbar.Breadcrumb', {
         'Ext.data.TreeStore',
         'Ext.button.Split'
     ],
+    
+    mixins: [
+        'Ext.util.FocusableContainer'
+    ],
 
     isBreadcrumb: true,
     baseCls: Ext.baseCSSPrefix + 'breadcrumb',
@@ -91,6 +95,9 @@ Ext.define('Ext.toolbar.Breadcrumb', {
         selection: 'root'
     },
 
+    publishes: ['selection'],
+    twoWayBindable: ['selection'],
+
     _breadcrumbCls: Ext.baseCSSPrefix + 'breadcrumb',
     _btnCls: Ext.baseCSSPrefix + 'breadcrumb-btn',
     _folderIconCls: Ext.baseCSSPrefix + 'breadcrumb-icon-folder',
@@ -98,7 +105,7 @@ Ext.define('Ext.toolbar.Breadcrumb', {
 
     initComponent: function() {
         var me = this,
-            layout = this.layout,
+            layout = me.layout,
             overflowHandler = me.getOverflowHandler();
 
         if (typeof layout === 'string') {
@@ -111,16 +118,10 @@ Ext.define('Ext.toolbar.Breadcrumb', {
             layout.overflowHandler = overflowHandler;
         }
 
-        this.layout = layout;
+        me.layout = layout;
 
         // set defaultButtonUI for possible menu overflow handler.
-        this.defaultButtonUI = this.getButtonUI();
-
-        //<debug>
-        if (!this.getStore()) {
-            Ext.Error.raise('Ext.toolbar.Breadcrumb requires a store');
-        }
-        //</debug>
+        me.defaultButtonUI = me.getButtonUI();
 
         /**
          * Internal cache of buttons that are re-purposed as the items of this container
@@ -136,8 +137,11 @@ Ext.define('Ext.toolbar.Breadcrumb', {
     },
 
     onDestroy: function() {
-        this._buttons = Ext.destroy(this._buttons);
-        this.callParent();
+        var me = this;
+
+        me._buttons = Ext.destroy(me._buttons);
+        me.setStore(null);
+        me.callParent();
     },
 
     afterComponentLayout: function() {
@@ -152,7 +156,13 @@ Ext.define('Ext.toolbar.Breadcrumb', {
     },
 
     applySelection: function(node) {
-        return (node === 'root') ? this.getStore().getRoot() : node;
+        var store = this.getStore();
+        if (store) {
+            node = (node === 'root') ? this.getStore().getRoot() : node;
+        } else {
+            node = null;
+        }
+        return node;
     },
 
     updateSelection: function(node) {
@@ -277,10 +287,17 @@ Ext.define('Ext.toolbar.Breadcrumb', {
         return useSplitButtons;
     },
 
+    applyStore: function(store) {
+        if (store) {
+            store = Ext.data.StoreManager.lookup(store);
+        }
+        return store;
+    },
+
     updateStore: function(store, oldStore) {
         this._needsSync = true;
 
-        if (oldStore) {
+        if (store && !this.isConfiguring) {
             this.setSelection(store.getRoot());
         }
     },
@@ -323,7 +340,7 @@ Ext.define('Ext.toolbar.Breadcrumb', {
          * @param {Ext.menu.Menu} menu
          */
         _onMenuBeforeShow: function(menu) {
-            var node = this.getStore().getNodeById(menu.ownerButton._breadcrumbNodeId),
+            var node = this.getStore().getNodeById(menu.ownerCmp._breadcrumbNodeId),
                 displayField = this.getDisplayField(),
                 childNodes, childNode, items, i, ln;
 

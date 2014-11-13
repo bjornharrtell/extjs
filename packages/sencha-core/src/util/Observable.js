@@ -160,20 +160,47 @@ Ext.define('Ext.util.Observable', function(Observable) {
                     // receive the class as "T", but the members will not yet have been
                     // applied to the prototype. If this is the case, just grab listeners
                     // off of the raw data object.
-                    targetListeners = data ? data.listeners : T.prototype.listeners,
-                    name, mixin;
+                    target = data || T.prototype,
+                    targetListeners = target.listeners,
+                    superListeners = mixin ? mixin.listeners : T.superclass.self.listeners,
+                    name, scope, namedScope;
 
                 // Process listeners that have been declared on the class body. These
                 // listeners must not override each other, but each must be added
                 // separately. This is accomplished by maintaining a nested array
                 // of listeners for the class and it's superclasses/mixins
-                if (mixin) {
-                    listeners.push(mixin.listeners);
-                } else {
-                    listeners.push(T.superclass.self.listeners);
+                if (superListeners) {
+                    listeners.push(superListeners);
                 }
+
                 if (targetListeners) {
+                    // Allow listener scope resolution mechanism to know if the listeners
+                    // were declared on the class.  This is only necessary when scope
+                    // is unspecified, or when scope is 'controller'.  We use special private
+                    // named scopes of "self" and "self.controller" to indicate either
+                    // unspecified scope, or scope declared as controller on the class
+                    // body.  To avoid iterating the listeners object multiple times, we
+                    // only put this special scope on the outermost object at this point
+                    // and allow addListener to handle scope:'controller' declared on
+                    // inner objects of the listeners config.
+                    scope = targetListeners.scope;
+                    if (!scope) {
+                        targetListeners.scope = 'self';
+                    } else {
+                        namedScope = Ext._namedScopes[scope];
+                        if (namedScope && namedScope.isController) {
+                            targetListeners.scope = 'self.controller';
+                        }
+                    }
+
                     listeners.push(targetListeners);
+
+                    // After adding the target listeners to the declared listeners array
+                    // we can delete it off of the prototype (or data object).  This ensures
+                    // that we don't attempt to add the listeners twice, once during
+                    // addDeclaredListeners, and again when we add this.listeners in the
+                    // constructor.
+                    target.listeners = null;
                 }
 
                 if (!T.HasListeners) {
@@ -483,7 +510,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
         resolveListenerScope: function (defaultScope) {
             //<debug>
             if (defaultScope === 'controller') {
-                Ext.Error.raise('scope: "controller" can only be specified on components that derive from component');
+                Ext.Error.raise('scope: "controller" can only be specified on classes that derive from Ext.Component or Ext.Widget');
             }
             //</debug>
             
@@ -701,12 +728,17 @@ Ext.define('Ext.util.Observable', function(Observable) {
         */
         addListener: function(ename, fn, scope, options, caller) {
             var me = this,
-                config, event,
-                prevListenerCount = 0;
+                prevListenerCount = 0,
+                namedScopes = Ext._namedScopes,
+                config, event, namedScope, isClassListener, innerScope;
 
             // Object listener hash passed
             if (typeof ename !== 'string') {
                 options = ename;
+                scope = options.scope;
+                namedScope = scope && namedScopes[scope];
+                isClassListener = namedScope && namedScope.isSelf;
+
                 for (ename in options) {
                     config = options[ename];
                     if (!me.eventOptionsRe.test(ename)) {
@@ -718,7 +750,21 @@ Ext.define('Ext.util.Observable', function(Observable) {
                         }
                         //</debug>
                         */
-                        me.addListener(ename, config.fn || config, config.scope || options.scope, config.fn ? config : options, caller);
+
+                        innerScope = config.scope;
+                        // for proper scope resolution, scope:'controller' specified on an
+                        // inner object, must be translated to 'self.controller' if the
+                        // listeners object was declared on the class body.
+                        // see also Ext.util.Observable#prepareClass and
+                        // Ext.mixin.Inheritable#resolveListenerScope
+                        if (innerScope && isClassListener) {
+                            namedScope = namedScopes[innerScope];
+                            if (namedScope && namedScope.isController) {
+                                innerScope = 'self.controller';
+                            }
+                        }
+
+                        me.addListener(ename, config.fn || config, innerScope || scope, config.fn ? config : options, caller);
                     }
                 }
                 if (options && options.destroyable) {
@@ -727,6 +773,7 @@ Ext.define('Ext.util.Observable', function(Observable) {
             }
             // String, function passed
             else {
+                namedScope = namedScopes[scope];
                 // This is inlined for performance
                 ename = eventNameMap[ename] || (eventNameMap[ename] = ename.toLowerCase());
                 // need events now...
@@ -740,14 +787,14 @@ Ext.define('Ext.util.Observable', function(Observable) {
                 // Allow listeners: { click: 'onClick', scope: myObject }
                 // If we get passed with a scope, go and resolve it directly,
                 // otherwise we need to defer it til when the event fires.
-                if (typeof fn === 'string' && scope && scope !== 'this' && scope !== 'controller') {
+                if (typeof fn === 'string' && scope && !namedScope) {
                     fn = me.resolveMethod(fn, scope);
                 }
                 //<debug>
                 else {
                     // If we have a string and no scope we won't have a function yet,
                     // so don't throw any exception.
-                    if (!(typeof fn === 'string' && (!scope || scope === 'this' || scope === 'controller'))) {
+                    if (!(typeof fn === 'string' && (!scope || namedScope))) {
                         Ext.Assert.isFunction(fn,
                             'No function passed for event ' + me.$className + '.' + ename);
                     }
@@ -1036,9 +1083,11 @@ Ext.define('Ext.util.Observable', function(Observable) {
         *
         *     this.relayEvents(this.getStore(), ['load']);
         *
-        * The grid instance will then have an observable 'load' event which will be passed the
-        * parameters of the store's load event and any function fired with the grid's load event
-        * would have access to the grid using the `this` keyword.
+        * The grid instance will then have an observable 'load' event which will be passed 
+        * the parameters of the store's load event and any function fired with the grid's 
+        * load event would have access to the grid using the this keyword (unless the event 
+        * is handled by a controller's control/listen event listener in which case 'this' 
+        * will be the controller rather than the grid).
         *
         * @param {Object} origin The Observable whose events this object is to relay.
         * @param {String[]} events Array of event names to relay.

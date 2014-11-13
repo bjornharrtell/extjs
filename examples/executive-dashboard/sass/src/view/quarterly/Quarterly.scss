@@ -61,7 +61,7 @@
         }
     }
 
-    .quarterly-cycle {
+    .x-btn.quarterly-cycle {
 
         background: none;
         border: none;
@@ -71,6 +71,10 @@
             font-size: $exec-font-size-xlarge-title !important;
             line-height: $exec-font-size-xlarge-title;
             font-weight: $exec-font-semibold;
+        }
+
+        &.x-btn-focus {
+            @include inner-border(1px, mix($exec-blue-color, #fff, 40%));
         }
 
         .x-btn-split-right:after {

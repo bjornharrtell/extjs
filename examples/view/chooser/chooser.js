@@ -29,41 +29,23 @@ Ext.onReady(function() {
     var insertButton = Ext.create('Ext.button.Button', {
         text: "Insert Image",
         renderTo: 'buttons',
-        handler : function() {
-            if (win.isHidden()) {
-                win.show();
-            } else {
-                win.hide();
-            }
+        handler : function(btn) {
+            btn.disable();
+            win.show();
         }
     });
-    
+
     /*
-     * Here is where we create the window from which the user can select images to insert into the 'images' div.
-     * This window is a simple subclass of Ext.window.Window, and you can see its source code in Window.js.
-     * All we do here is attach a listener for when the 'selected' event is fired - when this happens it means
-     * the user has double clicked an image in the window so we call our insertSelectedImage function to add it
-     * to the DOM (see below).
-     */
-    var win = Ext.create('Ext.chooser.Window', {
-        id: 'img-chooser-dlg',
-        animateTarget: insertButton.getEl(),
-        listeners: {
-            selected: insertSelectedImage
-        }
-    });
-    
-    /*
-     * This function is called whenever the user double-clicks an image inside the window. It creates
+     * This function is called whenever the user selects an image inside the window. It creates
      * a new <img> tag inside the 'images' div and immediately hides it. We then call the show() function
      * with a duration of 500ms to fade the image in. At the end we call .frame() to give a visual cue
      * to the user that the image has been inserted
      */
-    function insertSelectedImage(image) {
+    function insertSelectedImage(rec) {
         //create the new image tag
         var image = Ext.fly('images').createChild({
             tag: 'img',
-            src: 'icons/' + image.get('thumb')
+            src: 'icons/' + rec.get('thumb')
         });
         
         //hide it straight away then fade it in over 500ms, finally use the frame animation to give emphasis
@@ -72,4 +54,22 @@ Ext.onReady(function() {
         //this will make the window animate back to the newly inserted image element
         win.animateTarget = image;
     }
+    
+    /*
+     * Here is where we create the window from which the user can select images to insert into the 'images' div.
+     * This window is a simple subclass of Ext.window.Window, and you can see its source code in Window.js.
+     * All we do here is attach a listener for when the 'selected' event is fired - when this happens it means
+     * the user has double clicked an image in the window so we call our insertSelectedImage function to add it
+     * to the DOM.
+     */
+    var win = Ext.create('Ext.chooser.Window', {
+        id: 'img-chooser-dlg',
+        animateTarget: insertButton.getEl(),
+        listeners: {
+            selected: insertSelectedImage,
+            hide: function() {
+                insertButton.enable();
+            }
+        }
+    });
 });

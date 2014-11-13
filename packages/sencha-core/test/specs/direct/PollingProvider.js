@@ -211,6 +211,9 @@ describe("Ext.direct.PollingProvider", function() {
         });
         
         it("raises exception on garbled json response", function() {
+            // Suppress console error and dump
+            spyOn(Ext, 'log');
+            
             provider.onData({}, true, { responseText: 'invalid json' });
             
             var args = handler.argsForCall[0][1],

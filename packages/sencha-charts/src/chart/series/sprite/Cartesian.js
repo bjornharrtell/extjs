@@ -120,6 +120,8 @@ Ext.define('Ext.chart.series.sprite.Cartesian', {
             updaters: {
                 dataX: function (attrs) {
                     this.processDataX();
+                    // TODO: the lines below basically schedule the 'dataY'
+                    // TODO: updater, must be a better way to do it.
                     if (!attrs.dirtyFlags.dataY) {
                         attrs.dirtyFlags.dataY = [];
                     }

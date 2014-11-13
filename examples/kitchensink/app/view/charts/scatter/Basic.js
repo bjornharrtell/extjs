@@ -48,6 +48,18 @@ Ext.define('KitchenSink.view.charts.scatter.Basic', {
                 handler: function() {
                     me.down('cartesian').preview();
                 }
+            },
+            {
+                text: 'Reset pan/zoom',
+                handler: function () {
+                    var panel = this.up('panel'),
+                        chart = panel.down('cartesian'),
+                        axes = chart.getAxes();
+
+                    axes[0].setVisibleRange([0, 1]);
+                    axes[1].setVisibleRange([0, 1]);
+                    chart.redraw();
+                }
             }
         ];
         //</example>
@@ -58,7 +70,13 @@ Ext.define('KitchenSink.view.charts.scatter.Basic', {
             height: 500,
             store: this.myDataStore,
             insetPadding: 40,
-            interactions: 'itemhighlight',
+            interactions: [
+                {
+                    type: 'panzoom',
+                    zoomOnPanGesture: true
+                },
+                'itemhighlight'
+            ],
             axes: [{
                 type: 'numeric',
                 position: 'bottom',
@@ -73,7 +91,7 @@ Ext.define('KitchenSink.view.charts.scatter.Basic', {
             sprites: [{
                 type: 'text',
                 text: 'Scatter Charts - Basic',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -94,7 +112,6 @@ Ext.define('KitchenSink.view.charts.scatter.Basic', {
                 label: {
                     field: 'x',
                     display: 'over',
-                    font: '14px',
                     renderer: function(text, label, labelCfg, data, index) {
                         var record = data.store.getAt(index);
                         return record.get('x') + ',' + record.get('y');
@@ -121,5 +138,8 @@ Ext.define('KitchenSink.view.charts.scatter.Basic', {
         }];
 
         this.callParent();
+
+        var panzoom = this.down('cartesian').getInteractions()[0];
+        this.down('toolbar').add(panzoom.getModeToggleButton());
     }
 });

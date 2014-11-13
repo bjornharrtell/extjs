@@ -209,16 +209,4 @@ Ext.define('Ext.grid.Panel', {
      * @param {Ext.data.Store} oldStore The store that was replaced
      * @param {Ext.grid.column.Column[]} oldColumns The column headers that were replaced.
      */
-
-    /**
-     * @method reconfigure
-     * Reconfigures the grid with a new store/columns. Either the store or the columns can be omitted if you don't wish
-     * to change them.
-     *
-     * The {@link #enableLocking} config should be set to `true` before the reconfigure method is executed if locked columns
-     * are intended to be used.
-     *
-     * @param {Ext.data.Store} [store] The new store. You can pass `null` if no new store.
-     * @param {Object[]} [columns] An array of column configs
-     */
 });

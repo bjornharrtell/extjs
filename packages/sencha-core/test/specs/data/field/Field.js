@@ -457,5 +457,162 @@ describe("Ext.data.field.Field", function() {
         });
     });
     
-    
+    describe("subclassing with validators", function() {
+        var presenceMsg = 'Must be present',
+            formatMsg = 'Is in the wrong format',
+            emailMsg = 'Is not a valid email address',
+            A;
+
+        function defineA(validators) {
+            A = Ext.define(null, {
+                extend: 'Ext.data.field.Field',
+                validators: validators
+            });
+        }
+
+        function expectError(Type, cfg, value, expected) {
+            var v = new Type(cfg),
+                msg = v.validate(value, '|');
+
+            if (msg === true) {
+                msg = [];
+            } else {
+                msg = msg.split('|');
+            }
+            expect(msg).toEqual(expected);
+        }
+
+        afterEach(function() {
+            A = null;
+        });
+
+        it("should accept a string", function() {
+            defineA('presence');
+            expectError(A, null, null, [presenceMsg]);
+        });
+
+        it("should accept an object", function() {
+            defineA({
+                type: 'format',
+                matcher: /foo/
+            });
+            expectError(A, null, null, [formatMsg]);
+        });
+
+        it("should accept a function", function() {
+            defineA(function() {
+                return 'Fail';
+            });
+            expectError(A, null, null, ['Fail']);
+        });
+
+        it("should accept an array of mixed string/object/function", function() {
+            defineA(['presence', {
+                type: 'format',
+                matcher: /foo/
+            }, function() {
+                return 'Fail';
+            }]);
+            expectError(A, null, null, [presenceMsg, formatMsg, 'Fail']);
+        });
+
+        it("should combine instance validators with class validators", function() {
+            defineA('presence');
+            expectError(A, {
+                validators: 'email'
+            }, null, [presenceMsg, emailMsg]);
+        });
+
+        describe("extending a custom field", function() {
+            var B;
+
+            function defineB(validators) {
+                B = Ext.define(null, {
+                    extend: A,
+                    validators: validators
+                });
+            }
+
+            afterEach(function() {
+                B = null;
+            });
+
+            describe("merging", function() {
+                it("should merge a string and a string", function() {
+                    defineA('presence');
+                    defineB('email');
+                    expectError(B, null, null, [presenceMsg, emailMsg]);
+                });
+
+                it("should merge a string and an object", function() {
+                    defineA('presence');
+                    defineB({
+                        type: 'format',
+                        matcher: /foo/
+                    });
+                    expectError(B, null, null, [presenceMsg, formatMsg]);
+                });
+
+                it("should merge a string and a function", function() {
+                    defineA('presence');
+                    defineB(function() {
+                        return 'Fail';
+                    });
+                    expectError(B, null, null, [presenceMsg, 'Fail']);
+                });
+
+                it("should merge a string and an array", function() {
+                    defineA('presence');
+                    defineB(['email', {
+                        type: 'format',
+                        matcher: /foo/
+                    }, function() {
+                        return 'Fail';
+                    }]);
+                    expectError(B, null, null, [presenceMsg, emailMsg, formatMsg, 'Fail']);
+                });
+
+                it("should merge an object and a string", function() {
+                    defineA({
+                        type: 'format',
+                        matcher: /foo/
+                    });
+                    defineB('presence');
+                    expectError(B, null, null, [formatMsg, presenceMsg]);
+                });
+
+                it("should merge a function and a string", function() {
+                    defineA(function() {
+                        return 'Fail';
+                    });
+                    defineB('presence');
+                    expectError(B, null, null, ['Fail', presenceMsg]);
+                });
+
+                it("should merge an array and a string", function() {
+                    defineA(['email', {
+                        type: 'format',
+                        matcher: /foo/
+                    }, function() {
+                        return 'Fail';
+                    }]);
+                    defineB('presence');
+                    expectError(B, null, null, [emailMsg, formatMsg, 'Fail', presenceMsg]);
+                });
+
+                it("should merge 2 arrays", function() {
+                    defineA(['presence']);
+                    defineB(['email']);
+                    expectError(B, null, null, [presenceMsg, emailMsg]);
+                });
+
+                it("should not modify the superclass validators", function() {
+                    defineA('presence');
+                    defineB('email');
+                    expectError(A, null, null, [presenceMsg]);
+                    expectError(B, null, null, [presenceMsg, emailMsg]);
+                });
+            });
+        });
+    });
 });

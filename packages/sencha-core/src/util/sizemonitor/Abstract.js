@@ -135,6 +135,6 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
 
         delete this._element;
 
-        this.callSuper();
+        this.callParent();
     }
 });

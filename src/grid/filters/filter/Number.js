@@ -42,9 +42,14 @@ Ext.define('Ext.grid.filters.filter.Number', {
         }
     },
 
+    /**
+     * @cfg {String} emptyText
+     * The empty text to show for each field.
+     */
+    emptyText: 'Enter Number...',
+
     itemDefaults: {
         xtype: 'numberfield',
-        emptyText: 'Enter Number...',
         enableKeyEvents: true,
         hideEmptyLabel: false,
         labelSeparator: '',
@@ -103,6 +108,7 @@ Ext.define('Ext.grid.filters.filter.Number', {
                 }
 
                 Ext.merge(cfg, field);
+                cfg.emptyText = cfg.emptyText || me.emptyText;
                 delete cfg.iconCls;
 
                 me.fields[key] = item = me.menu.add(cfg);
@@ -114,7 +120,7 @@ Ext.define('Ext.grid.filters.filter.Number', {
         }
     },
 
-    /**  
+    /**
      * @private
      * Handler method called when there is a keyup event on an input
      * item of this menu.
@@ -123,8 +129,7 @@ Ext.define('Ext.grid.filters.filter.Number', {
         var value;
 
         if (e.getKey() === e.RETURN && field.isValid()) {
-            e.stopEvent();
-            this.hide();
+            this.menu.hide();
         }
 
         value = {};
@@ -134,7 +139,7 @@ Ext.define('Ext.grid.filters.filter.Number', {
     },
 
 
-    /**  
+    /**
      * @private
      * Handler method called when there is a spin event on a NumberField
      * item of this menu.

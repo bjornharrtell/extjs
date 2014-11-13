@@ -86,6 +86,7 @@ Ext.define('Ext.ux.TreePicker', {
                 maxHeight: me.maxPickerHeight,
                 manageHeight: false,
                 shadow: false,
+                focusable: false,
                 listeners: {
                     scope: me,
                     itemclick: me.onItemClick
@@ -94,7 +95,8 @@ Ext.define('Ext.ux.TreePicker', {
                     listeners: {
                         scope: me,
                         render: me.onViewRender
-                    }
+                    },
+                    navigationModel: 'boundlist'
                 }
             }),
             view = picker.getView();
@@ -180,11 +182,9 @@ Ext.define('Ext.ux.TreePicker', {
      */
     selectItem: function(record) {
         var me = this;
+        me.collapse();
         me.setValue(record.getId());
-        me.picker.hide();
-        me.inputEl.focus();
-        me.fireEvent('select', me, record)
-
+        me.fireEvent('select', me, record);
     },
 
     /**
@@ -209,10 +209,6 @@ Ext.define('Ext.ux.TreePicker', {
         }
         
         picker.selectPath(node.getPath());
-
-        Ext.defer(function() {
-            picker.getView().focus();
-        }, 1);
     },
 
     /**

@@ -65,7 +65,7 @@ Ext.define('Portal.view.main.Main', {
                 }, {
                     text: 'Yahoo News',
                     handler: 'onAddFeedUrl',
-                    feedUrl: 'http://rss.cnn.com/rss/edition.rss'
+                    feedUrl: 'http://news.yahoo.com/rss'
                 }, {
                     text: 'ESPN Top News',
                     handler: 'onAddFeedUrl',

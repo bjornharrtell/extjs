@@ -7,6 +7,10 @@
     "version": "5.0.0",
     "compatVersion": "5.0.0",
     "format": "1",
+    "slicer": {
+        "js": []
+    },
+    "output": "${package.dir}/build",
     "local": true,
     "requires": []
 }

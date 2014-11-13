@@ -1,11 +1,14 @@
 <project name="sass-impl">
-    
-    <target name="-init-sass-compiler">
-        <x-normalize-path path="${build.dir}/resources" 
+
+    <target name="-init-sass-compiler" depends="-init-compiler">
+        <x-normalize-path path="${build.out.resources.dir}"
                           property="image.search.path"/>
+        <condition property="is.theme.package" value="true">
+            <equals arg1="${package.type}" arg2="theme"/>
+        </condition>
     </target>
-    
-    <target name="-compile-sass-rtl" depends="-init-sass-compiler">
+
+    <target name="-compile-sass-rtl-theme" depends="-init-sass-compiler" if="is.theme.package">
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
             include
@@ -27,7 +30,7 @@
         </x-compile>
     </target>
 
-    <target name="-compile-sass-ltr" depends="-init-sass-compiler">
+    <target name="-compile-sass-ltr-theme" depends="-init-sass-compiler" if="is.theme.package">
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
             exclude
@@ -53,9 +56,108 @@
         </x-compile>
     </target>
 
-    <target name="-compile-sass" 
-            depends="-compile-sass-rtl,-compile-sass-ltr"/>
-    
+    <target name="-compile-sass-rtl" depends="-init-sass-compiler" unless="is.theme.package">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+            exclude
+                -all
+            and
+            include
+                -tag=package-${package.name}
+            and
+            save
+                pkg
+            and
+            sass
+                -class-name-vars=true
+                -variable=$image-search-path:'${image.search.path}' !default
+                -variable=$theme-name: '${package.name}' !default
+                -output=${build.all.rtl.scss}
+            and
+            include
+                -all
+            and
+            save
+                all
+            and
+            sass
+                -etc=true
+                -vars=true
+                +append
+                -output=${build.all.rtl.scss}
+            and
+            restore
+                pkg
+            and
+            sass
+                -rules=true
+                +append
+                -output=${build.all.rtl.scss}
+            and
+            sass
+                -ruby=true
+                -output=${build.all.ruby}
+            ]]>
+        </x-compile>
+    </target>
+
+    <target name="-compile-sass-ltr" depends="-init-sass-compiler" unless="is.theme.package">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+            exclude
+                -all
+            and
+            include
+                -tag=package-${package.name}
+            and
+            save
+                pkg
+            and
+            sass
+                -class-name-vars=true
+                -variable=$image-search-path:'${image.search.path}' !default
+                -variable=$theme-name: '${package.name}' !default
+                -output=${build.all.scss}
+            and
+            exclude
+                -all
+            and
+            include
+                -not
+                -namespace=Ext.rtl
+            and
+            save
+                all-rtl
+            and
+            sass
+                -etc=true
+                -vars=true
+                +append
+                -output=${build.all.scss}
+            and
+            restore
+                pkg
+            and
+            sass
+                -rules=true
+                +append
+                -output=${build.all.scss}
+            and
+            sass
+                -ruby=true
+                -output=${build.all.ruby}
+            ]]>
+        </x-compile>
+    </target>
+
+    <target name="-compile-sass"
+            depends="-compile-sass-rtl-theme,-compile-sass-ltr-theme,-compile-sass-rtl,-compile-sass-ltr">
+        <echo file="${package.example.compass.config}">
+            require '${build.all.ruby}'
+            cache_path = '${compass.cache.dir}'
+        </echo>
+    </target>
+
     <macrodef name="x-compress-css-files">
         <attribute name="dir"/>
         <attribute name="prefix"/>
@@ -80,31 +182,36 @@
                                     outfile="${css.output.name}"/>
                 </sequential>
             </for>
+
+            <replaceregexp file="@{dir}/@{outprefix}.css"
+                           match="@import '@{prefix}(_\d\d).css';"
+                           replace="@import '@{outprefix}\1.css';"
+                           flags="g"/>
         </sequential>
     </macrodef>
 
     <target name="-compass-compile" depends="-compile-sass">
         <x-compass-compile
-            rubyPath="${build.ruby.path}"
-            trace="${compass.compile.trace}"
-            boring="${compass.compile.boring}"
-            force="${compass.compile.force}"
-            dir="${compass.working.dir}"
-            sassdir="${build.dir}"
-            cssdir="${build.dir}/resources"
-            config="${build.all.ruby}"/>
+                rubyPath="${build.ruby.path}"
+                trace="${compass.compile.trace}"
+                boring="${compass.compile.boring}"
+                force="${compass.compile.force}"
+                dir="${compass.working.dir}"
+                sassdir="${compass.sass.dir}"
+                cssdir="${compass.css.dir}"
+                config="${package.example.compass.config}"/>
     </target>
 
     <target name="-compile-css" depends="-compass-compile">
         <x-compress-css-files
-            dir="${build.resources.dir}"
-            prefix="${build.all.css.debug.prefix}"
-            outprefix="${build.all.css.prefix}"/>
-        
+                dir="${build.resources.dir}"
+                prefix="${build.all.css.debug.prefix}"
+                outprefix="${build.all.css.prefix}"/>
+
         <x-compress-css-files
-            dir="${build.resources.dir}"
-            prefix="${build.all.rtl.css.debug.prefix}"
-            outprefix="${build.all.rtl.css.prefix}"/>
+                dir="${build.resources.dir}"
+                prefix="${build.all.rtl.css.debug.prefix}"
+                outprefix="${build.all.rtl.css.prefix}"/>
     </target>
 
     <target name="-before-sass"/>

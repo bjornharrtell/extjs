@@ -3,7 +3,7 @@
  *
  * Defines axis for charts.
  *
- * Using the current model, the type of axis can be easily extended. By default, Sencha Touch provides three different
+ * Using the current model, the type of axis can be easily extended. By default, Sencha Charts provide three different
  * types of axis:
  *
  *  * **numeric** - the data attached to this axis is numeric and continuous.
@@ -92,7 +92,7 @@ Ext.define('Ext.chart.axis.Axis', {
          *
          * For more supported values, see the configurations for {@link Ext.chart.label.Label}.
          */
-        label: {},
+        label: undefined,
 
         /**
          * @cfg {Object} grid
@@ -163,7 +163,7 @@ Ext.define('Ext.chart.axis.Axis', {
         margin: 0,
 
         /**
-         * @cfg {Number} titleMargin
+         * @cfg {Number} [titleMargin=4]
          * The margin around the axis title. Unlike CSS where the margin is added on all 4
          * sides of an element, the `titleMargin` is the total space that is added horizontally
          * for a vertical title and vertically for an horizontal title, with half the `titleMargin`
@@ -232,7 +232,7 @@ Ext.define('Ext.chart.axis.Axis', {
         hidden: false,
 
         /**
-         * @cfg {Number} majorTickSteps
+         * @cfg {Number} [majorTickSteps=0]
          * Forces the number of major ticks to the specified value.
          */
         majorTickSteps: 0,
@@ -259,7 +259,7 @@ Ext.define('Ext.chart.axis.Axis', {
          * If given a String, the 'text' attribute of the title sprite will be set,
          * otherwise the style will be set.
          */
-        title: {},
+        title: null,
 
         /**
          * @cfg {Number} increment
@@ -368,8 +368,6 @@ Ext.define('Ext.chart.axis.Axis', {
         floating: null
     },
 
-    observableType: 'component',
-
     titleOffset: 0,
 
     animating: 0,
@@ -381,6 +379,8 @@ Ext.define('Ext.chart.axis.Axis', {
     boundSeries: [],
 
     sprites: null,
+
+    surface: null,
 
     /**
      * @private
@@ -394,10 +394,6 @@ Ext.define('Ext.chart.axis.Axis', {
     yValues: [],
 
     masterAxis: null,
-
-    labelDefaults: { x: 0, y: 0, textBaseline: 'middle', textAlign: 'center', fontSize: 12, fontFamily: 'Helvetica' },
-
-    titleDefaults: { fontSize: 18, fontFamily: 'Helvetica'},
 
     applyRotation: function (rotation) {
         var twoPie = Math.PI * 2;
@@ -420,8 +416,6 @@ Ext.define('Ext.chart.axis.Axis', {
         if (Ext.isString(title)) {
             title = { text: title };
         }
-
-        title = Ext.apply({}, title, this.titleDefaults);
 
         if (!oldTitle) {
             oldTitle = Ext.create('sprite.text', title);
@@ -526,43 +520,17 @@ Ext.define('Ext.chart.axis.Axis', {
      * Get the surface for drawing the series sprites
      */
     getSurface: function () {
-        var me = this;
-        if (!me.surface) {
-            var chart = me.getChart();
-            if (!chart) {
-                return null;
-            }
+        var me = this,
+            chart = me.getChart();
+        if (chart && !me.surface) {
             var surface = me.surface = chart.getSurface(me.getId(), 'axis'),
                 gridSurface = me.gridSurface = chart.getSurface('main'),
                 axisSprite = me.getSprites()[0],
-                grid = me.getGrid(),
-                gridAlignment = me.getGridAlignment(),
-                gridSprite, limitTitleTpl;
-            if (grid) {
-                gridSprite = me.gridSpriteEven = new Ext.chart.Markers();
-                gridSprite.setTemplate({xclass: 'grid.' + gridAlignment});
-                if (Ext.isObject(grid)) {
-                    gridSprite.getTemplate().setAttributes(grid);
-                    if (Ext.isObject(grid.even)) {
-                        gridSprite.getTemplate().setAttributes(grid.even);
-                    }
-                }
-                gridSurface.add(gridSprite);
-                axisSprite.bindMarker(gridAlignment + '-even', gridSprite);
+                gridAlignment = me.getGridAlignment();
 
-                gridSprite = me.gridSpriteOdd = new Ext.chart.Markers();
-                gridSprite.setTemplate({xclass: 'grid.' + gridAlignment});
-                if (Ext.isObject(grid)) {
-                    gridSprite.getTemplate().setAttributes(grid);
-                    if (Ext.isObject(grid.odd)) {
-                        gridSprite.getTemplate().setAttributes(grid.odd);
-                    }
-                }
-                gridSurface.add(gridSprite);
-                axisSprite.bindMarker(gridAlignment + '-odd', gridSprite);
+            gridSurface.waitFor(surface);
+            me.getGrid();
 
-                gridSurface.waitFor(surface);
-            }
             if (me.getLimits()) {
                 me.limits = {
                     surface: chart.getSurface('overlay'),
@@ -574,15 +542,63 @@ Ext.define('Ext.chart.axis.Axis', {
                 me.limits.surface.add(me.limits.lines);
                 axisSprite.bindMarker(gridAlignment + '-limit-lines', me.limits.lines);
 
-                limitTitleTpl = new Ext.draw.sprite.Text();
-                limitTitleTpl.setAttributes(me.labelDefaults);
-                me.limits.titles.setTemplate(limitTitleTpl);
+                me.limitTitleTpl = new Ext.draw.sprite.Text();
+                me.limits.titles.setTemplate(me.limitTitleTpl);
                 me.limits.surface.add(me.limits.titles);
 
                 chart.on('redraw', me.renderLimits, me);
             }
         }
         return me.surface;
+    },
+
+    updateGrid: function (grid) {
+        var me = this,
+            chart = me.getChart();
+
+        if (!chart) {
+            me.on({
+                chartattached: Ext.bind(me.updateGrid, me, [grid]),
+                single: true
+            });
+            return;
+        }
+
+        var gridSurface = me.gridSurface,
+            gridSprite;
+
+        var axisSprite = me.getSprites()[0],
+            gridAlignment = me.getGridAlignment();
+
+        if (grid) {
+            gridSprite = me.gridSpriteEven;
+            if (!gridSprite) {
+                gridSprite = me.gridSpriteEven = new Ext.chart.Markers();
+                gridSurface.add(gridSprite);
+                axisSprite.bindMarker(gridAlignment + '-even', gridSprite);
+            }
+            gridSprite.setTemplate({xclass: 'grid.' + gridAlignment});
+            if (Ext.isObject(grid)) {
+                gridSprite.getTemplate().setAttributes(grid);
+                if (Ext.isObject(grid.even)) {
+                    gridSprite.getTemplate().setAttributes(grid.even);
+                }
+            }
+
+            gridSprite = me.gridSpriteOdd;
+            if (!gridSprite) {
+                gridSprite = me.gridSpriteOdd = new Ext.chart.Markers();
+                gridSurface.add(gridSprite);
+                axisSprite.bindMarker(gridAlignment + '-odd', gridSprite);
+            }
+            gridSprite.setTemplate({xclass: 'grid.' + gridAlignment});
+            if (Ext.isObject(grid)) {
+                gridSprite.getTemplate().setAttributes(grid);
+                if (Ext.isObject(grid.odd)) {
+                    gridSprite.getTemplate().setAttributes(grid.odd);
+                }
+            }
+        }
     },
 
     /**
@@ -618,7 +634,9 @@ Ext.define('Ext.chart.axis.Axis', {
         if (!oldText) {
             oldText = new Ext.draw.sprite.Text({});
         }
-        newText = Ext.apply({}, newText, this.labelDefaults);
+        if (this.limitTitleTpl) {
+            this.limitTitleTpl.setAttributes(newText);
+        }
         oldText.setAttributes(newText);
         return oldText;
     },
@@ -667,6 +685,7 @@ Ext.define('Ext.chart.axis.Axis', {
         if (oldChart) {
             oldChart.un('serieschange', me.onSeriesChange, me);
             me.linkAxis();
+            me.fireEvent('chartdetached', oldChart, me);
         }
         if (newChart) {
             newChart.on('serieschange', me.onSeriesChange, me);
@@ -675,6 +694,7 @@ Ext.define('Ext.chart.axis.Axis', {
             me.getLabel().setSurface(surface);
             surface.add(me.getSprites());
             surface.add(me.getTitle());
+            me.fireEvent('chartattached', newChart, me);
         }
     },
 
@@ -910,15 +930,21 @@ Ext.define('Ext.chart.axis.Axis', {
                 layout.calculateLayout(context);
                 majorTicks = context.majorTicks;
                 segmenter.adjustByMajorUnit(majorTicks.step, majorTicks.unit.scale, me.range);
-            } else {
+            } else if (!me.hasClearRangePending) {
                 // Axis hasn't been rendered yet.
-                me.range = null;
-                me.getChart().scheduleLayout();
+                me.hasClearRangePending = true;
+                me.getChart().on('layout', 'clearRange', me);
             }
         }
 
         me.fireEvent('rangechange', me.range);
         return me.range;
+    },
+
+    // @private
+    clearRange: function () {
+        delete this.hasClearRangePending;
+        this.range = null;
     },
 
     /**
@@ -956,6 +982,34 @@ Ext.define('Ext.chart.axis.Axis', {
         }
         oldStyle = Ext.apply(oldStyle || {}, style);
         return oldStyle;
+    },
+
+    updateTheme: function (theme) {
+        var me = this,
+            axisTheme = theme.getAxis(),
+            position = me.getPosition(),
+            initialConfig = me.getInitialConfig(),
+            defaultConfig = me.defaultConfig,
+            configs = me.getConfigurator().configs,
+            genericAxisTheme = axisTheme.defaults,
+            specificAxisTheme = axisTheme[position],
+            key, value, isObjValue, initialValue, cfg;
+
+        axisTheme = Ext.merge({}, genericAxisTheme, specificAxisTheme);
+        for (key in axisTheme) {
+            value = axisTheme[key];
+            cfg = configs[key];
+            if (value !== null && value !== undefined && cfg) {
+                initialValue = initialConfig[key];
+                isObjValue = Ext.isObject(value);
+                if (initialValue === defaultConfig[key] || isObjValue) {
+                    if (isObjValue) {
+                        value = Ext.merge({}, value, initialValue);
+                    }
+                    me[cfg.names.set](value);
+                }
+            }
+        }
     },
 
     updateCenter: function (center) {
@@ -1024,7 +1078,7 @@ Ext.define('Ext.chart.axis.Axis', {
             // If the sprites are not created.
             if (!me.sprites.length) {
                 baseSprite = new Ext.chart.axis.sprite.Axis(style);
-                baseSprite.fx.setCustomDuration({
+                baseSprite.fx.setCustomDurations({
                     baseRotation: 0
                 });
                 baseSprite.fx.on('animationstart', 'onAnimationStart', me);

@@ -4,7 +4,7 @@
  *
  * This example also highlights data aggregation to effortlessly display over 1000 points.
  */
-Ext.define('KitchenSink.view.charts.touch.CrossZoom', {
+Ext.define('KitchenSink.view.charts.line.CrossZoom', {
     extend: 'Ext.Panel',
     xtype: 'line-crosszoom',
 
@@ -67,8 +67,7 @@ Ext.define('KitchenSink.view.charts.touch.CrossZoom', {
             fields: ['value'],
             titleMargin: 12,
             title: {
-                text: 'USD to Euro',
-                fontSize: 16
+                text: 'USD to Euro'
             }
         }, {
             type: 'time',
@@ -78,8 +77,7 @@ Ext.define('KitchenSink.view.charts.touch.CrossZoom', {
             fields: ['time'],
             titleMargin: 12,
             title: {
-                text: 'Date',
-                fontSize: 16
+                text: 'Date'
             }
         }]
     }

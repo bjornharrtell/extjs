@@ -15,8 +15,8 @@
 (function() {
 // @tag class
 // @define Ext.Class
-// @require Ext.Util
 // @require Ext.Base
+// @require Ext.Util
     var ExtClass,
         Base = Ext.Base,
         baseStaticMembers = Base.$staticMembers;

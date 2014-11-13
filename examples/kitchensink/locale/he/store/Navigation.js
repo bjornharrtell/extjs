@@ -1,13 +1,16 @@
 Ext.define('KitchenSink.locale.store.Navigation', {
     override: 'KitchenSink.store.Navigation',
     title: 'דוגמאות',
+    
     getNavItems: function() {
         return Ext.Object.merge(this.callParent(), [
             {
                 text: 'פנלים',
+                description: 'פנלים הם מיכל הבסיסי המרכיב את המבנה של רוב היישומים. יש פנלים כותרת ובגוף, והוא יכול להיות מסודר בדרכים שונות באמצעות פריסות.',
                 children: [
                     { id: 'basic-panels', text: 'פנל בסיסי', leaf: true },
-                    { id: 'framed-panels', text: 'פנל ממוסגר', leaf: true }
+                    { id: 'framed-panels', text: 'פנל ממוסגר', leaf: true },
+                    { id: 'panel-header-position', text: 'מיצוב כותרת', leaf: true }
                 ]
             },
             {
@@ -20,11 +23,36 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                     { id: 'multi-sort-grid', text: 'רשת רבת מיון', leaf: true },
                     { id: 'progress-bar-pager', text: 'סרגל התקדמות עם החלפה', leaf: true },
                     { id: 'sliding-pager', text: 'סרגל התקדמות עם מחוון', leaf: true },
+                    { id: 'xml-grid', text: 'רשת ה-XML', leaf: true },
+                    { id: 'paging-grid', text: 'רשת החלפה', leaf: true },
+                    { id: 'grid-plugins', text: 'רשת תוספים', leaf: true },
+                    { id: 'grid-filtering', text: 'סינון רשת', leaf: true },
                     { id: 'reconfigure-grid', text: 'שינוי תצורה של רשתות', leaf: true },
                     { id: 'property-grid', text: 'רשת מאפיינים', leaf: true },
                     { id: 'cell-editing', text: 'עריכה בתוך תאים', leaf: true },
                     { id: 'row-expander-grid', text: 'מרחיב שורות', leaf: true },
-                    { id: 'big-data-grid', text: 'נתונים גדולים', leaf: true }
+                    { id: 'big-data-grid', text: 'נתונים גדולים', leaf: true },
+                    { id: 'widget-grid', text: 'רשת יישומון', leaf: true },
+                    { id: 'customer-grid', text: 'רשת לקוחות / סדר', leaf: true }
+                ]
+            },
+            {
+                text: 'נתונים מחייבים',
+                children: [
+                    { id: 'binding-hello-world', text: 'שלום עולם', leaf: true },
+                    { id: 'binding-dynamic', text: 'דינמי', leaf: true },
+                    { id: 'binding-two-way', text: 'שתי בדרך', leaf: true },
+                    { id: 'binding-formulas', text: 'נוסחאות', leaf: true },
+                    { id: 'binding-associations', text: 'הִתלַכְּדוּת', leaf: true },
+                    { id: 'binding-component-state', text: 'מצב רכיב', leaf: true },
+                    { id: 'binding-chained-stores', text: 'שרשור חנויות', leaf: true},
+                    { id: 'binding-combo-chaining', text: 'תיבות משולבות משורשרות', leaf: true },
+                    { id: 'binding-selection', text: 'מבחר שרשור', leaf: true },
+                    { id: 'binding-model-validation', text: 'אימות מודל', leaf: true },
+                    { id: 'binding-field-validation', text: 'אימות שדה', leaf: true },
+                    { id: 'binding-two-way-formulas', text: 'נוסחאות דו כיוונית', leaf: true },
+                    { id: 'binding-slider-form', text: 'שדות מחוון וצורה', leaf: true },
+                    { id: 'binding-child-session', text: 'מפגשי ילד מבודדים', leaf: true }
                 ]
             },
             {
@@ -35,7 +63,10 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                     { id: 'tree-grid', text: 'רשת עץ', leaf: true },
                     { id: 'tree-two', text: 'שתי תצוגות עץ', leaf: true },
                     { id: 'check-tree', text: 'תצוגות עץ עם תיבות סימון', leaf: true },
-                    { id: 'tree-xml', text: 'XML תצוגות עץ', leaf: true }
+                    { id: 'tree-xml', text: 'XML תצוגות עץ', leaf: true },
+                    { id: 'filtered-tree', text: 'עץ מסונן', leaf: true },
+                    { id: 'heterogeneous-tree', text: 'עץ הטרוגנית', leaf: true },
+                    { id: 'lineardata-tree', text: 'עץ גיאוגרפי ליניארי נתונים', leaf: true }
                 ]
             },
             {
@@ -44,13 +75,20 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                     { id: 'basic-tabs', text: 'כרטיסיות בסיסיות', leaf: true },
                     { id: 'plain-tabs', text: 'כרטיסיות רגילות', leaf: true },
                     { id: 'framed-tabs', text: 'כרטיסיות ממוסגרות', leaf: true },
-                    { id: 'icon-tabs', text: 'כרטיסיות סמלים', leaf: true }
+                    { id: 'icon-tabs', text: 'כרטיסיות סמלים', leaf: true },
+                    { id: 'ajax-tabs', text: 'כרטיסיות אייאקס', leaf: true },
+                    { id: 'advanced-tabs', text: 'כרטיסיות מתקדמות', leaf: true },
+                    { id: 'navigation-tabs', text: 'כרטיסיות ניווט', leaf: true },
+                    { id: 'side-navigation-tabs', text: 'כרטיסיות ניווט צד', leaf: true },
+                    { id: 'header-tabs', text: 'כרטיסיות כותרת', leaf: true },
+                    { id: 'reorderable-tabs', text: 'סדר כרטיסיות שינוי', leaf: true }
                 ]
             },
             {
                 text: 'חלונות',
                 children: [
-                    { id: 'basic-window', text: 'חלון בסיסי', leaf: true }
+                    { id: 'basic-window', text: 'חלון בסיסי', leaf: true },
+                    { id: 'message-box', text: 'תיבת הודעה', leaf: true }
                 ]
             },
             {
@@ -64,7 +102,9 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                     { id: 'split-bottom-buttons', text: 'לחצנים מפוצלים מתחת', leaf: true },
                     { id: 'left-text-buttons', text: 'לחצני טקסט משמאל', leaf: true },
                     { id: 'right-text-buttons', text: 'לחצני טקסט מימין', leaf: true },
-                    { id: 'link-buttons', text: 'לחצני קישור', leaf: true }
+                    { id: 'link-buttons', text: 'לחצני קישור', leaf: true },
+                    { id: 'segmented-buttons', text: 'לחצנים מפולחים', leaf: true },
+                    { id: 'vertical-segmented-buttons', text: 'לחצנים אנכיים מקוטע', leaf: true }
                 ]
             },
             {
@@ -74,35 +114,62 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                 ]
             },
             {
+                text: 'שדות טופס',
+                children: [
+                    { id: 'form-number', text: 'מספר שדה', leaf: true },
+                    { id: 'form-date', text: 'תאריך / חודש פיקר', leaf: true },
+                    { id: 'form-combos', text: 'תיבות משולבות', leaf: true },
+                    { id: 'form-fileuploads', text: 'העלאת קבצים', leaf: true },
+                    { id: 'form-fieldreplicator', text: 'מעתק שדה', leaf: true },
+                    { id: 'form-grid', text: 'טופס עם גריד', leaf: true },
+                    { id: 'form-tag', text: 'שדה תג', leaf: true },
+                    { id: 'multi-selector', text: 'רב בורר גריד', leaf: true },
+                    { id: 'form-fieldtypes', text: 'סוגי שדות', leaf: true},
+                    { id: 'form-fieldcontainer', text: 'שדה מכולות', leaf: true},
+                    { id: 'form-checkboxgroup', text: 'קבוצות תיבת הסימון', leaf: true },
+                    { id: 'form-radiogroup', text: 'קבוצות לחצן אפשרויות', leaf: true },
+                    { id: 'slider-field', text: 'מחוון שדה', leaf: true }
+                ]
+            },
+            {
                 text: 'טפסים',
                 children: [
                     { id: 'form-login', text: 'טופס כניסה', leaf: true },
                     { id: 'form-contact', text: 'בטופס איש הקשר', leaf: true },
                     { id: 'form-register', text: 'טופס הרשמה', leaf: true  },
-                    { id: 'form-number', text: 'שדה מספרי', leaf: true },
-                    { id: 'form-date', text: 'בורר תאריכים', leaf: true },
-                    { id: 'form-checkout', text: 'טופס קופה', leaf: true },
-                    { id: 'form-grid', text: 'טופס עם רשת', leaf: true },
-                    { id: 'form-tag', text: 'בחירה מרובה בתיבה משולבת', leaf: true }
+                    { id: 'form-checkout', text: 'טופס לקופה', leaf: true },
+                    { id: 'form-vboxlayout', text: 'VBox פריסה', leaf: true },
+                    { id: 'form-hboxlayout', text: 'HBox פריסה', leaf: true },
+                    { id: 'form-multicolumn', text: 'טופס טור רב', leaf: true },
+                    { id: 'form-xml', text: 'טופס XML', leaf: true },
+                    { id: 'form-advtypes', text: 'אישית VType', leaf: true },
+                    { id: 'form-customfields', text: 'שדות מותאמים אישית', leaf: true },
+                    { id: 'form-forumsearch', text: 'חיפוש בפורום', leaf: true },
+                    { id: 'form-customerrors', text: 'טיפול בשגיאות מותאמות אישית', leaf: true }
                 ]
             },
             {
                 text: 'סרגלי כלים',
                 children: [
                     { id: 'basic-toolbar', text: 'סרגל כלים בסיסי', leaf: true },
-                    { id: 'docked-toolbars', text: 'סרגל כלים מעוגן', leaf: true }
+                    { id: 'docked-toolbars', text: 'סרגל כלים מעוגן', leaf: true },
+                    { id: 'breadcrumb-toolbar', text: 'סרגל כלים סימני דרך', leaf: true }
                 ]
             },
             {
                 text: 'פריסה',
                 children: [
-                    { id: 'layout-accordion', text: 'פריסת אקורדיון', leaf: true }
-                ]
-            },
-            {
-                text: 'מחוון',
-                children: [
-                    { id: 'slider-field', text: 'שדה מחוון', leaf: true }
+                    { id: 'layout-absolute', text: 'פריסה מוחלטת', leaf: true },
+                    { id: 'layout-accordion', text: 'פריסת אקורדיון', leaf: true },
+                    { id: 'layout-border', text: 'פריסת גבול', leaf: true },
+                    { id: 'layout-card', text: 'פריסת כרטיס', leaf: true },
+                    { id: 'layout-cardtabs', text: 'כרטיס (כרטיסיות)', leaf: true },
+                    { id: 'layout-center', text: 'מרכז פריסה', leaf: true },
+                    { id: 'layout-column', text: 'פריסת עמודה', leaf: true },
+                    { id: 'layout-fit', text: 'פריסת Fit', leaf: true },
+                    { id: 'layout-horizontal-box', text: 'HBox פריסה', leaf: true },
+                    { id: 'layout-table', text: 'פריסת שולחן', leaf: true },
+                    { id: 'layout-vertical-box', text: 'VBox פריסה', leaf: true }
                 ]
             },
             {
@@ -111,6 +178,13 @@ Ext.define('KitchenSink.locale.store.Navigation', {
                     { id: 'dd-field-to-grid', text: 'משדה לרשת', leaf: true },
                     { id: 'dd-grid-to-form', text: 'משדה לטופס', leaf: true },
                     { id: 'dd-grid-to-grid', text: 'מרשת לרשת', leaf: true }
+                ]
+            },
+            {
+                text: 'מפעל',
+                children: [
+                    { id: 'amf-grid', text: 'AMF רשת', leaf: true },
+                    { id: 'soap-grid', text: 'רשת SOAP', leaf: true }
                 ]
             }
         ]);

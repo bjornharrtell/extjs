@@ -4,7 +4,7 @@
  */
 
 Ext.require([
-    'Ext.layout.Context',
+    'Ext.layout.Context'
 ]);
 
 Ext.theme = {
@@ -93,6 +93,9 @@ Ext.theme = {
         }
 
         for (var i = 0, n = add.length; i < n; ++i) {
+            if(add[i].xtype) {
+                Ext.theme.doRequire(add[i].xtype);
+            }
             all.push(add[i]);
         }
     },
@@ -308,6 +311,7 @@ Ext.theme = {
      * @private
      */
     render: function () {
+        console.log("rendering widgets...")
         var manifest = Ext.theme._manifest;
         var shortcuts = Ext.theme._shortcuts;
 
@@ -346,6 +350,8 @@ Ext.theme = {
                 }
             });
         }
+
+        console.log("loading widget definitions...");
 
         // Previous to Ext JS 4.2, themes and their manifests where defined differently.
         // So pass this along if we are hosting a pre-4.2 theme.
@@ -387,7 +393,7 @@ Ext.theme = {
         } else if(delta < (10 * 1000)){
             // allow the outer script wrapper a chance to inject the capture function
             // but stop trying after 10 seconds
-            Ext.defer(Ext.theme.generateSlicerManifest, 1);
+            Ext.defer(Ext.theme.generateSlicerManifest, 100);
         }
     },
 
@@ -436,4 +442,5 @@ Ext.theme = {
     }
 };
 
+console.log("registering ready listener...");
 Ext.onReady(Ext.theme.run, Ext.theme);

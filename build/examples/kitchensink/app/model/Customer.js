@@ -15,6 +15,6 @@ Ext.define('KitchenSink.model.Customer', {
     },
 
     validators: {
-        name: { type: 'length', min: 1 }
+        name: 'presence'
     }
 });

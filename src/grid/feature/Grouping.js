@@ -75,7 +75,6 @@ Ext.define('Ext.grid.feature.Grouping', {
     alias: 'feature.grouping',
 
     eventPrefix: 'group',
-    groupCls: Ext.baseCSSPrefix + 'grid-group-hd',
     eventSelector: '.' + Ext.baseCSSPrefix + 'grid-group-hd',
 
     refreshData: {},
@@ -276,7 +275,9 @@ Ext.define('Ext.grid.feature.Grouping', {
                             // Use visibility to keep row heights synced without intervention.
                             'var groupTitleStyle = (!values.view.lockingPartner || (values.view.ownerCt === values.view.ownerCt.ownerLockable.lockedGrid) || (values.view.lockingPartner.headerCt.getVisibleGridColumns().length === 0)) ? "" : "visibility:hidden";',
                         '%}',
-                        '<div id="{groupId}" class="', Ext.baseCSSPrefix, 'grid-group-hd {collapsibleCls}" tabIndex="0" hidefocus="on" {ariaCellInnerAttr}>',
+                        // TODO. Make the group header tabbable with tabIndex="0" and enable grid navigation "Action Mode"
+                        // to activate it.
+                        '<div data-groupname="{groupName:htmlEncode}" class="', Ext.baseCSSPrefix, 'grid-group-hd {collapsibleCls}" nottabindex="0" hidefocus="on" {ariaCellInnerAttr}>',
                             '<div class="', Ext.baseCSSPrefix, 'grid-group-title" style="{[groupTitleStyle]}" {ariaGroupTitleAttr}>',
                                 '{[values.groupHeaderTpl.apply(values.groupInfo, parent) || "&#160;"]}',
                             '</div>',
@@ -472,6 +473,9 @@ Ext.define('Ext.grid.feature.Grouping', {
             groupToggleMenuItem;
 
         view.isGrouping = true;
+        if (view.lockingPartner) {
+            view.lockingPartner.isGrouping = true;
+        }
         me.callParent();
         if (me.lastGrouper) {
             store.group(me.lastGrouper);
@@ -491,6 +495,9 @@ Ext.define('Ext.grid.feature.Grouping', {
             lastGrouper = store.getGrouper();
 
         view.isGrouping = false;
+        if (view.lockingPartner) {
+            view.lockingPartner.isGrouping = false;
+        }
         me.callParent();
         if (lastGrouper) {
             me.lastGrouper = lastGrouper;
@@ -556,7 +563,8 @@ Ext.define('Ext.grid.feature.Grouping', {
         }
 
         // header containing TDs have to span all columns, hiddens are just zero width
-        if (view.rendered) {
+        // Also check the colCount on the off chance that they are all hidden
+        if (view.rendered && colCount) {
             items = view.el.query('.' + this.ctCls);
             for (i = 0, len = items.length; i < len; ++i) {
                 items[i].colSpan = colCount;
@@ -709,7 +717,20 @@ Ext.define('Ext.grid.feature.Grouping', {
     },
 
     getHeaderNode: function(groupName) {
-        return document.getElementById(this.createGroupId(groupName));
+        var el = this.view.getEl(),
+            nodes, i, len, result, node;
+
+
+        if (el) {
+            groupName = Ext.htmlEncode(groupName);
+            nodes = el.query(this.eventSelector);
+            for (i = 0, len = nodes.length; i < len; ++i) {
+                node = nodes[i];
+                if (node.getAttribute('data-groupName') === groupName) {
+                    return node;
+                }
+            }
+        }
     },
 
     getGroup: function(name) {
@@ -898,7 +919,16 @@ Ext.define('Ext.grid.feature.Grouping', {
 
         view.fireEvent(collapsed ? 'groupcollapse' : 'groupexpand', view, header, groupName);
         if (focus) {
-            view.scrollElIntoView(Ext.fly(header).up(view.getItemSelector()), false, true);
+            if (header) {
+                view.scrollElIntoView(Ext.fly(header).up(view.getItemSelector()), false, true);
+            }
+            
+            // The header might be outside the rendered range if we are buffer rendering
+            else if (view.bufferedRenderer) {
+                
+                // Find the index of the first record in the group and ask the buffered renderer to take us there
+                view.bufferedRenderer.scrollTo(me.dataSource.indexOf(me.getGroup(groupName).getAt(0)));
+            }
         }
     },
 
@@ -1000,19 +1030,19 @@ Ext.define('Ext.grid.feature.Grouping', {
             // This is a placeholder record which represents a whole collapsed group
             // It is a special case.
             if (record.isCollapsedPlaceholder) {
-                groupName = grouper.getGroupString(record);
-                items = store.getGroups().get(groupName).items;
+                groupName = record.group.getGroupKey();
+                items = record.group.items;
 
                 rowValues.isFirstRow = rowValues.isLastRow = true;
                 rowValues.groupHeaderCls = me.hdCollapsedCls;
                 rowValues.isCollapsedGroup = rowValues.needsWrap = true;
+                rowValues.groupName = groupName;
                 rowValues.groupInfo = groupInfo;
                 groupInfo.groupField = groupField;
                 groupInfo.name = groupName;
                 groupInfo.groupValue = items[0].get(groupField);
                 groupInfo.columnName = header ? header.text : groupField;
                 rowValues.collapsibleCls = me.collapsible ? me.collapsibleCls : me.hdNotCollapsibleCls;
-                rowValues.groupId = me.createGroupId(groupName);
                 groupInfo.rows = groupInfo.children = items;
                 if (me.showSummaryRow) {
                     rowValues.summaryRecord = data.summaryData[groupName];
@@ -1058,7 +1088,7 @@ Ext.define('Ext.grid.feature.Grouping', {
                 groupInfo.groupValue = record.get(groupField);
                 groupInfo.columnName = header ? header.text : groupField;
                 rowValues.collapsibleCls = me.collapsible ? me.collapsibleCls : me.hdNotCollapsibleCls;
-                rowValues.groupId = me.createGroupId(groupName);
+                rowValues.groupName = groupName;
 
                 if (!me.isExpanded(groupName)) {
                     rowValues.itemClasses.push(me.hdCollapsedCls);
@@ -1089,11 +1119,12 @@ Ext.define('Ext.grid.feature.Grouping', {
         var me = this,
             data = me.refreshData,
             view = rowValues.view,
-            isGrouping = !me.disabled && view.isGrouping;
+            isGrouped = view.store.isGrouped(),
+            isGrouping = !me.disabled && view.isGrouping && isGrouped;
 
         me.skippedRows = 0;
         if (view.bufferedRenderer) {
-            view.bufferedRenderer.variableRowHeight = view.bufferedRenderer.variableRowHeight || view.store.isGrouped();
+            view.bufferedRenderer.variableRowHeight = view.bufferedRenderer.variableRowHeight || isGrouped;
         }
         data.groupField = me.getGroupField();
         data.header = me.getGroupedHeader(data.groupField);
@@ -1132,10 +1163,7 @@ Ext.define('Ext.grid.feature.Grouping', {
         }
 
         if (targetEl) {
-            parts = targetEl.id.split(view.id + '-hd-');
-            if (parts.length === 2) {
-                return Ext.htmlDecode(parts[1]);
-            }
+            return Ext.htmlDecode(targetEl.getAttribute('data-groupname'));
         }
     },
 
@@ -1152,14 +1180,6 @@ Ext.define('Ext.grid.feature.Grouping', {
         if (grouper) {
             return this.groupCache[grouper.getGroupString(record)];
         }
-    },
-
-    createGroupId: function(group) {
-        return this.view.id + '-hd-' + Ext.htmlEncode(group);
-    },
-
-    createGroupCls: function(group) {
-        return this.view.id + '-' + Ext.htmlEncode(group) + '-item';
     },
 
     getGroupField: function(){

@@ -114,6 +114,14 @@ Ext.define('Ext.form.Basic', {
      * @param {Ext.form.Basic} this
      * @param {Boolean} dirty `true` if the form is now dirty, `false` if it is no longer dirty.
      */
+    
+    /**
+     * @event errorchange
+     * Fires when the error of one (or more) of the fields in the form changes.
+     * @param {Ext.form.Basic} this
+     *
+     * @private
+     */
 
     /**
      * Creates new form.
@@ -133,6 +141,7 @@ Ext.define('Ext.form.Basic', {
         
         me.checkValidityTask = new Ext.util.DelayedTask(me.checkValidity, me);
         me.checkDirtyTask = new Ext.util.DelayedTask(me.checkDirty, me);
+        me.checkErrorTask = new Ext.util.DelayedTask(me.checkError, me);
         
         // We use the monitor here as opposed to event bubbling. The problem with bubbling is it doesn't
         // let us react to items being added/remove at different places in the hierarchy which may have an
@@ -333,6 +342,9 @@ Ext.define('Ext.form.Basic', {
         me.clearListeners();
         me.checkValidityTask.cancel();
         me.checkDirtyTask.cancel();
+        me.checkErrorTask.cancel();
+
+        me.checkValidityTask = me.checkDirtyTask = checkErrorTask = null;
         me.isDestroyed = true;
     },
     
@@ -341,6 +353,7 @@ Ext.define('Ext.form.Basic', {
         
         me.mon(field, 'validitychange', me.checkValidityDelay, me);
         me.mon(field, 'dirtychange', me.checkDirtyDelay, me);
+        me.mon(field, 'errorchange', me.checkErrorDelay, me);
         me.onMonitorInvalidate();
     },
     
@@ -349,6 +362,7 @@ Ext.define('Ext.form.Basic', {
         
         me.mun(field, 'validitychange', me.checkValidityDelay, me);
         me.mun(field, 'dirtychange', me.checkDirtyDelay, me);
+        me.mun(field, 'errorchange', me.checkErrorDelay, me);
         me.onMonitorInvalidate();
     },
     
@@ -441,6 +455,23 @@ Ext.define('Ext.form.Basic', {
             this.checkValidityTask.delay(timer);
         } else {
             this.checkValidity();
+        }
+    },
+
+    checkError: function() {
+        // Currently this event is private, we don't really care
+        // about the summation of the change, rather that something has
+        // changed so we may need to recalculate. In the future if this
+        // is made public, we would need to track the error on a per-field basis.
+        this.fireEvent('errorchange', this);
+    },
+
+    checkErrorDelay: function() {
+        var timer = this.taskDelay;
+        if (timer) {
+            this.checkErrorTask.delay(timer);
+        } else {
+            this.checkError();
         }
     },
 

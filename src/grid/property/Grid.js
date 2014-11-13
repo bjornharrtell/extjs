@@ -270,8 +270,8 @@ Ext.define('Ext.grid.property.Grid', {
             selType: 'cellmodel',
             onCellSelect: function(position) {
                 // We are only allowed to select the value column.
-                position.columnHeader = me.valueColumn;
-                position.column = me.valueColumn.getVisibleIndex();
+                position.column = me.valueColumn;
+                position.colIdx = me.valueColumn.getVisibleIndex();
                 return this.self.prototype.onCellSelect.call(this, position);
             }
         };
@@ -434,8 +434,8 @@ Ext.define('Ext.grid.property.Grid', {
         pos = Ext.view.Table.prototype.walkCells.call(me, pos, direction, e, preventWrap, verifierFn, scope);
 
         // We are only allowed to navigate to the value column.
-        pos.columnHeader = valueColumn;
-        pos.column = valueColumn.getVisibleIndex();
+        pos.column = valueColumn;
+        pos.colIdx = valueColumn.getVisibleIndex();
         return pos;
     },
 

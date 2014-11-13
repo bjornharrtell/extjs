@@ -202,7 +202,13 @@ Ext.define('Ext.tree.Panel', {
     extend: 'Ext.panel.Table',
     alias: 'widget.treepanel',
     alternateClassName: ['Ext.tree.TreePanel', 'Ext.TreePanel'],
-    requires: ['Ext.tree.View', 'Ext.selection.TreeModel', 'Ext.tree.Column', 'Ext.data.TreeStore'],
+    requires: [
+        'Ext.tree.View',
+        'Ext.selection.TreeModel',
+        'Ext.tree.Column',
+        'Ext.data.TreeStore',
+        'Ext.tree.NavigationModel'
+    ],
     viewType: 'treeview',
     selType: 'treemodel',
 
@@ -368,7 +374,8 @@ Ext.define('Ext.tree.Panel', {
             animate: me.enableAnimations,
             singleExpand: me.singleExpand,
             node: store.getRoot(),
-            hideHeaders: me.hideHeaders
+            hideHeaders: me.hideHeaders,
+            navigationModel: 'tree'
         }, me.viewConfig);
 
         // If the user specifies the headers collection manually then dont inject our own
@@ -391,10 +398,6 @@ Ext.define('Ext.tree.Panel', {
         me.cls = cls.join(' ');
 
         me.callParent();
-
-        // TreeModel has to know about the TreeStore so that pruneRemoved can work properly upon removal
-        // of nodes.
-        me.selModel.treeStore = me.store;
 
         view = me.getView();
 
@@ -421,37 +424,48 @@ Ext.define('Ext.tree.Panel', {
         ]);
     },
 
+    getSelectionModel: function() {
+        var result = this.callParent();
+        result.treeStore = this.getStore();
+        return result;
+    },
+
     // @private
     // Hook into the TreeStore.
-    // Do not callParent in TreePanel's bindStore
-    // The TreeStore is only relevant to the tree - the View has its own NodeStore
     bindStore: function(store, initial) {
         var me = this,
             root = store.getRoot(),
-            view = me.getView();
+            bufferedRenderer = me.bufferedRenderer;
 
-        me.store = store;
+        // Bind to store, and autocreate the BufferedRenderer.
+        me.callParent(arguments);
 
-        // The TreeStore needs to know about this TreePanel's singleExpand constraint so that it can ensure compliance.
+        // If we're in a reconfigure (we already have a BufferedRenderer which is bound to our old store),
+        // rebind the BufferedRenderer
+        if (bufferedRenderer) {
+            if (bufferedRenderer.store) {
+                bufferedRenderer.bindStore(store);
+            }
+        }
+        // Create a BufferedRenderer as a plugin if we have not already configured with one.
+        else {
+            bufferedRenderer = {
+                xclass: 'Ext.grid.plugin.BufferedRenderer'
+            };
+            Ext.copyTo(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
+            me.bufferedRenderer = bufferedRenderer = me.addPlugin(bufferedRenderer);
+        }
+
+        // The TreeStore needs to know about this TreePanel's singleExpand constraint so that
+        // it can ensure the compliance of NodeInterface.expandAll.
         store.singleExpand = me.singleExpand;
 
-        // Connect to store. Return a Destroyable object
+        // Monitor the TreeStore for the root node being changed. Return a Destroyable object
         me.storeListeners = me.mon(store, {
             destroyable: true,
-            load: me.onStoreLoad,
             rootchange: me.onRootChange,
-            clear: me.onClear,
             scope: me
         });
-
-        if (view.store !== store) {
-            // If coming from a reconfigure, we need to set the actual store property on the view. Setting the
-            // store will then also set the dataSource.
-            // 
-            // Note that if it's a grid feature then this is sorted out in view.bindStore(), and it's own
-            // implementation of .bindStore() will be called.
-            view.bindStore(store, false);
-        }
 
         // Relay store events. relayEvents always returns a Destroyable object.
         me.storeRelayers = me.relayEvents(store, [
@@ -474,90 +488,98 @@ Ext.define('Ext.tree.Panel', {
 
             /**
              * @event itemappend
-             * @inheritdoc Ext.data.TreeStore#append
+             * @inheritdoc Ext.data.TreeStore#nodeappend
              */
             append: me.createRelayer('itemappend'),
 
             /**
              * @event itemremove
-             * @inheritdoc Ext.data.TreeStore#remove
+             * @inheritdoc Ext.data.TreeStore#noderemove
              */
             remove: me.createRelayer('itemremove'),
 
             /**
              * @event itemmove
-             * @inheritdoc Ext.data.TreeStore#move
+             * @inheritdoc Ext.data.TreeStore#nodemove
              */
             move: me.createRelayer('itemmove', [0, 4]),
 
             /**
              * @event iteminsert
-             * @inheritdoc Ext.data.TreeStore#insert
+             * @inheritdoc Ext.data.TreeStore#nodeinsert
              */
             insert: me.createRelayer('iteminsert'),
 
             /**
              * @event beforeitemappend
-             * @inheritdoc Ext.data.TreeStore#beforeappend
+             * @inheritdoc Ext.data.TreeStore#nodebeforeappend
              */
             beforeappend: me.createRelayer('beforeitemappend'),
 
             /**
              * @event beforeitemremove
-             * @inheritdoc Ext.data.TreeStore#beforeremove
+             * @inheritdoc Ext.data.TreeStore#nodebeforeremove
              */
             beforeremove: me.createRelayer('beforeitemremove'),
 
             /**
              * @event beforeitemmove
-             * @inheritdoc Ext.data.TreeStore#beforemove
+             * @inheritdoc Ext.data.TreeStore#nodebeforemove
              */
             beforemove: me.createRelayer('beforeitemmove'),
 
             /**
              * @event beforeiteminsert
-             * @inheritdoc Ext.data.TreeStore#beforeinsert
+             * @inheritdoc Ext.data.TreeStore#nodebeforeinsert
              */
             beforeinsert: me.createRelayer('beforeiteminsert'),
 
             /**
              * @event itemexpand
-             * @inheritdoc Ext.data.TreeStore#expand
+             * @inheritdoc Ext.data.TreeStore#nodeexpand
              */
             expand: me.createRelayer('itemexpand', [0, 1]),
 
             /**
              * @event itemcollapse
-             * @inheritdoc Ext.data.TreeStore#collapse
+             * @inheritdoc Ext.data.TreeStore#nodecollapse
              */
             collapse: me.createRelayer('itemcollapse', [0, 1]),
 
             /**
              * @event beforeitemexpand
-             * @inheritdoc Ext.data.TreeStore#beforeexpand
+             * @inheritdoc Ext.data.TreeStore#nodebeforeexpand
              */
             beforeexpand: me.createRelayer('beforeitemexpand', [0, 1]),
 
             /**
              * @event beforeitemcollapse
-             * @inheritdoc Ext.data.TreeStore#beforecollapse
+             * @inheritdoc Ext.data.TreeStore#nodebeforecollapse
              */
             beforecollapse: me.createRelayer('beforeitemcollapse', [0, 1])
         });
 
-        // If the user has set expanded: true on the root, we want to call the expand function to kick off
-        // an expand process, so clear the expanded status and call expand.
-        // Upon receipt, the expansion process is the most efficient way of processing the
-        // returned nodes and putting them into the NodeStore in one block.
-        // Appending a node to an expanded node is expensive - the NodeStore and UI are updated.
-        if ((store.autoLoad !== false && !me.rootVisible) || root.isExpanded()) {
-            root.data.expanded = false;
-            root.expand();
+        // If rootVisible is false, we *might* need to expand the node.
+        // If store is autoLoad, that will already have been kicked off.
+        // If its already expanded, or in the process of loading, the TreeStore
+        // has started that at the end of updateRoot 
+        if (!me.rootVisible && !store.autoLoad && !(root.isExpanded() || root.isLoading())) {
+            // A hidden root must be expanded.
+            // If it's loaded, set its expanded field (silently), and skip ahead to the onNodeExpand callback.
+            if (root.isLoaded()) {
+                root.data.expanded = true;
+                store.onNodeExpand(root, root.childNodes);
+            }
+            // Root is not loaded; go through the expand mechanism to force a load
+            else {
+                root.data.expanded = false;
+                root.expand();
+            }
         }
 
         // TreeStore must have an upward link to the TreePanel so that nodes can find their owning tree in NodeInterface.getOwnerTree
         store.ownerTree = me;
-        
+
         if (!initial) {
             me.view.setRootNode(root, true);
         }
@@ -569,14 +591,11 @@ Ext.define('Ext.tree.Panel', {
             store = me.store;
 
         if (store) {
+            me.callParent();
             Ext.destroy(me.storeListeners, me.storeRelayers, me.rootRelayers);
             delete store.ownerTree;
             store.singleExpand = null;
         }
-    },
-
-    onClear: function(){
-        this.view.onClear();
     },
 
     /**

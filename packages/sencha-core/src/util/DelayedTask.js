@@ -39,7 +39,7 @@
  * `newDelay`, `newFn`, `newScope` or `newArgs`, whichever are passed.
  */
 Ext.util = Ext.util || {};
-Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
+Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay, fireIdleEvent) {
 // @define Ext.util.DelayedTask
 // @uses Ext.GlobalEvents
     var me = this,
@@ -49,7 +49,7 @@ Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
             clearInterval(me.id);
             me.id = null;
             fn.apply(scope, args || []);
-            if (globalEvents.hasListeners.idle) {
+            if (fireIdleEvent !== false && globalEvents.hasListeners.idle) {
                 globalEvents.fireEvent('idle');
             }
         };
@@ -86,7 +86,7 @@ Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay) {
         scope = newScope || scope;
         args  = newArgs  || args;
         if (!me.id) {
-            me.id = setInterval(call, delay);
+            me.id = Ext.interval(call, delay);
         }
     };
 

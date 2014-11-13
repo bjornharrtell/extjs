@@ -30,7 +30,7 @@ Ext.define('KitchenSink.view.binding.ModelValidation', {
     viewModel: {
         links: {
             theCustomer: {
-                reference: 'Customer',
+                type: 'Customer',
                 id: 1
             }
         }

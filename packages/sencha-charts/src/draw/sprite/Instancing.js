@@ -35,13 +35,12 @@ Ext.define('Ext.draw.sprite.Instancing', {
             template = Ext.create(template.xclass || 'sprite.' + template.type, template);
         }
         template.setParent(this);
-        template.attr.children = [];
         return template;
     },
 
     updateTemplate: function (template) {
         template.setSurface(this.getSurface());
-        this.instances = [];
+        template.attr.children = this.instances = [];
         this.position = 0;
     },
 
@@ -69,10 +68,10 @@ Ext.define('Ext.draw.sprite.Instancing', {
         template.attr = attr;
         template.setAttributes(config, bypassNormalization, avoidCopy);
         attr.data = data;
+        attr.template = template;
         this.instances.push(attr);
         template.attr = originalAttr;
         this.position++;
-        originalAttr.children.push(attr);
         return attr;
     },
 
@@ -127,7 +126,6 @@ Ext.define('Ext.draw.sprite.Instancing', {
             }
             ctx.save();
             template.attr = instances[i];
-            template.applyTransformations();
             template.useAttributes(ctx, rect);
             template.render(surface, ctx, clipRect, rect);
             ctx.restore();
@@ -147,25 +145,14 @@ Ext.define('Ext.draw.sprite.Instancing', {
             originalAttr = template.attr,
             attr = this.instances[index];
         template.attr = attr;
-        try {
-            if (bypassNormalization) {
-                changes = Ext.apply({}, changes);
-            } else {
-                changes = template.self.def.normalize(changes);
-            }
-            template.topModifier.pushDown(attr, changes);
-            template.updateDirtyFlags(attr);
-
+        if (bypassNormalization) {
+            changes = Ext.apply({}, changes);
+        } else {
+            changes = template.self.def.normalize(changes);
         }
-        catch (e) {
-            //<debug>
-            Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
-        }
-        finally {
-            template.attr = originalAttr;
-        }
+        template.topModifier.pushDown(attr, changes);
+        template.updateDirtyFlags(attr);
+        template.attr = originalAttr;
     },
 
     destroy: function () {

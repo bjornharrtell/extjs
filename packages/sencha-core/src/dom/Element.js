@@ -13,40 +13,40 @@
  *
  *     // by DOM element reference
  *     var el = Ext.get(myDivElement);
- *     
+ *
  * ## Selecting Descendant Elements
- * 
+ *
  * Ext.dom.Element instances can be used to select descendant nodes using CSS selectors.
  * There are 3 methods that can be used for this purpose, each with a slightly different
  * twist:
- * 
+ *
  * - {@link #query}
  * - {@link #selectNode}
  * - {@link #select}
- * 
- * These methods can accept any valid CSS selector since they all use 
+ *
+ * These methods can accept any valid CSS selector since they all use
  * [querySelectorAll](http://www.w3.org/TR/css3-selectors/) under the hood. The primary
  * difference between these three methods is their return type:
- * 
+ *
  * To get an array of HTMLElement instances matching the selector '.foo' use the query
  * method:
- * 
+ *
  *     element.query('.foo');
- *     
+ *
  * This can easily be transformed into an array of Ext.dom.Element instances by setting
  * the `asDom` parameter to `false`:
- * 
+ *
  *     element.query('.foo', false);
- *     
+ *
  * If the desired result is only the first matching HTMLElement use the selectNode method:
- * 
+ *
  *     element.selectNode('.foo');
- * 
+ *
  * Once again, the dom node can be wrapped in an Ext.dom.Element by setting the `asDom`
  * parameter to `false`:
- * 
+ *
  *     element.selectNode('.foo', false);
- *     
+ *
  * The `select` method is used when the desired return type is a {@link
  * Ext.CompositeElementLite CompositeElementLite} or a {@link Ext.CompositeElement
  * CompositeElement}.  These are collections of elements that can be operated on as a
@@ -54,19 +54,19 @@
  * is that CompositeElementLite is a collection of HTMLElement instances, while
  * CompositeElement is a collection of Ext.dom.Element instances.  To retrieve a
  * CompositeElementLite that represents a collection of HTMLElements for selector '.foo':
- * 
+ *
  *     element.select('.foo');
- *     
+ *
  * For a {@link Ext.CompositeElement CompositeElement} simply pass `true` as the
  * `composite` parameter:
- * 
+ *
  *     element.select('.foo', true);
- *     
+ *
  * The query selection methods can be used even if you don't have a Ext.dom.Element to
  * start with For example to select an array of all HTMLElements in the document that match the
  * selector '.foo', simply wrap the document object in an Ext.dom.Element instance using
  * {@link Ext#fly}:
- * 
+ *
  *     Ext.fly(document).query('.foo');
  */
 Ext.define('Ext.dom.Element', function(Element) {
@@ -128,7 +128,6 @@ Ext.define('Ext.dom.Element', function(Element) {
         camelReplaceFn = function(m, a) {
             return a.charAt(1).toUpperCase();
         },
-        activeElement = null,
         visibilityCls = Ext.baseCSSPrefix + 'hidden-visibility',
         displayCls = Ext.baseCSSPrefix + 'hidden-display',
         offsetsCls = Ext.baseCSSPrefix + 'hidden-offsets',
@@ -142,20 +141,7 @@ Ext.define('Ext.dom.Element', function(Element) {
             hidden: 'hidden',
             html: 'html',
             children: 'children'
-        },
-        visFly;
-
-    // If the browser does not support document.activeElement we need some assistance.
-    // This covers old Safari 3.2 (4.0 added activeElement along with just about all
-    // other browsers). We need this support to handle issues with old Safari.
-    if (!('activeElement' in DOC) && DOC.addEventListener) {
-        DOC.addEventListener('focus',
-            function (ev) {
-                if (ev && ev.target) {
-                    activeElement = (ev.target === DOC) ? null : ev.target;
-                }
-            }, true);
-    }
+        }, visFly;
 
     return {
         alternateClassName: 'Ext.Element',
@@ -166,10 +152,10 @@ Ext.define('Ext.dom.Element', function(Element) {
         },
 
         requires: [
-            'Ext.dom.Helper'
         ],
 
         uses: [
+            'Ext.dom.Helper',
             'Ext.dom.CompositeElement',
             'Ext.dom.Fly'
         ],
@@ -178,8 +164,6 @@ Ext.define('Ext.dom.Element', function(Element) {
 
         isElement: true,
 
-        isSynchronized: false,
-
         skipGarbageCollection: true,
 
         identifiablePrefix: 'ext-element-',
@@ -187,6 +171,8 @@ Ext.define('Ext.dom.Element', function(Element) {
         styleHooks: {},
 
         validIdRe: Ext.validIdRe,
+
+        listenerOptionsRegex: /^(?:scope|order|delegate|delegated|single|delay|buffer|args|prepend|capture|destroyable|translate)$/,
 
         blockedEvents: Ext.supports.EmulatedMouseOver ? {
             // mobile safari emulates a mouseover event on clickable elmements such as
@@ -235,34 +221,34 @@ Ext.define('Ext.dom.Element', function(Element) {
          * Creates new Element directly by passing an id or the HTMLElement.  This
          * constructor should not be called directly.  Always use {@link Ext#get Ext.get()}
          * or {@link Ext#fly Ext#fly()} instead.
-         * 
+         *
          * In older versions of Ext JS and Sencha Touch this constructor checked to see if
          * there was already an instance of this element in the cache and if so, returned
          * the same instance. As of version 5 this behavior has been removed in order to
          * avoid a redundant cache lookup since the most common path is for the Element
          * constructor to be called from {@link Ext#get Ext.get()}, which has already
          * checked for a cache entry.
-         * 
+         *
          * Correct way of creating a new Ext.dom.Element (or retrieving it from the cache):
-         * 
+         *
          *     var el = Ext.get('foo'); // by id
-         *     
+         *
          *     var el = Ext.get(document.getElementById('foo')); // by DOM reference
-         *     
+         *
          * Incorrect way of creating a new Ext.dom.Element
-         * 
+         *
          *     var el = new Ext.dom.Element('foo');
-         *     
+         *
          * For quick and easy access to Ext.dom.Element methods use a flyweight:
-         * 
+         *
          *     Ext.fly('foo').addCls('foo-hovered');
-         *     
+         *
          * This simply attaches the DOM node with id='foo' to the global flyweight Element
          * instance to avoid allocating an extra Ext.dom.Element instance.  If, however,
          * the Element instance has already been cached by a previous call to Ext.get(),
          * then Ext.fly() will return the cached Element instance.  For more info see
          * {@link Ext#fly}.
-         *     
+         *
          * @param {String/HTMLElement} element
          * @private
          */
@@ -325,7 +311,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             /**
              * @property {Number}
-             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}. 
+             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}.
              * Use the CSS 'visibility' property to hide the element.
              *
              * Note that in this mode, {@link Ext.dom.Element#isVisible isVisible} may return true
@@ -337,7 +323,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             /**
              * @property {Number}
-             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}. 
+             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}.
              * Use the CSS 'display' property to hide the element.
              * @static
              */
@@ -345,7 +331,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             /**
              * @property {Number}
-             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}. 
+             * Visibility mode constant for use with {@link Ext.dom.Element#setVisibilityMode}.
              * Use CSS absolute positioning and top/left offsets to hide the element.
              * @static
              */
@@ -373,8 +359,7 @@ Ext.define('Ext.dom.Element', function(Element) {
              */
             validNodeTypes: {
                 1: 1, // ELEMENT_NODE
-                9: 1, // DOCUMENT_NODE
-                11: 1 // DOCUMENT_FRAGMENT_NODE
+                9: 1 // DOCUMENT_NODE
             },
 
             /**
@@ -472,16 +457,16 @@ Ext.define('Ext.dom.Element', function(Element) {
 
                         switch (name) {
                             case CREATE_ATTRIBUTES.style:
-                                    if (typeof value === 'string') {
-                                        element.setAttribute(name, value);
-                                    }
-                                    else {
-                                        for (i in value) {
-                                            if (value.hasOwnProperty(i)) {
-                                                elementStyle[i] = value[i];
-                                            }
+                                if (typeof value === 'string') {
+                                    element.setAttribute(name, value);
+                                }
+                                else {
+                                    for (i in value) {
+                                        if (value.hasOwnProperty(i)) {
+                                            elementStyle[i] = value[i];
                                         }
                                     }
+                                }
                                 break;
 
                             case CREATE_ATTRIBUTES.className:
@@ -555,12 +540,12 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             /**
              * Retrieves Ext.dom.Element objects. {@link Ext#get} is alias for {@link Ext.dom.Element#get}.
-             * 
+             *
              * **This method does not retrieve {@link Ext.Component Component}s.** This method retrieves Ext.dom.Element
              * objects which encapsulate DOM elements. To retrieve a Component by its ID, use {@link Ext.ComponentManager#get}.
-             * 
+             *
              * When passing an id, it should not include the `#` character that is used for a css selector.
-             * 
+             *
              *     // For an element with id 'foo'
              *     Ext.get('foo'); // Correct
              *     Ext.get('#foo'); // Incorrect
@@ -698,12 +683,12 @@ Ext.define('Ext.dom.Element', function(Element) {
              */
             getActiveElement: function () {
                 var active = DOC.activeElement;
-                
-                // Default to the body if we can't find anything
-                // https://developer.mozilla.org/en-US/docs/DOM/document.activeElement
-                active = active || activeElement;
-                if (!active) {
-                    active = activeElement = DOC.body;
+                // The activeElement can be null, however there also appears to be a very odd
+                // and inconsistent bug in IE where the activeElement is simply an empty object
+                // literal. Test if the returned active element has focus, if not, we've hit the bug
+                // so just default back to the document body.
+                if (!active || !active.focus) {
+                    active = DOC.body;
                 }
                 return active;
             },
@@ -794,7 +779,7 @@ Ext.define('Ext.dom.Element', function(Element) {
              */
             parseBox: function(box) {
                 box = box || 0;
-                
+
                 var type = typeof box,
                     parts,
                     ln;
@@ -806,10 +791,10 @@ Ext.define('Ext.dom.Element', function(Element) {
                         bottom: box,
                         left: box
                     };
-                 } else if (type !== 'string') {
-                     // If not a number or a string, assume we've been given a box config.
-                     return box;
-                 }
+                } else if (type !== 'string') {
+                    // If not a number or a string, assume we've been given a box config.
+                    return box;
+                }
 
                 parts  = box.split(' ');
                 ln = parts.length;
@@ -906,9 +891,9 @@ Ext.define('Ext.dom.Element', function(Element) {
                 box = me.parseBox(box);
 
                 return me.addUnits(box.top, units) + ' ' +
-                       me.addUnits(box.right, units) + ' ' +
-                       me.addUnits(box.bottom, units) + ' ' +
-                       me.addUnits(box.left, units);
+                    me.addUnits(box.right, units) + ' ' +
+                    me.addUnits(box.bottom, units) + ' ' +
+                    me.addUnits(box.left, units);
             },
 
             /**
@@ -938,7 +923,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                             for (o = 0; o < oLen; o++) {
                                 opt = options[o];
                                 if (opt.selected) {
-                                    hasValue = opt.hasAttribute ? opt.hasAttribute('value') : opt.getAttributeNode('value').specified;
+                                    hasValue = opt.hasAttribute('value');
                                     data += Ext.String.format('{0}={1}&', encoder(name), encoder(hasValue ? opt.value : opt.text));
                                 }
                             }
@@ -963,19 +948,20 @@ Ext.define('Ext.dom.Element', function(Element) {
          */
         addCls: function(names, prefix, suffix) {
             var me = this,
-                hasNewCls, dom, map, classList, i, ln, name;
+                hasNewCls, dom, map, classList, i, ln, name,
+                elementData = me.getData();
 
             if (!names) {
                 return me;
             }
 
-            if (!me.isSynchronized) {
+            if (!elementData.isSynchronized) {
                 me.synchronize();
             }
 
             dom = me.dom;
-            map = me.hasClassMap;
-            classList = me.classList;
+            map = elementData.classMap;
+            classList = elementData.classList;
 
             prefix = prefix ? prefix + SEPARATOR : '';
             suffix = suffix ? SEPARATOR + suffix : '';
@@ -1056,7 +1042,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             // floating will contain digits that appears after the decimal point
             // if height or width are set to auto we fallback to msTransformOrigin calculation
-            
+
             // Use currentStyle here instead of getStyle. In some difficult to reproduce 
             // instances it resets the scrollWidth of the element
             floating = (parseFloat(currentStyle[dimension]) || parseFloat(currentStyle.msTransformOrigin.split(' ')[originIndex]) * 2) % 1;
@@ -1140,9 +1126,9 @@ Ext.define('Ext.dom.Element', function(Element) {
         },
 
         /**
-        * Tries to blur the element. Any exceptions are caught and ignored.
-        * @return {Ext.dom.Element} this
-        */
+         * Tries to blur the element. Any exceptions are caught and ignored.
+         * @return {Ext.dom.Element} this
+         */
         blur: function() {
             var me = this,
                 dom = me.dom;
@@ -1158,7 +1144,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                 return me.focus(undefined, dom);
             }
         },
-                
+
         /**
          * Centers the Element in either the viewport, or another Element.
          * @param {String/HTMLElement/Ext.dom.Element} centerIn element in
@@ -1176,10 +1162,10 @@ Ext.define('Ext.dom.Element', function(Element) {
          */
         child: function(selector, returnDom) {
             var me = this,
-                // Pull the ID from the DOM (Ext.id also ensures that there *is* an ID).
-                // If this object is a Flyweight, it will not have an ID
+            // Pull the ID from the DOM (Ext.id also ensures that there *is* an ID).
+            // If this object is a Flyweight, it will not have an ID
                 id = Ext.get(me).id;
-                
+
             return me.selectNode(Ext.makeIdSelector(id) + " > " + selector, !!returnDom);
         },
 
@@ -1217,6 +1203,7 @@ Ext.define('Ext.dom.Element', function(Element) {
             el.className = Ext.baseCSSPrefix + 'shim';
             el.src = Ext.SSL_SECURE_URL;
             el.setAttribute('role', 'presentation');
+            el.setAttribute('tabindex', -1);
             shim = Ext.get(this.dom.parentNode.insertBefore(el, this.dom));
             return shim;
         },
@@ -1703,7 +1690,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                 y = parseFloat(y);
             } else {
                 y = me.getY();
-                
+
                 // Reading offsetParent causes forced async layout.
                 // Do not do it unless needed.
                 offsetParent = me.dom.offsetParent;
@@ -1870,7 +1857,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                 }
 
                 if (!multiple) {
-                   return out;
+                    return out;
                 }
 
                 values[prop] = out;
@@ -2051,11 +2038,13 @@ Ext.define('Ext.dom.Element', function(Element) {
          * @return {Boolean} `true` if the class exists, else `false`.
          */
         hasCls: function(name) {
-            if (!this.isSynchronized) {
+            var elementData = this.getData();
+
+            if (!elementData.isSynchronized) {
                 this.synchronize();
             }
 
-            return this.hasClassMap.hasOwnProperty(name);
+            return elementData.classMap.hasOwnProperty(name);
         },
 
         /**
@@ -2334,7 +2323,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
         /**
          * Gets the parent node for this element, optionally chaining up trying to match a selector
-         * @param {String} [selector] Find a parent node that matches the passed simple selector. 
+         * @param {String} [selector] Find a parent node that matches the passed simple selector.
          * See {@link Ext.dom.Query} for information about simple selectors.
          * @param {Boolean} [returnDom=false] True to return a raw dom node instead of an Ext.dom.Element
          * @return {Ext.dom.Element/HTMLElement} The parent node or null
@@ -2436,7 +2425,7 @@ Ext.define('Ext.dom.Element', function(Element) {
          * * E{display*=none} CSS value "display" that contains the substring "none"
          * * E{display%=2} CSS value "display" that is evenly divisible by 2
          * * E{display!=none} CSS value "display" that does not equal "none"
-         * 
+         *
          * @param {String} selector The CSS selector.
          * @param {Boolean} [asDom=true] `false` to return an array of Ext.dom.Element
          * @return {HTMLElement[]/Ext.dom.Element[]} An Array of elements that match
@@ -2530,13 +2519,14 @@ Ext.define('Ext.dom.Element', function(Element) {
          */
         removeCls: function(names, prefix, suffix) {
             var me = this,
-                hasNewCls, dom, map, classList, i, ln, name;
+                hasNewCls, dom, map, classList, i, ln, name,
+                elementData = me.getData();
 
             if (!names) {
                 return me;
             }
 
-            if (!me.isSynchronized) {
+            if (!elementData.isSynchronized) {
                 me.synchronize();
             }
 
@@ -2545,8 +2535,8 @@ Ext.define('Ext.dom.Element', function(Element) {
             }
 
             dom = me.dom;
-            map = me.hasClassMap;
-            classList = me.classList;
+            map = elementData.classMap;
+            classList = elementData.classList;
 
             prefix = prefix ? prefix + SEPARATOR : '';
             suffix = suffix ? SEPARATOR + suffix : '';
@@ -2579,7 +2569,7 @@ Ext.define('Ext.dom.Element', function(Element) {
         repaint: function() {
             var me = this;
             me.addCls(Ext.baseCSSPrefix + 'repaint');
-            setTimeout(function() {
+            Ext.defer(function() {
                 if(me.dom) {  //may have been removed already on slower UAs
                     Ext.fly(me.dom).removeCls(Ext.baseCSSPrefix + 'repaint');
                 }
@@ -2629,7 +2619,8 @@ Ext.define('Ext.dom.Element', function(Element) {
          */
         replaceCls: function(oldName, newName, prefix, suffix) {
             var me = this,
-                dom, map, classList, i, ln, name;
+                dom, map, classList, i, ln, name,
+                elementData = me.getData();
 
             if (!oldName && !newName) {
                 return me;
@@ -2638,7 +2629,7 @@ Ext.define('Ext.dom.Element', function(Element) {
             oldName = oldName || [];
             newName = newName || [];
 
-            if (!me.isSynchronized) {
+            if (!elementData.isSynchronized) {
                 me.synchronize();
             }
 
@@ -2647,8 +2638,8 @@ Ext.define('Ext.dom.Element', function(Element) {
             }
 
             dom = me.dom;
-            map = me.hasClassMap;
-            classList = me.classList;
+            map = elementData.classMap;
+            classList = elementData.classList;
 
             prefix = prefix ? prefix + SEPARATOR : '';
             suffix = suffix ? SEPARATOR + suffix : '';
@@ -2842,7 +2833,8 @@ Ext.define('Ext.dom.Element', function(Element) {
          */
         setCls: function(className) {
             var me = this,
-                map = me.hasClassMap,
+                elementData = me.getData(),
+                map = elementData.classMap,
                 i, ln, name;
 
             if (typeof className === 'string') {
@@ -2856,7 +2848,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                 }
             }
 
-            me.classList = className.slice();
+            elementData.classList = className.slice();
             me.dom.className = className.join(' ');
         },
 
@@ -2911,14 +2903,14 @@ Ext.define('Ext.dom.Element', function(Element) {
          * @return {Ext.dom.Element} this
          */
         setLeft: function(left) {
-            this.dom.style[LEFT] = Element.addUnits(left); 
+            this.dom.style[LEFT] = Element.addUnits(left);
             return this;
         },
 
         setLocalX: function(x) {
             var style = this.dom.style;
 
-            // clear right style just in case it was previously set by rtlSetXY/rtlSetLocalXY
+            // clear right style just in case it was previously set by rtlSetLocalXY
             style.right = 'auto';
             style.left = (x === null) ? 'auto' : x + 'px';
         },
@@ -2926,7 +2918,7 @@ Ext.define('Ext.dom.Element', function(Element) {
         setLocalXY: function(x, y) {
             var style = this.dom.style;
 
-            // clear right style just in case it was previously set by rtlSetXY/rtlSetLocalXY
+            // clear right style just in case it was previously set by rtlSetLocalXY
             style.right = 'auto';
 
             if (x && x.length) {
@@ -3180,11 +3172,11 @@ Ext.define('Ext.dom.Element', function(Element) {
         /**
          * Sets the visibility of the element based on the current visibility mode. Use
          * {@link #setVisibilityMode} to switch between the following visibility modes:
-         * 
+         *
          * - {@link #DISPLAY} (the default)
          * - {@link #VISIBILITY}
          * - {@link #OFFSETS}
-         * 
+         *
          * @param {Boolean} visible Whether the element is visible.
          * @return {Ext.dom.Element} this
          */
@@ -3245,8 +3237,8 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             me.position();
 
-            // right position may have been previously set by rtlSetXY or
-            // rtlSetLocalXY so clear it here just in case.
+            // right position may have been previously set by rtlSetLocalXY 
+            // so clear it here just in case.
             style.right = 'auto';
             for (pos in pts) {
                 if (!isNaN(pts[pos])) {
@@ -3311,7 +3303,8 @@ Ext.define('Ext.dom.Element', function(Element) {
                 dom = me.dom,
                 hasClassMap = {},
                 className = dom.className,
-                classList, i, ln, name;
+                classList, i, ln, name,
+                elementData = me.getData();
 
             if (className && className.length > 0) {
                 classList = dom.className.split(classNameSplitRegex);
@@ -3325,11 +3318,9 @@ Ext.define('Ext.dom.Element', function(Element) {
                 classList = [];
             }
 
-            me.classList = classList;
-
-            me.hasClassMap = hasClassMap;
-
-            me.isSynchronized = true;
+            elementData.classList = classList;
+            elementData.classMap = hasClassMap;
+            elementData.isSynchronized = true;
 
             return me;
         },
@@ -3417,7 +3408,7 @@ Ext.define('Ext.dom.Element', function(Element) {
                 dom = me.dom,
                 newEl = Ext.DomHelper.insertBefore(dom, config || {tag: "div"}, true),
                 target = newEl;
-            
+
             if (selector) {
                 target = newEl.selectNode(selector);
             }
@@ -3773,7 +3764,7 @@ Ext.define('Ext.dom.Element', function(Element) {
          *
          * __Note:__ the dom node to be found actually needs to exist (be rendered, etc)
          * when this method is called to be successful.
-         * 
+         *
          * @param {String/HTMLElement/Ext.dom.Element} el
          * @return {HTMLElement}
          */
@@ -3848,7 +3839,7 @@ Ext.define('Ext.dom.Element', function(Element) {
 
             return Ext._winEl;
         },
-        
+
         /**
          * @member Ext
          * Removes an HTMLElement from the document.  If the HTMLElement was previously
@@ -3880,8 +3871,8 @@ Ext.define('Ext.dom.Element', function(Element) {
         // determines if the dom element is in the document or in the detached body element
         // use by collectGarbage and Ext.get()
         return dom &&
-            // Must be an element. window, document and documentElement can never be garbage.
-            dom.nodeType === 1 &&
+            // window, document, documentElement, and body can never be garbage.
+            dom.nodeType === 1 && dom.tagName !== 'BODY' && dom.tagName !== 'HTML' &&
             // if the element does not have a parent node, it is definitely not in the
             // DOM - we can exit immediately
             (!dom.parentNode ||
@@ -3895,7 +3886,7 @@ Ext.define('Ext.dom.Element', function(Element) {
             // include IE-specific checks in the sencha-core package, however,  in this
             // case the function will be inlined and therefore cannot be overridden in
             // the ext package.
-                !(Ext.isIE8 ? DOC.all[dom.id] : DOC.getElementById(dom.id)) &&
+                ((Ext.isIE8 ? DOC.all[dom.id] : DOC.getElementById(dom.id)) !== dom) &&
                 // finally if the element was not found in the dom by id, we need to check
                 // the detachedBody element
                 !(Ext.detachedBodyEl && Ext.detachedBodyEl.isAncestor(dom))));

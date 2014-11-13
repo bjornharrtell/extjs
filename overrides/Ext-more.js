@@ -1,12 +1,13 @@
 // @tag core
 // @define Ext-more
-// @override Ext
+// @override Ext.Component
 // @define Ext.overrides.Ext-more
 
 Ext.require([
     'Ext.event.gesture.*',
     'Ext.event.publisher.Dom',
     'Ext.event.publisher.Gesture',
+    'Ext.event.publisher.Focus',
     'Ext.event.Dispatcher'
 ]);
 
@@ -26,7 +27,8 @@ Ext.onReady(function() {
                 rotate: new Ext.event.gesture.Rotate(),
                 edgeSwipe: new Ext.event.gesture.EdgeSwipe()
             }
-        })
+        }),
+        focus: new Ext.event.publisher.Focus()
         // TODO: can we make use of these?  ElementSize currently causes problems
         // in Ext because it handles "resize" events.  When ElementSize is used we can't
         // listen for window resize because Dom publisher doesn't know it needs to handle

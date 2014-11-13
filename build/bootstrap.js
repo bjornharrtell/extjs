@@ -1,5 +1,5 @@
 /*
-This file is part of Ext JS 5.0.0.970
+This file is part of Ext JS 5.0.1.1255
 
 Copyright (c) 2011-2014 Sencha Inc
 
@@ -13,7 +13,7 @@ Ext license terms. Public redistribution is prohibited.
 
 For early licensing, please contact us at licensing@sencha.com
 
-Version: 5.0.0.970 Build date: 2014-06-01 09:03:15 (660862da42511e0f769c1d37b9fd8e156edd73eb)
+Version: 5.0.1.1255 Build date: 2014-08-05 19:25:52 (2852ec9b146a917f790d13cfa9b9c2fa041fccf8)
 
 */
 /**

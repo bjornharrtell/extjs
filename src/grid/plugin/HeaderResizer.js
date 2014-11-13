@@ -183,37 +183,36 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
     getConstrainRegion: function() {
         var me       = this,
             dragHdEl = me.dragHd.el,
-            rightAdjust = 0,
             nextHd,
-            lockedGrid,
-            maxColWidth = me.headerCt.getWidth() - me.headerCt.visibleColumnManager.getColumns().length * me.minColWidth;
+            ownerGrid = me.ownerGrid,
+            widthModel = ownerGrid.getSizeModel().width,
+            maxColWidth = widthModel.shrinkWrap ? me.headerCt.getWidth() - me.headerCt.visibleColumnManager.getColumns().length * me.minColWidth : me.maxColWidth,
+            result;
 
         // If forceFit, then right constraint is based upon not being able to force the next header
         // beyond the minColWidth. If there is no next header, then the header may not be expanded.
         if (me.headerCt.forceFit) {
             nextHd = me.dragHd.nextNode('gridcolumn:not([hidden]):not([isGroupHeader])');
             if (nextHd && me.headerInSameGrid(nextHd)) {
-                rightAdjust = nextHd.getWidth() - me.minColWidth;
+                maxColWidth = dragHdEl.getWidth() + (nextHd.getWidth() - me.minColWidth);
             }
         }
 
         // If resize header is in a locked grid, the maxWidth has to be 30px within the available locking grid's width
-        else if ((lockedGrid = me.dragHd.up('tablepanel')).isLocked) {
-            rightAdjust = me.dragHd.up('[scrollerOwner]').getTargetEl().getWidth() - lockedGrid.getWidth() - (lockedGrid.ownerLockable.normalGrid.visibleColumnManager.getColumns().length * me.minColWidth + Ext.getScrollbarSize().width);
+        // But only if the locked grid shrinkwraps its columns
+        else if (ownerGrid.isLocked && widthModel.shrinkWrap) {
+            maxColWidth = me.dragHd.up('[scrollerOwner]').getTargetEl().getWidth(true) - ownerGrid.getWidth() - (ownerGrid.ownerLockable.normalGrid.visibleColumnManager.getColumns().length * me.minColWidth + Ext.getScrollbarSize().width);
         }
 
-        // Else ue our default max width
-        else {
-            rightAdjust = maxColWidth - dragHdEl.getWidth();
-        }
-
-        return me.adjustConstrainRegion(
+        result =  me.adjustConstrainRegion(
             dragHdEl.getRegion(),
             0,
-            rightAdjust - me.xDelta,
             0,
-            me.minColWidth - me.xDelta
+            0,
+            me.minColWidth
         );
+        result.right = dragHdEl.getX() + maxColWidth;
+        return result;
     },
 
     // initialize the left and right hand side markers around
@@ -313,7 +312,8 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
             Ext.suspendLayouts();
 
             // Set the new column width.
-            me.adjustColumnWidth(offset[0]);
+            // Adjusted for the offset from the actual column border that the mousedownb too place at.
+            me.adjustColumnWidth(offset[0] - me.xDelta);
  
             // In the case of forceFit, change the following Header width.
             // Constraining so that neither neighbour can be sized to below minWidth is handled in getConstrainRegion

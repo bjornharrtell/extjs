@@ -60,7 +60,7 @@ Ext.define('Ext.ux.ajax.SimXhr', {
             delay = me.mgr.delay;
             
         if (delay) {
-            me.timer = setTimeout(function () {
+            me.timer = Ext.defer(function () {
                 me.onTick();
             }, delay);
         } else {

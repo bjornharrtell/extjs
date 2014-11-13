@@ -32,6 +32,13 @@
  * @param {color} $border-color-pressed
  * The border-color of the button when pressed
  *
+ * @param {color} $border-color-focus-over
+ * The border-color of the button when the button is focused and the cursor is over the
+ * button
+ *
+ * @param {color} $border-color-focus-pressed
+ * The border-color of the button when focused and pressed
+ *
  * @param {color} $border-color-disabled
  * The border-color of the button when disabled
  *
@@ -52,6 +59,13 @@
  *
  * @param {color} $background-color-pressed
  * The background-color of the button when pressed
+ *
+ * @param {color} $background-color-focus-over
+ * The background-color of the button when the button is focused and the cursor is over
+ * the button
+ *
+ * @param {color} $background-color-focus-pressed
+ * The background-color of the button when focused and pressed
  *
  * @param {color} $background-color-disabled
  * The background-color of the button when disabled
@@ -75,6 +89,16 @@
  * of a predefined gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  *
+ * @param {string} $background-gradient-focus-over
+ * The background-gradient to use when the the button is focused and the cursor is over
+ * the button. Can be either the name of a predefined gradient or a list of color stops.
+ * Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ *
+ * @param {string} $background-gradient-focus-pressed
+ * The background-gradient to use when the the button is focused and pressed. Can be
+ * either the name of a predefined gradient or a list of color stops. Used as the `$type`
+ * parameter for {@link Global_CSS#background-gradient}.
+ *
  * @param {string} $background-gradient-disabled
  * The background-gradient to use when the the button is disabled. Can be either the name
  * of a predefined gradient or a list of color stops. Used as the `$type` parameter for
@@ -92,8 +116,67 @@
  * @param {color} $color-pressed
  * The text color of the button when the button is pressed
  *
+ * @param {color} $color-focus-over
+ * The text color of the button when the button is focused and the cursor is over the button
+ *
+ * @param {color} $color-focus-pressed
+ * The text color of the button when the button is focused and pressed
+ *
  * @param {color} $color-disabled
  * The text color of the button when the button is disabled
+ *
+ * @param {number/list} $inner-border-width
+ * The inner border-width of the button
+ *
+ * @param {number/list} $inner-border-width-over
+ * The inner border-width of the button when the cursor is over the button
+ *
+ * @param {number/list} $inner-border-width-focus
+ * The inner border-width of the button when focused
+ *
+ * @param {number/list} $inner-border-width-pressed
+ * The inner border-width of the button when pressed
+ *
+ * @param {number/list} $inner-border-width-focus-over
+ * The inner border-width of the button when the button is focused and the cursor is over
+ * the button
+ *
+ * @param {number/list} $inner-border-width-focus-pressed
+ * The inner border-width of the button when focused and pressed
+ *
+ * @param {number/list} $inner-border-width-disabled
+ * The inner border-width of the button when disabled
+ *
+ * @param {color} $inner-border-color
+ * The inner border-color of the button
+ *
+ * @param {color} $inner-border-color-over
+ * The inner border-color of the button when the cursor is over the button
+ *
+ * @param {color} $inner-border-color-focus
+ * The inner border-color of the button when focused
+ *
+ * @param {color} $inner-border-color-pressed
+ * The inner border-color of the button when pressed
+ *
+ * @param {color} $inner-border-color-focus-over
+ * The inner border-color of the button when the button is focused and the cursor is over
+ * the button
+ *
+ * @param {color} $inner-border-color-focus-pressed
+ * The inner border-color of the button when focused and pressed
+ *
+ * @param {color} $inner-border-color-disabled
+ * The inner border-color of the button when disabled
+ *
+ * @param {number} $body-outline-width-focus
+ * The body outline width of the button when focused
+ *
+ * @param {string} $body-outline-style-focus
+ * The body outline-style of the button when focused
+ *
+ * @param {color} $body-outline-color-focus
+ * The body outline color of the button when focused
  *
  * @param {number} $font-size
  * The font-size of the button
@@ -106,6 +189,13 @@
  *
  * @param {number} $font-size-pressed
  * The font-size of the button when the button is pressed
+ *
+ * @param {number} $font-size-focus-over
+ * The font-size of the button when the button is focused and the cursor is over the
+ * button
+ *
+ * @param {number} $font-size-focus-pressed
+ * The font-size of the button when the button is focused and pressed
  *
  * @param {number} $font-size-disabled
  * The font-size of the button when the button is disabled
@@ -122,6 +212,13 @@
  * @param {string} $font-weight-pressed
  * The font-weight of the button when the button is pressed
  *
+ * @param {string} $font-weight-focus-over
+ * The font-weight of the button when the button is focused and the cursor is over the
+ * button
+ *
+ * @param {string} $font-weight-focus-pressed
+ * The font-weight of the button when the button is focused and pressed
+ *
  * @param {string} $font-weight-disabled
  * The font-weight of the button when the button is disabled
  *
@@ -137,16 +234,23 @@
  * @param {string} $font-family-pressed
  * The font-family of the button when the button is pressed
  *
+ * @param {string} $font-family-focus-over
+ * The font-family of the button when the button is focused and the cursor is over the
+ * button
+ *
+ * @param {string} $font-family-focus-pressed
+ * The font-family of the button when the button is focused and pressed
+ *
  * @param {string} $font-family-disabled
  * The font-family of the button when the button is disabled
  *
- * @var {number} $line-height
+ * @param {number} $line-height
  * The line-height of the button text
  *
  * @param {number} $icon-size
  * The size of the button icon
  *
- * @var {number} $icon-spacing
+ * @param {number} $icon-spacing
  * The space between the button's icon and text
  *
  * @param {color} $glyph-color
@@ -203,6 +307,8 @@
     $border-color-over: null,
     $border-color-focus: null,
     $border-color-pressed: null,
+    $border-color-focus-over: null,
+    $border-color-focus-pressed: null,
     $border-color-disabled: null,
 
     $padding: null,
@@ -212,36 +318,68 @@
     $background-color-over: null,
     $background-color-focus: null,
     $background-color-pressed: null,
+    $background-color-focus-over: null,
+    $background-color-focus-pressed: null,
     $background-color-disabled: null,
 
     $background-gradient: null,
     $background-gradient-over: null,
     $background-gradient-focus: null,
     $background-gradient-pressed: null,
+    $background-gradient-focus-over: null,
+    $background-gradient-focus-pressed: null,
     $background-gradient-disabled: null,
 
     $color: null,
     $color-over: null,
     $color-focus: null,
     $color-pressed: null,
+    $color-focus-over: null,
+    $color-focus-pressed: null,
     $color-disabled: null,
+
+    $inner-border-width: null,
+    $inner-border-width-over: null,
+    $inner-border-width-focus: null,
+    $inner-border-width-pressed: null,
+    $inner-border-width-focus-over: null,
+    $inner-border-width-focus-pressed: null,
+    $inner-border-width-disabled: null,
+
+    $inner-border-color: null,
+    $inner-border-color-over: null,
+    $inner-border-color-focus: null,
+    $inner-border-color-pressed: null,
+    $inner-border-color-focus-over: null,
+    $inner-border-color-focus-pressed: null,
+    $inner-border-color-disabled: null,
+
+    $body-outline-width-focus: null,
+    $body-outline-style-focus: null,
+    $body-outline-color-focus: null,
 
     $font-size: null,
     $font-size-over: null,
     $font-size-focus: null,
     $font-size-pressed: null,
+    $font-size-focus-over: null,
+    $font-size-focus-pressed: null,
     $font-size-disabled: null,
 
     $font-weight: null,
     $font-weight-over: null,
     $font-weight-focus: null,
     $font-weight-pressed: null,
+    $font-weight-focus-over: null,
+    $font-weight-focus-pressed: null,
     $font-weight-disabled: null,
 
     $font-family: null,
     $font-family-over: null,
     $font-family-focus: null,
     $font-family-pressed: null,
+    $font-family-focus-over: null,
+    $font-family-focus-pressed: null,
     $font-family-disabled: null,
 
     $icon-size: null,
@@ -260,6 +398,16 @@
     $opacity-disabled: $button-opacity-disabled,
     $inner-opacity-disabled: $button-inner-opacity-disabled
 ) {
+    $inner-border-max: max(
+        max(top($inner-border-width) right($inner-border-width) bottom($inner-border-width) left($inner-border-width))
+        max(top($inner-border-width-over) right($inner-border-width-over) bottom($inner-border-width-over) left($inner-border-width-over))
+        max(top($inner-border-width-focus) right($inner-border-width-focus) bottom($inner-border-width-focus) left($inner-border-width-focus))
+        max(top($inner-border-width-pressed) right($inner-border-width-pressed) bottom($inner-border-width-pressed) left($inner-border-width-pressed))
+        max(top($inner-border-width-disabled) right($inner-border-width-disabled) bottom($inner-border-width-disabled) left($inner-border-width-disabled))
+    );
+
+    $frame-size: frame-size($border-width, $inner-border-max, $border-radius);
+
     @include x-frame(
         $cls: 'btn',
         $ui: $ui,
@@ -268,11 +416,15 @@
         $padding: $padding,
         $background-color: $background-color,
         $background-gradient: $background-gradient,
-        $table: true
+        $table: true,
+        $inner-border-width: $inner-border-width
     );
 
     .#{$prefix}btn-#{$ui} {
         border-color: $border-color;
+        @if not is-null($inner-border-width) and not is-null($inner-border-color) and $inner-border-width != 0 {
+            @include inner-border($inner-border-width, $inner-border-color);
+        }
     }
 
     .#{$prefix}btn-button-#{$ui} {
@@ -477,36 +629,23 @@
         }
     }
 
-    .#{$prefix}btn-disabled.#{$prefix}btn-#{$ui} {
-        @if $border-color-disabled != $border-color {
-            border-color: $border-color-disabled;
-        }
-        @if not is-null($background-color-disabled) {
-            @include background-gradient($background-color-disabled, $background-gradient-disabled);
-        }
-
-        .#{$prefix}btn-inner {
-            @if $color-disabled != $color {
-                color: $color-disabled;
-            }
-            @if $font-weight-disabled != $font-weight {
-                font-weight: $font-weight-disabled;
-            }
-            @if $font-size-disabled != $font-size {
-                font-size: $font-size-disabled;
-            }
-            @if $font-family-disabled != $font-family {
-                font-family: $font-family-disabled;
-            }
-        }
-    }
-
     .#{$prefix}btn-focus.#{$prefix}btn-#{$ui} {
         @if $border-color-focus != $border-color {
             border-color: $border-color-focus;
         }
         @if $background-color-focus != null {
             @include background-gradient($background-color-focus, $background-gradient-focus);
+        }
+        @if not is-null($inner-border-width-focus) and not is-null($inner-border-color-focus) {
+            @include inner-border($inner-border-width-focus, $inner-border-color-focus);
+        }
+
+        @if not is-null($body-outline-width-focus) and $body-outline-width-focus != 0 {
+            .#{$prefix}btn-wrap {
+                $outline-color: if(not is-null($body-outline-color-focus), $body-outline-color-focus, $color);
+                $outline-style: if(not is-null($body-outline-style-focus), $body-outline-style-focus, dotted);
+                outline: $body-outline-width-focus $outline-style $outline-color;
+            }
         }
 
         .#{$prefix}btn-inner {
@@ -532,6 +671,9 @@
         @if $background-color-over != null {
             @include background-gradient($background-color-over, $background-gradient-over);
         }
+        @if not is-null($inner-border-width-over) and not is-null($inner-border-color-over) {
+            @include inner-border($inner-border-width-over, $inner-border-color-over);
+        }
 
         .#{$prefix}btn-inner {
             @if $color-over != $color {
@@ -549,13 +691,44 @@
         }
     }
 
-    .#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui},
-    .#{$prefix}btn-pressed.#{$prefix}btn-#{$ui} {
+    .#{$prefix}btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui} {
+        @if $border-color-focus-over != $border-color-over {
+            border-color: $border-color-focus-over;
+        }
+        @if $background-color-focus-over != $background-color-over or $background-gradient-focus-over != $background-gradient-over {
+            @include background-gradient($background-color-focus-over, $background-gradient-focus-over);
+        }
+        @if not is-null($inner-border-width-focus-over) and not is-null($inner-border-color-focus-over) {
+            @include inner-border($inner-border-width-focus-over, $inner-border-color-focus-over);
+        }
+
+        .#{$prefix}btn-inner {
+            @if $color-focus-over != $color-over {
+                color: $color-focus-over;
+            }
+            @if $font-weight-focus-over != $font-weight-over {
+                font-weight: $font-weight-focus-over;
+            }
+            @if $font-size-focus-over != $font-size-over {
+                font-size: $font-size-focus-over;
+            }
+            @if $font-family-focus-over != $font-family-over {
+                font-family: $font-family-focus-over;
+            }
+        }
+    }
+
+    // add x-btn class to increase specificity over focus-over rule above
+    .#{$prefix}btn.#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui},
+    .#{$prefix}btn.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui} {
         @if $border-color-pressed != $border-color {
             border-color: $border-color-pressed;
         }
         @if $background-color-pressed != null {
             @include background-gradient($background-color-pressed, $background-gradient-pressed);
+        }
+        @if not is-null($inner-border-width-pressed) and not is-null($inner-border-color-pressed) {
+            @include inner-border($inner-border-width-pressed, $inner-border-color-pressed);
         }
 
         .#{$prefix}btn-inner {
@@ -574,9 +747,67 @@
         }
     }
 
+    .#{$prefix}btn-focus.#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui},
+    .#{$prefix}btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui} {
+        @if $border-color-focus-pressed != $border-color-pressed {
+            border-color: $border-color-focus-pressed;
+        }
+        @if $background-color-focus-pressed != $background-color-pressed or $background-gradient-focus-pressed != $background-gradient-pressed {
+            @include background-gradient($background-color-focus-pressed, $background-gradient-focus-pressed);
+        }
+        @if not is-null($inner-border-width-focus-pressed) and not is-null($inner-border-color-focus-pressed) {
+            @include inner-border($inner-border-width-focus-pressed, $inner-border-color-focus-pressed);
+        }
+
+        .#{$prefix}btn-inner {
+            @if $color-focus-pressed != $color-pressed {
+                color: $color-focus-pressed;
+            }
+            @if $font-weight-focus-pressed != $font-weight-pressed {
+                font-weight: $font-weight-focus-pressed;
+            }
+            @if $font-size-focus-pressed != $font-size-pressed {
+                font-size: $font-size-focus-pressed;
+            }
+            @if $font-family-focus-pressed != $font-family-pressed {
+                font-family: $font-family-focus-pressed;
+            }
+        }
+    }
+
+    // add x-btn class to increase specificity over focus-pressed
+    .#{$prefix}btn.#{$prefix}btn-disabled.#{$prefix}btn-#{$ui} {
+        @if $border-color-disabled != $border-color {
+            border-color: $border-color-disabled;
+        }
+        @if not is-null($background-color-disabled) {
+            @include background-gradient($background-color-disabled, $background-gradient-disabled);
+        }
+        @if not is-null($inner-border-width-disabled) and not is-null($inner-border-color-disabled) {
+            @include inner-border($inner-border-width-disabled, $inner-border-color-disabled);
+        }
+
+        .#{$prefix}btn-inner {
+            @if $color-disabled != $color {
+                color: $color-disabled;
+            }
+            @if $font-weight-disabled != $font-weight {
+                font-weight: $font-weight-disabled;
+            }
+            @if $font-size-disabled != $font-size {
+                font-size: $font-size-disabled;
+            }
+            @if $font-family-disabled != $font-family {
+                font-family: $font-family-disabled;
+            }
+        }
+    }
+
     @if $include-slicer-border-radius {
         .#{$prefix}btn-focus {
-            $foo: slicer-background-stretch('btn-focus.#{$prefix}btn-#{$ui}', 'bottom');
+            $stretch: slicer-background-stretch('btn-focus.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-focus.#{$prefix}btn-#{$ui}', $frame-size);
+
             .#{$prefix}btn-#{$ui}-tl,
             .#{$prefix}btn-#{$ui}-bl,
             .#{$prefix}btn-#{$ui}-tr,
@@ -598,7 +829,9 @@
         }
 
         .#{$prefix}btn-over {
-            $foo: slicer-background-stretch('btn-over.#{$prefix}btn-#{$ui}', 'bottom');
+            $stretch: slicer-background-stretch('btn-over.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-over.#{$prefix}btn-#{$ui}', $frame-size);
+
             .#{$prefix}btn-#{$ui}-tl,
             .#{$prefix}btn-#{$ui}-bl,
             .#{$prefix}btn-#{$ui}-tr,
@@ -619,9 +852,36 @@
             }
         }
 
-        .#{$prefix}btn-menu-active,
-        .#{$prefix}btn-pressed {
-            $foo: slicer-background-stretch('btn-pressed.#{$prefix}btn-#{$ui}', 'bottom');
+        .#{$prefix}btn-focus.#{$prefix}btn-over {
+            $stretch: slicer-background-stretch('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}', $frame-size);
+
+            .#{$prefix}btn-#{$ui}-tl,
+            .#{$prefix}btn-#{$ui}-bl,
+            .#{$prefix}btn-#{$ui}-tr,
+            .#{$prefix}btn-#{$ui}-br,
+            .#{$prefix}btn-#{$ui}-tc,
+            .#{$prefix}btn-#{$ui}-bc {
+                background-image: slicer-corner-sprite('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-over-corners');
+            }
+            .#{$prefix}btn-#{$ui}-ml,
+            .#{$prefix}btn-#{$ui}-mr {
+                background-image: slicer-sides-sprite('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-over-sides');
+            }
+            .#{$prefix}btn-#{$ui}-mc {
+                background-color: $background-color-focus-over;
+                @if $background-gradient-focus-over != null {
+                    background-image: slicer-frame-background-image('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-over-fbg');
+                }
+            }
+        }
+
+        // add x-btn class to increase specificity over focus-over rules above
+        .#{$prefix}btn.#{$prefix}btn-menu-active,
+        .#{$prefix}btn.#{$prefix}btn-pressed {
+            $stretch: slicer-background-stretch('btn-pressed.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-pressed.#{$prefix}btn-#{$ui}', $frame-size);
+
             .#{$prefix}btn-#{$ui}-tl,
             .#{$prefix}btn-#{$ui}-bl,
             .#{$prefix}btn-#{$ui}-tr,
@@ -636,14 +896,42 @@
             }
             .#{$prefix}btn-#{$ui}-mc {
                 background-color: $background-color-pressed;
-                @if $background-gradient-pressed != null {
+                @if $background-gradient-focus-pressed != null {
                     background-image: slicer-frame-background-image('btn-pressed.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-pressed-fbg');
                 }
             }
         }
 
-        .#{$prefix}btn-disabled {
-            $foo: slicer-background-stretch('btn-disabled.#{$prefix}btn-#{$ui}', 'bottom');
+        .#{$prefix}btn-focus.#{$prefix}btn-menu-active,
+        .#{$prefix}btn-focus.#{$prefix}btn-pressed {
+            $stretch: slicer-background-stretch('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}', $frame-size);
+
+            .#{$prefix}btn-#{$ui}-tl,
+            .#{$prefix}btn-#{$ui}-bl,
+            .#{$prefix}btn-#{$ui}-tr,
+            .#{$prefix}btn-#{$ui}-br,
+            .#{$prefix}btn-#{$ui}-tc,
+            .#{$prefix}btn-#{$ui}-bc {
+                background-image: slicer-corner-sprite('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-pressed-corners');
+            }
+            .#{$prefix}btn-#{$ui}-ml,
+            .#{$prefix}btn-#{$ui}-mr {
+                background-image: slicer-sides-sprite('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-pressed-sides');
+            }
+            .#{$prefix}btn-#{$ui}-mc {
+                background-color: $background-color-focus-pressed;
+                @if $background-gradient-focus-pressed != null {
+                    background-image: slicer-frame-background-image('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-pressed-fbg');
+                }
+            }
+        }
+
+        // add x-btn class to increase specificity over focus-pressed
+        .#{$prefix}btn.#{$prefix}btn-disabled {
+            $stretch: slicer-background-stretch('btn-disabled.#{$prefix}btn-#{$ui}', 'bottom');
+            $frame: slicer-frame('btn-disabled.#{$prefix}btn-#{$ui}', $frame-size);
+
             .#{$prefix}btn-#{$ui}-tl,
             .#{$prefix}btn-#{$ui}-bl,
             .#{$prefix}btn-#{$ui}-tr,
@@ -660,41 +948,6 @@
                 background-color: $background-color-disabled;
                 @if $background-gradient-disabled != null {
                     background-image: slicer-frame-background-image('btn-disabled.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-disabled-fbg');
-                }
-            }
-        }
-    }
-
-    @if $include-slicer-gradient {
-        @if $background-gradient-focus != null {
-            .#{$prefix}nlg {
-                .#{$prefix}btn-focus.#{$prefix}btn-#{$ui} {
-                    background-image: slicer-background-image('btn-focus.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-focus-bg');
-                }
-            }
-        }
-
-        @if $background-gradient-over != null {
-            .#{$prefix}nlg {
-                .#{$prefix}btn-over.#{$prefix}btn-#{$ui} {
-                    background-image: slicer-background-image('btn-over.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-over-bg');
-                }
-            }
-        }
-
-        @if $background-gradient-pressed != null {
-            .#{$prefix}nlg {
-                .#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui},
-                .#{$prefix}btn-pressed.#{$prefix}btn-#{$ui} {
-                    background-image: slicer-background-image('btn-pressed.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-pressed-bg');
-                }
-            }
-        }
-
-        @if $background-gradient-disabled != null {
-            .#{$prefix}nlg {
-                .#{$prefix}btn-disabled.#{$prefix}btn-#{$ui} {
-                    background-image: slicer-background-image('btn-disabled.#{$prefix}btn-#{$ui}', 'btn/btn-#{$ui}-disabled-bg');
                 }
             }
         }
@@ -766,12 +1019,107 @@
                     }
                 }
             }
+
+            .#{$prefix}segmented-button-item.#{$prefix}btn-#{$ui}:after {
+                // Inner borders are contained in the framing elements of a button. Since
+                // we have suppressed the borders on the inner edges to remove the rounded
+                // corners, we need to simulate the inner-border using a pseudo el.
+                // Always set up the positioning of the pseudo element just in case
+                // it is needed by the following rules
+                content: ' ';
+                border-style: solid;
+                border-width: 0;
+                position: absolute;
+
+                @if not is-null($inner-border-width) and not is-null($inner-border-color) and $inner-border-width != 0 {
+                    border-width: $inner-border-width;
+                    border-color: $inner-border-color;
+                }
+            }
+
+            .#{$prefix}segmented-button-item-horizontal.#{$prefix}btn-#{$ui} {
+                &:after {
+                    top: $border-width;
+                    right: 0;
+                    bottom: $border-width;
+                    left: 0;
+                }
+                &.#{$prefix}segmented-button-first:after {
+                    left: $border-width;
+                }
+                &.#{$prefix}segmented-button-last:after {
+                    right: $border-width;
+                }
+            }
+
+            .#{$prefix}segmented-button-item-vertical.#{$prefix}btn-#{$ui} {
+                &:after {
+                    top: 0;
+                    right: $border-width;
+                    bottom: 0;
+                    left: $border-width;
+                }
+                &.#{$prefix}segmented-button-first:after {
+                    top: $border-width;
+                }
+                &.#{$prefix}segmented-button-last:after {
+                    bottom: $border-width;
+                }
+            }
+
+            .#{$prefix}segmented-button-item {
+                @if not is-null($inner-border-width-focus) and not is-null($inner-border-color-focus) {
+                    &.#{$prefix}btn-focus.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-focus;
+                        border-color: $inner-border-color-focus;
+                    }
+                }
+
+                @if not is-null($inner-border-width-over) and not is-null($inner-border-color-over) {
+                    &.#{$prefix}btn-over.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-over;
+                        border-color: $inner-border-color-over;
+                    }
+                }
+
+                @if not is-null($inner-border-width-focus-over) and not is-null($inner-border-color-focus-over) {
+                    &.#{$prefix}btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-focus-over;
+                        border-color: $inner-border-color-focus-over;
+                    }
+                }
+
+                @if not is-null($inner-border-width-pressed) and not is-null($inner-border-color-pressed) {
+                    &.#{$prefix}btn.#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui}:after,
+                    &.#{$prefix}btn.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-pressed;
+                        border-color: $inner-border-color-pressed;
+                    }
+                }
+
+                @if not is-null($inner-border-width-focus-pressed) and not is-null($inner-border-color-focus-pressed) {
+                    &.#{$prefix}btn-focus.#{$prefix}btn-menu-active.#{$prefix}btn-#{$ui}:after,
+                    &.#{$prefix}btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-focus-pressed;
+                        border-color: $inner-border-color-focus-pressed;
+                    }
+                }
+
+                @if not is-null($inner-border-width-disabled) and not is-null($inner-border-color-disabled) {
+                    &.#{$prefix}btn.#{$prefix}btn-disabled.#{$prefix}btn-#{$ui}:after {
+                        border-width: $inner-border-width-disabled;
+                        border-color: $inner-border-color-disabled;
+                    }
+                }
+            }
         }
     }
 
     @include x-slicer('btn-focus.#{$prefix}btn-#{$ui}');
     @include x-slicer('btn-over.#{$prefix}btn-#{$ui}');
+    @include x-slicer('btn-focus.#{$prefix}btn-over.#{$prefix}btn-#{$ui}');
     @include x-slicer('btn-pressed.#{$prefix}btn-#{$ui}');
+    @include x-slicer('btn-focus.#{$prefix}btn-pressed.#{$prefix}btn-#{$ui}');
     @include x-slicer('btn-disabled.#{$prefix}btn-#{$ui}');
 
     // Button field or subclass inside cell - calculate top/bottom padding to keep row height correct
@@ -780,6 +1128,11 @@
         .#{$prefix}button-#{$ui}-cell > .#{$prefix}grid-cell-inner {
             padding-top:    max(ceil(($grid-row-height - $ui-height) / 2), 0);
             padding-bottom: max(floor(($grid-row-height - $ui-height) / 2), 0);
+
+            // vertical-align: top needed when in grid cells to avoid margin stretching the cell-inner
+            >.#{$prefix}btn-#{$ui} {
+                vertical-align: top;
+            }
         }
     }
 }
@@ -796,36 +1149,64 @@
         $border-color-over: $button-default-border-color-over,
         $border-color-focus: $button-default-border-color-focus,
         $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-focus-over: $button-default-border-color-focus-over,
+        $border-color-focus-pressed: $button-default-border-color-focus-pressed,
         $border-color-disabled: $button-default-border-color-disabled,
 
         $background-color: $button-default-background-color,
         $background-color-over: $button-default-background-color-over,
         $background-color-focus: $button-default-background-color-focus,
         $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-focus-over: $button-default-background-color-focus-over,
+        $background-color-focus-pressed: $button-default-background-color-focus-pressed,
         $background-color-disabled: $button-default-background-color-disabled,
 
         $color: $button-default-color,
         $color-over: $button-default-color-over,
         $color-focus: $button-default-color-focus,
         $color-pressed: $button-default-color-pressed,
+        $color-focus-over: $button-default-color-focus-over,
+        $color-focus-pressed: $button-default-color-focus-pressed,
         $color-disabled: $button-default-color-disabled,
+
+        $inner-border-width: $button-default-inner-border-width,
+        $inner-border-width-over: $button-default-inner-border-width-over,
+        $inner-border-width-focus: $button-default-inner-border-width-focus,
+        $inner-border-width-pressed: $button-default-inner-border-width-pressed,
+        $inner-border-width-focus-over: $button-default-inner-border-width-focus-over,
+        $inner-border-width-focus-pressed: $button-default-inner-border-width-focus-pressed,
+        $inner-border-width-disabled: $button-default-inner-border-width-disabled,
+
+        $inner-border-color: $button-default-inner-border-color,
+        $inner-border-color-over: $button-default-inner-border-color-over,
+        $inner-border-color-focus: $button-default-inner-border-color-focus,
+        $inner-border-color-pressed: $button-default-inner-border-color-pressed,
+        $inner-border-color-focus-over: $button-default-inner-border-color-focus-over,
+        $inner-border-color-focus-pressed: $button-default-inner-border-color-focus-pressed,
+        $inner-border-color-disabled: $button-default-inner-border-color-disabled,
 
         $font-size: $button-small-font-size,
         $font-size-over: $button-small-font-size-over,
         $font-size-focus: $button-small-font-size-focus,
         $font-size-pressed: $button-small-font-size-pressed,
+        $font-size-focus-over: $button-small-font-size-focus-over,
+        $font-size-focus-pressed: $button-small-font-size-focus-pressed,
         $font-size-disabled: $button-small-font-size-disabled,
 
         $font-weight: $button-small-font-weight,
         $font-weight-over: $button-small-font-weight-over,
         $font-weight-focus: $button-small-font-weight-focus,
         $font-weight-pressed: $button-small-font-weight-pressed,
+        $font-weight-focus-over: $button-small-font-weight-focus-over,
+        $font-weight-focus-pressed: $button-small-font-weight-focus-pressed,
         $font-weight-disabled: $button-small-font-weight-disabled,
 
         $font-family: $button-small-font-family,
         $font-family-over: $button-small-font-family-over,
         $font-family-focus: $button-small-font-family-focus,
         $font-family-pressed: $button-small-font-family-pressed,
+        $font-family-focus-over: $button-small-font-family-focus-over,
+        $font-family-focus-pressed: $button-small-font-family-focus-pressed,
         $font-family-disabled: $button-small-font-family-disabled
     );
 }
@@ -838,36 +1219,64 @@
         $border-color-over: $button-default-border-color-over,
         $border-color-focus: $button-default-border-color-focus,
         $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-focus-over: $button-default-border-color-focus-over,
+        $border-color-focus-pressed: $button-default-border-color-focus-pressed,
         $border-color-disabled: $button-default-border-color-disabled,
 
         $background-color: $button-default-background-color,
         $background-color-over: $button-default-background-color-over,
         $background-color-focus: $button-default-background-color-focus,
         $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-focus-over: $button-default-background-color-focus-over,
+        $background-color-focus-pressed: $button-default-background-color-focus-pressed,
         $background-color-disabled: $button-default-background-color-disabled,
 
         $color: $button-default-color,
         $color-over: $button-default-color-over,
         $color-focus: $button-default-color-focus,
         $color-pressed: $button-default-color-pressed,
+        $color-focus-over: $button-default-color-focus-over,
+        $color-focus-pressed: $button-default-color-focus-pressed,
         $color-disabled: $button-default-color-disabled,
+
+        $inner-border-width: $button-default-inner-border-width,
+        $inner-border-width-over: $button-default-inner-border-width-over,
+        $inner-border-width-focus: $button-default-inner-border-width-focus,
+        $inner-border-width-pressed: $button-default-inner-border-width-pressed,
+        $inner-border-width-focus-over: $button-default-inner-border-width-focus-over,
+        $inner-border-width-focus-pressed: $button-default-inner-border-width-focus-pressed,
+        $inner-border-width-disabled: $button-default-inner-border-width-disabled,
+
+        $inner-border-color: $button-default-inner-border-color,
+        $inner-border-color-over: $button-default-inner-border-color-over,
+        $inner-border-color-focus: $button-default-inner-border-color-focus,
+        $inner-border-color-pressed: $button-default-inner-border-color-pressed,
+        $inner-border-color-focus-over: $button-default-inner-border-color-focus-over,
+        $inner-border-color-focus-pressed: $button-default-inner-border-color-focus-pressed,
+        $inner-border-color-disabled: $button-default-inner-border-color-disabled,
 
         $font-size: $button-medium-font-size,
         $font-size-over: $button-medium-font-size-over,
         $font-size-focus: $button-medium-font-size-focus,
         $font-size-pressed: $button-medium-font-size-pressed,
+        $font-size-focus-over: $button-medium-font-size-focus-over,
+        $font-size-focus-pressed: $button-medium-font-size-focus-pressed,
         $font-size-disabled: $button-medium-font-size-disabled,
 
         $font-weight: $button-medium-font-weight,
         $font-weight-over: $button-medium-font-weight-over,
         $font-weight-focus: $button-medium-font-weight-focus,
         $font-weight-pressed: $button-medium-font-weight-pressed,
+        $font-weight-focus-over: $button-medium-font-weight-focus-over,
+        $font-weight-focus-pressed: $button-medium-font-weight-focus-pressed,
         $font-weight-disabled: $button-medium-font-weight-disabled,
 
         $font-family: $button-medium-font-family,
         $font-family-over: $button-medium-font-family-over,
         $font-family-focus: $button-medium-font-family-focus,
         $font-family-pressed: $button-medium-font-family-pressed,
+        $font-family-focus-over: $button-medium-font-family-focus-over,
+        $font-family-focus-pressed: $button-medium-font-family-focus-pressed,
         $font-family-disabled: $button-medium-font-family-disabled
     );
 }
@@ -880,36 +1289,64 @@
         $border-color-over: $button-default-border-color-over,
         $border-color-focus: $button-default-border-color-focus,
         $border-color-pressed: $button-default-border-color-pressed,
+        $border-color-focus-over: $button-default-border-color-focus-over,
+        $border-color-focus-pressed: $button-default-border-color-focus-pressed,
         $border-color-disabled: $button-default-border-color-disabled,
 
         $background-color: $button-default-background-color,
         $background-color-over: $button-default-background-color-over,
         $background-color-focus: $button-default-background-color-focus,
         $background-color-pressed: $button-default-background-color-pressed,
+        $background-color-focus-over: $button-default-background-color-focus-over,
+        $background-color-focus-pressed: $button-default-background-color-focus-pressed,
         $background-color-disabled: $button-default-background-color-disabled,
 
         $color: $button-default-color,
         $color-over: $button-default-color-over,
         $color-focus: $button-default-color-focus,
         $color-pressed: $button-default-color-pressed,
+        $color-focus-over: $button-default-color-focus-over,
+        $color-focus-pressed: $button-default-color-focus-pressed,
         $color-disabled: $button-default-color-disabled,
+
+        $inner-border-width: $button-default-inner-border-width,
+        $inner-border-width-over: $button-default-inner-border-width-over,
+        $inner-border-width-focus: $button-default-inner-border-width-focus,
+        $inner-border-width-pressed: $button-default-inner-border-width-pressed,
+        $inner-border-width-focus-over: $button-default-inner-border-width-focus-over,
+        $inner-border-width-focus-pressed: $button-default-inner-border-width-focus-pressed,
+        $inner-border-width-disabled: $button-default-inner-border-width-disabled,
+
+        $inner-border-color: $button-default-inner-border-color,
+        $inner-border-color-over: $button-default-inner-border-color-over,
+        $inner-border-color-focus: $button-default-inner-border-color-focus,
+        $inner-border-color-pressed: $button-default-inner-border-color-pressed,
+        $inner-border-color-focus-over: $button-default-inner-border-color-focus-over,
+        $inner-border-color-focus-pressed: $button-default-inner-border-color-focus-pressed,
+        $inner-border-color-disabled: $button-default-inner-border-color-disabled,
 
         $font-size: $button-large-font-size,
         $font-size-over: $button-large-font-size-over,
         $font-size-focus: $button-large-font-size-focus,
         $font-size-pressed: $button-large-font-size-pressed,
+        $font-size-focus-over: $button-large-font-size-focus-over,
+        $font-size-focus-pressed: $button-large-font-size-focus-pressed,
         $font-size-disabled: $button-large-font-size-disabled,
 
         $font-weight: $button-large-font-weight,
         $font-weight-over: $button-large-font-weight-over,
         $font-weight-focus: $button-large-font-weight-focus,
         $font-weight-pressed: $button-large-font-weight-pressed,
+        $font-weight-focus-over: $button-large-font-weight-focus-over,
+        $font-weight-focus-pressed: $button-large-font-weight-focus-pressed,
         $font-weight-disabled: $button-large-font-weight-disabled,
 
         $font-family: $button-large-font-family,
         $font-family-over: $button-large-font-family-over,
         $font-family-focus: $button-large-font-family-focus,
         $font-family-pressed: $button-large-font-family-pressed,
+        $font-family-focus-over: $button-large-font-family-focus-over,
+        $font-family-focus-pressed: $button-large-font-family-focus-pressed,
         $font-family-disabled: $button-large-font-family-disabled
     );
 }
@@ -923,36 +1360,64 @@
             $border-color-over: $button-toolbar-border-color-over,
             $border-color-focus: $button-toolbar-border-color-focus,
             $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-focus-over: $button-toolbar-border-color-focus-over,
+            $border-color-focus-pressed: $button-toolbar-border-color-focus-pressed,
             $border-color-disabled: $button-toolbar-border-color-disabled,
 
             $background-color: $button-toolbar-background-color,
             $background-color-over: $button-toolbar-background-color-over,
             $background-color-focus: $button-toolbar-background-color-focus,
             $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-focus-over: $button-toolbar-background-color-focus-over,
+            $background-color-focus-pressed: $button-toolbar-background-color-focus-pressed,
             $background-color-disabled: $button-toolbar-background-color-disabled,
 
             $color: $button-toolbar-color,
             $color-over: $button-toolbar-color-over,
             $color-focus: $button-toolbar-color-focus,
             $color-pressed: $button-toolbar-color-pressed,
+            $color-focus-over: $button-toolbar-color-focus-over,
+            $color-focus-pressed: $button-toolbar-color-focus-pressed,
             $color-disabled: $button-toolbar-color-disabled,
+
+            $inner-border-width: $button-toolbar-inner-border-width,
+            $inner-border-width-over: $button-toolbar-inner-border-width-over,
+            $inner-border-width-focus: $button-toolbar-inner-border-width-focus,
+            $inner-border-width-pressed: $button-toolbar-inner-border-width-pressed,
+            $inner-border-width-focus-over: $button-toolbar-inner-border-width-focus-over,
+            $inner-border-width-focus-pressed: $button-toolbar-inner-border-width-focus-pressed,
+            $inner-border-width-disabled: $button-toolbar-inner-border-width-disabled,
+
+            $inner-border-color: $button-toolbar-inner-border-color,
+            $inner-border-color-over: $button-toolbar-inner-border-color-over,
+            $inner-border-color-focus: $button-toolbar-inner-border-color-focus,
+            $inner-border-color-pressed: $button-toolbar-inner-border-color-pressed,
+            $inner-border-color-focus-over: $button-toolbar-inner-border-color-focus-over,
+            $inner-border-color-focus-pressed: $button-toolbar-inner-border-color-focus-pressed,
+            $inner-border-color-disabled: $button-toolbar-inner-border-color-disabled,
 
             $font-size: $button-small-font-size,
             $font-size-over: $button-small-font-size-over,
             $font-size-focus: $button-small-font-size-focus,
             $font-size-pressed: $button-small-font-size-pressed,
+            $font-size-focus-over: $button-small-font-size-focus-over,
+            $font-size-focus-pressed: $button-small-font-size-focus-pressed,
             $font-size-disabled: $button-small-font-size-disabled,
 
             $font-weight: $button-small-font-weight,
             $font-weight-over: $button-small-font-weight-over,
             $font-weight-focus: $button-small-font-weight-focus,
             $font-weight-pressed: $button-small-font-weight-pressed,
+            $font-weight-focus-over: $button-small-font-weight-focus-over,
+            $font-weight-focus-pressed: $button-small-font-weight-focus-pressed,
             $font-weight-disabled: $button-small-font-weight-disabled,
 
             $font-family: $button-small-font-family,
             $font-family-over: $button-small-font-family-over,
             $font-family-focus: $button-small-font-family-focus,
             $font-family-pressed: $button-small-font-family-pressed,
+            $font-family-focus-over: $button-small-font-family-focus-over,
+            $font-family-focus-pressed: $button-small-font-family-focus-pressed,
             $font-family-disabled: $button-small-font-family-disabled
         );
     }
@@ -965,36 +1430,64 @@
             $border-color-over: $button-toolbar-border-color-over,
             $border-color-focus: $button-toolbar-border-color-focus,
             $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-focus-over: $button-toolbar-border-color-focus-over,
+            $border-color-focus-pressed: $button-toolbar-border-color-focus-pressed,
             $border-color-disabled: $button-toolbar-border-color-disabled,
 
             $background-color: $button-toolbar-background-color,
             $background-color-over: $button-toolbar-background-color-over,
             $background-color-focus: $button-toolbar-background-color-focus,
             $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-focus-over: $button-toolbar-background-color-focus-over,
+            $background-color-focus-pressed: $button-toolbar-background-color-focus-pressed,
             $background-color-disabled: $button-toolbar-background-color-disabled,
 
             $color: $button-toolbar-color,
             $color-over: $button-toolbar-color-over,
             $color-focus: $button-toolbar-color-focus,
             $color-pressed: $button-toolbar-color-pressed,
+            $color-focus-over: $button-toolbar-color-focus-over,
+            $color-focus-pressed: $button-toolbar-color-focus-pressed,
             $color-disabled: $button-toolbar-color-disabled,
+
+            $inner-border-width: $button-toolbar-inner-border-width,
+            $inner-border-width-over: $button-toolbar-inner-border-width-over,
+            $inner-border-width-focus: $button-toolbar-inner-border-width-focus,
+            $inner-border-width-pressed: $button-toolbar-inner-border-width-pressed,
+            $inner-border-width-focus-over: $button-toolbar-inner-border-width-focus-over,
+            $inner-border-width-focus-pressed: $button-toolbar-inner-border-width-focus-pressed,
+            $inner-border-width-disabled: $button-toolbar-inner-border-width-disabled,
+
+            $inner-border-color: $button-toolbar-inner-border-color,
+            $inner-border-color-over: $button-toolbar-inner-border-color-over,
+            $inner-border-color-focus: $button-toolbar-inner-border-color-focus,
+            $inner-border-color-pressed: $button-toolbar-inner-border-color-pressed,
+            $inner-border-color-focus-over: $button-toolbar-inner-border-color-focus-over,
+            $inner-border-color-focus-pressed: $button-toolbar-inner-border-color-focus-pressed,
+            $inner-border-color-disabled: $button-toolbar-inner-border-color-disabled,
 
             $font-size: $button-medium-font-size,
             $font-size-over: $button-medium-font-size-over,
             $font-size-focus: $button-medium-font-size-focus,
             $font-size-pressed: $button-medium-font-size-pressed,
+            $font-size-focus-over: $button-medium-font-size-focus-over,
+            $font-size-focus-pressed: $button-medium-font-size-focus-pressed,
             $font-size-disabled: $button-medium-font-size-disabled,
 
             $font-weight: $button-medium-font-weight,
             $font-weight-over: $button-medium-font-weight-over,
             $font-weight-focus: $button-medium-font-weight-focus,
             $font-weight-pressed: $button-medium-font-weight-pressed,
+            $font-weight-focus-over: $button-medium-font-weight-focus-over,
+            $font-weight-focus-pressed: $button-medium-font-weight-focus-pressed,
             $font-weight-disabled: $button-medium-font-weight-disabled,
 
             $font-family: $button-medium-font-family,
             $font-family-over: $button-medium-font-family-over,
             $font-family-focus: $button-medium-font-family-focus,
             $font-family-pressed: $button-medium-font-family-pressed,
+            $font-family-focus-over: $button-medium-font-family-focus-over,
+            $font-family-focus-pressed: $button-medium-font-family-focus-pressed,
             $font-family-disabled: $button-medium-font-family-disabled
         );
     }
@@ -1007,36 +1500,64 @@
             $border-color-over: $button-toolbar-border-color-over,
             $border-color-focus: $button-toolbar-border-color-focus,
             $border-color-pressed: $button-toolbar-border-color-pressed,
+            $border-color-focus-over: $button-toolbar-border-color-focus-over,
+            $border-color-focus-pressed: $button-toolbar-border-color-focus-pressed,
             $border-color-disabled: $button-toolbar-border-color-disabled,
 
             $background-color: $button-toolbar-background-color,
             $background-color-over: $button-toolbar-background-color-over,
             $background-color-focus: $button-toolbar-background-color-focus,
             $background-color-pressed: $button-toolbar-background-color-pressed,
+            $background-color-focus-over: $button-toolbar-background-color-focus-over,
+            $background-color-focus-pressed: $button-toolbar-background-color-focus-pressed,
             $background-color-disabled: $button-toolbar-background-color-disabled,
 
             $color: $button-toolbar-color,
             $color-over: $button-toolbar-color-over,
             $color-focus: $button-toolbar-color-focus,
             $color-pressed: $button-toolbar-color-pressed,
+            $color-focus-over: $button-toolbar-color-focus-over,
+            $color-focus-pressed: $button-toolbar-color-focus-pressed,
             $color-disabled: $button-toolbar-color-disabled,
+
+            $inner-border-width: $button-toolbar-inner-border-width,
+            $inner-border-width-over: $button-toolbar-inner-border-width-over,
+            $inner-border-width-focus: $button-toolbar-inner-border-width-focus,
+            $inner-border-width-pressed: $button-toolbar-inner-border-width-pressed,
+            $inner-border-width-focus-over: $button-toolbar-inner-border-width-focus-over,
+            $inner-border-width-focus-pressed: $button-toolbar-inner-border-width-focus-pressed,
+            $inner-border-width-disabled: $button-toolbar-inner-border-width-disabled,
+
+            $inner-border-color: $button-toolbar-inner-border-color,
+            $inner-border-color-over: $button-toolbar-inner-border-color-over,
+            $inner-border-color-focus: $button-toolbar-inner-border-color-focus,
+            $inner-border-color-pressed: $button-toolbar-inner-border-color-pressed,
+            $inner-border-color-focus-over: $button-toolbar-inner-border-color-focus-over,
+            $inner-border-color-focus-pressed: $button-toolbar-inner-border-color-focus-pressed,
+            $inner-border-color-disabled: $button-toolbar-inner-border-color-disabled,
 
             $font-size: $button-large-font-size,
             $font-size-over: $button-large-font-size-over,
             $font-size-focus: $button-large-font-size-focus,
             $font-size-pressed: $button-large-font-size-pressed,
+            $font-size-focus-over: $button-large-font-size-focus-over,
+            $font-size-focus-pressed: $button-large-font-size-focus-pressed,
             $font-size-disabled: $button-large-font-size-disabled,
 
             $font-weight: $button-large-font-weight,
             $font-weight-over: $button-large-font-weight-over,
             $font-weight-focus: $button-large-font-weight-focus,
             $font-weight-pressed: $button-large-font-weight-pressed,
+            $font-weight-focus-over: $button-large-font-weight-focus-over,
+            $font-weight-focus-pressed: $button-large-font-weight-focus-pressed,
             $font-weight-disabled: $button-large-font-weight-disabled,
 
             $font-family: $button-large-font-family,
             $font-family-over: $button-large-font-family-over,
             $font-family-focus: $button-large-font-family-focus,
             $font-family-pressed: $button-large-font-family-pressed,
+            $font-family-focus-over: $button-large-font-family-focus-over,
+            $font-family-focus-pressed: $button-large-font-family-focus-pressed,
             $font-family-disabled: $button-large-font-family-disabled
         );
     }

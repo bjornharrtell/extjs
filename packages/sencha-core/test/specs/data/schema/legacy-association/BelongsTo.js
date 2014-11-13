@@ -35,6 +35,8 @@ describe("Ext.data.association.BelongsTo_legacy", function() {
             fields: ['id', 'name']
         });
         
+        spyOn(Ext.log, 'warn');
+        
         Ext.define('spec.Post', {
             extend: 'Ext.data.Model',
             fields: ['id', 'title', 'content', 'user_id'],
@@ -137,6 +139,17 @@ describe("Ext.data.association.BelongsTo_legacy", function() {
             expectGetSet('getBar', 'setBar');
             
             Ext.undefine('spec.Bar');
+        });
+
+        it("should use the name parameter as the role", function() {
+            Ext.define('spec.Foo', {
+                extend: 'Ext.data.Model',
+                belongsTo: {
+                    model: 'spec.User',
+                    name: 'snoozer'
+                }
+            });
+            expectGetSet('getSnoozer', 'setSnoozer');
         });
     });
     

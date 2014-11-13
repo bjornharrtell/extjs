@@ -169,15 +169,35 @@ Ext.define('KitchenSink.view.grid.WidgetGrid', {
                 enableToggle: true,
                 pressed: true,
                 scope: me,
-                toggleHandler: me.onToggle
+                toggleHandler: me.onButtonToggle
             });
         }
 
         me.callParent();
+        me.on({
+            columnshow: me.onColumnToggle,
+            columnhide: me.onColumnToggle
+        })
     },
 
-    onToggle: function(btn, pressed) {
+    onButtonToggle: function(btn, pressed) {
+        if (this.processing) {
+            return;
+        }
+
+        this.processing = true;
         var header = this.headerCt.child('[text=' + btn.text + ']');
         header.setVisible(pressed);
+        this.processing = false;
+    },
+
+    onColumnToggle: function(headerCt, header) {
+        if (this.processing) {
+            return;
+        }
+        this.processing = true;
+        var btn = this.down('toolbar').child('[text=' + header.text + ']');
+        btn.setPressed(header.isVisible());
+        this.processing = false;
     }
 });

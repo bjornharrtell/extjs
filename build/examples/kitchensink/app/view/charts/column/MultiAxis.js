@@ -72,8 +72,7 @@ Ext.define('KitchenSink.view.charts.column.MultiAxis', {
                     minimum: 32,
                     grid: true,
                     title: {
-                        text: 'Temperature in °F',
-                        fontSize: 14
+                        text: 'Temperature in °F'
                     },
                     listeners: {
                         rangechange: function (range) {
@@ -92,7 +91,6 @@ Ext.define('KitchenSink.view.charts.column.MultiAxis', {
                     position: 'right',
                     title: {
                         text: 'Temperature in °C',
-                        fontSize: 14,
                         fillStyle: 'red'
                     }
                 },
@@ -106,7 +104,6 @@ Ext.define('KitchenSink.view.charts.column.MultiAxis', {
                     linkedTo: 'months-axis',
                     title: {
                         text: 'Climate data for Redwood City, California',
-                        fontSize: 16,
                         fillStyle: 'green'
                     },
                     titleMargin: 20

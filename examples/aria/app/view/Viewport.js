@@ -76,8 +76,8 @@ Ext.define('Aria.view.Viewport', {
                         win.showBy(this, 'tr', [num*20, num*20]);
                     }
                 }]
-            }, {
-                xtype: 'mysimpleitemselector'
+//             }, {
+//                 xtype: 'mysimpleitemselector'
 //             }, {
 //                 xtype: 'mysimpledatepicker'
             }, {

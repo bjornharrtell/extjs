@@ -8,7 +8,6 @@ var Ext = Ext || { }; Ext.manifest = {
     "Ext.Array": "packages/sencha-core/src/lang/Array.js",
     "Ext.Assert": "packages/sencha-core/src/lang/Assert.js",
     "Ext.Base": "packages/sencha-core/src/class/Base.js",
-    "Ext.Boot": "packages/sencha-core/.sencha/package/Boot.js",
     "Ext.Class": "packages/sencha-core/src/class/Class.js",
     "Ext.ClassManager": "packages/sencha-core/src/class/ClassManager.js",
     "Ext.ComponentManager": "packages/sencha-core/src/ComponentManager.js",
@@ -30,6 +29,7 @@ var Ext = Ext || { }; Ext.manifest = {
     "Ext.Object": "packages/sencha-core/src/lang/Object.js",
     "Ext.Script": "packages/sencha-core/src/class/Inventory.js",
     "Ext.String": "packages/sencha-core/src/lang/String.js",
+    "Ext.String.format": "packages/sencha-core/src/Template.js",
     "Ext.TaskQueue": "packages/sencha-core/src/TaskQueue.js",
     "Ext.Template": "packages/sencha-core/src/Template.js",
     "Ext.Util": "packages/sencha-core/src/Util.js",
@@ -73,6 +73,9 @@ var Ext = Ext || { }; Ext.manifest = {
     "Ext.util.Cookies": "src/util/Cookies.js",
     "Ext.util.ElementContainer": "src/util/ElementContainer.js",
     "Ext.util.Floating": "src/util/Floating.js",
+    "Ext.util.Focusable": "src/util/Focusable.js",
+    "Ext.util.FocusableContainer": "src/util/FocusableContainer.js",
+    "Ext.util.Format.format": "packages/sencha-core/src/Template.js",
     "Ext.util.History": "src/util/History.js",
     "Ext.util.KeyMap": "src/util/KeyMap.js",
     "Ext.util.KeyNav": "src/util/KeyNav.js",
@@ -84,274 +87,281 @@ var Ext = Ext || { }; Ext.manifest = {
   },
   "loadOrder": [
     {
-      "path": "packages/sencha-core/src/mixin/Identifiable.js",
+      "path": "packages/sencha-core/src/event/ListenerStack.js",
       "requires": [],
       "uses": [],
       "idx": 0
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Recognizer.js",
-      "requires": [
-        0
-      ],
+      "path": "packages/sencha-core/src/event/Controller.js",
+      "requires": [],
       "uses": [],
       "idx": 1
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/SingleTouch.js",
+      "path": "packages/sencha-core/src/event/Dispatcher.js",
       "requires": [
+        0,
         1
       ],
       "uses": [],
       "idx": 2
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/DoubleTap.js",
-      "requires": [
-        2
-      ],
+      "path": "packages/sencha-core/src/class/Mixin.js",
+      "requires": [],
       "uses": [],
       "idx": 3
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Drag.js",
-      "requires": [
-        2
-      ],
+      "path": "packages/sencha-core/src/mixin/Identifiable.js",
+      "requires": [],
       "uses": [],
       "idx": 4
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Swipe.js",
+      "path": "packages/sencha-core/src/mixin/Observable.js",
       "requires": [
-        2
+        2,
+        3,
+        4
       ],
       "uses": [],
       "idx": 5
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/EdgeSwipe.js",
+      "path": "packages/sencha-core/src/util/HashMap.js",
       "requires": [
         5
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 6
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/LongPress.js",
+      "path": "packages/sencha-core/src/AbstractManager.js",
       "requires": [
-        2
+        6
       ],
       "uses": [],
       "idx": 7
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/MultiTouch.js",
-      "requires": [
-        1
+      "path": "packages/sencha-core/src/data/flash/BinaryXhr.js",
+      "requires": [],
+      "uses": [
+        51
       ],
-      "uses": [],
       "idx": 8
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Pinch.js",
+      "path": "packages/sencha-core/src/data/Connection.js",
       "requires": [
+        5,
         8
       ],
-      "uses": [],
+      "uses": [
+        19,
+        51
+      ],
       "idx": 9
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Rotate.js",
+      "path": "packages/sencha-core/src/Ajax.js",
       "requires": [
-        8
+        9
       ],
       "uses": [],
       "idx": 10
     },
     {
-      "path": "packages/sencha-core/src/event/gesture/Tap.js",
-      "requires": [
-        2
-      ],
+      "path": "packages/sencha-core/src/AnimationQueue.js",
+      "requires": [],
       "uses": [],
       "idx": 11
     },
     {
-      "path": "packages/sencha-core/src/event/publisher/Publisher.js",
+      "path": "packages/sencha-core/src/ComponentManager.js",
       "requires": [],
       "uses": [],
       "idx": 12
     },
     {
-      "path": "packages/sencha-core/src/util/Offset.js",
+      "path": "packages/sencha-core/src/util/Operators.js",
       "requires": [],
       "uses": [],
       "idx": 13
     },
     {
-      "path": "packages/sencha-core/src/util/Region.js",
+      "path": "packages/sencha-core/src/util/LruCache.js",
       "requires": [
-        13
+        6
       ],
       "uses": [],
       "idx": 14
     },
     {
-      "path": "packages/sencha-core/src/util/Point.js",
+      "path": "packages/sencha-core/src/ComponentQuery.js",
       "requires": [
+        12,
+        13,
         14
       ],
-      "uses": [],
+      "uses": [
+        56
+      ],
       "idx": 15
     },
     {
-      "path": "packages/sencha-core/src/event/Event.js",
+      "path": "packages/sencha-core/src/Evented.js",
       "requires": [
-        15,
-        18
+        5
       ],
       "uses": [],
       "idx": 16
     },
     {
-      "path": "src/rtl/event/Event.js",
-      "requires": [],
-      "uses": [
-        27
-      ],
-      "idx": 17
-    },
-    {
-      "path": "overrides/event/Event.js",
-      "requires": [],
-      "uses": [
-        60
-      ],
-      "idx": 18
-    },
-    {
-      "path": "packages/sencha-core/src/event/ListenerStack.js",
-      "requires": [],
-      "uses": [],
-      "idx": 19
-    },
-    {
-      "path": "packages/sencha-core/src/event/Controller.js",
-      "requires": [],
-      "uses": [],
-      "idx": 20
-    },
-    {
-      "path": "packages/sencha-core/src/event/Dispatcher.js",
-      "requires": [
-        19,
-        20
-      ],
-      "uses": [],
-      "idx": 21
-    },
-    {
-      "path": "packages/sencha-core/src/class/Mixin.js",
-      "requires": [],
-      "uses": [],
-      "idx": 22
-    },
-    {
-      "path": "packages/sencha-core/src/mixin/Observable.js",
-      "requires": [
-        0,
-        21,
-        22
-      ],
-      "uses": [],
-      "idx": 23
-    },
-    {
       "path": "packages/sencha-core/src/util/Positionable.js",
       "requires": [
-        25
+        18
       ],
       "uses": [
-        14,
-        27
+        19,
+        87
       ],
-      "idx": 24
+      "idx": 17
     },
     {
       "path": "overrides/Positionable.js",
       "requires": [],
       "uses": [],
-      "idx": 25
-    },
-    {
-      "path": "overrides/dom/Helper.js",
-      "requires": [],
-      "uses": [],
-      "idx": 26
+      "idx": 18
     },
     {
       "path": "packages/sencha-core/src/dom/Element.js",
       "requires": [
-        23,
-        24,
-        59
+        5,
+        17,
+        50
       ],
       "uses": [
-        14,
-        28,
-        29,
-        60,
-        207
+        20,
+        21,
+        51,
+        56,
+        61,
+        87,
+        194
       ],
-      "idx": 27
+      "idx": 19
     },
     {
       "path": "packages/sencha-core/src/dom/Fly.js",
       "requires": [
-        27
+        19
       ],
       "uses": [],
-      "idx": 28
+      "idx": 20
     },
     {
       "path": "packages/sencha-core/src/dom/CompositeElementLite.js",
       "requires": [
-        28
+        20
       ],
       "uses": [
-        27
+        19
       ],
-      "idx": 29
+      "idx": 21
     },
     {
       "path": "src/rtl/dom/Element.js",
       "requires": [
-        29
+        21
       ],
       "uses": [
-        27
+        19
       ],
-      "idx": 30
+      "idx": 22
     },
     {
       "path": "packages/sencha-core/src/util/Filter.js",
       "requires": [],
       "uses": [],
-      "idx": 31
+      "idx": 23
     },
     {
       "path": "packages/sencha-core/src/util/DelayedTask.js",
       "requires": [],
       "uses": [
-        60
+        51
       ],
-      "idx": 32
+      "idx": 24
     },
     {
       "path": "packages/sencha-core/src/util/Event.js",
+      "requires": [
+        24
+      ],
+      "uses": [],
+      "idx": 25
+    },
+    {
+      "path": "packages/sencha-core/src/util/Observable.js",
+      "requires": [
+        25
+      ],
+      "uses": [],
+      "idx": 26
+    },
+    {
+      "path": "packages/sencha-core/src/util/AbstractMixedCollection.js",
+      "requires": [
+        23,
+        26
+      ],
+      "uses": [],
+      "idx": 27
+    },
+    {
+      "path": "packages/sencha-core/src/util/Sorter.js",
+      "requires": [],
+      "uses": [],
+      "idx": 28
+    },
+    {
+      "path": "packages/sencha-core/src/util/Sortable.js",
+      "requires": [
+        28
+      ],
+      "uses": [
+        30
+      ],
+      "idx": 29
+    },
+    {
+      "path": "packages/sencha-core/src/util/MixedCollection.js",
+      "requires": [
+        27,
+        29
+      ],
+      "uses": [],
+      "idx": 30
+    },
+    {
+      "path": "packages/sencha-core/src/util/TaskRunner.js",
+      "requires": [],
+      "uses": [
+        51
+      ],
+      "idx": 31
+    },
+    {
+      "path": "src/fx/target/Target.js",
+      "requires": [],
+      "uses": [],
+      "idx": 32
+    },
+    {
+      "path": "src/fx/target/Element.js",
       "requires": [
         32
       ],
@@ -359,7 +369,7 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 33
     },
     {
-      "path": "packages/sencha-core/src/util/Observable.js",
+      "path": "src/fx/target/ElementCSS.js",
       "requires": [
         33
       ],
@@ -367,96 +377,106 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 34
     },
     {
-      "path": "packages/sencha-core/src/util/AbstractMixedCollection.js",
+      "path": "src/fx/target/CompositeElement.js",
       "requires": [
-        31,
-        34
+        33
       ],
       "uses": [],
       "idx": 35
     },
     {
-      "path": "packages/sencha-core/src/util/Sorter.js",
-      "requires": [],
+      "path": "src/fx/target/CompositeElementCSS.js",
+      "requires": [
+        34,
+        35
+      ],
       "uses": [],
       "idx": 36
     },
     {
-      "path": "packages/sencha-core/src/util/Sortable.js",
+      "path": "src/fx/target/Sprite.js",
       "requires": [
-        36
+        32
       ],
-      "uses": [
-        38
-      ],
+      "uses": [],
       "idx": 37
     },
     {
-      "path": "packages/sencha-core/src/util/MixedCollection.js",
+      "path": "src/fx/target/CompositeSprite.js",
       "requires": [
-        35,
         37
       ],
       "uses": [],
       "idx": 38
     },
     {
-      "path": "packages/sencha-core/src/util/TaskRunner.js",
-      "requires": [],
+      "path": "src/fx/target/Component.js",
+      "requires": [
+        32
+      ],
       "uses": [
-        60
+        51
       ],
       "idx": 39
     },
     {
-      "path": "src/fx/target/Target.js",
-      "requires": [],
+      "path": "src/fx/Queue.js",
+      "requires": [
+        6
+      ],
       "uses": [],
       "idx": 40
     },
     {
-      "path": "src/fx/target/Element.js",
+      "path": "src/fx/Manager.js",
       "requires": [
+        30,
+        31,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
         40
       ],
       "uses": [],
       "idx": 41
     },
     {
-      "path": "src/fx/target/ElementCSS.js",
+      "path": "src/fx/Animator.js",
       "requires": [
+        26,
         41
       ],
-      "uses": [],
+      "uses": [
+        47
+      ],
       "idx": 42
     },
     {
-      "path": "src/fx/target/CompositeElement.js",
-      "requires": [
-        41
-      ],
+      "path": "src/fx/CubicBezier.js",
+      "requires": [],
       "uses": [],
       "idx": 43
     },
     {
-      "path": "src/fx/target/CompositeElementCSS.js",
+      "path": "src/fx/Easing.js",
       "requires": [
-        42,
         43
       ],
       "uses": [],
       "idx": 44
     },
     {
-      "path": "src/fx/target/Sprite.js",
-      "requires": [
-        40
-      ],
+      "path": "src/fx/DrawPath.js",
+      "requires": [],
       "uses": [],
       "idx": 45
     },
     {
-      "path": "src/fx/target/CompositeSprite.js",
+      "path": "src/fx/PropertyHandler.js",
       "requires": [
         45
       ],
@@ -464,438 +484,451 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 46
     },
     {
-      "path": "src/fx/target/Component.js",
+      "path": "src/fx/Anim.js",
       "requires": [
-        40
+        26,
+        41,
+        42,
+        43,
+        44,
+        46
       ],
-      "uses": [
-        60
-      ],
+      "uses": [],
       "idx": 47
     },
     {
-      "path": "packages/sencha-core/src/util/HashMap.js",
+      "path": "src/util/Animate.js",
       "requires": [
-        23
+        41,
+        47
       ],
       "uses": [],
       "idx": 48
     },
     {
-      "path": "src/fx/Queue.js",
-      "requires": [
-        48
-      ],
+      "path": "packages/sencha-core/src/dom/GarbageCollector.js",
+      "requires": [],
       "uses": [],
       "idx": 49
     },
     {
-      "path": "src/fx/Manager.js",
-      "requires": [
-        38,
-        39,
-        41,
-        42,
-        43,
-        44,
-        45,
-        46,
-        47,
-        49
-      ],
-      "uses": [],
-      "idx": 50
-    },
-    {
-      "path": "src/fx/Animator.js",
-      "requires": [
-        34,
-        50
-      ],
-      "uses": [
-        56
-      ],
-      "idx": 51
-    },
-    {
-      "path": "src/fx/CubicBezier.js",
-      "requires": [],
-      "uses": [],
-      "idx": 52
-    },
-    {
-      "path": "src/fx/Easing.js",
-      "requires": [
-        52
-      ],
-      "uses": [],
-      "idx": 53
-    },
-    {
-      "path": "src/fx/DrawPath.js",
-      "requires": [],
-      "uses": [],
-      "idx": 54
-    },
-    {
-      "path": "src/fx/PropertyHandler.js",
-      "requires": [
-        54
-      ],
-      "uses": [],
-      "idx": 55
-    },
-    {
-      "path": "src/fx/Anim.js",
-      "requires": [
-        34,
-        50,
-        51,
-        52,
-        53,
-        55
-      ],
-      "uses": [],
-      "idx": 56
-    },
-    {
-      "path": "src/util/Animate.js",
-      "requires": [
-        50,
-        56
-      ],
-      "uses": [],
-      "idx": 57
-    },
-    {
-      "path": "packages/sencha-core/src/dom/GarbageCollector.js",
-      "requires": [],
-      "uses": [],
-      "idx": 58
-    },
-    {
       "path": "overrides/dom/Element.js",
       "requires": [
-        27,
-        28,
-        29,
-        57,
-        58
+        19,
+        20,
+        21,
+        48,
+        49
       ],
       "uses": [
-        50,
-        51,
+        41,
+        42,
+        47,
         56,
-        291,
-        302,
-        356,
-        358,
-        414
+        194,
+        296,
+        307,
+        364,
+        366,
+        423
       ],
-      "idx": 59
+      "idx": 50
     },
     {
       "path": "packages/sencha-core/src/GlobalEvents.js",
       "requires": [
-        23,
-        27,
-        61
+        5,
+        19,
+        52
       ],
       "uses": [],
-      "idx": 60
+      "idx": 51
     },
     {
       "path": "overrides/GlobalEvents.js",
       "requires": [],
       "uses": [],
+      "idx": 52
+    },
+    {
+      "path": "packages/sencha-core/src/JSON.js",
+      "requires": [],
+      "uses": [],
+      "idx": 53
+    },
+    {
+      "path": "packages/sencha-core/src/TaskQueue.js",
+      "requires": [
+        11
+      ],
+      "uses": [],
+      "idx": 54
+    },
+    {
+      "path": "packages/sencha-core/src/util/Format.js",
+      "requires": [],
+      "uses": [
+        56,
+        194
+      ],
+      "idx": 55
+    },
+    {
+      "path": "packages/sencha-core/src/Template.js",
+      "requires": [
+        55
+      ],
+      "uses": [
+        194
+      ],
+      "idx": 56
+    },
+    {
+      "path": "packages/sencha-core/src/mixin/Inheritable.js",
+      "requires": [
+        3
+      ],
+      "uses": [],
+      "idx": 57
+    },
+    {
+      "path": "packages/sencha-core/src/mixin/Bindable.js",
+      "requires": [],
+      "uses": [
+        102
+      ],
+      "idx": 58
+    },
+    {
+      "path": "packages/sencha-core/src/Widget.js",
+      "requires": [
+        16,
+        57,
+        58,
+        98
+      ],
+      "uses": [
+        12,
+        15,
+        19
+      ],
+      "idx": 59
+    },
+    {
+      "path": "src/util/ProtoElement.js",
+      "requires": [],
+      "uses": [
+        19,
+        194
+      ],
+      "idx": 60
+    },
+    {
+      "path": "packages/sencha-core/src/dom/CompositeElement.js",
+      "requires": [
+        21
+      ],
+      "uses": [],
       "idx": 61
     },
     {
-      "path": "packages/sencha-core/src/event/publisher/Dom.js",
-      "requires": [
-        12,
-        16,
-        60,
-        63
-      ],
+      "path": "src/util/ElementContainer.js",
+      "requires": [],
       "uses": [],
       "idx": 62
     },
     {
-      "path": "overrides/event/publisher/Dom.js",
+      "path": "src/util/Renderable.js",
       "requires": [
-        62
+        19
       ],
-      "uses": [],
+      "uses": [
+        71,
+        101,
+        194
+      ],
       "idx": 63
     },
     {
-      "path": "packages/sencha-core/src/AnimationQueue.js",
+      "path": "src/rtl/util/Renderable.js",
       "requires": [],
       "uses": [],
       "idx": 64
     },
     {
-      "path": "packages/sencha-core/src/event/publisher/Gesture.js",
+      "path": "src/state/Provider.js",
       "requires": [
-        15,
-        62,
-        64,
-        66
+        26
       ],
-      "uses": [
-        16,
-        58
-      ],
+      "uses": [],
       "idx": 65
     },
     {
-      "path": "overrides/event/publisher/Gesture.js",
-      "requires": [],
-      "uses": [
-        16
-      ],
-      "idx": 66
-    },
-    {
-      "path": "overrides/Ext-more.js",
+      "path": "src/state/Manager.js",
       "requires": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        21,
-        62,
         65
       ],
       "uses": [],
+      "idx": 66
+    },
+    {
+      "path": "src/state/Stateful.js",
+      "requires": [
+        66
+      ],
+      "uses": [
+        31
+      ],
       "idx": 67
     },
     {
-      "path": "packages/sencha-core/src/AbstractManager.js",
-      "requires": [
-        48
+      "path": "src/util/Floating.js",
+      "requires": [],
+      "uses": [
+        19,
+        51,
+        302,
+        485
       ],
-      "uses": [],
       "idx": 68
     },
     {
-      "path": "packages/sencha-core/src/data/flash/BinaryXhr.js",
+      "path": "src/rtl/util/Floating.js",
       "requires": [],
-      "uses": [
-        60
-      ],
+      "uses": [],
       "idx": 69
     },
     {
-      "path": "packages/sencha-core/src/data/Connection.js",
+      "path": "src/util/Focusable.js",
       "requires": [
-        23,
-        69
+        24
       ],
       "uses": [
-        27,
-        60
+        71
       ],
       "idx": 70
     },
     {
-      "path": "packages/sencha-core/src/Ajax.js",
+      "path": "src/Component.js",
       "requires": [
+        12,
+        15,
+        17,
+        26,
+        48,
+        51,
+        57,
+        58,
+        60,
+        61,
+        62,
+        63,
+        67,
+        68,
         70
       ],
-      "uses": [],
+      "uses": [
+        18,
+        19,
+        24,
+        41,
+        50,
+        52,
+        91,
+        93,
+        95,
+        97,
+        98,
+        101,
+        123,
+        194,
+        195,
+        297,
+        298,
+        299,
+        302,
+        312,
+        314,
+        383,
+        457,
+        485,
+        593,
+        605,
+        611,
+        613
+      ],
       "idx": 71
     },
     {
-      "path": "packages/sencha-core/src/ComponentManager.js",
+      "path": "src/layout/container/border/Region.js",
       "requires": [],
       "uses": [],
       "idx": 72
     },
     {
-      "path": "packages/sencha-core/src/util/Operators.js",
+      "path": "src/rtl/Component.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 73
     },
     {
-      "path": "packages/sencha-core/src/util/LruCache.js",
+      "path": "packages/sencha-core/src/event/gesture/Recognizer.js",
       "requires": [
-        48
+        4
       ],
       "uses": [],
       "idx": 74
     },
     {
-      "path": "packages/sencha-core/src/ComponentQuery.js",
+      "path": "packages/sencha-core/src/event/gesture/SingleTouch.js",
       "requires": [
-        72,
-        73,
         74
       ],
       "uses": [],
       "idx": 75
     },
     {
-      "path": "packages/sencha-core/src/Evented.js",
+      "path": "packages/sencha-core/src/event/gesture/DoubleTap.js",
       "requires": [
-        23
+        75
       ],
       "uses": [],
       "idx": 76
     },
     {
-      "path": "packages/sencha-core/src/JSON.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/event/gesture/Drag.js",
+      "requires": [
+        75
+      ],
       "uses": [],
       "idx": 77
     },
     {
-      "path": "packages/sencha-core/src/TaskQueue.js",
+      "path": "packages/sencha-core/src/event/gesture/Swipe.js",
       "requires": [
-        64
+        75
       ],
       "uses": [],
       "idx": 78
     },
     {
-      "path": "packages/sencha-core/src/mixin/Inheritable.js",
+      "path": "packages/sencha-core/src/event/gesture/EdgeSwipe.js",
       "requires": [
-        22
+        78
       ],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 79
     },
     {
-      "path": "packages/sencha-core/src/mixin/Bindable.js",
-      "requires": [],
-      "uses": [
-        86
+      "path": "packages/sencha-core/src/event/gesture/LongPress.js",
+      "requires": [
+        75
       ],
+      "uses": [],
       "idx": 80
     },
     {
-      "path": "packages/sencha-core/src/Widget.js",
+      "path": "packages/sencha-core/src/event/gesture/MultiTouch.js",
       "requires": [
-        76,
-        79,
-        80,
-        82
+        74
       ],
-      "uses": [
-        27,
-        72,
-        75
-      ],
+      "uses": [],
       "idx": 81
     },
     {
-      "path": "overrides/Widget.js",
+      "path": "packages/sencha-core/src/event/gesture/Pinch.js",
       "requires": [
         81
       ],
-      "uses": [
-        27,
-        288,
-        309
-      ],
+      "uses": [],
       "idx": 82
     },
     {
-      "path": "packages/sencha-core/src/util/XTemplateParser.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/event/gesture/Rotate.js",
+      "requires": [
+        81
+      ],
       "uses": [],
       "idx": 83
     },
     {
-      "path": "packages/sencha-core/src/util/XTemplateCompiler.js",
+      "path": "packages/sencha-core/src/event/gesture/Tap.js",
       "requires": [
-        83
+        75
       ],
       "uses": [],
       "idx": 84
     },
     {
-      "path": "packages/sencha-core/src/XTemplate.js",
-      "requires": [
-        84
-      ],
+      "path": "packages/sencha-core/src/event/publisher/Publisher.js",
+      "requires": [],
       "uses": [],
       "idx": 85
     },
     {
-      "path": "packages/sencha-core/src/mixin/Factoryable.js",
+      "path": "packages/sencha-core/src/util/Offset.js",
       "requires": [],
       "uses": [],
       "idx": 86
     },
     {
-      "path": "packages/sencha-core/src/util/CollectionKey.js",
+      "path": "packages/sencha-core/src/util/Region.js",
       "requires": [
-        0
+        86
       ],
       "uses": [],
       "idx": 87
     },
     {
-      "path": "packages/sencha-core/src/util/Grouper.js",
+      "path": "packages/sencha-core/src/util/Point.js",
       "requires": [
-        36
+        87
       ],
       "uses": [],
       "idx": 88
     },
     {
-      "path": "packages/sencha-core/src/util/Collection.js",
+      "path": "packages/sencha-core/src/event/Event.js",
       "requires": [
-        23,
-        31,
-        36,
-        87,
-        88
+        88,
+        91
       ],
-      "uses": [
-        153,
-        154,
-        155
-      ],
+      "uses": [],
       "idx": 89
     },
     {
-      "path": "packages/sencha-core/src/util/Scheduler.js",
-      "requires": [
-        23,
-        89
+      "path": "src/rtl/event/Event.js",
+      "requires": [],
+      "uses": [
+        19
       ],
-      "uses": [],
       "idx": 90
     },
     {
-      "path": "packages/sencha-core/src/util/ObjectTemplate.js",
-      "requires": [
-        85
+      "path": "overrides/event/Event.js",
+      "requires": [],
+      "uses": [
+        51
       ],
-      "uses": [],
       "idx": 91
     },
     {
-      "path": "packages/sencha-core/src/data/schema/Role.js",
-      "requires": [],
-      "uses": [
-        86
+      "path": "packages/sencha-core/src/event/publisher/Dom.js",
+      "requires": [
+        51,
+        85,
+        89,
+        93
       ],
+      "uses": [],
       "idx": 92
     },
     {
-      "path": "packages/sencha-core/src/data/schema/Association.js",
+      "path": "overrides/event/publisher/Dom.js",
       "requires": [
         92
       ],
@@ -903,130 +936,159 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 93
     },
     {
-      "path": "packages/sencha-core/src/data/schema/OneToOne.js",
+      "path": "packages/sencha-core/src/event/publisher/Gesture.js",
       "requires": [
-        93
+        11,
+        88,
+        92,
+        95
       ],
-      "uses": [],
+      "uses": [
+        49,
+        89
+      ],
       "idx": 94
     },
     {
-      "path": "packages/sencha-core/src/data/schema/ManyToOne.js",
-      "requires": [
-        93
+      "path": "overrides/event/publisher/Gesture.js",
+      "requires": [],
+      "uses": [
+        89
       ],
-      "uses": [],
       "idx": 95
     },
     {
-      "path": "packages/sencha-core/src/data/schema/ManyToMany.js",
+      "path": "packages/sencha-core/src/event/publisher/Focus.js",
       "requires": [
-        93
+        92
       ],
-      "uses": [],
+      "uses": [
+        89
+      ],
       "idx": 96
     },
     {
-      "path": "packages/sencha-core/src/util/Inflector.js",
-      "requires": [],
+      "path": "overrides/Ext-more.js",
+      "requires": [
+        2,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        92,
+        94,
+        96
+      ],
       "uses": [],
       "idx": 97
     },
     {
-      "path": "packages/sencha-core/src/data/schema/Namer.js",
+      "path": "overrides/Widget.js",
       "requires": [
-        86,
-        97
+        59,
+        71
       ],
-      "uses": [],
+      "uses": [
+        19,
+        314
+      ],
       "idx": 98
     },
     {
-      "path": "packages/sencha-core/src/data/schema/Schema.js",
-      "requires": [
-        86,
-        91,
-        94,
-        95,
-        96,
-        98
-      ],
+      "path": "packages/sencha-core/src/util/XTemplateParser.js",
+      "requires": [],
       "uses": [],
       "idx": 99
     },
     {
-      "path": "packages/sencha-core/src/data/Batch.js",
+      "path": "packages/sencha-core/src/util/XTemplateCompiler.js",
       "requires": [
-        23
+        99
       ],
       "uses": [],
       "idx": 100
     },
     {
-      "path": "packages/sencha-core/src/data/matrix/Slice.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/XTemplate.js",
+      "requires": [
+        56,
+        100
+      ],
       "uses": [],
       "idx": 101
     },
     {
-      "path": "packages/sencha-core/src/data/matrix/Side.js",
-      "requires": [
-        101
-      ],
+      "path": "packages/sencha-core/src/mixin/Factoryable.js",
+      "requires": [],
       "uses": [],
       "idx": 102
     },
     {
-      "path": "packages/sencha-core/src/data/matrix/Matrix.js",
+      "path": "packages/sencha-core/src/util/CollectionKey.js",
       "requires": [
-        102
+        4
       ],
       "uses": [],
       "idx": 103
     },
     {
-      "path": "packages/sencha-core/src/data/session/ChangesVisitor.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/util/Grouper.js",
+      "requires": [
+        28
+      ],
       "uses": [],
       "idx": 104
     },
     {
-      "path": "packages/sencha-core/src/data/session/ChildChangesVisitor.js",
+      "path": "packages/sencha-core/src/util/Collection.js",
       "requires": [
+        5,
+        23,
+        28,
+        103,
         104
       ],
-      "uses": [],
+      "uses": [
+        169,
+        170,
+        171
+      ],
       "idx": 105
     },
     {
-      "path": "packages/sencha-core/src/data/session/BatchVisitor.js",
-      "requires": [],
-      "uses": [
-        100
+      "path": "packages/sencha-core/src/util/Scheduler.js",
+      "requires": [
+        5,
+        105
       ],
+      "uses": [],
       "idx": 106
     },
     {
-      "path": "packages/sencha-core/src/data/Session.js",
+      "path": "packages/sencha-core/src/util/ObjectTemplate.js",
       "requires": [
-        99,
-        100,
-        103,
-        104,
-        105,
-        106
+        101
       ],
       "uses": [],
       "idx": 107
     },
     {
-      "path": "packages/sencha-core/src/util/Schedulable.js",
+      "path": "packages/sencha-core/src/data/schema/Role.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        102
+      ],
       "idx": 108
     },
     {
-      "path": "packages/sencha-core/src/app/bind/BaseBinding.js",
+      "path": "packages/sencha-core/src/data/schema/Association.js",
       "requires": [
         108
       ],
@@ -1034,7 +1096,7 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 109
     },
     {
-      "path": "packages/sencha-core/src/app/bind/Binding.js",
+      "path": "packages/sencha-core/src/data/schema/OneToOne.js",
       "requires": [
         109
       ],
@@ -1042,951 +1104,951 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 110
     },
     {
-      "path": "packages/sencha-core/src/app/bind/AbstractStub.js",
+      "path": "packages/sencha-core/src/data/schema/ManyToOne.js",
       "requires": [
-        108,
-        110
+        109
       ],
       "uses": [],
       "idx": 111
     },
     {
-      "path": "packages/sencha-core/src/app/bind/Stub.js",
+      "path": "packages/sencha-core/src/data/schema/ManyToMany.js",
       "requires": [
-        110,
-        111
+        109
       ],
-      "uses": [
-        116
-      ],
+      "uses": [],
       "idx": 112
     },
     {
-      "path": "packages/sencha-core/src/app/bind/LinkStub.js",
-      "requires": [
-        112
-      ],
+      "path": "packages/sencha-core/src/util/Inflector.js",
+      "requires": [],
       "uses": [],
       "idx": 113
     },
     {
-      "path": "packages/sencha-core/src/app/bind/RootStub.js",
+      "path": "packages/sencha-core/src/data/schema/Namer.js",
       "requires": [
-        111,
-        112,
+        102,
         113
       ],
       "uses": [],
       "idx": 114
     },
     {
-      "path": "packages/sencha-core/src/app/bind/Multi.js",
+      "path": "packages/sencha-core/src/data/schema/Schema.js",
       "requires": [
-        109
+        102,
+        107,
+        110,
+        111,
+        112,
+        114
       ],
       "uses": [],
       "idx": 115
     },
     {
-      "path": "packages/sencha-core/src/app/bind/Formula.js",
+      "path": "packages/sencha-core/src/data/Batch.js",
       "requires": [
-        74,
-        108
+        5
       ],
       "uses": [],
       "idx": 116
     },
     {
-      "path": "packages/sencha-core/src/app/bind/Template.js",
+      "path": "packages/sencha-core/src/data/matrix/Slice.js",
       "requires": [],
       "uses": [],
       "idx": 117
     },
     {
-      "path": "packages/sencha-core/src/app/bind/TemplateBinding.js",
+      "path": "packages/sencha-core/src/data/matrix/Side.js",
       "requires": [
-        109,
-        115,
         117
       ],
       "uses": [],
       "idx": 118
     },
     {
-      "path": "packages/sencha-core/src/data/AbstractStore.js",
+      "path": "packages/sencha-core/src/data/matrix/Matrix.js",
       "requires": [
-        23,
-        31,
-        86,
-        89,
-        99
+        118
       ],
-      "uses": [
-        172
-      ],
+      "uses": [],
       "idx": 119
     },
     {
-      "path": "packages/sencha-core/src/data/LocalStore.js",
-      "requires": [
-        22
-      ],
-      "uses": [
-        89
-      ],
+      "path": "packages/sencha-core/src/data/session/ChangesVisitor.js",
+      "requires": [],
+      "uses": [],
       "idx": 120
     },
     {
-      "path": "packages/sencha-core/src/data/ChainedStore.js",
+      "path": "packages/sencha-core/src/data/session/ChildChangesVisitor.js",
       "requires": [
-        119,
         120
       ],
-      "uses": [
-        172
-      ],
+      "uses": [],
       "idx": 121
     },
     {
-      "path": "packages/sencha-core/src/app/ViewModel.js",
-      "requires": [
-        0,
-        86,
-        90,
-        107,
-        113,
-        114,
-        115,
-        116,
-        118,
-        121
-      ],
+      "path": "packages/sencha-core/src/data/session/BatchVisitor.js",
+      "requires": [],
       "uses": [
-        99
+        116
       ],
       "idx": 122
     },
     {
-      "path": "packages/sencha-core/src/data/ResultSet.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/data/Session.js",
+      "requires": [
+        115,
+        116,
+        119,
+        120,
+        121,
+        122
+      ],
       "uses": [],
       "idx": 123
     },
     {
-      "path": "packages/sencha-core/src/data/reader/Reader.js",
-      "requires": [
-        23,
-        85,
-        86,
-        123
-      ],
-      "uses": [
-        99
-      ],
+      "path": "packages/sencha-core/src/util/Schedulable.js",
+      "requires": [],
+      "uses": [],
       "idx": 124
     },
     {
-      "path": "packages/sencha-core/src/data/writer/Writer.js",
+      "path": "packages/sencha-core/src/app/bind/BaseBinding.js",
       "requires": [
-        86
+        124
       ],
       "uses": [],
       "idx": 125
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Proxy.js",
+      "path": "packages/sencha-core/src/app/bind/Binding.js",
       "requires": [
-        23,
-        86,
-        99,
-        124,
         125
       ],
-      "uses": [
-        100,
-        129,
-        130,
-        131,
-        132,
-        133,
-        147
-      ],
+      "uses": [],
       "idx": 126
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Client.js",
+      "path": "packages/sencha-core/src/app/bind/AbstractStub.js",
       "requires": [
+        124,
         126
       ],
       "uses": [],
       "idx": 127
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Memory.js",
+      "path": "packages/sencha-core/src/app/bind/Stub.js",
       "requires": [
+        126,
         127
       ],
       "uses": [
-        31,
-        37
+        132
       ],
       "idx": 128
     },
     {
-      "path": "packages/sencha-core/src/data/operation/Operation.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/app/bind/LinkStub.js",
+      "requires": [
+        128
+      ],
       "uses": [],
       "idx": 129
     },
     {
-      "path": "packages/sencha-core/src/data/operation/Create.js",
+      "path": "packages/sencha-core/src/app/bind/RootStub.js",
       "requires": [
+        127,
+        128,
         129
       ],
       "uses": [],
       "idx": 130
     },
     {
-      "path": "packages/sencha-core/src/data/operation/Destroy.js",
+      "path": "packages/sencha-core/src/app/bind/Multi.js",
       "requires": [
-        129
+        125
       ],
       "uses": [],
       "idx": 131
     },
     {
-      "path": "packages/sencha-core/src/data/operation/Read.js",
+      "path": "packages/sencha-core/src/app/bind/Formula.js",
       "requires": [
-        129
+        14,
+        124
       ],
       "uses": [],
       "idx": 132
     },
     {
-      "path": "packages/sencha-core/src/data/operation/Update.js",
+      "path": "packages/sencha-core/src/app/bind/Template.js",
       "requires": [
-        129
+        55
       ],
       "uses": [],
       "idx": 133
     },
     {
-      "path": "packages/sencha-core/src/data/ProxyStore.js",
+      "path": "packages/sencha-core/src/app/bind/TemplateBinding.js",
       "requires": [
-        119,
-        126,
-        128,
+        125,
+        131,
+        133
+      ],
+      "uses": [],
+      "idx": 134
+    },
+    {
+      "path": "packages/sencha-core/src/data/AbstractStore.js",
+      "requires": [
+        5,
+        23,
+        102,
+        105,
+        115
+      ],
+      "uses": [
+        188
+      ],
+      "idx": 135
+    },
+    {
+      "path": "packages/sencha-core/src/data/LocalStore.js",
+      "requires": [
+        3
+      ],
+      "uses": [
+        105
+      ],
+      "idx": 136
+    },
+    {
+      "path": "packages/sencha-core/src/data/ChainedStore.js",
+      "requires": [
+        135,
+        136
+      ],
+      "uses": [
+        188
+      ],
+      "idx": 137
+    },
+    {
+      "path": "packages/sencha-core/src/app/ViewModel.js",
+      "requires": [
+        4,
+        102,
+        106,
+        123,
         129,
         130,
         131,
         132,
-        133
+        134,
+        137
       ],
       "uses": [
-        32,
-        99,
-        147
+        24,
+        115
       ],
-      "idx": 134
+      "idx": 138
     },
     {
       "path": "packages/sencha-core/src/data/Error.js",
       "requires": [],
       "uses": [],
-      "idx": 135
+      "idx": 139
     },
     {
       "path": "packages/sencha-core/src/data/ErrorCollection.js",
       "requires": [
-        38,
-        135
+        30,
+        139
       ],
       "uses": [
-        139
+        148
       ],
-      "idx": 136
-    },
-    {
-      "path": "packages/sencha-core/src/data/SortTypes.js",
-      "requires": [],
-      "uses": [],
-      "idx": 137
-    },
-    {
-      "path": "packages/sencha-core/src/data/validator/Validator.js",
-      "requires": [
-        86
-      ],
-      "uses": [],
-      "idx": 138
-    },
-    {
-      "path": "packages/sencha-core/src/data/field/Field.js",
-      "requires": [
-        86,
-        137,
-        138
-      ],
-      "uses": [],
-      "idx": 139
-    },
-    {
-      "path": "packages/sencha-core/src/data/field/Boolean.js",
-      "requires": [
-        139
-      ],
-      "uses": [],
       "idx": 140
     },
     {
-      "path": "packages/sencha-core/src/data/field/Date.js",
-      "requires": [
-        139
-      ],
+      "path": "packages/sencha-core/src/data/operation/Operation.js",
+      "requires": [],
       "uses": [],
       "idx": 141
     },
     {
-      "path": "packages/sencha-core/src/data/field/Integer.js",
+      "path": "packages/sencha-core/src/data/operation/Create.js",
       "requires": [
-        139
+        141
       ],
       "uses": [],
       "idx": 142
     },
     {
-      "path": "packages/sencha-core/src/data/field/Number.js",
+      "path": "packages/sencha-core/src/data/operation/Destroy.js",
       "requires": [
-        139
+        141
       ],
       "uses": [],
       "idx": 143
     },
     {
-      "path": "packages/sencha-core/src/data/field/String.js",
+      "path": "packages/sencha-core/src/data/operation/Read.js",
       "requires": [
-        139
+        141
       ],
       "uses": [],
       "idx": 144
     },
     {
-      "path": "packages/sencha-core/src/data/identifier/Generator.js",
+      "path": "packages/sencha-core/src/data/operation/Update.js",
       "requires": [
-        86
+        141
       ],
       "uses": [],
       "idx": 145
     },
     {
-      "path": "packages/sencha-core/src/data/identifier/Sequential.js",
-      "requires": [
-        145
-      ],
+      "path": "packages/sencha-core/src/data/SortTypes.js",
+      "requires": [],
       "uses": [],
       "idx": 146
     },
     {
-      "path": "packages/sencha-core/src/data/Model.js",
+      "path": "packages/sencha-core/src/data/validator/Validator.js",
       "requires": [
-        99,
-        129,
-        130,
-        131,
-        132,
-        133,
-        136,
-        138,
-        139,
-        140,
-        141,
-        142,
-        143,
-        144,
-        145,
-        146
+        102
       ],
-      "uses": [
-        86,
-        124,
-        177
-      ],
+      "uses": [],
       "idx": 147
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Server.js",
+      "path": "packages/sencha-core/src/data/field/Field.js",
       "requires": [
-        126
+        102,
+        146,
+        147
       ],
-      "uses": [
-        171
-      ],
+      "uses": [],
       "idx": 148
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Ajax.js",
+      "path": "packages/sencha-core/src/data/field/Boolean.js",
       "requires": [
-        71,
         148
       ],
       "uses": [],
       "idx": 149
     },
     {
-      "path": "packages/sencha-core/src/data/reader/Json.js",
+      "path": "packages/sencha-core/src/data/field/Date.js",
       "requires": [
-        77,
-        124
+        148
       ],
       "uses": [],
       "idx": 150
     },
     {
-      "path": "packages/sencha-core/src/data/writer/Json.js",
+      "path": "packages/sencha-core/src/data/field/Integer.js",
       "requires": [
-        125
+        148
       ],
       "uses": [],
       "idx": 151
     },
     {
-      "path": "packages/sencha-core/src/util/Group.js",
+      "path": "packages/sencha-core/src/data/field/Number.js",
       "requires": [
-        89
+        148
       ],
       "uses": [],
       "idx": 152
     },
     {
-      "path": "packages/sencha-core/src/util/SorterCollection.js",
+      "path": "packages/sencha-core/src/data/field/String.js",
       "requires": [
-        36,
-        89
+        148
       ],
       "uses": [],
       "idx": 153
     },
     {
-      "path": "packages/sencha-core/src/util/FilterCollection.js",
+      "path": "packages/sencha-core/src/data/identifier/Generator.js",
       "requires": [
-        31,
-        89
+        102
       ],
       "uses": [],
       "idx": 154
     },
     {
-      "path": "packages/sencha-core/src/util/GroupCollection.js",
+      "path": "packages/sencha-core/src/data/identifier/Sequential.js",
       "requires": [
-        89,
-        152,
-        153,
         154
       ],
       "uses": [],
       "idx": 155
     },
     {
-      "path": "packages/sencha-core/src/data/Store.js",
+      "path": "packages/sencha-core/src/data/Model.js",
       "requires": [
-        32,
-        120,
-        134,
+        115,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
         147,
+        148,
         149,
         150,
         151,
+        152,
+        153,
+        154,
         155
       ],
       "uses": [
-        88,
-        160,
-        172
+        102,
+        158,
+        193
       ],
       "idx": 156
     },
     {
-      "path": "packages/sencha-core/src/data/reader/Array.js",
-      "requires": [
-        150
-      ],
+      "path": "packages/sencha-core/src/data/ResultSet.js",
+      "requires": [],
       "uses": [],
       "idx": 157
     },
     {
-      "path": "packages/sencha-core/src/data/ArrayStore.js",
+      "path": "packages/sencha-core/src/data/reader/Reader.js",
       "requires": [
-        128,
-        156,
+        5,
+        101,
+        102,
         157
       ],
-      "uses": [],
+      "uses": [
+        115
+      ],
       "idx": 158
     },
     {
-      "path": "packages/sencha-core/src/data/PageMap.js",
+      "path": "packages/sencha-core/src/data/writer/Writer.js",
       "requires": [
-        74
+        102
       ],
       "uses": [],
       "idx": 159
     },
     {
-      "path": "packages/sencha-core/src/data/BufferedStore.js",
+      "path": "packages/sencha-core/src/data/proxy/Proxy.js",
       "requires": [
-        31,
-        36,
-        88,
-        134,
+        5,
+        102,
+        115,
+        158,
         159
       ],
       "uses": [
-        153,
-        154,
-        155
+        116,
+        141,
+        142,
+        143,
+        144,
+        145,
+        156
       ],
       "idx": 160
     },
     {
-      "path": "packages/sencha-core/src/direct/Manager.js",
+      "path": "packages/sencha-core/src/data/proxy/Client.js",
       "requires": [
-        34,
-        38
+        160
       ],
       "uses": [],
       "idx": 161
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Direct.js",
+      "path": "packages/sencha-core/src/data/proxy/Memory.js",
       "requires": [
-        148,
         161
       ],
-      "uses": [],
+      "uses": [
+        23,
+        29
+      ],
       "idx": 162
     },
     {
-      "path": "packages/sencha-core/src/data/DirectStore.js",
+      "path": "packages/sencha-core/src/data/ProxyStore.js",
       "requires": [
+        135,
+        141,
+        142,
+        143,
+        144,
+        145,
         156,
+        160,
         162
       ],
-      "uses": [],
+      "uses": [
+        24,
+        115
+      ],
       "idx": 163
     },
     {
-      "path": "packages/sencha-core/src/data/JsonP.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/data/proxy/Server.js",
+      "requires": [
+        160
+      ],
       "uses": [
-        60
+        56,
+        187
       ],
       "idx": 164
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/JsonP.js",
+      "path": "packages/sencha-core/src/data/proxy/Ajax.js",
       "requires": [
-        148,
+        10,
         164
       ],
       "uses": [],
       "idx": 165
     },
     {
-      "path": "packages/sencha-core/src/data/JsonPStore.js",
+      "path": "packages/sencha-core/src/data/reader/Json.js",
       "requires": [
-        150,
-        156,
-        165
+        53,
+        158
       ],
       "uses": [],
       "idx": 166
     },
     {
-      "path": "packages/sencha-core/src/data/JsonStore.js",
+      "path": "packages/sencha-core/src/data/writer/Json.js",
       "requires": [
-        149,
-        150,
-        151,
-        156
+        159
       ],
       "uses": [],
       "idx": 167
     },
     {
-      "path": "packages/sencha-core/src/data/ModelManager.js",
+      "path": "packages/sencha-core/src/util/Group.js",
       "requires": [
-        99
+        105
       ],
-      "uses": [
-        147
-      ],
+      "uses": [],
       "idx": 168
     },
     {
-      "path": "packages/sencha-core/src/data/NodeInterface.js",
+      "path": "packages/sencha-core/src/util/SorterCollection.js",
       "requires": [
-        23,
-        140,
-        142,
-        144,
-        151
+        28,
+        105
       ],
-      "uses": [
-        99
-      ],
+      "uses": [],
       "idx": 169
     },
     {
-      "path": "packages/sencha-core/src/data/NodeStore.js",
+      "path": "packages/sencha-core/src/util/FilterCollection.js",
       "requires": [
-        156,
-        169
+        23,
+        105
       ],
       "uses": [],
       "idx": 170
     },
     {
-      "path": "packages/sencha-core/src/data/Request.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/util/GroupCollection.js",
+      "requires": [
+        105,
+        168,
+        169,
+        170
+      ],
       "uses": [],
       "idx": 171
     },
     {
-      "path": "packages/sencha-core/src/data/StoreManager.js",
+      "path": "packages/sencha-core/src/data/Store.js",
       "requires": [
-        38,
-        158
+        24,
+        136,
+        156,
+        163,
+        165,
+        166,
+        167,
+        171
       ],
       "uses": [
-        86,
-        128,
-        151,
-        156,
-        157
+        104,
+        176,
+        188
       ],
       "idx": 172
     },
     {
-      "path": "packages/sencha-core/src/mixin/Queryable.js",
-      "requires": [],
-      "uses": [
-        75
+      "path": "packages/sencha-core/src/data/reader/Array.js",
+      "requires": [
+        166
       ],
+      "uses": [],
       "idx": 173
     },
     {
-      "path": "packages/sencha-core/src/data/TreeModel.js",
+      "path": "packages/sencha-core/src/data/ArrayStore.js",
       "requires": [
-        147,
-        169,
+        162,
+        172,
         173
       ],
       "uses": [],
       "idx": 174
     },
     {
-      "path": "packages/sencha-core/src/data/TreeStore.js",
+      "path": "packages/sencha-core/src/data/PageMap.js",
       "requires": [
-        36,
-        169,
-        170,
-        174
+        14
       ],
       "uses": [],
       "idx": 175
     },
     {
-      "path": "packages/sencha-core/src/data/Types.js",
+      "path": "packages/sencha-core/src/data/BufferedStore.js",
       "requires": [
-        137
+        23,
+        28,
+        104,
+        163,
+        175
       ],
-      "uses": [],
+      "uses": [
+        169,
+        170,
+        171
+      ],
       "idx": 176
     },
     {
-      "path": "packages/sencha-core/src/data/Validation.js",
+      "path": "packages/sencha-core/src/direct/Manager.js",
       "requires": [
-        147
+        26,
+        30
       ],
       "uses": [],
       "idx": 177
     },
     {
-      "path": "packages/sencha-core/src/dom/Query.js",
+      "path": "packages/sencha-core/src/data/proxy/Direct.js",
       "requires": [
-        73
+        164,
+        177
       ],
-      "uses": [
-        74
-      ],
+      "uses": [],
       "idx": 178
     },
     {
-      "path": "packages/sencha-core/src/data/reader/Xml.js",
+      "path": "packages/sencha-core/src/data/DirectStore.js",
       "requires": [
-        124,
+        172,
         178
       ],
       "uses": [],
       "idx": 179
     },
     {
-      "path": "packages/sencha-core/src/data/writer/Xml.js",
-      "requires": [
-        125
+      "path": "packages/sencha-core/src/data/JsonP.js",
+      "requires": [],
+      "uses": [
+        51
       ],
-      "uses": [],
       "idx": 180
     },
     {
-      "path": "packages/sencha-core/src/data/XmlStore.js",
+      "path": "packages/sencha-core/src/data/proxy/JsonP.js",
       "requires": [
-        149,
-        156,
-        179,
+        164,
         180
       ],
       "uses": [],
       "idx": 181
     },
     {
-      "path": "packages/sencha-core/src/data/identifier/Negative.js",
+      "path": "packages/sencha-core/src/data/JsonPStore.js",
       "requires": [
-        146
+        166,
+        172,
+        181
       ],
       "uses": [],
       "idx": 182
     },
     {
-      "path": "packages/sencha-core/src/data/identifier/Uuid.js",
+      "path": "packages/sencha-core/src/data/JsonStore.js",
       "requires": [
-        145
+        165,
+        166,
+        167,
+        172
       ],
       "uses": [],
       "idx": 183
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/WebStorage.js",
+      "path": "packages/sencha-core/src/data/ModelManager.js",
       "requires": [
-        127,
-        146
+        115
       ],
       "uses": [
-        36,
-        123
+        156
       ],
       "idx": 184
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/LocalStorage.js",
+      "path": "packages/sencha-core/src/data/NodeInterface.js",
       "requires": [
-        184
+        5,
+        149,
+        151,
+        153,
+        167
       ],
-      "uses": [],
+      "uses": [
+        115
+      ],
       "idx": 185
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Rest.js",
+      "path": "packages/sencha-core/src/data/NodeStore.js",
       "requires": [
-        149
+        172,
+        185
       ],
-      "uses": [],
+      "uses": [
+        156
+      ],
       "idx": 186
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/SessionStorage.js",
-      "requires": [
-        184
-      ],
+      "path": "packages/sencha-core/src/data/Request.js",
+      "requires": [],
       "uses": [],
       "idx": 187
     },
     {
-      "path": "packages/sencha-core/src/data/proxy/Sql.js",
+      "path": "packages/sencha-core/src/data/StoreManager.js",
       "requires": [
-        127
+        30,
+        174
       ],
       "uses": [
-        89,
-        123
+        102,
+        162,
+        167,
+        172,
+        173
       ],
       "idx": 188
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Bound.js",
-      "requires": [
-        138
+      "path": "packages/sencha-core/src/mixin/Queryable.js",
+      "requires": [],
+      "uses": [
+        15
       ],
-      "uses": [],
       "idx": 189
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Format.js",
+      "path": "packages/sencha-core/src/data/TreeModel.js",
       "requires": [
-        138
+        156,
+        185,
+        189
       ],
       "uses": [],
       "idx": 190
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Email.js",
+      "path": "packages/sencha-core/src/data/TreeStore.js",
       "requires": [
+        28,
+        185,
+        186,
         190
       ],
       "uses": [],
       "idx": 191
     },
     {
-      "path": "packages/sencha-core/src/data/validator/List.js",
+      "path": "packages/sencha-core/src/data/Types.js",
       "requires": [
-        138
+        146
       ],
       "uses": [],
       "idx": 192
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Exclusion.js",
+      "path": "packages/sencha-core/src/data/Validation.js",
       "requires": [
-        192
+        156
       ],
       "uses": [],
       "idx": 193
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Inclusion.js",
+      "path": "packages/sencha-core/src/dom/Helper.js",
       "requires": [
-        192
+        195
       ],
-      "uses": [],
+      "uses": [
+        56
+      ],
       "idx": 194
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Length.js",
-      "requires": [
-        189
-      ],
+      "path": "overrides/dom/Helper.js",
+      "requires": [],
       "uses": [],
       "idx": 195
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Presence.js",
+      "path": "packages/sencha-core/src/dom/Query.js",
       "requires": [
-        138
+        13,
+        194
       ],
-      "uses": [],
+      "uses": [
+        14
+      ],
       "idx": 196
     },
     {
-      "path": "packages/sencha-core/src/data/validator/Range.js",
+      "path": "packages/sencha-core/src/data/reader/Xml.js",
       "requires": [
-        189
+        158,
+        196
       ],
       "uses": [],
       "idx": 197
     },
     {
-      "path": "packages/sencha-core/src/direct/Event.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/data/writer/Xml.js",
+      "requires": [
+        159
+      ],
       "uses": [],
       "idx": 198
     },
     {
-      "path": "packages/sencha-core/src/direct/RemotingEvent.js",
+      "path": "packages/sencha-core/src/data/XmlStore.js",
       "requires": [
+        165,
+        172,
+        197,
         198
       ],
-      "uses": [
-        161
-      ],
+      "uses": [],
       "idx": 199
     },
     {
-      "path": "packages/sencha-core/src/direct/ExceptionEvent.js",
+      "path": "packages/sencha-core/src/data/identifier/Negative.js",
       "requires": [
-        199
+        155
       ],
       "uses": [],
       "idx": 200
     },
     {
-      "path": "packages/sencha-core/src/direct/Provider.js",
+      "path": "packages/sencha-core/src/data/identifier/Uuid.js",
       "requires": [
-        34
+        154
       ],
       "uses": [],
       "idx": 201
     },
     {
-      "path": "packages/sencha-core/src/direct/JsonProvider.js",
+      "path": "packages/sencha-core/src/data/proxy/WebStorage.js",
       "requires": [
-        201
+        155,
+        161
       ],
       "uses": [
-        161,
-        200
+        28,
+        56,
+        157
       ],
       "idx": 202
     },
     {
-      "path": "packages/sencha-core/src/direct/PollingProvider.js",
+      "path": "packages/sencha-core/src/data/proxy/LocalStorage.js",
       "requires": [
-        32,
-        71,
         202
       ],
-      "uses": [
-        161,
-        200,
-        276
-      ],
+      "uses": [],
       "idx": 203
     },
     {
-      "path": "packages/sencha-core/src/direct/RemotingMethod.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/data/proxy/Rest.js",
+      "requires": [
+        165
+      ],
       "uses": [],
       "idx": 204
     },
     {
-      "path": "packages/sencha-core/src/direct/Transaction.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/data/proxy/SessionStorage.js",
+      "requires": [
+        202
+      ],
       "uses": [],
       "idx": 205
     },
     {
-      "path": "packages/sencha-core/src/direct/RemotingProvider.js",
+      "path": "packages/sencha-core/src/data/proxy/Sql.js",
       "requires": [
-        32,
-        38,
-        202,
-        204,
-        205
+        161
       ],
       "uses": [
-        71,
-        161,
-        200
+        105,
+        157
       ],
       "idx": 206
     },
     {
-      "path": "packages/sencha-core/src/dom/CompositeElement.js",
+      "path": "packages/sencha-core/src/data/validator/Bound.js",
       "requires": [
-        29
+        147
       ],
-      "uses": [],
+      "uses": [
+        56
+      ],
       "idx": 207
     },
     {
-      "path": "packages/sencha-core/src/util/paintmonitor/Abstract.js",
-      "requires": [],
-      "uses": [
-        27
+      "path": "packages/sencha-core/src/data/validator/Format.js",
+      "requires": [
+        147
       ],
+      "uses": [],
       "idx": 208
     },
     {
-      "path": "packages/sencha-core/src/util/paintmonitor/CssAnimation.js",
+      "path": "packages/sencha-core/src/data/validator/Email.js",
       "requires": [
         208
       ],
@@ -1994,209 +2056,202 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 209
     },
     {
-      "path": "packages/sencha-core/src/util/paintmonitor/OverflowChange.js",
+      "path": "packages/sencha-core/src/data/validator/List.js",
       "requires": [
-        208
+        147
       ],
       "uses": [],
       "idx": 210
     },
     {
-      "path": "packages/sencha-core/src/util/PaintMonitor.js",
+      "path": "packages/sencha-core/src/data/validator/Exclusion.js",
       "requires": [
-        209,
         210
       ],
       "uses": [],
       "idx": 211
     },
     {
-      "path": "packages/sencha-core/src/event/publisher/ElementPaint.js",
+      "path": "packages/sencha-core/src/data/validator/Inclusion.js",
       "requires": [
-        12,
-        78,
-        211
+        210
       ],
       "uses": [],
       "idx": 212
     },
     {
-      "path": "packages/sencha-core/src/mixin/Templatable.js",
+      "path": "packages/sencha-core/src/data/validator/Length.js",
       "requires": [
-        22
+        207
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 213
     },
     {
-      "path": "packages/sencha-core/src/util/sizemonitor/Abstract.js",
+      "path": "packages/sencha-core/src/data/validator/Presence.js",
       "requires": [
-        78,
-        213
+        147
       ],
       "uses": [],
       "idx": 214
     },
     {
-      "path": "packages/sencha-core/src/util/sizemonitor/Default.js",
+      "path": "packages/sencha-core/src/data/validator/Range.js",
       "requires": [
-        214
+        207
       ],
       "uses": [],
       "idx": 215
     },
     {
-      "path": "packages/sencha-core/src/util/sizemonitor/Scroll.js",
-      "requires": [
-        214
-      ],
-      "uses": [
-        78
-      ],
+      "path": "packages/sencha-core/src/direct/Event.js",
+      "requires": [],
+      "uses": [],
       "idx": 216
     },
     {
-      "path": "packages/sencha-core/src/util/sizemonitor/OverflowChange.js",
+      "path": "packages/sencha-core/src/direct/RemotingEvent.js",
       "requires": [
-        214
+        216
       ],
       "uses": [
-        78
+        177
       ],
       "idx": 217
     },
     {
-      "path": "packages/sencha-core/src/util/SizeMonitor.js",
+      "path": "packages/sencha-core/src/direct/ExceptionEvent.js",
       "requires": [
-        215,
-        216,
         217
       ],
       "uses": [],
       "idx": 218
     },
     {
-      "path": "packages/sencha-core/src/event/publisher/ElementSize.js",
+      "path": "packages/sencha-core/src/direct/Provider.js",
       "requires": [
-        12,
-        218
+        26
       ],
-      "uses": [
-        78
-      ],
+      "uses": [],
       "idx": 219
     },
     {
-      "path": "packages/sencha-core/src/fx/State.js",
-      "requires": [],
-      "uses": [],
+      "path": "packages/sencha-core/src/direct/JsonProvider.js",
+      "requires": [
+        219
+      ],
+      "uses": [
+        177,
+        218
+      ],
       "idx": 220
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Abstract.js",
+      "path": "packages/sencha-core/src/direct/PollingProvider.js",
       "requires": [
-        76,
+        10,
+        24,
         220
       ],
-      "uses": [],
+      "uses": [
+        177,
+        218,
+        293
+      ],
       "idx": 221
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Slide.js",
-      "requires": [
-        221
-      ],
+      "path": "packages/sencha-core/src/direct/RemotingMethod.js",
+      "requires": [],
       "uses": [],
       "idx": 222
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/SlideOut.js",
-      "requires": [
-        222
-      ],
+      "path": "packages/sencha-core/src/direct/Transaction.js",
+      "requires": [],
       "uses": [],
       "idx": 223
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Fade.js",
+      "path": "packages/sencha-core/src/direct/RemotingProvider.js",
       "requires": [
-        221
+        24,
+        30,
+        220,
+        222,
+        223
       ],
-      "uses": [],
+      "uses": [
+        10,
+        177,
+        218
+      ],
       "idx": 224
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/FadeOut.js",
-      "requires": [
-        224
+      "path": "packages/sencha-core/src/util/paintmonitor/Abstract.js",
+      "requires": [],
+      "uses": [
+        19
       ],
-      "uses": [],
       "idx": 225
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Flip.js",
+      "path": "packages/sencha-core/src/util/paintmonitor/CssAnimation.js",
       "requires": [
-        221
+        225
       ],
       "uses": [],
       "idx": 226
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Pop.js",
+      "path": "packages/sencha-core/src/util/paintmonitor/OverflowChange.js",
       "requires": [
-        221
+        225
       ],
       "uses": [],
       "idx": 227
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/PopOut.js",
+      "path": "packages/sencha-core/src/util/PaintMonitor.js",
       "requires": [
+        226,
         227
       ],
       "uses": [],
       "idx": 228
     },
     {
-      "path": "packages/sencha-core/src/fx/Animation.js",
+      "path": "packages/sencha-core/src/event/publisher/ElementPaint.js",
       "requires": [
-        222,
-        223,
-        224,
-        225,
-        226,
-        227,
+        54,
+        85,
         228
       ],
-      "uses": [
-        221
-      ],
+      "uses": [],
       "idx": 229
     },
     {
-      "path": "packages/sencha-core/src/fx/runner/Css.js",
+      "path": "packages/sencha-core/src/mixin/Templatable.js",
       "requires": [
-        76,
-        229
+        3
       ],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 230
     },
     {
-      "path": "packages/sencha-core/src/fx/runner/CssTransition.js",
+      "path": "packages/sencha-core/src/util/sizemonitor/Abstract.js",
       "requires": [
-        64,
+        54,
         230
       ],
-      "uses": [
-        229
-      ],
+      "uses": [],
       "idx": 231
     },
     {
-      "path": "packages/sencha-core/src/fx/Runner.js",
+      "path": "packages/sencha-core/src/util/sizemonitor/Default.js",
       "requires": [
         231
       ],
@@ -2204,433 +2259,457 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 232
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Cube.js",
+      "path": "packages/sencha-core/src/util/sizemonitor/Scroll.js",
       "requires": [
-        221
+        231
       ],
-      "uses": [],
+      "uses": [
+        54
+      ],
       "idx": 233
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/Wipe.js",
+      "path": "packages/sencha-core/src/util/sizemonitor/OverflowChange.js",
       "requires": [
-        229
+        231
       ],
-      "uses": [],
+      "uses": [
+        54
+      ],
       "idx": 234
     },
     {
-      "path": "packages/sencha-core/src/fx/animation/WipeOut.js",
+      "path": "packages/sencha-core/src/util/SizeMonitor.js",
       "requires": [
+        232,
+        233,
         234
       ],
       "uses": [],
       "idx": 235
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/Abstract.js",
-      "requires": [],
-      "uses": [],
+      "path": "packages/sencha-core/src/event/publisher/ElementSize.js",
+      "requires": [
+        85,
+        235
+      ],
+      "uses": [
+        54
+      ],
       "idx": 236
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/Bounce.js",
-      "requires": [
-        236
-      ],
+      "path": "packages/sencha-core/src/fx/State.js",
+      "requires": [],
       "uses": [],
       "idx": 237
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/Momentum.js",
+      "path": "packages/sencha-core/src/fx/animation/Abstract.js",
       "requires": [
-        236
+        16,
+        237
       ],
       "uses": [],
       "idx": 238
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/BoundMomentum.js",
+      "path": "packages/sencha-core/src/fx/animation/Slide.js",
       "requires": [
-        236,
-        237,
         238
       ],
       "uses": [],
       "idx": 239
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/Linear.js",
+      "path": "packages/sencha-core/src/fx/animation/SlideOut.js",
       "requires": [
-        236
+        239
       ],
       "uses": [],
       "idx": 240
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/EaseIn.js",
+      "path": "packages/sencha-core/src/fx/animation/Fade.js",
       "requires": [
-        240
+        238
       ],
       "uses": [],
       "idx": 241
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/EaseOut.js",
+      "path": "packages/sencha-core/src/fx/animation/FadeOut.js",
       "requires": [
-        240
+        241
       ],
       "uses": [],
       "idx": 242
     },
     {
-      "path": "packages/sencha-core/src/fx/easing/Easing.js",
+      "path": "packages/sencha-core/src/fx/animation/Flip.js",
       "requires": [
-        240
+        238
       ],
       "uses": [],
       "idx": 243
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Abstract.js",
+      "path": "packages/sencha-core/src/fx/animation/Pop.js",
       "requires": [
-        76
+        238
       ],
       "uses": [],
       "idx": 244
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Style.js",
+      "path": "packages/sencha-core/src/fx/animation/PopOut.js",
       "requires": [
-        229,
         244
       ],
       "uses": [],
       "idx": 245
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Slide.js",
+      "path": "packages/sencha-core/src/fx/Animation.js",
       "requires": [
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
         245
       ],
-      "uses": [],
+      "uses": [
+        238
+      ],
       "idx": 246
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Cover.js",
+      "path": "packages/sencha-core/src/fx/runner/Css.js",
       "requires": [
-        245
+        16,
+        246
       ],
       "uses": [],
       "idx": 247
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Reveal.js",
+      "path": "packages/sencha-core/src/fx/runner/CssTransition.js",
       "requires": [
-        245
+        11,
+        247
       ],
-      "uses": [],
+      "uses": [
+        246
+      ],
       "idx": 248
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Fade.js",
+      "path": "packages/sencha-core/src/fx/Runner.js",
       "requires": [
-        245
+        248
       ],
       "uses": [],
       "idx": 249
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Flip.js",
+      "path": "packages/sencha-core/src/fx/animation/Cube.js",
       "requires": [
-        245
+        238
       ],
       "uses": [],
       "idx": 250
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Pop.js",
+      "path": "packages/sencha-core/src/fx/animation/Wipe.js",
       "requires": [
-        245
+        246
       ],
       "uses": [],
       "idx": 251
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Scroll.js",
+      "path": "packages/sencha-core/src/fx/animation/WipeOut.js",
       "requires": [
-        240,
-        244
+        251
       ],
-      "uses": [
-        64
-      ],
+      "uses": [],
       "idx": 252
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/Card.js",
-      "requires": [
-        246,
-        247,
-        248,
-        249,
-        250,
-        251,
-        252
-      ],
-      "uses": [
-        244
-      ],
+      "path": "packages/sencha-core/src/fx/easing/Abstract.js",
+      "requires": [],
+      "uses": [],
       "idx": 253
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/Cube.js",
+      "path": "packages/sencha-core/src/fx/easing/Bounce.js",
       "requires": [
-        245
+        253
       ],
       "uses": [],
       "idx": 254
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/ScrollCover.js",
+      "path": "packages/sencha-core/src/fx/easing/Momentum.js",
       "requires": [
-        252
+        253
       ],
       "uses": [],
       "idx": 255
     },
     {
-      "path": "packages/sencha-core/src/fx/layout/card/ScrollReveal.js",
+      "path": "packages/sencha-core/src/fx/easing/BoundMomentum.js",
       "requires": [
-        252
+        253,
+        254,
+        255
       ],
       "uses": [],
       "idx": 256
     },
     {
-      "path": "packages/sencha-core/src/fx/runner/CssAnimation.js",
+      "path": "packages/sencha-core/src/fx/easing/Linear.js",
       "requires": [
-        230
+        253
       ],
-      "uses": [
-        229
-      ],
+      "uses": [],
       "idx": 257
     },
     {
-      "path": "packages/sencha-core/src/mixin/Hookable.js",
+      "path": "packages/sencha-core/src/fx/easing/EaseIn.js",
       "requires": [
-        22
+        257
       ],
       "uses": [],
       "idx": 258
     },
     {
-      "path": "packages/sencha-core/src/mixin/Mashup.js",
+      "path": "packages/sencha-core/src/fx/easing/EaseOut.js",
       "requires": [
-        22
+        257
       ],
       "uses": [],
       "idx": 259
     },
     {
-      "path": "packages/sencha-core/src/mixin/Responsive.js",
+      "path": "packages/sencha-core/src/fx/easing/Easing.js",
       "requires": [
-        22
+        257
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 260
     },
     {
-      "path": "packages/sencha-core/src/mixin/Selectable.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Abstract.js",
       "requires": [
-        22
+        16
       ],
-      "uses": [
-        38
-      ],
+      "uses": [],
       "idx": 261
     },
     {
-      "path": "packages/sencha-core/src/mixin/Traversable.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Style.js",
       "requires": [
-        22
+        246,
+        261
       ],
       "uses": [],
       "idx": 262
     },
     {
-      "path": "packages/sencha-core/src/perf/Accumulator.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Slide.js",
       "requires": [
-        85
+        262
       ],
       "uses": [],
       "idx": 263
     },
     {
-      "path": "packages/sencha-core/src/perf/Monitor.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Cover.js",
       "requires": [
-        263
+        262
       ],
       "uses": [],
       "idx": 264
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/Abstract.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Reveal.js",
       "requires": [
-        76,
-        240
+        262
       ],
-      "uses": [
-        64
-      ],
+      "uses": [],
       "idx": 265
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/Dom.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Fade.js",
       "requires": [
-        265
+        262
       ],
       "uses": [],
       "idx": 266
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/CssTransform.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Flip.js",
       "requires": [
-        266
+        262
       ],
       "uses": [],
       "idx": 267
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/ScrollPosition.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Pop.js",
       "requires": [
-        266
+        262
       ],
       "uses": [],
       "idx": 268
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/ScrollParent.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Scroll.js",
       "requires": [
-        266
+        257,
+        261
       ],
-      "uses": [],
+      "uses": [
+        11
+      ],
       "idx": 269
     },
     {
-      "path": "packages/sencha-core/src/util/translatable/CssPosition.js",
+      "path": "packages/sencha-core/src/fx/layout/Card.js",
       "requires": [
-        266
+        263,
+        264,
+        265,
+        266,
+        267,
+        268,
+        269
       ],
-      "uses": [],
+      "uses": [
+        261
+      ],
       "idx": 270
     },
     {
-      "path": "packages/sencha-core/src/util/Translatable.js",
+      "path": "packages/sencha-core/src/fx/layout/card/Cube.js",
       "requires": [
-        267,
-        268,
-        269,
-        270
+        262
       ],
       "uses": [],
       "idx": 271
     },
     {
-      "path": "packages/sencha-core/src/scroll/Scroller.js",
+      "path": "packages/sencha-core/src/fx/layout/card/ScrollCover.js",
       "requires": [
-        76,
-        239,
-        242,
-        271
+        269
       ],
       "uses": [],
       "idx": 272
     },
     {
-      "path": "src/rtl/scroll/Scroller.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/fx/layout/card/ScrollReveal.js",
+      "requires": [
+        269
+      ],
       "uses": [],
       "idx": 273
     },
     {
-      "path": "packages/sencha-core/src/util/Base64.js",
-      "requires": [],
-      "uses": [],
+      "path": "packages/sencha-core/src/fx/runner/CssAnimation.js",
+      "requires": [
+        247
+      ],
+      "uses": [
+        246
+      ],
       "idx": 274
     },
     {
-      "path": "packages/sencha-core/src/util/LocalStorage.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/mixin/Hookable.js",
+      "requires": [
+        3
+      ],
       "uses": [],
       "idx": 275
     },
     {
-      "path": "packages/sencha-core/src/util/TaskManager.js",
+      "path": "packages/sencha-core/src/mixin/Mashup.js",
       "requires": [
-        39
+        3
       ],
       "uses": [],
       "idx": 276
     },
     {
-      "path": "packages/sencha-core/src/util/TextMetrics.js",
+      "path": "packages/sencha-core/src/mixin/Responsive.js",
       "requires": [
-        27
+        3,
+        51
       ],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 277
     },
     {
-      "path": "src/Action.js",
-      "requires": [],
-      "uses": [],
+      "path": "packages/sencha-core/src/mixin/Selectable.js",
+      "requires": [
+        3
+      ],
+      "uses": [
+        30
+      ],
       "idx": 278
     },
     {
-      "path": "src/util/ProtoElement.js",
-      "requires": [],
-      "uses": [
-        27
+      "path": "packages/sencha-core/src/mixin/Traversable.js",
+      "requires": [
+        3
       ],
+      "uses": [],
       "idx": 279
     },
     {
-      "path": "src/util/ElementContainer.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/perf/Accumulator.js",
+      "requires": [
+        101
+      ],
       "uses": [],
       "idx": 280
     },
     {
-      "path": "src/util/Renderable.js",
+      "path": "packages/sencha-core/src/perf/Monitor.js",
       "requires": [
-        27
+        280
       ],
-      "uses": [
-        85,
-        288
-      ],
+      "uses": [],
       "idx": 281
     },
     {
-      "path": "src/rtl/util/Renderable.js",
-      "requires": [],
-      "uses": [],
+      "path": "packages/sencha-core/src/util/translatable/Abstract.js",
+      "requires": [
+        16,
+        257
+      ],
+      "uses": [
+        11
+      ],
       "idx": 282
     },
     {
-      "path": "src/state/Provider.js",
+      "path": "packages/sencha-core/src/util/translatable/Dom.js",
       "requires": [
-        34
+        282
       ],
       "uses": [],
       "idx": 283
     },
     {
-      "path": "src/state/Manager.js",
+      "path": "packages/sencha-core/src/util/translatable/CssTransform.js",
       "requires": [
         283
       ],
@@ -2638,321 +2717,276 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 284
     },
     {
-      "path": "src/state/Stateful.js",
+      "path": "packages/sencha-core/src/util/translatable/ScrollPosition.js",
       "requires": [
-        284
+        283
       ],
-      "uses": [
-        39
-      ],
+      "uses": [],
       "idx": 285
     },
     {
-      "path": "src/util/Floating.js",
-      "requires": [],
-      "uses": [
-        60,
-        297,
-        474
+      "path": "packages/sencha-core/src/util/translatable/ScrollParent.js",
+      "requires": [
+        283
       ],
+      "uses": [],
       "idx": 286
     },
     {
-      "path": "src/rtl/util/Floating.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/util/translatable/CssPosition.js",
+      "requires": [
+        283
+      ],
       "uses": [],
       "idx": 287
     },
     {
-      "path": "src/Component.js",
+      "path": "packages/sencha-core/src/util/Translatable.js",
       "requires": [
-        24,
-        34,
-        57,
-        60,
-        72,
-        75,
-        79,
-        80,
-        207,
-        279,
-        280,
-        281,
+        284,
         285,
-        286
+        286,
+        287
       ],
-      "uses": [
-        18,
-        25,
-        26,
-        27,
-        32,
-        50,
-        59,
-        61,
-        63,
-        66,
-        67,
-        82,
-        85,
-        107,
-        292,
-        293,
-        294,
-        297,
-        307,
-        309,
-        375,
-        446,
-        474,
-        583,
-        595,
-        601,
-        603
-      ],
+      "uses": [],
       "idx": 288
     },
     {
-      "path": "src/layout/container/border/Region.js",
-      "requires": [],
+      "path": "packages/sencha-core/src/scroll/Scroller.js",
+      "requires": [
+        16,
+        256,
+        259,
+        288
+      ],
       "uses": [],
       "idx": 289
     },
     {
-      "path": "src/rtl/Component.js",
+      "path": "src/rtl/scroll/Scroller.js",
       "requires": [],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 290
+    },
+    {
+      "path": "packages/sencha-core/src/util/Base64.js",
+      "requires": [],
+      "uses": [],
+      "idx": 291
+    },
+    {
+      "path": "packages/sencha-core/src/util/LocalStorage.js",
+      "requires": [],
+      "uses": [],
+      "idx": 292
+    },
+    {
+      "path": "packages/sencha-core/src/util/TaskManager.js",
+      "requires": [
+        31
+      ],
+      "uses": [],
+      "idx": 293
+    },
+    {
+      "path": "packages/sencha-core/src/util/TextMetrics.js",
+      "requires": [
+        19
+      ],
+      "uses": [],
+      "idx": 294
+    },
+    {
+      "path": "src/Action.js",
+      "requires": [],
+      "uses": [],
+      "idx": 295
     },
     {
       "path": "src/ElementLoader.js",
       "requires": [
-        34
+        26
       ],
       "uses": [
-        70,
-        71
+        9,
+        10
       ],
-      "idx": 291
+      "idx": 296
     },
     {
       "path": "src/ComponentLoader.js",
       "requires": [
-        291
+        296
       ],
       "uses": [],
-      "idx": 292
+      "idx": 297
     },
     {
       "path": "src/layout/SizeModel.js",
       "requires": [],
       "uses": [],
-      "idx": 293
+      "idx": 298
     },
     {
       "path": "src/layout/Layout.js",
       "requires": [
-        85,
-        86,
-        293
+        101,
+        102,
+        298
       ],
       "uses": [
-        583
+        593
       ],
-      "idx": 294
+      "idx": 299
     },
     {
       "path": "src/layout/container/Container.js",
       "requires": [
-        85,
-        280,
-        294
+        62,
+        101,
+        299
       ],
-      "uses": [],
-      "idx": 295
+      "uses": [
+        194
+      ],
+      "idx": 300
     },
     {
       "path": "src/layout/container/Auto.js",
       "requires": [
-        295
+        300
       ],
       "uses": [
-        85
+        101
       ],
-      "idx": 296
+      "idx": 301
     },
     {
       "path": "src/ZIndexManager.js",
       "requires": [
-        60
+        169,
+        170
       ],
       "uses": [
-        27
+        19,
+        51,
+        105
       ],
-      "idx": 297
+      "idx": 302
     },
     {
       "path": "src/container/Container.js",
       "requires": [
-        38,
-        173,
-        288,
-        296,
-        297
+        30,
+        71,
+        189,
+        301,
+        302
       ],
       "uses": [
-        35,
-        72,
-        75,
-        86
+        12,
+        15,
+        27,
+        102
       ],
-      "idx": 298
+      "idx": 303
     },
     {
       "path": "src/layout/container/Editor.js",
       "requires": [
-        295
+        300
       ],
       "uses": [],
-      "idx": 299
+      "idx": 304
     },
     {
       "path": "src/Editor.js",
       "requires": [
-        298,
-        299
+        303,
+        304
       ],
       "uses": [
-        27,
-        72
+        12,
+        19
       ],
-      "idx": 300
+      "idx": 305
     },
     {
       "path": "src/EventManager.js",
       "requires": [],
       "uses": [
-        60
+        51
       ],
-      "idx": 301
+      "idx": 306
     },
     {
       "path": "src/util/KeyMap.js",
       "requires": [],
       "uses": [],
-      "idx": 302
+      "idx": 307
     },
     {
       "path": "src/util/KeyNav.js",
       "requires": [
-        302
-      ],
-      "uses": [],
-      "idx": 303
-    },
-    {
-      "path": "src/FocusManager.js",
-      "requires": [
-        34,
-        48,
-        72,
-        75,
-        288,
-        303
-      ],
-      "uses": [
-        27,
-        32
-      ],
-      "idx": 304
-    },
-    {
-      "path": "src/Img.js",
-      "requires": [
-        288
-      ],
-      "uses": [],
-      "idx": 305
-    },
-    {
-      "path": "src/util/StoreHolder.js",
-      "requires": [],
-      "uses": [
-        172
-      ],
-      "idx": 306
-    },
-    {
-      "path": "src/LoadMask.js",
-      "requires": [
-        288,
-        306
-      ],
-      "uses": [
-        60,
-        172
-      ],
-      "idx": 307
-    },
-    {
-      "path": "src/layout/component/Component.js",
-      "requires": [
-        294
+        307
       ],
       "uses": [],
       "idx": 308
     },
     {
-      "path": "src/layout/component/Auto.js",
+      "path": "src/FocusManager.js",
       "requires": [
+        6,
+        12,
+        15,
+        26,
+        71,
         308
       ],
-      "uses": [],
+      "uses": [
+        19,
+        24
+      ],
       "idx": 309
     },
     {
-      "path": "src/layout/component/ProgressBar.js",
+      "path": "src/Img.js",
       "requires": [
-        309
+        71
       ],
       "uses": [],
       "idx": 310
     },
     {
-      "path": "src/ProgressBar.js",
-      "requires": [
-        207,
-        276,
-        288,
-        310
-      ],
+      "path": "src/util/StoreHolder.js",
+      "requires": [],
       "uses": [
-        56,
-        85
+        188
       ],
       "idx": 311
     },
     {
-      "path": "src/ProgressBarWidget.js",
+      "path": "src/LoadMask.js",
       "requires": [
-        81,
+        71,
         311
       ],
       "uses": [
-        85
+        51,
+        188
       ],
       "idx": 312
     },
     {
-      "path": "src/ShadowPool.js",
-      "requires": [],
+      "path": "src/layout/component/Component.js",
+      "requires": [
+        299
+      ],
       "uses": [],
       "idx": 313
     },
     {
-      "path": "src/Shadow.js",
+      "path": "src/layout/component/Auto.js",
       "requires": [
         313
       ],
@@ -2960,968 +2994,992 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 314
     },
     {
-      "path": "src/app/EventDomain.js",
+      "path": "src/layout/component/ProgressBar.js",
       "requires": [
-        33
+        314
       ],
       "uses": [],
       "idx": 315
     },
     {
-      "path": "src/app/domain/Component.js",
+      "path": "src/ProgressBar.js",
       "requires": [
-        81,
-        288,
+        56,
+        61,
+        71,
+        293,
         315
       ],
-      "uses": [],
+      "uses": [
+        47,
+        101
+      ],
       "idx": 316
     },
     {
-      "path": "src/app/EventBus.js",
+      "path": "src/ProgressBarWidget.js",
       "requires": [
+        59,
         316
       ],
       "uses": [
-        315
+        101
       ],
       "idx": 317
     },
     {
-      "path": "src/app/domain/Global.js",
+      "path": "src/ShadowPool.js",
       "requires": [
-        315
+        194
       ],
-      "uses": [],
+      "uses": [
+        56
+      ],
       "idx": 318
     },
     {
-      "path": "src/app/BaseController.js",
+      "path": "src/Shadow.js",
       "requires": [
-        34,
-        317,
         318
       ],
-      "uses": [
-        324,
-        325,
-        449
-      ],
+      "uses": [],
       "idx": 319
     },
     {
-      "path": "src/app/Util.js",
-      "requires": [],
+      "path": "src/app/EventDomain.js",
+      "requires": [
+        25
+      ],
       "uses": [],
       "idx": 320
     },
     {
-      "path": "src/app/domain/Store.js",
+      "path": "src/app/domain/Component.js",
       "requires": [
-        119,
-        315
+        59,
+        71,
+        320
       ],
       "uses": [],
       "idx": 321
     },
     {
-      "path": "src/app/route/Queue.js",
-      "requires": [],
+      "path": "src/app/EventBus.js",
+      "requires": [
+        321
+      ],
       "uses": [
-        38
+        320
       ],
       "idx": 322
     },
     {
-      "path": "src/app/route/Route.js",
-      "requires": [],
+      "path": "src/app/domain/Global.js",
+      "requires": [
+        320
+      ],
       "uses": [],
       "idx": 323
     },
     {
-      "path": "src/util/History.js",
+      "path": "src/app/BaseController.js",
       "requires": [
-        34
+        26,
+        322,
+        323
       ],
       "uses": [
-        27,
-        276
+        329,
+        330,
+        460
       ],
       "idx": 324
     },
     {
-      "path": "src/app/route/Router.js",
-      "requires": [
-        322,
-        323,
-        324
-      ],
+      "path": "src/app/Util.js",
+      "requires": [],
       "uses": [],
       "idx": 325
     },
     {
-      "path": "src/app/Controller.js",
+      "path": "src/app/domain/Store.js",
       "requires": [
-        72,
-        172,
-        316,
-        319,
-        320,
-        321,
-        325
+        135,
+        320
+      ],
+      "uses": [],
+      "idx": 326
+    },
+    {
+      "path": "src/app/route/Queue.js",
+      "requires": [],
+      "uses": [
+        30
+      ],
+      "idx": 327
+    },
+    {
+      "path": "src/app/route/Route.js",
+      "requires": [],
+      "uses": [
+        56
+      ],
+      "idx": 328
+    },
+    {
+      "path": "src/util/History.js",
+      "requires": [
+        26
       ],
       "uses": [
-        75,
-        99
+        293
       ],
-      "idx": 326
+      "idx": 329
+    },
+    {
+      "path": "src/app/route/Router.js",
+      "requires": [
+        327,
+        328,
+        329
+      ],
+      "uses": [],
+      "idx": 330
+    },
+    {
+      "path": "src/app/Controller.js",
+      "requires": [
+        12,
+        188,
+        321,
+        324,
+        325,
+        326,
+        330
+      ],
+      "uses": [
+        15,
+        115
+      ],
+      "idx": 331
     },
     {
       "path": "src/panel/Bar.js",
       "requires": [
-        298
+        303
       ],
       "uses": [],
-      "idx": 327
+      "idx": 332
     },
     {
       "path": "src/rtl/panel/Bar.js",
       "requires": [],
       "uses": [],
-      "idx": 328
+      "idx": 333
     },
     {
       "path": "src/panel/Title.js",
       "requires": [
-        288
-      ],
-      "uses": [],
-      "idx": 329
-    },
-    {
-      "path": "src/rtl/panel/Title.js",
-      "requires": [],
-      "uses": [],
-      "idx": 330
-    },
-    {
-      "path": "src/panel/Tool.js",
-      "requires": [
-        288
-      ],
-      "uses": [
-        372
-      ],
-      "idx": 331
-    },
-    {
-      "path": "src/panel/Header.js",
-      "requires": [
-        107,
-        309,
-        327,
-        329,
-        331
-      ],
-      "uses": [
-        72
-      ],
-      "idx": 332
-    },
-    {
-      "path": "src/toolbar/Fill.js",
-      "requires": [
-        288
-      ],
-      "uses": [],
-      "idx": 333
-    },
-    {
-      "path": "src/layout/container/boxOverflow/None.js",
-      "requires": [
-        86
+        71
       ],
       "uses": [],
       "idx": 334
     },
     {
-      "path": "src/toolbar/Item.js",
-      "requires": [
-        288
-      ],
+      "path": "src/rtl/panel/Title.js",
+      "requires": [],
       "uses": [],
       "idx": 335
     },
     {
-      "path": "src/toolbar/Separator.js",
+      "path": "src/panel/Tool.js",
       "requires": [
-        335
+        71
       ],
-      "uses": [],
+      "uses": [
+        380
+      ],
       "idx": 336
     },
     {
-      "path": "src/dom/ButtonElement.js",
+      "path": "src/panel/Header.js",
       "requires": [
-        27
+        123,
+        314,
+        332,
+        334,
+        336
       ],
-      "uses": [],
+      "uses": [
+        12
+      ],
       "idx": 337
     },
     {
-      "path": "src/button/Manager.js",
-      "requires": [],
+      "path": "src/toolbar/Fill.js",
+      "requires": [
+        71
+      ],
       "uses": [],
       "idx": 338
     },
     {
-      "path": "src/menu/Manager.js",
+      "path": "src/layout/container/boxOverflow/None.js",
       "requires": [
-        38,
-        302
+        102
       ],
-      "uses": [
-        72,
-        107,
-        352,
-        363,
-        554
-      ],
+      "uses": [],
       "idx": 339
     },
     {
-      "path": "src/util/ClickRepeater.js",
+      "path": "src/toolbar/Item.js",
       "requires": [
-        34
+        71
       ],
       "uses": [],
       "idx": 340
     },
     {
-      "path": "src/button/Button.js",
+      "path": "src/toolbar/Separator.js",
       "requires": [
-        173,
-        277,
-        288,
-        302,
-        337,
-        338,
-        339,
         340
       ],
-      "uses": [
-        16,
-        372
-      ],
+      "uses": [],
       "idx": 341
     },
     {
-      "path": "src/rtl/button/Button.js",
-      "requires": [],
+      "path": "src/dom/ButtonElement.js",
+      "requires": [
+        19
+      ],
       "uses": [],
       "idx": 342
     },
     {
-      "path": "src/layout/container/boxOverflow/Menu.js",
-      "requires": [
-        334,
-        336,
-        341
-      ],
-      "uses": [
-        107,
-        309,
-        333,
-        352,
-        363,
-        554
-      ],
+      "path": "src/button/Manager.js",
+      "requires": [],
+      "uses": [],
       "idx": 343
     },
     {
-      "path": "src/rtl/layout/container/boxOverflow/Menu.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/menu/Manager.js",
+      "requires": [
+        30,
+        307
+      ],
+      "uses": [
+        12,
+        564
+      ],
       "idx": 344
     },
     {
-      "path": "src/layout/container/boxOverflow/Scroller.js",
+      "path": "src/util/ClickRepeater.js",
       "requires": [
-        23,
-        27,
-        334,
-        340
+        26
       ],
       "uses": [],
       "idx": 345
     },
     {
-      "path": "src/rtl/layout/container/boxOverflow/Scroller.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/button/Button.js",
+      "requires": [
+        71,
+        189,
+        294,
+        307,
+        342,
+        343,
+        344,
+        345
+      ],
+      "uses": [
+        89,
+        380
+      ],
       "idx": 346
     },
     {
-      "path": "src/dd/DragDropManager.js",
-      "requires": [
-        14
-      ],
-      "uses": [
-        372,
-        414
-      ],
+      "path": "src/rtl/button/Button.js",
+      "requires": [],
+      "uses": [],
       "idx": 347
     },
     {
-      "path": "src/layout/container/Box.js",
+      "path": "src/layout/container/boxOverflow/Menu.js",
       "requires": [
-        295,
-        334,
-        343,
-        345,
-        347
+        339,
+        341,
+        346
       ],
       "uses": [
-        86,
-        107,
-        293,
-        309,
-        432
+        123,
+        314,
+        338,
+        358,
+        371,
+        564
       ],
       "idx": 348
     },
     {
-      "path": "src/rtl/layout/container/Box.js",
+      "path": "src/rtl/layout/container/boxOverflow/Menu.js",
       "requires": [],
       "uses": [],
       "idx": 349
     },
     {
-      "path": "src/layout/container/HBox.js",
+      "path": "src/layout/container/boxOverflow/Scroller.js",
       "requires": [
-        348
+        5,
+        19,
+        339,
+        345
       ],
       "uses": [],
       "idx": 350
     },
     {
-      "path": "src/rtl/layout/container/HBox.js",
+      "path": "src/rtl/layout/container/boxOverflow/Scroller.js",
       "requires": [],
       "uses": [],
       "idx": 351
     },
     {
-      "path": "src/layout/container/VBox.js",
+      "path": "src/dd/DragDropManager.js",
       "requires": [
-        348
+        87
       ],
-      "uses": [],
+      "uses": [
+        380,
+        423
+      ],
       "idx": 352
     },
     {
-      "path": "src/rtl/layout/container/VBox.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/resizer/Splitter.js",
+      "requires": [
+        71,
+        101
+      ],
+      "uses": [
+        477
+      ],
       "idx": 353
     },
     {
-      "path": "src/toolbar/Toolbar.js",
+      "path": "src/layout/container/Box.js",
       "requires": [
-        107,
-        298,
-        309,
-        333,
+        55,
+        300,
+        339,
+        348,
         350,
-        352
+        352,
+        353
       ],
       "uses": [
-        336,
-        500
+        102,
+        123,
+        298,
+        314
       ],
       "idx": 354
     },
     {
-      "path": "src/dd/DragDrop.js",
-      "requires": [
-        347
-      ],
-      "uses": [
-        27
-      ],
+      "path": "src/rtl/layout/container/Box.js",
+      "requires": [],
+      "uses": [],
       "idx": 355
     },
     {
-      "path": "src/dd/DD.js",
+      "path": "src/layout/container/HBox.js",
       "requires": [
-        347,
-        355
+        354
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 356
     },
     {
-      "path": "src/rtl/dd/DD.js",
+      "path": "src/rtl/layout/container/HBox.js",
       "requires": [],
       "uses": [],
       "idx": 357
     },
     {
-      "path": "src/dd/DDProxy.js",
+      "path": "src/layout/container/VBox.js",
       "requires": [
-        356
+        354
       ],
-      "uses": [
-        347
-      ],
+      "uses": [],
       "idx": 358
     },
     {
-      "path": "src/dd/StatusProxy.js",
-      "requires": [
-        288
-      ],
+      "path": "src/rtl/layout/container/VBox.js",
+      "requires": [],
       "uses": [],
       "idx": 359
     },
     {
-      "path": "src/dd/DragSource.js",
+      "path": "src/util/FocusableContainer.js",
       "requires": [
-        347,
-        358,
-        359
+        3,
+        308
       ],
       "uses": [
-        107,
-        309
+        71
       ],
       "idx": 360
     },
     {
-      "path": "src/panel/Proxy.js",
+      "path": "src/rtl/util/FocusableContainer.js",
       "requires": [],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 361
     },
     {
-      "path": "src/panel/DD.js",
+      "path": "src/toolbar/Toolbar.js",
       "requires": [
-        360,
-        361
+        123,
+        303,
+        314,
+        338,
+        356,
+        358,
+        360
       ],
-      "uses": [],
+      "uses": [
+        341,
+        511
+      ],
       "idx": 362
     },
     {
-      "path": "src/layout/component/Dock.js",
+      "path": "src/dd/DragDrop.js",
       "requires": [
-        308
+        352
       ],
       "uses": [
-        27,
-        75,
-        293
+        19
       ],
       "idx": 363
     },
     {
-      "path": "src/rtl/layout/component/Dock.js",
-      "requires": [],
-      "uses": [
+      "path": "src/dd/DD.js",
+      "requires": [
+        352,
         363
+      ],
+      "uses": [
+        19
       ],
       "idx": 364
     },
     {
-      "path": "src/util/Memento.js",
+      "path": "src/rtl/dd/DD.js",
       "requires": [],
       "uses": [],
       "idx": 365
     },
     {
-      "path": "src/container/DockingContainer.js",
+      "path": "src/dd/DDProxy.js",
       "requires": [
-        27,
-        38
+        364
       ],
       "uses": [
-        35,
-        75
+        352
       ],
       "idx": 366
     },
     {
-      "path": "src/panel/Panel.js",
+      "path": "src/dd/StatusProxy.js",
       "requires": [
-        27,
-        38,
-        56,
-        85,
-        298,
-        302,
-        332,
-        354,
-        362,
-        363,
-        365,
-        366
+        71
       ],
-      "uses": [
-        32,
-        107,
-        207,
-        279,
-        288,
-        296,
-        309,
-        331,
-        446
-      ],
+      "uses": [],
       "idx": 367
     },
     {
-      "path": "src/rtl/panel/Panel.js",
-      "requires": [],
-      "uses": [],
-      "idx": 368
-    },
-    {
-      "path": "src/tip/Tip.js",
+      "path": "src/dd/DragSource.js",
       "requires": [
+        352,
+        366,
         367
       ],
       "uses": [
-        288
+        123,
+        314
+      ],
+      "idx": 368
+    },
+    {
+      "path": "src/panel/Proxy.js",
+      "requires": [],
+      "uses": [
+        19
       ],
       "idx": 369
     },
     {
-      "path": "src/tip/ToolTip.js",
+      "path": "src/panel/DD.js",
       "requires": [
+        368,
         369
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 370
     },
     {
-      "path": "src/tip/QuickTip.js",
+      "path": "src/layout/component/Dock.js",
       "requires": [
-        370
+        313
       ],
-      "uses": [],
+      "uses": [
+        15,
+        19,
+        298
+      ],
       "idx": 371
     },
     {
-      "path": "src/tip/QuickTipManager.js",
-      "requires": [
+      "path": "src/rtl/layout/component/Dock.js",
+      "requires": [],
+      "uses": [
         371
       ],
-      "uses": [],
       "idx": 372
     },
     {
-      "path": "src/rtl/tip/QuickTipManager.js",
+      "path": "src/util/Memento.js",
       "requires": [],
       "uses": [],
       "idx": 373
     },
     {
-      "path": "src/app/Application.js",
+      "path": "src/container/DockingContainer.js",
       "requires": [
-        38,
-        324,
-        326,
-        372,
+        19,
+        30
+      ],
+      "uses": [
+        15,
+        27,
+        194
+      ],
+      "idx": 374
+    },
+    {
+      "path": "src/panel/Panel.js",
+      "requires": [
+        19,
+        30,
+        47,
+        101,
+        303,
+        307,
+        337,
+        362,
+        370,
+        371,
+        373,
+        374
+      ],
+      "uses": [
+        24,
+        60,
+        61,
+        71,
+        123,
+        301,
+        314,
+        336,
+        457
+      ],
+      "idx": 375
+    },
+    {
+      "path": "src/rtl/panel/Panel.js",
+      "requires": [],
+      "uses": [],
+      "idx": 376
+    },
+    {
+      "path": "src/tip/Tip.js",
+      "requires": [
         375
       ],
       "uses": [
-        325
+        71
       ],
-      "idx": 374
+      "idx": 377
+    },
+    {
+      "path": "src/tip/ToolTip.js",
+      "requires": [
+        377
+      ],
+      "uses": [
+        19
+      ],
+      "idx": 378
+    },
+    {
+      "path": "src/tip/QuickTip.js",
+      "requires": [
+        378
+      ],
+      "uses": [],
+      "idx": 379
+    },
+    {
+      "path": "src/tip/QuickTipManager.js",
+      "requires": [
+        379
+      ],
+      "uses": [],
+      "idx": 380
+    },
+    {
+      "path": "src/rtl/tip/QuickTipManager.js",
+      "requires": [],
+      "uses": [],
+      "idx": 381
+    },
+    {
+      "path": "src/app/Application.js",
+      "requires": [
+        30,
+        329,
+        331,
+        380,
+        383
+      ],
+      "uses": [
+        330
+      ],
+      "idx": 382
     },
     {
       "path": "overrides/app/Application.js",
       "requires": [],
       "uses": [
-        374
+        382
       ],
-      "idx": 375
+      "idx": 383
     },
     {
       "path": "src/app/domain/View.js",
       "requires": [
-        315
+        320
       ],
       "uses": [
-        288
+        71
       ],
-      "idx": 376
+      "idx": 384
     },
     {
       "path": "src/app/ViewController.js",
       "requires": [
-        86,
-        319,
-        376
+        102,
+        324,
+        384
       ],
       "uses": [],
-      "idx": 377
+      "idx": 385
     },
     {
       "path": "src/form/Labelable.js",
       "requires": [
-        22,
-        59,
-        85
+        3,
+        50,
+        101
       ],
       "uses": [
-        27,
-        371
+        19,
+        379
       ],
-      "idx": 378
+      "idx": 386
     },
     {
       "path": "src/rtl/form/Labelable.js",
       "requires": [],
       "uses": [],
-      "idx": 379
+      "idx": 387
     },
     {
       "path": "src/form/field/Field.js",
       "requires": [],
       "uses": [],
-      "idx": 380
+      "idx": 388
     },
     {
       "path": "src/form/field/Base.js",
       "requires": [
-        32,
-        85,
-        288,
-        378,
-        380
+        24,
+        71,
+        101,
+        386,
+        388
       ],
       "uses": [
-        107,
-        296,
-        363,
-        371
+        194
       ],
-      "idx": 381
+      "idx": 389
     },
     {
       "path": "src/form/field/Display.js",
       "requires": [
-        85,
-        381
+        55,
+        101,
+        389
       ],
       "uses": [],
-      "idx": 382
+      "idx": 390
     },
     {
       "path": "src/layout/container/Fit.js",
       "requires": [
-        295
-      ],
-      "uses": [],
-      "idx": 383
-    },
-    {
-      "path": "src/panel/Table.js",
-      "requires": [
-        367,
-        383
-      ],
-      "uses": [
-        32,
-        172,
-        403,
-        421,
-        566,
-        567,
-        605,
-        611
-      ],
-      "idx": 384
-    },
-    {
-      "path": "src/selection/Model.js",
-      "requires": [
-        34,
-        172,
-        306
-      ],
-      "uses": [
-        38
-      ],
-      "idx": 385
-    },
-    {
-      "path": "src/selection/DataViewModel.js",
-      "requires": [
-        303,
-        385
-      ],
-      "uses": [],
-      "idx": 386
-    },
-    {
-      "path": "src/view/AbstractView.js",
-      "requires": [
-        29,
-        172,
-        288,
-        306,
-        307,
-        386
-      ],
-      "uses": [
-        64,
-        85,
-        276
-      ],
-      "idx": 387
-    },
-    {
-      "path": "src/view/View.js",
-      "requires": [
-        387
-      ],
-      "uses": [],
-      "idx": 388
-    },
-    {
-      "path": "src/grid/CellContext.js",
-      "requires": [],
-      "uses": [],
-      "idx": 389
-    },
-    {
-      "path": "src/util/CSS.js",
-      "requires": [],
-      "uses": [
-        27
-      ],
-      "idx": 390
-    },
-    {
-      "path": "src/view/TableLayout.js",
-      "requires": [
-        309,
-        390
+        300
       ],
       "uses": [],
       "idx": 391
     },
     {
-      "path": "src/view/NodeCache.js",
+      "path": "src/panel/Table.js",
       "requires": [
-        29
+        375,
+        391
       ],
       "uses": [
-        27,
-        28
+        24,
+        188,
+        194,
+        399,
+        412,
+        430,
+        436,
+        576,
+        577,
+        615,
+        621
       ],
       "idx": 392
     },
     {
-      "path": "src/view/Table.js",
+      "path": "src/selection/Model.js",
       "requires": [
-        32,
-        38,
-        388,
-        389,
-        391,
-        392
+        26,
+        188,
+        311
       ],
       "uses": [
-        28,
-        85,
-        421
+        30
       ],
       "idx": 393
     },
     {
-      "path": "src/rtl/view/Table.js",
-      "requires": [],
+      "path": "src/selection/DataViewModel.js",
+      "requires": [
+        308,
+        393
+      ],
       "uses": [],
       "idx": 394
     },
     {
-      "path": "src/grid/View.js",
+      "path": "src/view/NavigationModel.js",
       "requires": [
-        393
+        26,
+        102
       ],
-      "uses": [],
+      "uses": [
+        308
+      ],
       "idx": 395
     },
     {
-      "path": "src/grid/Panel.js",
-      "requires": [
-        384,
-        395
-      ],
+      "path": "src/rtl/view/NavigationModel.js",
+      "requires": [],
       "uses": [],
       "idx": 396
     },
     {
-      "path": "src/form/CheckboxManager.js",
+      "path": "src/view/AbstractView.js",
       "requires": [
-        38
+        21,
+        71,
+        188,
+        311,
+        312,
+        394,
+        395
       ],
-      "uses": [],
+      "uses": [
+        11,
+        56,
+        101,
+        102,
+        194,
+        293
+      ],
       "idx": 397
     },
     {
-      "path": "src/form/field/Checkbox.js",
+      "path": "src/view/View.js",
       "requires": [
-        85,
-        381,
         397
       ],
       "uses": [],
       "idx": 398
     },
     {
-      "path": "src/rtl/form/field/Checkbox.js",
+      "path": "src/grid/CellContext.js",
       "requires": [],
       "uses": [],
       "idx": 399
     },
     {
-      "path": "src/app/bindinspector/Util.js",
+      "path": "src/util/CSS.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 400
     },
     {
-      "path": "src/app/bindinspector/ComponentDetail.js",
+      "path": "src/view/TableLayout.js",
       "requires": [
-        107,
-        288,
-        298,
-        309,
-        350,
-        352,
-        367,
-        382,
-        396,
-        398,
+        314,
         400
       ],
-      "uses": [
-        333,
-        341,
-        354,
-        363,
-        383,
-        443
-      ],
+      "uses": [],
       "idx": 401
     },
     {
-      "path": "src/tree/View.js",
+      "path": "src/view/NodeCache.js",
       "requires": [
-        170,
-        393
+        21
       ],
       "uses": [
-        85
+        19,
+        20
       ],
       "idx": 402
     },
     {
-      "path": "src/selection/RowModel.js",
+      "path": "src/view/Table.js",
       "requires": [
-        303,
-        385
+        24,
+        30,
+        398,
+        399,
+        401,
+        402
       ],
       "uses": [
-        389
+        20,
+        101,
+        430
       ],
       "idx": 403
     },
     {
-      "path": "src/selection/TreeModel.js",
-      "requires": [
-        403
-      ],
+      "path": "src/rtl/view/Table.js",
+      "requires": [],
       "uses": [],
       "idx": 404
     },
     {
-      "path": "src/rtl/selection/TreeModel.js",
-      "requires": [],
+      "path": "src/grid/View.js",
+      "requires": [
+        403
+      ],
       "uses": [],
       "idx": 405
     },
     {
-      "path": "src/grid/ColumnLayout.js",
+      "path": "src/grid/Panel.js",
       "requires": [
-        350,
-        384
+        392,
+        405
       ],
       "uses": [],
       "idx": 406
     },
     {
-      "path": "src/rtl/grid/ColumnLayout.js",
-      "requires": [],
+      "path": "src/form/CheckboxManager.js",
+      "requires": [
+        30
+      ],
       "uses": [],
       "idx": 407
     },
     {
-      "path": "src/plugin/Abstract.js",
-      "requires": [],
+      "path": "src/form/field/Checkbox.js",
+      "requires": [
+        101,
+        389,
+        407
+      ],
       "uses": [],
       "idx": 408
     },
     {
-      "path": "src/dd/DragTracker.js",
-      "requires": [
-        34
-      ],
+      "path": "src/app/bindinspector/Util.js",
+      "requires": [],
       "uses": [
-        14
+        56
       ],
       "idx": 409
     },
     {
-      "path": "src/grid/plugin/HeaderResizer.js",
+      "path": "src/app/bindinspector/ComponentDetail.js",
       "requires": [
-        14,
+        71,
+        123,
+        303,
+        314,
+        356,
+        358,
+        375,
+        390,
+        406,
         408,
         409
       ],
       "uses": [
-        423
+        56,
+        338,
+        346,
+        362,
+        371,
+        391,
+        454
       ],
       "idx": 410
     },
     {
-      "path": "src/rtl/grid/plugin/HeaderResizer.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/tree/View.js",
+      "requires": [
+        186,
+        403
+      ],
+      "uses": [
+        101
+      ],
       "idx": 411
     },
     {
-      "path": "src/dd/DragZone.js",
+      "path": "src/selection/RowModel.js",
       "requires": [
-        360
+        394,
+        399
       ],
-      "uses": [
-        415,
-        417
-      ],
+      "uses": [],
       "idx": 412
     },
     {
-      "path": "src/grid/header/DragZone.js",
+      "path": "src/selection/TreeModel.js",
       "requires": [
         412
       ],
@@ -3929,1341 +3987,1372 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 413
     },
     {
-      "path": "src/dd/DDTarget.js",
-      "requires": [
-        355
-      ],
+      "path": "src/rtl/selection/TreeModel.js",
+      "requires": [],
       "uses": [],
       "idx": 414
     },
     {
-      "path": "src/dd/ScrollManager.js",
+      "path": "src/grid/ColumnLayout.js",
       "requires": [
-        347
+        356,
+        392
       ],
       "uses": [],
       "idx": 415
     },
     {
-      "path": "src/dd/DropTarget.js",
-      "requires": [
-        414,
-        415
-      ],
+      "path": "src/rtl/grid/ColumnLayout.js",
+      "requires": [],
       "uses": [],
       "idx": 416
     },
     {
-      "path": "src/dd/Registry.js",
+      "path": "src/plugin/Abstract.js",
       "requires": [],
       "uses": [],
       "idx": 417
     },
     {
-      "path": "src/dd/DropZone.js",
+      "path": "src/dd/DragTracker.js",
       "requires": [
-        416,
-        417
+        26
       ],
       "uses": [
-        347
+        87
       ],
       "idx": 418
     },
     {
-      "path": "src/grid/header/DropZone.js",
+      "path": "src/grid/plugin/HeaderResizer.js",
       "requires": [
+        87,
+        417,
         418
       ],
       "uses": [
-        347
+        432
       ],
       "idx": 419
     },
     {
-      "path": "src/grid/plugin/HeaderReorderer.js",
-      "requires": [
-        408,
-        413,
-        419
-      ],
+      "path": "src/rtl/grid/plugin/HeaderResizer.js",
+      "requires": [],
       "uses": [],
       "idx": 420
     },
     {
-      "path": "src/grid/header/Container.js",
+      "path": "src/dd/DragZone.js",
       "requires": [
-        298,
-        406,
-        410,
-        420
+        368
       ],
       "uses": [
-        32,
-        107,
-        309,
-        352,
-        363,
-        423,
-        527,
-        551,
-        553,
-        554
+        424,
+        426
       ],
       "idx": 421
     },
     {
-      "path": "src/grid/ColumnComponentLayout.js",
+      "path": "src/grid/header/DragZone.js",
       "requires": [
-        309
+        421
       ],
       "uses": [],
       "idx": 422
     },
     {
-      "path": "src/grid/column/Column.js",
+      "path": "src/dd/DDTarget.js",
       "requires": [
-        117,
-        303,
-        406,
-        421,
-        422
+        363
       ],
-      "uses": [
-        410
-      ],
+      "uses": [],
       "idx": 423
     },
     {
-      "path": "src/rtl/grid/column/Column.js",
-      "requires": [],
+      "path": "src/dd/ScrollManager.js",
+      "requires": [
+        352
+      ],
       "uses": [],
       "idx": 424
     },
     {
-      "path": "src/tree/Column.js",
+      "path": "src/dd/DropTarget.js",
       "requires": [
-        423
+        423,
+        424
       ],
       "uses": [],
       "idx": 425
     },
     {
-      "path": "src/rtl/tree/Column.js",
+      "path": "src/dd/Registry.js",
       "requires": [],
       "uses": [],
       "idx": 426
     },
     {
-      "path": "src/tree/Panel.js",
+      "path": "src/dd/DropZone.js",
       "requires": [
-        175,
-        384,
-        402,
-        404,
-        425
+        425,
+        426
       ],
       "uses": [
-        107,
-        172,
-        296,
-        422
+        352
       ],
       "idx": 427
     },
     {
-      "path": "src/form/field/VTypes.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/grid/header/DropZone.js",
+      "requires": [
+        427
+      ],
+      "uses": [
+        352
+      ],
       "idx": 428
     },
     {
-      "path": "src/form/trigger/Trigger.js",
+      "path": "src/grid/plugin/HeaderReorderer.js",
       "requires": [
-        86,
-        340
+        417,
+        422,
+        428
       ],
-      "uses": [
-        27,
-        85
-      ],
+      "uses": [],
       "idx": 429
     },
     {
-      "path": "src/form/field/Text.js",
+      "path": "src/grid/header/Container.js",
       "requires": [
-        277,
-        381,
-        428,
+        303,
+        308,
+        360,
+        415,
+        419,
         429
       ],
       "uses": [
-        32,
-        60,
-        207
+        24,
+        123,
+        314,
+        358,
+        371,
+        432,
+        537,
+        561,
+        563,
+        564
       ],
       "idx": 430
     },
     {
-      "path": "src/app/bindinspector/ComponentList.js",
+      "path": "src/grid/ColumnComponentLayout.js",
       "requires": [
-        427,
-        430
+        314
       ],
-      "uses": [
-        75,
-        107,
-        296,
-        309,
-        333,
-        341,
-        354,
-        363,
-        370,
-        400,
-        422,
-        425
-      ],
+      "uses": [],
       "idx": 431
     },
     {
-      "path": "src/resizer/Splitter.js",
+      "path": "src/grid/column/Column.js",
       "requires": [
-        85,
-        288
+        133,
+        415,
+        430,
+        431
       ],
       "uses": [
-        466
+        55,
+        419
       ],
       "idx": 432
     },
     {
-      "path": "src/resizer/BorderSplitter.js",
-      "requires": [
-        432
-      ],
-      "uses": [
-        596
-      ],
+      "path": "src/rtl/grid/column/Column.js",
+      "requires": [],
+      "uses": [],
       "idx": 433
     },
     {
-      "path": "src/layout/container/Border.js",
+      "path": "src/tree/Column.js",
       "requires": [
-        56,
-        289,
-        295,
-        433
+        432
       ],
-      "uses": [
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 434
     },
     {
-      "path": "src/rtl/layout/container/Border.js",
+      "path": "src/rtl/tree/Column.js",
       "requires": [],
       "uses": [],
       "idx": 435
     },
     {
-      "path": "src/layout/container/Card.js",
+      "path": "src/grid/NavigationModel.js",
       "requires": [
-        383
+        395
       ],
-      "uses": [],
+      "uses": [
+        20,
+        89,
+        308,
+        399
+      ],
       "idx": 436
     },
     {
-      "path": "src/tab/Tab.js",
-      "requires": [
-        303,
-        341
-      ],
-      "uses": [
-        27
-      ],
+      "path": "src/rtl/grid/NavigationModel.js",
+      "requires": [],
+      "uses": [],
       "idx": 437
     },
     {
-      "path": "src/layout/component/Body.js",
+      "path": "src/tree/NavigationModel.js",
       "requires": [
-        309
+        436
       ],
-      "uses": [],
+      "uses": [
+        89
+      ],
       "idx": 438
     },
     {
-      "path": "src/tab/Bar.js",
+      "path": "src/tree/Panel.js",
       "requires": [
-        15,
-        327,
-        437,
+        191,
+        392,
+        411,
+        413,
+        434,
         438
       ],
       "uses": [
-        14
+        123,
+        188,
+        301,
+        431,
+        577
       ],
       "idx": 439
     },
     {
-      "path": "src/rtl/tab/Bar.js",
+      "path": "src/form/field/VTypes.js",
       "requires": [],
       "uses": [],
       "idx": 440
     },
     {
-      "path": "src/tab/Panel.js",
+      "path": "src/form/trigger/Trigger.js",
       "requires": [
-        367,
-        436,
-        439
+        102,
+        345
       ],
       "uses": [
-        107,
-        309,
-        437
+        19,
+        101
       ],
       "idx": 441
     },
     {
-      "path": "src/app/bindinspector/Environment.js",
+      "path": "src/form/field/Text.js",
       "requires": [
-        89
+        294,
+        389,
+        440,
+        441
       ],
       "uses": [
-        72,
-        482
+        24,
+        55,
+        56,
+        61
       ],
       "idx": 442
     },
     {
-      "path": "src/app/bindinspector/ViewModelDetail.js",
+      "path": "src/app/bindinspector/ComponentList.js",
       "requires": [
-        427
+        439,
+        442
       ],
       "uses": [
-        107,
-        296,
-        400,
-        422,
-        425
+        15,
+        123,
+        301,
+        314,
+        338,
+        346,
+        362,
+        371,
+        378,
+        409,
+        431,
+        434
       ],
       "idx": 443
     },
     {
-      "path": "src/app/bindinspector/noconflict/BaseModel.js",
+      "path": "src/resizer/BorderSplitter.js",
       "requires": [
-        147
+        353
       ],
-      "uses": [],
+      "uses": [
+        606
+      ],
       "idx": 444
     },
     {
-      "path": "src/app/bindinspector/Container.js",
+      "path": "src/layout/container/Border.js",
       "requires": [
-        107,
-        288,
-        298,
-        309,
-        350,
-        400,
-        401,
-        431,
-        434,
-        441,
-        442,
-        443,
+        47,
+        72,
+        300,
         444
       ],
       "uses": [
-        99,
-        296,
-        363,
-        367,
-        383
+        55,
+        123,
+        314
       ],
       "idx": 445
     },
     {
-      "path": "src/util/ComponentDragger.js",
-      "requires": [
-        409
-      ],
-      "uses": [
-        14,
-        27
-      ],
+      "path": "src/rtl/layout/container/Border.js",
+      "requires": [],
+      "uses": [],
       "idx": 446
     },
     {
-      "path": "src/window/Window.js",
+      "path": "src/layout/container/Card.js",
       "requires": [
-        14,
-        367,
-        446
+        391
       ],
       "uses": [],
       "idx": 447
     },
     {
-      "path": "src/app/bindinspector/Inspector.js",
+      "path": "src/tab/Tab.js",
       "requires": [
-        372,
-        383,
-        445,
-        447
+        308,
+        346
       ],
       "uses": [
-        107,
-        309,
-        434,
-        442
+        19
       ],
       "idx": 448
     },
     {
-      "path": "src/app/domain/Controller.js",
+      "path": "src/layout/component/Body.js",
       "requires": [
-        315,
-        326
+        314
       ],
-      "uses": [
-        319
-      ],
+      "uses": [],
       "idx": 449
     },
     {
-      "path": "src/app/domain/Direct.js",
+      "path": "src/tab/Bar.js",
       "requires": [
-        201,
-        315
+        88,
+        332,
+        360,
+        448,
+        449
       ],
-      "uses": [],
+      "uses": [
+        87
+      ],
       "idx": 450
     },
     {
-      "path": "src/button/Split.js",
-      "requires": [
-        341
-      ],
+      "path": "src/rtl/tab/Bar.js",
+      "requires": [],
       "uses": [],
       "idx": 451
     },
     {
-      "path": "src/button/Cycle.js",
+      "path": "src/tab/Panel.js",
       "requires": [
-        451
+        375,
+        447,
+        450
       ],
-      "uses": [],
+      "uses": [
+        123,
+        314,
+        448
+      ],
       "idx": 452
     },
     {
-      "path": "src/button/Segmented.js",
+      "path": "src/app/bindinspector/Environment.js",
       "requires": [
-        298,
-        341
+        105
       ],
-      "uses": [],
+      "uses": [
+        12,
+        493
+      ],
       "idx": 453
     },
     {
-      "path": "src/rtl/button/Segmented.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/app/bindinspector/ViewModelDetail.js",
+      "requires": [
+        439
+      ],
+      "uses": [
+        56,
+        123,
+        301,
+        409,
+        431,
+        434
+      ],
       "idx": 454
     },
     {
-      "path": "src/layout/container/Table.js",
+      "path": "src/app/bindinspector/noconflict/BaseModel.js",
       "requires": [
-        295
+        156
       ],
       "uses": [],
       "idx": 455
     },
     {
-      "path": "src/container/ButtonGroup.js",
+      "path": "src/app/bindinspector/Container.js",
       "requires": [
-        367,
+        71,
+        123,
+        303,
+        314,
+        356,
+        409,
+        410,
+        443,
+        445,
+        452,
+        453,
+        454,
         455
       ],
-      "uses": [],
+      "uses": [
+        115,
+        301,
+        371,
+        375,
+        391
+      ],
       "idx": 456
     },
     {
-      "path": "src/container/Monitor.js",
-      "requires": [],
+      "path": "src/util/ComponentDragger.js",
+      "requires": [
+        418
+      ],
       "uses": [
-        38
+        19,
+        87
       ],
       "idx": 457
     },
     {
-      "path": "src/plugin/Responsive.js",
+      "path": "src/window/Window.js",
       "requires": [
-        260
+        87,
+        375,
+        457
       ],
       "uses": [],
       "idx": 458
     },
     {
-      "path": "src/plugin/Viewport.js",
+      "path": "src/app/bindinspector/Inspector.js",
       "requires": [
+        380,
+        391,
+        456,
         458
       ],
       "uses": [
-        27
+        123,
+        314,
+        445,
+        453
       ],
       "idx": 459
     },
     {
-      "path": "src/container/Viewport.js",
+      "path": "src/app/domain/Controller.js",
       "requires": [
-        260,
-        298,
-        459
+        320,
+        331
       ],
-      "uses": [],
+      "uses": [
+        324
+      ],
       "idx": 460
     },
     {
-      "path": "src/layout/container/Anchor.js",
+      "path": "src/app/domain/Direct.js",
       "requires": [
-        296
+        219,
+        320
       ],
       "uses": [],
       "idx": 461
     },
     {
-      "path": "src/dashboard/Panel.js",
+      "path": "src/button/Split.js",
       "requires": [
-        367
+        346
       ],
-      "uses": [
-        72
-      ],
+      "uses": [],
       "idx": 462
     },
     {
-      "path": "src/dashboard/Column.js",
+      "path": "src/button/Cycle.js",
       "requires": [
-        298,
-        461,
         462
       ],
       "uses": [],
       "idx": 463
     },
     {
-      "path": "src/layout/container/Column.js",
+      "path": "src/button/Segmented.js",
       "requires": [
-        296
+        303,
+        346
       ],
       "uses": [],
       "idx": 464
     },
     {
-      "path": "src/rtl/layout/container/Column.js",
+      "path": "src/rtl/button/Segmented.js",
       "requires": [],
       "uses": [],
       "idx": 465
     },
     {
-      "path": "src/resizer/SplitterTracker.js",
+      "path": "src/layout/container/Table.js",
       "requires": [
-        14,
-        409
+        300
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 466
     },
     {
-      "path": "src/rtl/resizer/SplitterTracker.js",
-      "requires": [],
+      "path": "src/container/ButtonGroup.js",
+      "requires": [
+        375,
+        466
+      ],
       "uses": [],
       "idx": 467
     },
     {
-      "path": "src/layout/container/ColumnSplitterTracker.js",
-      "requires": [
-        466
+      "path": "src/container/Monitor.js",
+      "requires": [],
+      "uses": [
+        30
       ],
-      "uses": [],
       "idx": 468
     },
     {
-      "path": "src/layout/container/ColumnSplitter.js",
+      "path": "src/plugin/Responsive.js",
       "requires": [
-        432,
-        468
+        277
       ],
       "uses": [],
       "idx": 469
     },
     {
-      "path": "src/layout/container/SplitColumn.js",
+      "path": "src/plugin/Viewport.js",
       "requires": [
-        464,
         469
       ],
       "uses": [
-        107,
-        309
+        19
       ],
       "idx": 470
     },
     {
-      "path": "src/dashboard/DropZone.js",
+      "path": "src/container/Viewport.js",
       "requires": [
-        416
+        277,
+        303,
+        470
       ],
-      "uses": [
-        415
-      ],
+      "uses": [],
       "idx": 471
     },
     {
-      "path": "src/dashboard/Part.js",
+      "path": "src/layout/container/Anchor.js",
       "requires": [
-        0,
-        86,
-        91
+        301
       ],
       "uses": [],
       "idx": 472
     },
     {
-      "path": "src/dashboard/Dashboard.js",
+      "path": "src/dashboard/Panel.js",
       "requires": [
-        367,
-        463,
-        470,
-        471,
-        472
+        375
       ],
       "uses": [
-        86,
-        89,
-        284
+        12
       ],
       "idx": 473
     },
     {
-      "path": "src/dom/Layer.js",
+      "path": "src/dashboard/Column.js",
       "requires": [
-        27
+        303,
+        472,
+        473
       ],
-      "uses": [
-        314
-      ],
+      "uses": [],
       "idx": 474
     },
     {
-      "path": "src/rtl/dom/Layer.js",
-      "requires": [],
-      "uses": [
-        474
+      "path": "src/layout/container/Column.js",
+      "requires": [
+        301
       ],
+      "uses": [],
       "idx": 475
     },
     {
-      "path": "src/enums.js",
+      "path": "src/rtl/layout/container/Column.js",
       "requires": [],
       "uses": [],
       "idx": 476
     },
     {
-      "path": "src/flash/Component.js",
+      "path": "src/resizer/SplitterTracker.js",
       "requires": [
-        288
+        87,
+        418
       ],
-      "uses": [],
+      "uses": [
+        19
+      ],
       "idx": 477
     },
     {
-      "path": "src/form/action/Action.js",
+      "path": "src/rtl/resizer/SplitterTracker.js",
       "requires": [],
       "uses": [],
       "idx": 478
     },
     {
-      "path": "src/form/action/Load.js",
+      "path": "src/layout/container/ColumnSplitterTracker.js",
       "requires": [
-        70,
-        478
+        477
       ],
-      "uses": [
-        71
-      ],
+      "uses": [],
       "idx": 479
     },
     {
-      "path": "src/form/action/Submit.js",
+      "path": "src/layout/container/ColumnSplitter.js",
       "requires": [
-        478
+        353,
+        479
       ],
-      "uses": [
-        71
-      ],
+      "uses": [],
       "idx": 480
     },
     {
-      "path": "src/form/field/TextArea.js",
+      "path": "src/layout/container/Dashboard.js",
       "requires": [
-        32,
-        85,
-        430
+        475,
+        480
       ],
       "uses": [
-        277
+        123,
+        314
       ],
       "idx": 481
     },
     {
-      "path": "src/window/MessageBox.js",
+      "path": "src/dashboard/DropZone.js",
       "requires": [
-        311,
-        341,
-        350,
-        354,
-        382,
-        430,
-        447,
-        461,
-        481
+        425
       ],
-      "uses": [
-        107,
-        288,
-        298,
-        309,
-        310
-      ],
+      "uses": [],
       "idx": 482
     },
     {
-      "path": "src/form/Basic.js",
+      "path": "src/dashboard/Part.js",
       "requires": [
-        32,
-        34,
-        38,
-        136,
-        479,
-        480,
-        482
+        4,
+        102,
+        107
       ],
-      "uses": [
-        457
-      ],
+      "uses": [],
       "idx": 483
     },
     {
-      "path": "src/form/FieldAncestor.js",
+      "path": "src/dashboard/Dashboard.js",
       "requires": [
-        22,
-        457
+        375,
+        474,
+        481,
+        482,
+        483
       ],
-      "uses": [],
+      "uses": [
+        66,
+        102,
+        105
+      ],
       "idx": 484
     },
     {
-      "path": "src/layout/component/field/FieldContainer.js",
+      "path": "src/dom/Layer.js",
       "requires": [
-        309
+        19
       ],
-      "uses": [],
+      "uses": [
+        194,
+        319
+      ],
       "idx": 485
     },
     {
-      "path": "src/form/FieldContainer.js",
-      "requires": [
-        298,
-        378,
-        484,
+      "path": "src/rtl/dom/Layer.js",
+      "requires": [],
+      "uses": [
         485
       ],
-      "uses": [],
       "idx": 486
     },
     {
-      "path": "src/layout/container/CheckboxGroup.js",
-      "requires": [
-        295
-      ],
+      "path": "src/enums.js",
+      "requires": [],
       "uses": [],
       "idx": 487
     },
     {
-      "path": "src/form/CheckboxGroup.js",
+      "path": "src/flash/Component.js",
       "requires": [
-        380,
-        381,
-        398,
-        486,
-        487
+        71
       ],
       "uses": [],
       "idx": 488
     },
     {
-      "path": "src/form/FieldSet.js",
-      "requires": [
-        298,
-        484
-      ],
-      "uses": [
-        27,
-        107,
-        279,
-        288,
-        295,
-        309,
-        331,
-        398,
-        461,
-        585
-      ],
+      "path": "src/form/action/Action.js",
+      "requires": [],
+      "uses": [],
       "idx": 489
     },
     {
-      "path": "src/form/Label.js",
+      "path": "src/form/action/Load.js",
       "requires": [
-        288
+        9,
+        489
       ],
-      "uses": [],
+      "uses": [
+        10
+      ],
       "idx": 490
     },
     {
-      "path": "src/form/Panel.js",
+      "path": "src/form/action/Submit.js",
       "requires": [
-        39,
-        367,
-        483,
-        484
+        489
       ],
-      "uses": [],
+      "uses": [
+        10,
+        194
+      ],
       "idx": 491
     },
     {
-      "path": "src/form/RadioManager.js",
+      "path": "src/form/field/TextArea.js",
       "requires": [
-        38
+        24,
+        101,
+        442
       ],
-      "uses": [],
+      "uses": [
+        55,
+        294
+      ],
       "idx": 492
     },
     {
-      "path": "src/form/field/Radio.js",
+      "path": "src/window/MessageBox.js",
       "requires": [
-        398,
+        316,
+        346,
+        356,
+        362,
+        390,
+        442,
+        458,
+        472,
         492
       ],
-      "uses": [],
+      "uses": [
+        71,
+        123,
+        303,
+        314,
+        315
+      ],
       "idx": 493
     },
     {
-      "path": "src/form/RadioGroup.js",
+      "path": "src/form/Basic.js",
       "requires": [
-        488,
+        24,
+        26,
+        30,
+        140,
+        490,
+        491,
         493
       ],
       "uses": [
-        492
+        468
       ],
       "idx": 494
     },
     {
-      "path": "src/form/action/DirectLoad.js",
+      "path": "src/form/FieldAncestor.js",
       "requires": [
-        161,
-        479
+        3,
+        468
       ],
       "uses": [],
       "idx": 495
     },
     {
-      "path": "src/form/action/DirectSubmit.js",
+      "path": "src/layout/component/field/FieldContainer.js",
       "requires": [
-        161,
-        480
+        314
       ],
       "uses": [],
       "idx": 496
     },
     {
-      "path": "src/form/action/StandardSubmit.js",
+      "path": "src/form/FieldContainer.js",
       "requires": [
-        480
+        303,
+        386,
+        495,
+        496
       ],
       "uses": [],
       "idx": 497
     },
     {
-      "path": "src/form/field/Picker.js",
+      "path": "src/layout/container/CheckboxGroup.js",
       "requires": [
-        303,
-        430
+        300
       ],
-      "uses": [],
+      "uses": [
+        194
+      ],
       "idx": 498
     },
     {
-      "path": "src/layout/component/BoundList.js",
+      "path": "src/form/CheckboxGroup.js",
       "requires": [
-        309
+        388,
+        389,
+        408,
+        497,
+        498
       ],
       "uses": [],
       "idx": 499
     },
     {
-      "path": "src/toolbar/TextItem.js",
+      "path": "src/form/FieldSet.js",
       "requires": [
-        85,
-        335
+        303,
+        495
       ],
-      "uses": [],
+      "uses": [
+        19,
+        60,
+        71,
+        123,
+        194,
+        300,
+        314,
+        336,
+        408,
+        472,
+        595
+      ],
       "idx": 500
     },
     {
-      "path": "src/form/trigger/Spinner.js",
+      "path": "src/form/Label.js",
       "requires": [
-        429
+        55,
+        71
       ],
       "uses": [],
       "idx": 501
     },
     {
-      "path": "src/form/field/Spinner.js",
+      "path": "src/form/Panel.js",
       "requires": [
-        303,
-        430,
-        501
+        31,
+        375,
+        494,
+        495
       ],
       "uses": [],
       "idx": 502
     },
     {
-      "path": "src/rtl/form/field/Spinner.js",
-      "requires": [],
+      "path": "src/form/RadioManager.js",
+      "requires": [
+        30
+      ],
       "uses": [],
       "idx": 503
     },
     {
-      "path": "src/form/field/Number.js",
+      "path": "src/form/field/Radio.js",
       "requires": [
-        502
+        408,
+        503
       ],
       "uses": [],
       "idx": 504
     },
     {
-      "path": "src/toolbar/Paging.js",
+      "path": "src/form/RadioGroup.js",
       "requires": [
-        306,
-        354,
-        500,
+        360,
+        499,
         504
       ],
       "uses": [
-        107,
-        309,
-        501
+        503
       ],
       "idx": 505
     },
     {
-      "path": "src/view/BoundList.js",
+      "path": "src/form/action/DirectLoad.js",
       "requires": [
-        27,
-        173,
-        388,
-        499,
-        505
+        177,
+        490
       ],
-      "uses": [
-        85,
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 506
     },
     {
-      "path": "src/view/BoundListKeyNav.js",
+      "path": "src/form/action/DirectSubmit.js",
       "requires": [
-        303,
-        506
+        177,
+        491
       ],
       "uses": [],
       "idx": 507
     },
     {
-      "path": "src/form/field/ComboBox.js",
+      "path": "src/form/action/StandardSubmit.js",
       "requires": [
-        32,
-        172,
-        306,
-        498,
-        506,
-        507
+        491
       ],
-      "uses": [
-        16,
-        27,
-        31,
-        85,
-        107,
-        154,
-        499
-      ],
+      "uses": [],
       "idx": 508
     },
     {
-      "path": "src/picker/Month.js",
+      "path": "src/form/field/Picker.js",
       "requires": [
-        85,
-        288,
-        340,
-        341
+        308,
+        442
       ],
-      "uses": [
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 509
     },
     {
-      "path": "src/picker/Date.js",
+      "path": "src/layout/component/BoundList.js",
       "requires": [
-        50,
-        85,
-        288,
-        303,
-        340,
-        341,
-        451,
-        509
+        314
       ],
-      "uses": [
-        16,
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 510
     },
     {
-      "path": "src/form/field/Date.js",
+      "path": "src/toolbar/TextItem.js",
       "requires": [
-        498,
-        510
+        101,
+        340
       ],
-      "uses": [
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 511
     },
     {
-      "path": "src/form/field/FileButton.js",
+      "path": "src/form/trigger/Spinner.js",
       "requires": [
-        341
+        441
       ],
       "uses": [],
       "idx": 512
     },
     {
-      "path": "src/rtl/form/field/FileButton.js",
-      "requires": [],
+      "path": "src/form/field/Spinner.js",
+      "requires": [
+        308,
+        442,
+        512
+      ],
       "uses": [],
       "idx": 513
     },
     {
-      "path": "src/form/trigger/Component.js",
+      "path": "src/form/field/Number.js",
       "requires": [
-        429
+        513
       ],
-      "uses": [],
+      "uses": [
+        55,
+        56
+      ],
       "idx": 514
     },
     {
-      "path": "src/form/field/File.js",
+      "path": "src/toolbar/Paging.js",
       "requires": [
-        430,
-        512,
+        311,
+        362,
+        511,
         514
       ],
       "uses": [
-        107,
-        309
+        56,
+        123,
+        314,
+        512
       ],
       "idx": 515
     },
     {
-      "path": "src/rtl/form/field/File.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/view/BoundList.js",
+      "requires": [
+        19,
+        189,
+        398,
+        510,
+        515
+      ],
+      "uses": [
+        101,
+        123,
+        314
+      ],
       "idx": 516
     },
     {
-      "path": "src/form/field/Hidden.js",
+      "path": "src/view/BoundListKeyNav.js",
       "requires": [
-        381
+        395
       ],
-      "uses": [],
+      "uses": [
+        308
+      ],
       "idx": 517
     },
     {
-      "path": "src/picker/Color.js",
+      "path": "src/form/field/ComboBox.js",
       "requires": [
-        85,
-        288
+        24,
+        188,
+        311,
+        509,
+        516,
+        517
       ],
-      "uses": [],
+      "uses": [
+        19,
+        23,
+        89,
+        101,
+        123,
+        170,
+        194,
+        510
+      ],
       "idx": 518
     },
     {
-      "path": "src/layout/component/field/HtmlEditor.js",
+      "path": "src/picker/Month.js",
       "requires": [
-        485
+        71,
+        101,
+        345,
+        346
       ],
-      "uses": [],
+      "uses": [
+        123,
+        314
+      ],
       "idx": 519
     },
     {
-      "path": "src/form/field/HtmlEditor.js",
+      "path": "src/picker/Date.js",
       "requires": [
-        335,
-        352,
-        354,
-        372,
-        380,
-        486,
-        518,
+        41,
+        71,
+        101,
+        308,
+        345,
+        346,
+        462,
         519
       ],
       "uses": [
-        32,
-        107,
-        276,
-        288,
-        309,
-        363,
-        554
+        56,
+        123,
+        194,
+        314
       ],
       "idx": 520
     },
     {
-      "path": "src/form/field/Tag.js",
+      "path": "src/form/field/Date.js",
       "requires": [
-        156,
-        385,
-        508
+        509,
+        520
       ],
       "uses": [
-        31,
-        60,
-        85
+        56,
+        123,
+        314
       ],
       "idx": 521
     },
     {
-      "path": "src/picker/Time.js",
+      "path": "src/form/field/FileButton.js",
       "requires": [
-        156,
-        506
+        346
       ],
-      "uses": [
-        31
-      ],
+      "uses": [],
       "idx": 522
     },
     {
-      "path": "src/form/field/Time.js",
-      "requires": [
-        507,
-        508,
-        511,
-        522
-      ],
-      "uses": [
-        85,
-        107,
-        499
-      ],
+      "path": "src/rtl/form/field/FileButton.js",
+      "requires": [],
+      "uses": [],
       "idx": 523
     },
     {
-      "path": "src/form/field/Trigger.js",
+      "path": "src/form/trigger/Component.js",
       "requires": [
-        340,
-        430
+        441
       ],
       "uses": [],
       "idx": 524
     },
     {
-      "path": "src/grid/CellEditor.js",
+      "path": "src/form/field/File.js",
       "requires": [
-        300
+        442,
+        522,
+        524
       ],
-      "uses": [],
+      "uses": [
+        123,
+        314
+      ],
       "idx": 525
     },
     {
-      "path": "src/rtl/grid/CellEditor.js",
+      "path": "src/rtl/form/field/File.js",
       "requires": [],
       "uses": [],
       "idx": 526
     },
     {
-      "path": "src/grid/ColumnManager.js",
-      "requires": [],
+      "path": "src/form/field/Hidden.js",
+      "requires": [
+        389
+      ],
       "uses": [],
       "idx": 527
     },
     {
-      "path": "src/grid/RowEditorButtons.js",
+      "path": "src/picker/Color.js",
       "requires": [
-        298
+        71,
+        101
       ],
-      "uses": [
-        107,
-        309,
-        341,
-        367
-      ],
+      "uses": [],
       "idx": 528
     },
     {
-      "path": "src/grid/RowEditor.js",
+      "path": "src/layout/component/field/HtmlEditor.js",
       "requires": [
-        303,
-        370,
-        491,
-        528
+        496
       ],
-      "uses": [
-        60,
-        107,
-        296,
-        298,
-        309,
-        363,
-        382
-      ],
+      "uses": [],
       "idx": 529
     },
     {
-      "path": "src/rtl/grid/RowEditor.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/form/field/HtmlEditor.js",
+      "requires": [
+        55,
+        340,
+        358,
+        362,
+        380,
+        388,
+        497,
+        528,
+        529
+      ],
+      "uses": [
+        24,
+        56,
+        71,
+        123,
+        194,
+        293,
+        314,
+        371,
+        564
+      ],
       "idx": 530
     },
     {
-      "path": "src/grid/Scroller.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/form/field/Tag.js",
+      "requires": [
+        172,
+        393,
+        518
+      ],
+      "uses": [
+        23,
+        51,
+        101
+      ],
       "idx": 531
     },
     {
-      "path": "src/view/DropZone.js",
+      "path": "src/picker/Time.js",
       "requires": [
-        418
+        172,
+        516
       ],
       "uses": [
-        107,
-        288,
-        309
+        23
       ],
       "idx": 532
     },
     {
-      "path": "src/grid/ViewDropZone.js",
+      "path": "src/form/field/Time.js",
       "requires": [
+        517,
+        518,
+        521,
         532
       ],
-      "uses": [],
+      "uses": [
+        56,
+        101,
+        123,
+        510
+      ],
       "idx": 533
     },
     {
-      "path": "src/grid/column/Action.js",
+      "path": "src/form/field/Trigger.js",
       "requires": [
-        423
+        194,
+        345,
+        442
       ],
       "uses": [],
       "idx": 534
     },
     {
-      "path": "src/grid/column/Boolean.js",
+      "path": "src/grid/CellEditor.js",
       "requires": [
-        423
+        305
       ],
       "uses": [],
       "idx": 535
     },
     {
-      "path": "src/grid/column/Check.js",
-      "requires": [
-        423
-      ],
+      "path": "src/rtl/grid/CellEditor.js",
+      "requires": [],
       "uses": [],
       "idx": 536
     },
     {
-      "path": "src/grid/column/Date.js",
-      "requires": [
-        423
-      ],
+      "path": "src/grid/ColumnManager.js",
+      "requires": [],
       "uses": [],
       "idx": 537
     },
     {
-      "path": "src/grid/column/Number.js",
+      "path": "src/grid/RowEditorButtons.js",
       "requires": [
-        423
+        303
       ],
-      "uses": [],
+      "uses": [
+        123,
+        314,
+        346,
+        375
+      ],
       "idx": 538
     },
     {
-      "path": "src/grid/column/RowNumberer.js",
+      "path": "src/grid/RowEditor.js",
       "requires": [
-        423
+        308,
+        378,
+        502,
+        538
       ],
-      "uses": [],
+      "uses": [
+        19,
+        51,
+        123,
+        301,
+        303,
+        314,
+        371,
+        390
+      ],
       "idx": 539
     },
     {
-      "path": "src/grid/column/Template.js",
-      "requires": [
-        85,
-        423
-      ],
-      "uses": [
-        536
-      ],
+      "path": "src/rtl/grid/RowEditor.js",
+      "requires": [],
+      "uses": [],
       "idx": 540
     },
     {
-      "path": "src/grid/column/Widget.js",
-      "requires": [
-        423
-      ],
+      "path": "src/grid/Scroller.js",
+      "requires": [],
       "uses": [],
       "idx": 541
     },
     {
-      "path": "src/grid/feature/Feature.js",
+      "path": "src/view/DropZone.js",
       "requires": [
-        34
+        427
       ],
-      "uses": [],
+      "uses": [
+        71,
+        123,
+        314
+      ],
       "idx": 542
     },
     {
-      "path": "src/grid/feature/AbstractSummary.js",
+      "path": "src/grid/ViewDropZone.js",
       "requires": [
         542
       ],
@@ -5271,141 +5360,118 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 543
     },
     {
-      "path": "src/grid/feature/GroupStore.js",
+      "path": "src/grid/column/Action.js",
       "requires": [
-        34
+        432
       ],
-      "uses": [
-        89
-      ],
+      "uses": [],
       "idx": 544
     },
     {
-      "path": "src/grid/feature/Grouping.js",
+      "path": "src/grid/column/Boolean.js",
       "requires": [
-        542,
-        543,
-        544
+        432
       ],
-      "uses": [
-        85,
-        421
-      ],
+      "uses": [],
       "idx": 545
     },
     {
-      "path": "src/grid/feature/GroupingSummary.js",
+      "path": "src/grid/column/Check.js",
       "requires": [
-        545
+        432
       ],
       "uses": [],
       "idx": 546
     },
     {
-      "path": "src/grid/feature/RowBody.js",
+      "path": "src/grid/column/Date.js",
       "requires": [
-        542
+        432
       ],
       "uses": [
-        85
+        55
       ],
       "idx": 547
     },
     {
-      "path": "src/grid/feature/Summary.js",
+      "path": "src/grid/column/Number.js",
       "requires": [
-        543
+        55,
+        432
       ],
-      "uses": [
-        107,
-        288,
-        309
-      ],
+      "uses": [],
       "idx": 548
     },
     {
-      "path": "src/rtl/grid/feature/Summary.js",
-      "requires": [],
+      "path": "src/grid/column/RowNumberer.js",
+      "requires": [
+        432
+      ],
       "uses": [],
       "idx": 549
     },
     {
-      "path": "src/menu/Item.js",
+      "path": "src/grid/column/Template.js",
       "requires": [
-        173,
-        288
+        101,
+        432
       ],
       "uses": [
-        27,
-        339,
-        372
+        546
       ],
       "idx": 550
     },
     {
-      "path": "src/menu/CheckItem.js",
+      "path": "src/grid/column/Widget.js",
       "requires": [
-        550
+        432
       ],
-      "uses": [
-        339
-      ],
+      "uses": [],
       "idx": 551
     },
     {
-      "path": "src/menu/KeyNav.js",
+      "path": "src/grid/feature/Feature.js",
       "requires": [
-        303
+        26
       ],
-      "uses": [
-        339
-      ],
+      "uses": [],
       "idx": 552
     },
     {
-      "path": "src/menu/Separator.js",
+      "path": "src/grid/feature/AbstractSummary.js",
       "requires": [
-        550
+        552
       ],
-      "uses": [],
+      "uses": [
+        156
+      ],
       "idx": 553
     },
     {
-      "path": "src/menu/Menu.js",
+      "path": "src/grid/feature/GroupStore.js",
       "requires": [
-        339,
-        352,
-        367,
-        550,
-        551,
-        552,
-        553
+        26
       ],
       "uses": [
-        27,
-        60,
-        72,
-        107,
-        309
+        105
       ],
       "idx": 554
     },
     {
-      "path": "src/grid/filters/filter/Base.js",
+      "path": "src/grid/feature/Grouping.js",
       "requires": [
-        86,
-        107,
-        352,
-        363,
+        552,
+        553,
         554
       ],
       "uses": [
-        31
+        101,
+        430
       ],
       "idx": 555
     },
     {
-      "path": "src/grid/filters/filter/SingleFilter.js",
+      "path": "src/grid/feature/GroupingSummary.js",
       "requires": [
         555
       ],
@@ -5413,842 +5479,972 @@ var Ext = Ext || { }; Ext.manifest = {
       "idx": 556
     },
     {
-      "path": "src/grid/filters/filter/Boolean.js",
+      "path": "src/grid/feature/RowBody.js",
       "requires": [
-        556
+        552
       ],
-      "uses": [],
+      "uses": [
+        101
+      ],
       "idx": 557
     },
     {
-      "path": "src/grid/filters/filter/TriFilter.js",
+      "path": "src/grid/feature/Summary.js",
       "requires": [
-        555
+        553
       ],
-      "uses": [],
+      "uses": [
+        71,
+        123,
+        156,
+        314
+      ],
       "idx": 558
     },
     {
-      "path": "src/grid/filters/filter/Date.js",
-      "requires": [
-        107,
-        309,
-        551,
-        558
-      ],
-      "uses": [
-        510,
-        554
-      ],
+      "path": "src/rtl/grid/feature/Summary.js",
+      "requires": [],
+      "uses": [],
       "idx": 559
     },
     {
-      "path": "src/grid/filters/filter/List.js",
+      "path": "src/menu/Item.js",
       "requires": [
-        556
+        71,
+        189
       ],
       "uses": [
-        128,
-        151,
-        157,
-        158
+        19,
+        344,
+        380
       ],
       "idx": 560
     },
     {
-      "path": "src/grid/filters/filter/Number.js",
+      "path": "src/menu/CheckItem.js",
       "requires": [
-        107,
-        309,
-        501,
-        558
+        560
       ],
       "uses": [
-        504
+        344
       ],
       "idx": 561
     },
     {
-      "path": "src/grid/filters/filter/String.js",
+      "path": "src/menu/KeyNav.js",
       "requires": [
-        107,
-        309,
-        430,
-        556
+        308
       ],
-      "uses": [],
+      "uses": [
+        344
+      ],
       "idx": 562
     },
     {
-      "path": "src/grid/filters/Filters.js",
+      "path": "src/menu/Separator.js",
       "requires": [
-        408,
-        555,
-        556,
-        557,
-        558,
-        559,
-        560,
-        561,
-        562
+        560
       ],
-      "uses": [
-        86
-      ],
+      "uses": [],
       "idx": 563
     },
     {
-      "path": "src/grid/locking/HeaderContainer.js",
+      "path": "src/menu/Menu.js",
       "requires": [
-        421,
-        527
+        344,
+        358,
+        375,
+        560,
+        561,
+        562,
+        563
       ],
-      "uses": [],
+      "uses": [
+        12,
+        19,
+        51,
+        123,
+        314
+      ],
       "idx": 564
     },
     {
-      "path": "src/grid/locking/View.js",
+      "path": "src/grid/filters/filter/Base.js",
       "requires": [
-        34,
-        288,
-        306,
-        387
+        102,
+        123,
+        358,
+        371,
+        564
       ],
       "uses": [
-        72,
-        307,
-        393
+        23
       ],
       "idx": 565
     },
     {
-      "path": "src/grid/locking/Lockable.js",
+      "path": "src/grid/filters/filter/SingleFilter.js",
       "requires": [
-        288,
-        393,
-        421,
-        564,
         565
       ],
-      "uses": [
-        107,
-        172,
-        296,
-        309,
-        348,
-        432
-      ],
+      "uses": [],
       "idx": 566
     },
     {
-      "path": "src/grid/plugin/BufferedRenderer.js",
+      "path": "src/grid/filters/filter/Boolean.js",
       "requires": [
-        408
+        566
       ],
-      "uses": [
-        32
-      ],
+      "uses": [],
       "idx": 567
     },
     {
-      "path": "src/grid/plugin/Editing.js",
+      "path": "src/grid/filters/filter/TriFilter.js",
       "requires": [
-        34,
-        303,
-        381,
-        393,
-        408,
-        423
+        565
       ],
-      "uses": [
-        72,
-        107,
-        309
-      ],
+      "uses": [],
       "idx": 568
     },
     {
-      "path": "src/grid/plugin/CellEditing.js",
+      "path": "src/grid/filters/filter/Date.js",
       "requires": [
-        32,
-        525,
+        123,
+        314,
+        561,
         568
       ],
       "uses": [
-        16,
-        38,
-        107,
-        299,
-        309,
-        389
+        520,
+        564
       ],
       "idx": 569
     },
     {
-      "path": "src/grid/plugin/DragDrop.js",
+      "path": "src/grid/filters/filter/List.js",
       "requires": [
-        408
+        566
       ],
       "uses": [
-        533,
-        632
+        162,
+        167,
+        173,
+        174
       ],
       "idx": 570
     },
     {
-      "path": "src/grid/plugin/RowEditing.js",
+      "path": "src/grid/filters/filter/Number.js",
       "requires": [
-        529,
+        123,
+        314,
+        512,
         568
       ],
-      "uses": [],
+      "uses": [
+        514
+      ],
       "idx": 571
+    },
+    {
+      "path": "src/grid/filters/filter/String.js",
+      "requires": [
+        123,
+        314,
+        442,
+        566
+      ],
+      "uses": [],
+      "idx": 572
+    },
+    {
+      "path": "src/grid/filters/Filters.js",
+      "requires": [
+        311,
+        417,
+        565,
+        566,
+        567,
+        568,
+        569,
+        570,
+        571,
+        572
+      ],
+      "uses": [
+        102
+      ],
+      "idx": 573
+    },
+    {
+      "path": "src/grid/locking/HeaderContainer.js",
+      "requires": [
+        430,
+        537
+      ],
+      "uses": [],
+      "idx": 574
+    },
+    {
+      "path": "src/grid/locking/View.js",
+      "requires": [
+        26,
+        70,
+        71,
+        311,
+        397
+      ],
+      "uses": [
+        12,
+        312,
+        403,
+        436
+      ],
+      "idx": 575
+    },
+    {
+      "path": "src/grid/locking/Lockable.js",
+      "requires": [
+        71,
+        403,
+        430,
+        574,
+        575
+      ],
+      "uses": [
+        24,
+        123,
+        188,
+        301,
+        314,
+        353,
+        354
+      ],
+      "idx": 576
+    },
+    {
+      "path": "src/grid/plugin/BufferedRenderer.js",
+      "requires": [
+        417
+      ],
+      "uses": [
+        24
+      ],
+      "idx": 577
+    },
+    {
+      "path": "src/grid/plugin/Editing.js",
+      "requires": [
+        26,
+        308,
+        389,
+        403,
+        417,
+        432
+      ],
+      "uses": [
+        12,
+        123,
+        314,
+        399
+      ],
+      "idx": 578
+    },
+    {
+      "path": "src/grid/plugin/CellEditing.js",
+      "requires": [
+        24,
+        535,
+        578
+      ],
+      "uses": [
+        30,
+        123,
+        304,
+        314
+      ],
+      "idx": 579
+    },
+    {
+      "path": "src/grid/plugin/DragDrop.js",
+      "requires": [
+        417
+      ],
+      "uses": [
+        543,
+        642
+      ],
+      "idx": 580
+    },
+    {
+      "path": "src/grid/plugin/RowEditing.js",
+      "requires": [
+        539,
+        578
+      ],
+      "uses": [],
+      "idx": 581
     },
     {
       "path": "src/rtl/grid/plugin/RowEditing.js",
       "requires": [],
       "uses": [],
-      "idx": 572
+      "idx": 582
     },
     {
       "path": "src/grid/plugin/RowExpander.js",
       "requires": [
-        408,
-        547
+        417,
+        557
       ],
       "uses": [
-        85,
-        423
+        101,
+        432
       ],
-      "idx": 573
+      "idx": 583
     },
     {
       "path": "src/grid/property/Grid.js",
       "requires": [
-        396
+        406
       ],
       "uses": [
-        72,
-        85,
-        107,
-        147,
-        299,
-        309,
-        381,
-        393,
-        430,
-        501,
-        504,
-        508,
-        511,
-        525,
-        569,
-        575,
-        578
+        12,
+        101,
+        123,
+        156,
+        304,
+        314,
+        389,
+        403,
+        442,
+        512,
+        514,
+        518,
+        521,
+        535,
+        579,
+        585,
+        588
       ],
-      "idx": 574
+      "idx": 584
     },
     {
       "path": "src/grid/property/HeaderContainer.js",
       "requires": [
-        421
-      ],
-      "uses": [],
-      "idx": 575
-    },
-    {
-      "path": "src/grid/property/Property.js",
-      "requires": [
-        147
-      ],
-      "uses": [],
-      "idx": 576
-    },
-    {
-      "path": "src/grid/property/Reader.js",
-      "requires": [
-        124
-      ],
-      "uses": [
-        123
-      ],
-      "idx": 577
-    },
-    {
-      "path": "src/grid/property/Store.js",
-      "requires": [
-        128,
-        156,
-        576,
-        577
-      ],
-      "uses": [
-        151
-      ],
-      "idx": 578
-    },
-    {
-      "path": "src/layout/ClassList.js",
-      "requires": [],
-      "uses": [],
-      "idx": 579
-    },
-    {
-      "path": "src/util/Queue.js",
-      "requires": [],
-      "uses": [],
-      "idx": 580
-    },
-    {
-      "path": "src/layout/ContextItem.js",
-      "requires": [
-        579
-      ],
-      "uses": [
-        38,
-        50,
-        56,
-        293
-      ],
-      "idx": 581
-    },
-    {
-      "path": "src/rtl/layout/ContextItem.js",
-      "requires": [],
-      "uses": [],
-      "idx": 582
-    },
-    {
-      "path": "src/layout/Context.js",
-      "requires": [
-        50,
-        56,
-        264,
-        294,
-        580,
-        581
-      ],
-      "uses": [],
-      "idx": 583
-    },
-    {
-      "path": "src/layout/SizePolicy.js",
-      "requires": [],
-      "uses": [],
-      "idx": 584
-    },
-    {
-      "path": "src/layout/component/FieldSet.js",
-      "requires": [
-        438
+        55,
+        430
       ],
       "uses": [],
       "idx": 585
     },
     {
-      "path": "src/layout/container/Absolute.js",
+      "path": "src/grid/property/Property.js",
       "requires": [
-        461
+        156
       ],
       "uses": [],
       "idx": 586
     },
     {
-      "path": "src/rtl/layout/container/Absolute.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/grid/property/Reader.js",
+      "requires": [
+        158
+      ],
+      "uses": [
+        157
+      ],
       "idx": 587
     },
     {
-      "path": "src/layout/container/Accordion.js",
+      "path": "src/grid/property/Store.js",
       "requires": [
-        352
+        162,
+        172,
+        586,
+        587
       ],
-      "uses": [],
+      "uses": [
+        167
+      ],
       "idx": 588
     },
     {
-      "path": "src/layout/container/Center.js",
-      "requires": [
-        383
-      ],
+      "path": "src/layout/ClassList.js",
+      "requires": [],
       "uses": [],
       "idx": 589
     },
     {
-      "path": "src/layout/container/Form.js",
-      "requires": [
-        296
-      ],
+      "path": "src/util/Queue.js",
+      "requires": [],
       "uses": [],
       "idx": 590
     },
     {
-      "path": "src/layout/container/SegmentedButton.js",
+      "path": "src/layout/ContextItem.js",
       "requires": [
-        295
+        589
       ],
-      "uses": [],
+      "uses": [
+        30,
+        41,
+        47,
+        298
+      ],
       "idx": 591
     },
     {
-      "path": "src/menu/ColorPicker.js",
-      "requires": [
-        518,
-        554
-      ],
-      "uses": [
-        107,
-        309,
-        339
-      ],
+      "path": "src/rtl/layout/ContextItem.js",
+      "requires": [],
+      "uses": [],
       "idx": 592
     },
     {
-      "path": "src/menu/DatePicker.js",
+      "path": "src/layout/Context.js",
       "requires": [
-        510,
-        554
+        41,
+        47,
+        281,
+        299,
+        590,
+        591
       ],
-      "uses": [
-        107,
-        309,
-        339
-      ],
+      "uses": [],
       "idx": 593
     },
     {
-      "path": "src/panel/Pinnable.js",
-      "requires": [
-        22
-      ],
-      "uses": [
-        107,
-        309,
-        331
-      ],
+      "path": "src/layout/SizePolicy.js",
+      "requires": [],
+      "uses": [],
       "idx": 594
     },
     {
-      "path": "src/plugin/Manager.js",
-      "requires": [],
+      "path": "src/layout/component/FieldSet.js",
+      "requires": [
+        449
+      ],
       "uses": [],
       "idx": 595
     },
     {
-      "path": "src/resizer/BorderSplitterTracker.js",
+      "path": "src/layout/container/Absolute.js",
       "requires": [
-        14,
-        466
+        472
       ],
       "uses": [],
       "idx": 596
     },
     {
-      "path": "src/rtl/resizer/BorderSplitterTracker.js",
+      "path": "src/rtl/layout/container/Absolute.js",
       "requires": [],
       "uses": [],
       "idx": 597
     },
     {
-      "path": "src/resizer/Handle.js",
+      "path": "src/layout/container/Accordion.js",
       "requires": [
-        288
+        358
       ],
       "uses": [],
       "idx": 598
     },
     {
-      "path": "src/resizer/ResizeTracker.js",
+      "path": "src/layout/container/Center.js",
       "requires": [
-        409
+        391
       ],
       "uses": [],
       "idx": 599
     },
     {
-      "path": "src/rtl/resizer/ResizeTracker.js",
-      "requires": [],
+      "path": "src/layout/container/Form.js",
+      "requires": [
+        301
+      ],
       "uses": [],
       "idx": 600
     },
     {
-      "path": "src/resizer/Resizer.js",
+      "path": "src/layout/container/SegmentedButton.js",
       "requires": [
-        34
+        300
       ],
-      "uses": [
-        27,
-        288,
-        599
-      ],
+      "uses": [],
       "idx": 601
     },
     {
-      "path": "src/scroll/Indicator.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/menu/ColorPicker.js",
+      "requires": [
+        528,
+        564
+      ],
+      "uses": [
+        123,
+        314,
+        344
+      ],
       "idx": 602
     },
     {
-      "path": "src/scroll/Manager.js",
+      "path": "src/menu/DatePicker.js",
       "requires": [
-        34,
-        60,
-        272,
-        602
+        520,
+        564
       ],
-      "uses": [],
+      "uses": [
+        123,
+        314,
+        344
+      ],
       "idx": 603
     },
     {
-      "path": "src/rtl/scroll/Manager.js",
-      "requires": [],
-      "uses": [],
+      "path": "src/panel/Pinnable.js",
+      "requires": [
+        3
+      ],
+      "uses": [
+        123,
+        314,
+        336
+      ],
       "idx": 604
     },
     {
-      "path": "src/selection/CellModel.js",
-      "requires": [
-        303,
-        385,
-        389
-      ],
+      "path": "src/plugin/Manager.js",
+      "requires": [],
       "uses": [],
       "idx": 605
     },
     {
-      "path": "src/rtl/selection/CellModel.js",
-      "requires": [],
+      "path": "src/resizer/BorderSplitterTracker.js",
+      "requires": [
+        87,
+        477
+      ],
       "uses": [],
       "idx": 606
     },
     {
-      "path": "src/slider/Thumb.js",
-      "requires": [
-        409
-      ],
-      "uses": [
-        56
-      ],
+      "path": "src/rtl/resizer/BorderSplitterTracker.js",
+      "requires": [],
+      "uses": [],
       "idx": 607
     },
     {
-      "path": "src/slider/Tip.js",
+      "path": "src/resizer/Handle.js",
       "requires": [
-        369
+        71
       ],
       "uses": [],
       "idx": 608
     },
     {
-      "path": "src/slider/Multi.js",
+      "path": "src/resizer/ResizeTracker.js",
       "requires": [
-        381,
-        607,
-        608
+        418
       ],
       "uses": [],
       "idx": 609
     },
     {
-      "path": "src/rtl/slider/Multi.js",
+      "path": "src/rtl/resizer/ResizeTracker.js",
       "requires": [],
       "uses": [],
       "idx": 610
     },
     {
-      "path": "src/selection/CheckboxModel.js",
+      "path": "src/resizer/Resizer.js",
       "requires": [
-        403
+        26
       ],
-      "uses": [],
+      "uses": [
+        19,
+        56,
+        71,
+        194,
+        609
+      ],
       "idx": 611
     },
     {
-      "path": "src/slider/Single.js",
-      "requires": [
-        609
-      ],
+      "path": "src/scroll/Indicator.js",
+      "requires": [],
       "uses": [],
       "idx": 612
     },
     {
-      "path": "src/slider/Widget.js",
+      "path": "src/scroll/Manager.js",
       "requires": [
-        81,
-        609
+        26,
+        51,
+        289,
+        612
       ],
-      "uses": [
-        56
-      ],
+      "uses": [],
       "idx": 613
     },
     {
-      "path": "src/sparkline/Shape.js",
+      "path": "src/rtl/scroll/Manager.js",
       "requires": [],
       "uses": [],
       "idx": 614
     },
     {
-      "path": "src/sparkline/CanvasBase.js",
+      "path": "src/selection/CellModel.js",
       "requires": [
-        614
+        394,
+        399
       ],
       "uses": [],
       "idx": 615
     },
     {
-      "path": "src/sparkline/CanvasCanvas.js",
-      "requires": [
-        615
-      ],
+      "path": "src/rtl/selection/CellModel.js",
+      "requires": [],
       "uses": [],
       "idx": 616
     },
     {
-      "path": "src/sparkline/VmlCanvas.js",
+      "path": "src/slider/Thumb.js",
       "requires": [
-        615
+        55,
+        418
       ],
-      "uses": [],
+      "uses": [
+        47
+      ],
       "idx": 617
     },
     {
-      "path": "src/sparkline/Base.js",
+      "path": "src/slider/Tip.js",
       "requires": [
-        81,
-        85,
-        616,
-        617
+        377
       ],
-      "uses": [
-        107,
-        296,
-        363,
-        370
-      ],
+      "uses": [],
       "idx": 618
     },
     {
-      "path": "src/sparkline/BarBase.js",
+      "path": "src/slider/Multi.js",
       "requires": [
+        55,
+        56,
+        389,
+        617,
         618
       ],
-      "uses": [],
+      "uses": [
+        194
+      ],
       "idx": 619
     },
     {
-      "path": "src/sparkline/RangeMap.js",
+      "path": "src/rtl/slider/Multi.js",
       "requires": [],
       "uses": [],
       "idx": 620
     },
     {
-      "path": "src/sparkline/Bar.js",
+      "path": "src/selection/CheckboxModel.js",
       "requires": [
-        85,
-        619,
-        620
+        412
       ],
       "uses": [],
       "idx": 621
     },
     {
-      "path": "src/sparkline/Box.js",
+      "path": "src/slider/Single.js",
       "requires": [
-        85,
-        618
+        619
       ],
       "uses": [],
       "idx": 622
     },
     {
-      "path": "src/sparkline/Bullet.js",
+      "path": "src/slider/Widget.js",
       "requires": [
-        85,
-        618
+        59,
+        619
       ],
-      "uses": [],
+      "uses": [
+        47,
+        55
+      ],
       "idx": 623
     },
     {
-      "path": "src/sparkline/Discrete.js",
-      "requires": [
-        85,
-        619
-      ],
+      "path": "src/sparkline/Shape.js",
+      "requires": [],
       "uses": [],
       "idx": 624
     },
     {
-      "path": "src/sparkline/Line.js",
+      "path": "src/sparkline/CanvasBase.js",
       "requires": [
-        85,
-        618,
-        620
+        624
       ],
       "uses": [],
       "idx": 625
     },
     {
-      "path": "src/sparkline/Pie.js",
+      "path": "src/sparkline/CanvasCanvas.js",
       "requires": [
-        85,
-        618
+        625
       ],
       "uses": [],
       "idx": 626
     },
     {
-      "path": "src/sparkline/TriState.js",
+      "path": "src/sparkline/VmlCanvas.js",
       "requires": [
-        85,
-        619,
-        620
+        625
       ],
       "uses": [],
       "idx": 627
     },
     {
-      "path": "src/state/CookieProvider.js",
+      "path": "src/sparkline/Base.js",
       "requires": [
-        283
+        59,
+        101,
+        626,
+        627
       ],
-      "uses": [],
+      "uses": [
+        123,
+        301,
+        371,
+        378
+      ],
       "idx": 628
     },
     {
-      "path": "src/state/LocalStorageProvider.js",
+      "path": "src/sparkline/BarBase.js",
       "requires": [
-        275,
-        283
+        628
       ],
       "uses": [],
       "idx": 629
     },
     {
-      "path": "src/toolbar/Breadcrumb.js",
-      "requires": [
-        175,
-        298,
-        451
-      ],
+      "path": "src/sparkline/RangeMap.js",
+      "requires": [],
       "uses": [],
       "idx": 630
     },
     {
-      "path": "src/toolbar/Spacer.js",
+      "path": "src/sparkline/Bar.js",
       "requires": [
-        288
+        101,
+        629,
+        630
       ],
       "uses": [],
       "idx": 631
     },
     {
-      "path": "src/view/DragZone.js",
+      "path": "src/sparkline/Box.js",
       "requires": [
-        412
+        101,
+        628
       ],
       "uses": [],
       "idx": 632
     },
     {
-      "path": "src/tree/ViewDragZone.js",
+      "path": "src/sparkline/Bullet.js",
       "requires": [
-        632
+        101,
+        628
       ],
       "uses": [],
       "idx": 633
     },
     {
-      "path": "src/tree/ViewDropZone.js",
+      "path": "src/sparkline/Discrete.js",
       "requires": [
-        532
+        101,
+        629
       ],
       "uses": [],
       "idx": 634
     },
     {
-      "path": "src/tree/plugin/TreeViewDragDrop.js",
+      "path": "src/sparkline/Line.js",
       "requires": [
-        408
+        101,
+        628,
+        630
       ],
-      "uses": [
-        633,
-        634
-      ],
+      "uses": [],
       "idx": 635
     },
     {
-      "path": "src/util/Cookies.js",
-      "requires": [],
+      "path": "src/sparkline/Pie.js",
+      "requires": [
+        101,
+        628
+      ],
       "uses": [],
       "idx": 636
     },
     {
-      "path": "src/view/MultiSelectorSearch.js",
+      "path": "src/sparkline/TriState.js",
       "requires": [
-        367
+        101,
+        629,
+        630
       ],
-      "uses": [
-        31,
-        107,
-        172,
-        309,
-        363,
-        383,
-        396,
-        430
-      ],
+      "uses": [],
       "idx": 637
     },
     {
-      "path": "src/view/MultiSelector.js",
+      "path": "src/state/CookieProvider.js",
       "requires": [
-        107,
-        363,
-        383,
-        396,
-        637
+        65
       ],
       "uses": [],
       "idx": 638
     },
     {
-      "path": "src/window/Toast.js",
+      "path": "src/state/LocalStorageProvider.js",
       "requires": [
-        447
+        65,
+        292
+      ],
+      "uses": [],
+      "idx": 639
+    },
+    {
+      "path": "src/toolbar/Breadcrumb.js",
+      "requires": [
+        191,
+        303,
+        360,
+        462
       ],
       "uses": [
-        32
+        188
       ],
-      "idx": 639
+      "idx": 640
+    },
+    {
+      "path": "src/toolbar/Spacer.js",
+      "requires": [
+        71
+      ],
+      "uses": [],
+      "idx": 641
+    },
+    {
+      "path": "src/view/DragZone.js",
+      "requires": [
+        421
+      ],
+      "uses": [
+        56
+      ],
+      "idx": 642
+    },
+    {
+      "path": "src/tree/ViewDragZone.js",
+      "requires": [
+        642
+      ],
+      "uses": [
+        56
+      ],
+      "idx": 643
+    },
+    {
+      "path": "src/tree/ViewDropZone.js",
+      "requires": [
+        542
+      ],
+      "uses": [],
+      "idx": 644
+    },
+    {
+      "path": "src/tree/plugin/TreeViewDragDrop.js",
+      "requires": [
+        417
+      ],
+      "uses": [
+        643,
+        644
+      ],
+      "idx": 645
+    },
+    {
+      "path": "src/util/Cookies.js",
+      "requires": [],
+      "uses": [],
+      "idx": 646
+    },
+    {
+      "path": "src/view/MultiSelectorSearch.js",
+      "requires": [
+        375
+      ],
+      "uses": [
+        23,
+        123,
+        188,
+        314,
+        371,
+        391,
+        406,
+        442
+      ],
+      "idx": 647
+    },
+    {
+      "path": "src/view/MultiSelector.js",
+      "requires": [
+        123,
+        371,
+        391,
+        406,
+        647
+      ],
+      "uses": [],
+      "idx": 648
+    },
+    {
+      "path": "src/window/Toast.js",
+      "requires": [
+        458
+      ],
+      "uses": [
+        24
+      ],
+      "idx": 649
     }
   ],
   "classes": {
     "Ext.AbstractManager": {
-      "idx": 68,
+      "idx": 7,
       "alias": [],
       "alternates": []
     },
     "Ext.Action": {
-      "idx": 278,
+      "idx": 295,
       "alias": [],
       "alternates": []
     },
     "Ext.Ajax": {
-      "idx": 71,
+      "idx": 10,
       "alias": [],
       "alternates": []
     },
     "Ext.AnimationQueue": {
-      "idx": 64,
+      "idx": 11,
       "alias": [],
       "alternates": []
     },
     "Ext.Component": {
-      "idx": 288,
+      "idx": 71,
       "alias": [
         "widget.box",
         "widget.component"
@@ -6258,62 +6454,62 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.ComponentLoader": {
-      "idx": 292,
+      "idx": 297,
       "alias": [],
       "alternates": []
     },
     "Ext.ComponentManager": {
-      "idx": 72,
+      "idx": 12,
       "alias": [],
       "alternates": [
         "Ext.ComponentMgr"
       ]
     },
     "Ext.ComponentQuery": {
-      "idx": 75,
+      "idx": 15,
       "alias": [],
       "alternates": []
     },
     "Ext.Editor": {
-      "idx": 300,
+      "idx": 305,
       "alias": [
         "widget.editor"
       ],
       "alternates": []
     },
     "Ext.ElementLoader": {
-      "idx": 291,
+      "idx": 296,
       "alias": [],
       "alternates": []
     },
     "Ext.EventManager": {
-      "idx": 301,
+      "idx": 306,
       "alias": [],
       "alternates": []
     },
     "Ext.Evented": {
-      "idx": 76,
+      "idx": 16,
       "alias": [],
       "alternates": [
         "Ext.EventedBase"
       ]
     },
     "Ext.FocusManager": {
-      "idx": 304,
+      "idx": 309,
       "alias": [],
       "alternates": [
         "Ext.FocusMgr"
       ]
     },
     "Ext.GlobalEvents": {
-      "idx": 60,
+      "idx": 51,
       "alias": [],
       "alternates": [
         "Ext.globalEvents"
       ]
     },
     "Ext.Img": {
-      "idx": 305,
+      "idx": 310,
       "alias": [
         "widget.image",
         "widget.imagecomponent"
@@ -6321,256 +6517,257 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.LoadMask": {
-      "idx": 307,
+      "idx": 312,
       "alias": [
         "widget.loadmask"
       ],
       "alternates": []
     },
     "Ext.Mixin": {
-      "idx": 22,
+      "idx": 3,
       "alias": [],
       "alternates": []
     },
     "Ext.ProgressBar": {
-      "idx": 311,
+      "idx": 316,
       "alias": [
         "widget.progressbar"
       ],
       "alternates": []
     },
     "Ext.ProgressBarWidget": {
-      "idx": 312,
+      "idx": 317,
       "alias": [
         "widget.progressbarwidget"
       ],
       "alternates": []
     },
     "Ext.Shadow": {
-      "idx": 314,
+      "idx": 319,
       "alias": [],
       "alternates": []
     },
     "Ext.ShadowPool": {
-      "idx": 313,
+      "idx": 318,
       "alias": [],
       "alternates": []
     },
     "Ext.TaskQueue": {
-      "idx": 78,
+      "idx": 54,
       "alias": [],
       "alternates": []
     },
     "Ext.Template": {
+      "idx": 56,
       "alias": [],
       "alternates": []
     },
     "Ext.Widget": {
-      "idx": 81,
+      "idx": 59,
       "alias": [
         "widget.widget"
       ],
       "alternates": []
     },
     "Ext.XTemplate": {
-      "idx": 85,
+      "idx": 101,
       "alias": [],
       "alternates": []
     },
     "Ext.ZIndexManager": {
-      "idx": 297,
+      "idx": 302,
       "alias": [],
       "alternates": [
         "Ext.WindowGroup"
       ]
     },
     "Ext.app.Application": {
-      "idx": 374,
+      "idx": 382,
       "alias": [],
       "alternates": []
     },
     "Ext.app.BaseController": {
-      "idx": 319,
+      "idx": 324,
       "alias": [],
       "alternates": []
     },
     "Ext.app.Controller": {
-      "idx": 326,
+      "idx": 331,
       "alias": [],
       "alternates": []
     },
     "Ext.app.EventBus": {
-      "idx": 317,
+      "idx": 322,
       "alias": [],
       "alternates": []
     },
     "Ext.app.EventDomain": {
-      "idx": 315,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.Util": {
       "idx": 320,
       "alias": [],
       "alternates": []
     },
+    "Ext.app.Util": {
+      "idx": 325,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.app.ViewController": {
-      "idx": 377,
+      "idx": 385,
       "alias": [],
       "alternates": []
     },
     "Ext.app.ViewModel": {
-      "idx": 122,
+      "idx": 138,
       "alias": [
         "viewmodel.default"
       ],
       "alternates": []
     },
     "Ext.app.bind.AbstractStub": {
-      "idx": 111,
+      "idx": 127,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.BaseBinding": {
-      "idx": 109,
+      "idx": 125,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Binding": {
-      "idx": 110,
+      "idx": 126,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Formula": {
-      "idx": 116,
+      "idx": 132,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.LinkStub": {
-      "idx": 113,
+      "idx": 129,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Multi": {
-      "idx": 115,
+      "idx": 131,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.RootStub": {
-      "idx": 114,
+      "idx": 130,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Stub": {
-      "idx": 112,
+      "idx": 128,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Template": {
-      "idx": 117,
+      "idx": 133,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.TemplateBinding": {
-      "idx": 118,
+      "idx": 134,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.ComponentDetail": {
-      "idx": 401,
+      "idx": 410,
       "alias": [
         "widget.bindinspector-componentdetail"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.ComponentList": {
-      "idx": 431,
+      "idx": 443,
       "alias": [
         "widget.bindinspector-componentlist"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.Container": {
-      "idx": 445,
+      "idx": 456,
       "alias": [
         "widget.bindinspector-container"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.Environment": {
-      "idx": 442,
+      "idx": 453,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.Inspector": {
-      "idx": 448,
+      "idx": 459,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.Util": {
-      "idx": 400,
+      "idx": 409,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.ViewModelDetail": {
-      "idx": 443,
+      "idx": 454,
       "alias": [
         "widget.bindinspector-viewmodeldetail"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.noconflict.BaseModel": {
-      "idx": 444,
+      "idx": 455,
       "alias": [],
       "alternates": []
     },
     "Ext.app.domain.Component": {
-      "idx": 316,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Controller": {
-      "idx": 449,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Direct": {
-      "idx": 450,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Global": {
-      "idx": 318,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Store": {
       "idx": 321,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.domain.View": {
-      "idx": 376,
+    "Ext.app.domain.Controller": {
+      "idx": 460,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.route.Queue": {
-      "idx": 322,
+    "Ext.app.domain.Direct": {
+      "idx": 461,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.route.Route": {
+    "Ext.app.domain.Global": {
       "idx": 323,
       "alias": [],
       "alternates": []
     },
+    "Ext.app.domain.Store": {
+      "idx": 326,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.domain.View": {
+      "idx": 384,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.route.Queue": {
+      "idx": 327,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.route.Route": {
+      "idx": 328,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.app.route.Router": {
-      "idx": 325,
+      "idx": 330,
       "alias": [],
       "alternates": []
     },
     "Ext.button.Button": {
-      "idx": 341,
+      "idx": 346,
       "alias": [
         "widget.button"
       ],
@@ -6579,7 +6776,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.button.Cycle": {
-      "idx": 452,
+      "idx": 463,
       "alias": [
         "widget.cycle"
       ],
@@ -6588,21 +6785,21 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.button.Manager": {
-      "idx": 338,
+      "idx": 343,
       "alias": [],
       "alternates": [
         "Ext.ButtonToggleManager"
       ]
     },
     "Ext.button.Segmented": {
-      "idx": 453,
+      "idx": 464,
       "alias": [
         "widget.segmentedbutton"
       ],
       "alternates": []
     },
     "Ext.button.Split": {
-      "idx": 451,
+      "idx": 462,
       "alias": [
         "widget.splitbutton"
       ],
@@ -6611,7 +6808,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.container.ButtonGroup": {
-      "idx": 456,
+      "idx": 467,
       "alias": [
         "widget.buttongroup"
       ],
@@ -6620,7 +6817,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.container.Container": {
-      "idx": 298,
+      "idx": 303,
       "alias": [
         "widget.container"
       ],
@@ -6630,17 +6827,17 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.container.DockingContainer": {
-      "idx": 366,
+      "idx": 374,
       "alias": [],
       "alternates": []
     },
     "Ext.container.Monitor": {
-      "idx": 457,
+      "idx": 468,
       "alias": [],
       "alternates": []
     },
     "Ext.container.Viewport": {
-      "idx": 460,
+      "idx": 471,
       "alias": [
         "widget.viewport"
       ],
@@ -6649,45 +6846,45 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.dashboard.Column": {
-      "idx": 463,
+      "idx": 474,
       "alias": [
         "widget.dashboard-column"
       ],
       "alternates": []
     },
     "Ext.dashboard.Dashboard": {
-      "idx": 473,
+      "idx": 484,
       "alias": [
         "widget.dashboard"
       ],
       "alternates": []
     },
     "Ext.dashboard.DropZone": {
-      "idx": 471,
+      "idx": 482,
       "alias": [],
       "alternates": []
     },
     "Ext.dashboard.Panel": {
-      "idx": 462,
+      "idx": 473,
       "alias": [
         "widget.dashboard-panel"
       ],
       "alternates": []
     },
     "Ext.dashboard.Part": {
-      "idx": 472,
+      "idx": 483,
       "alias": [
         "part.part"
       ],
       "alternates": []
     },
     "Ext.data.AbstractStore": {
-      "idx": 119,
+      "idx": 135,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ArrayStore": {
-      "idx": 158,
+      "idx": 174,
       "alias": [
         "store.array"
       ],
@@ -6696,137 +6893,137 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.Batch": {
-      "idx": 100,
+      "idx": 116,
       "alias": [],
       "alternates": []
     },
     "Ext.data.BufferedStore": {
-      "idx": 160,
+      "idx": 176,
       "alias": [
         "store.buffered"
       ],
       "alternates": []
     },
     "Ext.data.ChainedStore": {
-      "idx": 121,
+      "idx": 137,
       "alias": [
         "store.chained"
       ],
       "alternates": []
     },
     "Ext.data.Connection": {
-      "idx": 70,
+      "idx": 9,
       "alias": [],
       "alternates": []
     },
     "Ext.data.DirectStore": {
-      "idx": 163,
+      "idx": 179,
       "alias": [
         "store.direct"
       ],
       "alternates": []
     },
     "Ext.data.Error": {
-      "idx": 135,
+      "idx": 139,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ErrorCollection": {
-      "idx": 136,
+      "idx": 140,
       "alias": [],
       "alternates": [
         "Ext.data.Errors"
       ]
     },
     "Ext.data.JsonP": {
-      "idx": 164,
+      "idx": 180,
       "alias": [],
       "alternates": []
     },
     "Ext.data.JsonPStore": {
-      "idx": 166,
+      "idx": 182,
       "alias": [
         "store.jsonp"
       ],
       "alternates": []
     },
     "Ext.data.JsonStore": {
-      "idx": 167,
+      "idx": 183,
       "alias": [
         "store.json"
       ],
       "alternates": []
     },
     "Ext.data.LocalStore": {
-      "idx": 120,
+      "idx": 136,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Model": {
-      "idx": 147,
+      "idx": 156,
       "alias": [],
       "alternates": [
         "Ext.data.Record"
       ]
     },
     "Ext.data.ModelManager": {
-      "idx": 168,
+      "idx": 184,
       "alias": [],
       "alternates": [
         "Ext.ModelMgr"
       ]
     },
     "Ext.data.NodeInterface": {
-      "idx": 169,
+      "idx": 185,
       "alias": [],
       "alternates": []
     },
     "Ext.data.NodeStore": {
-      "idx": 170,
+      "idx": 186,
       "alias": [
         "store.node"
       ],
       "alternates": []
     },
     "Ext.data.PageMap": {
-      "idx": 159,
+      "idx": 175,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ProxyStore": {
-      "idx": 134,
+      "idx": 163,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Request": {
-      "idx": 171,
+      "idx": 187,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ResultSet": {
-      "idx": 123,
+      "idx": 157,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Session": {
-      "idx": 107,
+      "idx": 123,
       "alias": [],
       "alternates": []
     },
     "Ext.data.SortTypes": {
-      "idx": 137,
+      "idx": 146,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Store": {
-      "idx": 156,
+      "idx": 172,
       "alias": [
         "store.store"
       ],
       "alternates": []
     },
     "Ext.data.StoreManager": {
-      "idx": 172,
+      "idx": 188,
       "alias": [],
       "alternates": [
         "Ext.StoreMgr",
@@ -6835,36 +7032,36 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.TreeModel": {
-      "idx": 174,
+      "idx": 190,
       "alias": [],
       "alternates": []
     },
     "Ext.data.TreeStore": {
-      "idx": 175,
+      "idx": 191,
       "alias": [
         "store.tree"
       ],
       "alternates": []
     },
     "Ext.data.Types": {
-      "idx": 176,
+      "idx": 192,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Validation": {
-      "idx": 177,
+      "idx": 193,
       "alias": [],
       "alternates": []
     },
     "Ext.data.XmlStore": {
-      "idx": 181,
+      "idx": 199,
       "alias": [
         "store.xml"
       ],
       "alternates": []
     },
     "Ext.data.field.Boolean": {
-      "idx": 140,
+      "idx": 149,
       "alias": [
         "data.field.bool",
         "data.field.boolean"
@@ -6872,14 +7069,14 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.data.field.Date": {
-      "idx": 141,
+      "idx": 150,
       "alias": [
         "data.field.date"
       ],
       "alternates": []
     },
     "Ext.data.field.Field": {
-      "idx": 139,
+      "idx": 148,
       "alias": [
         "data.field.auto"
       ],
@@ -6888,7 +7085,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.field.Integer": {
-      "idx": 142,
+      "idx": 151,
       "alias": [
         "data.field.int",
         "data.field.integer"
@@ -6896,7 +7093,7 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.data.field.Number": {
-      "idx": 143,
+      "idx": 152,
       "alias": [
         "data.field.float",
         "data.field.number"
@@ -6904,97 +7101,97 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.data.field.String": {
-      "idx": 144,
+      "idx": 153,
       "alias": [
         "data.field.string"
       ],
       "alternates": []
     },
     "Ext.data.flash.BinaryXhr": {
-      "idx": 69,
+      "idx": 8,
       "alias": [],
       "alternates": []
     },
     "Ext.data.identifier.Generator": {
-      "idx": 145,
+      "idx": 154,
       "alias": [
         "data.identifier.default"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Negative": {
-      "idx": 182,
+      "idx": 200,
       "alias": [
         "data.identifier.negative"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Sequential": {
-      "idx": 146,
+      "idx": 155,
       "alias": [
         "data.identifier.sequential"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Uuid": {
-      "idx": 183,
+      "idx": 201,
       "alias": [
         "data.identifier.uuid"
       ],
       "alternates": []
     },
     "Ext.data.matrix.Matrix": {
-      "idx": 103,
+      "idx": 119,
       "alias": [],
       "alternates": []
     },
     "Ext.data.matrix.Side": {
-      "idx": 102,
+      "idx": 118,
       "alias": [],
       "alternates": []
     },
     "Ext.data.matrix.Slice": {
-      "idx": 101,
+      "idx": 117,
       "alias": [],
       "alternates": []
     },
     "Ext.data.operation.Create": {
-      "idx": 130,
+      "idx": 142,
       "alias": [
         "data.operation.create"
       ],
       "alternates": []
     },
     "Ext.data.operation.Destroy": {
-      "idx": 131,
+      "idx": 143,
       "alias": [
         "data.operation.destroy"
       ],
       "alternates": []
     },
     "Ext.data.operation.Operation": {
-      "idx": 129,
+      "idx": 141,
       "alias": [],
       "alternates": [
         "Ext.data.Operation"
       ]
     },
     "Ext.data.operation.Read": {
-      "idx": 132,
+      "idx": 144,
       "alias": [
         "data.operation.read"
       ],
       "alternates": []
     },
     "Ext.data.operation.Update": {
-      "idx": 133,
+      "idx": 145,
       "alias": [
         "data.operation.update"
       ],
       "alternates": []
     },
     "Ext.data.proxy.Ajax": {
-      "idx": 149,
+      "idx": 165,
       "alias": [
         "proxy.ajax"
       ],
@@ -7004,14 +7201,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Client": {
-      "idx": 127,
+      "idx": 161,
       "alias": [],
       "alternates": [
         "Ext.data.ClientProxy"
       ]
     },
     "Ext.data.proxy.Direct": {
-      "idx": 162,
+      "idx": 178,
       "alias": [
         "proxy.direct"
       ],
@@ -7020,7 +7217,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.JsonP": {
-      "idx": 165,
+      "idx": 181,
       "alias": [
         "proxy.jsonp",
         "proxy.scripttag"
@@ -7030,7 +7227,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.LocalStorage": {
-      "idx": 185,
+      "idx": 203,
       "alias": [
         "proxy.localstorage"
       ],
@@ -7039,7 +7236,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Memory": {
-      "idx": 128,
+      "idx": 162,
       "alias": [
         "proxy.memory"
       ],
@@ -7048,7 +7245,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Proxy": {
-      "idx": 126,
+      "idx": 160,
       "alias": [
         "proxy.proxy"
       ],
@@ -7058,7 +7255,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Rest": {
-      "idx": 186,
+      "idx": 204,
       "alias": [
         "proxy.rest"
       ],
@@ -7067,7 +7264,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Server": {
-      "idx": 148,
+      "idx": 164,
       "alias": [
         "proxy.server"
       ],
@@ -7076,7 +7273,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.SessionStorage": {
-      "idx": 187,
+      "idx": 205,
       "alias": [
         "proxy.sessionstorage"
       ],
@@ -7085,7 +7282,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.Sql": {
-      "idx": 188,
+      "idx": 206,
       "alias": [
         "proxy.sql"
       ],
@@ -7094,14 +7291,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.proxy.WebStorage": {
-      "idx": 184,
+      "idx": 202,
       "alias": [],
       "alternates": [
         "Ext.data.WebStorageProxy"
       ]
     },
     "Ext.data.reader.Array": {
-      "idx": 157,
+      "idx": 173,
       "alias": [
         "reader.array"
       ],
@@ -7110,7 +7307,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.reader.Json": {
-      "idx": 150,
+      "idx": 166,
       "alias": [
         "reader.json"
       ],
@@ -7119,7 +7316,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.reader.Reader": {
-      "idx": 124,
+      "idx": 158,
       "alias": [
         "reader.base"
       ],
@@ -7129,7 +7326,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.reader.Xml": {
-      "idx": 179,
+      "idx": 197,
       "alias": [
         "reader.xml"
       ],
@@ -7138,131 +7335,131 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.schema.Association": {
-      "idx": 93,
+      "idx": 109,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.ManyToMany": {
-      "idx": 96,
+      "idx": 112,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.ManyToOne": {
-      "idx": 95,
+      "idx": 111,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Namer": {
-      "idx": 98,
+      "idx": 114,
       "alias": [
         "namer.default"
       ],
       "alternates": []
     },
     "Ext.data.schema.OneToOne": {
-      "idx": 94,
+      "idx": 110,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Role": {
-      "idx": 92,
+      "idx": 108,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Schema": {
-      "idx": 99,
+      "idx": 115,
       "alias": [
         "schema.default"
       ],
       "alternates": []
     },
     "Ext.data.session.BatchVisitor": {
-      "idx": 106,
+      "idx": 122,
       "alias": [],
       "alternates": []
     },
     "Ext.data.session.ChangesVisitor": {
-      "idx": 104,
+      "idx": 120,
       "alias": [],
       "alternates": []
     },
     "Ext.data.session.ChildChangesVisitor": {
-      "idx": 105,
+      "idx": 121,
       "alias": [],
       "alternates": []
     },
     "Ext.data.validator.Bound": {
-      "idx": 189,
+      "idx": 207,
       "alias": [
         "data.validator.bound"
       ],
       "alternates": []
     },
     "Ext.data.validator.Email": {
-      "idx": 191,
+      "idx": 209,
       "alias": [
         "data.validator.email"
       ],
       "alternates": []
     },
     "Ext.data.validator.Exclusion": {
-      "idx": 193,
+      "idx": 211,
       "alias": [
         "data.validator.exclusion"
       ],
       "alternates": []
     },
     "Ext.data.validator.Format": {
-      "idx": 190,
+      "idx": 208,
       "alias": [
         "data.validator.format"
       ],
       "alternates": []
     },
     "Ext.data.validator.Inclusion": {
-      "idx": 194,
+      "idx": 212,
       "alias": [
         "data.validator.inclusion"
       ],
       "alternates": []
     },
     "Ext.data.validator.Length": {
-      "idx": 195,
+      "idx": 213,
       "alias": [
         "data.validator.length"
       ],
       "alternates": []
     },
     "Ext.data.validator.List": {
-      "idx": 192,
+      "idx": 210,
       "alias": [
         "data.validator.list"
       ],
       "alternates": []
     },
     "Ext.data.validator.Presence": {
-      "idx": 196,
+      "idx": 214,
       "alias": [
         "data.validator.presence"
       ],
       "alternates": []
     },
     "Ext.data.validator.Range": {
-      "idx": 197,
+      "idx": 215,
       "alias": [
         "data.validator.range"
       ],
       "alternates": []
     },
     "Ext.data.validator.Validator": {
-      "idx": 138,
+      "idx": 147,
       "alias": [
         "data.validator.base"
       ],
       "alternates": []
     },
     "Ext.data.writer.Json": {
-      "idx": 151,
+      "idx": 167,
       "alias": [
         "writer.json"
       ],
@@ -7271,7 +7468,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.writer.Writer": {
-      "idx": 125,
+      "idx": 159,
       "alias": [
         "writer.base"
       ],
@@ -7281,7 +7478,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.data.writer.Xml": {
-      "idx": 180,
+      "idx": 198,
       "alias": [
         "writer.xml"
       ],
@@ -7290,27 +7487,27 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.dd.DD": {
-      "idx": 356,
+      "idx": 364,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DDProxy": {
-      "idx": 358,
+      "idx": 366,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DDTarget": {
-      "idx": 414,
+      "idx": 423,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragDrop": {
-      "idx": 355,
+      "idx": 363,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragDropManager": {
-      "idx": 347,
+      "idx": 352,
       "alias": [],
       "alternates": [
         "Ext.dd.DragDropMgr",
@@ -7318,106 +7515,106 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.dd.DragSource": {
-      "idx": 360,
+      "idx": 368,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragTracker": {
-      "idx": 409,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DragZone": {
-      "idx": 412,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DropTarget": {
-      "idx": 416,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DropZone": {
       "idx": 418,
       "alias": [],
       "alternates": []
     },
+    "Ext.dd.DragZone": {
+      "idx": 421,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.dd.DropTarget": {
+      "idx": 425,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.dd.DropZone": {
+      "idx": 427,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.dd.Registry": {
-      "idx": 417,
+      "idx": 426,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.ScrollManager": {
-      "idx": 415,
+      "idx": 424,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.StatusProxy": {
-      "idx": 359,
+      "idx": 367,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.Event": {
-      "idx": 198,
+      "idx": 216,
       "alias": [
         "direct.event"
       ],
       "alternates": []
     },
     "Ext.direct.ExceptionEvent": {
-      "idx": 200,
+      "idx": 218,
       "alias": [
         "direct.exception"
       ],
       "alternates": []
     },
     "Ext.direct.JsonProvider": {
-      "idx": 202,
+      "idx": 220,
       "alias": [
         "direct.jsonprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Manager": {
-      "idx": 161,
+      "idx": 177,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.PollingProvider": {
-      "idx": 203,
+      "idx": 221,
       "alias": [
         "direct.pollingprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Provider": {
-      "idx": 201,
+      "idx": 219,
       "alias": [
         "direct.provider"
       ],
       "alternates": []
     },
     "Ext.direct.RemotingEvent": {
-      "idx": 199,
+      "idx": 217,
       "alias": [
         "direct.rpc"
       ],
       "alternates": []
     },
     "Ext.direct.RemotingMethod": {
-      "idx": 204,
+      "idx": 222,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.RemotingProvider": {
-      "idx": 206,
+      "idx": 224,
       "alias": [
         "direct.remotingprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Transaction": {
-      "idx": 205,
+      "idx": 223,
       "alias": [
         "direct.transaction"
       ],
@@ -7426,44 +7623,45 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.dom.ButtonElement": {
-      "idx": 337,
+      "idx": 342,
       "alias": [],
       "alternates": []
     },
     "Ext.dom.CompositeElement": {
-      "idx": 207,
+      "idx": 61,
       "alias": [],
       "alternates": [
         "Ext.CompositeElement"
       ]
     },
     "Ext.dom.CompositeElementLite": {
-      "idx": 29,
+      "idx": 21,
       "alias": [],
       "alternates": [
         "Ext.CompositeElementLite"
       ]
     },
     "Ext.dom.Element": {
-      "idx": 27,
+      "idx": 19,
       "alias": [],
       "alternates": [
         "Ext.Element"
       ]
     },
     "Ext.dom.Fly": {
-      "idx": 28,
+      "idx": 20,
       "alias": [],
       "alternates": [
         "Ext.dom.Element.Fly"
       ]
     },
     "Ext.dom.GarbageCollector": {
-      "idx": 58,
+      "idx": 49,
       "alias": [],
       "alternates": []
     },
     "Ext.dom.Helper": {
+      "idx": 194,
       "alias": [],
       "alternates": [
         "Ext.DomHelper",
@@ -7471,14 +7669,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.dom.Layer": {
-      "idx": 474,
+      "idx": 485,
       "alias": [],
       "alternates": [
         "Ext.Layer"
       ]
     },
     "Ext.dom.Query": {
-      "idx": 178,
+      "idx": 196,
       "alias": [],
       "alternates": [
         "Ext.core.DomQuery",
@@ -7486,111 +7684,116 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.event.Controller": {
-      "idx": 20,
+      "idx": 1,
       "alias": [],
       "alternates": []
     },
     "Ext.event.Dispatcher": {
-      "idx": 21,
+      "idx": 2,
       "alias": [],
       "alternates": []
     },
     "Ext.event.Event": {
-      "idx": 16,
+      "idx": 89,
       "alias": [],
       "alternates": [
         "Ext.EventObjectImpl"
       ]
     },
     "Ext.event.ListenerStack": {
-      "idx": 19,
+      "idx": 0,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.DoubleTap": {
-      "idx": 3,
+      "idx": 76,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Drag": {
-      "idx": 4,
+      "idx": 77,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.EdgeSwipe": {
-      "idx": 6,
+      "idx": 79,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.LongPress": {
-      "idx": 7,
+      "idx": 80,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.MultiTouch": {
-      "idx": 8,
+      "idx": 81,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Pinch": {
-      "idx": 9,
+      "idx": 82,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Recognizer": {
-      "idx": 1,
+      "idx": 74,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Rotate": {
-      "idx": 10,
+      "idx": 83,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.SingleTouch": {
-      "idx": 2,
+      "idx": 75,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Swipe": {
-      "idx": 5,
+      "idx": 78,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Tap": {
-      "idx": 11,
+      "idx": 84,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.Dom": {
-      "idx": 62,
+      "idx": 92,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.ElementPaint": {
-      "idx": 212,
+      "idx": 229,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.ElementSize": {
-      "idx": 219,
+      "idx": 236,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.event.publisher.Focus": {
+      "idx": 96,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.Gesture": {
-      "idx": 65,
+      "idx": 94,
       "alias": [],
       "alternates": [
         "Ext.event.publisher.TouchGesture"
       ]
     },
     "Ext.event.publisher.Publisher": {
-      "idx": 12,
+      "idx": 85,
       "alias": [],
       "alternates": []
     },
     "Ext.flash.Component": {
-      "idx": 477,
+      "idx": 488,
       "alias": [
         "widget.flash"
       ],
@@ -7599,57 +7802,57 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.Basic": {
-      "idx": 483,
+      "idx": 494,
       "alias": [],
       "alternates": [
         "Ext.form.BasicForm"
       ]
     },
     "Ext.form.CheckboxGroup": {
-      "idx": 488,
+      "idx": 499,
       "alias": [
         "widget.checkboxgroup"
       ],
       "alternates": []
     },
     "Ext.form.CheckboxManager": {
-      "idx": 397,
+      "idx": 407,
       "alias": [],
       "alternates": []
     },
     "Ext.form.FieldAncestor": {
-      "idx": 484,
+      "idx": 495,
       "alias": [],
       "alternates": []
     },
     "Ext.form.FieldContainer": {
-      "idx": 486,
+      "idx": 497,
       "alias": [
         "widget.fieldcontainer"
       ],
       "alternates": []
     },
     "Ext.form.FieldSet": {
-      "idx": 489,
+      "idx": 500,
       "alias": [
         "widget.fieldset"
       ],
       "alternates": []
     },
     "Ext.form.Label": {
-      "idx": 490,
+      "idx": 501,
       "alias": [
         "widget.label"
       ],
       "alternates": []
     },
     "Ext.form.Labelable": {
-      "idx": 378,
+      "idx": 386,
       "alias": [],
       "alternates": []
     },
     "Ext.form.Panel": {
-      "idx": 491,
+      "idx": 502,
       "alias": [
         "widget.form"
       ],
@@ -7659,26 +7862,26 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.RadioGroup": {
-      "idx": 494,
+      "idx": 505,
       "alias": [
         "widget.radiogroup"
       ],
       "alternates": []
     },
     "Ext.form.RadioManager": {
-      "idx": 492,
+      "idx": 503,
       "alias": [],
       "alternates": []
     },
     "Ext.form.action.Action": {
-      "idx": 478,
+      "idx": 489,
       "alias": [],
       "alternates": [
         "Ext.form.Action"
       ]
     },
     "Ext.form.action.DirectLoad": {
-      "idx": 495,
+      "idx": 506,
       "alias": [
         "formaction.directload"
       ],
@@ -7687,7 +7890,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.action.DirectSubmit": {
-      "idx": 496,
+      "idx": 507,
       "alias": [
         "formaction.directsubmit"
       ],
@@ -7696,7 +7899,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.action.Load": {
-      "idx": 479,
+      "idx": 490,
       "alias": [
         "formaction.load"
       ],
@@ -7705,14 +7908,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.action.StandardSubmit": {
-      "idx": 497,
+      "idx": 508,
       "alias": [
         "formaction.standardsubmit"
       ],
       "alternates": []
     },
     "Ext.form.action.Submit": {
-      "idx": 480,
+      "idx": 491,
       "alias": [
         "formaction.submit"
       ],
@@ -7721,7 +7924,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Base": {
-      "idx": 381,
+      "idx": 389,
       "alias": [
         "widget.field"
       ],
@@ -7731,7 +7934,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Checkbox": {
-      "idx": 398,
+      "idx": 408,
       "alias": [
         "widget.checkbox",
         "widget.checkboxfield"
@@ -7741,7 +7944,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.ComboBox": {
-      "idx": 508,
+      "idx": 518,
       "alias": [
         "widget.combo",
         "widget.combobox"
@@ -7751,7 +7954,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Date": {
-      "idx": 511,
+      "idx": 521,
       "alias": [
         "widget.datefield"
       ],
@@ -7761,7 +7964,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Display": {
-      "idx": 382,
+      "idx": 390,
       "alias": [
         "widget.displayfield"
       ],
@@ -7771,12 +7974,12 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Field": {
-      "idx": 380,
+      "idx": 388,
       "alias": [],
       "alternates": []
     },
     "Ext.form.field.File": {
-      "idx": 515,
+      "idx": 525,
       "alias": [
         "widget.filefield",
         "widget.fileuploadfield"
@@ -7788,14 +7991,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.FileButton": {
-      "idx": 512,
+      "idx": 522,
       "alias": [
         "widget.filebutton"
       ],
       "alternates": []
     },
     "Ext.form.field.Hidden": {
-      "idx": 517,
+      "idx": 527,
       "alias": [
         "widget.hidden",
         "widget.hiddenfield"
@@ -7805,7 +8008,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.HtmlEditor": {
-      "idx": 520,
+      "idx": 530,
       "alias": [
         "widget.htmleditor"
       ],
@@ -7814,7 +8017,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Number": {
-      "idx": 504,
+      "idx": 514,
       "alias": [
         "widget.numberfield"
       ],
@@ -7824,7 +8027,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Picker": {
-      "idx": 498,
+      "idx": 509,
       "alias": [
         "widget.pickerfield"
       ],
@@ -7833,7 +8036,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Radio": {
-      "idx": 493,
+      "idx": 504,
       "alias": [
         "widget.radio",
         "widget.radiofield"
@@ -7843,7 +8046,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Spinner": {
-      "idx": 502,
+      "idx": 513,
       "alias": [
         "widget.spinnerfield"
       ],
@@ -7852,14 +8055,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Tag": {
-      "idx": 521,
+      "idx": 531,
       "alias": [
         "widget.tagfield"
       ],
       "alternates": []
     },
     "Ext.form.field.Text": {
-      "idx": 430,
+      "idx": 442,
       "alias": [
         "widget.textfield"
       ],
@@ -7869,7 +8072,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.TextArea": {
-      "idx": 481,
+      "idx": 492,
       "alias": [
         "widget.textarea",
         "widget.textareafield"
@@ -7879,7 +8082,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Time": {
-      "idx": 523,
+      "idx": 533,
       "alias": [
         "widget.timefield"
       ],
@@ -7889,7 +8092,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.Trigger": {
-      "idx": 524,
+      "idx": 534,
       "alias": [
         "widget.trigger",
         "widget.triggerfield"
@@ -7901,102 +8104,102 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.form.field.VTypes": {
-      "idx": 428,
+      "idx": 440,
       "alias": [],
       "alternates": [
         "Ext.form.VTypes"
       ]
     },
     "Ext.form.trigger.Component": {
-      "idx": 514,
+      "idx": 524,
       "alias": [
         "trigger.component"
       ],
       "alternates": []
     },
     "Ext.form.trigger.Spinner": {
-      "idx": 501,
+      "idx": 512,
       "alias": [
         "trigger.spinner"
       ],
       "alternates": []
     },
     "Ext.form.trigger.Trigger": {
-      "idx": 429,
+      "idx": 441,
       "alias": [
         "trigger.trigger"
       ],
       "alternates": []
     },
     "Ext.fx.Anim": {
-      "idx": 56,
+      "idx": 47,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Animation": {
-      "idx": 229,
+      "idx": 246,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Animator": {
-      "idx": 51,
+      "idx": 42,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.CubicBezier": {
-      "idx": 52,
+      "idx": 43,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.DrawPath": {
-      "idx": 54,
+      "idx": 45,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Easing": {
-      "idx": 53,
+      "idx": 44,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Manager": {
-      "idx": 50,
+      "idx": 41,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.PropertyHandler": {
-      "idx": 55,
+      "idx": 46,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Queue": {
-      "idx": 49,
+      "idx": 40,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.Runner": {
-      "idx": 232,
+      "idx": 249,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.State": {
-      "idx": 220,
+      "idx": 237,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.animation.Abstract": {
-      "idx": 221,
+      "idx": 238,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.animation.Cube": {
-      "idx": 233,
+      "idx": 250,
       "alias": [
         "animation.cube"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Fade": {
-      "idx": 224,
+      "idx": 241,
       "alias": [
         "animation.fade",
         "animation.fadeIn"
@@ -8006,21 +8209,21 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.fx.animation.FadeOut": {
-      "idx": 225,
+      "idx": 242,
       "alias": [
         "animation.fadeOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Flip": {
-      "idx": 226,
+      "idx": 243,
       "alias": [
         "animation.flip"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Pop": {
-      "idx": 227,
+      "idx": 244,
       "alias": [
         "animation.pop",
         "animation.popIn"
@@ -8030,14 +8233,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.fx.animation.PopOut": {
-      "idx": 228,
+      "idx": 245,
       "alias": [
         "animation.popOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Slide": {
-      "idx": 222,
+      "idx": 239,
       "alias": [
         "animation.slide",
         "animation.slideIn"
@@ -8047,243 +8250,250 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.fx.animation.SlideOut": {
-      "idx": 223,
+      "idx": 240,
       "alias": [
         "animation.slideOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Wipe": {
-      "idx": 234,
+      "idx": 251,
       "alias": [],
       "alternates": [
         "Ext.fx.animation.WipeIn"
       ]
     },
     "Ext.fx.animation.WipeOut": {
-      "idx": 235,
+      "idx": 252,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Abstract": {
-      "idx": 236,
+      "idx": 253,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Bounce": {
-      "idx": 237,
+      "idx": 254,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.BoundMomentum": {
-      "idx": 239,
+      "idx": 256,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.EaseIn": {
-      "idx": 241,
+      "idx": 258,
       "alias": [
         "easing.ease-in"
       ],
       "alternates": []
     },
     "Ext.fx.easing.EaseOut": {
-      "idx": 242,
+      "idx": 259,
       "alias": [
         "easing.ease-out"
       ],
       "alternates": []
     },
     "Ext.fx.easing.Easing": {
-      "idx": 243,
+      "idx": 260,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Linear": {
-      "idx": 240,
+      "idx": 257,
       "alias": [
         "easing.linear"
       ],
       "alternates": []
     },
     "Ext.fx.easing.Momentum": {
-      "idx": 238,
+      "idx": 255,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.Card": {
-      "idx": 253,
+      "idx": 270,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.card.Abstract": {
-      "idx": 244,
+      "idx": 261,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.card.Cover": {
-      "idx": 247,
+      "idx": 264,
       "alias": [
         "fx.layout.card.cover"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Cube": {
-      "idx": 254,
+      "idx": 271,
       "alias": [
         "fx.layout.card.cube"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Fade": {
-      "idx": 249,
+      "idx": 266,
       "alias": [
         "fx.layout.card.fade"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Flip": {
-      "idx": 250,
+      "idx": 267,
       "alias": [
         "fx.layout.card.flip"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Pop": {
-      "idx": 251,
+      "idx": 268,
       "alias": [
         "fx.layout.card.pop"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Reveal": {
-      "idx": 248,
+      "idx": 265,
       "alias": [
         "fx.layout.card.reveal"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Scroll": {
-      "idx": 252,
+      "idx": 269,
       "alias": [
         "fx.layout.card.scroll"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.ScrollCover": {
-      "idx": 255,
+      "idx": 272,
       "alias": [
         "fx.layout.card.scrollcover"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.ScrollReveal": {
-      "idx": 256,
+      "idx": 273,
       "alias": [
         "fx.layout.card.scrollreveal"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Slide": {
-      "idx": 246,
+      "idx": 263,
       "alias": [
         "fx.layout.card.slide"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Style": {
-      "idx": 245,
+      "idx": 262,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.Css": {
-      "idx": 230,
+      "idx": 247,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.CssAnimation": {
-      "idx": 257,
+      "idx": 274,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.CssTransition": {
-      "idx": 231,
+      "idx": 248,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.Component": {
-      "idx": 47,
+      "idx": 39,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.CompositeElement": {
-      "idx": 43,
+      "idx": 35,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.CompositeElementCSS": {
-      "idx": 44,
+      "idx": 36,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.CompositeSprite": {
-      "idx": 46,
+      "idx": 38,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.Element": {
-      "idx": 41,
+      "idx": 33,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.ElementCSS": {
-      "idx": 42,
+      "idx": 34,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.Sprite": {
-      "idx": 45,
+      "idx": 37,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.Target": {
-      "idx": 40,
+      "idx": 32,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.CellContext": {
-      "idx": 389,
+      "idx": 399,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.CellEditor": {
-      "idx": 525,
+      "idx": 535,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.ColumnComponentLayout": {
-      "idx": 422,
+      "idx": 431,
       "alias": [
         "layout.columncomponent"
       ],
       "alternates": []
     },
     "Ext.grid.ColumnLayout": {
-      "idx": 406,
+      "idx": 415,
       "alias": [
         "layout.gridcolumn"
       ],
       "alternates": []
     },
     "Ext.grid.ColumnManager": {
-      "idx": 527,
+      "idx": 537,
       "alias": [],
       "alternates": [
         "Ext.grid.ColumnModel"
       ]
     },
+    "Ext.grid.NavigationModel": {
+      "idx": 436,
+      "alias": [
+        "view.navigation.grid"
+      ],
+      "alternates": []
+    },
     "Ext.grid.Panel": {
-      "idx": 396,
+      "idx": 406,
       "alias": [
         "widget.grid",
         "widget.gridpanel"
@@ -8295,38 +8505,38 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.RowEditor": {
-      "idx": 529,
+      "idx": 539,
       "alias": [
         "widget.roweditor"
       ],
       "alternates": []
     },
     "Ext.grid.RowEditorButtons": {
-      "idx": 528,
+      "idx": 538,
       "alias": [
         "widget.roweditorbuttons"
       ],
       "alternates": []
     },
     "Ext.grid.Scroller": {
-      "idx": 531,
+      "idx": 541,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.View": {
-      "idx": 395,
+      "idx": 405,
       "alias": [
         "widget.gridview"
       ],
       "alternates": []
     },
     "Ext.grid.ViewDropZone": {
-      "idx": 533,
+      "idx": 543,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.column.Action": {
-      "idx": 534,
+      "idx": 544,
       "alias": [
         "widget.actioncolumn"
       ],
@@ -8335,7 +8545,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Boolean": {
-      "idx": 535,
+      "idx": 545,
       "alias": [
         "widget.booleancolumn"
       ],
@@ -8344,7 +8554,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Check": {
-      "idx": 536,
+      "idx": 546,
       "alias": [
         "widget.checkcolumn"
       ],
@@ -8354,7 +8564,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Column": {
-      "idx": 423,
+      "idx": 432,
       "alias": [
         "widget.gridcolumn"
       ],
@@ -8363,7 +8573,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Date": {
-      "idx": 537,
+      "idx": 547,
       "alias": [
         "widget.datecolumn"
       ],
@@ -8372,7 +8582,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Number": {
-      "idx": 538,
+      "idx": 548,
       "alias": [
         "widget.numbercolumn"
       ],
@@ -8381,7 +8591,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.RowNumberer": {
-      "idx": 539,
+      "idx": 549,
       "alias": [
         "widget.rownumberer"
       ],
@@ -8390,7 +8600,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Template": {
-      "idx": 540,
+      "idx": 550,
       "alias": [
         "widget.templatecolumn"
       ],
@@ -8399,94 +8609,94 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.column.Widget": {
-      "idx": 541,
+      "idx": 551,
       "alias": [
         "widget.widgetcolumn"
       ],
       "alternates": []
     },
     "Ext.grid.feature.AbstractSummary": {
-      "idx": 543,
+      "idx": 553,
       "alias": [
         "feature.abstractsummary"
       ],
       "alternates": []
     },
     "Ext.grid.feature.Feature": {
-      "idx": 542,
+      "idx": 552,
       "alias": [
         "feature.feature"
       ],
       "alternates": []
     },
     "Ext.grid.feature.GroupStore": {
-      "idx": 544,
+      "idx": 554,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.feature.Grouping": {
-      "idx": 545,
+      "idx": 555,
       "alias": [
         "feature.grouping"
       ],
       "alternates": []
     },
     "Ext.grid.feature.GroupingSummary": {
-      "idx": 546,
+      "idx": 556,
       "alias": [
         "feature.groupingsummary"
       ],
       "alternates": []
     },
     "Ext.grid.feature.RowBody": {
-      "idx": 547,
+      "idx": 557,
       "alias": [
         "feature.rowbody"
       ],
       "alternates": []
     },
     "Ext.grid.feature.Summary": {
-      "idx": 548,
+      "idx": 558,
       "alias": [
         "feature.summary"
       ],
       "alternates": []
     },
     "Ext.grid.filters.Filters": {
-      "idx": 563,
+      "idx": 573,
       "alias": [
         "plugin.gridfilters"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Base": {
-      "idx": 555,
+      "idx": 565,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.filters.filter.Boolean": {
-      "idx": 557,
+      "idx": 567,
       "alias": [
         "grid.filter.boolean"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Date": {
-      "idx": 559,
+      "idx": 569,
       "alias": [
         "grid.filter.date"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.List": {
-      "idx": 560,
+      "idx": 570,
       "alias": [
         "grid.filter.list"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Number": {
-      "idx": 561,
+      "idx": 571,
       "alias": [
         "grid.filter.number",
         "grid.filter.numeric"
@@ -8494,116 +8704,116 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.grid.filters.filter.SingleFilter": {
-      "idx": 556,
+      "idx": 566,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.filters.filter.String": {
-      "idx": 562,
+      "idx": 572,
       "alias": [
         "grid.filter.string"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.TriFilter": {
-      "idx": 558,
+      "idx": 568,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.header.Container": {
-      "idx": 421,
+      "idx": 430,
       "alias": [
         "widget.headercontainer"
       ],
       "alternates": []
     },
     "Ext.grid.header.DragZone": {
-      "idx": 413,
+      "idx": 422,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.header.DropZone": {
-      "idx": 419,
+      "idx": 428,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.locking.HeaderContainer": {
-      "idx": 564,
+      "idx": 574,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.locking.Lockable": {
-      "idx": 566,
+      "idx": 576,
       "alias": [],
       "alternates": [
         "Ext.grid.Lockable"
       ]
     },
     "Ext.grid.locking.View": {
-      "idx": 565,
+      "idx": 575,
       "alias": [],
       "alternates": [
         "Ext.grid.LockingView"
       ]
     },
     "Ext.grid.plugin.BufferedRenderer": {
-      "idx": 567,
+      "idx": 577,
       "alias": [
         "plugin.bufferedrenderer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.CellEditing": {
-      "idx": 569,
+      "idx": 579,
       "alias": [
         "plugin.cellediting"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.DragDrop": {
-      "idx": 570,
+      "idx": 580,
       "alias": [
         "plugin.gridviewdragdrop"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.Editing": {
-      "idx": 568,
+      "idx": 578,
       "alias": [
         "editing.editing"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.HeaderReorderer": {
-      "idx": 420,
+      "idx": 429,
       "alias": [
         "plugin.gridheaderreorderer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.HeaderResizer": {
-      "idx": 410,
+      "idx": 419,
       "alias": [
         "plugin.gridheaderresizer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.RowEditing": {
-      "idx": 571,
+      "idx": 581,
       "alias": [
         "plugin.rowediting"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.RowExpander": {
-      "idx": 573,
+      "idx": 583,
       "alias": [
         "plugin.rowexpander"
       ],
       "alternates": []
     },
     "Ext.grid.property.Grid": {
-      "idx": 574,
+      "idx": 584,
       "alias": [
         "widget.propertygrid"
       ],
@@ -8612,84 +8822,84 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.grid.property.HeaderContainer": {
-      "idx": 575,
+      "idx": 585,
       "alias": [],
       "alternates": [
         "Ext.grid.PropertyColumnModel"
       ]
     },
     "Ext.grid.property.Property": {
-      "idx": 576,
+      "idx": 586,
       "alias": [],
       "alternates": [
         "Ext.PropGridProperty"
       ]
     },
     "Ext.grid.property.Reader": {
-      "idx": 577,
+      "idx": 587,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.property.Store": {
-      "idx": 578,
+      "idx": 588,
       "alias": [],
       "alternates": [
         "Ext.grid.PropertyStore"
       ]
     },
     "Ext.layout.ClassList": {
-      "idx": 579,
+      "idx": 589,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.Context": {
-      "idx": 583,
+      "idx": 593,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.ContextItem": {
-      "idx": 581,
+      "idx": 591,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.Layout": {
-      "idx": 294,
+      "idx": 299,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.SizeModel": {
-      "idx": 293,
+      "idx": 298,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.component.Auto": {
-      "idx": 309,
+      "idx": 314,
       "alias": [
         "layout.autocomponent"
       ],
       "alternates": []
     },
     "Ext.layout.component.Body": {
-      "idx": 438,
+      "idx": 449,
       "alias": [
         "layout.body"
       ],
       "alternates": []
     },
     "Ext.layout.component.BoundList": {
-      "idx": 499,
+      "idx": 510,
       "alias": [
         "layout.boundlist"
       ],
       "alternates": []
     },
     "Ext.layout.component.Component": {
-      "idx": 308,
+      "idx": 313,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.component.Dock": {
-      "idx": 363,
+      "idx": 371,
       "alias": [
         "layout.dock"
       ],
@@ -8698,35 +8908,35 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.component.FieldSet": {
-      "idx": 585,
+      "idx": 595,
       "alias": [
         "layout.fieldset"
       ],
       "alternates": []
     },
     "Ext.layout.component.ProgressBar": {
-      "idx": 310,
+      "idx": 315,
       "alias": [
         "layout.progressbar"
       ],
       "alternates": []
     },
     "Ext.layout.component.field.FieldContainer": {
-      "idx": 485,
+      "idx": 496,
       "alias": [
         "layout.fieldcontainer"
       ],
       "alternates": []
     },
     "Ext.layout.component.field.HtmlEditor": {
-      "idx": 519,
+      "idx": 529,
       "alias": [
         "layout.htmleditor"
       ],
       "alternates": []
     },
     "Ext.layout.container.Absolute": {
-      "idx": 586,
+      "idx": 596,
       "alias": [
         "layout.absolute"
       ],
@@ -8735,7 +8945,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Accordion": {
-      "idx": 588,
+      "idx": 598,
       "alias": [
         "layout.accordion"
       ],
@@ -8744,7 +8954,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Anchor": {
-      "idx": 461,
+      "idx": 472,
       "alias": [
         "layout.anchor"
       ],
@@ -8753,7 +8963,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Auto": {
-      "idx": 296,
+      "idx": 301,
       "alias": [
         "layout.auto",
         "layout.autocontainer"
@@ -8761,7 +8971,7 @@ var Ext = Ext || { }; Ext.manifest = {
       "alternates": []
     },
     "Ext.layout.container.Border": {
-      "idx": 434,
+      "idx": 445,
       "alias": [
         "layout.border"
       ],
@@ -8770,7 +8980,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Box": {
-      "idx": 348,
+      "idx": 354,
       "alias": [
         "layout.box"
       ],
@@ -8779,7 +8989,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Card": {
-      "idx": 436,
+      "idx": 447,
       "alias": [
         "layout.card"
       ],
@@ -8788,7 +8998,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Center": {
-      "idx": 589,
+      "idx": 599,
       "alias": [
         "layout.center",
         "layout.ux.center"
@@ -8798,14 +9008,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.CheckboxGroup": {
-      "idx": 487,
+      "idx": 498,
       "alias": [
         "layout.checkboxgroup"
       ],
       "alternates": []
     },
     "Ext.layout.container.Column": {
-      "idx": 464,
+      "idx": 475,
       "alias": [
         "layout.column"
       ],
@@ -8814,19 +9024,19 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.ColumnSplitter": {
-      "idx": 469,
+      "idx": 480,
       "alias": [
         "widget.columnsplitter"
       ],
       "alternates": []
     },
     "Ext.layout.container.ColumnSplitterTracker": {
-      "idx": 468,
+      "idx": 479,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.container.Container": {
-      "idx": 295,
+      "idx": 300,
       "alias": [
         "layout.container"
       ],
@@ -8834,15 +9044,22 @@ var Ext = Ext || { }; Ext.manifest = {
         "Ext.layout.ContainerLayout"
       ]
     },
+    "Ext.layout.container.Dashboard": {
+      "idx": 481,
+      "alias": [
+        "layout.dashboard"
+      ],
+      "alternates": []
+    },
     "Ext.layout.container.Editor": {
-      "idx": 299,
+      "idx": 304,
       "alias": [
         "layout.editor"
       ],
       "alternates": []
     },
     "Ext.layout.container.Fit": {
-      "idx": 383,
+      "idx": 391,
       "alias": [
         "layout.fit"
       ],
@@ -8851,7 +9068,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.Form": {
-      "idx": 590,
+      "idx": 600,
       "alias": [
         "layout.form"
       ],
@@ -8860,7 +9077,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.HBox": {
-      "idx": 350,
+      "idx": 356,
       "alias": [
         "layout.hbox"
       ],
@@ -8869,21 +9086,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.SegmentedButton": {
-      "idx": 591,
+      "idx": 601,
       "alias": [
         "layout.segmentedbutton"
       ],
       "alternates": []
     },
-    "Ext.layout.container.SplitColumn": {
-      "idx": 470,
-      "alias": [
-        "layout.split-column"
-      ],
-      "alternates": []
-    },
     "Ext.layout.container.Table": {
-      "idx": 455,
+      "idx": 466,
       "alias": [
         "layout.table"
       ],
@@ -8892,7 +9102,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.VBox": {
-      "idx": 352,
+      "idx": 358,
       "alias": [
         "layout.vbox"
       ],
@@ -8901,12 +9111,12 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.border.Region": {
-      "idx": 289,
+      "idx": 72,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.container.boxOverflow.Menu": {
-      "idx": 343,
+      "idx": 348,
       "alias": [
         "box.overflow.Menu",
         "box.overflow.menu"
@@ -8916,7 +9126,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.boxOverflow.None": {
-      "idx": 334,
+      "idx": 339,
       "alias": [
         "box.overflow.None",
         "box.overflow.none"
@@ -8926,7 +9136,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.layout.container.boxOverflow.Scroller": {
-      "idx": 345,
+      "idx": 350,
       "alias": [
         "box.overflow.Scroller",
         "box.overflow.scroller"
@@ -8936,28 +9146,28 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.menu.CheckItem": {
-      "idx": 551,
+      "idx": 561,
       "alias": [
         "widget.menucheckitem"
       ],
       "alternates": []
     },
     "Ext.menu.ColorPicker": {
-      "idx": 592,
+      "idx": 602,
       "alias": [
         "widget.colormenu"
       ],
       "alternates": []
     },
     "Ext.menu.DatePicker": {
-      "idx": 593,
+      "idx": 603,
       "alias": [
         "widget.datemenu"
       ],
       "alternates": []
     },
     "Ext.menu.Item": {
-      "idx": 550,
+      "idx": 560,
       "alias": [
         "widget.menuitem"
       ],
@@ -8966,155 +9176,155 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.menu.KeyNav": {
-      "idx": 552,
+      "idx": 562,
       "alias": [],
       "alternates": []
     },
     "Ext.menu.Manager": {
-      "idx": 339,
+      "idx": 344,
       "alias": [],
       "alternates": [
         "Ext.menu.MenuMgr"
       ]
     },
     "Ext.menu.Menu": {
-      "idx": 554,
+      "idx": 564,
       "alias": [
         "widget.menu"
       ],
       "alternates": []
     },
     "Ext.menu.Separator": {
-      "idx": 553,
+      "idx": 563,
       "alias": [
         "widget.menuseparator"
       ],
       "alternates": []
     },
     "Ext.mixin.Bindable": {
-      "idx": 80,
+      "idx": 58,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Factoryable": {
-      "idx": 86,
+      "idx": 102,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Hookable": {
-      "idx": 258,
+      "idx": 275,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Identifiable": {
-      "idx": 0,
+      "idx": 4,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Inheritable": {
-      "idx": 79,
+      "idx": 57,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Mashup": {
-      "idx": 259,
+      "idx": 276,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Observable": {
-      "idx": 23,
+      "idx": 5,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Queryable": {
-      "idx": 173,
+      "idx": 189,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Responsive": {
-      "idx": 260,
+      "idx": 277,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Selectable": {
-      "idx": 261,
+      "idx": 278,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Templatable": {
-      "idx": 213,
+      "idx": 230,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Traversable": {
-      "idx": 262,
+      "idx": 279,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.GlobalEvents": {
-      "idx": 61,
+      "idx": 52,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.Widget": {
-      "idx": 82,
+      "idx": 98,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.app.Application": {
-      "idx": 375,
+      "idx": 383,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.dom.Element": {
-      "idx": 59,
+      "idx": 50,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.dom.Helper": {
-      "idx": 26,
+      "idx": 195,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.event.Event": {
-      "idx": 18,
+      "idx": 91,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.event.publisher.Dom": {
-      "idx": 63,
+      "idx": 93,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.event.publisher.Gesture": {
-      "idx": 66,
+      "idx": 95,
       "alias": [],
       "alternates": []
     },
     "Ext.overrides.util.Positionable": {
-      "idx": 25,
+      "idx": 18,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.Bar": {
-      "idx": 327,
+      "idx": 332,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.DD": {
-      "idx": 362,
+      "idx": 370,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.Header": {
-      "idx": 332,
+      "idx": 337,
       "alias": [
         "widget.header"
       ],
       "alternates": []
     },
     "Ext.panel.Panel": {
-      "idx": 367,
+      "idx": 375,
       "alias": [
         "widget.panel"
       ],
@@ -9123,52 +9333,52 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.panel.Pinnable": {
-      "idx": 594,
+      "idx": 604,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.Proxy": {
-      "idx": 361,
+      "idx": 369,
       "alias": [],
       "alternates": [
         "Ext.dd.PanelProxy"
       ]
     },
     "Ext.panel.Table": {
-      "idx": 384,
+      "idx": 392,
       "alias": [
         "widget.tablepanel"
       ],
       "alternates": []
     },
     "Ext.panel.Title": {
-      "idx": 329,
+      "idx": 334,
       "alias": [
         "widget.title"
       ],
       "alternates": []
     },
     "Ext.panel.Tool": {
-      "idx": 331,
+      "idx": 336,
       "alias": [
         "widget.tool"
       ],
       "alternates": []
     },
     "Ext.perf.Accumulator": {
-      "idx": 263,
+      "idx": 280,
       "alias": [],
       "alternates": []
     },
     "Ext.perf.Monitor": {
-      "idx": 264,
+      "idx": 281,
       "alias": [],
       "alternates": [
         "Ext.Perf"
       ]
     },
     "Ext.picker.Color": {
-      "idx": 518,
+      "idx": 528,
       "alias": [
         "widget.colorpicker"
       ],
@@ -9177,7 +9387,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.picker.Date": {
-      "idx": 510,
+      "idx": 520,
       "alias": [
         "widget.datepicker"
       ],
@@ -9186,7 +9396,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.picker.Month": {
-      "idx": 509,
+      "idx": 519,
       "alias": [
         "widget.monthpicker"
       ],
@@ -9195,21 +9405,21 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.picker.Time": {
-      "idx": 522,
+      "idx": 532,
       "alias": [
         "widget.timepicker"
       ],
       "alternates": []
     },
     "Ext.plugin.Abstract": {
-      "idx": 408,
+      "idx": 417,
       "alias": [],
       "alternates": [
         "Ext.AbstractPlugin"
       ]
     },
     "Ext.plugin.Manager": {
-      "idx": 595,
+      "idx": 605,
       "alias": [],
       "alternates": [
         "Ext.PluginManager",
@@ -9217,347 +9427,352 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.plugin.Responsive": {
-      "idx": 458,
+      "idx": 469,
       "alias": [
         "plugin.responsive"
       ],
       "alternates": []
     },
     "Ext.plugin.Viewport": {
-      "idx": 459,
+      "idx": 470,
       "alias": [
         "plugin.viewport"
       ],
       "alternates": []
     },
     "Ext.resizer.BorderSplitter": {
-      "idx": 433,
+      "idx": 444,
       "alias": [
         "widget.bordersplitter"
       ],
       "alternates": []
     },
     "Ext.resizer.BorderSplitterTracker": {
-      "idx": 596,
+      "idx": 606,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.Handle": {
-      "idx": 598,
+      "idx": 608,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.ResizeTracker": {
-      "idx": 599,
+      "idx": 609,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.Resizer": {
-      "idx": 601,
+      "idx": 611,
       "alias": [],
       "alternates": [
         "Ext.Resizable"
       ]
     },
     "Ext.resizer.Splitter": {
-      "idx": 432,
+      "idx": 353,
       "alias": [
         "widget.splitter"
       ],
       "alternates": []
     },
     "Ext.resizer.SplitterTracker": {
-      "idx": 466,
+      "idx": 477,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.Component": {
-      "idx": 290,
+      "idx": 73,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.button.Button": {
-      "idx": 342,
+      "idx": 347,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.button.Segmented": {
-      "idx": 454,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.dd.DD": {
-      "idx": 357,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.dom.Element": {
-      "idx": 30,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.dom.Layer": {
-      "idx": 475,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.event.Event": {
-      "idx": 17,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.form.Labelable": {
-      "idx": 379,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.form.field.Checkbox": {
-      "idx": 399,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.form.field.File": {
-      "idx": 516,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.form.field.FileButton": {
-      "idx": 513,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.form.field.Spinner": {
-      "idx": 503,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.CellEditor": {
-      "idx": 526,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.ColumnLayout": {
-      "idx": 407,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.RowEditor": {
-      "idx": 530,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.column.Column": {
-      "idx": 424,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.feature.Summary": {
-      "idx": 549,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.plugin.HeaderResizer": {
-      "idx": 411,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.grid.plugin.RowEditing": {
-      "idx": 572,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.ContextItem": {
-      "idx": 582,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.component.Dock": {
-      "idx": 364,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.container.Absolute": {
-      "idx": 587,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.container.Border": {
-      "idx": 435,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.container.Box": {
-      "idx": 349,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.layout.container.Column": {
       "idx": 465,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.layout.container.HBox": {
-      "idx": 351,
+    "Ext.rtl.dd.DD": {
+      "idx": 365,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.layout.container.VBox": {
-      "idx": 353,
+    "Ext.rtl.dom.Element": {
+      "idx": 22,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.layout.container.boxOverflow.Menu": {
-      "idx": 344,
+    "Ext.rtl.dom.Layer": {
+      "idx": 486,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.layout.container.boxOverflow.Scroller": {
-      "idx": 346,
+    "Ext.rtl.event.Event": {
+      "idx": 90,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.panel.Bar": {
-      "idx": 328,
+    "Ext.rtl.form.Labelable": {
+      "idx": 387,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.panel.Panel": {
-      "idx": 368,
+    "Ext.rtl.form.field.File": {
+      "idx": 526,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.panel.Title": {
-      "idx": 330,
+    "Ext.rtl.form.field.FileButton": {
+      "idx": 523,
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.resizer.BorderSplitterTracker": {
+    "Ext.rtl.grid.CellEditor": {
+      "idx": 536,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.ColumnLayout": {
+      "idx": 416,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.NavigationModel": {
+      "idx": 437,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.RowEditor": {
+      "idx": 540,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.column.Column": {
+      "idx": 433,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.feature.Summary": {
+      "idx": 559,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.plugin.HeaderResizer": {
+      "idx": 420,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.plugin.RowEditing": {
+      "idx": 582,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.ContextItem": {
+      "idx": 592,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.component.Dock": {
+      "idx": 372,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.Absolute": {
       "idx": 597,
       "alias": [],
       "alternates": []
     },
+    "Ext.rtl.layout.container.Border": {
+      "idx": 446,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.Box": {
+      "idx": 355,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.Column": {
+      "idx": 476,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.HBox": {
+      "idx": 357,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.VBox": {
+      "idx": 359,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.boxOverflow.Menu": {
+      "idx": 349,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.layout.container.boxOverflow.Scroller": {
+      "idx": 351,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.panel.Bar": {
+      "idx": 333,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.panel.Panel": {
+      "idx": 376,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.panel.Title": {
+      "idx": 335,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.resizer.BorderSplitterTracker": {
+      "idx": 607,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.rtl.resizer.ResizeTracker": {
-      "idx": 600,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.resizer.SplitterTracker": {
-      "idx": 467,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.scroll.Manager": {
-      "idx": 604,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.scroll.Scroller": {
-      "idx": 273,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.selection.CellModel": {
-      "idx": 606,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.selection.TreeModel": {
-      "idx": 405,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.rtl.slider.Multi": {
       "idx": 610,
       "alias": [],
       "alternates": []
     },
+    "Ext.rtl.resizer.SplitterTracker": {
+      "idx": 478,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.scroll.Manager": {
+      "idx": 614,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.scroll.Scroller": {
+      "idx": 290,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.selection.CellModel": {
+      "idx": 616,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.selection.TreeModel": {
+      "idx": 414,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.slider.Multi": {
+      "idx": 620,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.rtl.tab.Bar": {
-      "idx": 440,
+      "idx": 451,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.tip.QuickTipManager": {
-      "idx": 373,
+      "idx": 381,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.tree.Column": {
-      "idx": 426,
+      "idx": 435,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.util.Floating": {
-      "idx": 287,
+      "idx": 69,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.util.FocusableContainer": {
+      "idx": 361,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.util.Renderable": {
-      "idx": 282,
+      "idx": 64,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.view.NavigationModel": {
+      "idx": 396,
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.view.Table": {
-      "idx": 394,
+      "idx": 404,
       "alias": [],
       "alternates": []
     },
     "Ext.scroll.Indicator": {
-      "idx": 602,
+      "idx": 612,
       "alias": [],
       "alternates": []
     },
     "Ext.scroll.Manager": {
-      "idx": 603,
+      "idx": 613,
       "alias": [],
       "alternates": []
     },
     "Ext.scroll.Scroller": {
-      "idx": 272,
+      "idx": 289,
       "alias": [],
       "alternates": []
     },
     "Ext.selection.CellModel": {
-      "idx": 605,
+      "idx": 615,
       "alias": [
         "selection.cellmodel"
       ],
       "alternates": []
     },
     "Ext.selection.CheckboxModel": {
-      "idx": 611,
+      "idx": 621,
       "alias": [
         "selection.checkboxmodel"
       ],
       "alternates": []
     },
     "Ext.selection.DataViewModel": {
-      "idx": 386,
+      "idx": 394,
       "alias": [],
       "alternates": []
     },
     "Ext.selection.Model": {
-      "idx": 385,
+      "idx": 393,
       "alias": [],
       "alternates": [
         "Ext.AbstractSelectionModel"
       ]
     },
     "Ext.selection.RowModel": {
-      "idx": 403,
+      "idx": 412,
       "alias": [
         "selection.rowmodel"
       ],
       "alternates": []
     },
     "Ext.selection.TreeModel": {
-      "idx": 404,
+      "idx": 413,
       "alias": [
         "selection.treemodel"
       ],
       "alternates": []
     },
     "Ext.slider.Multi": {
-      "idx": 609,
+      "idx": 619,
       "alias": [
         "widget.multislider"
       ],
@@ -9566,7 +9781,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.slider.Single": {
-      "idx": 612,
+      "idx": 622,
       "alias": [
         "widget.slider",
         "widget.sliderfield"
@@ -9579,144 +9794,144 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.slider.Thumb": {
-      "idx": 607,
+      "idx": 617,
       "alias": [],
       "alternates": []
     },
     "Ext.slider.Tip": {
-      "idx": 608,
+      "idx": 618,
       "alias": [
         "widget.slidertip"
       ],
       "alternates": []
     },
     "Ext.slider.Widget": {
-      "idx": 613,
+      "idx": 623,
       "alias": [
         "widget.sliderwidget"
       ],
       "alternates": []
     },
     "Ext.sparkline.Bar": {
-      "idx": 621,
+      "idx": 631,
       "alias": [
         "widget.sparklinebar"
       ],
       "alternates": []
     },
     "Ext.sparkline.BarBase": {
-      "idx": 619,
+      "idx": 629,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Base": {
-      "idx": 618,
+      "idx": 628,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Box": {
-      "idx": 622,
+      "idx": 632,
       "alias": [
         "widget.sparklinebox"
       ],
       "alternates": []
     },
     "Ext.sparkline.Bullet": {
-      "idx": 623,
+      "idx": 633,
       "alias": [
         "widget.sparklinebullet"
       ],
       "alternates": []
     },
     "Ext.sparkline.CanvasBase": {
-      "idx": 615,
+      "idx": 625,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.CanvasCanvas": {
-      "idx": 616,
+      "idx": 626,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Discrete": {
-      "idx": 624,
+      "idx": 634,
       "alias": [
         "widget.sparklinediscrete"
       ],
       "alternates": []
     },
     "Ext.sparkline.Line": {
-      "idx": 625,
+      "idx": 635,
       "alias": [
         "widget.sparklineline"
       ],
       "alternates": []
     },
     "Ext.sparkline.Pie": {
-      "idx": 626,
+      "idx": 636,
       "alias": [
         "widget.sparklinepie"
       ],
       "alternates": []
     },
     "Ext.sparkline.RangeMap": {
-      "idx": 620,
+      "idx": 630,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Shape": {
-      "idx": 614,
+      "idx": 624,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.TriState": {
-      "idx": 627,
+      "idx": 637,
       "alias": [
         "widget.sparklinetristate"
       ],
       "alternates": []
     },
     "Ext.sparkline.VmlCanvas": {
-      "idx": 617,
+      "idx": 627,
       "alias": [],
       "alternates": []
     },
     "Ext.state.CookieProvider": {
-      "idx": 628,
+      "idx": 638,
       "alias": [],
       "alternates": []
     },
     "Ext.state.LocalStorageProvider": {
-      "idx": 629,
+      "idx": 639,
       "alias": [
         "state.localstorage"
       ],
       "alternates": []
     },
     "Ext.state.Manager": {
-      "idx": 284,
+      "idx": 66,
       "alias": [],
       "alternates": []
     },
     "Ext.state.Provider": {
-      "idx": 283,
+      "idx": 65,
       "alias": [],
       "alternates": []
     },
     "Ext.state.Stateful": {
-      "idx": 285,
+      "idx": 67,
       "alias": [],
       "alternates": []
     },
     "Ext.tab.Bar": {
-      "idx": 439,
+      "idx": 450,
       "alias": [
         "widget.tabbar"
       ],
       "alternates": []
     },
     "Ext.tab.Panel": {
-      "idx": 441,
+      "idx": 452,
       "alias": [
         "widget.tabpanel"
       ],
@@ -9725,14 +9940,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.tab.Tab": {
-      "idx": 437,
+      "idx": 448,
       "alias": [
         "widget.tab"
       ],
       "alternates": []
     },
     "Ext.tip.QuickTip": {
-      "idx": 371,
+      "idx": 379,
       "alias": [
         "widget.quicktip"
       ],
@@ -9741,14 +9956,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.tip.QuickTipManager": {
-      "idx": 372,
+      "idx": 380,
       "alias": [],
       "alternates": [
         "Ext.QuickTips"
       ]
     },
     "Ext.tip.Tip": {
-      "idx": 369,
+      "idx": 377,
       "alias": [
         "widget.tip"
       ],
@@ -9757,7 +9972,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.tip.ToolTip": {
-      "idx": 370,
+      "idx": 378,
       "alias": [
         "widget.tooltip"
       ],
@@ -9766,14 +9981,14 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Breadcrumb": {
-      "idx": 630,
+      "idx": 640,
       "alias": [
         "widget.breadcrumb"
       ],
       "alternates": []
     },
     "Ext.toolbar.Fill": {
-      "idx": 333,
+      "idx": 338,
       "alias": [
         "widget.tbfill"
       ],
@@ -9782,7 +9997,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Item": {
-      "idx": 335,
+      "idx": 340,
       "alias": [
         "widget.tbitem"
       ],
@@ -9791,7 +10006,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Paging": {
-      "idx": 505,
+      "idx": 515,
       "alias": [
         "widget.pagingtoolbar"
       ],
@@ -9800,7 +10015,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Separator": {
-      "idx": 336,
+      "idx": 341,
       "alias": [
         "widget.tbseparator"
       ],
@@ -9809,7 +10024,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Spacer": {
-      "idx": 631,
+      "idx": 641,
       "alias": [
         "widget.tbspacer"
       ],
@@ -9818,7 +10033,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.TextItem": {
-      "idx": 500,
+      "idx": 511,
       "alias": [
         "widget.tbtext"
       ],
@@ -9827,7 +10042,7 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.toolbar.Toolbar": {
-      "idx": 354,
+      "idx": 362,
       "alias": [
         "widget.toolbar"
       ],
@@ -9836,14 +10051,21 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.tree.Column": {
-      "idx": 425,
+      "idx": 434,
       "alias": [
         "widget.treecolumn"
       ],
       "alternates": []
     },
+    "Ext.tree.NavigationModel": {
+      "idx": 438,
+      "alias": [
+        "view.navigation.tree"
+      ],
+      "alternates": []
+    },
     "Ext.tree.Panel": {
-      "idx": 427,
+      "idx": 439,
       "alias": [
         "widget.treepanel"
       ],
@@ -9853,358 +10075,369 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.tree.View": {
-      "idx": 402,
+      "idx": 411,
       "alias": [
         "widget.treeview"
       ],
       "alternates": []
     },
     "Ext.tree.ViewDragZone": {
-      "idx": 633,
+      "idx": 643,
       "alias": [],
       "alternates": []
     },
     "Ext.tree.ViewDropZone": {
-      "idx": 634,
+      "idx": 644,
       "alias": [],
       "alternates": []
     },
     "Ext.tree.plugin.TreeViewDragDrop": {
-      "idx": 635,
+      "idx": 645,
       "alias": [
         "plugin.treeviewdragdrop"
       ],
       "alternates": []
     },
     "Ext.util.AbstractMixedCollection": {
-      "idx": 35,
+      "idx": 27,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Animate": {
-      "idx": 57,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Base64": {
-      "idx": 274,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.CSS": {
-      "idx": 390,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ClickRepeater": {
-      "idx": 340,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Collection": {
-      "idx": 89,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.CollectionKey": {
-      "idx": 87,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ComponentDragger": {
-      "idx": 446,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Cookies": {
-      "idx": 636,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ElementContainer": {
-      "idx": 280,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Event": {
-      "idx": 33,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Filter": {
-      "idx": 31,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.FilterCollection": {
-      "idx": 154,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Floating": {
-      "idx": 286,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Format": {
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Group": {
-      "idx": 152,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.GroupCollection": {
-      "idx": 155,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Grouper": {
-      "idx": 88,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.HashMap": {
       "idx": 48,
       "alias": [],
       "alternates": []
     },
+    "Ext.util.Base64": {
+      "idx": 291,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.CSS": {
+      "idx": 400,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ClickRepeater": {
+      "idx": 345,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Collection": {
+      "idx": 105,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.CollectionKey": {
+      "idx": 103,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ComponentDragger": {
+      "idx": 457,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Cookies": {
+      "idx": 646,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ElementContainer": {
+      "idx": 62,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Event": {
+      "idx": 25,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Filter": {
+      "idx": 23,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.FilterCollection": {
+      "idx": 170,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Floating": {
+      "idx": 68,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Focusable": {
+      "idx": 70,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.FocusableContainer": {
+      "idx": 360,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Format": {
+      "idx": 55,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Group": {
+      "idx": 168,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.GroupCollection": {
+      "idx": 171,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Grouper": {
+      "idx": 104,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.HashMap": {
+      "idx": 6,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.util.History": {
-      "idx": 324,
+      "idx": 329,
       "alias": [],
       "alternates": [
         "Ext.History"
       ]
     },
     "Ext.util.Inflector": {
-      "idx": 97,
+      "idx": 113,
       "alias": [],
       "alternates": []
     },
     "Ext.util.KeyMap": {
-      "idx": 302,
+      "idx": 307,
       "alias": [],
       "alternates": [
         "Ext.KeyMap"
       ]
     },
     "Ext.util.KeyNav": {
-      "idx": 303,
+      "idx": 308,
       "alias": [],
       "alternates": [
         "Ext.KeyNav"
       ]
     },
     "Ext.util.LocalStorage": {
-      "idx": 275,
+      "idx": 292,
       "alias": [],
       "alternates": []
     },
     "Ext.util.LruCache": {
-      "idx": 74,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Memento": {
-      "idx": 365,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.MixedCollection": {
-      "idx": 38,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ObjectTemplate": {
-      "idx": 91,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Observable": {
-      "idx": 34,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Offset": {
-      "idx": 13,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.PaintMonitor": {
-      "idx": 211,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Point": {
-      "idx": 15,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Positionable": {
-      "idx": 24,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ProtoElement": {
-      "idx": 279,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Queue": {
-      "idx": 580,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Region": {
       "idx": 14,
       "alias": [],
       "alternates": []
     },
+    "Ext.util.Memento": {
+      "idx": 373,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.MixedCollection": {
+      "idx": 30,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ObjectTemplate": {
+      "idx": 107,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Observable": {
+      "idx": 26,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Offset": {
+      "idx": 86,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.PaintMonitor": {
+      "idx": 228,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Point": {
+      "idx": 88,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Positionable": {
+      "idx": 17,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ProtoElement": {
+      "idx": 60,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Queue": {
+      "idx": 590,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Region": {
+      "idx": 87,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.util.Renderable": {
-      "idx": 281,
+      "idx": 63,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Schedulable": {
-      "idx": 108,
+      "idx": 124,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Scheduler": {
-      "idx": 90,
+      "idx": 106,
       "alias": [],
       "alternates": []
     },
     "Ext.util.SizeMonitor": {
-      "idx": 218,
+      "idx": 235,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Sortable": {
-      "idx": 37,
+      "idx": 29,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Sorter": {
-      "idx": 36,
+      "idx": 28,
       "alias": [],
       "alternates": []
     },
     "Ext.util.SorterCollection": {
-      "idx": 153,
+      "idx": 169,
       "alias": [],
       "alternates": []
     },
     "Ext.util.StoreHolder": {
-      "idx": 306,
+      "idx": 311,
       "alias": [],
       "alternates": []
     },
     "Ext.util.TaskManager": {
-      "idx": 276,
+      "idx": 293,
       "alias": [],
       "alternates": [
         "Ext.TaskManager"
       ]
     },
     "Ext.util.TaskRunner": {
-      "idx": 39,
+      "idx": 31,
       "alias": [],
       "alternates": []
     },
     "Ext.util.TextMetrics": {
-      "idx": 277,
+      "idx": 294,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Translatable": {
-      "idx": 271,
+      "idx": 288,
       "alias": [],
       "alternates": []
     },
     "Ext.util.XTemplateCompiler": {
-      "idx": 84,
+      "idx": 100,
       "alias": [],
       "alternates": []
     },
     "Ext.util.XTemplateParser": {
-      "idx": 83,
+      "idx": 99,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.Abstract": {
-      "idx": 208,
+      "idx": 225,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.CssAnimation": {
-      "idx": 209,
+      "idx": 226,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.OverflowChange": {
-      "idx": 210,
+      "idx": 227,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Abstract": {
-      "idx": 214,
+      "idx": 231,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Default": {
-      "idx": 215,
+      "idx": 232,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.OverflowChange": {
-      "idx": 217,
+      "idx": 234,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Scroll": {
-      "idx": 216,
+      "idx": 233,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.Abstract": {
-      "idx": 265,
+      "idx": 282,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.CssPosition": {
-      "idx": 270,
+      "idx": 287,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.CssTransform": {
-      "idx": 267,
+      "idx": 284,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.Dom": {
-      "idx": 266,
+      "idx": 283,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.ScrollParent": {
-      "idx": 269,
+      "idx": 286,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.ScrollPosition": {
-      "idx": 268,
+      "idx": 285,
       "alias": [],
       "alternates": []
     },
     "Ext.view.AbstractView": {
-      "idx": 387,
+      "idx": 397,
       "alias": [],
       "alternates": []
     },
     "Ext.view.BoundList": {
-      "idx": 506,
+      "idx": 516,
       "alias": [
         "widget.boundlist"
       ],
@@ -10213,55 +10446,64 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.view.BoundListKeyNav": {
-      "idx": 507,
-      "alias": [],
+      "idx": 517,
+      "alias": [
+        "view.navigation.boundlist"
+      ],
       "alternates": []
     },
     "Ext.view.DragZone": {
-      "idx": 632,
+      "idx": 642,
       "alias": [],
       "alternates": []
     },
     "Ext.view.DropZone": {
-      "idx": 532,
+      "idx": 542,
       "alias": [],
       "alternates": []
     },
     "Ext.view.MultiSelector": {
-      "idx": 638,
+      "idx": 648,
       "alias": [
         "widget.multiselector"
       ],
       "alternates": []
     },
     "Ext.view.MultiSelectorSearch": {
-      "idx": 637,
+      "idx": 647,
       "alias": [
         "widget.multiselector-search"
       ],
       "alternates": []
     },
+    "Ext.view.NavigationModel": {
+      "idx": 395,
+      "alias": [
+        "view.navigation.default"
+      ],
+      "alternates": []
+    },
     "Ext.view.NodeCache": {
-      "idx": 392,
+      "idx": 402,
       "alias": [],
       "alternates": []
     },
     "Ext.view.Table": {
-      "idx": 393,
+      "idx": 403,
       "alias": [
         "widget.tableview"
       ],
       "alternates": []
     },
     "Ext.view.TableLayout": {
-      "idx": 391,
+      "idx": 401,
       "alias": [
         "layout.tableview"
       ],
       "alternates": []
     },
     "Ext.view.View": {
-      "idx": 388,
+      "idx": 398,
       "alias": [
         "widget.dataview"
       ],
@@ -10270,21 +10512,21 @@ var Ext = Ext || { }; Ext.manifest = {
       ]
     },
     "Ext.window.MessageBox": {
-      "idx": 482,
+      "idx": 493,
       "alias": [
         "widget.messagebox"
       ],
       "alternates": []
     },
     "Ext.window.Toast": {
-      "idx": 639,
+      "idx": 649,
       "alias": [
         "widget.toast"
       ],
       "alternates": []
     },
     "Ext.window.Window": {
-      "idx": 447,
+      "idx": 458,
       "alias": [
         "widget.window"
       ],
@@ -10301,11 +10543,15 @@ var Ext = Ext || { }; Ext.manifest = {
         "ext"
       ],
       "type": "framework",
-      "version": "5.0.0.970"
+      "version": "5.0.1.1255"
     },
     "sencha-core": {
       "creator": "Sencha",
+      "output": "${package.dir}/build",
       "requires": [],
+      "slicer": {
+        "js": []
+      },
       "type": "code",
       "version": "5.0.0"
     }

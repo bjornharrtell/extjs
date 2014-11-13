@@ -14,6 +14,7 @@ Ext.define('KitchenSink.view.charts.combination.CustomTheme', {
         type: 'vbox',
         pack: 'center'
     },
+    requires: ['KitchenSink.view.charts.combination.theme.CustomTheme'],
     // </example>
 
     width: 650,
@@ -65,13 +66,13 @@ Ext.define('KitchenSink.view.charts.combination.CustomTheme', {
             legend: {
                 docked: 'bottom'
             },
-            theme: 'CustomCharts',
-            store: this.myDataStore,
+            theme: 'custom-theme',
+            store: me.myDataStore,
             insetPadding: 40,
             sprites: [{
                 type: 'text',
                 text: 'Column Charts - 100% Stacked Columns',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -79,15 +80,15 @@ Ext.define('KitchenSink.view.charts.combination.CustomTheme', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 430
+                y: 420
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 440
+                y: 435
             }],
             axes: [{
                 type: 'numeric',
@@ -120,10 +121,9 @@ Ext.define('KitchenSink.view.charts.combination.CustomTheme', {
                 style: {
                     opacity: 0.80
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    lineWidth: 1,
-                    strokeStyle: '#fff'
+                highlightCfg: {
+                    opacity: 1,
+                    strokeStyle: 'black'
                 },
                 tooltip: {
                     trackMouse: true,
@@ -159,35 +159,5 @@ Ext.define('KitchenSink.view.charts.combination.CustomTheme', {
         }];
 
         this.callParent();
-    }
-});
-
-Ext.define('Ext.chart.theme.CustomCharts', {
-    extend: 'Ext.chart.theme.Base',
-
-    config: {
-        axis: {
-            stroke: '#7F8C8D'
-        },
-        colors: [ '#1ABC9C', '#F1C40F', '#3498DB', '#C0392B', '#9B59B6' ]
-    },
-
-    constructor: function(config) {
-        var titleLabel = {
-                font: 'bold 18px Helvetica'
-            },
-            axisLabel = {
-                fill: '#7F8C8D',
-                font: '12px Helvetica',
-                spacing: 2,
-                padding: 5
-            };
-
-        this.callParent([Ext.apply(this.config, config,  {
-            axisLabelLeft: axisLabel,
-            axisLabelBottom: axisLabel,
-            axisTitleLeft: titleLabel,
-            axisTitleBottom: titleLabel
-        })]);
     }
 });

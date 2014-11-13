@@ -63,11 +63,15 @@ Ext.define('Ext.form.field.HtmlEditor', {
         'Ext.layout.component.field.HtmlEditor'
     ],
     
+    focusable: true,
     componentLayout: 'htmleditor',
+
+    // private
+    textareaCls: Ext.baseCSSPrefix + 'htmleditor-textarea',
 
     componentTpl: [
         '{beforeTextAreaTpl}',
-        '<textarea id="{id}-textareaEl" data-ref="textareaEl" name="{name}" tabIndex="-1" {inputAttrTpl}',
+        '<textarea id="{id}-textareaEl" data-ref="textareaEl" name="{name}" tabindex="-1" {inputAttrTpl}',
                  ' class="{textareaCls}" autocomplete="off">',
             '{[Ext.util.Format.htmlEncode(values.value)]}',
         '</textarea>',
@@ -303,7 +307,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             data = {
                 id          : id,
                 name        : me.name,
-                textareaCls : Ext.baseCSSPrefix + 'hidden',
+                textareaCls : me.textareaCls + ' ' + Ext.baseCSSPrefix + 'hidden',
                 value       : me.value,
                 iframeName  : Ext.id(),
                 iframeSrc   : Ext.SSL_SECURE_URL,
@@ -792,7 +796,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             me.syncValue();
             iframe.addCls(hiddenCls);
             textarea.removeCls(hiddenCls);
-            textarea.dom.removeAttribute('tabIndex');
+            textarea.dom.removeAttribute('tabindex');
             textarea.focus();
             me.inputEl = textarea;
         } else {
@@ -802,7 +806,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             me.pushValue();
             iframe.removeCls(hiddenCls);
             textarea.addCls(hiddenCls);
-            textarea.dom.setAttribute('tabIndex', -1);
+            textarea.dom.setAttribute('tabindex', -1);
             me.deferFocus();
             me.inputEl = iframe;
         }
@@ -1109,7 +1113,6 @@ Ext.define('Ext.form.field.HtmlEditor', {
                 }
             }
 
-            me.iframeEl.destroy();
             delete me.iframeEl;
             delete me.textareaEl;
             delete me.toolbar;

@@ -68,7 +68,6 @@ Ext.define('Ext.grid.column.Column', {
     xtype: 'gridcolumn',
 
     requires: [
-        'Ext.util.KeyNav',
         'Ext.grid.ColumnComponentLayout',
         'Ext.grid.ColumnLayout',
         'Ext.app.bind.Template' // for "format" support
@@ -95,6 +94,8 @@ Ext.define('Ext.grid.column.Column', {
     handleWidth: Ext.supports.Touch ? 10 : 4,
 
     ariaRole: 'columnheader',
+    
+    enableFocusableContainer: false,
 
     sortState: null,
 
@@ -114,7 +115,7 @@ Ext.define('Ext.grid.column.Column', {
     headerWrap: false,
 
     renderTpl: [
-        '<div id="{id}-titleEl" data-ref="titleEl" role="presentation" {tipMarkup}class="', Ext.baseCSSPrefix, 'column-header-inner',
+        '<div id="{id}-titleEl" data-ref="titleEl" {tipMarkup}class="', Ext.baseCSSPrefix, 'column-header-inner',
             '<tpl if="empty"> ', Ext.baseCSSPrefix, 'column-header-inner-empty</tpl>">',
             '<span id="{id}-textEl" data-ref="textEl" class="', Ext.baseCSSPrefix, 'column-header-text',
                 '{childElCls}">',
@@ -271,6 +272,53 @@ Ext.define('Ext.grid.column.Column', {
      * @cfg {Object} renderer.value The data value for the current cell
      * @cfg {Object} renderer.metaData A collection of metadata about the current cell; can be used or modified
      * by the renderer. Recognized properties are: tdCls, tdAttr, and style.
+     *
+     * You can see an example of using the metaData parameter below.
+     * 
+     *      Ext.create('Ext.data.Store', {
+     *           storeId: 'simpsonsStore',
+     *           fields: ['class', 'attr', 'style'],
+     *           data: {
+     *               'class': 'red-bg',
+     *               "attr": "lightyellow",
+     *               "style": "red"
+     *           }
+     *      });
+     *
+     *      Ext.create('Ext.grid.Panel', {
+     *           title: 'Simpsons',
+     *           store: Ext.data.StoreManager.lookup('simpsonsStore'),
+     *           columns: [
+     *           {
+     *               text: 'Name',
+     *               dataIndex: 'class',
+     *               renderer: function (value, metaData) {
+     *                   metaData.tdCls = value;
+     *                   return value;
+     *               }
+     *           }, 
+     *           {
+     *               text: 'Email',
+     *               dataIndex: 'attr',
+     *               flex: 1,
+     *               renderer: function (value, metaData) {
+     *                   metaData.tdAttr = 'bgcolor=' + value;
+     *                   return value;
+     *               }
+     *           }, 
+     *           {
+     *               text: 'Phone',
+     *               dataIndex: 'style',
+     *               renderer: function (value, metaData) {
+     *                   metaData.style = 'color:' + value;
+     *                   return value;
+     *               }
+     *           }],
+     *           height: 200,
+     *           width: 400,
+     *           renderTo: Ext.getBody()
+     *       });
+     * 
      * @cfg {Ext.data.Model} renderer.record The record for the current row
      * @cfg {Number} renderer.rowIndex The index of the current row
      * @cfg {Number} renderer.colIndex The index of the current column
@@ -407,6 +455,8 @@ Ext.define('Ext.grid.column.Column', {
      * and element production during the update, this property may be configured as `false`.
      */
     producesHTML: true,
+    
+    tabIndex: -1,
 
     ascSortCls: Ext.baseCSSPrefix + 'column-header-sort-ASC',
     descSortCls: Ext.baseCSSPrefix + 'column-header-sort-DESC',
@@ -593,38 +643,18 @@ Ext.define('Ext.grid.column.Column', {
     onResize: function(width, height, oldWidth, oldHeight) {
         var me = this,
             view,
-            store,
-            bufferedRenderer,
-            start;
+            bufferedRenderer;
 
         me.callParent(arguments);
         if (oldWidth && me.cellWrap) {
             view = me.getView();
             if (view) {
-                store = view.store;
                 bufferedRenderer = view.bufferedRenderer;
+
+                // Changing the width of a wrapping column may affect the data height which might mean that
+                // The current position of the rendered block might be wrong. The BufferedRenderer must fix that.
                 if (bufferedRenderer) {
-
-                    // MUST delete the property. The getScrollHeight method tests hasOwnProperty('rowHeight')
-                    delete bufferedRenderer.rowHeight;
-                    // Ensure the scroll range stretcher is updated to reflect new data height
-                    bufferedRenderer.stretchView(view, bufferedRenderer.getScrollHeight(true));
-
-                    // Calculate new viewSize - number of rows to render.
-                    bufferedRenderer.viewSize = Math.ceil(view.getHeight() / bufferedRenderer.rowHeight) + bufferedRenderer.trailingBufferZone + bufferedRenderer.leadingBufferZone;
-                    if (store.isBufferedStore) {
-                        store.setViewSize(bufferedRenderer.viewSize);
-                    }
-
-                    // Render the rows which now belong at this scroll position according to the average row height
-                    start = Math.min((store.isBufferedStore ? store.getTotalCount() : store.getCount()) - bufferedRenderer.viewSize, Math.max(0, Math.floor(bufferedRenderer.bodyTop / bufferedRenderer.rowHeight)));
-                    bufferedRenderer.renderRange(start, start + bufferedRenderer.viewSize - 1);
-
-                    // Column got wider causing scroll range to shrink, leaving the view stranded past the end of the scroll range, position it back
-                    if (width > oldWidth && bufferedRenderer.bodyTop + view.body.dom.offsetHeight - 1 > bufferedRenderer.scrollHeight) {
-                        bufferedRenderer.setBodyTop(Math.max(0, bufferedRenderer.scrollHeight - view.body.dom.offsetHeight));
-                    }
-
+                    bufferedRenderer.onWrappedColumnWidthChange(oldWidth, width);
                 }
             }
         }
@@ -858,8 +888,8 @@ Ext.define('Ext.grid.column.Column', {
     onDestroy: function() {
         var me = this;
         // force destroy on the textEl, IE reports a leak
-        Ext.destroy(me.keyNav, me.field);
-        me.field = me.keyNav = null;
+        Ext.destroy(me.field);
+        me.field = null;
         me.callParent(arguments);
     },
 
@@ -1044,22 +1074,33 @@ Ext.define('Ext.grid.column.Column', {
             direction = sorter && sorter.getDirection(),
             ascCls = me.ascSortCls,
             descCls = me.descSortCls,
-            ownerHeaderCt = me.getOwnerHeaderCt();
+            ownerHeaderCt = me.getOwnerHeaderCt(),
+            changed;
 
         switch (direction) {
             case 'DESC':
-                me.addCls(descCls);
+                if (!me.hasCls(descCls)) {
+                    me.addCls(descCls);
+                    me.sortState = 'DESC';
+                    changed = true;
+                }
                 me.removeCls(ascCls);
                 break;
             case 'ASC':
-                me.addCls(ascCls);
+                if (!me.hasCls(ascCls)) {
+                    me.addCls(ascCls);
+                    me.sortState = 'ASC';
+                    changed = true;
+                }
                 me.removeCls(descCls);
                 break;
             default:
                 me.removeCls([ascCls, descCls]);
+                me.sortState = null;
+                break;
         }
         // we only want to fire the event if we have actually sorted
-        if (direction) {
+        if (changed) {
             ownerHeaderCt.fireEvent('sortchange', ownerHeaderCt, me, direction);
         }
     },

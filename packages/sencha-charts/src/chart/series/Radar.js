@@ -7,54 +7,54 @@
  * As with all other series, the Radar series must be appended in the *series* Chart array configuration. See the Chart
  * documentation for more information. A typical configuration object for the radar series could be:
  *
- *     @example preview
- *     var chart = new Ext.chart.PolarChart({
- *         animation: true,
- *         interactions: ['rotate'],
- *         store: {
- *           fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
- *           data: [
- *               {'name':'metric one', 'data1':10, 'data2':12, 'data3':14, 'data4':8, 'data5':13},
- *               {'name':'metric two', 'data1':7, 'data2':8, 'data3':16, 'data4':10, 'data5':3},
- *               {'name':'metric three', 'data1':5, 'data2':2, 'data3':14, 'data4':12, 'data5':7},
- *               {'name':'metric four', 'data1':2, 'data2':14, 'data3':6, 'data4':1, 'data5':23},
- *               {'name':'metric five', 'data1':27, 'data2':38, 'data3':36, 'data4':13, 'data5':33}
- *           ]
- *         },
- *         series: [{
- *             type: 'radar',
- *             xField: 'name',
- *             yField: 'data4',
- *             style: {
- *               fillStyle: 'rgba(0, 0, 255, 0.1)',
- *               strokeStyle: 'rgba(0, 0, 0, 0.8)',
- *               lineWidth: 1
- *             }
- *         }],
- *         axes: [
- *           {
- *             type: 'numeric',
- *             position: 'radial',
- *             fields: 'data4',
- *             style: {
- *                 estStepSize: 10
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'polar',
+ *             interactions: 'rotate',
+ *             store: {
+ *                 fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
+ *                 data: [
+ *                     {'name':'metric one', 'data1':10, 'data2':12, 'data3':14, 'data4':8, 'data5':13},
+ *                     {'name':'metric two', 'data1':7, 'data2':8, 'data3':16, 'data4':10, 'data5':3},
+ *                     {'name':'metric three', 'data1':5, 'data2':2, 'data3':14, 'data4':12, 'data5':7},
+ *                     {'name':'metric four', 'data1':2, 'data2':14, 'data3':6, 'data4':1, 'data5':23},
+ *                     {'name':'metric five', 'data1':27, 'data2':38, 'data3':36, 'data4':13, 'data5':33}
+ *                 ]
  *             },
- *             grid: true
- *           },
- *           {
- *             type: 'category',
- *             position: 'angular',
- *             fields: 'name',
- *             style: {
- *                 estStepSize: 1
+ *             series: {
+ *                 type: 'radar',
+ *                 xField: 'name',
+ *                 yField: 'data4',
+ *                 style: {
+ *                     fillStyle: 'rgba(0, 0, 255, 0.1)',
+ *                     strokeStyle: 'rgba(0, 0, 0, 0.8)',
+ *                     lineWidth: 1
+ *                 }
  *             },
- *             grid: true
- *           }
- *         ]
+ *             axes: [{
+ *                 type: 'numeric',
+ *                 position: 'radial',
+ *                 fields: 'data4',
+ *                 style: {
+ *                     estStepSize: 10
+ *                 },
+ *                 grid: true
+ *             }, {
+ *                 type: 'category',
+ *                 position: 'angular',
+ *                 fields: 'name',
+ *                 style: {
+ *                     estStepSize: 1
+ *                 },
+ *                 grid: true
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(chart);
- *
  *
  */
 Ext.define('Ext.chart.series.Radar', {
@@ -62,7 +62,7 @@ Ext.define('Ext.chart.series.Radar', {
     type: 'radar',
     seriesType: 'radar',
     alias: 'series.radar',
-    requires: ['Ext.chart.series.Cartesian', 'Ext.chart.series.sprite.Radar'],
+    requires: ['Ext.chart.series.sprite.Radar'],
     /**
      * @cfg {Object} style
      * An object containing styles for overriding series styles from theming.
@@ -164,28 +164,32 @@ Ext.define('Ext.chart.series.Radar', {
         return me.callParent(arguments);
     },
 
+    getSprites: function () {
+        if (!this.getChart()) {
+            return [];
+        }
+        if (!this.sprites.length) {
+            this.createSprite();
+        }
+        return this.sprites;
+    },
+
     provideLegendInfo: function (target) {
-        var style = this.getSubStyleWithTheme();
+        var me = this,
+            style = me.getSubStyleWithTheme(),
+            fill = style.fillStyle;
+
+        if (Ext.isArray(fill)) {
+            fill = fill[0];
+        }
         target.push({
-            name: this.getTitle() || this.getYField() || this.getId(),
-            mark: style.fillStyle || style.strokeStyle || 'black',
-            disabled: false,
-            series: this.getId(),
+            name: me.getTitle() || me.getYField() || me.getId(),
+            mark: (Ext.isObject(fill) ? fill.stops && fill.stops[0].color : fill) || style.strokeStyle || 'black',
+            disabled: me.getHidden(),
+            series: me.getId(),
             index: 0
         });
-    },
-
-    getXRange: function () {
-        return [this.dataRange[0], this.dataRange[2]];
-    },
-
-    getYRange: function () {
-        return [this.dataRange[1], this.dataRange[3]];
     }
-}, function () {
-    var klass = this;
-    // TODO: [HACK] Steal from cartesian series.
-    klass.prototype.onAxesChange = Ext.chart.series.Cartesian.prototype.onAxesChange;
-    klass.prototype.getSprites = Ext.chart.series.Cartesian.prototype.getSprites;
+
 });
 

@@ -23,6 +23,8 @@
 Ext.define('Ext.menu.Separator', {
     extend: 'Ext.menu.Item',
     alias: 'widget.menuseparator',
+    
+    focusable: false,
 
     /**
      * @cfg {String} activeCls
@@ -49,8 +51,6 @@ Ext.define('Ext.menu.Separator', {
      * @cfg {Boolean} disabledCls
      * @private
      */
-
-    focusable: false,
 
     /**
      * @cfg {String} href

@@ -69,7 +69,7 @@ Ext.define('Ext.grid.filters.filter.List', {
      *             {id: 35, name:'large'},
      *             {id: 44, name:'extra large'}
      *         ]
-     * 
+     *
      *   - **String** :
      *
      *         options: ['extra small', 'small', 'medium', 'large', 'extra large']
@@ -123,16 +123,32 @@ Ext.define('Ext.grid.filters.filter.List', {
     destroy: function () {
         var me = this,
             store = me.optionsStore;
-            
+
         if (store) {
             if (me.autoStore) {
-                store.destroyStore();
+                store.destroy();
             } else {
                 store.un('unload', me.onLoad, me);
             }
+            me.optionsStore = null;
         }
 
         me.callParent();
+    },
+
+    activateMenu: function () {
+        var me = this,
+            items = me.menu.items,
+            value = me.filter.getValue(),
+            i, len, checkItem;
+
+        for (i = 0, len = items.length; i < len; i++) {
+            checkItem = items.getAt(i);
+
+            if (value.indexOf(checkItem.value) > -1) {
+                checkItem.setChecked(true, /*suppressEvents*/ true);
+            }
+        }
     },
 
     /**
@@ -143,15 +159,13 @@ Ext.define('Ext.grid.filters.filter.List', {
      */
     createMenu: function(config) {
         var me = this,
-            gridStore = me.grid.store,
+            gridStore = me.getStore(),
             optionsStore = me.optionsStore,
             options = me.options,
             menu, data;
 
         me.callParent(arguments);
         menu = me.menu;
-
-        //me.selected = [];
 
         if (optionsStore) {
             data = optionsStore.getData();
@@ -160,6 +174,10 @@ Ext.define('Ext.grid.filters.filter.List', {
                     text: me.loadingText,
                     iconCls: 'loading-indicator'
                 });
+
+                // Add a listener that will auto-load the menu store if `loadOnShow` is true (the default).
+                menu.mon(menu, 'show', me.show, me);
+
                 optionsStore.on('load', me.createMenuStore, me, {single: true});
             } else {
                 me.createMenuItems(optionsStore);
@@ -220,13 +238,15 @@ Ext.define('Ext.grid.filters.filter.List', {
             storeOptions = [],
             i, len, value, store;
 
-        options = options || me.grid.store.collect(me.column.dataIndex, false, true) || [];
+        options = !options ? me.getStore().collect(me.column.dataIndex, false, true) :
+            options.isStore ? options.collect(me.labelField, false, true) :
+            options || [];
 
         for (i = 0, len = options.length; i < len; i++) {
             value = options[i];
 
             switch (Ext.typeOf(value)) {
-                case 'array': 
+                case 'array':
                     storeOptions.push(value);
                     break;
                 case 'object':
@@ -280,33 +300,11 @@ Ext.define('Ext.grid.filters.filter.List', {
         }
     },
 
-    /**
-     * Lists will initially show a 'loading' item while the data is retrieved from the store.
-     * In some cases the loaded data will result in a list that goes off the screen to the
-     * right (as placement calculations were done with the loading item). This adapter will
-     * allow show to be called with no arguments to show with the previous arguments and
-     * thus recalculate the width and potentially hang the menu from the left.
-     */
     show: function () {
-        if (this.loadOnShow && !this.loaded && !this.optionsStore.loading) {
-            this.optionsStore.load();
-        }
+        var me = this;
 
-        this.callParent();
-    },
-
-    activateMenu: function () {
-        var me = this,
-            items = me.menu.items,
-            value = me.filter.getValue(),
-            i, len, checkItem;
-
-        for (i = 0, len = items.length; i < len; i++) {
-            checkItem = items.getAt(i);
-
-            if (value.indexOf(checkItem.value) > -1) {
-                checkItem.setChecked(true, /*suppressEvents*/ true);
-            }
+        if (me.loadOnShow && !me.loaded && !me.optionsStore.loading) {
+            me.optionsStore.load();
         }
     }
 });

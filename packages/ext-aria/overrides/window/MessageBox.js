@@ -3,7 +3,6 @@ Ext.define('Ext.aria.window.MessageBox', {
     
     requires: [
         'Ext.aria.window.Window',
-        'Ext.aria.toolbar.Toolbar',
         'Ext.aria.form.field.Text',
         'Ext.aria.form.field.TextArea',
         'Ext.aria.form.field.Display',

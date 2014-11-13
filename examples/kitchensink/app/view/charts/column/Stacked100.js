@@ -73,11 +73,10 @@ Ext.define('KitchenSink.view.charts.column.Stacked100', {
                 right: 40,
                 bottom: 40
             },
-            interactions: 'itemhighlight',
             sprites: [{
                 type: 'text',
                 text: 'Column Charts - 100% Stacked Columns',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -85,15 +84,15 @@ Ext.define('KitchenSink.view.charts.column.Stacked100', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 380
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 390
+                y: 395
             }],
             axes: [{
                 type: 'numeric',

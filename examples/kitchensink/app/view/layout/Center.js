@@ -23,7 +23,7 @@ Ext.define('KitchenSink.view.layout.Center', {
         autoScroll: true,
         width: '75%',
         height: '95%',
-        bodyStyle: 'padding:20px 0;',
+        bodyPadding: '20 0',
         items: [
             {
                 title: 'Inner Centered Panel',
@@ -31,7 +31,7 @@ Ext.define('KitchenSink.view.layout.Center', {
                 width: 300,
                 height: '100%',
                 frame: true,
-                bodyStyle: 'padding:10px 20px;'
+                bodyPadding: '10 20'
             }
         ]
     }

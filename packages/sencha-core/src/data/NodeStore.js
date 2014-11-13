@@ -81,6 +81,31 @@ Ext.define('Ext.data.NodeStore', {
         this.callParent(arguments);
     },
 
+
+    afterReject : function(record) {
+        var me = this;
+        // Must pass the 5th param (modifiedFieldNames) as null, otherwise the
+        // event firing machinery appends the listeners "options" object to the arg list
+        // which may get used as the modified fields array by a handler.
+        // This array is used for selective grid cell updating by Grid View.
+        // Null will be treated as though all cells need updating.
+        if (me.contains(record)) {
+            me.onUpdate(record, Ext.data.Model.REJECT, null);
+            me.fireEvent('update', me, record, Ext.data.Model.REJECT, null);
+        }
+    },
+
+    afterCommit : function(record, modifiedFieldNames) {
+        var me = this;
+        if (!modifiedFieldNames) {
+            modifiedFieldNames = null;
+        }
+        if (me.contains(record)) {
+            me.onUpdate(record, Ext.data.Model.COMMIT, modifiedFieldNames);
+            me.fireEvent('update', me, record, Ext.data.Model.COMMIT, modifiedFieldNames);
+        }
+    },
+
     onNodeAppend: function(parent, node) {
         this.add([node].concat(this.retrieveChildNodes(node)));
     },

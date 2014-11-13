@@ -2,6 +2,8 @@
  * @class Ext.sparkline.Bar
  *
  * Plots a bar chart of the values in the passed {@link #values} array.
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Bar', {
     extend: 'Ext.sparkline.BarBase',

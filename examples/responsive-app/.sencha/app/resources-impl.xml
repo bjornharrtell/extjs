@@ -12,7 +12,7 @@
                 and
                 resources
                     -model=true
-                    -out=${build.dir}
+                    -out=${build.out.resources.dir}
             ]]>
         </x-compile>
     </target>

@@ -41,15 +41,15 @@
     -->
 
     <target name="-after-build" depends="init">
-        <copy todir="${build.dir}/lib/" overwrite="true">
+        <copy todir="${build.out.base.path}/lib/" overwrite="true">
             <fileset dir="${app.dir}/lib/" includes="**/*"/>
         </copy>
-        <copy file="${build.dir}/index.html" tofile="${build.dir}/index-quirks.html">
+        <copy file="${build.out.base.path}/index.html" tofile="${build.out.base.path}/index-quirks.html">
             <filterchain>
                 <headfilter lines="-1" skip="1"/>
             </filterchain>
         </copy>
-        <copy todir="${build.dir}" overwrite="true">
+        <copy todir="${build.out.base.path}" overwrite="true">
             <fileset dir="${app.dir}" includes="app/view/**/*"/>
         </copy>
     </target>

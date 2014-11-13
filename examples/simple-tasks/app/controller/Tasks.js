@@ -655,6 +655,7 @@ Ext.define('SimpleTasks.controller.Tasks', {
      */
     saveEditWindow: function() {
         var taskEditWindow = this.getTaskEditWindow(),
+            listTree = this.getListTree(),
             windowEl = taskEditWindow.getEl(),
             form = taskEditWindow.down('form').getForm(),
             task = form.getRecord();
@@ -669,6 +670,7 @@ Ext.define('SimpleTasks.controller.Tasks', {
                 success: function(task, operation) {
                     windowEl.unmask();
                     taskEditWindow.close();
+                    listTree.view.refresh();
                 },
                 failure: function(task, operation) {
                     var error = operation.getError(),
@@ -682,7 +684,7 @@ Ext.define('SimpleTasks.controller.Tasks', {
                     });
                     windowEl.unmask();
                 }
-            })
+            });
         } else {
             Ext.Msg.alert('Invalid Data', 'Please correct form errors');
         }

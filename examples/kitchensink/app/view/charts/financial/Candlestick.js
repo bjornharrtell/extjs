@@ -92,7 +92,17 @@ Ext.define('KitchenSink.view.charts.financial.Candlestick', {
                  }
              },
              {
-                 type: 'crosshair'
+                 type: 'crosshair',
+                 axes: {
+                     label: {
+                         fillStyle: 'white'
+                     },
+                     rect: {
+                         fillStyle: '#344459',
+                         opacity: 0.7,
+                         radius: 5
+                     }
+                 }
              }
         ],
         series: [

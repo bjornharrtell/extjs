@@ -216,7 +216,7 @@ describe("Ext.data.proxy.Ajax", function() {
             Ext.Ajax.mockComplete({
                 status: status || 200,
                 statusText: statusText || '',
-                responseText: responseText || '{"success": true, "data": []}'
+                responseText: Ext.isDefined(responseText) ? responseText : '{"success": true, "data": []}'
             });
         }
         
@@ -242,6 +242,13 @@ describe("Ext.data.proxy.Ajax", function() {
             request = operation = null;
             MockAjaxManager.removeMethods();
             Ext.undefine('spec.AjaxModel');
+        });
+
+        it("should return the null result set if status 204 is returned", function() {
+            request = proxy.read(operation);
+            spyOn(proxy, 'afterRequest');
+            complete(204, 'No Content', '');
+            expect(operation.getResultSet()).toBe(Ext.data.reader.Reader.prototype.nullResultSet);
         });
         
         describe("successful request", function() {

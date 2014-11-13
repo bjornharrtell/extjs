@@ -100,24 +100,22 @@ Ext.define('Ext.grid.filters.filter.Base', {
      * @param {Object} config
      */
     constructor: function (config) {
-        var me = this;
-
-        me.initConfig(config);
-
-        me.store = me.grid.store;
+        this.initConfig(config);
     },
 
     /**
      * Destroys this filter by purging any event listeners, and removing any menus.
      */
-    destroy: function(){
-        if (this.menu){
-            this.menu.destroy();
-        }
+    destroy: function() {
+        this.menu = Ext.destroy(this.menu);
+    },
+
+    getStore: function() {
+        return this.grid.getStore();
     },
 
     addStoreFilter: function (filter) {
-        this.store.getFilters().add(filter);
+        this.getStore().getFilters().add(filter);
     },
 
     createFilter: function (config, key) {
@@ -165,11 +163,11 @@ Ext.define('Ext.grid.filters.filter.Base', {
             id += '-' + key;
         }
 
-        return this.store.getFilters().get(id);
+        return this.getStore().getFilters().get(id);
     },
 
     removeStoreFilter: function (filter) {
-        this.store.getFilters().remove(filter);
+        this.getStore().getFilters().remove(filter);
     },
 
     /**
@@ -212,7 +210,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
         if (me.active !== active) {
             me.active = active;
 
-            filterCollection = me.store.getFilters();
+            filterCollection = me.getStore().getFilters();
             filterCollection.beginUpdate();
 
             if (active) {
@@ -252,6 +250,6 @@ Ext.define('Ext.grid.filters.filter.Base', {
     },
 
     updateStoreFilter: function (filter) {
-        this.store.getFilters().notify('endupdate');
+        this.getStore().getFilters().notify('endupdate');
     }
 });

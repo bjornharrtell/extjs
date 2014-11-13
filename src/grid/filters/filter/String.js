@@ -32,9 +32,14 @@ Ext.define('Ext.grid.filters.filter.String', {
 
     operator: 'like',
 
+    /**
+     * @cfg {String} emptyText
+     * The empty text to show for each field.
+     */
+    emptyText: 'Enter Filter Text...',
+
     itemDefaults: {
         xtype: 'textfield',
-        emptyText: 'Enter Filter Text...',
         enableKeyEvents: true,
         hideEmptyLabel: false,
         iconCls: Ext.baseCSSPrefix + 'grid-filters-find',
@@ -67,6 +72,7 @@ Ext.define('Ext.grid.filters.filter.String', {
         }
         delete config.iconCls;
 
+        config.emptyText = config.emptyText || me.emptyText;
         me.inputItem = me.menu.add(config);
 
         me.inputItem.on({
@@ -88,16 +94,12 @@ Ext.define('Ext.grid.filters.filter.String', {
      * Handler method called when there is a keyup event on this.inputItem
      */
     onInputKeyUp: function (field, e) {
-        var me = this,
-            k = e.getKey();
-
-        if (k === e.RETURN && field.isValid()) {
-            e.stopEvent();
-            me.menu.hide();
+        if (e.getKey() === e.RETURN && field.isValid()) {
+            this.menu.hide();
             return;
         }
 
-        me.setValue(field.getValue());
+        this.setValue(field.getValue());
     },
 
     /**

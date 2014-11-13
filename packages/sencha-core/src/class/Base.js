@@ -509,7 +509,7 @@ var noArgs = [],
                 defaultConfig = !isStatic && target.defaultConfig,
                 enumerables = Ext.enumerables,
                 privates = members.privates,
-                configs, i, ln, member, name, subPrivacy;
+                configs, i, ln, member, name, subPrivacy, privateStatics;
 
             //<debug>
             var displayName = (me.$className || '') + '#';
@@ -519,15 +519,18 @@ var noArgs = [],
                 // This won't run for normal class private members but will pick up all
                 // others (statics, overrides, etc).
                 delete members.privates;
-
+                if (!isStatic) {
+                    privateStatics = privates.statics;
+                    delete privates.statics;
+                }
+                
                 //<debug>
                 subPrivacy = privates.privacy || privacy || 'framework';
                 //</debug>
 
                 me.addMembers(privates, isStatic, subPrivacy);
-                privates = privates.statics;
-                if (privates && !isStatic) {
-                    me.addMembers(privates, true, subPrivacy);
+                if (privateStatics) {
+                    me.addMembers(privateStatics, true, subPrivacy);
                 }
             }
 
@@ -1440,22 +1443,27 @@ var noArgs = [],
          * Sets a single/multiple configuration options.
          * @method
          * @param {String/Object} name The name of the property to set, or a set of key value pairs to set.
-         * @param {Object} value The value to set for the name parameter.
+         * @param {Object} [value] The value to set for the name parameter.
          * @return {Ext.Base} this
          */
-        setConfig: function(name, value) {
+        setConfig: function(name, value, /* private */ options) {
+            // options can have the following properties:
+            // - defaults `true` to only set the config(s) that have not been already set on
+            // this instance.
+            // - strict `false` to apply properties to the instance that are not configs,
+            // and do not have setters.
             var me = this,
-                cfg;
-            
-            if (typeof name === 'string') {
-                cfg = Ext.Config.map[name];
-                if (!cfg) {
-                    Ext.Logger.error("Invalid property name for setter: '" + name + "' for '" + this.$className + "'.");
+                config;
+
+            if (name) {
+                if (typeof name === 'string') {
+                    config = {};
+                    config[name] = value;
+                } else {
+                    config = name;
                 }
-                this[cfg.names.set](value);
-            } else if (name) {
-                // Assume name is an object
-                me.getConfigurator().reconfigure(me, name);
+
+                me.getConfigurator().reconfigure(me, config, options);
             }
 
             return me;

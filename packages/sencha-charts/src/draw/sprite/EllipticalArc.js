@@ -4,22 +4,27 @@
  *
  * A sprite that represents an elliptical arc.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'ellipticalArc',
- *         cx: 100,
- *         cy: 100,
- *         rx: 40,
- *         ry: 25,
- *         fillStyle: 'blue',
- *         startAngle: 0,
- *         endAngle: Math.PI,
- *         anticlockwise: true
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'ellipticalArc',
+ *                 cx: 100,
+ *                 cy: 100,
+ *                 rx: 40,
+ *                 ry: 25,
+ *                 fillStyle: 'blue',
+ *                 startAngle: 0,
+ *                 endAngle: Math.PI,
+ *                 anticlockwise: true
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 Ext.define("Ext.draw.sprite.EllipticalArc", {
     extend: "Ext.draw.sprite.Ellipse",

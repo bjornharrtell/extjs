@@ -67,6 +67,7 @@ Ext.define('Ext.view.View', {
             mouseenter: 'MouseEnter',
             mouseleave: 'MouseLeave',
             keydown: 'KeyDown',
+            keypress: 'KeyPress',
             focus: 'Focus'
         },
         TouchEventMap: {
@@ -406,6 +407,7 @@ Ext.define('Ext.view.View', {
             dblclick: me.handleEvent,
             contextmenu: me.handleEvent,
             keydown: me.handleEvent,
+            keypress: me.handleEvent,
             mouseover: me.handleMouseOver,
             mouseout: me.handleMouseOut
         });
@@ -467,25 +469,23 @@ Ext.define('Ext.view.View', {
 
     handleEvent: function(e) {
         var me = this,
-            isKeydown = e.type === 'keydown',
-            key = isKeydown && e.getKey(),
-            sm;
+            isKeyEvent = Ext.String.startsWith(e.type, 'key'),
+            key = isKeyEvent && e.getKey(),
+            nm = me.getNavigationModel();
 
+        e.view = me;
+        if (isKeyEvent) {
+            e.item = nm.getItem();
+            e.record = nm.getRecord();
+        }
+
+        // If the key event was fired programatically, it will not have triggered the focus
+        // so the NavigationModel will not have this information.
         if (!e.item) {
             e.item = e.getTarget(me.itemSelector);
         }
-
-        if (e.item) {
+        if (e.item && !e.record) {
             e.record = me.getRecord(e.item);
-        }
-        // For keydown events, try to get either the last focused item or the selected item.
-        // If we have not focused an item, we'll just fire a container keydown event.
-        else if (isKeydown) {
-            sm = me.getSelectionModel();
-            e.record = sm.lastFocused || sm.getLastSelected();
-            if (e.record) {
-                e.item = me.getNode(e.record);
-            }
         }
 
         if (me.processUIEvent(e) !== false) {
@@ -500,7 +500,6 @@ Ext.define('Ext.view.View', {
                 e.stopEvent();
             }
         }
-        e.item = e.record = e.newType = null;
     },
 
     // Private template method
@@ -534,7 +533,7 @@ Ext.define('Ext.view.View', {
 
         if (item) {
             newType = touchMap[newType] || newType;
-            index = me.indexInStore ? me.indexInStore(record) : me.indexOf(item);
+            index = e.recordIndex = me.indexInStore ? me.indexInStore(record) : me.indexOf(item);
 
             // It is possible for an event to arrive for which there is no record... this
             // can happen with dblclick where the clicks are on removal actions (think a
@@ -594,6 +593,7 @@ Ext.define('Ext.view.View', {
     onItemDblClick: Ext.emptyFn,
     onItemContextMenu: Ext.emptyFn,
     onItemKeyDown: Ext.emptyFn,
+    onItemKeyPress: Ext.emptyFn,
     onBeforeItemLongPress: Ext.emptyFn,
     onBeforeItemMouseDown: Ext.emptyFn,
     onBeforeItemMouseUp: Ext.emptyFn,
@@ -604,6 +604,7 @@ Ext.define('Ext.view.View', {
     onBeforeItemDblClick: Ext.emptyFn,
     onBeforeItemContextMenu: Ext.emptyFn,
     onBeforeItemKeyDown: Ext.emptyFn,
+    onBeforeItemKeyPress: Ext.emptyFn,
 
     // private, template methods
     onContainerMouseDown: Ext.emptyFn,
@@ -615,6 +616,7 @@ Ext.define('Ext.view.View', {
     onContainerDblClick: Ext.emptyFn,
     onContainerContextMenu: Ext.emptyFn,
     onContainerKeyDown: Ext.emptyFn,
+    onContainerKeyPress: Ext.emptyFn,
     onBeforeContainerMouseDown: Ext.emptyFn,
     onBeforeContainerLongPress: Ext.emptyFn,
     onBeforeContainerMouseUp: Ext.emptyFn,
@@ -624,6 +626,7 @@ Ext.define('Ext.view.View', {
     onBeforeContainerDblClick: Ext.emptyFn,
     onBeforeContainerContextMenu: Ext.emptyFn,
     onBeforeContainerKeyDown: Ext.emptyFn,
+    onBeforeContainerKeyPress: Ext.emptyFn,
 
     // @private
     
@@ -774,6 +777,7 @@ Ext.define('Ext.view.View', {
             } else {
                 dataSource.bindStore(store);
             }
+            this.getSelectionModel().bindStore(dataSource.store);
         } else {
             this.callParent(arguments);
         }
@@ -789,11 +793,7 @@ Ext.define('Ext.view.View', {
             if (node) {
                 node.className = node.className;
             }
-        },
-        //</feature>
-
-        getFocusEl: function() {
-            return this.getTargetEl();
         }
+        //</feature>
     }
 });

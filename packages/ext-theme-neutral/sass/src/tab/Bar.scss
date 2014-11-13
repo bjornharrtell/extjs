@@ -315,14 +315,14 @@
 
     // tabbars need a min-height/width so that horizontal tabbars don't lose height and
     // vertical tabbars don't lose width when all tabs are closed.
-    $ui-body-height: $ui-tab-height + $ui-strip-height - top($ui-strip-border-width);
+    $ui-body-height: $ui-tab-height + $ui-strip-height + vertical($ui-padding) - top($ui-strip-border-width);
 
     .#{$prefix}tab-bar-horizontal > .#{$prefix}tab-bar-body-#{$ui} {
         min-height: $ui-body-height;
 
         .#{$prefix}ie9m & {
             // border-box model is busted in IE9m when min-height is used
-            min-height: $ui-body-height - $strip-size;
+            min-height: $ui-body-height - $ui-strip-height;
         }
     }
 
@@ -331,7 +331,7 @@
 
         .#{$prefix}ie9m & {
             // border-box model is busted in IE9m when min-width is used
-            min-width: $ui-body-height - $strip-size;
+            min-width: $ui-body-height - $ui-strip-height;
         }
     }
 
@@ -557,11 +557,20 @@
  * @param {color} [$ui-tab-background-color=$tab-base-color]
  * The background-color of Tabs
  *
+ * @param {color} [$ui-tab-background-color-focus=$tab-base-color-focus]
+ * The background-color of focused Tabs
+ *
  * @param {color} [$ui-tab-background-color-over=$tab-base-color-over]
  * The background-color of hovered Tabs
  *
  * @param {color} [$ui-tab-background-color-active=$tab-base-color-active]
  * The background-color of the active Tab
+ *
+ * @param {color} [$ui-tab-background-color-focus-over=$tab-base-color-focus-over]
+ * The background-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-tab-background-color-focus-active=$tab-base-color-focus-active]
+ * The background-color of the active Tab when focused
  *
  * @param {color} [$ui-tab-background-color-disabled=$tab-base-color-disabled]
  * The background-color of disabled Tabs
@@ -571,6 +580,24 @@
  *
  * @param {number} [$ui-tab-border-width=$tab-border-width]
  * The border-width of Tabs
+ *
+ * @param {number/list} [$ui-tab-border-width-focus=$tab-border-width-focus]
+ * The border-width of focused Tabs
+ *
+ * @param {number/list} [$ui-tab-border-width-over=$tab-border-width-over]
+ * The border-width of hovered Tabs
+ *
+ * @param {number/list} [$ui-tab-border-width-active=$tab-border-width-active]
+ * The border-width of active Tabs
+ *
+ * @param {number/list} [$ui-tab-border-width-focus-over=$tab-border-width-focus-over]
+ * The border-width of focused hovered Tabs
+ *
+ * @param {number/list} [$ui-tab-border-width-focus-active=$tab-border-width-focus-active]
+ * The border-width of active Tabs when focused
+ *
+ * @param {number/list} [$ui-tab-border-width-disabled=$tab-border-width-disabled]
+ * The border-width of disabled Tabs
  *
  * @param {number/list} [$ui-tab-margin=$tab-margin]
  * The border-width of Tabs
@@ -584,12 +611,21 @@
  * @param {color} [$ui-tab-border-color=$tab-border-color]
  * The border-color of Tabs
  *
+ * @param {color} [$ui-tab-border-color-focus=$tab-border-color-focus]
+ * The border-color of focused Tabs
+ *
  * @param {color} [$ui-tab-border-color-over=$tab-border-color-over]
  * The border-color of hovered Tabs
  *
  * @param {color} [$ui-tab-border-color-active=$tab-border-color-active]
  * The border-color of the active Tab
  *
+ * @param {color} [$ui-tab-border-color-focus-over=$tab-border-color-focus-over]
+ * The border-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-tab-border-color-focus-active=$tab-border-color-focus-active]
+ * The border-color of the active Tab when focused
+
  * @param {color} [$ui-tab-border-color-disabled=$tab-border-color-disabled]
  * The border-color of disabled Tabs
  *
@@ -602,11 +638,20 @@
  * @param {number} [$ui-tab-font-size=$tab-font-size]
  * The font-size of Tabs
  *
+ * @param {number} [$ui-tab-font-size-focus=$tab-font-size-focus]
+ * The font-size of focused Tabs
+ *
  * @param {number} [$ui-tab-font-size-over=$tab-font-size-over]
  * The font-size of hovered Tabs
  *
  * @param {number} [$ui-tab-font-size-active=$tab-font-size-active]
  * The font-size of the active Tab
+ *
+ * @param {number} [$ui-tab-font-size-focus-over=$tab-font-size-focus-over]
+ * The font-size of focused hovered Tabs
+ *
+ * @param {number} [$ui-tab-font-size-focus-active=$tab-font-size-focus-active]
+ * The font-size of the active Tab when focused
  *
  * @param {number} [$ui-tab-font-size-disabled=$tab-font-size-disabled]
  * The font-size of disabled Tabs
@@ -614,11 +659,20 @@
  * @param {string} [$ui-tab-font-weight=$tab-font-weight]
  * The font-weight of Tabs
  *
+ * @param {string} [$ui-tab-font-weight-focus=$tab-font-weight-focus]
+ * The font-weight of focused Tabs
+ *
  * @param {string} [$ui-tab-font-weight-over=$tab-font-weight-over]
  * The font-weight of hovered Tabs
  *
  * @param {string} [$ui-tab-font-weight-active=$tab-font-weight-active]
  * The font-weight of the active Tab
+ *
+ * @param {string} [$ui-tab-font-weight-focus-over=$tab-font-weight-focus-over]
+ * The font-weight of focused hovered Tabs
+ *
+ * @param {string} [$ui-tab-font-weight-focus-active=$tab-font-weight-focus-active]
+ * The font-weight of the active Tab when focused
  *
  * @param {string} [$ui-tab-font-weight-disabled=$tab-font-weight-disabled]
  * The font-weight of disabled Tabs
@@ -626,11 +680,20 @@
  * @param {string} [$ui-tab-font-family=$tab-font-family]
  * The font-family of Tabs
  *
+ * @param {string} [$ui-tab-font-family-focus=$tab-font-family-focus]
+ * The font-family of focused Tabs
+ *
  * @param {string} [$ui-tab-font-family-over=$tab-font-family-over]
  * The font-family of hovered Tabs
  *
  * @param {string} [$ui-tab-font-family-active=$tab-font-family-active]
  * The font-family of the active Tab
+ *
+ * @param {string} [$ui-tab-font-family-focus-over=$tab-font-family-focus-over]
+ * The font-family of focused hovered Tabs
+ *
+ * @param {string} [$ui-tab-font-family-focus-active=$tab-font-family-focus-active]
+ * The font-family of the active Tab when focused
  *
  * @param {string} [$ui-tab-font-family-disabled=$tab-font-family-disabled]
  * The font-family of disabled Tabs
@@ -641,11 +704,20 @@
  * @param {color} [$ui-tab-color=$tab-color]
  * The text color of Tabs
  *
+ * @param {color} [$ui-tab-color-focus=$tab-color-focus]
+ * The text color of focused Tabs
+ *
  * @param {color} [$ui-tab-color-over=$tab-color-over]
  * The text color of hovered Tabs
  *
  * @param {color} [$ui-tab-color-active=$tab-color-active]
  * The text color of the active Tab
+ *
+ * @param {color} [$ui-tab-color-focus-over=$tab-color-focus-over]
+ * The text color of focused hovered Tabs
+ *
+ * @param {color} [$ui-tab-color-focus-active=$tab-color-focus-active]
+ * The text color of the active Tab when focused
  *
  * @param {color} [$ui-tab-color-disabled=$tab-color-disabled]
  * The text color of disabled Tabs
@@ -653,6 +725,11 @@
  * @param {string/list} [$ui-tab-background-gradient=$tab-background-gradient]
  * The background-gradient for Tabs. Can be either the name of a predefined gradient
  * or a list of color stops. Used as the `$type` parameter for 
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string/list} [$ui-tab-background-gradient-focus=$tab-background-gradient-focus]
+ * The background-gradient for focused Tabs. Can be either the name of a predefined gradient
+ * or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  *
  * @param {string/list} [$ui-tab-background-gradient-over=$tab-background-gradient-over]
@@ -665,6 +742,16 @@
  * or a list of color stops. Used as the `$type` parameter for 
  * {@link Global_CSS#background-gradient}.
  *
+ * @param {string/list} [$ui-tab-background-gradient-focus-over=$tab-background-gradient-focus-over]
+ * The background-gradient for focused hovered Tabs. Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {string/list} [$ui-tab-background-gradient-focus-active=$tab-background-gradient-focus-active]
+ * The background-gradient for the active Tab when focused. Can be either the name of a
+ * predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
  * @param {string/list} [$ui-tab-background-gradient-disabled=$tab-background-gradient-disabled]
  * The background-gradient for disabled Tabs. Can be either the name of a predefined gradient
  * or a list of color stops. Used as the `$type` parameter for 
@@ -673,8 +760,80 @@
  * @param {number} [$ui-tab-inner-border-width=$tab-inner-border-width]
  * The inner border-width of Tabs
  *
+ * @param {number} [$ui-tab-inner-border-width-focus=$tab-inner-border-width-focus]
+ * The inner border-width of focused Tabs
+ *
+ * @param {number} [$ui-tab-inner-border-width-over=$tab-inner-border-width-over]
+ * The inner border-width of hovered Tabs
+ *
+ * @param {number} [$ui-tab-inner-border-width-active=$tab-inner-border-width-active]
+ * The inner border-width of active Tabs
+ *
+ * @param {number} [$ui-tab-inner-border-width-focus-over=$tab-inner-border-width-focus-over]
+ * The inner border-width of focused hovered Tabs
+ *
+ * @param {number} [$ui-tab-inner-border-width-focus-active=$tab-inner-border-width-focus-active]
+ * The inner border-width of active Tabs when focused
+ *
+ * @param {number} [$ui-tab-inner-border-width-disabled=$tab-inner-border-width-disabled]
+ * The inner border-width of disabled Tabs
+ *
  * @param {color} [$ui-tab-inner-border-color=$tab-inner-border-color]
  * The inner border-color of Tabs
+ *
+ * @param {color} [$ui-tab-inner-border-color-focus=$tab-inner-border-color-focus]
+ * The inner border-color of focused Tabs
+ *
+ * @param {color} [$ui-tab-inner-border-color-over=$tab-inner-border-color-over]
+ * The inner border-color of hovered Tabs
+ *
+ * @param {color} [$ui-tab-inner-border-color-active=$tab-inner-border-color-active]
+ * The inner border-color of active Tabs
+ *
+ * @param {color} [$ui-tab-inner-border-color-focus-over=$tab-inner-border-color-focus-over]
+ * The inner border-color of focused hovered Tabs
+ *
+ * @param {color} [$ui-tab-inner-border-color-focus-active=$tab-inner-border-color-focus-active]
+ * The inner border-color of active Tabs when focused
+ *
+ * @param {color} [$ui-tab-inner-border-color-disabled=$tab-inner-border-color-disabled]
+ * The inner border-color of disabled Tabs
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse=$tab-inner-border-collapse]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-focus=$tab-inner-border-collapse-focus]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-over=$tab-inner-border-collapse-over]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is hovered
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-active=$tab-inner-border-collapse-active]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is active
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-focus-over=$tab-inner-border-collapse-focus-over]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused and hovered
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-focus-active=$tab-inner-border-collapse-focus-active]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is focused and active
+ *
+ * @param {boolean} [$ui-tab-inner-border-collapse-disabled=$tab-inner-border-collapse-disabled]
+ * `true` to suppress the inner border of the tab on the side adjacent to the tab strip
+ * when the tab is disabled
+ *
+ * @param {number} [$ui-tab-body-outline-width-focus=$tab-body-outline-width-focus]
+ * The body outline width of focused Tabs
+ *
+ * @param {string} [$ui-tab-body-outline-style-focus=$tab-body-outline-style-focus]
+ * The body outline-style of focused Tabs
+ *
+ * @param {color} [$ui-tab-body-outline-color-focus=$tab-body-outline-color-focus]
+ * The body outline color of focused Tabs
  *
  * @param {number} [$ui-tab-icon-width=$tab-icon-width]
  * The width of the Tab close icon
@@ -691,11 +850,20 @@
  * @param {color} [$ui-tab-glyph-color=$tab-glyph-color]
  * The color of Tab glyph icons
  *
+ * @param {color} [$ui-tab-glyph-color-focus=$tab-glyph-color-focus]
+ * The color of a Tab glyph icon when the Tab is focused
+ *
  * @param {color} [$ui-tab-glyph-color-over=$tab-glyph-color-over]
  * The color of a Tab glyph icon when the Tab is hovered
  *
  * @param {color} [$ui-tab-glyph-color-active=$tab-glyph-color-active]
  * The color of a Tab glyph icon when the Tab is active
+ *
+ * @param {color} [$ui-tab-glyph-color-focus-over=$tab-glyph-color-focus-over]
+ * The color of a Tab glyph icon when the Tab is focused and hovered
+ *
+ * @param {color} [$ui-tab-glyph-color-focus-active=$tab-glyph-color-focus-active]
+ * The color of a Tab glyph icon when the Tab is focused and active
  *
  * @param {color} [$ui-tab-glyph-color-disabled=$tab-glyph-color-disabled]
  * The color of a Tab glyph icon when the Tab is disabled
@@ -785,55 +953,114 @@
 @mixin extjs-tab-panel-ui(
     $ui,
     
-    $ui-tab-background-color: $tab-base-color,
-    $ui-tab-background-color-over: $tab-base-color-over,
-    $ui-tab-background-color-active: $tab-base-color-active,
-    $ui-tab-background-color-disabled: $tab-base-color-disabled,
+    $ui-tab-background-color: null,
+    $ui-tab-background-color-focus: null,
+    $ui-tab-background-color-over: null,
+    $ui-tab-background-color-active: null,
+    $ui-tab-background-color-focus-over: null,
+    $ui-tab-background-color-focus-active: null,
+    $ui-tab-background-color-disabled: null,
+
     $ui-tab-border-radius: $tab-border-radius,
     $ui-tab-border-width: $tab-border-width,
     $ui-tab-margin: $tab-margin,
     $ui-tab-padding: $tab-padding,
     $ui-tab-text-padding: $tab-text-padding,
-    $ui-tab-border-color: $tab-border-color,
-    $ui-tab-border-color-over: $tab-border-color-over,
-    $ui-tab-border-color-active: $tab-border-color-active,
-    $ui-tab-border-color-disabled: $tab-border-color-disabled,
+
+    $ui-tab-border-color: null,
+    $ui-tab-border-color-focus: null,
+    $ui-tab-border-color-over: null,
+    $ui-tab-border-color-active: null,
+    $ui-tab-border-color-focus-over: null,
+    $ui-tab-border-color-focus-active: null,
+    $ui-tab-border-color-disabled: null,
+
     $ui-tab-cursor: $tab-cursor,
     $ui-tab-cursor-disabled: $tab-cursor-disabled,
-    $ui-tab-font-size: $tab-font-size,
-    $ui-tab-font-size-over: $tab-font-size-over,
-    $ui-tab-font-size-active: $tab-font-size-active,
-    $ui-tab-font-size-disabled: $tab-font-size-disabled,
-    $ui-tab-font-weight: $tab-font-weight,
-    $ui-tab-font-weight-over: $tab-font-weight-over,
-    $ui-tab-font-weight-active: $tab-font-weight-active,
-    $ui-tab-font-weight-disabled: $tab-font-weight-disabled,
-    $ui-tab-font-family: $tab-font-family,
-    $ui-tab-font-family-over: $tab-font-family-over,
-    $ui-tab-font-family-active: $tab-font-family-active,
-    $ui-tab-font-family-disabled: $tab-font-family-disabled,
-    $ui-tab-line-height: $tab-line-height,
-    $ui-tab-color: $tab-color,
-    $ui-tab-color-over: $tab-color-over,
-    $ui-tab-color-active: $tab-color-active,
-    $ui-tab-color-disabled: $tab-color-disabled,
-    $ui-tab-background-gradient: $tab-background-gradient,
-    $ui-tab-background-gradient-over: $tab-background-gradient-over,
-    $ui-tab-background-gradient-active: $tab-background-gradient-active,
-    $ui-tab-background-gradient-disabled: $tab-background-gradient-disabled,
 
-    $ui-tab-inner-border-width: $tab-inner-border-width,
-    $ui-tab-inner-border-color: $tab-inner-border-color,
+    $ui-tab-font-size: null,
+    $ui-tab-font-size-focus: null,
+    $ui-tab-font-size-over: null,
+    $ui-tab-font-size-active: null,
+    $ui-tab-font-size-focus-over: null,
+    $ui-tab-font-size-focus-active: null,
+    $ui-tab-font-size-disabled: null,
+
+    $ui-tab-font-weight: null,
+    $ui-tab-font-weight-focus: null,
+    $ui-tab-font-weight-over: null,
+    $ui-tab-font-weight-active: null,
+    $ui-tab-font-weight-focus-over: null,
+    $ui-tab-font-weight-focus-active: null,
+    $ui-tab-font-weight-disabled: null,
+
+    $ui-tab-font-family: null,
+    $ui-tab-font-family-focus: null,
+    $ui-tab-font-family-over: null,
+    $ui-tab-font-family-active: null,
+    $ui-tab-font-family-focus-over: null,
+    $ui-tab-font-family-focus-active: null,
+    $ui-tab-font-family-disabled: null,
+
+    $ui-tab-line-height: $tab-line-height,
+
+    $ui-tab-color: null,
+    $ui-tab-color-focus: null,
+    $ui-tab-color-over: null,
+    $ui-tab-color-active: null,
+    $ui-tab-color-focus-over: null,
+    $ui-tab-color-focus-active: null,
+    $ui-tab-color-disabled: null,
+
+    $ui-tab-background-gradient: null,
+    $ui-tab-background-gradient-focus: null,
+    $ui-tab-background-gradient-over: null,
+    $ui-tab-background-gradient-active: null,
+    $ui-tab-background-gradient-focus-over: null,
+    $ui-tab-background-gradient-focus-active: null,
+    $ui-tab-background-gradient-disabled: null,
+
+    $ui-tab-inner-border-width: null,
+    $ui-tab-inner-border-width-focus: null,
+    $ui-tab-inner-border-width-over: null,
+    $ui-tab-inner-border-width-active: null,
+    $ui-tab-inner-border-width-focus-over: null,
+    $ui-tab-inner-border-width-focus-active: null,
+    $ui-tab-inner-border-width-disabled: null,
+
+    $ui-tab-inner-border-color: null,
+    $ui-tab-inner-border-color-focus: null,
+    $ui-tab-inner-border-color-over: null,
+    $ui-tab-inner-border-color-active: null,
+    $ui-tab-inner-border-color-focus-over: null,
+    $ui-tab-inner-border-color-focus-active: null,
+    $ui-tab-inner-border-color-disabled: null,
+
+    $ui-tab-inner-border-collapse: null,
+    $ui-tab-inner-border-collapse-focus: null,
+    $ui-tab-inner-border-collapse-over: null,
+    $ui-tab-inner-border-collapse-active: null,
+    $ui-tab-inner-border-collapse-focus-over: null,
+    $ui-tab-inner-border-collapse-focus-active: null,
+    $ui-tab-inner-border-collapse-disabled: null,
+
+    $ui-tab-body-outline-width-focus: $tab-body-outline-width-focus,
+    $ui-tab-body-outline-style-focus: $tab-body-outline-style-focus,
+    $ui-tab-body-outline-color-focus: $tab-body-outline-color-focus,
 
     $ui-tab-icon-width: $tab-icon-width,
     $ui-tab-icon-height: $tab-icon-height,
     $ui-tab-icon-spacing: $tab-icon-spacing,
     $ui-tab-icon-background-position: $tab-icon-background-position,
 
-    $ui-tab-glyph-color: $tab-glyph-color,
-    $ui-tab-glyph-color-over: $tab-glyph-color-over,
-    $ui-tab-glyph-color-active: $tab-glyph-color-active,
-    $ui-tab-glyph-color-disabled: $tab-glyph-color-disabled,
+    $ui-tab-glyph-color: null,
+    $ui-tab-glyph-color-focus: null,
+    $ui-tab-glyph-color-over: null,
+    $ui-tab-glyph-color-active: null,
+    $ui-tab-glyph-color-focus-over: null,
+    $ui-tab-glyph-color-focus-active: null,
+    $ui-tab-glyph-color-disabled: null,
+
     $ui-tab-glyph-opacity: $tab-glyph-opacity,
     $ui-tab-glyph-opacity-disabled: $tab-glyph-opacity-disabled,
 
@@ -871,44 +1098,99 @@
             $ui: $ui,
             
             $ui-background-color: $ui-tab-background-color,
+            $ui-background-color-focus: $ui-tab-background-color-focus,
             $ui-background-color-over: $ui-tab-background-color-over,
             $ui-background-color-active: $ui-tab-background-color-active,
+            $ui-background-color-focus-over: $ui-tab-background-color-focus-over,
+            $ui-background-color-focus-active: $ui-tab-background-color-focus-active,
             $ui-background-color-disabled: $ui-tab-background-color-disabled,
+
             $ui-border-radius: $ui-tab-border-radius,
             $ui-border-width: $ui-tab-border-width,
             $ui-margin: $ui-tab-margin,
             $ui-padding: $ui-tab-padding,
             $ui-text-padding: $ui-tab-text-padding,
+
             $ui-border-color: $ui-tab-border-color,
+            $ui-border-color-focus: $ui-tab-border-color-focus,
             $ui-border-color-over: $ui-tab-border-color-over,
             $ui-border-color-active: $ui-tab-border-color-active,
+            $ui-border-color-focus-over: $ui-tab-border-color-focus-over,
+            $ui-border-color-focus-active: $ui-tab-border-color-focus-active,
             $ui-border-color-disabled: $ui-tab-border-color-disabled,
+
             $ui-cursor: $ui-tab-cursor,
             $ui-cursor-disabled: $ui-tab-cursor-disabled,
+
             $ui-font-size: $ui-tab-font-size,
+            $ui-font-size-focus: $ui-tab-font-size-focus,
             $ui-font-size-over: $ui-tab-font-size-over,
             $ui-font-size-active: $ui-tab-font-size-active,
+            $ui-font-size-focus-over: $ui-tab-font-size-focus-over,
+            $ui-font-size-focus-active: $ui-tab-font-size-focus-active,
             $ui-font-size-disabled: $ui-tab-font-size-disabled,
+
             $ui-font-weight: $ui-tab-font-weight,
+            $ui-font-weight-focus: $ui-tab-font-weight-focus,
             $ui-font-weight-over: $ui-tab-font-weight-over,
             $ui-font-weight-active: $ui-tab-font-weight-active,
+            $ui-font-weight-focus-over: $ui-tab-font-weight-focus-over,
+            $ui-font-weight-focus-active: $ui-tab-font-weight-focus-active,
             $ui-font-weight-disabled: $ui-tab-font-weight-disabled,
+
             $ui-font-family: $ui-tab-font-family,
+            $ui-font-family-focus: $ui-tab-font-family-focus,
             $ui-font-family-over: $ui-tab-font-family-over,
             $ui-font-family-active: $ui-tab-font-family-active,
+            $ui-font-family-focus-over: $ui-tab-font-family-focus-over,
+            $ui-font-family-focus-active: $ui-tab-font-family-focus-active,
             $ui-font-family-disabled: $ui-tab-font-family-disabled,
+
             $ui-line-height: $ui-tab-line-height,
+
             $ui-color: $ui-tab-color,
+            $ui-color-focus: $ui-tab-color-focus,
             $ui-color-over: $ui-tab-color-over,
             $ui-color-active: $ui-tab-color-active,
+            $ui-color-focus-over: $ui-tab-color-focus-over,
+            $ui-color-focus-active: $ui-tab-color-focus-active,
             $ui-color-disabled: $ui-tab-color-disabled,
+
             $ui-background-gradient: $ui-tab-background-gradient,
+            $ui-background-gradient-focus: $ui-tab-background-gradient-focus,
             $ui-background-gradient-over: $ui-tab-background-gradient-over,
             $ui-background-gradient-active: $ui-tab-background-gradient-active,
+            $ui-background-gradient-focus-over: $ui-tab-background-gradient-focus-over,
+            $ui-background-gradient-focus-active: $ui-tab-background-gradient-focus-active,
             $ui-background-gradient-disabled: $ui-tab-background-gradient-disabled,
 
             $ui-inner-border-width: $ui-tab-inner-border-width,
+            $ui-inner-border-width-focus: $ui-tab-inner-border-width-focus,
+            $ui-inner-border-width-over: $ui-tab-inner-border-width-over,
+            $ui-inner-border-width-active: $ui-tab-inner-border-width-active,
+            $ui-inner-border-width-focus-over: $ui-tab-inner-border-width-focus-over,
+            $ui-inner-border-width-focus-active: $ui-tab-inner-border-width-focus-active,
+            $ui-inner-border-width-disabled: $ui-tab-inner-border-width-disabled,
+
             $ui-inner-border-color: $ui-tab-inner-border-color,
+            $ui-inner-border-color-focus: $ui-tab-inner-border-color-focus,
+            $ui-inner-border-color-over: $ui-tab-inner-border-color-over,
+            $ui-inner-border-color-active: $ui-tab-inner-border-color-active,
+            $ui-inner-border-color-focus-over: $ui-tab-inner-border-color-focus-over,
+            $ui-inner-border-color-focus-active: $ui-tab-inner-border-color-focus-active,
+            $ui-inner-border-color-disabled: $ui-tab-inner-border-color-disabled,
+
+            $ui-inner-border-collapse: $ui-tab-inner-border-collapse,
+            $ui-inner-border-collapse-focus: $ui-tab-inner-border-collapse-focus,
+            $ui-inner-border-collapse-over: $ui-tab-inner-border-collapse-over,
+            $ui-inner-border-collapse-active: $ui-tab-inner-border-collapse-active,
+            $ui-inner-border-collapse-focus-over: $ui-tab-inner-border-collapse-focus-over,
+            $ui-inner-border-collapse-focus-active: $ui-tab-inner-border-collapse-focus-active,
+            $ui-inner-border-collapse-disabled: $ui-tab-inner-border-collapse-disabled,
+
+            $ui-body-outline-width-focus: $ui-tab-body-outline-width-focus,
+            $ui-body-outline-style-focus: $ui-tab-body-outline-style-focus,
+            $ui-body-outline-color-focus: $ui-tab-body-outline-color-focus,
 
             $ui-icon-width: $ui-tab-icon-width,
             $ui-icon-height: $ui-tab-icon-height,
@@ -916,9 +1198,13 @@
             $ui-icon-background-position: $ui-tab-icon-background-position,
 
             $ui-glyph-color: $ui-tab-glyph-color,
+            $ui-glyph-color-focus: $ui-tab-glyph-color-focus,
             $ui-glyph-color-over: $ui-tab-glyph-color-over,
             $ui-glyph-color-active: $ui-tab-glyph-color-active,
+            $ui-glyph-color-focus-over: $ui-tab-glyph-color-focus-over,
+            $ui-glyph-color-focus-active: $ui-tab-glyph-color-focus-active,
             $ui-glyph-color-disabled: $ui-tab-glyph-color-disabled,
+
             $ui-glyph-opacity: $ui-tab-glyph-opacity,
             $ui-glyph-opacity-disabled: $ui-tab-glyph-opacity-disabled,
 
@@ -930,9 +1216,7 @@
             $ui-closable-icon-height: $ui-tab-closable-icon-height,
             $ui-closable-icon-top: $ui-tab-closable-icon-top,
             $ui-closable-icon-right: $ui-tab-closable-icon-right,
-            $ui-closable-icon-spacing: $ui-tab-closable-icon-spacing,
-
-            $ui-border-bottom-color: $ui-strip-border-color
+            $ui-closable-icon-spacing: $ui-tab-closable-icon-spacing
         );
     }
 

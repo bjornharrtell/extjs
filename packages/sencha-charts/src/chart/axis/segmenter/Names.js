@@ -6,7 +6,7 @@
  * The `preferredStep` always return `{ unit: 1, step: 1 }` to indicate "show every item".
  * 
  */
-Ext.define("Ext.chart.axis.segmenter.Names", {
+Ext.define('Ext.chart.axis.segmenter.Names', {
     extend: 'Ext.chart.axis.segmenter.Segmenter',
     alias: 'segmenter.names',
 

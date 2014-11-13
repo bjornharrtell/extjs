@@ -89,7 +89,8 @@ Ext.define('Ext.Component', {
         'Ext.util.ElementContainer',
         'Ext.util.Renderable',
         'Ext.state.Stateful',
-        'Ext.util.Floating'
+        'Ext.util.Floating',
+        'Ext.util.Focusable'
     ],
 
     uses: [
@@ -265,7 +266,7 @@ Ext.define('Ext.Component', {
          *
          * @since 3.4.0
          */
-        data: null
+        data: null,
 
         /**
          * @cfg {Boolean} modelValidation
@@ -336,6 +337,38 @@ Ext.define('Ext.Component', {
          * Notice that "validation" is a pseudo-association defined for all entities. See
          * `{@link Ext.data.Model#getValidation}` for further details.
          */
+
+        /**
+         * @cfg {Number} maxHeight
+         * The maximum value in pixels which this Component will set its height to.
+         *
+         * **Warning:** This will override any size management applied by layout managers.
+         */
+        maxHeight: null,
+
+        /**
+         * @cfg {Number} maxWidth
+         * The maximum value in pixels which this Component will set its width to.
+         *
+         * **Warning:** This will override any size management applied by layout managers.
+         */
+        maxWidth: null,
+
+        /**
+         * @cfg {Number} minHeight
+         * The minimum value in pixels which this Component will set its height to.
+         *
+         * **Warning:** This will override any size management applied by layout managers.
+         */
+        minHeight: null,
+
+        /**
+         * @cfg {Number} minWidth
+         * The minimum value in pixels which this Component will set its width to.
+         *
+         * **Warning:** This will override any size management applied by layout managers.
+         */
+        minWidth: null
     },
 
     defaultBindProperty: 'html',
@@ -481,6 +514,7 @@ Ext.define('Ext.Component', {
      * CSS Class to be added to a components root level element to give distinction to it via styling.
      */
 
+    // @cmd-auto-dependency { aliasPrefix : "layout." }
     /**
      * @cfg {String/Object} componentLayout
      * The sizing and positioning of a Component's internal Elements is the responsibility of the Component's layout
@@ -493,7 +527,6 @@ Ext.define('Ext.Component', {
      * class which simply sizes the Component's encapsulating element to the height and width specified in the
      * {@link #setSize} method.
      * 
-     * @cmd-auto-dependency { aliasPrefix : "layout." }
      */
     componentLayout: 'autocomponent',
 
@@ -616,8 +649,8 @@ Ext.define('Ext.Component', {
      * a ZIndexManager by examining the ownerCt chain.
      *
      * When configured as floating, Components acquire, at render time, a {@link Ext.ZIndexManager ZIndexManager} which
-     * manages a stack of related floating Components. The ZIndexManager brings a single floating Component to the top
-     * of its stack when the Component's {@link #toFront} method is called.
+     * manages a stack of related floating Components. The ZIndexManager sorts its stack according to
+     * an incrementing access counter and the {@link Ext.util.Floating#alwaysOnTop alwaysOnTop} config when the Component's {@link #toFront} method is called.
      *
      * The ZIndexManager is found by traversing up the {@link #ownerCt} chain to find an ancestor which itself is
      * floating. This is so that descendant floating Components of floating _Containers_ (Such as a ComboBox dropdown
@@ -655,8 +688,9 @@ Ext.define('Ext.Component', {
      */
 
     /**
-     * @cfg {Number} height
-     * The height of this component in pixels.
+     * @cfg {Number|String} height
+     * The height of this component. A numeric value will be interpreted as the number of
+     * pixels; a string value will be treated as a CSS value with units.
      */
 
     /**
@@ -798,34 +832,6 @@ Ext.define('Ext.Component', {
     maskElement: null,
 
     /**
-     * @cfg {Number} maxHeight
-     * The maximum value in pixels which this Component will set its height to.
-     *
-     * **Warning:** This will override any size management applied by layout managers.
-     */
-
-    /**
-     * @cfg {Number} maxWidth
-     * The maximum value in pixels which this Component will set its width to.
-     *
-     * **Warning:** This will override any size management applied by layout managers.
-     */
-
-    /**
-     * @cfg {Number} minHeight
-     * The minimum value in pixels which this Component will set its height to.
-     *
-     * **Warning:** This will override any size management applied by layout managers.
-     */
-
-    /**
-     * @cfg {Number} minWidth
-     * The minimum value in pixels which this Component will set its width to.
-     *
-     * **Warning:** This will override any size management applied by layout managers.
-     */
-
-    /**
      * @cfg {String} [overCls='']
      * An optional extra CSS class that will be added to this component's Element when the mouse moves over the Element,
      * and removed when the mouse moves out. This can be useful for adding customized 'active' or 'hover' styles to the
@@ -876,7 +882,7 @@ Ext.define('Ext.Component', {
      *
      * By using config object with ptype:
      *
-     *     plugins: [{ptype: 'cellediting', clicksToEdit: 1}],
+     *     plugins: {ptype: 'cellediting', clicksToEdit: 1},
      *
      * Or with just a ptype:
      *
@@ -1213,8 +1219,9 @@ Ext.define('Ext.Component', {
     weight: null,
 
     /**
-     * @cfg {Number} width
-     * The width of this component in pixels.
+     * @cfg {Number|String} width
+     * The width of this component. A numeric value will be interpreted as the number of
+     * pixels; a string value will be treated as a CSS value with units.
      */
 
     /**
@@ -1391,7 +1398,7 @@ Ext.define('Ext.Component', {
      * `true` in this class to identify an object as an instantiated Component, or subclass thereof.
      */
     isComponent: true,
-
+    
     /**
      * @property {Boolean} [_isLayoutRoot=false]
      * Setting this property to `true` causes the {@link #isLayoutRoot} method to return
@@ -1455,49 +1462,6 @@ Ext.define('Ext.Component', {
     scrollerSelector: '.' + Ext.baseCSSPrefix + 'touch-scroller',
 
     validIdRe: Ext.validIdRe,
-
-    /**
-     * @property {Ext.ZIndexManager} zIndexManager
-     * Only present for {@link #floating} Components after they have been rendered.
-     *
-     * A reference to the ZIndexManager which is managing this Component's z-index.
-     *
-     * The {@link Ext.ZIndexManager ZIndexManager} maintains a stack of floating Component z-indices, and also provides
-     * a single modal mask which is insert just beneath the topmost visible modal floating Component.
-     *
-     * Floating Components may be {@link #toFront brought to the front} or {@link #toBack sent to the back} of the
-     * z-index stack.
-     *
-     * This defaults to the global {@link Ext.WindowManager ZIndexManager} for floating Components that are
-     * programatically {@link Ext.Component#method-render rendered}.
-     *
-     * For {@link #floating} Components which are added to a Container, the ZIndexManager is acquired from the first
-     * ancestor Container found which is floating. If no floating ancestor is found, the global {@link Ext.WindowManager ZIndexManager} is
-     * used.
-     *
-     * See {@link #floating} and {@link #zIndexParent}
-     * @readonly
-     */
-
-    /**
-     * @property {Ext.Container} zIndexParent
-     * Only present for {@link #floating} Components which were inserted as child items of Containers, and which have a floating
-     * Container in their containment ancestry.
-     *
-     * For {@link #floating} Components which are child items of a Container, the zIndexParent will be a floating
-     * ancestor Container which is responsible for the base z-index value of all its floating descendants. It provides
-     * a {@link Ext.ZIndexManager ZIndexManager} which provides z-indexing services for all its descendant floating
-     * Components.
-     *
-     * Floating Components that are programatically {@link Ext.Component#method-render rendered} will not have a `zIndexParent`
-     * property.
-     *
-     * For example, the dropdown {@link Ext.view.BoundList BoundList} of a ComboBox which is in a Window will have the
-     * Window as its `zIndexParent`, and will always show above that Window, wherever the Window is placed in the z-index stack.
-     *
-     * See {@link #floating} and {@link #zIndexManager}
-     * @readonly
-     */
 
     // ***********************************************************************************
     // End Properties
@@ -1674,20 +1638,6 @@ Ext.define('Ext.Component', {
      * @param {Ext.Component} this
      * @param {Number} x The new x position.
      * @param {Number} y The new y position.
-     */
-
-    /**
-     * @event focus
-     * Fires when this Component receives focus.
-     * @param {Ext.Component} this
-     * @param {Ext.event.Event} The focus event.
-     */
-
-    /**
-     * @event blur
-     * Fires when this Component loses focus.
-     * @param {Ext.Component} this
-     * @param {Ext.event.Event} The blur event.
      */
 
     // ***********************************************************************************
@@ -2092,7 +2042,8 @@ Ext.define('Ext.Component', {
      * @protected
      */
     afterHide: function(cb, scope) {
-        var me = this;
+        var me = this,
+            container = me.focusableContainer;
 
         me.hiddenByLayout = null;
 
@@ -2104,6 +2055,10 @@ Ext.define('Ext.Component', {
         Ext.callback(cb, scope || me);
         me.fireEvent('hide', me);
         me.fireHierarchyEvent('hide');
+        
+        if (container) {
+            container.onFocusableChildHide(me);
+        }
     },
 
     /**
@@ -2300,13 +2255,6 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Template method to do any pre-blur processing.
-     * @protected
-     * @param {Ext.event.Event} e The event object
-     */
-    beforeBlur: Ext.emptyFn,
-
-    /**
      * Occurs before `componentLayout` is run. Returning `false` from this method will prevent the `componentLayout` from
      * being executed.
      *
@@ -2328,13 +2276,6 @@ Ext.define('Ext.Component', {
      * @protected
      */
     beforeDestroy : Ext.emptyFn,
-
-    /**
-     * Template method to do any pre-focus processing.
-     * @protected
-     * @param {Ext.event.Event} e The event object
-     */
-    beforeFocus: Ext.emptyFn,
 
     /**
      * Occurs before componentLayout is run. In previous releases, this method could
@@ -2441,17 +2382,6 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Cancel any deferred focus on this component
-     * @protected
-     */
-    cancelFocus: function() {
-        var task = this.focusTask;
-        if (task) {
-            task.cancel();
-        }
-    },
-
-    /**
      * Clone the current component using the original config values passed into this instance by default.
      * @param {Object} overrides A new config containing any properties to override in the cloned version.
      * An id property can be passed on this object, otherwise one will be generated to avoid duplicates.
@@ -2472,20 +2402,34 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Destroys the Component.
+     * Destroys the Component. This method must not be overridden.
+     * To add extra functionality to destruction time in a subclass, implement the template method {@link #beforeDestroy{
+     * or {@link #onDestroy}. And do not forget to `callParent()` in your implementation.
      * @since 1.1.0
+     * @private
      */
     destroy: function() {
         var me = this,
             selectors = me.renderSelectors,
             viewModel = me.getConfig('viewModel', true),
             session = me.getConfig('session', true),
-            selector,
+            selector, ownerCt,
             el;
 
         if (!me.isDestroyed) {
             if (!me.hasListeners.beforedestroy || me.fireEvent('beforedestroy', me) !== false) {
                 me.destroying = true;
+
+                ownerCt = me.floatParent || me.ownerCt;
+                if (me.floating) {
+                    delete me.floatParent;
+                    // A zIndexManager is stamped into a *floating* Component when it is added to a Container.
+                    // If it has no zIndexManager at render time, it is assigned to the global Ext.WindowManager instance.
+                    if (me.zIndexManager) {
+                        me.zIndexManager.unregister(me);
+                        me.zIndexManager = null;
+                    }
+                }
 
                 me.removeBindings();
 
@@ -2498,19 +2442,14 @@ Ext.define('Ext.Component', {
                 }
 
                 if (session && session.isSession) {
-                    session.destroy();
+                    if (session.getAutoDestroy()) {
+                        session.destroy();
+                    }
                     me.session = null;
                 }
 
-                if (me.floating) {
-                    delete me.floatParent;
-                    // A zIndexManager is stamped into a *floating* Component when it is added to a Container.
-                    // If it has no zIndexManager at render time, it is assigned to the global Ext.WindowManager instance.
-                    if (me.zIndexManager) {
-                        me.zIndexManager.unregister(me);
-                    }
-                } else if (me.ownerCt && me.ownerCt.remove) {
-                    me.ownerCt.remove(me, false);
+                if (ownerCt && ownerCt.remove) {
+                    ownerCt.remove(me, false);
                 }
 
                 me.stopAnimation();
@@ -2548,10 +2487,7 @@ Ext.define('Ext.Component', {
                         }
                     }
 
-                    delete me.data;
-                    delete me.el;
-                    delete me.frameBody;
-                    delete me.rendered;
+                    me.data = me.el = me.frameBody = me.rendered = null;
                 }
 
                 me.destroying = false;
@@ -2566,7 +2502,8 @@ Ext.define('Ext.Component', {
      * @since 1.1.0
      */
     disable: function(silent) {
-        var me = this;
+        var me = this,
+            container = me.focusableContainer;
 
         me.enableOnRender = false;
         me.addCls(me.disabledCls);
@@ -2582,6 +2519,10 @@ Ext.define('Ext.Component', {
             delete me.resetDisable;
             me.fireEvent('disable', me);
         }
+        
+        if (container) {
+            container.onFocusableChildDisable(me);
+        }
 
         return me;
     },
@@ -2592,7 +2533,8 @@ Ext.define('Ext.Component', {
      * @since 1.1.0
      */
     enable: function(silent) {
-        var me = this;
+        var me = this,
+            container = me.focusableContainer;
 
         me.disableOnRender = false;
         me.removeCls(me.disabledCls);
@@ -2607,6 +2549,10 @@ Ext.define('Ext.Component', {
 
         if (silent !== true) {
             me.fireEvent('enable', me);
+        }
+        
+        if (container) {
+            container.onFocusableChildEnable(me);
         }
 
         return me;
@@ -2663,93 +2609,7 @@ Ext.define('Ext.Component', {
             }
         }
     },
-
-    /**
-     * Try to focus this component.
-     * @param {Mixed} [selectText] If applicable, `true` to also select all the text in this component, or an array consisting of start and end (defaults to start) position of selection.
-     * @param {Boolean/Number} [delay] Delay the focus this number of milliseconds (true for 10 milliseconds).
-     * @param {Function} [callback] Only needed if the `delay` parameter is used. A function to call upon focus.
-     * @param {Function} [scope] Only needed if the `delay` parameter is used. The scope (`this` reference) in which to execute the callback.
-     * @return {Ext.Component} The focused Component. Usually <code>this</code> Component. Some Containers may
-     * delegate focus to a descendant Component ({@link Ext.window.Window Window}s can do this through their
-     * {@link Ext.window.Window#defaultFocus defaultFocus} config option.
-     */
-    focus: function(selectText, delay, callback, scope) {
-        var me = this,
-            focusEl,
-            focusElDom,
-            containerScrollTop;
-
-        if (me.isDestroyed) {
-            return;
-        }
-
-        // If delay is wanted, queue a call to this function.
-        if (delay) {
-            me.getFocusTask().delay(Ext.isNumber(delay) ? delay : 10, me.focus, me, [selectText, false, callback, scope]);
-            return me;
-        }
-
-        // An immediate focus call must cancel any outstanding delayed focus calls.
-        if (me.focusTask) {
-            me.focusTask.cancel();
-        }
-
-        if (me.rendered && !me.isDestroyed && me.isVisible(true) && (focusEl = me.getFocusEl())) {
-
-            // getFocusEl might return a Component if a Container wishes to delegate focus to a descendant.
-            // Window can do this via its defaultFocus configuration which can reference a Button.
-            if (focusEl.isComponent) {
-                return focusEl.focus(selectText, delay);
-            }
-
-            // If it was an Element with a dom property
-            if ((focusElDom = focusEl.dom)) {
-
-                // Not a natural focus holding element, add a tab index to make it programatically focusable.
-                if (focusEl.needsTabIndex()) {
-                    focusElDom.tabIndex = -1;
-                }
-
-                if (me.floating) {
-                    containerScrollTop = me.container.dom.scrollTop;
-                }
-
-                // Focus the element.
-                // The focusEl has a DOM focus listener on it which invokes the Component's onFocus method
-                // to perform Component-specific focus processing
-                focusEl.focus();
-                if (selectText) {
-                    if (Ext.isArray(selectText)) {
-                        if (me.selectText) {
-                            me.selectText.apply(me, selectText);
-                        }
-                    } else {
-                        focusElDom.select();
-                    }
-                }
-
-                // Call the callback when focus is done
-                Ext.callback(callback, scope);
-            }
-
-            // Focusing a floating Component brings it to the front of its stack.
-            // this is performed by its zIndexManager. Pass preventFocus true to avoid recursion.
-            if (me.floating) {
-                // Every component that doesn't have preventFocus set gets a delayed call to focus().
-                // Only bring to front if the current component isn't the manager's topmost component.
-                if (me !== me.zIndexManager.getActive()) {
-                    me.toFront(true);
-                }
-
-                if (containerScrollTop !== undefined) {
-                    me.container.dom.scrollTop = containerScrollTop;
-                }
-            }
-        }
-        return me;
-    },
-
+    
     getAnimateTarget: function(target){
         target = target || this.animateTarget;
         if (target) {
@@ -2902,11 +2762,13 @@ Ext.define('Ext.Component', {
         var i,
             plugins = this.plugins,
             ln = plugins && plugins.length;
+
         for (i = 0; i < ln; i++) {
             if (plugins[i].pluginId === pluginId) {
                 return plugins[i];
             }
         }
+        return null;
     },
             
     /**
@@ -3233,7 +3095,9 @@ Ext.define('Ext.Component', {
             // If this is a hierarchically hidden floating component with a pending show
             // hide() simply cancels the pending show.
             delete me.pendingShow;
-        } if (!(me.rendered && !me.isVisible())) {
+        }
+        
+        if (!(me.rendered && !me.isVisible())) {
             continueHide = (me.fireEvent('beforehide', me) !== false);
             if (me.hierarchicallyHidden || continueHide) {
                 me.hidden = true;
@@ -3287,9 +3151,11 @@ Ext.define('Ext.Component', {
 
         // If plugins have been added by a subclass's initComponent before calling up to here (or any components
         // that don't have a table view), the processed flag will not have been set, and we must process them again.
+        // We could just call getPlugins here however most components don't have them so prevent the extra function call.
         if (me.plugins && !me.plugins.processed) {
             me.plugins = me.constructPlugins();
         }
+        me.pluginsInitialized = true;
 
         // this will properly (ignore or) constrain the configured width/height to their
         // min/max values for consistency.
@@ -3300,6 +3166,10 @@ Ext.define('Ext.Component', {
         if (me.listeners) {
             me.on(me.listeners);
             me.listeners = null; //change the value to remove any on prototype
+        }
+        
+        if (me.focusable) {
+            me.initFocusable();
         }
     },
 
@@ -3325,11 +3195,10 @@ Ext.define('Ext.Component', {
                  }
             }
         }
-
-        // This will add focus/blur listeners to the getFocusEl() element if that is naturally focusable.
-        // If *not* naturally focusable, then the FocusManager must be enabled to get it to listen for focus so that
-        // the FocusManager can track and highlight focus.
-        me.addFocusListener();
+        
+        if (me.focusable) {
+            me.initFocusableEvents();
+        }
     },
 
     /**
@@ -3383,18 +3252,6 @@ Ext.define('Ext.Component', {
      */
     isFloating: function() {
         return this.floating;
-    },
-
-    isFocusable: function() {
-        var me = this,
-            focusEl;
-        if ((me.focusable !== false) && (focusEl = me.getFocusEl()) && me.rendered && !me.destroying && !me.isDestroyed && !me.disabled && me.isVisible(true)) {
-
-            // getFocusEl might return a Component if a Container wishes to delegate focus to a descendant.
-            // Window can do this via its defaultFocus configuration which can reference a Button.
-            // Both Component and Element implement isFocusable, so always ask that.
-            return focusEl.isFocusable(true);
-        }
     },
 
     /**
@@ -3554,6 +3411,46 @@ Ext.define('Ext.Component', {
         return shallow ? (Ext.Array.indexOf(this.xtypes, xtype) !== -1) :
                 !!this.xtypesMap[xtype];
     },
+    
+    /**
+     * Returns masked state for this Component.
+     *
+     * @param {Boolean} [deep=false] True to look up this Component's parent masked state.
+     *
+     * @return {Boolean} True if masked, false otherwise.
+     */
+    isMasked: function(deep) {
+        var me = this;
+        
+        return me.masked || (me.loadMask && me.loadMask.isVisible()) ||
+               (deep && !!me.getInherited().masked);
+    },
+    
+    /**
+     * Set masked state for this Component.
+     *
+     * @param {Boolean} isMasked True if masked, false otherwise.
+     * @private
+     */
+    setMasked: function(isMasked) {
+        var me = this,
+            container = me.focusableContainer;
+        
+        if (isMasked) {
+            me.masked = true;
+            me.getInherited().masked = isMasked;
+        }
+        else {
+            me.masked = false;
+            delete me.getInherited().masked;
+        }
+        
+        if (container) {
+            container.onFocusableChildMasked(me, isMasked);
+        }
+        
+        return me;
+    },
 
     /**
      * Masks this component with a semi-opaque layer and makes the contents unavailable to clicks.
@@ -3565,7 +3462,7 @@ Ext.define('Ext.Component', {
      */
     mask: function (msg, msgCls, elHeight) {
         var box = this.lastBox,
-            // getMaskTarget mayu be overridden in subclasses/
+            // getMaskTarget may be overridden in subclasses/
             // null means that a LoadMask has to be rendered to document.body
             // Element masking falls back to masking the local el
             target = this.getMaskTarget() || this.el;
@@ -3575,6 +3472,8 @@ Ext.define('Ext.Component', {
             elHeight = box.height;
         }
         target.mask(msg, msgCls, elHeight);
+        
+        this.setMasked(true);
     },
 
     /**
@@ -3778,46 +3677,6 @@ Ext.define('Ext.Component', {
         }
     },
 
-    // private
-    onBlur: function(e) {
-        var me = this,
-            focusCls = me.focusCls,
-            focusEl = me.getFocusEl();
-
-        if (me.destroying) {
-            return;
-        }
-
-        me.beforeBlur(e);
-        if (focusCls && focusEl) {
-            focusEl.removeCls(me.removeClsWithUI(focusCls, true));
-        }
-        if (me.validateOnBlur) {
-            me.validate();
-        }
-        me.hasFocus = false;
-        me.fireEvent('blur', me, e);
-        me.postBlur(e);
-    },
-
-    // private
-    onFocus: function(e) {
-        var me = this,
-            focusCls = me.focusCls,
-            focusEl = me.getFocusEl();
-
-        if (!me.disabled) {
-            me.beforeFocus(e);
-            if (focusCls && focusEl) {
-                focusEl.addCls(me.addClsWithUI(focusCls, true));
-            }
-            if (!me.hasFocus) {
-                me.hasFocus = true;
-                me.fireEvent('focus', me, e);
-            }
-        }
-    },
-
     /**
      * Allows addition of behavior to the destroy operation.
      * After calling the superclass's onDestroy, the Component will be destroyed.
@@ -3828,7 +3687,7 @@ Ext.define('Ext.Component', {
     onDestroy: function() {
         var me = this,
             controller = me.controller,
-            b, name;
+            container = me.focusableContainer;
 
         if (me.bind) {
             me.removeBindings();
@@ -3849,7 +3708,14 @@ Ext.define('Ext.Component', {
                 me.resizerComponent
             );
         }
-        delete me.focusTask;
+        
+        if (container) {
+            container.onFocusableChildDestroy(me);
+        }
+        
+        if (me.focusable) {
+            me.destroyFocusable();
+        }
 
         // Destroying the floatingItems ZIndexManager will also destroy descendant floating Components
         Ext.destroy(
@@ -3868,14 +3734,12 @@ Ext.define('Ext.Component', {
      */
     onDisable: function () {
         var me = this,
-            focusCls = me.focusCls,
-            focusEl = me.getFocusEl(),
             dom, nodeName;
-            
-        if (focusCls && focusEl) {
-            focusEl.removeCls(me.removeClsWithUI(focusCls, true));
-        }
         
+        if (me.focusable) {
+            me.disableFocusable();
+        }
+            
         if (me.maskOnDisable) {
             dom = me.el.dom;
             nodeName = dom.nodeName;
@@ -3900,6 +3764,10 @@ Ext.define('Ext.Component', {
     onEnable: function () {
         var me = this,
             dom, nodeName;
+        
+        if (me.focusable) {
+            me.enableFocusable();
+        }
 
         if (me.maskOnDisable) {
             dom = me.el.dom;
@@ -4063,23 +3931,24 @@ Ext.define('Ext.Component', {
      * @protected
      */
     onShowComplete: function(cb, scope) {
-        var me = this;
+        var me = this,
+            container = me.focusableContainer;
+        
         if (me.floating) {
             me.onFloatShow();
         }
+        
         Ext.callback(cb, scope || me);
         me.fireEvent('show', me);
+        
+        if (container) {
+            container.onFocusableChildShow(me);
+        }
+        
         delete me.hiddenByLayout;
     },
 
     onShowVeto: Ext.emptyFn,
-
-    /**
-     * Template method to do any post-blur processing.
-     * @protected
-     * @param {Ext.event.Event} e The event object
-     */
-    postBlur: Ext.emptyFn,
 
     /**
      * Returns the previous node in the Component tree in tree traversal order.
@@ -4692,21 +4561,27 @@ Ext.define('Ext.Component', {
             }
 
             // If we are changing size, then we are not the root.
-            me.updateLayout({
-                isRoot: false
-            });
+            me.updateLayout(me._notAsLayoutRoot);
         }
 
         return me;
     },
 
     /**
-     * Sets the stlye for this Component's primary element.
-     * @param {String/Object} style
+     * Sets the style for this Component's primary element.
+     * @param {String/Object} property The style property to be set, or an object of
+     * multiple styles.
+     * @param {String} [value] The value to apply to the given property, or null if an
+     * object was passed.
+     * @return {Ext.Component} this
      */
-    setStyle: function (style) {
-        var el = this.el || this.protoEl;
-        el.setStyle(style);
+    setStyle: function (prop, value) {
+        var me = this,
+            el = me.el || me.protoEl;
+
+        el.setStyle(prop, value);
+
+        return me;
     },
 
     /**
@@ -4984,6 +4859,8 @@ Ext.define('Ext.Component', {
      */
     unmask: function() {
         (this.getMaskTarget() || this.el).unmask();
+        
+        this.setMasked(false);
     },
     
     unregisterFloatingItem: function(cmp) {
@@ -5063,6 +4940,7 @@ Ext.define('Ext.Component', {
         var me = this,
             isData = (me.tpl && !Ext.isString(htmlOrData)),
             scrollManager = me.scrollManager,
+            container = me.focusableContainer,
             sizeModel, doLayout, el;
 
 
@@ -5096,6 +4974,10 @@ Ext.define('Ext.Component', {
             if (scrollManager) {
                 scrollManager.refresh();
             }
+            
+            if (container) {
+                container.onFocusableChildUpdate(me);
+            }
         }
     },
 
@@ -5120,6 +5002,7 @@ Ext.define('Ext.Component', {
     },
 
     _asLayoutRoot: { isRoot: true },
+    _notAsLayoutRoot: { isRoot: false },
 
     /**
      * Updates this component's layout. If this update affects this components {@link #ownerCt},
@@ -5161,6 +5044,22 @@ Ext.define('Ext.Component', {
                 Ext.Component.updateLayout(me, defer);
             }
         }
+    },
+
+    updateMaxHeight: function(maxHeight, oldMaxHeight) {
+        this.changeConstraint(maxHeight, oldMaxHeight, 'min', 'max-height', 'height');
+    },
+
+    updateMaxWidth: function(maxWidth, oldMaxWidth) {
+        this.changeConstraint(maxWidth, oldMaxWidth, 'min', 'max-width', 'width');
+    },
+
+    updateMinHeight: function(minHeight, oldMinHeight) {
+        this.changeConstraint(minHeight, oldMinHeight, 'max', 'min-height', 'height');
+    },
+
+    updateMinWidth: function(minWidth, oldMinWidth) {
+        this.changeConstraint(minWidth, oldMinWidth, 'max', 'min-width', 'width');
     },
 
     // ***********************************************************************************
@@ -5297,60 +5196,6 @@ Ext.define('Ext.Component', {
             }
         }, // statics
 
-        /**
-         * Sets up the focus listener on this Component's {@link #getFocusEl focusEl} if it has one.
-         *
-         * Form Components which must implicitly participate in tabbing order usually have a naturally focusable
-         * element as their {@link #getFocusEl focusEl}, and it is the DOM event of that receiving focus which drives
-         * the Component's `onFocus` handling, and the DOM event of it being blurred which drives the `onBlur` handling.
-         *
-         * If the {@link #getFocusEl focusEl} is **not** naturally focusable, then the listeners are only added
-         * if the {@link Ext.FocusManager FocusManager} is enabled.
-         * @private
-         */
-        addFocusListener: function() {
-            var me = this,
-                focusEl = me.getFocusEl(),
-                needsTabIndex;
-
-            // All Containers may be focusable, not only "form" type elements, but also
-            // Panels, Toolbars, Windows etc.
-            // Usually, the <DIV> element they will return as their focusEl will not be able to receive focus
-            // However, if the FocusManager is invoked, its non-default navigation handlers (invoked when
-            // tabbing/arrowing off of certain Components) may explicitly focus a Panel or Container or FieldSet etc.
-            // Add listeners to the focus and blur events on the focus element
-
-            // If this Component returns a focusEl, we might need to add a focus listener to it.
-            if (focusEl) {
-                // getFocusEl might return a Component if a Container wishes to delegate focus to a descendant.
-                // Window can do this via its defaultFocus configuration which can reference a Button.
-                if (focusEl.isComponent) {
-                    return focusEl.addFocusListener();
-                }
-
-                // If the focusEl is naturally focusable, then we always need a focus listener to drive the Component's
-                // onFocus handling.
-                // If *not* naturally focusable, then we only need the focus listener if the FocusManager is enabled.
-                needsTabIndex = focusEl.needsTabIndex();
-                if (!me.focusListenerAdded && (!needsTabIndex || Ext.enableFocusManager)) {
-                    if (needsTabIndex) {
-                        focusEl.dom.tabIndex = -1;
-                    }
-                    focusEl.on({
-                        focus: me.onFocus,
-                        blur: me.onBlur,
-                        scope: me
-                    });
-
-                    // This attribute is a shortcut to look up a Component by its Elements
-                    // It only makes sense on focusable elements, so we set it here
-                    focusEl.dom.setAttribute(Ext.Component.componentIdAttribute, me.id);
-
-                    me.focusListenerAdded = true;
-                }
-            }
-        },
-
         addOverCls: function() {
             var me = this;
             if (!me.disabled) {
@@ -5387,16 +5232,26 @@ Ext.define('Ext.Component', {
         },
 
         // private
-        blur: function() {
+        changeConstraint: function(newValue, oldValue, constrainMethod, styleName, sizeName) {
             var me = this,
-                focusEl;
+                size = me[sizeName];
 
-            if (me.rendered && (focusEl = me.getFocusEl())) {
-                me.blurring = true;
-                focusEl.blur();
-                delete me.blurring;
+            if (newValue != null && typeof size === 'number') {
+                me[sizeName] = Math[constrainMethod](size, newValue);
             }
-            return me;
+
+            if (me.liquidLayout) {
+                // components that use liquidLayout need their size constraints set in the dom
+                if (newValue != null) {
+                    me.setStyle(styleName, newValue + 'px');
+                } else if (oldValue) {
+                    me.setStyle(styleName, '');
+                }
+            }
+
+            if (me.rendered) {
+                me.updateLayout();
+            }
         },
 
         /**
@@ -5521,31 +5376,6 @@ Ext.define('Ext.Component', {
         },
 
         /**
-         * Returns the focus holder element associated with this Component. At the Component base class level, this function returns `undefined`.
-         *
-         * Subclasses which use embedded focusable elements (such as Window, Field and Button) should override this
-         * for use by the {@link Ext.Component#method-focus focus} method.
-         *
-         * Containers which need to participate in the {@link Ext.FocusManager FocusManager}'s navigation and Container focusing scheme also
-         * need to return a `focusEl`, although focus is only listened for in this case if the {@link Ext.FocusManager FocusManager} is {@link Ext.FocusManager#method-enable enable}d.
-         *
-         * @return {Ext.Element} `undefined` because raw Components cannot by default hold focus.
-         * @method
-         * @private
-         */
-        getFocusEl: Ext.privateFn,
-
-        // private
-        getFocusTask: function() {
-            if (!this.focusTask) {
-                // One global DelayedTask to assign focus
-                // So that the last focus call wins.
-                Ext.Component.prototype.focusTask = new Ext.util.DelayedTask();
-            }
-            return this.focusTask;
-        },
-
-        /**
          * Get an el for overflowing, defaults to the target el
          * @private
          */
@@ -5638,9 +5468,10 @@ Ext.define('Ext.Component', {
          * @private
          */
         getPlugins : function() {
-            var me = this,
-                plugins = me.plugins;
-            return (plugins && plugins.processed) ? plugins : me.constructPlugins();
+            var plugins = this.plugins;
+
+            plugins = (plugins && plugins.processed) ? plugins : this.constructPlugins();
+            return plugins || null;
         },
 
         getProxy: function() {
@@ -5790,7 +5621,7 @@ Ext.define('Ext.Component', {
             resizable = Ext.apply({
                 target: me,
                 dynamic: false,
-                constrainTo: me.constrainTo || (me.floatParent ? me.floatParent.getTargetEl() : null),
+                constrainTo: (me.constrain||(resizable && resizable.constrain)) ? (me.constrainTo || (me.floatParent ? me.floatParent.getTargetEl() : me.container)) : undefined,
                 handles: me.resizeHandles
             }, resizable);
             resizable.target = me;
@@ -5885,24 +5716,6 @@ Ext.define('Ext.Component', {
                     }
                 }
             }
-
-            if (liquidLayout) {
-                if (me.minWidth) {
-                    targetEl.setStyle('min-width', me.minWidth + 'px');
-                }
-
-                if (me.minHeight) {
-                    targetEl.setStyle('min-height', me.minHeight + 'px');
-                }
-
-                if (me.maxWidth) {
-                    targetEl.setStyle('max-width', me.maxWidth + 'px');
-                }
-
-                if (me.maxHeight) {
-                    targetEl.setStyle('max-height', me.maxHeight + 'px');
-                }
-            }
         },
 
         // Utility method to determine if a Component is floating, and has an owning Container whose coordinate system
@@ -5936,13 +5749,21 @@ Ext.define('Ext.Component', {
          * within a certain component tree.
          */
         owns: function(element) {
-            var result = false;
-            Ext.ComponentQuery.visitPreOrder('', this, function(c) {
-                if (c.el && c.el.contains(element)) {
-                    result = true;
-                    return false;
-                }
-            });
+            var result = false,
+                cmp;
+
+            if (element.isEvent) {
+                element = element.target;
+            } else if (element.isElement) {
+                element = element.dom;
+            }
+
+            cmp = Ext.Component.findComponentByElement(element);
+
+            if (cmp) {
+                result = (cmp === this) || (!!cmp.up(this));
+            }
+
             return result;
         },
 
@@ -6039,6 +5860,9 @@ Ext.define('Ext.Component', {
             } else {
                 delete inheritedState.hidden;
             }
+
+            // Ensutre any ZIndexManager knowns about visibility state change to keep its filtering correct
+            this.zIndexManager && this.zIndexManager.onComponentShowHide(this);
         },
 
         setupProtoEl: function() {

@@ -128,7 +128,7 @@
  *
  *     // Fake data updating...
  *     // Change one record per second to a random power value
- *     setInterval(function() {
+ *     Ext.interval(function() {
  *         var recIdx = Ext.Number.randomInt(0, 3),
  *             newPowerReading = Ext.Number.randomInt(500, 1000);
  
@@ -379,7 +379,7 @@ Ext.define('Ext.grid.column.Widget', {
                 dataIndex = me.dataIndex,
                 isFixedSize = me.isFixedSize,
                 cell, widget, el, width, recordId, 
-                itemIndex, recordIndex, record, id;
+                itemIndex, recordIndex, record, id, lastBox;
 
             if (me.rendered && !me.hidden) {
                 me.liveWidgets = {};
@@ -397,8 +397,9 @@ Ext.define('Ext.grid.column.Widget', {
                     widget = me.liveWidgets[recordId] = oldWidgetMap[recordId] || me.getFreeWidget();
                     delete oldWidgetMap[recordId];
 
-                    if (!isFixedSize && width === undefined) {
-                        width = me.lastBox.width - parseInt(me.getCachedStyle(cell, 'padding-left'), 10) - parseInt(me.getCachedStyle(cell, 'padding-right'), 10);
+                    lastBox = me.lastBox;
+                    if (lastBox && !isFixedSize && width === undefined) {
+                        width = lastBox.width - parseInt(me.getCachedStyle(cell, 'padding-left'), 10) - parseInt(me.getCachedStyle(cell, 'padding-right'), 10);
                     }
 
                     Ext.fly(cell).empty();
@@ -492,6 +493,7 @@ Ext.define('Ext.grid.column.Widget', {
                             widget.setConfig(widget.defaultBindProperty, record.get(me.dataIndex));
                         }
                         widget.$widgetColumn = me;
+                        widget.$widgetRecord = record;
                         if (hasAttach) {
                             me.onWidgetAttach(widget, record);
                         }

@@ -246,12 +246,12 @@ Ext.define('Ext.resizer.Splitter', {
     },
 
     onTargetCollapse: function(target) {
-        this.el.addCls([this.collapsedClsInternal, this.collapsedCls]);
+        this.el.addCls(this.collapsedClsInternal + ' ' + (this.collapsedCls || ''));
         this.setCollapseEl('');
     },
 
     onTargetExpand: function(target) {
-        this.el.removeCls([this.collapsedClsInternal, this.collapsedCls]);
+        this.el.removeCls(this.collapsedClsInternal + ' ' + (this.collapsedCls || ''));
         this.setCollapseEl('');
     },
 

@@ -63,7 +63,7 @@ Ext.define('Ext.mixin.Observable', {
 
     observableIdPrefix: '#',
 
-    listenerOptionsRegex: /^(?:delegate|delegated|single|delay|buffer|args|prepend|capture|destroyable|translate)$/,
+    listenerOptionsRegex: /^(?:scope|order|delegate|single|delay|buffer|args|prepend|destroyable)$/,
 
     eventFiringSuspended: 0,
 
@@ -110,7 +110,8 @@ Ext.define('Ext.mixin.Observable', {
             // instances will have all the listeners that were defined on themselves,
             // their class, and all base classes and mixins.
             merge: function (newValue, oldValue, target) {
-                var value = newValue;
+                var value = newValue,
+                    scope, namedScope;
 
                 if (target.isInstance) {
                     if (target._hasDeclaredListeners) {
@@ -121,6 +122,25 @@ Ext.define('Ext.mixin.Observable', {
                         target.listeners = target.getDeclaredListeners();
                     }
                     if (newValue) {
+                        // Allow listener scope resolution mechanism to know if the listeners
+                        // were declared on the class.  This is only necessary when scope
+                        // is unspecified, or when scope is 'controller'.  We use special private
+                        // named scopes of "self" and "self.controller" to indicate either
+                        // unspecified scope, or scope declared as controller on the class
+                        // body.  To avoid iterating the listeners object multiple times, we
+                        // only put this special scope on the outermost object at this point
+                        // and allow addListener to handle scope:'controller' declared on
+                        // inner objects of the listeners config.
+                        scope = newValue.scope;
+                        if (!scope) {
+                            newValue.scope = 'self';
+                        } else {
+                            namedScope = Ext._namedScopes[scope];
+                            if (namedScope && namedScope.isController) {
+                                newValue.scope = 'self.controller';
+                            }
+                        }
+
                         // setting _hasDeclaredListeners on the prototype of classes that
                         // have declared listeners allows instances to avoid the recursive
                         // descent into the nested arrays of declared listeners on their
@@ -226,7 +246,7 @@ Ext.define('Ext.mixin.Observable', {
     resolveListenerScope: function (defaultScope) {
         //<debug>
         if (defaultScope === 'controller') {
-            Ext.Error.raise('scope: "controller" can only be specified on components that derive from component');
+            Ext.Error.raise('scope: "controller" can only be specified on classes that derive from Ext.Component or Ext.Widget');
         }
         //</debug>
 
@@ -448,6 +468,11 @@ Ext.define('Ext.mixin.Observable', {
             options = {};
         }
 
+        if (!options.type) {  // type may have been set already (Ext.dom.Element)
+            // add type info to options object so ListenerStack can use it
+            options.type = name;
+        }
+
         if (!scope && typeof fn === 'function') {
             scope = me;
         }
@@ -582,11 +607,8 @@ Ext.define('Ext.mixin.Observable', {
     changeListener: function(actionFn, eventName, fn, scope, options, order) {
         var me = this,
             eventNameMap = Ext.$eventNameMap,
-            eventNames,
-            listeners,
-            listenerOptionsRegex,
-            actualOptions,
-            name, value, i, ln, listener, valueType;
+            eventNames, listeners, listenerOptionsRegex, actualOptions, isClassListener,
+            namedScopes, namedScope, innerScope, name, value, i, ln, listener, valueType;
 
         if (typeof fn !== 'undefined') {
             // Support for array format to add multiple listeners
@@ -603,6 +625,11 @@ Ext.define('Ext.mixin.Observable', {
 
             // This is inlined for performance
             eventName = eventNameMap[eventName] || (eventNameMap[eventName] = eventName.toLowerCase());
+
+            if (options) {
+                // if the caller passed an options object, chain it to avoid mutating the original
+                options = Ext.Object.chain(options);
+            }
             actionFn.call(me, eventName, fn, scope, options, order);
         }
         else if (Ext.isArray(eventName)) {
@@ -616,24 +643,20 @@ Ext.define('Ext.mixin.Observable', {
                 actionFn.call(me, eventName, listener.fn, listener.scope, listener, listener.order);
             }
         }
-        else {
+        else if (eventName) {
             listenerOptionsRegex = me.listenerOptionsRegex;
             options = eventName;
             eventNames = [];
             listeners = [];
             actualOptions = {};
+            order = options.order;
+            scope = options.scope;
+            namedScopes = Ext._namedScopes;
+            namedScope = scope && namedScopes[scope];
+            isClassListener = namedScope && namedScope.isSelf;
 
             for (name in options) {
                 value = options[name];
-
-                if (name === 'scope') {
-                    scope = value;
-                    continue;
-                }
-                else if (name === 'order') {
-                    order = value;
-                    continue;
-                }
 
                 if (!listenerOptionsRegex.test(name)) {
                     // This is inlined for performance
@@ -641,7 +664,20 @@ Ext.define('Ext.mixin.Observable', {
                     valueType = typeof value;
 
                     if (valueType !== 'string' && valueType !== 'function') {
-                        actionFn.call(this, name, value.fn, value.scope || scope, value, value.order || order);
+                        innerScope = value.scope;
+                        // for proper scope resolution, scope:'controller' specified on an
+                        // inner object, must be translated to 'self.controller' if the
+                        // listeners object was declared on the class body.
+                        // see also Ext.util.Observable#prepareClass and
+                        // Ext.mixin.Inheritable#resolveListenerScope
+                        if (innerScope && isClassListener) {
+                            namedScope = namedScopes[innerScope];
+                            if (namedScope && namedScope.isController) {
+                                innerScope = 'self.controller';
+                            }
+                        }
+
+                        actionFn.call(this, name, value.fn, innerScope || scope, value, value.order || order);
                         continue;
                     }
 

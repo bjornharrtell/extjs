@@ -755,6 +755,18 @@ describe("Ext.data.proxy.WebStorage", function() {
                     expect(resultSet.getLoaded()).toBe(true);
                 });
             });
+
+            it("should call the recordCreator function to create the record", function() {
+                var recordCreator = jasmine.createSpy();
+                operation.setRecordCreator(recordCreator);
+
+                proxy.read(operation);
+
+                expect(recordCreator).toHaveBeenCalledWith({
+                    id: 100,
+                    name: 'Phil'
+                }, spec.User);
+            });
         });
 
         describe("if not passed an id", function() {
@@ -785,6 +797,44 @@ describe("Ext.data.proxy.WebStorage", function() {
 
                 expect(operation.setCompleted).toHaveBeenCalled();
             });
+
+            it("should call the recordCreator function to create the records", function() {
+                var recordCreator = jasmine.createSpy();
+                operation.setRecordCreator(recordCreator);
+
+                proxy.read(operation);
+
+                expect(recordCreator.callCount).toBe(4);
+
+                expect(recordCreator.calls[0].args).toEqual([{
+                    id: 1,
+                    firstName: 'Bob',
+                    lastName: 'Smith',
+                    age: '2'
+                }, spec.User]);
+
+                expect(recordCreator.calls[1].args).toEqual([{
+                    id: 2,
+                    firstName: 'Joe',
+                    lastName: 'Smith',
+                    age: '50'
+                }, spec.User]);
+
+                expect(recordCreator.calls[2].args).toEqual([{
+                    id: 3,
+                    firstName: 'Tim',
+                    lastName: 'Jones',
+                    age: '41'
+                }, spec.User]);
+
+                expect(recordCreator.calls[3].args).toEqual([{
+                    id: 4,
+                    firstName: 'Jim',
+                    lastName: 'Smith',
+                    age: '33'
+                }, spec.User]);
+            });
+
             describe("the resultSet", function() {
                 var resultSet;
 

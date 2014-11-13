@@ -1,9 +1,5 @@
 Ext.define('Ext.aria.form.field.Number', {
     override: 'Ext.form.field.Number',
-    
-    requires: [
-        'Ext.aria.form.field.Spinner'
-    ],
 
     ariaGetRenderAttributes: function() {
         var me = this,

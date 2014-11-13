@@ -13,10 +13,13 @@ $tab-font-size: ceil($font-size * .9) !default; //11px
 $tab-line-height: 13px !default;
 
 $tab-border-width: 1px 1px 0 !default;
+$tab-inner-border-width: 1px 1px 0 !default;
 $tab-border-color: adjust-color($tab-base-color, $hue:0deg, $saturation: -28.008%, $lightness: -20.98%) !default;
 $tab-border-color-disabled: adjust-color($base-color, $hue:0deg, $saturation: 6.349%, $lightness: -0.588%) !default;
 
 $tab-inner-border-color: adjust-color($tab-base-color, $hue: 0deg, $saturation: -8.571%, $lightness: 8.941%) !default;
+$tab-inner-border-collapse: true !default;
+$tab-body-outline-width-focus: 1px !default;
 
 $tab-text-opacity-disabled: 1 !default;
 

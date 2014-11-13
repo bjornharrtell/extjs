@@ -434,7 +434,7 @@ Ext.define('Ext.window.Window', {
     onRender: function(ct, position) {
         var me = this;
         me.callParent(arguments);
-        me.focusEl = me.el;
+        me.focusable = !!me.getFocusEl();
 
         // Double clicking a header will toggleMaximize
         if (me.maximizable) {
@@ -508,7 +508,7 @@ Ext.define('Ext.window.Window', {
      */
     addTools: function() {
         var me = this,
-            tools = me.tools,
+            tools = [],
             noArgs = [];
 
         // Call Panel's addTools
@@ -517,24 +517,20 @@ Ext.define('Ext.window.Window', {
         if (me.minimizable) {
             tools.push({
                 type: 'minimize',
-                handler: Ext.Function.bind(me.minimize, me, noArgs)
+                handler: 'minimize',
+                scope:  me
             });
         }
         if (me.maximizable) {
-            // Because we add two icons with mutually eclusive visibility, in order to keep the
-            // title visually at the correct position, we increment the titlePosition
-            if (me.header && 'titlePosition' in me.header && me.header.titlePosition >= tools.length) {
-                me.header.titlePosition++;
-            }
-
-            Ext.Array.push(tools, {
+            tools.push({
                 type: 'maximize',
-                handler: Ext.Function.bind(me.maximize, me, noArgs)
-            }, {
-                type: 'restore',
-                handler: Ext.Function.bind(me.restore, me, noArgs),
-                hidden: true
+                handler: 'toggleMaximize',
+                scope: me
             });
+        }
+
+        if (tools.length) {
+            me.addTool(tools);
         }
     },
 
@@ -644,16 +640,18 @@ Ext.define('Ext.window.Window', {
         var me = this,
             sizeModel;
 
-        if (me.maximized) {
-            me.fitContainer();
-        } else {
-            sizeModel = me.getSizeModel();
-            if (sizeModel.width.natural || sizeModel.height.natural) {
-                me.updateLayout();
+        // This is called on a timer. Window may have been destroyed in the interval.
+        if (!me.isDestroyed) {
+            if (me.maximized) {
+                me.fitContainer();
+            } else {
+                sizeModel = me.getSizeModel();
+                if (sizeModel.width.natural || sizeModel.height.natural) {
+                    me.updateLayout();
+                }
+                me.doConstrain();
             }
-            me.doConstrain();
         }
-
     },
 
     /**
@@ -679,7 +677,6 @@ Ext.define('Ext.window.Window', {
         if (header && me.maximizable) {
             header.suspendLayouts();
             tools.maximize.hide();
-            tools.restore.hide();
             this.resumeHeaderLayout(true);
         }
         if (me.resizer) {
@@ -697,10 +694,7 @@ Ext.define('Ext.window.Window', {
 
         if (header) {
             header.suspendLayouts();
-            if (me.maximized) {
-                tools.restore.show();
-                changed = true;
-            } else if (me.maximizable) {
+            if (me.maximizable) {
                 tools.maximize.show();
                 changed = true;
             }
@@ -741,12 +735,7 @@ Ext.define('Ext.window.Window', {
             if (header) {
                 header.suspendLayouts();
                 if (tools.maximize) {
-                    tools.maximize.hide();
-                    changed = true;
-                }
-                if (tools.restore) {
-                    tools.restore.show();
-                    changed = true;
+                    tools.maximize.setType('restore');
                 }
                 if (me.collapseTool) {
                     me.collapseTool.hide();
@@ -805,13 +794,8 @@ Ext.define('Ext.window.Window', {
             // Manipulate visibility of header tools if there is a header
             if (header) {
                 header.suspendLayouts();
-                if (tools.restore) {
-                    tools.restore.hide();
-                    changed = true;
-                }
                 if (tools.maximize) {
-                    tools.maximize.show();
-                    changed = true;
+                    tools.maximize.setType('maximize');
                 }
                 if (me.collapseTool) {
                     me.collapseTool.show();

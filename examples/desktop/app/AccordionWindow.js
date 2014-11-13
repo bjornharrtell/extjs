@@ -33,14 +33,17 @@ Ext.define('Desktop.AccordionWindow', {
             autoScroll:true,
             tools:[{
                 type: 'refresh',
-                handler: function(c, t) {
-                    tree.setLoading(true, tree.body);
-                    var root = tree.getRootNode();
-                    root.collapseChildren(true, false);
-                    Ext.Function.defer(function() { // mimic a server call
-                        tree.setLoading(false);
-                        root.expand(true, true);
-                    }, 1000);
+                listeners: {
+                    buffer: 300,
+                    click: function(c, t) {
+                        tree.setLoading(true, tree.body);
+                        var root = tree.getRootNode();
+                        root.collapseChildren(true, false);
+                        Ext.Function.defer(function() { // mimic a server call
+                            tree.setLoading(false);
+                            root.expand(true, true);
+                        }, 1000);
+                    }
                 }
             }],
             store: Ext.create('Ext.data.TreeStore', {

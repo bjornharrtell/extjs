@@ -58,8 +58,8 @@ Ext.define('Ext.chart.series.StackedCartesian', {
 
     getSprites: function () {
         var me = this,
-            chart = this.getChart(),
-            animation = chart && chart.getAnimation(),
+            chart = me.getChart(),
+            animation = me.getAnimation() || chart && chart.getAnimation(),
             fields = me.getFields(me.fieldCategoryY),
             itemInstancing = me.getItemInstancing(),
             sprites = me.sprites, sprite,
@@ -140,10 +140,12 @@ Ext.define('Ext.chart.series.StackedCartesian', {
             field = me.getYField(),
             hidden = me.getHidden(),
             single = sprites.length === 1,
-            style, name;
+            style, fill,
+            i, name;
 
-        for (var i = 0; i < sprites.length; i++) {
+        for (i = 0; i < sprites.length; i++) {
             style = me.getStyleByIndex(i);
+            fill = style.fillStyle;
             if (Ext.isArray(title)) {
                 name = title[i];
             } else if (single) {
@@ -155,7 +157,7 @@ Ext.define('Ext.chart.series.StackedCartesian', {
             }
             target.push({
                 name: name,
-                mark: style.fillStyle || style.strokeStyle || 'black',
+                mark: (Ext.isObject(fill) ? fill.stops && fill.stops[0].color : fill) || style.strokeStyle || 'black',
                 disabled: hidden[i],
                 series: me.getId(),
                 index: i

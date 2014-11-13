@@ -2,22 +2,28 @@
 // @define Ext.Boot
 // @define Ext
 
-
-// here, the extra check for window['Ext'] is needed for use with cmd-test
-// code injection.  we need to make that this file will sync up with page global
-// scope to avoid duplicate Ext.Boot state.  That check is after the initial Ext check
-// to allow the sandboxing template to inject an appropriate Ext var and prevent the
-// global detection.
-var Ext = Ext || window['Ext'] || {};
+var Ext = Ext || {};
 
 //<editor-fold desc="Boot">
 /*
  * @class Ext.Boot
  * @singleton
  */
-Ext.Boot = Ext.Boot || (function (emptyFn) {
+Ext.Boot = (function (emptyFn) {
 
     var doc = document,
+        apply = function (dest, src, defaults) {
+            if (defaults) {
+                apply(dest, defaults);
+            }
+
+            if (dest && src && typeof src == 'object') {
+                for (var key in src) {
+                    dest[key] = src[key];
+                }
+            }
+            return dest;
+        },
         _config = {
             /*
              * @cfg {Boolean} [disableCaching=true]
@@ -25,11 +31,10 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
              * In debug builds, adding a "cache" or "disableCacheBuster" query parameter
              * to the page's URL will set this to `false`.
              */
-            disableCaching:
-                (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
-                    (location.href.substring(0,5) === 'file:') ||
-                    /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
-                    true,
+            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
+                !(/http[s]?\:/i.test(location.href)) ||
+                /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
+                true,
 
             /*
              * @cfg {String} [disableCachingParam="_dc"]
@@ -59,26 +64,7 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             charset: undefined
         },
 
-    // The request object currently being processed
-        _currentRequest,
-
-    // A queue of requests which arrived during the time that an "exclusive" load was being processed.
-        _suspendedQueue = [],
-
-    // Keyed by absolute URL this object holds "true" if that URL is already loaded
-    // or an array of callbacks to call once it loads.
-        _items = {
-            /*
-             'http://foo.com/bar/baz/Thing.js': {
-             done: true,
-             el: scriptEl || linkEl,
-             preserve: true,
-             requests: [ request1, ... ]
-             }
-             */
-        },
         cssRe = /\.css(?:\?|$)/i,
-        pathTailRe = /\/[^\/]*$/,
         resolverEl = doc.createElement('a'),
         isBrowser = typeof window !== 'undefined',
         _environment = {
@@ -86,217 +72,1140 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             node: !isBrowser && (typeof require === 'function'),
             phantom: (typeof phantom !== 'undefined' && phantom.fs)
         },
-        _listeners = [],
+        _tags = {},
 
-    // track new entries as they are created, used to fire onBootReady listeners
-        _entries = 0,
-
-    // when loadSync is called, need to cause subsequent load requests to also be loadSync,
-    // eg, when Ext.require(...) is called
-        _syncMode = 0;
-
-    var Boot = {
-        loading: 0,
-
-        loaded: 0,
-
-        env: _environment,
-
-        /*
-         * Configuration
-         * @private
-         */
-        config: _config,
-
-        /*
-         * @private
-         * @property
-         */
-        scripts: _items,
-
-        /*
-         * contains the current script name being loaded
-         * (loadSync or sequential load only)
-         */
-        currentFile: null,
-
-        /*
-         * This method returns a canonical URL for the given URL.
-         *
-         * For example, the following all produce the same canonical URL (which is the
-         * last one):
-         *
-         *      http://foo.com/bar/baz/zoo/derp/../../goo/Thing.js?_dc=12345
-         *      http://foo.com/bar/baz/zoo/derp/../../goo/Thing.js
-         *      http://foo.com/bar/baz/zoo/derp/../jazz/../../goo/Thing.js
-         *      http://foo.com/bar/baz/zoo/../goo/Thing.js
-         *      http://foo.com/bar/baz/goo/Thing.js
-         *
-         * @private
-         */
-        canonicalUrl: function (url) {
-            // @TODO - see if we need this fallback logic
-            // http://stackoverflow.com/questions/470832/getting-an-absolute-url-from-a-relative-one-ie6-issue
-            resolverEl.href = url;
-
-            var ret = resolverEl.href,
-                dc = _config.disableCachingParam,
-                pos = dc ? ret.indexOf(dc + '=') : -1,
-                c, end;
-
-            // If we have a _dc query parameter we need to remove it from the canonical
-            // URL.
-            if (pos > 0 && ((c = ret.charAt(pos - 1)) === '?' || c === '&')) {
-                end = ret.indexOf('&', pos);
-                end = (end < 0) ? '' : ret.substring(end);
-                if (end && c === '?') {
-                    ++pos; // keep the '?'
-                    end = end.substring(1); // remove the '&'
-                }
-                ret = ret.substring(0, pos - 1) + end;
-            }
-
-            return ret;
+    //<debug>
+        _debug = function (message) {
+            //console.log(message);
         },
-
-        init: function () {
-            var scriptEls = doc.getElementsByTagName('script'),
-                len = scriptEls.length,
-                re = /\/ext(\-[a-z\-]+)?\.js$/,
-                entry, script, src, state, baseUrl, key, n;
-
-            // Since we are loading after other scripts, and we needed to gather them
-            // anyway, we track them in _scripts so we don't have to ask for them all
-            // repeatedly.
-            for(n = 0; n < len; n++) {
-                src = (script = scriptEls[n]).src;
-                if (!src) {
-                    continue;
+    //</debug>
+        _apply = function (object, config, defaults) {
+            if (defaults) {
+                _apply(object, defaults);
+            }
+            if (object && config && typeof config === 'object') {
+                for (var i in config) {
+                    object[i] = config[i];
                 }
-                state = script.readyState || null;
+            }
+            return object;
+        },
+    /*
+     * The Boot loader class manages Request objects that contain one or 
+     * more individual urls that need to be loaded.  Requests can be performed
+     * synchronously or asynchronously, but will always evaluate urls in the
+     * order specified on the request object.
+     */
+        Boot = {
+            loading: 0,
+            loaded: 0,
+            env: _environment,
+            config: _config,
 
-                // If we find a script file called "ext-*.js", then the base path is that file's base path.
+            // Keyed by absolute URL this object holds "true" if that URL is already loaded
+            // or an array of callbacks to call once it loads.
+            scripts: {
+                /*
+                 Entry objects 
+
+                 'http://foo.com/bar/baz/Thing.js': {
+                 done: true,
+                 el: scriptEl || linkEl,
+                 preserve: true,
+                 requests: [ request1, ... ]
+                 }
+                 */
+            },
+
+            /*
+             * contains the current script name being loaded
+             * (loadSync or sequential load only)
+             */
+            currentFile: null,
+            suspendedQueue: [],
+            currentRequest: null,
+
+            // when loadSync is called, need to cause subsequent load requests to also be loadSync,
+            // eg, when Ext.require(...) is called
+            syncMode: false,
+
+            /*
+             * simple helper method for debugging
+             */
+            //<debug>
+            debug: _debug,
+            //</debug>
+            listeners: [],
+
+            Request: Request,
+
+            Entry: Entry,
+
+            platformTags: _tags,
+
+            /**
+             * The defult function that detects various platforms and sets tags
+             * in the platform map accrodingly.  Examples are iOS, android, tablet, etc.
+             * @param tags the set of tags to populate
+             */
+            detectPlatformTags: function () {
+                var ua = navigator.userAgent,
+                    isMobile = _tags.isMobile = /Mobile(\/|\s)/.test(ua),
+                    isPhone, isDesktop, isTablet, touchSupported, isIE10, isBlackberry,
+                    element = document.createElement('div'),
+                    uaTagChecks = [
+                        'iPhone',
+                        'iPod',
+                        'Android',
+                        'Silk',
+                        'Android 2',
+                        'BlackBerry',
+                        'BB',
+                        'iPad',
+                        'RIM Tablet OS',
+                        'MSIE 10',
+                        'Trident',
+                        'Chrome',
+                        'Tizen',
+                        'Firefox',
+                        'Safari',
+                        'Windows Phone'
+                    ],
+                    isEventSupported = function(name, tag) {
+                        if (tag === undefined) {
+                            tag = window;
+                        }
+
+                        var eventName = 'on' + name.toLowerCase(),
+                            isSupported = (eventName in element);
+
+                        if (!isSupported) {
+                            if (element.setAttribute && element.removeAttribute) {
+                                element.setAttribute(eventName, '');
+                                isSupported = typeof element[eventName] === 'function';
+
+                                if (typeof element[eventName] !== 'undefined') {
+                                    element[eventName] = undefined;
+                                }
+
+                                element.removeAttribute(eventName);
+                            }
+                        }
+
+                        return isSupported;
+                    },
+                    uaTags = {},
+                    len = uaTagChecks.length, check, c;
+
+                for (c = 0; c < len; c++) {
+                    check = uaTagChecks[c];
+                    uaTags[check] = new RegExp(check).test(ua);
+                }
+
+                isPhone =
+                    (uaTags.iPhone || uaTags.iPod) ||
+                    (!uaTags.Silk && (uaTags.Android && (uaTags['Android 2'] || isMobile))) ||
+                    ((uaTags.BlackBerry || uaTags.BB) && uaTags.isMobile) ||
+                    (uaTags['Windows Phone']);
+
+                isTablet =
+                    (!_tags.isPhone) && (
+                    uaTags.iPad ||
+                    uaTags.Android ||
+                    uaTags.Silk ||
+                    uaTags['RIM Tablet OS'] ||
+                    (uaTags['MSIE 10'] && /; Touch/.test(ua))
+                    );
+
+                touchSupported =
+                    // if the browser has touch events we can be reasonably sure the device has
+                    // a touch screen
+                    isEventSupported('touchend') ||
+                    // browsers that use pointer event have maxTouchPoints > 0 if the
+                    // device supports touch input
+                    // http://www.w3.org/TR/pointerevents/#widl-Navigator-maxTouchPoints
+                    navigator.maxTouchPoints ||
+                    // IE10 uses a vendor-prefixed maxTouchPoints property
+                    navigator.msMaxTouchPoints;
+
+                isDesktop = !isPhone && !isTablet;
+                isIE10 = uaTags['MSIE 10'];
+                isBlackberry = uaTags.Blackberry || uaTags.BB;
+
+                apply(_tags, Boot.loadPlatformsParam(), {
+                    phone: isPhone,
+                    tablet: isTablet,
+                    desktop: isDesktop,
+                    touch: touchSupported,
+                    ios: (uaTags.iPad || uaTags.iPhone || uaTags.iPod),
+                    android: uaTags.Android || uaTags.Silk,
+                    blackberry: isBlackberry,
+                    safari: uaTags.Safari && isBlackberry,
+                    chrome: uaTags.Chrome,
+                    ie10: isIE10,
+                    windows: isIE10 || uaTags.Trident,
+                    tizen: uaTags.Tizen,
+                    firefox: uaTags.Firefox
+                });
+            },
+
+            /**
+             * Extracts user supplied platform tags from the "platformTags" query parameter
+             * of the form:
+             *
+             * ?platformTags=name:state,name:state,...
+             *
+             * (each tag defaults to true when state is unspecified)
+             *
+             * Example:
+             * ?platformTags=isTablet,isPhone:false,isDesktop:0,iOS:1,Safari:true, ...
+             *
+             * @returns {Object} the platform tags supplied by the query string
+             */
+            loadPlatformsParam: function () {
+                // Check if the ?platform parameter is set in the URL
+                var paramsString = window.location.search.substr(1),
+                    paramsArray = paramsString.split("&"),
+                    params = {}, i,
+                    platforms = {},
+                    tmpArray, tmplen, platform, name, enabled;
+
+                for (i = 0; i < paramsArray.length; i++) {
+                    tmpArray = paramsArray[i].split("=");
+                    params[tmpArray[0]] = tmpArray[1];
+                }
+
+                if (params.platformTags) {
+                    tmpArray = params.platform.split(/\W/);
+                    for (tmplen = tmpArray.length, i = 0; i < tmplen; i++) {
+                        platform = tmpArray[i].split(":");
+                        name = platform[0];
+                        if (platform.length > 1) {
+                            enabled = platform[1];
+                            if (enabled === 'false' || enabled === '0') {
+                                enabled = false;
+                            } else {
+                                enabled = true;
+                            }
+                        }
+                        platforms[name] = enabled;
+                    }
+                }
+                return platform;
+            },
+
+            getPlatformTags: function () {
+                return Boot.platformTags;
+            },
+
+            filterPlatform: function (platform) {
+                platform = [].concat(platform);
+                var tags = Boot.getPlatformTags(),
+                    len, p, tag;
+
+                for (len = platform.length, p = 0; p < len; p++) {
+                    tag = platform[p];
+                    if (tags.hasOwnProperty(tag)) {
+                        return !!tags[tag];
+                    }
+                }
+                return false;
+            },
+
+            init: function () {
+                var me = this,
+                    scriptEls = doc.getElementsByTagName('script'),
+                    len = scriptEls.length,
+                    re = /\/ext(\-[a-z\-]+)?\.js$/,
+                    entry, script, src, state, baseUrl, key, n, origin;
+
+                // Since we are loading after other scripts, and we needed to gather them
+                // anyway, we track them in _scripts so we don't have to ask for them all
+                // repeatedly.
+                for (n = 0; n < len; n++) {
+                    src = (script = scriptEls[n]).src;
+                    if (!src) {
+                        continue;
+                    }
+                    state = script.readyState || null;
+
+                    // If we find a script file called "ext-*.js", then the base path is that file's base path.
+                    if (!baseUrl) {
+                        if (re.test(src)) {
+                            me.hasReadyState = ("readyState" in script);
+                            me.hasAsync = ("async" in script) || !me.hasReadyState;
+                            baseUrl = src;
+                        }
+                    }
+
+                    if (!me.scripts[key = me.canonicalUrl(src)]) {
+                        //<debug>
+                        _debug("creating entry " + key + " in Boot.init");
+                        //</debug>
+                        entry = new Entry({
+                            key: key,
+                            url: src,
+                            done: state === null ||  // non-IE
+                                state === 'loaded' || state === 'complete', // IE only
+                            el: script,
+                            prop: 'src'
+                        });
+                    }
+                }
+
                 if (!baseUrl) {
-                    if (re.test(src)) {
-                        Boot.hasAsync = ("async" in script) || !('readyState' in script);
-                        baseUrl = src;
+                    script = scriptEls[scriptEls.length - 1];
+                    baseUrl = script.src;
+                    me.hasReadyState = ('readyState' in script);
+                    me.hasAsync = ("async" in script) || !me.hasReadyState;
+                }
+
+                me.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+                origin = window.location.origin ||
+                    window.location.protocol +
+                    "//" +
+                    window.location.hostname +
+                    (window.location.port ? ':' + window.location.port: '');
+                me.origin = origin;
+
+                me.detectPlatformTags();
+                Ext.filterPlatform = me.filterPlatform;
+            },
+
+            /*
+             * This method returns a canonical URL for the given URL.
+             *
+             * For example, the following all produce the same canonical URL (which is the
+             * last one):
+             *
+             *      http://foo.com/bar/baz/zoo/derp/../../goo/Thing.js?_dc=12345
+             *      http://foo.com/bar/baz/zoo/derp/../../goo/Thing.js
+             *      http://foo.com/bar/baz/zoo/derp/../jazz/../../goo/Thing.js
+             *      http://foo.com/bar/baz/zoo/../goo/Thing.js
+             *      http://foo.com/bar/baz/goo/Thing.js
+             *
+             * @private
+             */
+            canonicalUrl: function (url) {
+                // @TODO - see if we need this fallback logic
+                // http://stackoverflow.com/questions/470832/getting-an-absolute-url-from-a-relative-one-ie6-issue
+                resolverEl.href = url;
+
+                var ret = resolverEl.href,
+                    dc = _config.disableCachingParam,
+                    pos = dc ? ret.indexOf(dc + '=') : -1,
+                    c, end;
+
+                // If we have a _dc query parameter we need to remove it from the canonical
+                // URL.
+                if (pos > 0 && ((c = ret.charAt(pos - 1)) === '?' || c === '&')) {
+                    end = ret.indexOf('&', pos);
+                    end = (end < 0) ? '' : ret.substring(end);
+                    if (end && c === '?') {
+                        ++pos; // keep the '?'
+                        end = end.substring(1); // remove the '&'
+                    }
+                    ret = ret.substring(0, pos - 1) + end;
+                }
+
+                return ret;
+            },
+
+            /*
+             * Get the config value corresponding to the specified name. If no name is given, will return the config object
+             * @param {String} name The config property name
+             * @return {Object}
+             */
+            getConfig: function (name) {
+                return name ? this.config[name] : this.config;
+            },
+
+            /*
+             * Set the configuration.
+             * @param {Object} config The config object to override the default values.
+             * @return {Ext.Boot} this
+             */
+            setConfig: function (name, value) {
+                if (typeof name === 'string') {
+                    this.config[name] = value;
+                } else {
+                    for (var s in name) {
+                        this.setConfig(s, name[s]);
                     }
                 }
+                return this;
+            },
 
-                if (!_items[key = Boot.canonicalUrl(src)]) {
-                    _items[key] = entry = {
-                        key: key,
-                        url: src,
-                        done: state === null ||  // non-IE
-                            state === 'loaded' || state === 'complete', // IE only
-                        el: script,
-                        prop: 'src'
-                    };
+            getHead: function () {
+                return this.docHead ||
+                    (this.docHead = doc.head ||
+                        doc.getElementsByTagName('head')[0]);
+            },
 
-                    if (!entry.done) { // in IE we can add onreadystatechange
-                        Boot.watch(entry);
+            create: function (url, key, cfg) {
+                var config = cfg || {};
+                config.url = url;
+                config.key = key;
+                return this.scripts[key] = new Entry(config);
+            },
+
+            getEntry: function (url, cfg) {
+                var key = this.canonicalUrl(url),
+                    entry = this.scripts[key];
+                if (!entry) {
+                    entry = this.create(url, key, cfg);
+                }
+                return entry;
+            },
+
+            processRequest: function(request, sync) {
+                request.loadEntries(sync);
+            },
+
+            load: function (request) {
+                //<debug>
+                _debug("Boot.load called");
+                //</debug>
+                var me = this,
+                    request = new Request(request);
+
+                if(request.sync || me.syncMode) {
+                    return me.loadSync(request);
+                }
+
+                // If there is a request in progress, we must
+                // queue this new request to be fired  when the current request completes.
+                if (me.currentRequest) {
+                    //<debug>
+                    _debug("current active request, suspending this request");
+                    //</debug>
+                    // trigger assignment of entries now to ensure that overlapping
+                    // entries with currently running requests will synchronize state
+                    // with this pending one as they complete
+                    request.getEntries();
+                    me.suspendedQueue.push(request);
+                } else {
+                    me.currentRequest = request;
+                    me.processRequest(request, false);
+                }
+                return me;
+            },
+
+            loadSync: function (request) {
+                //<debug>
+                _debug("Boot.loadSync called");
+                //</debug>
+                var me = this,
+                    request = new Request(request);
+
+                me.syncMode++;
+                me.processRequest(request, true);
+                me.syncMode--;
+                return me;
+            },
+
+            loadBasePrefix: function(request) {
+                request = new Request(request);
+                request.prependBaseUrl = true;
+                return this.load(request);
+            },
+
+            loadSyncBasePrefix: function(request) {
+                request = new Request(request);
+                request.prependBaseUrl = true;
+                return this.loadSync(request);
+            },
+
+            requestComplete: function(request) {
+                var me = this,
+                    next;
+                if(me.currentRequest === request) {
+                    me.currentRequest = null;
+                    while(me.suspendedQueue.length > 0) {
+                        next = me.suspendedQueue.shift();
+                        if(!next.done) {
+                            //<debug>
+                            _debug("resuming suspended request");
+                            //</debug>
+                            me.load(next);
+                            break;
+                        }
                     }
                 }
-            }
-            if (!baseUrl) {
-                script = scriptEls[scriptEls.length - 1];
-                baseUrl = script.src;
-                Boot.hasAsync = ("async" in script) || !('readyState' in script);
-            }
-            Boot.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-        },
-
-        create: function (url, key) {
-            var css = url && cssRe.test(url),
-                el = doc.createElement(css ? 'link' : 'script'),
-                prop;
-
-            if (css) {
-                el.rel = 'stylesheet';
-                prop = 'href';
-            } else {
-                el.type = 'text/javascript';
-                if (!url) {
-                    return el;
+                if(!me.currentRequest && me.suspendedQueue.length == 0) {
+                    me.fireListeners();
                 }
-                prop = 'src';
+            },
 
-                if(Boot.hasAsync) {
-                    el.async = false;
+            isLoading: function () {
+                return !this.currentRequest && this.suspendedQueue.length == 0;
+            },
+
+            fireListeners: function () {
+                var listener;
+                while (this.isLoading() && (listener = this.listeners.shift())) {
+                    listener();
                 }
+            },
+
+            onBootReady: function (listener) {
+                if (!this.isLoading()) {
+                    listener();
+                } else {
+                    this.listeners.push(listener);
+                }
+            },
+
+            /*
+             * this is a helper function used by Ext.Loader to flush out
+             * 'uses' arrays for classes
+             */
+            getPathsFromIndexes: function (indexMap, loadOrder) {
+                return Request.prototype.getPathsFromIndexes(indexMap, loadOrder);
+            },
+
+            createLoadOrderMap: function(loadOrder) {
+                return Request.prototype.createLoadOrderMap(loadOrder);
+            },
+
+            fetchSync: function(url) {
+                var exception, xhr, status, content;
+
+                exception = false;
+                xhr = new XMLHttpRequest();
+
+                try {
+                    xhr.open('GET', url, false);
+                    xhr.send(null);
+                } catch (e) {
+                    exception = true;
+                }
+
+                status = (xhr.status === 1223) ? 204 :
+                    (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
+                        (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
+                content = xhr.responseText;
+
+                xhr = null; // Prevent potential IE memory leak
+
+                return {
+                    content: content,
+                    exception: exception,
+                    status: status
+                };
+            },
+
+            notifyAll: function(entry) {
+                entry.notifyRequests();
+            }
+        };
+
+    /*
+     * The request class encapsulates a series of Entry objects
+     * and provides notification around the completion of all Entries
+     * in this request.
+     */
+    function Request(cfg) {
+        if(cfg.$isRequest) {
+            return cfg;
+        }
+
+        var cfg = cfg.url ? cfg : {url: cfg},
+            url = cfg.url,
+            urls = url.charAt ? [ url ] : url,
+            boot = cfg.boot || Boot,
+            charset = cfg.charset || boot.config.charset,
+            buster = (('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
+                (boot.config.disableCachingParam + '=' + new Date().getTime());
+        _apply(cfg, {
+            urls: urls,
+            boot: boot,
+            charset: charset,
+            buster: buster
+        });
+        _apply(this, cfg);
+    };
+    Request.prototype = {
+        $isRequest: true,
+
+        /*
+         * @private
+         * @param manifest
+         * @returns {*}
+         */
+        createLoadOrderMap: function (loadOrder) {
+            var len = loadOrder.length,
+                loadOrderMap = {},
+                i, element;
+
+            for (i = 0; i < len; i++) {
+                element = loadOrder[i];
+                loadOrderMap[element.path] = element;
             }
 
-            key = key || url;
-            return _items[key] = {
-                key: key,
-                url: url,
-                css: css,
-                done: false,
-                el: el,
-                prop: prop,
-                loaded: false,
-                evaluated: false
-            };
+            return loadOrderMap;
         },
 
         /*
-         * Get the config value corresponding to the specified name. If no name is given, will return the config object
-         * @param {String} name The config property name
-         * @return {Object}
+         * @private
+         * @param index
+         * @param indexMap
+         * @returns {{}}
          */
-        getConfig: function(name) {
-            return name ? _config[name] : _config;
-        },
+        getLoadIndexes: function (index, indexMap, loadOrder, includeUses, skipLoaded) {
+            var item = loadOrder[index],
+                len, i, reqs, entry, stop, added, idx, ridx, url;
 
-        /*
-         * Set the configuration.
-         * @param {Object} config The config object to override the default values.
-         * @return {Ext.Boot} this
-         */
-        setConfig: function (name, value) {
-            if (typeof name === 'string') {
-                _config[name] = value;
-            } else {
-                for (var s in name) {
-                    Boot.setConfig(s, name[s]);
+            if (indexMap[index]) {
+                // prevent cycles
+                return indexMap;
+            }
+
+            indexMap[index] = true;
+
+            stop = false;
+            while (!stop) {
+                added = false;
+
+                // iterate the requirements for each index and 
+                // accumulate in the index map
+                for (idx in indexMap) {
+                    if (indexMap.hasOwnProperty(idx)) {
+                        item = loadOrder[idx];
+                        if (!item) {
+                            continue;
+                        }
+                        url = this.prepareUrl(item.path);
+                        entry = Boot.getEntry(url);
+                        if (!skipLoaded || !entry || !entry.done) {
+                            reqs = item.requires;
+                            if (includeUses && item.uses) {
+                                reqs = reqs.concat(item.uses);
+                            }
+                            for (len = reqs.length, i = 0; i < len; i++) {
+                                ridx = reqs[i];
+                                // if we find a requirement that wasn't 
+                                // already in the index map, 
+                                // set the added flag to indicate we need to 
+                                // reprocess
+                                if (!indexMap[ridx]) {
+                                    indexMap[ridx] = true;
+                                    added = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // if we made a pass through the index map and didn't add anything
+                // then we can stop
+                if (!added) {
+                    stop = true;
                 }
             }
 
-            return Boot;
+            return indexMap;
         },
 
-        getHead: function () {
-            return Boot.docHead ||
-                (Boot.docHead = doc.head ||
-                    doc.getElementsByTagName('head')[0]);
+        getPathsFromIndexes: function (indexMap, loadOrder) {
+            var indexes = [],
+                paths = [],
+                index, len, i;
+
+            for (index in indexMap) {
+                if (indexMap.hasOwnProperty(index) && indexMap[index]) {
+                    indexes.push(index);
+                }
+            }
+
+            indexes.sort(function (a, b) {
+                return a - b;
+            });
+
+            // convert indexes back into load paths
+            for (len = indexes.length, i = 0; i < len; i++) {
+                paths.push(loadOrder[indexes[i]].path);
+            }
+
+            return paths;
         },
 
-        inject: function (content, url, asset) {
-            var head = Boot.getHead(),
-                base, el, css = false, key = Boot.canonicalUrl(url),
-                entry;
+        expandUrl: function (url, indexMap, includeUses, skipLoaded) {
+            if (typeof url == 'string') {
+                url = [url];
+            }
 
-            if (cssRe.test(url)) {
-                css = true;
-                el = doc.createElement('style');
-                el.type = 'text/css';
-                el.textContent = content;
+            var me = this,
+                loadOrder = me.loadOrder,
+                loadOrderMap = me.loadOrderMap;
 
-                if (asset) {
-                    if ('id' in asset) {
-                        el.id = asset.id;
-                    }
+            if (loadOrder) {
+                loadOrderMap = loadOrderMap || me.createLoadOrderMap(loadOrder);
+                me.loadOrderMap = loadOrderMap;
+                indexMap = indexMap || {};
+                var len = url.length,
+                    unmapped = [],
+                    i, item;
 
-                    if ('disabled' in asset) {
-                        el.disabled = asset.disabled;
+                for (i = 0; i < len; i++) {
+                    item = loadOrderMap[url[i]];
+                    if (item) {
+                        me.getLoadIndexes(item.idx, indexMap, loadOrder, includeUses, skipLoaded);
+                    } else {
+                        unmapped.push(url[i]);
                     }
                 }
 
+
+                return me.getPathsFromIndexes(indexMap, loadOrder).concat(unmapped);
+            }
+            return url;
+        },
+
+        expandUrls: function (urls, includeUses) {
+            if (typeof urls == "string") {
+                urls = [urls];
+            }
+
+            var expanded = [],
+                expandMap = {},
+                tmpExpanded,
+                len = urls.length,
+                i, t, tlen, tUrl;
+
+            for (i = 0; i < len; i++) {
+                tmpExpanded = this.expandUrl(urls[i], {}, includeUses, true);
+                for (t = 0, tlen = tmpExpanded.length; t < tlen; t++) {
+                    tUrl = tmpExpanded[t];
+                    if (!expandMap[tUrl]) {
+                        expandMap[tUrl] = true;
+                        expanded.push(tUrl);
+                    }
+                }
+            }
+
+            if (expanded.length == 0) {
+                expanded = urls;
+            }
+
+            return expanded;
+        },
+
+        expandLoadOrder: function () {
+            var me = this,
+                urls = me.urls,
+                expanded;
+
+            if (!me.expanded) {
+                expanded = this.expandUrls(urls);
+                me.expanded = true;
+            } else {
+                expanded = urls;
+            }
+
+            me.urls = expanded;
+
+            // if we added some urls to the request to honor the indicated
+            // load order, the request needs to be sequential
+            if (urls.length != expanded.length) {
+                me.sequential = true;
+            }
+
+            return me;
+        },
+
+        getUrls: function () {
+            this.expandLoadOrder();
+            return this.urls;
+        },
+
+        prepareUrl: function(url) {
+            if(this.prependBaseUrl) {
+                return Boot.baseUrl + url;
+            }
+            return url;
+        },
+
+        getEntries: function () {
+            var me = this,
+                entries = me.entries,
+                i, entry, urls, url;
+            if (!entries) {
+                entries = [];
+                urls = me.getUrls();
+                for (i = 0; i < urls.length; i++) {
+                    url = me.prepareUrl(urls[i]);
+                    entry = Boot.getEntry(url, {
+                        buster: me.buster,
+                        charset: me.charset
+                    });
+                    entry.requests.push(me);
+                    entries.push(entry);
+                }
+                me.entries = entries;
+            }
+            return entries;
+        },
+
+        loadEntries: function(sync) {
+            var me = this,
+                entries = me.getEntries(),
+                len = entries.length,
+                start = me.loadStart || 0,
+                continueLoad, entry, i;
+
+            if(sync !== undefined) {
+                me.sync = sync;
+            }
+
+            me.loaded = me.loaded || 0;
+            me.loading = me.loading || len;
+
+            for(i = start; i < len; i++) {
+                entry = entries[i];
+                if(!entry.loaded) {
+                    continueLoad = entries[i].load(me.sync);
+                } else {
+                    continueLoad = true;
+                }
+                if(!continueLoad) {
+                    me.loadStart = i;
+                    entry.onDone(function(){
+                        me.loadEntries(sync);
+                    });
+                    break;
+                }
+            }
+            me.processLoadedEntries();
+        },
+
+        processLoadedEntries: function () {
+            var me = this,
+                entries = me.getEntries(),
+                len = entries.length,
+                start = me.startIndex || 0,
+                i, entry;
+
+            if (!me.done) {
+                for (i = start; i < len; i++) {
+                    entry = entries[i];
+
+                    if (!entry.loaded) {
+                        me.startIndex = i;
+                        return;
+                    }
+
+                    if (!entry.evaluated) {
+                        entry.evaluate();
+                    }
+
+                    if (entry.error) {
+                        me.error = true;
+                    }
+                }
+                me.notify();
+            }
+        },
+
+        notify: function () {
+            var me = this;
+            if (!me.done) {
+                var error = me.error,
+                    fn = me[error ? 'failure' : 'success'],
+                    delay = ('delay' in me)
+                        ? me.delay
+                        : (error ? 1 : Boot.config.chainDelay),
+                    scope = me.scope || me;
+                me.done = true;
+                if (fn) {
+                    if (delay === 0 || delay > 0) {
+                        // Free the stack (and defer the next script)
+                        setTimeout(function () {
+                            fn.call(scope, me);
+                        }, delay);
+                    } else {
+                        fn.call(scope, me);
+                    }
+                }
+                me.fireListeners();
+                Boot.requestComplete(me);
+            }
+        },
+
+        onDone: function(listener) {
+            var me = this,
+                listeners = me.listeners || (me.listeners = []);
+            if(me.done) {
+                listener(me);
+            } else {
+                listeners.push(listener);
+            }
+        },
+
+        fireListeners: function() {
+            var listeners = this.listeners,
+                listener;
+            if(listeners) {
+                //<debug>
+                _debug("firing request listeners");
+                //</debug>
+                while((listener = listeners.shift())) {
+                    listener(this);
+                }
+            }
+        }
+    };
+
+    /*
+     * The Entry class is a token to manage the load and evaluation
+     * state of a particular url.  It is used to notify all Requests
+     * interested in this url that the content is available.
+     */
+    function Entry(cfg) {
+        if(cfg.$isEntry) {
+            return cfg;
+        }
+
+        //<debug>
+        _debug("creating entry for " + cfg.url);
+        //</debug>
+
+        var boot = cfg.boot || Boot,
+            charset = cfg.charset || boot.config.charset,
+            buster = cfg.buster || ((('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
+                (boot.config.disableCachingParam + '=' + new Date().getTime()));
+
+        _apply(cfg, {
+            boot: boot,
+            charset: charset,
+            buster: buster,
+            requests: []
+        });
+        _apply(this, cfg);
+    };
+    Entry.prototype = {
+        $isEntry: true,
+        done: false,
+        evaluated: false,
+        loaded: false,
+
+        isCrossDomain: function() {
+            var me = this;
+            if(me.crossDomain === undefined) {
+                //<debug>
+                _debug("checking " + me.getLoadUrl() + " for prefix " + Boot.origin);
+                //</debug>
+                me.crossDomain = (me.getLoadUrl().indexOf(Boot.origin) !== 0);
+            }
+            return me.crossDomain;
+        },
+
+        isCss: function () {
+            var me = this;
+            if (me.css === undefined) {
+                me.css = me.url && cssRe.test(me.url);
+            }
+            return this.css;
+        },
+
+        getElement: function (tag) {
+            var me = this,
+                el = me.el;
+            if (!el) {
+                //<debug>
+                _debug("creating element for " + me.url);
+                //</debug>
+                if (me.isCss()) {
+                    tag = tag || "link";
+                    el = doc.createElement(tag);
+                    if(tag == "link") {
+                        el.rel = 'stylesheet';
+                        me.prop = 'href';
+                    } else {
+                        me.prop="textContent";
+                    }
+                    el.type = "text/css";
+                } else {
+                    tag = tag || "script";
+                    el = doc.createElement(tag);
+                    el.type = 'text/javascript';
+                    me.prop = 'src';
+                    if (Boot.hasAsync) {
+                        el.async = false;
+                    }
+                }
+                me.el = el;
+            }
+            return el;
+        },
+
+        getLoadUrl: function () {
+            var me = this,
+                url = Boot.canonicalUrl(me.url);
+            if (!me.loadUrl) {
+                me.loadUrl = !!me.buster
+                    ? (url + (url.indexOf('?') === -1 ? '?' : '&') + me.buster)
+                    : url;
+            }
+            return me.loadUrl;
+        },
+
+        fetch: function (req) {
+            var url = this.getLoadUrl(),
+                async = !!req.async,
+                xhr = new XMLHttpRequest(),
+                complete = req.complete,
+                status, content, exception = false,
+                readyStateChange = function () {
+                    if (xhr && xhr.readyState == 4) {
+                        if (complete) {
+                            status = (xhr.status === 1223) ? 204 :
+                                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
+                                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
+                            content = xhr.responseText;
+                            complete({
+                                content: content,
+                                status: status,
+                                exception: exception
+                            });
+                        }
+                        xhr = null;
+                    }
+                };
+
+            async = !!async;
+
+            if(async) {
+                xhr.onreadystatechange = readyStateChange;
+            }
+
+            try {
+                //<debug>
+                _debug("fetching " + url + " " + (async ? "async" : "sync"));
+                //</debug>
+                xhr.open('GET', url, async);
+                xhr.send(null);
+            } catch (err) {
+                exception = err;
+                readyStateChange();
+            }
+
+            if(!async) {
+                readyStateChange();
+            }
+        },
+
+        onContentLoaded: function (response) {
+            var me = this,
+                status = response.status,
+                content = response.content,
+                exception = response.exception,
+                url = this.getLoadUrl();
+            me.loaded = true;
+            if ((exception || status === 0) && !_environment.phantom) {
+                me.error =
+                    //<debug>
+                    ("Failed loading synchronously via XHR: '" + url +
+                        "'. It's likely that the file is either being loaded from a " +
+                        "different domain or from the local file system where cross " +
+                        "origin requests are not allowed for security reasons. Try " +
+                        "asynchronous loading instead.") ||
+                    //</debug>
+                    true;
+                me.evaluated = true;
+            }
+            else if ((status >= 200 && status < 300) || status === 304
+                || _environment.phantom
+                || (status === 0 && content.length > 0)
+                ) {
+                me.content = content;
+            }
+            else {
+                me.error =
+                    //<debug>
+                    ("Failed loading synchronously via XHR: '" + url +
+                        "'. Please verify that the file exists. XHR status code: " +
+                        status) ||
+                    //</debug>
+                    true;
+                me.evaluated = true;
+            }
+        },
+
+        createLoadElement: function(callback) {
+            var me = this,
+                el = me.getElement(),
+                readyStateChange = function(){
+                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
+                        if(callback) {
+                            callback();
+                        }
+                    }
+                },
+                errorFn = function() {
+                    me.error = true;
+                    if(callback) {
+                        callback();
+                    }
+                };
+            me.preserve = true;
+            el.onerror = errorFn;
+            if(Boot.hasReadyState) {
+                el.onreadystatechange = readyStateChange;
+            } else {
+                el.onload = callback;
+            }
+            // IE starts loading here
+            el[me.prop] = me.getLoadUrl();
+        },
+
+        onLoadElementReady: function() {
+            Boot.getHead().appendChild(this.getElement());
+            this.evaluated = true;
+        },
+
+        inject: function (content, asset) {
+            //<debug>
+            _debug("injecting content for " + this.url);
+            //</debug>
+            var me = this,
+                head = Boot.getHead(),
+                url = me.url,
+                key = me.key,
+                base, el, ieMode, basePath;
+
+            if (me.isCss()) {
+                me.preserve = true;
+                basePath = key.substring(0, key.lastIndexOf("/") + 1);
                 base = doc.createElement('base');
-                base.href = key.replace(pathTailRe, '/');
+                base.href = basePath;
+                if(head.firstChild) {
+                    head.insertBefore(base, head.firstChild);
+                } else {
+                    head.appendChild(base);
+                }
+                // reset the href attribute to cuase IE to pick up the change
+                base.href = base.href;
+
+                if (url) {
+                    content += "\n/*# sourceURL=" + key + " */";
+                }
+
+                // create element after setting base
+                el = me.getElement("style");
+
+                ieMode = ('styleSheet' in el);
+
                 head.appendChild(base);
-                head.appendChild(el);
+                if(ieMode) {
+                    head.appendChild(el);
+                    el.styleSheet.cssText = content;
+                } else {
+                    el.textContent = content;
+                    head.appendChild(el);
+                }
                 head.removeChild(base);
+
             } else {
                 // Debugger friendly, file names are still shown even though they're 
                 // eval'ed code. Breakpoints work on both Firebug and Chrome's Web
@@ -306,533 +1215,146 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
                 }
                 Ext.globalEval(content);
             }
+            return me;
+        },
 
-            entry = _items[key] || (_items[key] = {
-                key: key,
-                css: css,
-                url: url,
-                el: el
+        loadCrossDomain: function() {
+            var me = this,
+                complete = function(){
+                    me.loaded = me.evaluated = me.done = true;
+                    me.notifyRequests();
+                };
+            if(me.isCss()) {
+                me.createLoadElement();
+                me.evaluateLoadElement();
+                complete();
+            } else {
+                me.createLoadElement(function(){
+                    complete();
+                });
+                me.evaluateLoadElement();
+                // at this point, we need sequential evaluation, 
+                // which means we can't advance the load until
+                // this entry has fully completed
+                return false;
+            }
+            return true;
+        },
+
+        loadSync: function() {
+            var me = this;
+            me.fetch({
+                async: false,
+                complete: function (response) {
+                    me.onContentLoaded(response);
+                }
             });
-            entry.done = true;
-            return entry;
+            me.evaluate();
+            me.notifyRequests();
         },
 
-        /*
-         * This method loads the specified scripts or CSS files and calls either the
-         * given `success` callback when all of the files have successfully loaded or the
-         * `failure` callback should any fail to load.
-         *
-         *      Ext.Boot.load({
-         *          url: 'http://foo.com/bar/Thing.js',
-         *          
-         *          success: function () {
-         *          },
-         *          
-         *          failure: function () {
-         *          },
-         *          
-         *          scope: this
-         *      });
-         *
-         *      Ext.Boot.load({
-         *          url: [
-         *              'http://foo.com/bar/baz/Goo.js',
-         *              'http://foo.com/bar/Thing.js'
-         *          ],
-         *          charset: 'utf-8',
-         *          cache: false, // add "cache buster"
-         *          
-         *          success: function () {
-         *          },
-         *          
-         *          failure: function () {
-         *          },
-         *          
-         *          scope: this,
-         *          prependBaseUrl: false
-         *      });
-         *
-         * @param {Object} request The load request object. **IMPORTANT:** This object
-         * should not be reused by the caller as it is used to track the given callbacks
-         * until the script loads.
-         *
-         * @param {Boolean} [request.cache] An override for the cache busting specified by
-         * for the script. Overrides the `disableCaching` value passed to `setConfig`.
-         *
-         * @param {String} [request.charset] The charset for the script. Overrides the
-         * default `charset` passed to `setConfig`.
-         *
-         * @param {Boolean} [request.sync=false] Pass `true` to load scripts synchronously.
-         *
-         * @param {Function} request.success The function to execute once the script node
-         * loads. For IE less than version 9, this function will only once the readyState
-         * is `loaded` or `complete`.
-         *
-         * @param {Function} request.failure The function to execute if the script node
-         * fails to load such as a 404 status is returned.
-         *
-         * @param {Object} [request.scope] The scope with which to call the `success` and
-         * `failure` functions.
-         *
-         * @param {Object} [request.sequential] Load in strict order.
-         *
-         * @param {boolean} [request.prependBaseUrl] whether to prepend Ext.Boot.baseUrl
-         * to the beginning of each url of the request
-         *
-         * @return {Ext.Boot} this
-         */
-        load: function (request) {
-            if (request.sync || _syncMode) {
-                return this.loadSync(request);
-            }
-
-            // Allow a raw array of paths to be passed.
-            if (!request.url) {
-                request = {
-                    url: request
-                };
-            }
-
-            // If there is a request in progress, we must
-            // queue this new request to be fired  when the current request completes.
-            if (_currentRequest) {
-                _suspendedQueue.push(request);
-            } else {
-                Boot.expandLoadOrder(request);
-
-                var url = request.url,
-                    urls = url.charAt ? [ url ] : url,
-                    length = urls.length,
-                    i;
-
-                // Start the counter here. This is reduced as we notify this fellow of script
-                // loads.
-                request.urls = urls;
-                request.loaded = 0;
-                request.loading = length;
-                request.charset = request.charset || _config.charset;
-                request.buster = (('cache' in request) ? !request.cache : _config.disableCaching) &&
-                    (_config.disableCachingParam + '=' + (+new Date()));
-
-                _currentRequest = request;
-                request.sequential = false;
-
-                for (i = 0; i < length; ++i) {
-                    Boot.loadUrl(urls[i], request);
+        load: function (sync) {
+            var me = this;
+            if (!me.loaded) {
+                if(me.loading) {
+                    // if we're calling back through load and we're loading but haven't 
+                    // yet loaded, then we should be in a sequential, cross domain 
+                    // load scenario which means we can't continue the load on the 
+                    // request until this entry has fully evaluated, which will mean
+                    // loaded = evaluated = done = true in one step.  For css files, this
+                    // will happen immediately upon <link> element creation / insertion, 
+                    // but <script> elements will set this upon load notification
+                    return false;
                 }
-            }
+                me.loading = true;
 
-            return this;
-        },
+                // for async modes, we have some options 
+                if (!sync) {
+                    // if cross domain, just inject the script tag and let the onload
+                    // events drive the progression
+                    if(me.isCrossDomain()) {
+                        return me.loadCrossDomain();
+                    }
+                    // for IE, use the readyStateChange allows us to load scripts in parallel
+                    // but serialize the evaluation by appending the script node to the 
+                    // document
+                    else if(!me.isCss() && Boot.hasReadyState) {
+                        me.createLoadElement(function () {
+                            me.loaded = true;
+                            me.notifyRequests();
+                        });
+                    }
 
-        loadUrl: function(url, request) {
-            var entry,
-                buster = request.buster,
-                charset = request.charset,
-                head = Boot.getHead(),
-                el, key;
-
-            if (request.prependBaseUrl) {
-                url = Boot.baseUrl + url;
-            }
-
-            if (request.sequential) {
-                Boot.currentFile = url;
-            } else {
-                Boot.currentFile = null;
-            }
-
-            key = Boot.canonicalUrl(url);
-            if (!(entry = _items[key])) {
-                // we're creating a new entry;
-                _entries++;
-
-                // Not already loaded or loading, so we need to create a new script
-                // element and tracking entry.
-                entry = Boot.create(url, key);
-                el = entry.el;
-                if (!entry.css && charset) {
-                    el.charset = charset;
-                }
-                entry.requests = [request];
-
-                Boot.watch(entry);
-
-                if (buster) {
-                    // Check for the presence of a querystring.
-                    url += (url.indexOf('?') === -1 ? '?' : '&') + buster;
-                }
-
-                if(!Boot.hasAsync && !entry.css) {
-                    entry.loaded = false;
-                    entry.evaluated = false;
-
-                    var onLoadWas,
-                        newOnLoad = function() {
-                            entry.loaded = true;
-                            var rurls = request.urls,
-                                rlen = rurls.length, r, e, k;
-                            for(r = 0; r < rlen; r++) {
-                                k = Boot.canonicalUrl(rurls[r]);
-                                e = _items[k];
-                                if(e) {
-                                    if(!e.loaded) {
-                                        return;
-                                    } else if(!e.evaluated) {
-                                        head.appendChild(e.el);
-                                        e.evaluated = true;
-                                        e.onLoadWas.apply(e.el, arguments);
-                                    }
-                                }
+                    // for other browsers, just ajax the content down in parallel, and use
+                    // globalEval to serialize evaluation
+                    else {
+                        me.fetch({
+                            async: !sync,
+                            complete: function (response) {
+                                me.onContentLoaded(response);
+                                me.notifyRequests();
                             }
-                        };
-                    /*
-                     * When available (IE9m), we need to use the onreadystatechange / readyState
-                     * mechanism to monitor script load and cause script evaluation by appending 
-                     * elements to the document.  Modern browsers use the onload mechanism.
-                     */
-                    if (!('readyState' in el)) {
-                        onLoadWas = el.onload;
-                        el.onload = newOnLoad;
-                    } else {
-                        // IE9m Compatability
-                        onLoadWas = el.onreadystatechange;
-                        el.onreadystatechange = function() {
-                            if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                                newOnLoad.apply(this, arguments);
-                            }
-                        };
-                    }
-
-                    entry.onLoadWas = onLoadWas;
-                    el[entry.prop] = url; // IE starts loading scripts here  
-                } else {
-                    el[entry.prop] = url; // IE starts loading scripts here  
-                    head.appendChild(el); // others start loading here
-                }
-            }
-            else if (entry.done) {
-                Boot.notify(entry, request);
-            }
-            // If the script is already in the document, we must assume we are here
-            // because whatever was in the script seemed to be not present... which
-            // should mean that the script is loading at this time. Sadly, only IE
-            // and its readyState property can tell us the truth of the matter. In
-            // standards browsers we have no way to know.
-            else if (entry.requests) {
-                entry.requests.push(request);
-            }
-            else {
-                entry.requests = [ request ];
-            }
-        },
-
-        loadSequential: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                }
-            }
-            request.sequential = true;
-            Boot.load(request);
-        },
-
-        loadSequentialBasePrefix: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                };
-            }
-            request.prependBaseUrl = true;
-            Boot.loadSequential(request);
-        },
-
-        fetchSync: function(url) {
-            var exception, xhr, status, content;
-
-            exception = false;
-            xhr = new XMLHttpRequest();
-
-            try {
-                xhr.open('GET', url, false);
-                xhr.send(null);
-            } catch (e) {
-                exception = true;
-            }
-
-            status = (xhr.status === 1223) ? 204 :
-                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
-                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
-            content = xhr.responseText;
-
-            xhr = null; // Prevent potential IE memory leak
-
-            return {
-                content: content,
-                exception: exception,
-                status: status
-            };
-
-
-        },
-
-        /*
-         * Performs the load of scripts synchronously.
-         * @param {type} request
-         * @return {Ext.Boot} this
-         * @private
-         */
-        loadSync: function (request) {
-            _syncMode++;
-            var request = Boot.expandLoadOrder(request.url ? request : {url: request}),
-                url = request.url,
-                urls = url.charAt ? [ url ] : url,
-                length = urls.length,
-                buster = _config.disableCaching &&
-                    ('?' + _config.disableCachingParam + '=' + (+new Date())),
-                content, entry, i, key, status, exception;
-
-            // Start the counter here. This is reduced as we notify this fellow of script
-            // loads.
-            request.loading = length;
-            request.urls = urls;
-            request.loaded = 0;
-
-            // create a pseudo entry value to keep the listeners from firing until
-            // after the loop is complete
-            _entries++;
-
-            for (i = 0; i < length; ++i) {
-                url = urls[i];
-                if (request.prependBaseUrl) {
-                    url = Boot.baseUrl + url;
-                }
-                Boot.currentFile = url;
-
-                key = Boot.canonicalUrl(url);
-                if (!(entry = _items[key])) {
-                    // we're creating a new entry
-                    _entries++;
-
-                    _items[key] = entry = {
-                        key: key,
-                        url: url,
-                        done: false,
-                        requests: [request],
-                        el: null
-                    };
-                } else {
-                    // We already have a script tag for this URL... if it is still loading
-                    // we need to boot it out and load synchronously.
-                    if (entry.done) {
-                        Boot.notify(entry, request);
-                        continue;
-                    }
-                    if (entry.el) {
-                        entry.preserve = false;
-                        Boot.cleanup(entry);
-                    }
-
-                    if (entry.requests) {
-                        entry.requests.push(request);
-                    } else {
-                        entry.requests = [request];
+                        });
                     }
                 }
 
-                entry.sync = true;
-
-                if (buster) {
-                    url += buster;
-                }
-
-                ++Boot.loading;
-
-
-                content = Boot.fetchSync(url);
-                entry.done = true;
-
-                exception = content.exception;
-                status = content.status;
-                content = content.content || '';
-
-                if ((exception || status === 0) && !_environment.phantom) {
-                    entry.error =
-                        //<debug>
-                        ("Failed loading synchronously via XHR: '" + url +
-                            "'. It's likely that the file is either being loaded from a " +
-                            "different domain or from the local file system where cross " +
-                            "origin requests are not allowed for security reasons. Try " +
-                            "asynchronous loading instead.") ||
-                            //</debug>
-                            true;
-                }
-                else if ((status >= 200 && status < 300) || status === 304
-                    || _environment.phantom
-                    || (status === 0 && content.length > 0)
-                    ) {
-                    Boot.inject(content, url);
-                }
+                // for sync mode in js, global eval FTW.  IE won't honor the comment
+                // paths in the debugger, so eventually we need a sync mode for IE that
+                // uses the readyStateChange mechanism
                 else {
-                    entry.error =
-                        //<debug>
-                        ("Failed loading synchronously via XHR: '" + url +
-                            "'. Please verify that the file exists. XHR status code: " +
-                            status) ||
-                            //</debug>
-                            true;
+                    me.loadSync();
                 }
-
-                Boot.notifyAll(entry);
             }
-            _syncMode--;
-
-            // once the loop is complete, we can attempt to fire any pending listeners
-            _entries--;
-            Boot.fireListeners();
-            Boot.currentFile = null;
-            return this;
+            // signal that the load process can continue
+            return true;
         },
 
-        loadSyncBasePrefix: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                };
-            }
-            request.prependBaseUrl = true;
-            Boot.loadSync(request);
+        evaluateContent: function () {
+            this.inject(this.content);
+            this.content = null;
         },
 
-        notify: function (entry, request) {
-            if (request.preserve) {
-                // If one listener explicitly passes preserve:true we honor it.
-                entry.preserve = true;
-            }
+        evaluateLoadElement: function() {
+            Boot.getHead().appendChild(this.getElement());
+        },
 
-            ++request.loaded;
-
-            //<debug>
-            if (!request.loading) {
-                throw new Error('Unexpected script load notification ' + entry.url);
-            }
-            //</debug>
-
-            if (entry.error) {
-                (request.errors || (request.errors = [])).push(entry);
-            }
-
-            if (! --request.loading) {
-                // There is no current request, new load calls can go ahead.
-                _currentRequest = null;
-
-                var errors = request.errors,
-                    fn = request[errors ? 'failure' : 'success'],
-                    delay = ('delay' in request) ? request.delay :
-                        (errors ? 1 : _config.chainDelay),
-                    scope = request.scope || request;
-
-                // If there were queued requests which arrived during the time this request was processing
-                // Fire them off now.
-                if (_suspendedQueue.length) {
-                    Boot.load(_suspendedQueue.shift());
+        evaluate: function () {
+            var me = this;
+            if(!me.evaluated) {
+                if(me.evaluating) {
+                    return;
                 }
-
-                if (fn) {
-                    if (delay === 0 || delay > 0) {
-                        // Free the stack (and defer the next script)
-                        setTimeout(function() {
-                            fn.call(scope, request);
-                        }, delay);
-                    } else {
-                        fn.call(scope, request);
-                    }
+                me.evaluating = true;
+                if(me.content !== undefined) {
+                    me.evaluateContent();
+                } else if(!me.error) {
+                    me.evaluateLoadElement();
                 }
-
-            } else if (!_syncMode && request.sequential && (request.loaded < request.urls.length)) {
-                Boot.loadUrl(request.urls[request.loaded], request);
+                me.evaluated = me.done = true;
+                me.cleanup();
             }
-        },
-
-        notifyAll: function (entry) {
-            var requests = entry.requests,
-                length = requests && requests.length,
-                i;
-
-            entry.done = true;
-            entry.requests = null;
-            --Boot.loading;
-            ++Boot.loaded;
-
-            for (i = 0; i < length; ++i) {
-                Boot.notify(entry, requests[i]);
-            }
-
-            if (!length) {
-                entry.preserve = true;
-            }
-
-            Boot.cleanup(entry);
-            _entries--;
-            Boot.fireListeners();
-        },
-
-        watch: function (entry) {
-            var el = entry.el,
-                requests = entry.requests,
-                listener = requests && requests[0],
-                onLoadFn = function () {
-                    if (!entry.done) {
-                        Boot.notifyAll(entry);
-                    }
-                };
-
-            el.onerror = function () {
-                entry.error = true;
-                Boot.notifyAll(entry);
-            };
-
-            entry.preserve = (listener && ('preserve' in listener))
-                ? listener.preserve : _config.preserveScripts;
-
-            /*
-             * When available (IE9m), we need to use the onreadystatechange / readyState
-             * mechanism to monitor script load and cause script evaluation by appending 
-             * elements to the document.  Modern browsers use the onload mechanism.
-             */
-            if (!('readyState' in el)) {
-                el.onload = onLoadFn;
-            } else {
-                // IE9m Compatability
-                el.onreadystatechange = function() {
-                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                        onLoadFn();
-                    }
-                };
-            }
-
-            ++Boot.loading;
         },
 
         /*
          * @private
          */
-        cleanup: function (entry) {
-            var el = entry.el,
+        cleanup: function () {
+            var me = this,
+                el = me.el,
                 prop;
 
-            if(!el) {
+            if (!el) {
                 return;
             }
 
-            if (!entry.preserve) {
-                entry.el = null;
+            if (!me.preserve) {
+                me.el = null;
 
                 el.parentNode.removeChild(el); // Remove, since its useless now
 
                 for (prop in el) {
                     try {
-                        if (prop !== entry.prop) {
+                        if (prop !== me.prop) {
                             // If we set the src property to null IE
                             // will try and request a script at './null'
                             el[prop] = null;
@@ -850,202 +1372,40 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
             el.onload = el.onerror = el.onreadystatechange = emptyFn;
         },
 
+        notifyRequests: function () {
+            var requests = this.requests,
+                len = requests.length,
+                i, request;
+            for (i = 0; i < len; i++) {
+                request = requests[i];
+                request.processLoadedEntries();
+            }
+            if(this.done) {
+                this.fireListeners();
+            }
+        },
+
+        onDone: function(listener) {
+            var me = this,
+                listeners = me.listeners || (me.listeners = []);
+            if(me.done) {
+                listener(me);
+            } else {
+                listeners.push(listener);
+            }
+        },
+
         fireListeners: function() {
-            var listener;
-            while(!_entries && (listener = _listeners.shift())) {
-                listener();
-            }
-        },
-
-        onBootReady: function(listener) {
-            if (!_entries) {
-                listener();
-            } else {
-                _listeners.push(listener);
-            }
-        },
-
-        /*
-         * @private
-         * @param manifest
-         * @returns {*}
-         */
-        createLoadOrderMap: function(loadOrder) {
-            var len = loadOrder.length,
-                loadOrderMap = {},
-                i, element;
-
-            for(i = 0; i < len; i++) {
-                element = loadOrder[i];
-                loadOrderMap[element.path] = element;
-            }
-
-            return loadOrderMap;
-        },
-
-        /*
-         * @private
-         * @param index
-         * @param indexMap
-         * @returns {{}}
-         */
-        getLoadIndexes: function(index, indexMap, loadOrder, includeUses, skipLoaded) {
-            var item = loadOrder[index],
-                len, i, reqs, key, entry, stop, added, idx, ridx;
-
-            if(indexMap[index]) {
-                // prevent cycles
-                return indexMap;
-            }
-
-            indexMap[index] = true;
-
-            stop = false;
-            while(!stop) {
-                added = false;
-
-                // iterate the requirements for each index and 
-                // accumulate in the index map
-                for(idx in indexMap) {
-                    if(indexMap.hasOwnProperty(idx)) {
-                        item = loadOrder[idx];
-                        if(!item) {
-                            continue;
-                        }
-                        key = Boot.canonicalUrl(item.path);
-                        entry = _items[key];
-                        if(!skipLoaded || !entry || !entry.done) {
-                            reqs = item.requires;
-                            if(includeUses && item.uses) {
-                                reqs = reqs.concat(item.uses);
-                            }
-                            for(len = reqs.length, i = 0; i < len; i++) {
-                                ridx = reqs[i];
-                                // if we find a requirement that wasn't 
-                                // already in the index map, 
-                                // set the added flag to indicate we need to 
-                                // reprocess
-                                if(!indexMap[ridx]) {
-                                    indexMap[ridx] = true;
-                                    added = true;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // if we made a pass through the index map and didn't add anything
-                // then we can stop
-                if(!added) {
-                    stop = true;
+            var listeners = this.listeners,
+                listener;
+            if(listeners && listeners.length > 0) {
+                //<debug>
+                _debug("firing event listeners for url " + this.url);
+                //</debug>
+                while((listener = listeners.shift())) {
+                    listener(this);
                 }
             }
-
-            return indexMap;
-        },
-
-        getPathsFromIndexes: function(indexMap, loadOrder) {
-            var indexes = [],
-                paths = [],
-                index, len, i;
-
-            for(index in indexMap) {
-                if(indexMap.hasOwnProperty(index) && indexMap[index]) {
-                    indexes.push(index);
-                }
-            }
-
-            indexes.sort(function(a, b){
-                return a-b;
-            });
-
-            // convert indexes back into load paths
-            for (len = indexes.length, i = 0; i < len; i++) {
-                paths.push(loadOrder[indexes[i]].path);
-            }
-
-            return paths;
-        },
-
-        /*
-         * @private
-         * @param url
-         * @returns {Array}
-         */
-        expandUrl: function(url, loadOrder, loadOrderMap, indexMap, includeUses, skipLoaded) {
-            if(typeof url == 'string') {
-                url = [url];
-            }
-
-            if(loadOrder) {
-                loadOrderMap = loadOrderMap || Boot.createLoadOrderMap(loadOrder);
-                indexMap = indexMap || {};
-                var len = url.length,
-                    unmapped = [],
-                    i, item;
-
-                for(i = 0; i < len; i++) {
-                    item = loadOrderMap[url[i]];
-                    if(item) {
-                        Boot.getLoadIndexes(item.idx, indexMap, loadOrder, includeUses, skipLoaded);
-                    } else {
-                        unmapped.push(url[i]);
-                    }
-                }
-
-
-
-                return Boot.getPathsFromIndexes(indexMap, loadOrder).concat(unmapped);
-            }
-            return url;
-        },
-
-        expandUrls: function(urls, loadOrder, loadOrderMap, includeUses) {
-            if(typeof urls == "string") {
-                urls = [urls];
-            }
-
-            var expanded = [],
-                len = urls.length,
-                i;
-
-            for(i = 0; i < len; i++) {
-                expanded = expanded.concat(
-                    Boot.expandUrl(urls[i], loadOrder, loadOrderMap, {}, includeUses, true));
-            }
-
-            if(expanded.length == 0) {
-                expanded = urls;
-            }
-
-            return expanded;
-        },
-
-        /*
-         * @private
-         */
-        expandLoadOrder: function(request) {
-            var urls = request.url,
-                loadOrder = request.loadOrder,
-                loadOrderMap = request.loadOrderMap,
-                expanded;
-
-            if(!request.expanded) {
-                expanded = Boot.expandUrls(urls, loadOrder, loadOrderMap);
-                request.expanded = true;
-            } else {
-                expanded = urls;
-            }
-
-            request.url = expanded;
-
-            // if we added some urls to the request to honor the indicated
-            // load order, the request needs to be sequential
-            if(urls.length != expanded.length) {
-                request.sequential = true;
-            }
-
-            return request;
         }
     };
 
@@ -1059,19 +1419,19 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
      */
     Ext.disableCacheBuster = function (disable, path) {
         var date = new Date();
-        date.setTime(date.getTime() + (disable ? 10*365 : -1) * 24*60*60*1000);
+        date.setTime(date.getTime() + (disable ? 10 * 365 : -1) * 24 * 60 * 60 * 1000);
         date = date.toGMTString();
-        doc.cookie = 'ext-cache=1; expires=' + date + '; path='+(path || '/');
+        doc.cookie = 'ext-cache=1; expires=' + date + '; path=' + (path || '/');
     };
 
 //<if nonBrowser>
     if (_environment.node) {
-        Boot.load = Boot.loadSync = function (request) {
+        Boot.prototype.load = Boot.prototype.loadSync = function (request) {
             // @TODO
             require(filePath);
             onLoad.call(scope);
         };
-        Boot.init = emptyFn;
+        Boot.prototype.init = emptyFn;
     }
 //</if>
 
@@ -1080,30 +1440,19 @@ Ext.Boot = Ext.Boot || (function (emptyFn) {
 
 // NOTE: We run the eval at global scope to protect the body of the function and allow
 // compressors to still process it.
-}(function() {}));//(eval("/*@cc_on!@*/!1"));
+}(function () {
+}));//(eval("/*@cc_on!@*/!1"));
 
 /*
- * This method evaluates the given code free of any local variable. In some browsers this
+ * This method evaluates the given code free of any local variable. This
  * will be at global scope, in others it will be in a function.
  * @parma {String} code The code to evaluate.
  * @private
  * @method
  */
-Ext.globalEval = this.execScript
-    ? function(code) {
-    execScript(code);
-}
-    : function($$code) {
-    // IMPORTANT: because we use eval we cannot place this in the above function or it
-    // will break the compressor's ability to rename local variables...
-    (function(){
-        // This var should not be replaced by the compressor. We need to do this so
-        // that Ext refers to the global Ext, if we're sandboxing it may
-        // refer to the local instance inside the closure
-        var Ext = this.Ext;
-        eval($$code);
-    }());
-};
+Ext.globalEval = Ext.globalEval || (this.execScript
+    ? function (code) { execScript(code); }
+    : function ($$code) { eval.call(window, $$code); });
 
 //<feature legacyBrowser>
 /*

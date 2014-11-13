@@ -12,7 +12,8 @@ Ext.define('KitchenSink.view.charts.column.Column3D', {
         'Ext.chart.axis.Numeric',
         'Ext.draw.modifier.Highlight',
         'Ext.chart.axis.Time',
-        'Ext.chart.interactions.ItemHighlight'
+        'Ext.chart.interactions.ItemHighlight',
+        'Ext.chart.theme.*'
     ],
 
     layout: 'fit',
@@ -32,17 +33,23 @@ Ext.define('KitchenSink.view.charts.column.Column3D', {
         {
             text: 'Switch Theme',
             handler: function () {
-                var panel = this.ownerCt.ownerCt,
-                    chart = Ext.ComponentQuery.query('cartesian', panel)[0],
+                var panel = this.up().up(),
+                    chart = panel.down('cartesian'),
+                    currentThemeClass = Ext.getClassName(chart.getTheme()),
                     themes = Ext.chart.theme,
-                    themeNames = [], name, currentIndex;
+                    themeNames = [],
+                    currentIndex = 0,
+                    name;
+
                 for (name in themes) {
-                    if (name != 'Theme') {
+                    if (Ext.getClassName(themes[name]) === currentThemeClass) {
+                        currentIndex = themeNames.length;
+                    }
+                    if (name !== 'Base' && name.indexOf('Gradients') < 0) {
                         themeNames.push(name);
                     }
                 }
-                currentIndex = Ext.Array.indexOf(themeNames, chart.getTheme());
-                chart.setTheme(themeNames[(currentIndex + 1) % themeNames.length]);
+                chart.setTheme(themes[themeNames[++currentIndex % themeNames.length]]);
                 chart.redraw();
             }
         }
@@ -114,7 +121,8 @@ Ext.define('KitchenSink.view.charts.touch.ColumnSprite3D', {
     inheritableStatics: {
         def: {
             defaults: {
-                transformFillStroke: true
+                transformFillStroke: true,
+                lineJoin: 'bevel'
             }
         }
     },
@@ -126,9 +134,12 @@ Ext.define('KitchenSink.view.charts.touch.ColumnSprite3D', {
             center = (left + right) / 2,
             barWidth = (right - left) * 0.33333,
             depthWidth = barWidth * 0.5,
-            color = Ext.draw.Color.create(attr.fillStyle),
-            darkerColor = color.createDarker(0.05),
-            lighterColor = color.createLighter(0.25);
+            fill = attr.fillStyle,
+            color, darkerColor, lighterColor;
+
+        color = Ext.draw.Color.create(fill.isGradient ? fill.getStops()[0].color : fill),
+        darkerColor = color.createDarker(0.05),
+        lighterColor = color.createLighter(0.25);
 
         // top
         ctx.beginPath();
@@ -157,8 +168,7 @@ Ext.define('KitchenSink.view.charts.touch.ColumnSprite3D', {
         ctx.lineTo(center + barWidth, top);
         ctx.lineTo(center + barWidth, bottom);
         ctx.lineTo(center - barWidth, bottom);
-        ctx.fillStyle = darkerColor.toString();
-        ctx.fillStyle = color.toString();
+        ctx.fillStyle = fill.isGradient ? fill : color.toString();
         ctx.fillStroke(attr);
     }
 });

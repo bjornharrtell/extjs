@@ -20,26 +20,6 @@ Ext.define('Ext.rtl.dom.Layer', {
         return this.sync();
     },
 
-    rtlSetLocalY: function() {
-        this.callParent(arguments);
-        return this.sync();
-    },
-
-    rtlSetXY: function(xy, animate, duration, callback, easing) {
-        var me = this;
-        
-        // Callback will restore shadow state and call the passed callback
-        callback = me.createCB(callback);
-
-        me.fixDisplay();
-        me.beforeAction();
-        me.callParent([xy, animate, duration, callback, easing]);
-        if (!animate) {
-            callback();
-        }
-        return me;
-    },
-    
     setRtl: function(rtl) {
         var me = this,
             shadow = me.shadow;

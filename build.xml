@@ -43,7 +43,8 @@
                          deployment_workspace/**/*,
                          docs/**/*,
                          release-notes-*,
-						 all-licenses/**/*"/>
+						 all-licenses/**/*
+						 build/temp/**/*"/>
 
         <condition property="repo.dev.mode" value="true">
             <available file="${basedir}/../packages/sencha-core" type="dir"/>
@@ -112,8 +113,8 @@
         <property name="ext.license.name" value="beta"/>
         <property name="version.major" value="5"/>
         <property name="version.minor" value="0"/>
-        <property name="version.build" value="0"/>
-        <property name="version.revision" value="${build.number}"/>
+        <property name="version.patch" value="1"/>
+        <property name="version.build" value="${build.number}"/>
         <property name="version.release" value="${version.major}.${version.minor}.${version.build}"/>
         <property name="version.full" value="${version.release}.${version.revision}"/>
     </target>
@@ -133,11 +134,11 @@
                    key="version.minor"
                    value="${version.minor}"/>
             <entry operation="="
+                   key="version.patch"
+                   value="${version.patch}"/>
+            <entry operation="="
                    key="version.build"
                    value="${version.build}"/>
-            <entry operation="="
-                   key="version.revision"
-                   value="${version.revision}"/>
             <entry operation="="
                    key="version.release"
                    value="${version.release}"/>
@@ -163,6 +164,8 @@
             <entry type="string" key="framework.version" operation="="
                    value="${build.version}"/>
             <entry type="string" key="framework.cmd.version" operation="="
+                   value="${cmd.version}"/>
+            <entry type="string" key="framework.cmd.minver" operation="="
                    value="${cmd.version}"/>
         </x-property-file>
     </target>
@@ -242,13 +245,15 @@
         <!--
         Lay down the file header so we can append the rest from the compiler.
         -->
-        <for list="ext,ext-all,ext-all-rtl,ext-all-sandbox,ext-all-rtl-sandbox"
+        <for list="ext,ext-all,ext-all-rtl"
              param="file">
             <sequential>
                 <for list=".js,-debug.js" param="sfx">
                     <sequential>
-                        <copy file="${package.licenses.dir}/file-header.js"
-                              tofile="${build.dir}/@{file}@{sfx}" overwrite="true"/>
+                        <concat destfile="${build.dir}/@{file}@{sfx}" overwrite="true">
+                            <fileset file="${package.licenses.dir}/file-header.js"/>
+                            <fileset file="${package.config.dir}/Boot.js"/>
+                        </concat>
                     </sequential>
                 </for>
             </sequential>
@@ -289,7 +294,7 @@ var Ext = Ext || {};
         ]]></property>
 
         <property name="build.compress"><![CDATA[
-             +yui
+             #+yui
         ]]></property>
 
         <!--
@@ -337,12 +342,6 @@ var Ext = Ext || {};
                         ${concat.options}
                         -output-file=${build.dir}/ext-all-rtl-debug.js
                     and
-                    concatenate
-                        +append
-                        ${concat.options}
-                        -sandbox=Ext4:x4-
-                        -output-file=${build.dir}/ext-all-rtl-sandbox-debug.js
-                    and
 
 
                     exclude
@@ -353,12 +352,6 @@ var Ext = Ext || {};
                         +append
                         ${concat.options}
                         -output-file=${build.dir}/ext-all-debug.js
-                    and
-                    concatenate
-                        +append
-                        ${concat.options}
-                        -sandbox=Ext4:x4-
-                        -output-file=${build.dir}/ext-all-sandbox-debug.js
                     and
 
                     exclude
@@ -372,17 +365,32 @@ var Ext = Ext || {};
                         +bootRelative
                         -output-file=${build.dir}/ext-debug.js
                     and
+                    metadata
+                        -tpl=({0});
+                        -info=AppManifest
+                        -basePath=${build.dir}
+                        +append
+                        +bootRelative
+                        -output-file=${build.dir}/ext.js
+                    and
+                    
                     restore
                         corefiles
                     and
+                    
                     concatenate
                         +append
                         ${concat.options}
                         -output-file=${build.dir}/ext-debug.js
                     and
-            
+                    concatenate
+                        +append
+                        ${concat.options}
+                        ${build.compress}
+                        -output-file=${build.dir}/ext.js
+                    and
+                    
                 # Optimize and compress the builds
-            
                 -options=debug:false
                     restore
                         allfiles
@@ -397,14 +405,7 @@ var Ext = Ext || {};
                         ${build.compress}
                         -output-file=${build.dir}/ext-all-rtl.js
                     and
-                    concatenate
-                        +append
-                        ${concat.options}
-                        ${build.compress}
-                        -sandbox=Ext4:x4-
-                        -output-file=${build.dir}/ext-all-rtl-sandbox.js
-                    and
-            
+
                     exclude
                         -namespace=Ext.rtl
                     and
@@ -414,42 +415,60 @@ var Ext = Ext || {};
                         ${build.compress}
                         -output-file=${build.dir}/ext-all.js
                     and
-                    concatenate
-                        +append
-                        ${concat.options}
-                        ${build.compress}
-                        -sandbox=Ext4:x4-
-                        -output-file=${build.dir}/ext-all-sandbox.js
-                    and
-            
-            
-                    exclude
-                        -set=corefiles
-                    and
-                    metadata
-                        -tpl=({0});
-                        -info=AppManifest
-                        -basePath=${build.dir}
-                        +append
-                        +bootRelative
-                        -output-file=${build.dir}/ext.js
-                    and
-                    restore
-                        corefiles
-                    and
-                    concatenate
-                        +append
-                        ${concat.options}
-                        ${build.compress}
-                        -output-file=${build.dir}/ext.js
             ]]>
         </x-compile>
+
+        <!--
+        Ext JS is distrubted under GPL and Commercial licenses as well as a Beta license.
+        This target allows the package build to be leveraged while swapping out the files
+        with license information.
+        -->
+        <x-git-current-hash property="git.current.hash"/>
+
+        <property name="ext.license"  value="${package.licenses.dir}/beta"/>
+
+        <!-- Load the appropriate license file header -->
+        <local name="file-header"/>
+        <loadfile property="file-header" srcfile="${ext.license}/file-header.txt">
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </loadfile>
+        
+        <for list="ext,ext-all,ext-all-rtl" param="file">
+            <sequential>
+                <x-compress-js srcfile="${build.dir}/@{file}.js"
+                               header="${file-header}"/>
+            </sequential>
+        </for>
+
     </target>
 
     <target name="-before-js" depends="bootstrap"/>
 
+    <macrodef name="x-sandbox">
+        <attribute name="file"/>
+        <attribute name="outfile" default="@{file}"/>
+        <attribute name="jsPrefix" default="Ext4"/>
+        <attribute name="cssPrefix" default="x4-"/>
+        <sequential>
+            <concat destfile="@{outfile}">
+                <header trimleading="yes" filtering="no">
+                    (function(Ext) {
+                    Ext.sandboxName = '@{jsPrefix}';
+                    Ext.isSandboxed = true;
+                    Ext.buildSettings = { baseCSSPrefix: "@{cssPrefix}", scopeResetCSS: true };
+                </header>
+                <filelist files="@{file}"/>
+                <footer trimleading="yes" filtering="no">
+                    })(this.@{jsPrefix} || (this.@{jsPrefix} = {}));
+                </footer>
+            </concat>
+        </sequential>
+    </macrodef>
+
     <target name="-after-js">
-        <for list="ext-all,ext-all-rtl,ext-all-sandbox,ext-all-rtl-sandbox"
+        <for list="ext-all,ext-all-rtl"
              param="file">
             <sequential>
                 <echo>version.full = ${version.full}</echo>
@@ -475,11 +494,24 @@ var Ext = Ext || {};
             </sequential>
         </for>
 
-        <for list="ext,ext-all,ext-all-rtl,ext-all-sandbox,ext-all-rtl-sandbox"
+        <for list="ext,ext-all,ext-all-rtl"
              param="file">
             <sequential>
                 <x-strip-js srcfile="${build.dir}/@{file}-debug.js"
                             outfile="${build.dir}/@{file}-debug.js"/>
+            </sequential>
+        </for>
+
+        <for list="ext-all,ext-all-rtl" param="file">
+            <sequential>
+                <for list=".js,-debug.js" param="sfx">
+                    <sequential>
+                        <x-sandbox file="${build.dir}/@{file}@{sfx}"
+                                   outfile="${build.dir}/@{file}-sandbox@{sfx}"
+                                   jsPrefix="Ext5"
+                                   cssPrefix="x5-"/>
+                    </sequential>
+                </for>
             </sequential>
         </for>
 
@@ -570,6 +602,39 @@ var Ext = Ext || {};
             upgrade-subpkgs
             upgrade-examples
         </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/../packages/sencha-amf">
+            package
+            upgrade
+        </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/../packages/sencha-charts">
+            package
+            upgrade
+        </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/../packages/sencha-core">
+            package
+            upgrade
+        </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/../packages/sencha-soap">
+            package
+            upgrade
+        </x-sencha-command>
+    </target>
+
+    <target name="charts" depends="init">
+        <x-compile refid="${compiler.ref.id}">
+        <![CDATA[
+            -classpath=${basedir}/../packages/sencha-charts/src-ext,${basedir}/../packages/sencha-charts/src
+            -classpath=${basedir}/../packages/sencha-charts/overrides-ext,${basedir}/../packages/sencha-charts/overrides@overrides
+        ]]>
+        </x-compile>
+    </target>
+
+    <target name="ext-charts" depends="init">
+        <x-compile refid="${compiler.ref.id}">
+        <![CDATA[
+            -classpath=${basedir}/packages/ext-charts/src
+        ]]>
+        </x-compile>
     </target>
 
     <target name="core-bootstrap" depends="init">
@@ -577,6 +642,7 @@ var Ext = Ext || {};
         <property name="base.path" value="${basedir}"/>
 
         <delete file="${package.dir}/bootstrap-manifest.js"/>
+
         <x-compile refid="${compiler.ref.id}">
         <![CDATA[
             include
@@ -595,7 +661,6 @@ var Ext = Ext || {};
                 -output-file=${package.dir}/bootstrap-manifest.js
         ]]>
         </x-compile>
-
 
         <x-bootstrap file="${base.path}/bootstrap.js"
                      basedir="${base.path}"
@@ -769,6 +834,12 @@ Ext.Boot.loadSyncBasePrefix([
         <echo message="Setting up workspace folder"/>
         <echo message="Moving ${package.dir}/deployment_workspace to ${package.dir}/.sencha/workspace"/>
         <move file="${package.dir}/deployment_workspace" tofile="${package.dir}/.sencha/workspace" verbose="true"/>
+        <x-property-file file="${package.dir}/.sencha/package/sencha.cfg">
+            <entry type="string" key="package.subpkgs.repo" operation="="
+                   value="${package.subpkgs}"/>
+            <entry type="string" key="package.subpkgs" operation="="
+                   value="${package.subpkgs},sencha-charts,sencha-soap,sencha-amf"/>
+        </x-property-file>
     </target>
     
     <target name="restore-workspace" depends="init" if="repo.dev.mode">
@@ -784,6 +855,11 @@ Ext.Boot.loadSyncBasePrefix([
         <echo message="Restoring workspace folder"/>
         <echo message="Moving ${package.dir}/.sencha/workspace to ${package.dir}/deployment_workspace"/>
         <move file="${package.dir}/.sencha/workspace" tofile="${package.dir}/deployment_workspace" verbose="true"/>
+        <x-property-file file="${package.dir}/.sencha/package/sencha.cfg">
+            <entry type="string" key="package.subpkgs.repo" operation="del"/>
+            <entry type="string" key="package.subpkgs" operation="="
+                   value="${package.subpkgs}"/>
+        </x-property-file>
     </target>
 
     <target name="zip-impl" depends="init">
@@ -798,7 +874,22 @@ Ext.Boot.loadSyncBasePrefix([
         <zip destfile="${ext.zip}" basedir="${staging.dir}"/>
     </target>
 
-    <target name="zip" depends="normalize-workspace,build,restore-workspace,zip-impl"
+    <target name="-build-extra-subpkgs">
+        <x-sencha-command dir="${package.dir}/packages/sencha-charts" inheritall="false">
+            package
+            build
+        </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/packages/sencha-amf" inheritall="false">
+            package
+            build
+        </x-sencha-command>
+        <x-sencha-command dir="${package.dir}/packages/sencha-soap" inheritall="false">
+            package
+            build
+        </x-sencha-command>
+    </target>
+
+    <target name="zip" depends="normalize-workspace,-build-extra-subpkgs,build,restore-workspace,zip-impl"
             description="Build package and create distribution ZIP file">
     </target>
 
@@ -820,7 +911,7 @@ Ext.Boot.loadSyncBasePrefix([
 
     <target name="quick-build" depends="init,js,prep-build-folder,pkg"/>
 
-    <target name="zip-only" depends="normalize-workspace,quick-build,restore-workspace,zip-impl">
+    <target name="zip-only" depends="normalize-workspace,-build-extra-subpkgs,quick-build,restore-workspace,zip-impl">
     </target>
 
     <!--

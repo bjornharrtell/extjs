@@ -173,12 +173,6 @@ Ext.define('Ext.picker.Time', {
             autoDestroy: true,
             data: times
         });
-    },
-
-    focusNode: function (rec) {
-        // We don't want the view being focused when interacting with the inputEl (see Ext.form.field.ComboBox:onKeyUp)
-        // so this is here to prevent focus of the boundlist view. See EXTJSIV-7319.
-        return false;
     }
 }, function() {
     this.prototype.modelType = Ext.define(null, {

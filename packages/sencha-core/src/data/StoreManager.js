@@ -172,8 +172,9 @@ Ext.define('Ext.data.StoreManager', {
     emptyStore.isEmptyStore = true;
 
     //<debug>
-    emptyStore.add = emptyStore.remove = emptyStore.insert = function () {
-        Ext.Error.raise('Cannot modify ext-empty-store');
-    };
+    emptyStore.add = emptyStore.remove = emptyStore.insert =
+        emptyStore.load = emptyStore.loadData = function () {
+            Ext.Error.raise('Cannot modify ext-empty-store');
+        };
     //</debug>
 });

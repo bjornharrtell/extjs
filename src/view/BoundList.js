@@ -37,9 +37,17 @@ Ext.define('Ext.view.BoundList', {
     shadow: false,
     trackOver: true,
 
+    // This flag indicates to any floaters shown above it that they should focus themselves when taking over topmost position.
+    // ZIndexManager#onCollectionSort decides whether to focus the new front component depending on whether the oldFront
+    // had focusOnToFront set. Even though this class is in fact not focusable.
+    //focusOnToFront: true,
+
     preserveScrollOnRefresh: true,
+    enableInitialSelection: false,
 
     componentLayout: 'boundlist',
+
+    navigationModel: 'boundlist',
 
     autoScroll: true,
 
@@ -99,6 +107,8 @@ Ext.define('Ext.view.BoundList', {
      *
      */
 
+    focusable: false,
+
     initComponent: function() {
         var me = this,
             baseCls = me.baseCls,
@@ -132,6 +142,9 @@ Ext.define('Ext.view.BoundList', {
         }
 
         me.callParent();
+
+        // The dropdown is never focused. Key navigation events flow through the input field.
+        me.getSelectionModel().preventFocus = true;
     },
 
     getRefOwner: function() {

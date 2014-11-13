@@ -35,7 +35,7 @@ Ext.define('Ext.app.bind.Template', {
     stringRe: /^(?:["][^"]*["])$/,
 
     /**
-     * @property {RegExp} re
+     * @property {RegExp} tokenRe
      * Regular expression used to extract tokens.
      *
      * Finds the following expressions within a format string

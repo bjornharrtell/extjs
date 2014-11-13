@@ -29,6 +29,7 @@ Ext.define('Ext.dashboard.Panel', {
     animateClose: true,
 
     loadMask: true,
+    loadMessage: 'Loading...',
 
     minHeight: 90,
 
@@ -68,7 +69,7 @@ Ext.define('Ext.dashboard.Panel', {
         Ext.resumeLayouts(true);
 
         if (closeAction === 'hide') {
-            me.el.setOpacity(1);
+            me.el.setOpacity(0);
         }
     },
 

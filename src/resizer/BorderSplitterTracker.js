@@ -28,7 +28,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
             bottom = box.bottom,
             size = splitter.vertical ? (right - left) : (bottom - top),
             //neighborSizes = [],
-            i, neighbor, minRange, maxRange, maxGrowth, maxShrink, targetSize;
+            i, neighbor, neighborMaxSize, minRange, maxRange, maxGrowth, maxShrink, targetSize;
 
         // if size=100 and minSize=80, we can reduce by 20 so minRange = minSize-size = -20
         minRange = (collapseTarget[minSizeProp] || Math.min(size,defaultSplitMin)) - size;
@@ -45,9 +45,16 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
         for (i = 0; i < length; ++i) {
             neighbor = neighbors[i];
             size = neighbor[getSizeMethod]();
-            //neighborSizes.push(size);
+            neighborMaxSize = neighbor[maxSizeProp];
+            if (neighborMaxSize === null) {
+                // calculations that follow expect NaN as a result if max size is undefined
+                // e.g. (10 - undefined) returns NaN
+                // Unfortunately the same is not true for null - (10 - null === 10) so
+                // we convert null into undefined to make sure they both behave the same
+                neighborMaxSize = undefined;
+            }
 
-            maxGrowth = size - neighbor[maxSizeProp]; // NaN if no maxSize or negative
+            maxGrowth = size - neighborMaxSize; // NaN if no maxSize or negative
             maxShrink = size - (neighbor[minSizeProp] || Math.min(size,defaultSplitMin));
 
             if (!isNaN(maxGrowth)) {

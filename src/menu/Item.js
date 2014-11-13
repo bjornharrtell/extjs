@@ -167,6 +167,8 @@ Ext.define('Ext.menu.Item', {
      * The type of tooltip to use. Either 'qtip' for QuickTips or 'title' for title attribute.
      */
     tooltipType: 'qtip',
+    
+    focusable: true,
 
     baseCls: Ext.baseCSSPrefix + 'menu-item',
     arrowCls: Ext.baseCSSPrefix + 'menu-item-arrow',
@@ -194,8 +196,8 @@ Ext.define('Ext.menu.Item', {
                 ' hidefocus="true"' +
                 // For most browsers the text is already unselectable but Opera needs an explicit unselectable="on".
                 ' unselectable="on"' +
-                '<tpl if="tabIndex">' +
-                    ' tabIndex="{tabIndex}"' +
+                '<tpl if="tabIndex != null">' +
+                    ' tabindex="{tabIndex}"' +
                 '</tpl>' +
             '>' +
                 '<span id="{id}-textEl" data-ref="textEl" class="{textCls} {textCls}-{ui} {indentCls}{childElCls}" unselectable="on">{text}</span>' +
@@ -316,7 +318,7 @@ Ext.define('Ext.menu.Item', {
             this.menu.hide();
         }
     },
-    
+
     cancelDeferHide: function(){
         clearTimeout(this.hideMenuTimer);
     },
@@ -354,7 +356,7 @@ Ext.define('Ext.menu.Item', {
 
         if (me.activated && (!menu.rendered || !menu.isVisible())) {
             me.parentMenu.activeChild = menu;
-            menu.ownerItem = me;
+            menu.ownerCmp = me;
             menu.parentMenu = me.parentMenu;
             menu.constrainTo = document.body;
             menu.showBy(me, me.menuAlign);
@@ -420,12 +422,12 @@ Ext.define('Ext.menu.Item', {
             return;
         }
 
-        if (me.hideOnClick && 
+        if (me.hideOnClick &&
             // on mobile webkit, when the menu item has an href, a longpress will trigger
             // the touch callout menu to show.  If this is the case, the tap event object's
             // browser event type will be 'touchcancel', and we do not want to hide the menu.
             e.browserEvent.type !== 'touchcancel' &&
-            // items with submenus are activated by touchstart on mobile browsers, so 
+            // items with submenus are activated by touchstart on mobile browsers, so
             // we cannot hide the menu on "tap"
             !(e.type === 'tap' && me.menu)) {
 
@@ -454,7 +456,8 @@ Ext.define('Ext.menu.Item', {
             preventDefault = !!browserEvent.defaultPrevented;
         }
 
-        if (me.href && !preventDefault) {
+        // We only manually need to trigger the click event if it's come from a key event.
+        if (me.href && e.type !== 'click' && !preventDefault) {
             me.handlingClick = true;
             me.itemEl.dom.click();
             delete me.handlingClick;
@@ -473,7 +476,7 @@ Ext.define('Ext.menu.Item', {
             me.parentMenu.deactivateActiveItem();
         }
         me.callParent(arguments);
-        me.parentMenu = me.ownerButton = null;
+        me.parentMenu = me.ownerCmp = null;
     },
 
     // @private
@@ -575,7 +578,7 @@ Ext.define('Ext.menu.Item', {
             me.setTooltip(me.tooltip, true);
         }
     },
-    
+
     /**
      * Set a child menu for this item. See the {@link #cfg-menu} configuration.
      * @param {Ext.menu.Menu/Object} menu A menu, or menu configuration. null may be
@@ -588,24 +591,27 @@ Ext.define('Ext.menu.Item', {
         var me = this,
             oldMenu = me.menu,
             arrowEl = me.arrowEl;
-            
+
         if (oldMenu) {
-            delete oldMenu.parentMenu;
-            delete oldMenu.ownerItem;
-            
+            oldMenu.ownerCmp = oldMenu.parentMenu = null;
+
             if (destroyMenu === true || (destroyMenu !== false && me.destroyMenu)) {
                 Ext.destroy(oldMenu);
             }
         }
         if (menu) {
-            me.menu = Ext.menu.Manager.get(menu);
-            me.menu.ownerItem = me;
+            menu = me.menu = Ext.menu.Manager.get(menu, {
+                ownerCmp: me
+            });
+            // We need to forcibly set this here because we could be passed an existing menu, which means
+            // the config above won't get applied during creation.
+            menu.ownerCmp = me;
         } else {
-            me.menu = null;
+            menu = me.menu = null;
         }
-        
-        if (me.rendered && !me.destroying && arrowEl) {
-            arrowEl[me.menu ? 'addCls' : 'removeCls'](me.arrowCls);
+
+        if (menu && me.rendered && !me.destroying && arrowEl) {
+            arrowEl[menu ? 'addCls' : 'removeCls'](me.arrowCls);
         }
     },
 
@@ -621,7 +627,7 @@ Ext.define('Ext.menu.Item', {
 
     /**
      * Sets the {@link #icon} on this item.
-     * @param {String} icon The new icon 
+     * @param {String} icon The new icon
      */
     setIcon: function(icon){
         var iconEl = this.iconEl,

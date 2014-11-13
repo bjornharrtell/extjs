@@ -161,6 +161,25 @@ Ext.Config.prototype = {
         return target.$configPrefixed ? this.names.internal : this.name;
     },
 
+    mergeNew: function (newValue, oldValue, target, mixinClass) {
+        var ret, key;
+
+        if (!oldValue) {
+            ret = newValue;
+        } else if (!newValue) {
+            ret = oldValue;
+        } else {
+            ret = Ext.Object.chain(oldValue);
+
+            for (key in newValue) {
+                if (!mixinClass || !(key in ret)) {
+                    ret[key] = newValue[key];
+                }
+            }
+        }
+        return ret;
+    },
+
     /**
      * Merges the `newValue` and the `oldValue` assuming that these are basically objects
      * the represent sets. For example something like:

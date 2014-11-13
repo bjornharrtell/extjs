@@ -16,6 +16,7 @@
  *      });
  *
  * @since 5.0.0
+ * @cmd.optimizer.requires.async
  */
 Ext.define('Ext.mixin.Mashup', function (Mashup) { return {
     extend: 'Ext.Mixin',

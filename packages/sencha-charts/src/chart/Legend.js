@@ -23,10 +23,9 @@ Ext.define('Ext.chart.Legend', {
         if (this.getToggleable()) {
             var store = this.getStore(),
                 record = store && store.getAt(index);
-            record.beginEdit();
-            record.set('disabled', !record.get('disabled'));
-            record.endEdit();
-            record.commit();
+            if (record) {
+                record.set('disabled', !record.get('disabled'));
+            }
         }
     }
 

@@ -1,29 +1,31 @@
 Ext.define('Ext.aria.menu.KeyNav', {
     override: 'Ext.menu.KeyNav',
-    
-    tab: function(e) {
-        var me = this,
-            menu = me.menu,
-            focusedItem = menu.focusedItem,
-            mgr = Ext['aria'].FocusManager, // Don't need the dependency
-            owner, ev;
-        
-        if (!focusedItem) {
-            return false;
-        }
-        
-        owner = me.ariaFindMenuOwner(focusedItem);
-        
-        if (owner) {
-            // Hiding the menu modifies the original event that caused it,
-            // so we have to keep a clone and reuse it a bit later
-            ev = e.clone();
-            Ext.defer(function() { mgr.navigateSiblings(ev, { focusedCmp: owner }) }, 10);
-            me.escape(e);
-        }
-        
-        return false;
-    },
+
+// Commented out because FocusManager does not do active focus management anymore.
+// We still need to reimplement that at some point: https://sencha.jira.com/browse/EXTJS-13605    
+//     tab: function(e) {
+//         var me = this,
+//             menu = me.menu,
+//             focusedItem = menu.focusedItem,
+//             mgr = Ext['aria'].FocusManager, // Don't need the dependency
+//             owner, ev;
+//         
+//         if (!focusedItem) {
+//             return false;
+//         }
+//         
+//         owner = me.ariaFindMenuOwner(focusedItem);
+//         
+//         if (owner) {
+//             // Hiding the menu modifies the original event that caused it,
+//             // so we have to keep a clone and reuse it a bit later
+//             ev = e.clone();
+//             Ext.defer(function() { mgr.navigateSiblings(ev, { focusedCmp: owner }) }, 10);
+//             me.escape(e);
+//         }
+//         
+//         return false;
+//     },
     
     enter: function(e) {
         var menu = this.menu,
@@ -71,14 +73,14 @@ Ext.define('Ext.aria.menu.KeyNav', {
     ariaFindMenuOwner: function(cmp) {
         var menu;
         
-        menu = cmp.up('menu[ownerButton],menu[ownerCt]');
+        menu = cmp.up('menu[ownerCmp],menu[ownerCt]');
         
         if (!menu) {
             return null;
         }
         
-        if (menu.ownerButton) {
-            return menu.ownerButton;
+        if (menu.ownerCmp) {
+            return menu.ownerCmp;
         }
         else {
             return menu.ownerCt;

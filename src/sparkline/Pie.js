@@ -2,6 +2,8 @@
  * @class Ext.sparkline.Pie
  *
  * Plots a pie chart based upon the input {#values} array.
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Pie', {
     extend: 'Ext.sparkline.Base',

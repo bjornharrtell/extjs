@@ -9,6 +9,12 @@
 $multiselector-remove-font-size: 100% !default;
 
 /**
+ * @var {number/list}
+ * The padding of "Remove" cell's inner element
+ */
+$multiselector-remove-padding: $grid-cell-inner-padding !default;
+
+/**
  * @var {color}
  * The color for the multiselector's remove glyph.
  */

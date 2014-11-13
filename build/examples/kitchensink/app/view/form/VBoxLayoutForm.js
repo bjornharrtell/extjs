@@ -19,7 +19,7 @@ Ext.define('KitchenSink.view.form.VBoxLayoutForm', {
     width: 500,
     height: 300,
     minWidth: 300,
-    minHeight: 200,
+    minHeight: 220,
     layout: 'fit',
     plain: true,
     

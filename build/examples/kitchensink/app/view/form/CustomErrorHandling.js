@@ -52,8 +52,7 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
      */
     listeners: {
         validitychange: 'updateErrorState',
-        errorchange: 'updateErrorState',
-        scope: 'controller'
+        errorchange: 'updateErrorState'
     },
 
     dockedItems: [{
@@ -237,5 +236,13 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
             text: 'Accept',
             handler: 'acceptTermsOfUse'
         }]
-    }]
+    }],
+
+    beforeDestroy: function() {
+        var error = this.lookupReference('formErrorState');
+        if (error) {
+            Ext.destroy(error.tip);
+        }
+        this.callParent();
+    }
 });

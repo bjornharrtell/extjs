@@ -69,6 +69,9 @@ describe("Ext.Base", function() {
                 var obj = new cls();
                 var s = 'No exception';
 
+                // Silence console error
+                spyOn(Ext, 'log');
+
                 try {
                     obj.bar();
                 } catch (e) {
@@ -93,6 +96,9 @@ describe("Ext.Base", function() {
                 var obj = new cls();
                 var s = 'No exception';
 
+                // Silence console error
+                spyOn(Ext, 'log');
+
                 try {
                     obj.bar();
                 } catch (e) {
@@ -116,6 +122,9 @@ describe("Ext.Base", function() {
             it("should install error shim from old block", function() {
                 var obj = new cls();
                 var s = 'No exception';
+                
+                // Silence console error
+                spyOn(Ext, 'log');
 
                 try {
                     obj.bar();

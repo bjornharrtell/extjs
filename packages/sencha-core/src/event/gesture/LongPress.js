@@ -53,7 +53,7 @@ Ext.define('Ext.event.gesture.LongPress', {
     setLongPressTimer: function(e) {
         var me = this;
 
-        me.timer = setTimeout(function() {
+        me.timer = Ext.defer(function() {
             me.fireLongPress(e);
         }, me.getMinDuration());
     },

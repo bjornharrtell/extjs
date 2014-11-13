@@ -158,7 +158,7 @@ Ext.define('Ext.resizer.Resizer', {
      * @property {Ext.dom.Element} el
      * Outer element for resizing behavior.
      */
-    
+
     ariaRole: 'presentation',
 
     /**
@@ -190,20 +190,13 @@ Ext.define('Ext.resizer.Resizer', {
 
     constructor: function(config) {
         var me = this,
-            resizeTarget,
-            tag,
             handles = me.handles,
-            handleCls,
-            possibles,
-            len,
-            i = 0,
-            pos,
-            el,
-            box,
-            positioning,
+            unselectableCls = Ext.dom.Element.unselectableCls,
             handleEls = [],
-            targetBaseCls,
-            unselectableCls = Ext.dom.Element.unselectableCls;
+            resizeTarget, handleCls, possibles, tag,
+            len, i, pos, el, box, 
+            wrapTarget, positioning, targetBaseCls;
+            
 
         if (Ext.isString(config) || Ext.isElement(config) || config.dom) {
             resizeTarget = config;
@@ -220,11 +213,10 @@ Ext.define('Ext.resizer.Resizer', {
             if (resizeTarget.isComponent) {
 
                 // Resizable Components get a new UI class on them which makes them overflow:visible
-                // if the border width is non-zero and therefore the SASS has embedded the handles 
+                // if the border width is non-zero and therefore the SASS has embedded the handles
                 // in the borders using -ve position.
                 resizeTarget.addClsWithUI('resizable');
 
-                me.el = resizeTarget.getEl();
                 if (resizeTarget.minWidth) {
                     me.minWidth = resizeTarget.minWidth;
                 }
@@ -281,6 +273,8 @@ Ext.define('Ext.resizer.Resizer', {
              */
             me.originalTarget = me.target;
 
+            wrapTarget = resizeTarget.isComponent ? resizeTarget.getEl() : resizeTarget;
+
             // Tag the wrapped element with a class so thaht we can force it to use border box sizing model
             me.el.addCls(me.wrappedCls);
 
@@ -288,17 +282,17 @@ Ext.define('Ext.resizer.Resizer', {
                 role: 'presentation',
                 cls: me.wrapCls,
                 id: me.el.id + '-rzwrap',
-                style: resizeTarget.getStyle(['margin-top', 'margin-bottom'])
+                style: wrapTarget.getStyle(['margin-top', 'margin-bottom'])
             });
 
-            positioning = resizeTarget.getPositioning();
+            positioning = wrapTarget.getPositioning();
 
             // Transfer originalTarget's positioning+sizing+margins
             me.el.setPositioning(positioning);
 
-            resizeTarget.clearPositioning();
+            wrapTarget.clearPositioning();
 
-            box = resizeTarget.getBox();
+            box = wrapTarget.getBox();
 
             if(positioning.position != 'absolute'){
                 //reset coordinates
@@ -309,7 +303,9 @@ Ext.define('Ext.resizer.Resizer', {
             me.el.setBox(box);
 
             // Position the wrapped element absolute so that it does not stretch the wrapper
-            resizeTarget.setStyle('position', 'absolute');
+            wrapTarget.setStyle('position', 'absolute');
+
+            me.isTargetWrapped = true;
         }
 
         // Position the element, this enables us to absolute position
@@ -372,7 +368,7 @@ Ext.define('Ext.resizer.Resizer', {
             }
         }
 
-        for (; i < len; i++){
+        for (i = 0; i < len; i++){
             // if specified and possible, create
             if (handles[i] && possibles[handles[i]]) {
                 pos = possibles[handles[i]];
@@ -416,7 +412,7 @@ Ext.define('Ext.resizer.Resizer', {
     },
 
     /**
-     * @private 
+     * @private
      * Relay the Tracker's mousedown event as beforeresize
      * @param {Ext.resizer.ResizeTracker} The tracker
      * @param {Ext.event.Event} The event
@@ -426,7 +422,7 @@ Ext.define('Ext.resizer.Resizer', {
     },
 
     /**
-     * @private 
+     * @private
      * Relay the Tracker's drag event as resizedrag
      * @param {Ext.resizer.ResizeTracker} The tracker
      * @param {Ext.event.Event} The event
@@ -436,7 +432,7 @@ Ext.define('Ext.resizer.Resizer', {
     },
 
     /**
-     * @private 
+     * @private
      * Relay the Tracker's dragend event as resize
      * @param {Ext.resizer.ResizeTracker} The tracker
      * @param {Ext.event.Event} The event
@@ -505,6 +501,12 @@ Ext.define('Ext.resizer.Resizer', {
             handle;
 
         me.resizeTracker.destroy();
+
+        // The target is redefined as an element when it's wrapped so we must destroy it.
+        if (me.isTargetWrapped) {
+            me.target.destroy();
+        }
+
         for (i = 0; i < len; i++) {
             if ((handle = me[positions[handles[i]]])) {
                 handle.destroy();

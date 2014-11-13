@@ -1,22 +1,36 @@
 Ext.define('Ext.aria.grid.column.Column', {
     override: 'Ext.grid.column.Column',
     
-    requires: [
-        'Ext.aria.grid.header.Container'
-    ],
+    ariaSortStates: {
+        ASC: 'ascending',
+        DESC: 'descending'
+    },
     
-    setSortState: function(state, skipClear, initial) {
+    ariaGetAfterRenderAttributes: function() {
         var me = this,
+            sortState = me.sortState,
+            states = me.ariaSortStates,
+            attr;
+        
+        attr = me.callParent();
+        
+        attr['aria-sort'] = states[sortState];
+        
+        return attr;
+    },
+    
+    setSortState: function(sorter) {
+        var me = this,
+            states = me.ariaSortStates,
             oldSortState = me.sortState,
-            ariaStates = {
-                ASC: 'ascending',
-                DESC: 'descending'
-            };
+            newSortState;
         
         me.callParent(arguments);
         
-        if (me.sortState !== oldSortState) {
-            me.ariaUpdate({ 'aria-sort': ariaStates[state] });
+        newSortState = me.sortState;
+        
+        if (oldSortState !== newSortState) {
+            me.ariaUpdate({ 'aria-sort': states[newSortState] });
         }
     }
 });

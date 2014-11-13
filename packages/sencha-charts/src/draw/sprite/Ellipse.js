@@ -4,19 +4,24 @@
  * 
  * A sprite that represents an ellipse.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'ellipse',
- *         cx: 100,
- *         cy: 100,
- *         rx: 40,
- *         ry: 25,
- *         fillStyle: 'blue'
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'ellipse',
+ *                 cx: 100,
+ *                 cy: 100,
+ *                 rx: 40,
+ *                 ry: 25,
+ *                 fillStyle: 'blue'
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 Ext.define("Ext.draw.sprite.Ellipse", {
     extend: "Ext.draw.sprite.Path",

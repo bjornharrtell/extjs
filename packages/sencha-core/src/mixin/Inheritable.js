@@ -201,21 +201,32 @@ Ext.define('Ext.mixin.Inheritable', {
      * @since 5.0.0
      */
     resolveListenerScope: function (defaultScope) {
-        var ret,
-            isThis = defaultScope === 'this',
-            preventClimb = isThis || defaultScope === 'controller';
+        var me = this,
+            namedScope = Ext._namedScopes[defaultScope],
+            ret;
 
-        // If defaultScope is 'this' or 'controller', we only ever want to resolve to our own defaultListenerScope
-        // on ourselves, we never want to climb up
-        if (preventClimb) {
-            if (isThis) {
-                ret = this;
-            } else {
-                ret = this.getController();
-            }
-        } else {
-            ret = this.getInheritedConfig('defaultListenerScope', true) || defaultScope;
+        if (!namedScope) {
+            // If there is no named scope we know for sure that the listener was not
+            // declared on the class body (i.e. !namedScope.isSelf) and so we can skip
+            // this instance and resolve to defaultListenerScope upward in the hierarchy.
+            // scope: not a named scope so we default to this
+            ret = me.getInheritedConfig('defaultListenerScope', true) || defaultScope || me;
+        } else if (namedScope.isController) {
+            // scope:'controller' declared on the class body must include our own
+            // controller before ascending the hierarchy, but scope:'controller' declared
+            // on the instance must skip our own controller and search only for an
+            // inherited controller.
+            ret = me.getInheritedConfig('controller', !namedScope.isSelf);
+        } else if (namedScope.isSelf) {
+            // scope:'self' indicates listeners declared on the class body with unspecified
+            // scope. Include this instance when searching for an inherited default scope.
+            ret = me.getInheritedConfig('defaultListenerScope') || me;
+        } else if (namedScope.isThis) {
+            // scope:'this' always resolves to this instance, regardless of whether the
+            // listener was declared on the class or instance
+            ret = me;
         }
+
         return ret || null;
     },
 
@@ -249,7 +260,8 @@ Ext.define('Ext.mixin.Inheritable', {
      * @protected
      */
     getRefOwner: function () {
-        return this.ownerCt || this.initOwnerCt || this.floatParent;
+        // Look for ownerCmp before floatParent for scenarios like a button menu inside a floating window.
+        return this.ownerCt || this.initOwnerCt || this.ownerCmp || this.floatParent;
     },
 
     /**
@@ -259,11 +271,10 @@ Ext.define('Ext.mixin.Inheritable', {
      *
      * @param {Object} inheritedState The state object for this instance.
      * @param {Object} [inheritedStateInner] This object is only provided for containers.
-     * @method
+     * @method initInheritedState
      * @protected
      * @since 5.0.0
      */
-    initInheritedState: Ext.emptyFn,
 
     /**
      * This method marks the current inherited state as invalid. The next time a call is

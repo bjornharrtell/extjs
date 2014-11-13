@@ -9,7 +9,8 @@ Ext.define('Ext.grid.header.Container', {
     requires: [
         'Ext.grid.ColumnLayout',
         'Ext.grid.plugin.HeaderResizer',
-        'Ext.grid.plugin.HeaderReorderer'
+        'Ext.grid.plugin.HeaderReorderer',
+        'Ext.util.KeyNav'
     ],
     uses: [
         'Ext.grid.column.Column',
@@ -18,6 +19,11 @@ Ext.define('Ext.grid.header.Container', {
         'Ext.menu.CheckItem',
         'Ext.menu.Separator'
     ],
+    
+    mixins: [
+        'Ext.util.FocusableContainer'
+    ],
+    
     border: true,
 
     alias: 'widget.headercontainer',
@@ -86,6 +92,10 @@ Ext.define('Ext.grid.header.Container', {
     ddLock: false,
 
     dragging: false,
+    
+    // Disable FocusableContainer behavior by default, since we only want it
+    // to be enabled for the root header container (we'll set the flag in initComponent)
+    enableFocusableContainer: false,
 
     /**
      * @property {Boolean} isGroupHeader
@@ -207,6 +217,7 @@ Ext.define('Ext.grid.header.Container', {
         if (me.isColumn && !me.isGroupHeader) {
             if (!me.items || me.items.length === 0) {
                 me.isContainer = false;
+                me.focusable = true;
                 me.layout = {
                     type: 'container',
                     calculate: Ext.emptyFn
@@ -226,6 +237,12 @@ Ext.define('Ext.grid.header.Container', {
             // If the header isn't a column ([isColumn] or [isGroupHeader]), then it's the root header.
             if (!me.isGroupHeader) {
                 me.isRootHeader = true;
+
+                // The root header is a focusableContainer if it's not carrying hidden headers.
+                if (!me.hiddenHeaders) {
+                    me.enableFocusableContainer = true;
+                    me.ariaRole = 'row';
+                }
 
                 // Create column managers for the root header.
                 me.columnManager = new Ext.grid.ColumnManager(false, me);
@@ -832,9 +849,9 @@ Ext.define('Ext.grid.header.Container', {
             descItem = menu.down('#descItem'),
             sortableMth;
 
-        // Use ownerButton as the upward link. Menus *must have no ownerCt* - they are global floaters.
+        // Use ownerCmp as the upward link. Menus *must have no ownerCt* - they are global floaters.
         // Upward navigation is done using the up() method.
-        menu.activeHeader = menu.ownerButton = header;
+        menu.activeHeader = menu.ownerCmp = header;
         header.setMenuActive(true);
 
         // enable or disable asc & desc menu items based on header being sortable
@@ -1333,5 +1350,45 @@ Ext.define('Ext.grid.header.Container', {
                 this.applyForceFit(header);
             }
         }
+    },
+    
+    privates: {
+        getFocusables: function() {
+            return this.getVisibleGridColumns();
+        },
+        
+        createFocusableContainerKeyNav: function(el) {
+            var me = this;
+            
+            return new Ext.util.KeyNav(el, {
+                scope: me,
+                
+                down: me.showHeaderMenu,
+                left: me.onFocusableContainerLeftKey,
+                right: me.onFocusableContainerRightKey,
+                
+                space: me.toggleColumnSort,
+                enter: me.toggleColumnSort
+            });
+        },
+        
+        showHeaderMenu: function(e) {
+            var column = this.getFocusableFromEvent(e);
+            
+            if (column && column.triggerEl) {
+                this.onHeaderTriggerClick(column, e, column.triggerEl);
+            }
+        },
+        
+        toggleColumnSort: function(e) {
+            var column = this.getFocusableFromEvent(e);
+            
+            if (column && column.sortable) {
+                column.toggleSortState();
+                this.onHeaderClick(column, e, column.el);
+            }
+        },
+        
+        onFocusableContainerMousedown: Ext.privateFn
     }
 });

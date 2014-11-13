@@ -33,17 +33,23 @@ Ext.define('KitchenSink.view.charts.pie.Pie3D', {
         {
             text: 'Switch Theme',
             handler: function () {
-                var panel = this.ownerCt.ownerCt,
-                    chart = Ext.ComponentQuery.query('polar', panel)[0],
+                var panel = this.up().up(),
+                    chart = panel.down('polar'),
+                    currentThemeClass = Ext.getClassName(chart.getTheme()),
                     themes = Ext.chart.theme,
-                    themeNames = [], name, currentIndex;
+                    themeNames = [],
+                    currentIndex = 0,
+                    name;
+
                 for (name in themes) {
-                    if (name != "Theme") {
+                    if (Ext.getClassName(themes[name]) === currentThemeClass) {
+                        currentIndex = themeNames.length;
+                    }
+                    if (name !== 'Base' && name.indexOf('Gradients') < 0) {
                         themeNames.push(name);
                     }
                 }
-                currentIndex = Ext.Array.indexOf(themeNames, chart.getTheme());
-                chart.setTheme(themeNames[(currentIndex + 1) % themeNames.length]);
+                chart.setTheme(themes[themeNames[++currentIndex % themeNames.length]]);
                 chart.redraw();
             }
         }

@@ -97,6 +97,8 @@ describe("Ext.data.operation.Update", function() {
                 makeOperation({
                     records: [clientAlien1]
                 });
+                
+                spyOn(Ext.log, 'warn');
 
                 spec.Alien.prototype.clientIdProperty = 'clientId';
                 op.process(new Ext.data.ResultSet({
@@ -134,6 +136,8 @@ describe("Ext.data.operation.Update", function() {
                 makeOperation({
                     records: [clientAlien1, clientAlien2]
                 });
+                
+                spyOn(Ext.log, 'warn');
 
                 spec.Alien.prototype.clientIdProperty = 'clientId';
                 op.process(new Ext.data.ResultSet({

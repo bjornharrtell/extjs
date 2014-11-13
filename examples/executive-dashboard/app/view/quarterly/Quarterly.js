@@ -74,6 +74,8 @@ Ext.define('ExecDashboard.view.quarterly.Quarterly', {
                     type: 'vbox'
                 },
 
+                padding: '0 0 0 15',
+
                 items:[{
                     xtype: 'cycle',
                     cls: 'quarterly-cycle',
@@ -84,7 +86,7 @@ Ext.define('ExecDashboard.view.quarterly.Quarterly', {
                         text: '{stockMeta.symbol}'
                     },
                     textAlign: 'right',
-                    width: 150,
+                    width: 135,
 
                     listeners: {
                         change: 'menuItemClick'
@@ -103,7 +105,7 @@ Ext.define('ExecDashboard.view.quarterly.Quarterly', {
                     xtype: 'displayfield',
                     cls: 'stock-picker-small',
                     textAlign: 'right',
-                    width: 120,
+                    width: 105,
                     bind: {
                         value: '{stockMeta.label}'
                     }

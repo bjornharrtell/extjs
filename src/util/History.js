@@ -31,7 +31,7 @@ Ext.define('Ext.util.History', {
     /**
      * @event ready
      * Fires when the Ext.util.History singleton has been initialized and is ready for use.
-     * @param {Ext.util.History} The Ext.util.History singleton.
+     * @param {Ext.util.History} history The Ext.util.History singleton.
      */
 
     /**
@@ -41,21 +41,12 @@ Ext.define('Ext.util.History', {
      */
 
     constructor: function() {
-        var me = this,
-            hash,
-            newHash;
+        var me = this;
 
         me.hiddenField = null;
         me.ready = false;
         me.currentToken = null;
         me.mixins.observable.constructor.call(me);
-        me.onHashChange = function () {
-            newHash = me.getHash();
-            if (newHash !== hash) {
-                hash = newHash;
-                me.handleStateChange(hash);
-            }
-        };
     },
 
     /**
@@ -107,16 +98,27 @@ Ext.define('Ext.util.History', {
         me.currentToken = me.getHash();
 
         if (Ext.supports.Hashchange) {
-            Ext.Element.on(me.win, 'hashchange', me.onHashChange);
+            Ext.get(me.win).on('hashchange', me.onHashChange, me);
         } else {
             Ext.TaskManager.start({
                 fireIdleEvent: false,
                 run: me.onHashChange,
-                interval: 50
+                interval: 50,
+                scope: me
             });
         }
         me.ready = true;
         me.fireEvent('ready', me);
+    },
+
+    onHashChange: function () {
+        var me = this,
+            newHash = me.getHash();
+
+        if (newHash !== me.hash) {
+            me.hash = newHash;
+            me.handleStateChange(newHash);
+        }
     },
 
     /**
@@ -142,6 +144,7 @@ Ext.define('Ext.util.History', {
         }
 
         me.win = me.useTopWindow ? window.top : window;
+        me.hash = me.getHash();
 
         if (onReady) {
             me.on('ready', onReady, scope, {single: true});

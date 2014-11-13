@@ -31,6 +31,16 @@ Ext.define('ExtThemeNeptune.Component', {
     }
 });
 
+Ext.define('ExtThemeNeptune.resizer.Splitter', {
+    override: 'Ext.resizer.Splitter',
+    size: 8
+});
+
+Ext.define('Ext.touch.sizing.resizer.Splitter', {
+    override: 'Ext.resizer.Splitter',
+    size: 16
+});
+
 Ext.define('ExtThemeNeptune.toolbar.Toolbar', {
     override: 'Ext.toolbar.Toolbar',
     usePlainButtons: false,
@@ -341,16 +351,6 @@ Ext.define('ExtThemeNeptune.panel.Table', {
 Ext.define('Ext.theme.crisp.view.Table', {
     override: 'Ext.view.Table',
     stripeRows: false
-});
-
-Ext.define('ExtThemeNeptune.resizer.Splitter', {
-    override: 'Ext.resizer.Splitter',
-    size: 8
-});
-
-Ext.define('Ext.touch.sizing.resizer.Splitter', {
-    override: 'Ext.resizer.Splitter',
-    size: 16
 });
 
 Ext.define('ExtThemeNeptune.container.ButtonGroup', {

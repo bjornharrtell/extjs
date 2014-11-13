@@ -38,6 +38,7 @@ Ext.define('Ext.util.Grouper', {
             }
         }
         //</debug>
+
         this.callParent(arguments);
     },
 

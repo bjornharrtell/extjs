@@ -414,8 +414,8 @@ Ext.define('Ext.Editor', {
 
     // private
     onEditComplete: function(remainVisible) {
+        this.editing = false;
         if (remainVisible !== true) {
-            this.editing = false;
             this.hide();
         }
     },
@@ -431,7 +431,7 @@ Ext.define('Ext.Editor', {
         }
 
         // If newly active element is focusable, prevent reacquisition of focus by editor owner
-        if (Ext.fly(target).isFocusable() || target.getAttribute('tabIndex')) {
+        if (Ext.fly(target).isFocusable() || target.getAttribute('tabindex')) {
             target.focus();
         }
     },
@@ -444,11 +444,6 @@ Ext.define('Ext.Editor', {
         if (me.editing) {
             me.completeEdit();
             return;
-        }
-        // Fields which mimic blur have to be told to fire t heir blur events.
-        // All other types of field are automatically blurred when an ancestor hides.
-        if (field.hasFocus && field.triggerBlur) {
-            field.triggerBlur();
         }
         if (field.collapse) {
             field.collapse();

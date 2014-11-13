@@ -12,7 +12,7 @@ Ext.define('Ext.chart.label.Callout', {
             attr.calloutOriginal = Ext.Object.chain(attr);
             // No __proto__, nor getPrototypeOf in IE8,
             // so manually saving a reference to 'attr' after chaining.
-            attr.calloutOriginal.$prototype = attr;
+            attr.calloutOriginal.prototype = attr;
         }
         if (this._previous) {
             this._previous.prepareAttributes(attr.calloutOriginal);
@@ -115,7 +115,7 @@ Ext.define('Ext.chart.label.Callout', {
     },
 
     popUp: function (attr, changes) {
-        attr = attr.$prototype || {};
+        attr = attr.prototype;
         changes = this.setAttrs(attr, changes);
         if (this._next) {
             return this._next.popUp(attr, changes);

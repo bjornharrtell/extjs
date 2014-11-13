@@ -25,8 +25,10 @@ Ext.define('Ext.aria.picker.Color', {
             });
         }
     },
-
-    getFocusEl: function() {
-        return this.el;
+    
+    privates: {
+        getFocusEl: function() {
+            return this.el;
+        }
     }
 });

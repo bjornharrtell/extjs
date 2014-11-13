@@ -24,6 +24,13 @@ Ext.define('Ext.slider.Single', {
         'Ext.slider.Slider'
     ],
 
+    initComponent: function() {
+        if (this.publishOnComplete) {
+            this.valuePublishEvent = 'changecomplete';
+        }
+        this.callParent();
+    },
+
     /**
      * @cfg {Boolean} [publishOnComplete=true]
      * This controls when the value of the slider is published to the `ViewModel`. By

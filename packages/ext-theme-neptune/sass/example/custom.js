@@ -7,6 +7,19 @@
  * ./packages/ext-theme-base/sass/example/render.js.
  */
 
-//Ext.theme.addManifest();
+Ext.theme.addManifest(
+    {
+        xtype: 'button',
+        ui: 'plain-toolbar'
+    },
+    {
+        xtype: 'widget.panel',
+        ui: 'light'
+    },
+    {
+        xtype: 'widget.header',
+        ui: 'light'
+    }
+);
 
 //Ext.theme.addShortcuts();

@@ -112,7 +112,7 @@ Ext.onReady(function(){
             ftype: 'groupingsummary',
             groupHeaderTpl: '{name}',
             hideGroupedHeader: true,
-            enableGroupingMenu: false
+            enableGroupingMenu: true
         }, {
             ftype: 'summary',
             dock: 'bottom'
@@ -134,6 +134,9 @@ Ext.onReady(function(){
             tdCls: 'task',
             sortable: true,
             dataIndex: 'description',
+
+            // This may have wrapped HTML which causes unpredictable row heights
+            variableRowHeight: true,
             hideable: false,
             summaryType: 'count',
             summaryRenderer: function(value, summaryData, dataIndex) {

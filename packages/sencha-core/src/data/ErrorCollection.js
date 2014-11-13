@@ -29,9 +29,8 @@ Ext.define('Ext.data.ErrorCollection', {
     init: function (record) {
         var me = this,
             fields = record.fields,
-            validators = record.validators,
             data = record.data,
-            before, field, item, i, j, jLen, len, msg, val, name;
+            before, field, item, i, len, msg, val, name;
 
         for (i = 0, len = fields.length; i < len; ++i) {
             field = fields[i];
@@ -43,18 +42,6 @@ Ext.define('Ext.data.ErrorCollection', {
                 msg = field.validate(val, null, me);
                 if (before === me.length && msg !== true) {
                     me.add(name, msg);
-                }
-            }
-
-            if (validators) {
-                item = validators[name];
-                if (item) {
-                    for (j = 0, jLen = item.length; j < jLen; ++j) {
-                        msg = item[j].validate(val, record);
-                        if (msg !== true) {
-                            me.add(name, msg);
-                        }
-                    }
                 }
             }
         }

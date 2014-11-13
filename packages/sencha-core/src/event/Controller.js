@@ -137,6 +137,12 @@ Ext.define('Ext.event.Controller', {
 
         if (observable && observable.isElement) {
             event = firingArguments[0];
+
+            // this is to catch dom events that do have a underlying dom event to wrap (painted & resize)
+            // In this case you will get an 'Ext.Element' as the first parameter to the listener
+            if (event && !event.isEvent) {
+                event = null;
+            }
         }
 
         me.isPausing = me.isPaused = me.isStopped = false;
@@ -220,7 +226,7 @@ Ext.define('Ext.event.Controller', {
             // If using the delegate option, fix the target to be the delegate element,
             // however we only want to do this for element delegates.
             if (options.delegate && me.info.targetType === 'element') {
-                firingArguments[1] = Ext.fly(arg1).findParent(options.delegate, arg1);
+                firingArguments[1] = Ext.fly(arg1).findParent(info.target, arg1);
             }
 
             if (options.single) {

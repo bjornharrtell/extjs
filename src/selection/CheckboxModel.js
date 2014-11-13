@@ -25,7 +25,9 @@ Ext.define('Ext.selection.CheckboxModel', {
 
     /**
      * @cfg {Boolean} checkOnly
-     * True if rows can only be selected by clicking on the checkbox column.
+     * True if rows can only be selected by clicking on the checkbox column, not by clicking
+     * on the row itself. Note that this only refers to selection via the UI, programmatic
+     * selection will still occur regardless.
      */
     checkOnly: false,
     
@@ -232,30 +234,6 @@ Ext.define('Ext.selection.CheckboxModel', {
         return '<div class="' + Ext.baseCSSPrefix + 'grid-row-checker" role="presentation">&#160;</div>';
     },
     
-    processSelection: function(view, record, item, index, e){
-        var me = this,
-            checker = e.getTarget(me.checkSelector),
-            mode;
-            
-        // checkOnly set, but we didn't click on a checker.
-        if (me.checkOnly && !checker) {
-            return;
-        }
-
-        if (checker) {
-            mode = me.getSelectionMode();
-            // dont change the mode if its single otherwise
-            // we would get multiple selection
-            if (mode !== 'SINGLE') {
-                me.setSelectionMode('SIMPLE');
-            }
-            me.selectWithEvent(record, e);
-            me.setSelectionMode(mode);
-        } else {
-            me.selectWithEvent(record, e);
-        }
-    },
-
     /**
      * Synchronize header checker value as selection changes.
      * @private

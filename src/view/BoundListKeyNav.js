@@ -4,74 +4,131 @@
  * through the list. The enter key invokes the selection model's select action using the highlighted item.
  */
 Ext.define('Ext.view.BoundListKeyNav', {
-    extend: 'Ext.util.KeyNav',
-    requires: 'Ext.view.BoundList',
+    extend: 'Ext.view.NavigationModel',
+
+    alias: 'view.navigation.boundlist',
 
     /**
      * @cfg {Ext.view.BoundList} boundList (required)
      * The {@link Ext.view.BoundList} instance for which key navigation will be managed.
      */
 
-    constructor: function(el, config) {
-        var me = this;
-        me.boundList = config.boundList;
-        me.callParent([el, Ext.apply({}, config, me.defaultHandlers)]);
+    initKeyNav: function(view) {
+        var me = this,
+            field = me.view.pickerField;
+
+        // BoundLists must be able to function standalone with no bound field
+        if (!view.pickerField) {
+            return;
+        }
+
+        if (!field.rendered) {
+            field.on('render', Ext.Function.bind(me.initKeyNav, me, [view], 0), me, {single: true});
+            return;
+        }
+
+        me.keyNav = new Ext.util.KeyNav({
+            target: field.inputEl,
+            forceKeyDown: true,
+            up: me.onKeyUp,
+            down: me.onKeyDown,
+            right: me.onKeyRight,
+            left: me.onKeyLeft,
+            pageDown: me.onKeyPageDown,
+            pageUp: me.onKeyPageUp,
+            home: me.onKeyHome,
+            end: me.onKeyEnd,
+            tab: me.onKeyTab,
+            space: me.onKeySpace,
+            enter: me.onKeyEnter,
+            scope: me
+        });
     },
 
-    defaultHandlers: {
-        up: function() {
-            var me = this,
-                boundList = me.boundList,
-                allItems = boundList.all,
-                oldItem = boundList.highlightedItem,
-                oldItemIdx = oldItem ? boundList.indexOf(oldItem) : -1,
-                newItemIdx = oldItemIdx > 0 ? oldItemIdx - 1 : allItems.getCount() - 1; //wraps around
-            me.highlightAt(newItemIdx);
-        },
+    onItemMouseDown: function(view, record, item, index, event) {
+        this.callParent([view, record, item, index, event]);
+        
+        // Stop the mousedown from blurring the input field
+        event.preventDefault();
+    },
 
-        down: function() {
-            var me = this,
-                boundList = me.boundList,
-                allItems = boundList.all,
-                oldItem = boundList.highlightedItem,
-                oldItemIdx = oldItem ? boundList.indexOf(oldItem) : -1,
-                newItemIdx = oldItemIdx < allItems.getCount() - 1 ? oldItemIdx + 1 : 0; //wraps around
-            me.highlightAt(newItemIdx);
-        },
 
-        pageup: function() {
-            //TODO
-        },
+    onKeyUp: function() {
+        var me = this,
+            boundList = me.view,
+            allItems = boundList.all,
+            oldItem = boundList.highlightedItem,
+            oldItemIdx = oldItem ? boundList.indexOf(oldItem) : -1,
+            newItemIdx = oldItemIdx > 0 ? oldItemIdx - 1 : allItems.getCount() - 1; //wraps around
 
-        pagedown: function() {
-            //TODO
-        },
+        me.setPosition(newItemIdx);
+    },
 
-        home: function() {
-            this.highlightAt(0);
-        },
+    onKeyDown: function() {
+        var me = this,
+            boundList = me.view,
+            allItems = boundList.all,
+            oldItem = boundList.highlightedItem,
+            oldItemIdx = oldItem ? boundList.indexOf(oldItem) : -1,
+            newItemIdx = oldItemIdx < allItems.getCount() - 1 ? oldItemIdx + 1 : 0; //wraps around
 
-        end: function() {
-            var me = this;
-            me.highlightAt(me.boundList.all.getCount() - 1);
-        },
+        me.setPosition(newItemIdx);
+    },
 
-        enter: function(e) {
-            this.selectHighlighted(e);
+    onKeyLeft: Ext.emptyFn,
+
+    onKeyRight: Ext.emptyFn,
+
+    onKeyTab: function(e) {
+        var view = this.view,
+            field = view.pickerField;
+
+        if (view.isVisible()) {
+            if (field.selectOnTab) {
+                this.selectHighlighted(e);
+            }
+            field.collapse();
         }
+
+        // Tab key event is allowed to propagate to field
+        return true;
+    },
+
+    onKeyEnter: function(e) {
+        var selModel = this.view.getSelectionModel(),
+            field = this.view.pickerField,
+            count = selModel.getCount();
+
+        this.selectHighlighted(e);
+
+        // Handle the case where the highlighted item is already selected
+        // In this case, the change event won't fire, so just collapse
+        if (!field.multiSelect && count === selModel.getCount()) {
+            field.collapse();
+        }
+    },
+
+    onKeySpace: function() {
+        this.callParent(arguments);
+        // Allow to propagate to field
+        return true;
     },
 
     /**
      * Highlights the item at the given index.
      * @param {Number} index
      */
-    highlightAt: function(index) {
-        var boundList = this.boundList,
-            item = boundList.all.item(index);
+    focusItem: function(item) {
+        var me = this,
+            boundList = me.view;
+
+        if (typeof item === 'number') {
+            item = boundList.all.item(item);
+        }
         if (item) {
             item = item.dom;
             boundList.highlightItem(item);
-            boundList.getTargetEl().scrollChildIntoView(item, false);
+            boundList.getOverflowEl().scrollChildIntoView(item, false);
         }
     },
 
@@ -80,13 +137,12 @@ Ext.define('Ext.view.BoundListKeyNav', {
      * the configured SelectionModel.
      */
     selectHighlighted: function(e) {
-        var boundList = this.boundList,
+        var boundList = this.view,
             selModel = boundList.getSelectionModel(),
-            highlighted, highlightedRec;
+            highlightedRec;
 
-        highlighted = boundList.highlightedItem;
-        if (highlighted) {
-            highlightedRec = boundList.getRecord(highlighted);    
+        highlightedRec = boundList.getNavigationModel().getRecord();
+        if (highlightedRec) {
 
             // Select if not already selected.
             // If already selected, selecting with no CTRL flag will deselect the record.

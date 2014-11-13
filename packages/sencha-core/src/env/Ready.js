@@ -76,7 +76,7 @@ Ext.env.Ready = {
      * @property {Number} The number of Framework readiness blocks.
      * @private
      */
-    blocks: 0,
+    blocks: (location.search || '').indexOf('ext-pauseReadyFire') > 0 ? 1 : 0,
 
     /**
      * @property {Number} bound This property stores the state of event listeners bound
@@ -186,6 +186,7 @@ Ext.env.Ready = {
 
     block: function () {
         ++this.blocks;
+        Ext.isReady = false;
     },
 
     /**
@@ -211,7 +212,7 @@ Ext.env.Ready = {
                 // until all external resource requests finish.
                 // The first timeout clears the splash screen
                 // The second timeout allows inital HTML content to be displayed
-                me.timer = setTimeout(function() {
+                me.timer = Ext.defer(function() {
                     me.timer = null;
                     me.handleReadySoon();
                 }, 1);
@@ -230,15 +231,11 @@ Ext.env.Ready = {
         var me = this;
 
         if (me.state === 1) {
-            if (me.isPaused()) {
-                me.handleReadySoon(250); // poll to see when we get resumed
-            } else {
-                me.state = 2;
+            me.state = 2;
 
-                Ext._beforeReadyTime = Ext.now();
-                me.invokeAll();
-                Ext._afterReadytime = Ext.now();
-            }
+            Ext._beforeReadyTime = Ext.now();
+            me.invokeAll();
+            Ext._afterReadytime = Ext.now();
         }
     },
 
@@ -252,7 +249,7 @@ Ext.env.Ready = {
         var me = this;
 
         if (!me.timer) {
-            me.timer = setTimeout(function () {
+            me.timer = Ext.defer(function () {
                 me.timer = null;
                 me.handleReady();
             }, delay || me.delay);
@@ -267,7 +264,7 @@ Ext.env.Ready = {
         var delay = listener.delay;
 
         if (delay) {
-            setTimeout(function () {
+            Ext.defer(function () {
                 listener.fn.call(listener.scope);
             }, delay);
         } else {
@@ -287,8 +284,6 @@ Ext.env.Ready = {
 
         if (!me.blocks) {
             // Since DOM is ready and we have no blocks, we mark the framework as ready.
-            // Historically this flag has never regressed to false so we don't bother with
-            // that.
             Ext.isReady = true;
         }
         me.firing = true;
@@ -319,16 +314,6 @@ Ext.env.Ready = {
         }
 
         me.firing = false;
-    },
-
-    /**
-     * Detects whether we have been placed in a paused state for synchronization with
-     * external debugging / perf tools (PageAnalyzer).
-     * @private
-     */
-    isPaused: function () {
-        return (location.search || '').indexOf('ext-pauseReadyFire') > 0 &&
-                !Ext._continueFireReady;
     },
 
     /**
@@ -414,6 +399,16 @@ Ext.env.Ready = {
     onReadyEvent: function (ev) {
         var me = Ext.env.Ready;
 
+        if (Ext.elevateFunction) {
+            Ext.elevateFunction(me.doReadyEvent, me, arguments);
+        } else {
+            me.doReadyEvent(ev);
+        }
+    },
+
+    doReadyEvent: function (ev) {
+        var me = this;
+
         //<debug>
         if (ev && ev.type) {
             me.events.push(ev);
@@ -480,7 +475,20 @@ Ext.env.Ready = {
     var Ready = Ext.env.Ready;
 
     //<feature legacyBrowser>
-    if (Ext.isIE8) {
+
+    /*
+     *  EXTJS-13522
+     *  Although IE 9 has the DOMContentLoaded event available, usage of that causes
+     *  timing issues when attempting to access document.namespaces (VmlCanvas.js).
+     *  Consequently, even in IE 9 we need to use the legacy bind override for ready
+     *  detection.  This defers ready firing enough to allow access to the
+     *  document.namespaces property.
+     *
+     *  NOTE: this issue is very timing sensitive, and typically only displays itself
+     *  when there is a large amount of latency between the browser and the server, and
+     *  when testing against a built page (ext-all.js) and not a dev mode page.
+     */
+    if (Ext.isIE9m) {
         /* Customized implementation for Legacy IE. The default implementation is 
          * configured for use with all other 'standards compliant' agents.
          * References: http://javascript.nwbox.com/IEContentLoaded/
@@ -527,7 +535,7 @@ Ext.env.Ready = {
                      // Minimize thrashing --
                      // adjusted for setTimeout's close-to-minimums (not too low),
                      // as this method SHOULD always be called once initially
-                    Ready.scrollTimer = setTimeout(Ready.pollScroll, 20);
+                    Ready.scrollTimer = Ext.defer(Ready.pollScroll, 20);
                 }
 
                 return scrollable;

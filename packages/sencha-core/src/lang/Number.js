@@ -133,14 +133,21 @@ Ext.Number = new function() {
         constrain: function(number, min, max) {
             var x = parseFloat(number);
 
+            // (x < Nan) || (x < undefined) == false
+            // same for (x > NaN) || (x > undefined)
+            // sadly this is not true of null - (1 > null)
+            if (min === null) {
+                min = number;
+            }
+
+            if (max === null) {
+                max = number;
+            }
+
             // Watch out for NaN in Chrome 18
             // V8bug: http://code.google.com/p/v8/issues/detail?id=2056
 
             // Operators are faster than Math.min/max. See http://jsperf.com/number-constrain
-            // ... and (x < Nan) || (x < undefined) == false
-            // ... same for (x > NaN) || (x > undefined)
-            // so if min or max are undefined or NaN, we never return them... sadly, this
-            // is not true of null (but even Math.max(-1,null)==0 and isNaN(null)==false)
             return (x < min) ? min : ((x > max) ? max : x);
         },
 

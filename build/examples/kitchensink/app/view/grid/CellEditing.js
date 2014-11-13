@@ -25,12 +25,20 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
         classic: {
             width: 600,
             height: 300,
-            indoorWidth: 55
+            indoorWidth: 55,
+            priceWidth: 70,
+            avaliableWidth: 95
         },
         neptune: {
             width: 680,
             height: 350,
-            indoorWidth: 90
+            indoorWidth: 90,
+            priceWidth: 70,
+            avaliableWidth: 95
+        },
+        'neptune-touch': {
+            priceWidth: 115,
+            availableWidth: 120
         }
     },
     //</example>
@@ -42,8 +50,6 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
         this.cellEditing = new Ext.grid.plugin.CellEditing({
             clicksToEdit: 1
         });
-
-        this.cellEditing.on('edit', this.onEditComplete, this);
 
         Ext.apply(this, {
             width: this.themeInfo.width,
@@ -94,7 +100,7 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
             }, {
                 header: 'Price',
                 dataIndex: 'price',
-                width: 70,
+                width: this.themeInfo.priceWidth,
                 align: 'right',
                 formatter: 'usMoney',
                 editor: {
@@ -107,7 +113,7 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
                 header: 'Available',
                 dataIndex: 'availDate',
                 xtype: 'datecolumn',
-                width: 95,
+                width: this.themeInfo.availableWidth,
                 format: 'M d, Y',
                 editor: {
                     xtype: 'datefield',
@@ -156,7 +162,7 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
         this.on('afterlayout', this.loadStore, this, {
             delay: 1,
             single: true
-        })
+        });
     },
 
     loadStore: function() {
@@ -182,9 +188,5 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
 
     onRemoveClick: function(grid, rowIndex){
         this.getStore().removeAt(rowIndex);
-    },
-
-    onEditComplete: function(editor, context) {
-        this.getView().focusRow(context.record);
     }
 });

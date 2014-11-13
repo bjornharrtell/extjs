@@ -18,7 +18,11 @@ $ended: #F1485B;
 
     $background-color-pressed: $button-default-background-color,
     $border-color-pressed: $button-default-background-color,
-    $color-pressed: #fff
+    $color-pressed: #fff,
+
+    $inner-border-color-focus: $button-default-background-color,
+    $inner-border-color-focus-over: $button-default-background-color,
+    $inner-border-color-focus-pressed: mix($button-default-background-color, #fff, 20%)
 );
 
 .kpi-main {

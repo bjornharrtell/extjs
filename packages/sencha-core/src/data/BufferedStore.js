@@ -133,6 +133,17 @@ Ext.define('Ext.data.BufferedStore', {
         return dataCollection;
     },
 
+    applyProxy: function(proxy) {
+        proxy = this.callParent([proxy]);
+
+        // This store asks for pages.
+        // If used with a MemoryProxy, it must work
+        if (proxy.setEnablePaging) {
+            proxy.setEnablePaging(true);
+        }
+        return proxy;
+    },
+
     createFiltersCollection: function() {
         return new Ext.util.FilterCollection();
     },
@@ -194,24 +205,15 @@ Ext.define('Ext.data.BufferedStore', {
         return result;
     },
 
-    updateGroupsOnUpdate: function(record, modifiedFieldNames) {
-        var me = this,
-            groupField = me.getGroupField();
-
-        if (modifiedFieldNames && Ext.Array.contains(modifiedFieldNames, groupField)) {
-
-            // Sorting is remote for buffered stores, we cannot update a field which is a sort key
-            Ext.Error.raise('Cannot move records between groups in a buffered store record - the store is a map of remote data');
-        }
-        me.callParent(arguments);
-    },
-
-    add: function(arg) {
-        //<debug>
+    //<debug>
+    add: function() {
         Ext.Error.raise('add method may not be called on a buffered store - the store is a map of remote data');
-        //</debug>
-        this.callParent(arguments);
     },
+    
+    insert: function() {
+        Ext.Error.raise('insert method may not be called on a buffered store - the store is a map of remote data');
+    },
+    //</debug>
 
     removeAll: function(silent) {
         var me = this,
@@ -364,15 +366,12 @@ Ext.define('Ext.data.BufferedStore', {
         }
     },
 
-    doSort: function() {
-        if (this.remoteSort) {
-            this.callParent(arguments);
-        }
-        //<debug>
-        else {
-            Ext.Error.raise('Local sorting may not be used on a buffered store - the store is a map of remote data');
-        }
-        //</debug>
+    // @private @override.
+    // A BufferedStore always reports that it contains the full dataset.
+    // It is not paged, it encapsulates the full dataset.
+    // The number of records that happen to be cached at any one time is never useful.
+    getCount: function() {
+        return this.totalCount || 0;
     },
 
     getRange: function(start, end, options) {
@@ -674,13 +673,13 @@ Ext.define('Ext.data.BufferedStore', {
                 Ext.Error.raise("pageSize cannot be dynamically altered");
             }
             if (!data.pageSize) {
-                data.pageSize = pageSize;
+                data.setPageSize(pageSize);
             }
         }
 
         // Allow first prefetch call to imply the required page size.
         else {
-            me.pageSize = data.pageSize = pageSize = options.limit;
+            me.pageSize = data.setPageSize(pageSize = options.limit);
         }
 
         // So that we can check for tampering next time through
@@ -780,7 +779,7 @@ Ext.define('Ext.data.BufferedStore', {
             total = me.totalCount;
 
         // No more data to prefetch.
-        if (total !== undefined && me.getCount() === total) {
+        if (total !== undefined && me.data.getCount() === total) {
             return;
         }
 
@@ -1000,8 +999,33 @@ Ext.define('Ext.data.BufferedStore', {
         me.prefetchRange(start, end);
     },
 
-    sort: function() {
+    sort: function(field, direction, mode) {
+        if (arguments.length === 0) {
+            this.clearAndLoad();
+        } else {
+            this.getSorters().addSort(field, direction, mode);
+        }
+    },
+
+    onSorterEndUpdate: function() {
+        var me = this,
+            sorters = me.getSorters().getRange();
+
+        // Only load or sort if there are sorters
+        if (sorters.length) {
+            me.clearAndLoad({
+                callback: function() {
+                    me.fireEvent('sort', me, sorters);
+                }
+            });
+        } else {
+            // Sort event must fire when sorters collection is updated to empty.
+            me.fireEvent('sort', me, sorters);
+        }
+    },
+
+    clearAndLoad: function(options) {
         this.getData().clear();
-        this.loadPage(1);
+        this.loadPage(1, options);
     }
 });

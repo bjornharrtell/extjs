@@ -13,6 +13,10 @@ Ext.define('Ext.tab.Bar', {
         'Ext.util.Point',
         'Ext.layout.component.Body'
     ],
+    
+    mixins: [
+        'Ext.util.FocusableContainer'
+    ],
 
     componentLayout: 'body',
 
@@ -116,7 +120,7 @@ Ext.define('Ext.tab.Bar', {
      * @param {Ext.tab.Tab} tab The new Tab
      * @param {Ext.Component} card The card that was just shown in the TabPanel
      */
-
+    
     // @private
     initComponent: function() {
         var me = this,
@@ -147,7 +151,7 @@ Ext.define('Ext.tab.Bar', {
     initRenderData: function() {
         var me = this;
 
-        return Ext.apply(this.callParent(), {
+        return Ext.apply(me.callParent(), {
             bodyCls: me.bodyCls,
             baseBodyCls: me._baseBodyCls,
             bodyTargetCls: me.bodyTargetCls,
@@ -160,13 +164,16 @@ Ext.define('Ext.tab.Bar', {
         var me = this,
             items = me.items,
             ownerCt = me.ownerCt,
-            i, ln;
+            item, i, ln;
 
         items = items && items.items;
 
         if (items) {
             for (i = 0, ln = items.length; i < ln; i++) {
-                items[i].setTabPosition(dock);
+                item = items[i];
+                if (item.isTab) {
+                    item.setTabPosition(dock);
+                }
             }
         }
 
@@ -184,13 +191,16 @@ Ext.define('Ext.tab.Bar', {
     updateTabRotation: function(tabRotation) {
         var me = this,
             items = me.items,
-            i, ln;
+            i, ln, item;
 
         items = items && items.items;
 
         if (items) {
             for (i = 0, ln = items.length; i < ln; i++) {
-                items[i].setRotation(tabRotation);
+                item = items[i];
+                if (item.isTab) {
+                    item.setRotation(tabRotation);
+                }
             }
         }
 
@@ -215,7 +225,7 @@ Ext.define('Ext.tab.Bar', {
             });
         }
     },
-
+    
     afterLayout: function() {
         this.adjustTabPositions();
         this.callParent(arguments);
@@ -236,7 +246,7 @@ Ext.define('Ext.tab.Bar', {
                 tab = items[i];
                 el = tab.el;
                 lastBox = tab.lastBox;
-                rotation = tab.getActualRotation();
+                rotation = tab.isTab ? tab.getActualRotation() : 0;
                 if (rotation === 1 && tab.isVisible()) {
                     // rotated 90 degrees using the top left corner as the axis.
                     // tabs need to be shifted to the right by their width
@@ -263,7 +273,7 @@ Ext.define('Ext.tab.Bar', {
         if (tab === me.previousTab) {
             me.previousTab = null;
         }
-        me.callParent(arguments);    
+        me.callParent(arguments);
     },
 
     onRemoved: function(destroying) {
@@ -347,8 +357,9 @@ Ext.define('Ext.tab.Bar', {
         for (; i < length; i++) {
             tab = tabs[i];
             lastBox = tab.lastBox;
-            if (!lastBox) {
-                // avoid looping hidden or not layed out tabs
+            if (!lastBox || !tab.isTab) {
+                // avoid looping hidden or not laid out, or if the item
+                // is not a tab
                 continue;
             }
             tabX = innerCtXY[0] + lastBox.x;
@@ -560,17 +571,38 @@ Ext.define('Ext.tab.Bar', {
             if (tab && tab.isDisabled && !tab.isDisabled()) {
                 if (tab.closable && isCloseClick) {
                     tab.onCloseClick();
-                } else {
-                    if (tabPanel) {
-                        // TabPanel will card setActiveTab of the TabBar
-                        tabPanel.setActiveTab(tab.card);
-                    } else {
-                        me.setActiveTab(tab);
-                    }
+                }
+                else {
+                    me.doActivateTab(tab);
                 }
 
                 tab.afterClick(isCloseClick);
             }
+        },
+        
+        doActivateTab: function(tab) {
+            var tabPanel = this.tabPanel;
+            
+            if (tabPanel) {
+                // TabPanel will card setActiveTab of the TabBar
+                tabPanel.setActiveTab(tab.card);
+            }
+            else {
+                this.setActiveTab(tab);
+            }
+        },
+        
+        beforeFocusableChildFocus: function(child, e) {
+            var me = this,
+                mixin = me.mixins.focusablecontainer;
+            
+            mixin.beforeFocusableChildFocus.call(me, child, e);
+            
+            if (!child.active) {
+                child.activate();
+            }
+            
+            me.doActivateTab(child);
         }
     }
 });

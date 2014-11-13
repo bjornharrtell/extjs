@@ -80,9 +80,7 @@ Ext.define("Ext.form.Labelable", {
             '<span class="{labelInnerCls} {labelInnerCls}-{ui}" style="{labelInnerStyle}">',
             '{beforeLabelTextTpl}',
             '<tpl if="fieldLabel">{fieldLabel}',
-                '<tpl if="labelSeparator">',
-                    '<span role="separator">{labelSeparator}</span>',
-                '</tpl>',
+                '<tpl if="labelSeparator">{labelSeparator}</tpl>',
             '</tpl>',
             '{afterLabelTextTpl}',
             '</span>',
@@ -411,34 +409,44 @@ Ext.define("Ext.form.Labelable", {
          */
         initTip: function() {
             var tip = this.tip,
-                cfg;
+                cfg, copy;
 
-            if (!tip) {
-                cfg = {
-                    id: 'ext-form-error-tip',
-                    //<debug>
-                    // tell the spec runner to ignore this element when checking if the dom is clean
-                    sticky: true,
-                    //</debug>
-                    ui: 'form-invalid'
-                };
+            if (tip) {
+                return;
+            }
 
-                // On Touch devices, tapping the target shows the qtip
-                if (Ext.supports.Touch) {
-                    cfg.dismissDelay = 0;
-                    cfg.anchor = 'top';
-                    cfg.showDelay = 0;
-                    cfg.listeners = {
-                        beforeshow: function() {
-                            this.minWidth = Ext.fly(this.anchorTarget).getWidth();
-                        }
+            cfg = {
+                id: 'ext-form-error-tip',
+                //<debug>
+                // tell the spec runner to ignore this element when checking if the dom is clean
+                sticky: true,
+                //</debug>
+                ui: 'form-invalid'
+            };
+
+            // On Touch devices, tapping the target shows the qtip
+            if (Ext.supports.Touch) {
+                cfg.dismissDelay = 0;
+                cfg.anchor = 'top';
+                cfg.showDelay = 0;
+                cfg.listeners = {
+                    beforeshow: function() {
+                        this.minWidth = Ext.fly(this.anchorTarget).getWidth();
                     }
                 }
-                tip = this.tip = Ext.create('Ext.tip.QuickTip', cfg);
-                tip.tagConfig = Ext.apply({}, {
-                    attribute: 'errorqtip'
-                }, tip.tagConfig);
             }
+            tip = this.tip = Ext.create('Ext.tip.QuickTip', cfg);
+            copy = Ext.apply({}, tip.tagConfig);
+            copy.attribute = 'errorqtip';
+            tip.setTagConfig(copy);
+        },
+
+        /**
+         * Destroy the error tip instance.
+         * @static
+         */
+        destroyTip: function() {
+            this.tip = Ext.destroy(this.tip);
         }
     },
 
@@ -518,23 +526,23 @@ Ext.define("Ext.form.Labelable", {
             separator = me.labelSeparator,
             labelEl = me.labelEl,
             errorWrapEl = me.errorWrapEl,
+            sideLabel = (me.labelAlign !== 'top'),
             errorWrapUnderSideLabelCls = me.errorWrapUnderSideLabelCls;
 
         me.fieldLabel = label;
         if (me.rendered) {
             if (Ext.isEmpty(label) && me.hideEmptyLabel) {
                 labelEl.setDisplayed('none');
-                if (errorWrapEl) {
+                if (sideLabel && errorWrapEl) {
                     errorWrapEl.removeCls(errorWrapUnderSideLabelCls);
                 }
             } else {
                 if (separator) {
-                    label = me.trimLabelSeparator() + '<span role="separator">' +
-                        separator + '</span>';
+                    label = me.trimLabelSeparator() + separator;
                 }
                 labelEl.first().setHtml(label);
                 labelEl.setDisplayed('');
-                if (errorWrapEl) {
+                if (sideLabel && errorWrapEl) {
                     errorWrapEl.addCls(errorWrapUnderSideLabelCls);
                 }
             }
@@ -619,7 +627,7 @@ Ext.define("Ext.form.Labelable", {
                 errorWrapExtraCls += ' ' + me.errorWrapUnderSideLabelCls;
             }
         } else {
-            labelStyle += 'display:none';
+            labelStyle += 'display:none;';
         }
 
         if (defaultBodyWidth) {
@@ -633,7 +641,7 @@ Ext.define("Ext.form.Labelable", {
             inputId: me.getInputId(),
             labelCls: me.labelCls,
             labelClsExtra: labelClsExtra,
-            labelStyle: labelStyle,
+            labelStyle: labelStyle + (me.labelStyle || ''),
             labelInnerStyle: labelInnerStyle,
             labelInnerCls: me.labelInnerCls,
             unselectableCls: Ext.Element.unselectableCls,
@@ -874,8 +882,8 @@ Ext.define("Ext.form.Labelable", {
             hasError = !!activeError;
 
         if (activeError !== me.lastActiveError) {
-            me.fireEvent('errorchange', me, activeError);
             me.lastActiveError = activeError;
+            me.fireEvent('errorchange', me, activeError);
         }
 
         if (me.rendered && !me.isDestroyed && !me.preventMark) {

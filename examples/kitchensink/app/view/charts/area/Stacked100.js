@@ -71,7 +71,7 @@ Ext.define('KitchenSink.view.charts.area.Stacked100', {
             sprites: [{
                 type: 'text',
                 text: 'Area Charts - 100% Stacked Area',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -79,15 +79,15 @@ Ext.define('KitchenSink.view.charts.area.Stacked100', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 430
+                y: 420
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 440
+                y: 435
             }],
             axes: [{
                 type: 'numeric',
@@ -117,10 +117,17 @@ Ext.define('KitchenSink.view.charts.area.Stacked100', {
                 style: {
                     opacity: 0.80
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                marker: {
+                    opacity: 0,
+                    scaling: 0.01,
+                    fx: {
+                        duration: 200,
+                        easing: 'easeOut'
+                    }
+                },
+                highlightCfg: {
+                    opacity: 1,
+                    scaling: 1.5
                 },
                 tooltip: {
                     trackMouse: true,

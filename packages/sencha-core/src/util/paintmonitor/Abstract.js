@@ -62,6 +62,6 @@ Ext.define('Ext.util.paintmonitor.Abstract', {
             parentNode.removeChild(monitorElement);
         }
 
-        this.callSuper();
+        this.callParent();
     }
 });

@@ -104,7 +104,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
                 lineDashOffset: "number",
 
                 /**
-                 * @cfg {Number} [miterLimit=1] Sets the distance between the inner corner and the outer corner where two lines meet.
+                 * @cfg {Number} [miterLimit=10] Sets the distance between the inner corner and the outer corner where two lines meet.
                  */
                 miterLimit: "number",
 
@@ -236,7 +236,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
                 lineDashOffset: 0,
                 lineCap: "butt",
                 lineJoin: "miter",
-                miterLimit: 1,
+                miterLimit: 10,
 
                 shadowColor: "none",
                 shadowOffsetX: 0,
@@ -445,22 +445,25 @@ Ext.define('Ext.draw.sprite.Sprite', {
 
     updateDirtyFlags: function (attrs) {
         var me = this,
-            dirtyFlags = attrs.dirtyFlags, flags,
+            dirtyFlags = attrs.dirtyFlags,
             updaters = me.self.def._updaters,
             any = false,
             dirty = false,
-            flag;
+            flags, updater;
 
         do {
             any = false;
-            for (flag in dirtyFlags) {
-                me.updateDirtyFlags = Ext.emptyFn;
-                flags = dirtyFlags[flag];
-                delete dirtyFlags[flag];
-                if (updaters[flag]) {
-                    updaters[flag].call(me, attrs, flags);
-                }
+            for (updater in dirtyFlags) {
                 any = true;
+                flags = dirtyFlags[updater];
+                delete dirtyFlags[updater];
+                // To keep things predictable first call all existing updaters from dirtyFlags,
+                // then (on the next do/while loop iteration) call updaters for dirtyFlags
+                // that may have been added by updaters just called.
+                me.updateDirtyFlags = Ext.emptyFn;
+                if (updaters[updater]) {
+                    updaters[updater].call(me, attrs, flags);
+                }
                 delete me.updateDirtyFlags;
             }
             dirty = dirty || any;

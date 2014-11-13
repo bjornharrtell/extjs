@@ -780,13 +780,16 @@ Ext.define('Ext.util.Positionable', {
      */
     constrainBox: function(box) {
         var me = this,
-            constrainedPos;
+            constrainedPos,
+            x, y;
 
         if (me.constrain || me.constrainHeader) {
+            x = ('x' in box) ? box.x : box.left;
+            y = ('y' in box) ? box.y : box.top;
             constrainedPos =
                 me.calculateConstrainedPosition(
                     null,
-                    [(box.x || box.left), (box.y || box.top)],
+                    [x, y],
                     false,
                     [box.width, box.height]
                 );

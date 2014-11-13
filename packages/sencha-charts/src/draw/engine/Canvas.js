@@ -16,7 +16,14 @@ Ext.define('Ext.draw.engine.Canvas', {
          */
         highPrecision: false
     },
-    requires: ['Ext.draw.Animator'],
+    requires: [
+
+        //<feature legacyBrowser>
+        'Ext.draw.engine.excanvas',
+        //</feature>
+
+        'Ext.draw.Animator'
+    ],
 
     statics: {
         contextOverrides: {
@@ -35,12 +42,10 @@ Ext.define('Ext.draw.engine.Canvas', {
                 var fillStyle = this.fillStyle,
                     fillGradient = this.fillGradient,
                     fillOpacity = this.fillOpacity,
-                    rgba = 'rgba(0, 0, 0, 0)',
-                    rgba0 = 'rgba(0, 0, 0, 0.0)',
-                    bbox = this.bbox,
-                    alpha = this.globalAlpha;
+                    alpha = this.globalAlpha,
+                    bbox = this.bbox;
 
-                if (fillStyle !== rgba && fillStyle !== rgba0 && fillOpacity !== 0) {
+                if (fillStyle !== Ext.draw.Color.RGBA_NONE && fillOpacity !== 0) {
                     if (fillGradient && bbox) {
                         this.fillStyle = fillGradient.generateGradient(this, bbox);
                     }
@@ -67,12 +72,10 @@ Ext.define('Ext.draw.engine.Canvas', {
                 var strokeStyle = this.strokeStyle,
                     strokeGradient = this.strokeGradient,
                     strokeOpacity = this.strokeOpacity,
-                    rgba = 'rgba(0, 0, 0, 0)',
-                    rgba0 = 'rgba(0, 0, 0, 0.0)',
-                    bbox = this.bbox,
-                    alpha = this.globalAlpha;
+                    alpha = this.globalAlpha,
+                    bbox = this.bbox;
 
-                if (strokeStyle !== rgba && strokeStyle !== rgba0 && strokeOpacity !== 0) {
+                if (strokeStyle !== Ext.draw.Color.RGBA_NONE && strokeOpacity !== 0) {
                     if (strokeGradient && bbox) {
                         this.strokeStyle = strokeGradient.generateGradient(this, bbox);
                     }
@@ -102,8 +105,7 @@ Ext.define('Ext.draw.engine.Canvas', {
                     strokeOpacity = this.strokeOpacity,
                     shadowColor = ctx.shadowColor,
                     shadowBlur = ctx.shadowBlur,
-                    rgba = 'rgba(0, 0, 0, 0)',
-                    rgba0 = 'rgba(0, 0, 0, 0.0)';
+                    none = Ext.draw.Color.RGBA_NONE;
 
                 if (transformFillStroke === undefined) {
                     transformFillStroke = attr.transformFillStroke;
@@ -112,12 +114,12 @@ Ext.define('Ext.draw.engine.Canvas', {
                 if (!transformFillStroke) {
                     attr.inverseMatrix.toContext(ctx);
                 }
-                if (fillStyle !== rgba && fillStyle !== rgba0 && fillOpacity !== 0) {
+                if (fillStyle !== none && fillOpacity !== 0) {
                     ctx.fill();
-                    ctx.shadowColor = 'rgba(0,0,0,0)';
+                    ctx.shadowColor = none;
                     ctx.shadowBlur = 0;
                 }
-                if (strokeStyle !== rgba && strokeStyle !== rgba0 && strokeOpacity !== 0) {
+                if (strokeStyle !== none && strokeOpacity !== 0) {
                     ctx.stroke();
                 }
                 ctx.shadowColor = shadowColor;
@@ -176,11 +178,44 @@ Ext.define('Ext.draw.engine.Canvas', {
                             break;
                     }
                 }
+            },
+
+            save: function () {
+                var toSave = this.toSave,
+                    ln = toSave.length,
+                    obj = ln && {}, // Don't allocate memory if we don't have to.
+                    i = 0,
+                    key;
+                for (; i < ln; i++) {
+                    key = toSave[i];
+                    if (key in this) {
+                        obj[key] = this[key];
+                    }
+                }
+                this.state.push(obj);
+                this.$save();
+            },
+
+            restore: function () {
+                var obj = this.state.pop(),
+                    key;
+                if (obj) {
+                    for (key in obj) {
+                        this[key] = obj[key];
+                    }
+                }
+                this.$restore();
             }
         }
     },
 
-    splitThreshold: 1800,
+    splitThreshold: 3000,
+
+    /**
+     * @private
+     * Properties to be saved/restored in the `save` and `restore` methods.
+     */
+    toSave: ['fillGradient', 'strokeGradient'],
 
     getElementConfig: function () {
         //TODO:ps In the Ext world, use renderTpl to create the children
@@ -231,6 +266,9 @@ Ext.define('Ext.draw.engine.Canvas', {
             delete overrides.ellipse;
         }
 
+        ctx.state = [];
+        ctx.toSave = this.toSave;
+
         for (name in overrides) {
             ctx['$' + name] = ctx[name];
         }
@@ -278,31 +316,31 @@ Ext.define('Ext.draw.engine.Canvas', {
         }
     },
 
-    precisionMethods: {
-        rect: false,
-        fillRect: false,
-        strokeRect: false,
-        clearRect: false,
-        moveTo: false,
-        lineTo: false,
-        arc: false,
-        arcTo: false,
-        save: false,
-        restore: false,
-        updatePrecisionCompensate: false,
-        setTransform: false,
-        transform: false,
-        scale: false,
-        translate: false,
-        rotate: false,
-        quadraticCurveTo: false,
-        bezierCurveTo: false,
-        createLinearGradient: false,
-        createRadialGradient: false,
-        fillText: false,
-        strokeText: false,
-        drawImage: false
-    },
+    precisionNames: [
+        'rect',
+        'fillRect',
+        'strokeRect',
+        'clearRect',
+        'moveTo',
+        'lineTo',
+        'arc',
+        'arcTo',
+        'save',
+        'restore',
+        'updatePrecisionCompensate',
+        'setTransform',
+        'transform',
+        'scale',
+        'translate',
+        'rotate',
+        'quadraticCurveTo',
+        'bezierCurveTo',
+        'createLinearGradient',
+        'createRadialGradient',
+        'fillText',
+        'strokeText',
+        'drawImage'
+    ],
 
     /**
      * @private
@@ -310,11 +348,16 @@ Ext.define('Ext.draw.engine.Canvas', {
      * @param {CanvasRenderingContext2D} ctx The canvas context.
      */
     disablePrecisionCompensation: function (ctx) {
-        var precisionMethods = this.precisionMethods,
-            name;
+        var regularOverrides = Ext.draw.engine.Canvas.contextOverrides,
+            precisionOverrides = this.precisionNames,
+            ln = precisionOverrides.length,
+            i, name;
 
-        for (name in precisionMethods) {
-            delete ctx[name];
+        for (i = 0; i < ln; i++) {
+            name = precisionOverrides[i];
+            if (!(name in regularOverrides)) {
+                delete ctx[name];
+            }
         }
 
         this.setDirty(true);
@@ -332,13 +375,15 @@ Ext.define('Ext.draw.engine.Canvas', {
             matrix = new Ext.draw.Matrix(),
             transStack = [],
             comp = {},
+            regularOverrides = Ext.draw.engine.Canvas.contextOverrides,
             originalCtx = ctx.constructor.prototype;
 
         /**
          * @class CanvasRenderingContext2D
          * @ignore
          */
-        var override = {
+        var precisionOverrides = {
+            toSave: surface.toSave,
             /**
              * Adds a new closed subpath to the path, representing the given rectangle.
              * @return {*}
@@ -428,7 +473,8 @@ Ext.define('Ext.draw.engine.Canvas', {
             save: function () {
                 transStack.push(matrix);
                 matrix = matrix.clone();
-                return originalCtx.save.call(this);
+                regularOverrides.save.call(this);
+                originalCtx.save.call(this);
             },
 
             /**
@@ -437,6 +483,7 @@ Ext.define('Ext.draw.engine.Canvas', {
              */
             restore: function () {
                 matrix = transStack.pop();
+                regularOverrides.restore.call(this);
                 originalCtx.restore.call(this);
                 this.updatePrecisionCompensate();
             },
@@ -450,7 +497,7 @@ Ext.define('Ext.draw.engine.Canvas', {
                 yy = comp.yy;
                 dx = comp.dx;
                 dy = comp.dy;
-                return originalCtx.setTransform.call(this, surface.devicePixelRatio, comp.b, comp.c, comp.d, 0, 0);
+                originalCtx.setTransform.call(this, surface.devicePixelRatio, comp.b, comp.c, comp.d, 0, 0);
             },
 
             /**
@@ -462,7 +509,7 @@ Ext.define('Ext.draw.engine.Canvas', {
                 yy = comp.yy;
                 dx = comp.dx;
                 dy = comp.dy;
-                return originalCtx.setTransform.call(this, surface.devicePixelRatio, comp.b, comp.c, comp.d, 0, 0);
+                originalCtx.setTransform.call(this, surface.devicePixelRatio, comp.b, comp.c, comp.d, 0, 0);
             },
 
             /**
@@ -489,7 +536,7 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             scale: function (sx, sy) {
-                return this.transform(sx, 0, 0, sy, 0, 0);
+                this.transform(sx, 0, 0, sy, 0, 0);
             },
 
             /**
@@ -498,7 +545,7 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             translate: function (dx, dy) {
-                return this.transform(1, 0, 0, 1, dx, dy);
+                this.transform(1, 0, 0, 1, dx, dy);
             },
 
             /**
@@ -509,7 +556,7 @@ Ext.define('Ext.draw.engine.Canvas', {
             rotate: function (radians) {
                 var cos = Math.cos(radians),
                     sin = Math.sin(radians);
-                return this.transform(cos, sin, -sin, cos, 0, 0);
+                this.transform(cos, sin, -sin, cos, 0, 0);
             },
 
             /**
@@ -519,7 +566,7 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             quadraticCurveTo: function (cx, cy, x, y) {
-                return originalCtx.quadraticCurveTo.call(this,
+                originalCtx.quadraticCurveTo.call(this,
                     cx * xx + dx,
                     cy * yy + dy,
                     x * xx + dx,
@@ -534,7 +581,7 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             bezierCurveTo: function (c1x, c1y, c2x, c2y, x, y) {
-                return originalCtx.bezierCurveTo.call(this,
+                originalCtx.bezierCurveTo.call(this,
                     c1x * xx + dx,
                     c1y * yy + dy,
                     c2x * xx + dx,
@@ -619,7 +666,12 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             fill: function () {
+                var fillGradient = this.fillGradient,
+                    bbox = this.bbox;
                 this.updatePrecisionCompensateRect();
+                if (fillGradient && bbox) {
+                    this.fillStyle = fillGradient.generateGradient(this, bbox);
+                }
                 originalCtx.fill.call(this);
                 this.updatePrecisionCompensate();
             },
@@ -629,7 +681,12 @@ Ext.define('Ext.draw.engine.Canvas', {
              * @ignore
              */
             stroke: function () {
+                var strokeGradient = this.strokeGradient,
+                    bbox = this.bbox;
                 this.updatePrecisionCompensateRect();
+                if (strokeGradient && bbox) {
+                    this.strokeStyle = strokeGradient.generateGradient(this, bbox);
+                }
                 originalCtx.stroke.call(this);
                 this.updatePrecisionCompensate();
             },
@@ -654,7 +711,7 @@ Ext.define('Ext.draw.engine.Canvas', {
                 }
             }
         };
-        Ext.apply(ctx, override);
+        Ext.apply(ctx, precisionOverrides);
         this.setDirty(true);
     },
 
@@ -768,24 +825,12 @@ Ext.define('Ext.draw.engine.Canvas', {
                 }
             }
 
-            try {
-                ctx.save();
-                // Set attributes to context.
-                sprite.useAttributes(ctx, rect);
-                // Render shape
-                if (false === sprite.render(me, ctx, [left, top, width, bottom - top], rect)) {
-                    return false;
-                }
+            ctx.save();
+            sprite.useAttributes(ctx, rect);
+            if (false === sprite.render(me, ctx, [left, top, width, bottom - top], rect)) {
+                return false;
             }
-            catch (e) { // catch is required in IE8 (try/finally not supported)
-                //<debug>
-                Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-                //</debug>
-                throw e;
-            }
-            finally {
-                ctx.restore();
-            }
+            ctx.restore();
         }
         sprite.setDirty(false);
     },
@@ -815,10 +860,11 @@ Ext.define('Ext.draw.engine.Canvas', {
     },
 
     applyDefaults: function (ctx) {
-        ctx.strokeStyle = 'rgba(0,0,0,0)';
-        ctx.fillStyle = 'rgba(0,0,0,0)';
+        var none = Ext.draw.Color.RGBA_NONE;
+        ctx.strokeStyle = none;
+        ctx.fillStyle = none;
         ctx.textAlign = 'start';
-        ctx.textBaseline = 'top';
+        ctx.textBaseline = 'alphabetic';
         ctx.miterLimit = 1;
     },
 

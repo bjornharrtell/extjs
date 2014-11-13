@@ -92,7 +92,7 @@ Ext.define('KitchenSink.view.charts.line.MarkedSpline', {
             sprites: [{
                 type: 'text',
                 text: 'Line Charts - Marked Spline',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -111,6 +111,9 @@ Ext.define('KitchenSink.view.charts.line.MarkedSpline', {
                 title: 'Theta',
                 fields: 'theta',
                 position: 'bottom',
+                style: {
+                    textPadding: 0 // remove extra padding between labels to make sure no labels are skipped
+                },
                 grid: true,
                 label: {
                     rotate: {

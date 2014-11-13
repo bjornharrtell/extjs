@@ -90,7 +90,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
         function power(count, end) {
             var power = 0,
                 n = count;
-            while (n < end) {
+            while (n < end && count > 0) {
                 power++;
                 n += count >> power;
             }
@@ -145,9 +145,9 @@ Ext.define('Ext.chart.series.sprite.Line', {
                         // Draw the line on top of the filled area.
                         ctx.moveTo(x0, y0);
                         ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
+                        ctx.stroke();
                         ctx.moveTo(x0, y0);
                         ctx.closePath();
-                        ctx.stroke();
                     ctx.restore();
                     ctx.beginPath();
                     ctx.moveTo(x, y);
@@ -172,7 +172,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
                         x0: x0,
                         y0: y0
                     };
-                    changes = attr.renderer.call(this, this, lineConfig, {store:this.getStore()}, start + i/3);
+                    changes = attr.renderer.call(this, this, lineConfig, {store: this.getStore()}, start + i/3);
                     ctx.save();
                         Ext.apply(ctx, changes);
                         // Fill the area if we need to, using the fill color and transparent strokes.
@@ -229,21 +229,18 @@ Ext.define('Ext.chart.series.sprite.Line', {
             labelX, labelY,
             labelOverflowPadding = attr.labelOverflowPadding,
             flipXY = attr.flipXY,
-            left = flipXY ? rect[1] : rect[0],
-            top = flipXY ? rect[0] : rect[1],
-            width = flipXY ? rect[3] : rect[2],
-            height = flipXY ? rect[2] : rect[3],
-            halfWidth, halfHeight,
-            labelBox,
-            changes;
+            halfHeight, labelBBox,
+            changes, hasPendingChanges;
 
-        labelCfg.text = text;
-
-        labelBox = me.getMarkerBBox('labels', labelId, true);
-        if (!labelBox) {
-            me.putMarker('labels', labelCfg, labelId);
-            labelBox = me.getMarkerBBox('labels', labelId, true);
-        }
+        // The coordinates below (data point converted to surface coordinates)
+        // are just for the renderer to give it a notion of where the label will be positioned.
+        // The actual position of the label will be different
+        // (unless the renderer returns x/y coordinates in the changes object)
+        // and depend on several things including the size of the text,
+        // which has to be measured after the renderer call,
+        // since text can be modified by the renderer.
+        labelCfg.x = surfaceMatrix.x(dataX, dataY);
+        labelCfg.y = surfaceMatrix.y(dataX, dataY);
 
         if (flipXY) {
             labelCfg.rotationRads = Math.PI * 0.5;
@@ -251,9 +248,27 @@ Ext.define('Ext.chart.series.sprite.Line', {
             labelCfg.rotationRads = 0;
         }
 
-        halfWidth = labelBox.width / 2;
-        halfHeight = labelBox.height / 2;
+        labelCfg.text = text;
 
+        if (labelTpl.attr.renderer) {
+            changes = labelTpl.attr.renderer.call(me, text, label, labelCfg, {store: me.getStore()}, labelId);
+            if (typeof changes === 'string') {
+                labelCfg.text = changes;
+            } else if (typeof changes === 'object') {
+                if ('text' in changes) {
+                    labelCfg.text = changes.text;
+                }
+                hasPendingChanges = true;
+            }
+        }
+
+        labelBBox = me.getMarkerBBox('labels', labelId, true);
+        if (!labelBBox) {
+            me.putMarker('labels', labelCfg, labelId);
+            labelBBox = me.getMarkerBBox('labels', labelId, true);
+        }
+
+        halfHeight = labelBBox.height / 2;
         labelX = dataX;
 
         switch (labelTpl.attr.display) {
@@ -269,28 +284,11 @@ Ext.define('Ext.chart.series.sprite.Line', {
                 labelY = dataY + halfHeight + labelOverflowPadding;
         }
 
-        if (labelX <= left + halfWidth) {
-            labelX = left + halfWidth;
-        } else if (labelX >= width - halfWidth) {
-            labelX = width - halfWidth;
-        }
-
-        if (labelY <= top + halfHeight) {
-            labelY = top + halfHeight;
-        } else if (labelY >= height - halfHeight) {
-            labelY = height - halfHeight;
-        }
-
         labelCfg.x = surfaceMatrix.x(labelX, labelY);
         labelCfg.y = surfaceMatrix.y(labelX, labelY);
 
-        if (labelTpl.attr.renderer) {
-            changes = labelTpl.attr.renderer.call(me, text, label, labelCfg, {store: me.getStore()}, labelId);
-            if (typeof changes === 'string') {
-                labelCfg.text = changes;
-            } else {
-                Ext.apply(labelCfg, changes);
-            }
+        if (hasPendingChanges) {
+            Ext.apply(labelCfg, changes);
         }
 
         me.putMarker('labels', labelCfg, labelId);
@@ -311,7 +309,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
             dx = matrix.getDX(),
             dy = matrix.getDY(),
             markerCfg = {},
-            list = this.list || (this.list = []),
+            list = me.list || (me.list = []),
             x, y, i, index,
             minXs = aggregates.minX,
             maxXs = aggregates.maxX,
@@ -348,7 +346,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
                         x: x,
                         y: y
                     };
-                    markerCfg = attr.renderer.call(this, this, markerCfg, {store:this.getStore()}, start + i/3) || {};
+                    markerCfg = attr.renderer.call(me, me, markerCfg, {store: me.getStore()}, start + i/3) || {};
                 }
                 markerCfg.translationX = surfaceMatrix.x(x, y);
                 markerCfg.translationY = surfaceMatrix.y(x, y);

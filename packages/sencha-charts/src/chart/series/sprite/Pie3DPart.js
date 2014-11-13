@@ -220,14 +220,14 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
             centerX = attr.centerX,
             centerY = attr.centerY,
             baseRotation = attr.baseRotation,
-            startAngle = attr.startAngle + baseRotation ,
-            endAngle = attr.endAngle + baseRotation ,
+            startAngle = attr.startAngle + baseRotation,
+            endAngle = attr.endAngle + baseRotation,
+            midAngle = (startAngle + endAngle) * 0.5,
             startRho = attr.startRho,
             endRho = attr.endRho,
-            midAngle,
             sinEnd = Math.sin(endAngle),
             cosEnd = Math.cos(endAngle);
-        midAngle = (startAngle + endAngle) * 0.5;
+
         centerX += Math.cos(midAngle) * margin;
         centerY += Math.sin(midAngle) * margin * distortion;
         path.ellipse(centerX, centerY, startRho, startRho * distortion, 0, startAngle, endAngle, false);
@@ -251,6 +251,7 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
             sinStart = Math.sin(startAngle),
             cosStart = Math.cos(startAngle),
             midAngle;
+
         if (cosStart < 0) {
             midAngle = (startAngle + endAngle) * 0.5;
             centerX += Math.cos(midAngle) * margin;
@@ -276,7 +277,9 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
             startRho = attr.startRho,
             endRho = attr.endRho,
             sin = Math.sin(endAngle),
-            cos = Math.cos(endAngle), midAngle;
+            cos = Math.cos(endAngle),
+            midAngle;
+
         if (cos > 0) {
             midAngle = (startAngle + endAngle) * 0.5;
             centerX += Math.cos(midAngle) * margin;
@@ -298,18 +301,20 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
             baseRotation = attr.baseRotation,
             startAngle = attr.startAngle + baseRotation ,
             endAngle = attr.endAngle + baseRotation,
+            midAngle = (startAngle + endAngle) * 0.5,
             thickness = attr.thickness,
             startRho = attr.startRho,
+            isTranslucent = attr.globalAlpha < 1,
             sinEnd, cosEnd,
-            tempStart, tempEnd, midAngle;
-        midAngle = (startAngle + endAngle) * 0.5;
+            tempStart, tempEnd;
+
         centerX += Math.cos(midAngle) * margin;
         centerY += Math.sin(midAngle) * margin * distortion;
-        if (startAngle >= Math.PI * 2) {
+        if (startAngle >= Math.PI * 2 || isTranslucent) {
             startAngle -= Math.PI * 2;
             endAngle -= Math.PI * 2;
         }
-        if (endAngle > Math.PI && endAngle < Math.PI * 3) {
+        if (endAngle > Math.PI && endAngle < Math.PI * 3 || isTranslucent) {
             tempStart = startAngle;
             tempEnd = Math.min(endAngle, Math.PI * 2);
             sinEnd = Math.sin(tempEnd);
@@ -340,20 +345,22 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
             baseRotation = attr.baseRotation,
             startAngle = attr.startAngle + baseRotation ,
             endAngle = attr.endAngle + baseRotation,
+            midAngle = (startAngle + endAngle) * 0.5,
             thickness = attr.thickness,
             endRho = attr.endRho,
+            isTranslucent = attr.globalAlpha < 1,
             sinEnd, cosEnd,
-            tempStart, tempEnd, midAngle;
-        midAngle = (startAngle + endAngle) * 0.5;
+            tempStart, tempEnd;
+
         centerX += Math.cos(midAngle) * margin;
         centerY += Math.sin(midAngle) * margin * distortion;
 
-        if (startAngle >= Math.PI * 2) {
-            startAngle -= Math.PI * 2;
-            endAngle -= Math.PI * 2;
+        if (startAngle >= Math.PI * 2 || isTranslucent) {
+            startAngle -= Math.PI * 4;
+            endAngle -= Math.PI * 4;
         }
 
-        if (startAngle < Math.PI) {
+        if (startAngle < Math.PI || isTranslucent) {
             tempStart = startAngle;
             tempEnd = Math.min(endAngle, Math.PI);
             sinEnd = Math.sin(tempEnd);

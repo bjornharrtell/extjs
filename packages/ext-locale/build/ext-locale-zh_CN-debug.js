@@ -272,4 +272,3 @@ Ext.define("Ext.locale.zh_CN.window.MessageBox", {
 Ext.define("Ext.locale.zh_CN.Component", {	
     override: "Ext.Component"
 });
-

@@ -156,7 +156,7 @@ Ext.define('Ext.chart.interactions.Abstract', {
             gesture;
 
         function removeGesture(name) {
-            chart.element.un(name, me.listeners[name]);
+            chart.removeElementListener(name, me.listeners[name]);
             delete me.listeners[name];
         }
 
@@ -223,7 +223,7 @@ Ext.define('Ext.chart.interactions.Abstract', {
             if (me.syncTimer) {
                 return;
             }
-            me.syncTimer = setTimeout(function () {
+            me.syncTimer = Ext.defer(function () {
                 me.doSync();
             }, me.throttleGap);
         } else {

@@ -46,7 +46,7 @@
  *
  * Note that we didn't actually list the Views directly in the Application itself. This is because Views are managed by
  * Controllers, so it makes sense to keep those dependencies there. The Application will load each of the specified
- * Controllers using the pathing conventions laid out in the [application architecture guide][mvc] - in this case
+ * Controllers using the pathing conventions laid out in the [application architecture guide](../../../application_architecture/application_architecture.html) - in this case
  * expecting the controllers to reside in app/controller/Posts.js and app/controller/Comments.js. In turn, each
  * Controller simply needs to list the Views it uses and they will be automatically loaded. Here's how our Posts
  * controller like be defined:
@@ -81,7 +81,7 @@
  *
  *     Ext.application('MyApp.app.Application');
  *
- * For more information about writing Ext JS applications, please see the [application architecture guide][mvc].
+ * For more information about writing Ext JS applications, please see the [application architecture guide](../../../application_architecture/application_architecture.html).
  *
  * [mvc]: #/guide/application_architecture
  */
@@ -204,14 +204,14 @@ Ext.define('Ext.app.Application', {
          *     });
          */
         appProperty: 'app',
-       
+
+        // @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, requires: ["Ext.plugin.Viewport"]}
         /**
          * @cfg {Boolean/String} [autoCreateViewport=false]
          * Set to `true` to automatically load and instantiate `AppName.view.Viewport`
          * before firing the launch function. Otherwise this is the name of the view to
          * create and apply the `viewport` plugin.
          *
-         * @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, requires: ["Ext.plugin.Viewport"]}
          *
          */
         autoCreateViewport: false,
@@ -448,12 +448,16 @@ Ext.define('Ext.app.Application', {
 
     initViewport: function() {
         var viewport = this.getView(this.getViewportName()),
-            config;
+            proto = viewport.prototype,
+            config, plugins;
 
         if (viewport) {
-            if (!viewport.prototype.isViewport) {
+            if (!proto.isViewport) {
+                plugins = proto.plugins;
+                // Need to copy over any plugins defined on the prototype.
+                plugins = ['viewport'].concat(plugins ? Ext.Array.from(plugins, true) : []);
                 config = {
-                    plugins: 'viewport'
+                    plugins: plugins
                 };
             }
             this.viewport = viewport.create(config);

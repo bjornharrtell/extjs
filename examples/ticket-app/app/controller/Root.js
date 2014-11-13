@@ -18,10 +18,13 @@ Ext.define('Ticket.controller.Root', {
             Ext.Msg.alert('Not Supported', 'This example is not supported on Internet Explorer 8. Please use a different browser.');
             return;
         }
-        var session = this.session = new Ext.data.Session();
+        
+        this.session = new Ext.data.Session({
+            autoDestroy: false
+        });
         
         this.login = new Ticket.view.login.Login({
-            session: session,
+            session: this.session,
             autoShow: true,
             listeners: {
                 scope: this,

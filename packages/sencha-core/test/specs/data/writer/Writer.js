@@ -376,6 +376,7 @@ describe("Ext.data.writer.Writer", function(){
                     nameProperty: 'writeName'
                 });
                 Ext.data.Model.schema.clear();
+                Ext.undefine('spec.Article');
                 Article = Ext.define('spec.Article', {
                     extend: 'Ext.data.Model',
                     fields: [

@@ -7,7 +7,7 @@ Ext.define('KitchenSink.view.form.ContactFormWindow', {
     title: 'Contact Us',
     width: 400,
     minWidth: 300,
-    minHeight: 300,
+    minHeight: 380,
     layout: 'fit',
     resizable: true,
     modal: true,
@@ -17,7 +17,6 @@ Ext.define('KitchenSink.view.form.ContactFormWindow', {
     items: [{
         xtype: 'form',
         reference: 'windowForm',
-        
         layout: {
             type: 'vbox',
             align: 'stretch'

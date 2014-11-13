@@ -133,6 +133,36 @@ describe("Ext.Number", function(){
                 });
             });
         });
+
+        describe("null constraints", function() {
+            it("should constrain when the max is null and the number is less than min", function() {
+                expect(EN.constrain(5, 10, null)).toBe(10);
+            });
+
+            it("should constrain when the max is null and the number is equal to min", function() {
+                expect(EN.constrain(5, 5, null)).toBe(5);
+            });
+
+            it("should not constrain when the max is null and the number is greater than min", function() {
+                expect(EN.constrain(5, 2, null)).toBe(5);
+            });
+
+            it("should constrain when the min is null and the number is greater than max", function() {
+                expect(EN.constrain(5, null, 2)).toBe(2);
+            });
+
+            it("should constrain when the min is null and the number is equal to max", function() {
+                expect(EN.constrain(5, null, 5)).toBe(5);
+            });
+
+            it("should not constrain when the min is null and the number is less than max", function() {
+                expect(EN.constrain(5, null, 10)).toBe(5);
+            });
+
+            it("should not constrain when min and max are both null", function() {
+                expect(EN.constrain(5, null, null)).toBe(5);
+            });
+        });
     });
     
     describe("toFixed", function(){

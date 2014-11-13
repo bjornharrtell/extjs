@@ -57,9 +57,9 @@
  * 
  * To summarize:
  * 
- *  * Users are *{@link Ext.data.schema.ManyToOne many-to-one}* to Ogranizations
+ *  * Users are *{@link Ext.data.schema.ManyToOne many-to-one}* to Organizations
  *  * Users are *{@link Ext.data.schema.ManyToOne many-to-one}* to Levels
- *  * Users are *{@link Ext.data.schema.ManyToOne many-to-many}* to Groups
+ *  * Users are *{@link Ext.data.schema.ManyToMany many-to-many}* to Groups
  */
 Ext.define('Ext.data.schema.Association', {
     requires: [

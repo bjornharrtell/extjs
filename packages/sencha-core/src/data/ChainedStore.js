@@ -9,8 +9,9 @@ Ext.define('Ext.data.ChainedStore', {
     
     config: {
         /**
-         * @cfg {Ext.data.Store} source
-         * The backing data source for this chained store.
+         * @cfg {Ext.data.Store/String} source
+         * The backing data source for this chained store. Either a store instance
+         * or the id of an existing store.
          */
         source: null,
 
@@ -123,16 +124,23 @@ Ext.define('Ext.data.ChainedStore', {
             me.fireEvent('datachanged', me);
         }
     },
-    
+
+    // Our collection tells us that an item has changed
     onCollectionItemChange: function(collection, info) {
-        var record = info.item,
-            modifiedFieldNames = info.modified;
-        
-        if (this.contains(record)) {
-            this.fireEvent('update', this, record, 'edit', modifiedFieldNames);
-        }
+        var me = this,
+            record = info.item,
+            modifiedFieldNames = info.modified || null,
+            type = info.meta;
+
+        // Inform any interested parties that a record has been mutated.
+        // This will be invoked on TreeStores in which the invoking record
+        // is an descendant of a collapsed node, and so *will not be contained by this store
+        me.onUpdate(record, type, modifiedFieldNames, info);
+        me.fireEvent('update', me, record, type, modifiedFieldNames, info);
     },
-    
+
+    onUpdate: Ext.emptyFn,
+
     onCollectionRemove: function(collection, info) {
         var me = this,
             records = info.items,
@@ -207,15 +215,12 @@ Ext.define('Ext.data.ChainedStore', {
     
     // inherit docs
     onDestroy: function() {
-        var me = this,
-            data = me.data;
+        var me = this;
 
         me.observers = null;
         me.setSource(null);
-        if (data) {
-            data.destroy();
-            me.data = null;
-        }
+        me.getData().destroy(true);
+        me.data = null;
     }
 
     // Provides docs from the mixin

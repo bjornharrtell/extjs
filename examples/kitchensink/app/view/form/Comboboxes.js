@@ -75,7 +75,8 @@ Ext.define('KitchenSink.view.form.Comboboxes', {
             queryMode: 'remote',
             
             listeners: {
-                select: 'onStateSelected'
+                select: 'onStateSelected',
+                delay: 1
             }
         }]
     }, {

@@ -103,7 +103,7 @@ Ext.define('Ext.chart.series.sprite.CandleStick', {
         return barWidth + padding;
     },
 
-    renderAggregates: function (aggregates, start, end, surface, ctx) {
+    renderAggregates: function (aggregates, start, end, surface, ctx, clip) {
         var me = this,
             attr = this.attr,
             dataX = attr.dataX,
@@ -128,7 +128,7 @@ Ext.define('Ext.chart.series.sprite.CandleStick', {
         pixelAdjust -= Math.floor(pixelAdjust);
         ctx.save();
         template = this.raiseTemplate;
-        template.useAttributes(ctx);
+        template.useAttributes(ctx, clip);
         ctx.beginPath();
         for (i = start; i < end; i++) {
             if (opens[i] <= closes[i]) {
@@ -145,7 +145,7 @@ Ext.define('Ext.chart.series.sprite.CandleStick', {
 
         ctx.save();
         template = this.dropTemplate;
-        template.useAttributes(ctx);
+        template.useAttributes(ctx, clip);
         ctx.beginPath();
         for (i = start; i < end; i++) {
             if (opens[i] > closes[i]) {

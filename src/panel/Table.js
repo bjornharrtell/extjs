@@ -24,7 +24,8 @@ Ext.define('Ext.panel.Table', {
         'Ext.selection.CheckboxModel',
         'Ext.grid.plugin.BufferedRenderer',
         'Ext.grid.header.Container',
-        'Ext.grid.locking.Lockable'
+        'Ext.grid.locking.Lockable',
+        'Ext.grid.NavigationModel'
     ],
 
     extraBaseCls: Ext.baseCSSPrefix + 'grid',
@@ -33,6 +34,15 @@ Ext.define('Ext.panel.Table', {
     defaultBindProperty: 'store',
 
     layout: 'fit',
+    
+    ariaRole: 'grid',
+
+    config: {
+        selection: null
+    },
+
+    publishes: ['selection'],
+    twoWayBindable: ['selection'],
 
     /**
      * @cfg [autoLoad=false]
@@ -304,8 +314,12 @@ Ext.define('Ext.panel.Table', {
      */
 
     /**
-     * @cfg {String} emptyText Default text (html tags are accepted) to display in the Panel body when the Store
-     * is empty. When specified, and the Store is empty, the text will be rendered inside a DIV with the CSS class "x-grid-empty".
+     * @cfg {String} emptyText Default text (HTML tags are accepted) to display in the 
+     * Panel body when the Store is empty. When specified, and the Store is empty, the 
+     * text will be rendered inside a DIV with the CSS class "x-grid-empty". The emptyText 
+     * will not display until the first load of the associated store by default. If you 
+     * want the text to be displayed prior to the first store load use the 
+     * {@link Ext.view.Table#deferEmptyText deferEmptyText} config in the {@link #viewConfig} config.
      */
     
     /**
@@ -314,8 +328,12 @@ Ext.define('Ext.panel.Table', {
      */
     
     /**
-     * @cfg {Boolean} [bufferedRenderer]
-     * `false` to disable buffered rendering. See {@link #Ext.grid.plugin.BufferedRenderer}.
+     * @cfg {Boolean} [bufferedRenderer=true]
+     * Buffered rendering is enabled by default.
+     * 
+     * Configure as `false` to disable buffered rendering. See {@link #Ext.grid.plugin.BufferedRenderer}.
+     *
+     * @since 5.0.0
      */
     bufferedRenderer: true,
 
@@ -330,8 +348,9 @@ Ext.define('Ext.panel.Table', {
 
     /**
      * @property {Ext.view.Table} ownerGrid
-     * A reference to the top-level owning grid component. This is `null` if this grid is
-     * not part of a locked grid arrangement.
+     * A reference to the top-level owning grid component.
+     * 
+     * This is a reference to this GridPanel if this GridPanel is not part of a locked grid arrangement.
      * @readonly
      * @private
      * @since 5.0.0
@@ -345,6 +364,9 @@ Ext.define('Ext.panel.Table', {
     hiddenHeaderCls: Ext.baseCSSPrefix + 'grid-header-hidden',
     resizeMarkerCls: Ext.baseCSSPrefix + 'grid-resize-marker',
     emptyCls: Ext.baseCSSPrefix + 'grid-empty',
+    
+    focusable: true,
+    tabIndex: 0,
 
     /**
      * @event viewready
@@ -352,17 +374,20 @@ Ext.define('Ext.panel.Table', {
      * @param {Ext.panel.Table} this
      */
 
-    constructor: function () {
-        var store;
+    constructor: function (config) {
+        var me = this,
+            store;
 
-        this.callParent(arguments);
+        me.ownerGrid = (config && config.ownerGrid) || me;
+
+        me.callParent([config]);
 
         store = this.store;
 
         // Any further changes become stateful.
         store.trackStateChanges = true;
 
-        if (this.autoLoad) {
+        if (me.autoLoad) {
             store.unblockLoad();
             store.load();
         }
@@ -452,6 +477,11 @@ Ext.define('Ext.panel.Table', {
                     columnLines: me.columnLines,
                     sealed: me.sealedColumns
                 });
+                if (me.hideHeaders) {
+                    headerCtCfg.height = 0;
+                    // don't set the hidden property, we still need these to layout
+                    headerCtCfg.hiddenHeaders = true;
+                }
 
                 if (Ext.isDefined(me.enableColumnHide)) {
                     headerCtCfg.enableColumnHide = me.enableColumnHide;
@@ -491,9 +521,6 @@ Ext.define('Ext.panel.Table', {
             }
 
             if (me.hideHeaders) {
-                me.headerCt.height = 0;
-                // don't se the hidden property, we still need these to layout
-                me.headerCt.hiddenHeaders = true;
                 me.headerCt.addCls(me.hiddenHeaderCtCls);
                 me.addCls(me.hiddenHeaderCls);
             }
@@ -817,6 +844,121 @@ Ext.define('Ext.panel.Table', {
         me.addStateEvents(['columnresize', 'columnmove', 'columnhide', 'columnshow', 'sortchange', 'filterchange', 'groupchange']);
     },
 
+    beforeRender: function() {
+        var me = this,
+            bufferedRenderer = me.bufferedRenderer;
+
+        // Don't create a buffered renderer for a locked grid.
+        if (!me.lockable) {
+            // If we're auto heighting, we can't buffered render, so don't create it
+            if (bufferedRenderer && me.getSizeModel().height.auto) {
+                //<debug>
+                if (bufferedRenderer.isBufferedRenderer) {
+                    Ext.Error.raise('Cannot use buffered rendering with auto height');
+                }
+                //</debug>
+                me.bufferedRenderer = bufferedRenderer = false;
+            }
+        
+            if (bufferedRenderer && !bufferedRenderer.isBufferedRenderer) {
+                // Create a BufferedRenderer as a plugin if we have not already configured with one.
+                bufferedRenderer = {
+                    xclass: 'Ext.grid.plugin.BufferedRenderer'
+                };
+                Ext.copyTo(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
+                me.bufferedRenderer = me.addPlugin(bufferedRenderer);
+            }
+        }
+        me.callParent(arguments);
+    },
+    
+    initFocusableEvents: function() {
+        var me = this,
+            view = me.getView();
+
+        me.callParent();
+        me.focusEnterLeaveListeners = view.getFocusEl().on({
+            focusenter: me.onFocusEnter,
+            focusleave: me.onFocusLeave,
+            scope: me,
+            destroyable: true
+        });
+    },
+
+    onFocus: function(e) {
+        this.callParent([e]);
+
+        // Focusing the main el delegates focus to a descendant cell.
+        this.handleFocusEnter(e);
+    },
+    
+    onFocusEnter: function(e) {
+        this.handleFocusEnter(e);
+    },
+
+    handleFocusEnter: function(e) {
+        var me = this,
+            view = me.getView(),
+            targetView,
+            navigationModel = view.getNavigationModel(),
+            lastFocused,
+            focusPosition,
+            br = view.bufferedRenderer,
+            firstRecord;
+
+        if (!me.containsFocus) {
+            lastFocused = focusPosition = view.getLastFocused();
+
+            // Default to the first cell if the NavigationModel has never focused anything
+            if (!focusPosition) {
+                targetView = view.isLockingView ? (view.lockedGrid.isVisible() ? view.lockedView : view.normalView) : view;
+                firstRecord = view.dataSource.getAt(br ? br.getFirstVisibleRowIndex() : 0);
+
+                // A non-row producing record like a collapsed placeholder.
+                // We cannot focus these yet.
+                if (!firstRecord.isNonData) {
+                    focusPosition = new Ext.grid.CellContext(targetView).setPosition({
+                        row: firstRecord,
+                        column: 0
+                    });
+                }
+            }
+
+            // Not a descendant which we allow to carry focus. Blur it.
+            if (!focusPosition) {
+                e.stopEvent();
+                e.getTarget().blur();
+                return;
+            }
+            navigationModel.setPosition(focusPosition, null, e, null, !!lastFocused);
+
+            // We now contain focus is that was successful
+            me.containsFocus = !!navigationModel.getPosition();
+        }
+        
+        if (me.containsFocus) {
+            this.getView().el.dom.setAttribute('tabindex', '-1');
+        }
+    },
+
+    onFocusLeave: function(e) {
+        var view = this.getView();
+
+        // Ignore this event if we do not actually contain focus.
+        // CellEditors are rendered into the view's encapculating element,
+        // So focusleave will fire when they are programatically blurred.
+        // We will not have focus at that point.
+        if (this.containsFocus) {
+
+            // Blur the focused cell
+            view.getNavigationModel().setPosition(null, null, e, null, true);
+
+            this.containsFocus = false;
+            view.focusEl = view.el;
+            view.focusEl.dom.setAttribute('tabindex', 0);
+        }
+    },
+
     // Private. Determine if there are any columns with a locked configuration option
     hasLockedColumns: function(columns) {
         var i,
@@ -963,7 +1105,7 @@ Ext.define('Ext.panel.Table', {
                 // and Features need a reference to the grid.
                 // For these reasons, we configure a reference to this grid into the View
                 grid: me,
-                ownerGrid: me.ownerGrid || me,
+                ownerGrid: me.ownerGrid,
                 deferInitialRefresh: me.deferRowRender,
                 variableRowHeight: me.variableRowHeight,
                 preserveScrollOnRefresh: true,
@@ -976,6 +1118,7 @@ Ext.define('Ext.panel.Table', {
                 columnLines: me.columnLines,
                 rowLines: me.rowLines,
                 selModel: sm,
+                navigationModel: 'grid',
                 features: me.features,
                 panel: me,
                 emptyText: me.emptyText || ''
@@ -1014,23 +1157,21 @@ Ext.define('Ext.panel.Table', {
         }
         return me.view;
     },
-    
-    getColumnManager: function(){
+
+    getColumnManager: function() {
         return this.columnManager;
     },
-    
-    getVisibleColumnManager: function(){
+
+    getVisibleColumnManager: function() {
         return this.visibleColumnManager;
     },
-    
-    getTopLevelColumnManager: function(){
-        var ownerLock = this.ownerLockable;
-        return ownerLock ? ownerLock.getColumnManager() : this.getColumnManager();    
+
+    getTopLevelColumnManager: function() {
+        return this.ownerGrid.getColumnManager();
     },
-    
-    getTopLevelVisibleColumnManager: function(){
-        var ownerLock = this.ownerLockable;
-        return ownerLock ? ownerLock.getVisibleColumnManager() : this.getVisibleColumnManager();    
+
+    getTopLevelVisibleColumnManager: function() {
+        return this.ownerGrid.getVisibleColumnManager();
     },
 
     /**
@@ -1050,11 +1191,9 @@ Ext.define('Ext.panel.Table', {
      * @param {Ext.event.Event} e Original event
      */
     processEvent: function(type, view, cell, recordIndex, cellIndex, e, record, row) {
-        var me = this,
-            header;
+        var header = e.position.column;
 
-        if (cellIndex !== -1) {
-            header = me.getColumnManager().getHeaderAtIndex(cellIndex);
+        if (header) {
             return header.processEvent.apply(header, arguments);
         }
     },
@@ -1199,13 +1338,41 @@ Ext.define('Ext.panel.Table', {
         return this.getSelectionModel().getSelection();
     },
 
-    /**
-     * Sets the grid's selection. See `{@link Ext.selection.Model#select}`.
-     * @inheritdoc Ext.selection.Model#select
-     */
-    setSelection: function (selection) {
-        var selModel = this.getSelectionModel();
-        selModel.select(selection);
+    updateSelection: function(selection) {
+        var me = this,
+            sm;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            sm = me.getSelectionModel();
+            if (selection) {
+                sm.select(selection);
+            } else {
+                sm.deselectAll();
+            }
+            me.ignoreNextSelection = false;
+        }
+    },
+
+    updateBindSelection: function(selModel, selection) {
+        var me = this,
+            selected = null;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            if (selection.length) {
+                selected = selModel.getLastSelected();
+                me.hasHadSelection = true;
+            }
+            if (me.hasHadSelection) {
+                me.setSelection(selected);
+            }
+            me.ignoreNextSelection = false;
+        }
+    },
+
+    getNavigationModel: function() {
+        return this.getView().getNavigationModel();
     },
 
     /**
@@ -1249,6 +1416,9 @@ Ext.define('Ext.panel.Table', {
                 'selectionchange', 'beforeselect', 'beforedeselect', 'select', 'deselect'
             ]);
             selModel.hasRelaySetup = true;
+            if (selModel.isRowModel) {
+                selModel.on('selectionchange', me.updateBindSelection, me);
+            }
         }
 
         // lock the selection model if user
@@ -1302,64 +1472,68 @@ Ext.define('Ext.panel.Table', {
             view = me.getView(),
             bufferedRenderer = me.bufferedRenderer;
 
-        // Bind to store immediately because subsequent processing looks for grid's store property
-        me.store = store;
+        // Normally, this method will always be called with a valid store (because there is a symmetric
+        // .unbindStore method), but there are cases where this method will be called and passed a null
+        // value, i.e., a panel is used as a pickerfield. See EXTJS-13089.
+        if (store) {
+            // Bind to store immediately because subsequent processing looks for grid's store property
+            me.store = store;
 
-        // If we're in a reconfigure (we already have a BufferedRenderer which is bound to our old store),
-        // rebind the BufferedRenderer
-        if (bufferedRenderer) {
-            if (bufferedRenderer.isBufferedRenderer) {
-                if (bufferedRenderer.store) {
-                    bufferedRenderer.bindStore(store);
-                }
-            } else if (me.bufferedRenderer) {
-                // Create a BufferedRenderer as a plugin if we have not already configured with one.
-                bufferedRenderer = {
-                    xclass: 'Ext.grid.plugin.BufferedRenderer'
-                };
-                Ext.copyTo(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
-                me.bufferedRenderer = me.addPlugin(bufferedRenderer);
+            // If we're in a reconfigure (we already have a BufferedRenderer which is bound to our old store),
+            // rebind the BufferedRenderer
+            if (bufferedRenderer && bufferedRenderer.isBufferedRenderer && bufferedRenderer.store) {
+                bufferedRenderer.bindStore(store);
             }
-        }
 
-        if (view.store !== store) {
-            // If coming from a reconfigure, we need to set the actual store property on the view. Setting the
-            // store will then also set the dataSource.
-            // 
-            // Note that if it's a grid feature then this is sorted out in view.bindStore(), and it's own
-            // implementation of .bindStore() will be called.
-            view.bindStore(store, false);
-        }
+            if (view.store !== store) {
+                // If coming from a reconfigure, we need to set the actual store property on the view. Setting the
+                // store will then also set the dataSource.
+                //
+                // Note that if it's a grid feature then this is sorted out in view.bindStore(), and it's own
+                // implementation of .bindStore() will be called.
+                view.bindStore(store, false);
+            }
 
-        me.mon(store, {
-            load: me.onStoreLoad,
-            scope: me
-        });
-        me.storeRelayers = me.relayEvents(store, [
-            /**
-             * @event filterchange
-             * @inheritdoc Ext.data.Store#filterchange
-             */
-            'filterchange',
-            /**
-             * @event groupchange
-             * @inheritdoc Ext.data.Store#groupchange
-             */
-            'groupchange'
-        ]);
+            me.mon(store, {
+                load: me.onStoreLoad,
+                scope: me
+            });
+            me.storeRelayers = me.relayEvents(store, [
+                /**
+                 * @event filterchange
+                 * @inheritdoc Ext.data.Store#filterchange
+                 */
+                'filterchange',
+                /**
+                 * @event groupchange
+                 * @inheritdoc Ext.data.Store#groupchange
+                 */
+                'groupchange'
+            ]);
+        } else {
+            me.unbindStore();
+        }
     },
 
     unbindStore: function() {
         var me = this,
-            store = me.store;
+            store = me.store,
+            view;
 
         if (store) {
             me.store = null;
+
             me.mun(store, {
                 load: me.onStoreLoad,
                 scope: me
             });
+
             Ext.destroy(me.storeRelayers);
+
+            view = me.view;
+            if (view.store) {
+                view.bindStore(null);
+            }
         }
     },
 
@@ -1376,7 +1550,17 @@ Ext.define('Ext.panel.Table', {
         this.reconfigure(store);
     },
 
-    // documented on GridPanel
+    /**
+     * @method reconfigure
+     * Reconfigures the grid / tree with a new store/columns. Either the store or the 
+     * columns can be omitted if you don't wish to change them.
+     *
+     * The {@link #enableLocking} config should be set to `true` before the reconfigure 
+     * method is executed if locked columns are intended to be used.
+     *
+     * @param {Ext.data.Store} [store] The new store. You can pass `null` if no new store.
+     * @param {Object[]} [columns] An array of column configs
+     */
     reconfigure: function(store, columns) {
         var me = this,
             oldStore = me.store,
@@ -1409,16 +1593,11 @@ Ext.define('Ext.panel.Table', {
             // The following test compares the result of an assignment of the store var with the oldStore var
             // This saves a large amount of code.
             if (store && (store = Ext.StoreManager.lookup(store)) !== oldStore) {
-                // Only unbind the store if a new one was passed
-                if (me.store) {
-                    me.unbindStore();
-                }
-
+                me.unbindStore();
                 me.bindStore(store);
             } else {
                 me.getView().refreshView();
             }
-            headerCt.setSortState();
             Ext.resumeLayouts(true);
         }
         me.fireEvent('reconfigure', me, store, columns, oldStore, oldColumns);
@@ -1431,6 +1610,7 @@ Ext.define('Ext.panel.Table', {
             task.cancel();
             this.scrollTask = null;
         }
+        Ext.destroy(this.focusEnterLeaveListeners);
         this.callParent();
     },
 
@@ -1439,6 +1619,7 @@ Ext.define('Ext.panel.Table', {
         if (me.lockable) {
             me.destroyLockable();
         }
+        me.unbindStore();
         me.callParent();
         me.columns = me.storeRelayers = me.columnManager = me.visibleColumnManager = null;
     },
@@ -1449,6 +1630,12 @@ Ext.define('Ext.panel.Table', {
         me.callParent();
         if (me.isDestroyed) {
             me.view = me.selModel = me.headerCt = null;
+        }
+    },
+
+    privates: {
+        getFocusEl: function() {
+            return this.getView().getFocusEl();
         }
     }
 });

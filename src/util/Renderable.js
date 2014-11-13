@@ -1035,11 +1035,9 @@ Ext.define('Ext.util.Renderable', {
                 frameInfoCache = me.frameInfoCache,
                 cls = me.getFramingInfoCls() + '-frameInfo',
                 frameInfo = frameInfoCache[cls],
-                max = Math.max,
-                styleEl, info, frameTop, frameRight, frameBottom, frameLeft,
-                borderWidthT, borderWidthR, borderWidthB, borderWidthL,
-                paddingT, paddingR, paddingB, paddingL,
-                borderRadiusTL, borderRadiusTR, borderRadiusBR, borderRadiusBL;
+                styleEl, info, frameTop, frameRight, frameBottom, frameLeft, frameMax,
+                borderTopWidth, borderRightWidth, borderBottomWidth, borderLeftWidth,
+                paddingTop, paddingRight, paddingBottom, paddingLeft;
 
             if (frameInfo == null) {
                 // Get the singleton frame style proxy with our el class name stamped into it.
@@ -1058,7 +1056,7 @@ Ext.define('Ext.util.Renderable', {
                     //              /        /   |       |   \      \
                     //            /         /   /         \   \      \
                     //          /          /    border-width   \      \
-                    //        border-radius                      padding
+                    //          frame-size                      padding
                     //
                     // The first 2 chars hold the div/table and horizontal/vertical flags.
                     // The 3 sets of TRBL 4-tuples are the CSS3 values for border-radius,
@@ -1066,25 +1064,19 @@ Ext.define('Ext.util.Renderable', {
                     //
                     info = info.split('-');
 
-                    borderRadiusTL = parseInt(info[1], 10);
-                    borderRadiusTR = parseInt(info[2], 10);
-                    borderRadiusBR = parseInt(info[3], 10);
-                    borderRadiusBL = parseInt(info[4], 10);
-                    borderWidthT   = parseInt(info[5], 10);
-                    borderWidthR   = parseInt(info[6], 10);
-                    borderWidthB   = parseInt(info[7], 10);
-                    borderWidthL   = parseInt(info[8], 10);
-                    paddingT       = parseInt(info[9], 10);
-                    paddingR       = parseInt(info[10], 10);
-                    paddingB       = parseInt(info[11], 10);
-                    paddingL       = parseInt(info[12], 10);
+                    frameTop          = parseInt(info[1], 10);
+                    frameRight        = parseInt(info[2], 10);
+                    frameBottom       = parseInt(info[3], 10);
+                    frameLeft         = parseInt(info[4], 10);
 
-                    // This calculation should follow ext-theme-base/etc/mixins/frame.css
-                    // with respect to the CSS3 equivalent formulation:
-                    frameTop    = max(borderWidthT, max(borderRadiusTL, borderRadiusTR));
-                    frameRight  = max(borderWidthR, max(borderRadiusTR, borderRadiusBR));
-                    frameBottom = max(borderWidthB, max(borderRadiusBL, borderRadiusBR));
-                    frameLeft   = max(borderWidthL, max(borderRadiusTL, borderRadiusBL));
+                    borderTopWidth    = parseInt(info[5], 10);
+                    borderRightWidth  = parseInt(info[6], 10);
+                    borderBottomWidth = parseInt(info[7], 10);
+                    borderLeftWidth   = parseInt(info[8], 10);
+                    paddingTop        = parseInt(info[9], 10);
+                    paddingRight      = parseInt(info[10], 10);
+                    paddingBottom     = parseInt(info[11], 10);
+                    paddingLeft       = parseInt(info[12], 10);
 
                     frameInfo = {
                         table: info[0].charAt(0) === 't',
@@ -1095,34 +1087,28 @@ Ext.define('Ext.util.Renderable', {
                         bottom: frameBottom,
                         left: frameLeft,
 
+                        // Ext.layout.ContextItem needs width/height
                         width: frameLeft + frameRight,
                         height: frameTop + frameBottom,
 
-                        maxWidth: max(frameTop, frameRight, frameBottom, frameLeft),
-
                         border: {
-                            top:    borderWidthT,
-                            right:  borderWidthR,
-                            bottom: borderWidthB,
-                            left:   borderWidthL,
-                            width:  borderWidthL + borderWidthR,
-                            height: borderWidthT + borderWidthB
+                            top:    borderTopWidth,
+                            right:  borderRightWidth,
+                            bottom: borderBottomWidth,
+                            left:   borderLeftWidth,
+                            width:  borderLeftWidth + borderRightWidth,
+                            height: borderTopWidth + borderBottomWidth
                         },
                         padding: {
-                            top:    paddingT,
-                            right:  paddingR,
-                            bottom: paddingB,
-                            left:   paddingL,
-                            width:  paddingL + paddingR,
-                            height: paddingT + paddingB
-                        },
-                        radius: {
-                            tl: borderRadiusTL,
-                            tr: borderRadiusTR,
-                            br: borderRadiusBR,
-                            bl: borderRadiusBL
+                            top:    paddingTop,
+                            right:  paddingRight,
+                            bottom: paddingBottom,
+                            left:   paddingLeft,
+                            width:  paddingLeft + paddingRight,
+                            height: paddingTop + paddingBottom
                         }
                     };
+
                 } else {
                     frameInfo = false;
                 }
@@ -1204,7 +1190,8 @@ Ext.define('Ext.util.Renderable', {
                 touchScroll = me.touchScroll =
                     (scrollFlags.y || scrollFlags.x) && Ext.supports.touchScroll;
 
-            if (!overflowEl) {
+            // Not rendered, or the targetEl has been configured as a string, wait until the call from finishRender
+            if (!overflowEl || !overflowEl.isElement) {
                 return;
             }
 

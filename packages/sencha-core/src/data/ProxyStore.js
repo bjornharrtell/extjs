@@ -26,12 +26,14 @@ Ext.define('Ext.data.ProxyStore', {
     extend: 'Ext.data.AbstractStore',
 
     requires: [
+        'Ext.data.Model',
         'Ext.data.proxy.Proxy',
         'Ext.data.proxy.Memory',
         'Ext.data.operation.*'
     ],
 
     config: {
+        // @cmd-auto-dependency {aliasPrefix: "model.", mvc: true, blame: "all"}
         /**
          * @cfg {String/Ext.data.Model} model
          * Name of the {@link Ext.data.Model Model} associated with this store. See
@@ -43,7 +45,7 @@ Ext.define('Ext.data.ProxyStore', {
          * the {@link #fields} config which will create an anonymous `Ext.data.Model`.
          */
         model: undefined,
-        
+
         /**
          * @cfg {Object[]} fields
          * This may be used in place of specifying a {@link #model} configuration. The fields should be a
@@ -55,7 +57,8 @@ Ext.define('Ext.data.ProxyStore', {
          * @since 2.3.0
          */
         fields: null,
-        
+
+        // @cmd-auto-dependency {aliasPrefix : "proxy."}
         /**
          * @cfg {String/Ext.data.proxy.Proxy/Object} proxy
          * The Proxy to use for this Store. This can be either a string, a config object or a Proxy instance -
@@ -99,14 +102,7 @@ Ext.define('Ext.data.ProxyStore', {
          * This config controls whether removed records are remembered by this store for
          * later saving to the server.
          */
-        trackRemoved: true,
-        
-        /**
-         * @cfg {Ext.data.Session} session
-         * The session this store interacts with
-         * @private
-         */
-        session: undefined
+        trackRemoved: true
     },
 
     onClassExtended: function(cls, data, hooks) {
@@ -243,7 +239,7 @@ Ext.define('Ext.data.ProxyStore', {
         // Ensure the data collection is set up
         me.getData();
         if (autoLoad) {
-            task = me.loadTask || (me.loadTask = new Ext.util.DelayedTask());
+            task = me.loadTask || (me.loadTask = new Ext.util.DelayedTask(null, null, null, null, false));
 
             // Defer the load until the store (and probably the view) is fully constructed
             task.delay(1, me.attemptLoad, me, Ext.isObject(autoLoad) ? [autoLoad] : undefined);
@@ -594,7 +590,7 @@ Ext.define('Ext.data.ProxyStore', {
 
         //<debug>
         if (me.isSyncing) {
-            Ext.Error.warn('Sync called while a sync operation is in progress. Consider configuring autoSync as false.');
+            Ext.log.warn('Sync called while a sync operation is in progress. Consider configuring autoSync as false.');
         }
         //</debug>
 
@@ -717,7 +713,7 @@ Ext.define('Ext.data.ProxyStore', {
             operation = {
                 internalScope: me,
                 internalCallback: me.onProxyLoad
-            }, filters, sorters, session;
+            }, filters, sorters;
         
         // Only add filtering and sorting options if those options are remote
         if (me.getRemoteFilter()) {
@@ -731,15 +727,10 @@ Ext.define('Ext.data.ProxyStore', {
             if (sorters.getCount()) {
                 operation.sorters = sorters.getRange();
             }
+            me.fireEvent('beforesort', me, operation.sorters);
         }
         Ext.apply(operation, options);
         operation.scope = operation.scope || me;
-        if (!operation.recordCreator) {
-            session = me.getSession();
-            if (session) {
-                operation.recordCreator = session.recordCreator;
-            }
-        }
         me.lastOptions = operation;
         
 
@@ -874,7 +865,6 @@ Ext.define('Ext.data.ProxyStore', {
         me.clearData();
         me.setProxy(null);
         me.setModel(null);
-        me.setSession(null);
     },
 
     

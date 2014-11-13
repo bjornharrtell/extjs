@@ -4,16 +4,21 @@
  *
  * A sprite that represents a path.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'path',
- *         path: 'M75,75 c0,-25 50,25 50,0 c0,-25 -50,25 -50,0',
- *         fillStyle: 'blue'
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'path',
+ *                 path: 'M75,75 c0,-25 50,25 50,0 c0,-25 -50,25 -50,0',
+ *                 fillStyle: 'blue'
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 Ext.define('Ext.draw.sprite.Path', {
     extend: 'Ext.draw.sprite.Sprite',

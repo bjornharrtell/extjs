@@ -63,6 +63,8 @@ describe("Ext.direct.JsonProvider", function() {
     it("should handle invalid responses", function() {
         var xhr, events, result;
         
+        // prevent console error
+        spyOn(Ext, 'log');
         xhr    = { responseText: 'blow up!' };
         events = provider.createEvents(xhr);
         

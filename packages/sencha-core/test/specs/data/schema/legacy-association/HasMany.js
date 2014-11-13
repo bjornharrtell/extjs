@@ -111,6 +111,17 @@ describe("Ext.data.association.HasMany_legacy", function() {
             expectFn('posts');
             expectFn('sites');
         });
+
+        it("should use the name parameter as the role", function() {
+            Ext.define('spec.Foo', {
+                extend: 'Ext.data.Model',
+                hasMany: {
+                    model: 'spec.Post',
+                    name: 'pastes'
+                }
+            });
+            expectFn('pastes');
+        });
     });
     
     describe("instance", function() {
@@ -266,6 +277,8 @@ describe("Ext.data.association.HasMany_legacy", function() {
                 fields: ['id'],
                 hasMany: 'spec.Child'
             });
+            
+            spyOn(Ext.log, 'warn');
             
             Ext.define('spec.Child', {
                 extend: 'Ext.data.Model',

@@ -377,15 +377,7 @@ Ext.define('Ext.dom.Helper', function() {
 
                 hashVal = fullPositionHash[where];
                 if (hashVal) {
-                    if (Ext.global.MSApp && Ext.global.MSApp.execUnsafeLocalFunction) {
-                        //ALLOW MS TO EXECUTE THIS CODE FOR NATIVE WINDOWS 8 DESKTOP APPS
-                        MSApp.execUnsafeLocalFunction(function () {
-                            el.insertAdjacentHTML(hashVal[0], html);
-                        });
-                    } else {
-                        el.insertAdjacentHTML(hashVal[0], html);
-                    }
-
+                    el.insertAdjacentHTML(hashVal[0], html);
                     return el[hashVal[1]];
                 }
                 // if (not IE and context element is an HTMLElement) or TextNode

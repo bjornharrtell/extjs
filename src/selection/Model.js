@@ -5,7 +5,7 @@
  * {@link Ext.grid.Panel Grid} and {@link Ext.tree.Panel Tree} should subclass Ext.selection.Model
  * and provide a way to binding to the component.
  *
- * The abstract methods `onSelectChange` and `onLastFocusChanged` should be implemented in these
+ * The abstract method `onSelectChange` should be implemented in these
  * subclasses to update the UI widget.
  */
 Ext.define('Ext.selection.Model', {
@@ -69,6 +69,14 @@ Ext.define('Ext.selection.Model', {
     suspendChange: 0,
 
     /**
+     * @cfg {Boolean} [ignoreRightMouseSelection=false]
+     * True to ignore selections that are made when using the right mouse button if there are
+     * records that are already selected. If no records are selected, selection will continue
+     * as normal
+     */
+    ignoreRightMouseSelection: false,
+
+    /**
      * @event selectionchange
      * Fired after a selection change has occurred
      * @param {Ext.selection.Model} this
@@ -120,6 +128,7 @@ Ext.define('Ext.selection.Model', {
             clear: me.onStoreClear,
             remove: me.onStoreRemove,
             update: me.onStoreUpdate,
+            idchanged: me.onIdChanged,
             load: me.onStoreLoad,
             refresh: me.onStoreRefresh
         };
@@ -201,11 +210,18 @@ Ext.define('Ext.selection.Model', {
     },
 
     getSelectionStart: function () {
-        if (!this.selectionStart) {
-            this.setSelectionStart(this.lastFocused);
+        var me = this,
+                view = me.view,
+                nm;
+
+        if (!me.selectionStart && view && view.rendered) {
+            nm = view.getNavigationModel();
+            if (nm) {
+                me.setSelectionStart(nm.getRecord());
+            }
         }
 
-        return this.selectionStart;
+        return me.selectionStart;
     },
 
     setSelectionStart: function (selection) {
@@ -220,7 +236,7 @@ Ext.define('Ext.selection.Model', {
             isSelected = me.isSelected(record),
             shift = e.shiftKey,
             ctrl = e.ctrlKey,
-            start = shift && me.getSelectionStart(),
+            start = shift ? (me.getSelectionStart()) : null,
             selected = me.getSelection(),
             len = selected.length,
             allowDeselect = me.allowDeselect,
@@ -281,87 +297,99 @@ Ext.define('Ext.selection.Model', {
         }
     },
 
+    /**
+     * Checks whether a selection should proceed based on the ignoreRightMouseSelection
+     * option.
+     * @private
+     * @param {Ext.event.Event} e The event
+     * @return {Boolean} `true` if the selection should not proceed.
+     */
+    vetoSelection: function(e) {
+        if (e.type !== 'keydown' && e.button !== 0) {
+            if (this.ignoreRightMouseSelection || this.isSelected(e.record)) {
+                return true;
+            }
+        } else {
+            return e.type === 'mousedown';
+        }
+    },
+
     // Private
-    // Called after a new record has been navigated to by a keystroke.
+    // Called in response to a FocusModel's navigate event when a new record has been navigated to.
     // Event is passed so that shift and ctrl can be handled.
-    afterKeyNavigate: function(e, record) {
+    onNavigate: function(e) {
         var me = this,
-            recIdx,
-            fromIdx,
+            keyEvent = e.keyEvent,
+            ctrlKey = keyEvent.ctrlKey,
+            recIdx = e.recordIndex,
+            record = e.record,
+            lastFocused = e.previousRecord,
             isSelected = me.isSelected(record),
-            from = (me.selectionStart && me.isSelected(me.lastFocused)) ? me.selectionStart : (me.selectionStart = me.lastFocused),
-            key = e.getCharCode(),
-            isSpace = key === e.SPACE,
-            direction = key === e.UP || key === e.PAGE_UP ? 'up' : (key === e.DOWN || key === e.DOWN ? 'down' : null);
+            from = (me.selectionStart && me.isSelected(e.previousRecord)) ? me.selectionStart : (me.selectionStart = e.previousRecord),
+            fromIdx = e.previousRecordIndex,
+            key = keyEvent.getCharCode(),
+            isSpace = key === keyEvent.SPACE,
+            direction = key === keyEvent.UP || key === keyEvent.PAGE_UP ? 'up' : (key === keyEvent.DOWN || key === keyEvent.DOWN ? 'down' : null);
+
+        // Enforce the ignoreRightMouseSelection setting.
+        // Enforce presence of a record.
+        // Enforce selection upon click, not mousedown.
+        if (!record || me.vetoSelection(keyEvent)) {
+            return;
+        }
 
         switch (me.selectionMode) {
             case 'MULTI':
 
-                if (isSpace) {
+                if (key === keyEvent.A && ctrlKey) {
+                    me.selectRange(0, me.store.getCount() - 1);
+                }
+                else if (isSpace) {
                     // SHIFT+SPACE, select range
-                    if (e.shiftKey) {
-                        me.selectRange(from, record, e.ctrlKey);
+                    if (keyEvent.shiftKey) {
+                        me.selectRange(from, record, ctrlKey);
                     } else {
                         // SPACE pessed on a selected item: deselect but leave it focused.
-                        // e.ctrlKey means "keep existing"
+                        // keyEvent.ctrlKey means "keep existing"
                         if (isSelected) {
-                            me.doDeselect(record, e.ctrlKey);
-
-                            // This record is already focused. To get the focus effect put on it (as opposed to selected)
-                            // we have to focus null first.
-                            me.setLastFocused(null);
-                            me.setLastFocused(record);
+                            me.doDeselect(record, ctrlKey);
                         }
                         // SPACE on an unselected item: select it
                         else {
-                            me.doSelect(record, e.ctrlKey);
+                            me.doSelect(record, ctrlKey);
                         }
                     }
                 }
 
                 // SHIFT-navigate selects intervening rows from the last selected (or last focused) item and target item
-                else if (e.shiftKey && from) {
-
-                    // If we are going back *into* the selected range, we deselect.
-                    fromIdx = me.store.indexOf(from);
-                    recIdx = me.store.indexOf(record);
+                else if (keyEvent.shiftKey && from) {
 
                     // If we are heading back TOWARDS the start rec - deselect skipped range...
                     if (direction === 'up' && fromIdx <= recIdx) {
-                        me.deselectRange(me.lastFocused, recIdx + 1);
+                        me.deselectRange(lastFocused, recIdx + 1);
                     }
                     else if (direction === 'down' && fromIdx >= recIdx) {
-                        me.deselectRange(me.lastFocused, recIdx - 1);
+                        me.deselectRange(lastFocused, recIdx - 1);
                     }
 
                     // If we are heading AWAY from start point, or no CTRL key, so just select the range and let the CTRL control "keepExisting"...
                     else if (from !== record) {
-                        me.selectRange(from, record, e.ctrlKey);
+                        me.selectRange(from, record, ctrlKey);
                     }
                     me.lastSelected = record;
-                    me.setLastFocused(record);
                 }
 
-                // CTRL-navigate onto a selected item just focuses it
-                else if (e.ctrlKey && isSelected) {
-                    me.setLastFocused(record);
-                }
-
-                // CTRL-navigate, just move focus
-                else if (e.ctrlKey) {
-                    me.setLastFocused(record);
-                }
-
-                // Just navigation - select the target
-                else {
-                    me.doSelect(record, false);
+                else if (key) {
+                    if (!ctrlKey) {
+                        me.doSelect(record, false);
+                    }
+                } else {
+                    me.selectWithEvent(record, keyEvent);
                 }
                 break;
             case 'SIMPLE':
                 if (isSelected) {
-                    if (me.allowDeselect) {
-                        me.doDeselect(record);
-                    }
+                    me.doDeselect(record);
                 } else {
                     me.doSelect(record, true);
                 }
@@ -372,16 +400,15 @@ Ext.define('Ext.selection.Model', {
                     if (isSelected) {
                         if (me.allowDeselect) {
                             me.doDeselect(record);
-                            me.setLastFocused(record);
                         }
                     } else {
                         me.doSelect(record);
                     }
                 }
 
-                // CTRL-navigation: just move focus
-                else if (e.ctrlKey) {
-                    me.setLastFocused(record);
+                // CTRL-navigation does not select
+                else if (ctrlKey) {
+                    break;
                 }
 
                 // if allowDeselect is on and this record isSelected and we just SPACED on it, deselect it
@@ -392,13 +419,6 @@ Ext.define('Ext.selection.Model', {
                 // select the record and do NOT maintain existing selections
                 else {
                     me.doSelect(record, false);
-
-                    // In case the select did not take place because we were CTRL+navigating back to
-                    // an already selected item. Obey the navigation and focus the item.
-                    // TODO: In Sencha 5, selection will not implicitly focus.
-                    // This method will perform as a NavigationModel and move focus to the correct point
-                    // until a NavigationModel class can be separated off into its own class.
-                    me.setLastFocused(record);
                 }
                 break;
         }
@@ -407,7 +427,7 @@ Ext.define('Ext.selection.Model', {
         // If the mousedowned record was not already selected, then it becomes the
         // start of any range created from now on.
         // If we drop to no records selected, then there is no range start any more.
-        if (!e.shiftKey) {
+        if (!keyEvent.shiftKey) {
             if (me.isSelected(record)) {
                 me.selectionStart = record;
             }
@@ -421,7 +441,7 @@ Ext.define('Ext.selection.Model', {
      * @param {Ext.data.Model/Number} endRow The record or index of the last row in the range
      * @param {Boolean} keepExisting (optional) True to retain existing selections
      */
-    selectRange : function(startRow, endRow, keepExisting) {
+    selectRange: function(startRow, endRow, keepExisting) {
         var me = this,
             store = me.store,
             selected = me.selected.items,
@@ -571,7 +591,9 @@ Ext.define('Ext.selection.Model', {
         var me = this,
             selected = me.selected,
             change = false,
-            result, i, len, record, commit;
+            result, i, len, record, commit,
+            view = me.view,
+            nm;
 
         if (me.locked) {
             return;
@@ -586,6 +608,9 @@ Ext.define('Ext.selection.Model', {
                 // Fire selection change if we did deselect anything
                 me.maybeFireSelectionChange(result[1] > 0 && !suppressEvent);
                 return;
+            } else {
+                // Means something has been deselected, so we've had a change
+                change = result[1] > 0;
             }
         }
 
@@ -599,12 +624,16 @@ Ext.define('Ext.selection.Model', {
             if (me.isSelected(record)) {
                 continue;
             }
-            me.lastSelected = record;
 
             me.onSelectChange(record, true, suppressEvent, commit);
         }
-        if (!me.preventFocus) {
-            me.setLastFocused(record, suppressEvent);
+        me.lastSelected = record;
+        
+        if (view && view.rendered && !suppressEvent && !me.preventFocus) {
+            nm = view.getNavigationModel();
+            if (nm) {
+                nm.setPosition(record, null, null, suppressEvent, true);
+            }
         }
         // fire selchange if there was a change and there is no suppressEvent flag
         me.maybeFireSelectionChange(change && !suppressEvent);
@@ -672,9 +701,6 @@ Ext.define('Ext.selection.Model', {
             if (me.isSelected(record)) {
                 if (me.lastSelected === record) {
                     me.lastSelected = selected.last();
-                    if (me.lastFocused === record) {
-                        me.setLastFocused(null);
-                    }
                 }
                 ++attempted;
                 me.onSelectChange(record, false, suppressEvent, commit);
@@ -689,6 +715,8 @@ Ext.define('Ext.selection.Model', {
 
     doSingleSelect: function(record, suppressEvent) {
         var me = this,
+            view = me.view,
+            nm,
             changed = false,
             selected = me.selected,
             commit;
@@ -721,35 +749,14 @@ Ext.define('Ext.selection.Model', {
         me.onSelectChange(record, true, suppressEvent, commit);
 
         if (changed) {
-            if (!suppressEvent && !me.preventFocus) {
-                me.setLastFocused(record);
+            if (view && view.rendered && !suppressEvent && !me.preventFocus) {
+                nm = view.getNavigationModel();
+                if (nm) {
+                    nm.setPosition(record, null, null, suppressEvent, true);
+                }
             }
             me.maybeFireSelectionChange(!suppressEvent);
         }
-    },
-
-    /**
-     * Sets a record as the last focused record. This does NOT mean
-     * that the record has been selected.
-     * @param {Ext.data.Model} record
-     */
-    setLastFocused: function(record, supressFocus) {
-        var me = this,
-            recordBeforeLast = me.lastFocused;
-
-        // Only call the changed method if in fact the selected record *has* changed.
-        if (record !== recordBeforeLast) {
-            me.lastFocused = record;
-            me.onLastFocusChanged(recordBeforeLast, record, supressFocus);
-        }
-    },
-
-    /**
-     * Determines if this record is currently focused.
-     * @param {Ext.data.Model} record
-     */
-    isFocused: function(record) {
-        return record === this.getLastFocused();
     },
 
     // fire selection change as long as true is not passed
@@ -766,10 +773,6 @@ Ext.define('Ext.selection.Model', {
      */
     getLastSelected: function() {
         return this.lastSelected;
-    },
-
-    getLastFocused: function() {
-        return this.lastFocused;
     },
 
     /**
@@ -895,8 +898,7 @@ Ext.define('Ext.selection.Model', {
             len = oldSelections.length,
             selection,
             change,
-            i = 0,
-            lastFocused = me.getLastFocused();
+            i = 0;
 
         // Not been bound yet.
         if (!store) {
@@ -938,11 +940,6 @@ Ext.define('Ext.selection.Model', {
 
         me.clearSelections();
 
-        if (store.indexOf(lastFocused) !== -1) {
-            // restore the last focus but supress restoring focus
-            me.setLastFocused(lastFocused, true);
-        }
-
         if (toBeSelected.length) {
             // perform the selection again
             me.doSelect(toBeSelected, false, true);
@@ -970,7 +967,6 @@ Ext.define('Ext.selection.Model', {
         // reset the entire selection to nothing
         this.selected.clear();
         this.lastSelected = null;
-        this.setLastFocused(null);
     },
 
     // when a record is added to a store
@@ -1018,9 +1014,6 @@ Ext.define('Ext.selection.Model', {
                 if (me.lastSelected === record) {
                     me.lastSelected = null;
                 }
-                if (me.getLastFocused() === record) {
-                    me.setLastFocused(null);
-                }
                 ++removed;
             }
         }
@@ -1044,10 +1037,15 @@ Ext.define('Ext.selection.Model', {
     destroy: function() {
         this.clearListeners();    
         this.clearSelections();
+        this.bindStore(null);
     },
 
     // if records are updated
     onStoreUpdate: Ext.emptyFn,
+
+    onIdChanged: function(store, rec, oldId, newId) {
+        this.selected.updateKey(oldId, newId);
+    },
 
     onStoreRefresh: function(){
         var me = this,
@@ -1105,20 +1103,12 @@ Ext.define('Ext.selection.Model', {
     },
 
     // @abstract
-    onLastFocusChanged: function(oldFocused, newFocused) {
-        if (newFocused != oldFocused) {
-            this.fireEvent('focuschange', this, oldFocused, newFocused);
-        }
-    },
-
-    // @abstract
     onEditorKey: Ext.emptyFn,
 
     // @abstract
     beforeViewRender: function(view) {
         this.views = this.views || [];
         this.views.push(view);
-        this.bindStore(view.getStore(), true);
     },
     
     resolveListenerScope: function(defaultScope) {

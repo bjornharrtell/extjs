@@ -2,13 +2,13 @@
  * @class Ext.sparkline.Base
  *
  * The base class for ExtJS SparkLines. SparkLines are small, inline graphs used to visually
- * display small amounts of data. For large datasets, use the {@link Ext.chart.Chart chart package}.
+ * display small amounts of data. For large datasets, use the {@link Ext.chart.AbstractChart chart package}.
  *
  * The SparkLine subclasses accept an {@link #values array of values}, and present the data in different visualizations.
  *
  *     @example
  *     new Ext.Panel({
- *         height: 500,
+ *         height: 300,
  *         width: 600,
  *         frame: true,
  *         title: 'Test Sparklines',
@@ -20,7 +20,7 @@
  *
  *         // Named references will be collected, and can be access from this Panel
  *         referenceHolder: true,
- *         
+ *
  *         items: [{
  *             reference: 'values',
  *             xtype: 'textfield',
@@ -42,7 +42,11 @@
  *             },
  *             listeners: {
  *                 change: 'onTypeChange',
- *                 buffer: 500
+ *                 buffer: 500,
+ *                 afterrender: {
+ *                     fn: 'afterTypeRender',
+ *                     single: true
+ *                 }
  *             }
  *         }, {
  *             reference: 'type',
@@ -62,7 +66,12 @@
  *                 buffer: 500
  *             }
  *         }],
- *         
+ *
+ *         // Start with a line plot. 
+ *         afterTypeRender: function(typeField) {
+ *             typeField.setValue('6,10,4,-3,7,2');
+ *         },
+ *
  *         onTypeChange: function() {
  *             var me = this,
  *                 refs = me.getReferences(),
@@ -79,7 +88,7 @@
  *             };
  *	           me.sparkLine = Ext.create(config);
  *             me.add(me.sparkLine);
- *             
+ *
  *             // Put under fields
  *             me.sparkLine.el.dom.style.marginLeft = refs.type.labelEl.getWidth() + 'px';
  *         }

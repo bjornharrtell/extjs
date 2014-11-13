@@ -22,6 +22,9 @@ describe("Ext.Element.insertion", function() {
     });
     
     afterEach(function() {
+        // Prevent console warnings
+        spyOn(Ext.Logger, 'log');
+        
         el.destroy();
         span.destroy();
         child1.destroy();

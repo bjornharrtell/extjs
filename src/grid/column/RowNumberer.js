@@ -84,7 +84,7 @@ Ext.define('Ext.grid.column.RowNumberer', {
             page = dataSource.currentPage,
             result = view.store.indexOf(record);
 
-        if (rowspan) {
+        if (metaData && rowspan) {
             metaData.tdAttr = 'rowspan="' + rowspan + '"';
         }
 
@@ -94,7 +94,7 @@ Ext.define('Ext.grid.column.RowNumberer', {
         return result + 1;
     },
 
-    updater: function(cell, value) {
-        cell.firstChild.innerHTML = Ext.grid.column.RowNumberer.prototype.defaultRenderer.call(this, value);
+    updater: function(cell, value, record, view, dataSource) {
+        cell.firstChild.innerHTML = this.defaultRenderer(value, null, record, null, null, dataSource, view);
     }
 });

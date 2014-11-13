@@ -1,22 +1,14 @@
 Ext.define('Ext.aria.panel.Panel', {
     override: 'Ext.panel.Panel',
     
-    requires: [
-        'Ext.aria.panel.AbstractPanel',
-        'Ext.aria.panel.Header'
-    ],
-    
     closeText: 'Close Panel',
     collapseText: 'Collapse Panel',
     expandText: 'Expand Panel',
     untitledText: 'Untitled Panel',
     
-    ariaToolFocusCls: Ext.baseCSSPrefix + 'aria-tool-focus',
-    ariaSkipContainerTitleCheck: true,
-    
     onBoxReady: function() {
         var me = this,
-            toolFocusCls = me.ariaToolFocusCls,
+            Event = Ext.event.Event,
             collapseTool = me.collapseTool,
             header, tools, i, len;
         
@@ -28,7 +20,7 @@ Ext.define('Ext.aria.panel.Panel', {
             });
             
             collapseTool.ariaAddKeyMap({
-                key: [ Ext.EventObject.ENTER, Ext.EventObject.SPACE ],
+                key: [ Event.ENTER, Event.SPACE ],
                 handler: me.toggleCollapse,
                 scope: me
             });
@@ -37,24 +29,20 @@ Ext.define('Ext.aria.panel.Panel', {
         if (me.closable) {
             toolBtn = me.down('tool[type=close]');
             
-            toolBtn.ariaUpdate({ 'aria-label': me.closeText });
+            if (toolBtn) {
+                toolBtn.ariaUpdate({
+                    'aria-label': me.closeText
+                });
             
-            toolBtn.ariaAddKeyMap({
-                key: [ Ext.EventObject.ENTER, Ext.EventObject.SPACE ],
-                handler: me.close,
-                scope: me
-            });
+                toolBtn.ariaAddKeyMap({
+                    key: [ Event.ENTER, Event.SPACE ],
+                    handler: me.close,
+                    scope: me
+                });
+            }
         }
         
         header = me.getHeader();
-        
-        if (header) {
-            tools = header.getTools();
-        
-            for (i = 0, len = tools.length; i < len; i++) {
-                tools[i].ariaFocusCls = toolFocusCls;
-            }
-        }
     },
     
     setTitle: function(newTitle) {
@@ -66,6 +54,7 @@ Ext.define('Ext.aria.panel.Panel', {
     
     createReExpander: function(direction, defaults) {
         var me = this,
+            Event = Ext.event.Event,
             opposite, result, tool;
         
         opposite = me.getOppositeDirection(direction);
@@ -79,7 +68,7 @@ Ext.define('Ext.aria.panel.Panel', {
                 });
             
                 tool.ariaAddKeyMap({
-                    key: [ Ext.EventObject.ENTER, Ext.EventObject.SPACE ],
+                    key: [ Event.ENTER, Event.SPACE ],
                     handler: me.toggleCollapse,
                     scope: me
                 });
@@ -120,38 +109,17 @@ Ext.define('Ext.aria.panel.Panel', {
                 newAttrs = { 'aria-labelledby': textEl.id };
             }
             else {
-                newAttrs = { title: me.title };
+                newAttrs = { 'aria-label': me.title };
             }
         }
         else if (me.ariaLabel) {
-            newAttrs = { title: me.ariaLabel };
+            newAttrs = { 'aria-label': me.ariaLabel };
         }
 
         Ext.apply(attrs, newAttrs);
         
-        // ARIA requires that all focusable items have a title so that
-        // screen readers can announce it
-        //<debug>
-        // Don't run the check under the slicer, it'll blow up
-        if (!me.ariaSkipPanelTitleCheck && !Ext.theme) {
-            me.ariaCheckPanelTitle(attrs);
-        }
-        //</debug>
-        
         return attrs;
     },
-    
-    //<debug>
-    ariaCheckPanelTitle: function(attrs) {
-        var me = this;
-
-        if (!attrs['aria-labelledby'] && !attrs.title && me.ariaIsFocusableContainer) {
-            Ext.log.error("Panel " + me.id + " has ARIA role of '" + me.ariaRole +
-                          "', but does not have a title. WAI-ARIA requires that all " +
-                          "focusable panels have a title.");
-        }
-    },
-    //</debug>
     
     ariaGetTitleTextEl: function() {
         var header = this.header;
@@ -159,7 +127,7 @@ Ext.define('Ext.aria.panel.Panel', {
         return header && header.titleCmp && header.titleCmp.textEl || null;
     },
 
-    onExpand: function() {
+    afterExpand: function() {
         var me = this;
         
         me.callParent(arguments);
@@ -171,7 +139,7 @@ Ext.define('Ext.aria.panel.Panel', {
         }
     },
 
-    onCollapse: function() {
+    afterCollapse: function() {
         var me = this;
         
         me.callParent(arguments);

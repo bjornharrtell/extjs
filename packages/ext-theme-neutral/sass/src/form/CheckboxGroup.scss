@@ -47,8 +47,8 @@
         .#{$prefix}form-invalid & {
             @if $ui-body-invalid-border-width != 0 {
                 border-width: $ui-body-invalid-border-width;
-                border-width: $ui-body-invalid-border-style;
-                border-width: $ui-body-invalid-border-color;
+                border-style: $ui-body-invalid-border-style;
+                border-color: $ui-body-invalid-border-color;
             }
             @if not is-null($ui-body-invalid-background-image) {
                 background-image: theme-background-image($ui-body-invalid-background-image);

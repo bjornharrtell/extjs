@@ -19,5 +19,4 @@ $grid-row-cell-over-border-color: $grid-row-cell-over-background-color !default;
 $grid-row-cell-selected-background-color: mix(#fff, $base-light-color, 25%) !default;
 $grid-row-cell-selected-border-color: $grid-row-cell-selected-background-color !default;
 
-$grid-row-cell-focus-background-color: $grid-row-cell-over-background-color !default;
-$grid-row-cell-focus-border-color: $grid-row-cell-focus-background-color !default;
+$grid-row-cell-focus-border-color: mix(#ddd, $base-color, 20%) !default;

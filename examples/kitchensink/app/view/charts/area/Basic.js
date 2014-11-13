@@ -59,7 +59,7 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
             sprites: [{
                 type: 'text',
                 text: 'Area Charts - Basic Area',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -67,22 +67,29 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012 - Internet Explorer',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 480
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 490
+                y: 495
             }],
             axes: [{
                 type: 'numeric',
                 position: 'left',
                 grid: true,
                 fields: ['data1'],
-                renderer: function (v) { return v + '%'; },
+                renderer: function (v, layoutContext) {
+                    // Custom renderer overrides the native axis label renderer.
+                    // Since we don't want to do anything fancy with the value
+                    // ourselves except appending a '%' sign, but at the same time
+                    // don't want to loose the formatting done by the native renderer,
+                    // we let the native renderer process the value first.
+                    return layoutContext.renderer(v) + '%';
+                },
                 minimum: 0,
                 maximum: 24
             }, {
@@ -104,10 +111,17 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
                 style: {
                     opacity: 0.80
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                marker: {
+                    opacity: 0,
+                    scaling: 0.01,
+                    fx: {
+                        duration: 200,
+                        easing: 'easeOut'
+                    }
+                },
+                highlightCfg: {
+                    opacity: 1,
+                    scaling: 1.5
                 },
                 tooltip: {
                     trackMouse: true,

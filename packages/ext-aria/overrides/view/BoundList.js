@@ -16,8 +16,6 @@ Ext.define('Ext.aria.view.BoundList', {
             'aria-activedescendant': item.id
         });
         
-        me.ariaAddFocus(item);
-        
         me.callParent(arguments);
     },
 
@@ -31,8 +29,6 @@ Ext.define('Ext.aria.view.BoundList', {
             me.ariaUpdate({
                 'aria-activedescendant': undefined
             });
-            
-            me.ariaRemoveFocus();
         }
         
         me.callParent(arguments);

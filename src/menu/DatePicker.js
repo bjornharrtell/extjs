@@ -38,6 +38,15 @@
      requires: [
         'Ext.picker.Date'
      ],
+     
+    ariaRole: 'dialog',
+    
+    //<locale>
+    /**
+     * @cfg {String} ariaLabel ARIA label for the Date Picker menu
+     */
+    ariaLabel: 'Date picker',
+    //</locale>
 
     /**
      * @cfg {Boolean} hideOnClick

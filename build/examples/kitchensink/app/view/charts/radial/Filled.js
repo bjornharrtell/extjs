@@ -60,12 +60,12 @@ Ext.define('KitchenSink.view.charts.radial.Filled', {
                 docked: 'right'
             },
             store: this.myDataStore,
-            insetPadding: 40,
-            interactions: ['rotate', 'itemhighlight'],
+            insetPadding: '40 40 60 40',
+            interactions: ['rotate'],
             sprites: [{
                 type: 'text',
                 text: 'Radial Charts - Filled',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -73,15 +73,15 @@ Ext.define('KitchenSink.view.charts.radial.Filled', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 480
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 490
+                y: 495
             }],
             axes: [{
                 type: 'numeric',
@@ -91,8 +91,13 @@ Ext.define('KitchenSink.view.charts.radial.Filled', {
                 minimum: 0,
                 maximum: 50,
                 majorTickSteps: 4,
-                renderer: function (v) {
-                    return v + '%';
+                renderer: function (v, layoutContext) {
+                    // Custom renderer overrides the native axis label renderer.
+                    // Since we don't want to do anything fancy with the value
+                    // ourselves except appending a '%' sign, but at the same time
+                    // don't want to loose the formatting done by the native renderer,
+                    // we let the native renderer process the value first.
+                    return layoutContext.renderer(v) + '%';
                 }
             }, {
                 type: 'category',
@@ -132,7 +137,7 @@ Ext.define('KitchenSink.view.charts.radial.Filled', {
                     lineWidth: 2,
                     strokeStyle: '#fff'
                 },
-                tips: {
+                tooltip: {
                     trackMouse: true,
                     style: 'background: #fff',
                     renderer: function(storeItem, item) {

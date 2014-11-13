@@ -868,7 +868,6 @@ jasmine.util.extend = function(destination, source) {
   for (var property in source) destination[property] = source[property];
   return destination;
 };
-
 jasmine.util.getOrigin = function() {
     var port = window.location.port;
     var origin;
@@ -2168,6 +2167,7 @@ jasmine.Matchers.prototype.toBePositionedAt = function(x, y) {
         return this.actual >= expected;
     };
 
+    jasmine.Matchers.prototype.toBeAtLeast = jasmine.Matchers.prototype.toBeGreaterThanOrEqual;
 })();
 
 
@@ -2633,7 +2633,7 @@ jasmine.Runner.prototype.specs = function () {
   var suites = this.suites();
   var specs = [];
   for (var i = 0; i < suites.length; i++) {
-    specs = specs.concat(suites[i].specs());
+    specs.push.apply(specs, suites[i].specs());
   }
   return specs;
 };
@@ -2962,6 +2962,36 @@ jasmine.Spec.prototype.removeAllSpies = function() {
         // Modification end
         this.results_.addResult(expectationResult);
     };
+    
+    // Override: check for DOM and global variable leaks
+    proto.finishCallback = function() {
+        this.checkDomLeak();
+        // TODO
+        // this.checkGlobalsLeak();
+        this.env.reporter.reportSpecResults(this);
+    };
+    
+    proto.checkDomLeak = function() {
+        var body = document.body,
+            children = body && body.childNodes || [],
+            len = children.length,
+            badNodes = [],
+            i = 0;
+
+        for (; i < len; i++) {
+            if (children[i].nodeType === 3 || !children[i].getAttribute('data-sticky')) {
+                badNodes.push(children[i]);
+            }
+        }
+
+        for (i = 0, len = badNodes.length; i < len; i++) {
+            document.body.removeChild(badNodes[i]);
+        }
+
+        if (badNodes.length) {
+            this.fail('document.body contains childNodes after spec execution');
+        }
+    };
 
     proto.execute = function(onComplete) {
         var spec = this;
@@ -3048,14 +3078,16 @@ jasmine.Spec.prototype.removeAllSpies = function() {
  * Works just like waits() and waitsFor(), except waits for the next animationFrame
  */
 function waitsForAnimation() {
+    var done = false;
     runs(function() {
-        var done = false;
         Ext.Function.requestAnimationFrame(function() {
-            done = true;
+            setTimeout(function() {
+                done = true;
+            }, 1);
         });
-        waitsFor(function() {
-            return done;
-        });
+    });
+    waitsFor(function() {
+        return done;
     });
 }
 /**

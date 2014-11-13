@@ -245,7 +245,7 @@ Ext.define('Ext.form.field.Tag', {
                     '<tpl if="name">name="{name}" </tpl>',
                     '<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
                     '<tpl if="size">size="{size}" </tpl>',
-                    '<tpl if="tabIdx">tabIndex="{tabIdx}" </tpl>',
+                    '<tpl if="tabIdx != null">tabindex="{tabIdx}" </tpl>',
                     '<tpl if="disabled"> disabled="disabled"</tpl>',
                     'class="' + Ext.baseCSSPrefix + 'tagfield-input-field {inputElCls}" autocomplete="off">',
                 '</li>',
@@ -274,7 +274,8 @@ Ext.define('Ext.form.field.Tag', {
      */
     initComponent: function() {
         var me = this,
-            typeAhead = me.typeAhead;
+            typeAhead = me.typeAhead,
+            delimiter = me.delimiter;
 
         // <debug>
         if (typeAhead && !me.editable) {
@@ -289,12 +290,9 @@ Ext.define('Ext.form.field.Tag', {
             refreshSelmodelOnRefresh: false
         }, me.listConfig);
 
-        me.callParent();
-
-        me.typeAhead = typeAhead;
-
+        // Create the selModel before calling parent, we need it to be available
+        // when we bind the store.
         me.selectionModel = new Ext.selection.Model({
-            store: me.valueStore,
             mode: 'MULTI',
             lastFocused: null,
             onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
@@ -302,8 +300,12 @@ Ext.define('Ext.form.field.Tag', {
             }
         });
 
-        if (!Ext.isEmpty(me.delimiter) && me.multiSelect) {
-            me.delimiterRegexp = new RegExp(String(me.delimiter).replace(/[$%()*+.?\[\\\]{|}]/g, "\\$&"));
+        me.callParent();
+
+        me.typeAhead = typeAhead;
+
+        if (delimiter && me.multiSelect) {
+            me.delimiterRegexp = new RegExp(Ext.String.escapeRegex(delimiter));
         }
     },
 
@@ -317,16 +319,16 @@ Ext.define('Ext.form.field.Tag', {
         me.callParent(arguments);
 
         if (!me.enableKeyEvents) {
-            me.mon(me.inputEl, 'keydown', me.onKeyDown, me);
+            me.inputEl.on('keydown', me.onKeyDown, me);
         }
-        me.mon(me.inputEl, 'paste', me.onPaste, me);
-        me.mon(me.listWrapper, 'click', me.onItemListClick, me);
+        me.inputEl.on('paste', me.onPaste, me);
+        me.listWrapper.on('click', me.onItemListClick, me);
 
         // Relay these selection events passing the field instead of exposing the underlying selection model
-        me.mon(me.selectionModel, {
-            'selectionchange': me.onSelectionChange,
-            'focuschange': me.onFocusChange,
-            scope: me
+        me.selectionModel.on({
+            scope: me,
+            selectionchange: me.onSelectionChange,
+            focuschange: me.onFocusChange
         });
     },
 
@@ -337,31 +339,29 @@ Ext.define('Ext.form.field.Tag', {
      * @protected
      */
     onBindStore: function(store) {
-        var me = this;
+        var me = this,
+            filter = me.selectedFilter,
+            valueStore;
 
         if (store) {
-            me.valueStore = new Ext.data.Store({
+            me.valueStore = valueStore = new Ext.data.Store({
                 model: store.getModel()
             });
-            me.mon(me.valueStore, {
-                datachanged: me.onValueStoreChange,
-                remove: me.onValueStoreRemove,
-                scope: me
-            });
-            if (me.selectionModel) {
-                me.selectionModel.bindStore(me.valueStore);
-            }
+            valueStore.on('datachanged', me.onValueStoreChange, me);
+            me.selectionModel.bindStore(valueStore);
 
             // Filter to hide from view, items which are already selected.
             // Only enabled if filterPickList is false.
-            me.store.addFilter(
-                me.selectedFilter = new Ext.util.Filter({
-                    filterFn: function(rec) {
-                        return !me.valueStore.data.contains(rec);
-                    },
-                    disabled: !me.filterPickList
-                })
-            );
+            if (me.filterPickList) {
+                if (!filter) {
+                    me.selectedFilter =  filter = new Ext.util.Filter({
+                        filterFn: function(rec) {
+                            return !me.valueStore.contains(rec);
+                        }
+                    });
+                }
+                store.addFilter(filter);
+            }
         }
     },
 
@@ -376,38 +376,27 @@ Ext.define('Ext.form.field.Tag', {
             valueStore = me.valueStore;
 
         if (valueStore) {
-            me.mun(valueStore, {
-                datachanged: me.onValueStoreChange,
-                remove: me.onValueStoreRemove,
-                scope: me
-            });
             valueStore.destroy();
+            me.valueStore = null;
         }
-        if (me.selectionModel) {
-            me.selectionModel.destroy();
+        if (me.filterPickList) {
+            store.removeFilter(me.selectedFilter);
         }
-        me.store.removeFilter(me.selectedFilter);
-        me.valueStore = me.selectionModel = null;
         me.callParent(arguments);
-    },
-
-    onValueStoreRemove: function() {
-        // If they want to remove from view items which are already selected, apply store filters.
-        // We have a "selectedFilter" created which filters out selected items.
-        // This instance restores to view items removed from the value list
-        if (this.filterPickList) {
-            this.store.filter();
-        }
     },
 
     onValueStoreChange: function() {
         // If they want to remove from view items which are already selected, apply store filters.
         // We have a "selectedFilter" created which filters out selected items.
         // This instance restores to view items removed from the value list
-        if (this.filterPickList) {
-            this.store.filter();
+        var me = this,
+            filters = me.store.getFilters();
+
+        if (me.filterPickList) {
+            // Adding an existing item will trigger the filters to refresh
+            filters.add(me.selectedFilter);
         }
-        this.applyMultiselectItemMarkup();
+        me.applyMultiselectItemMarkup();
     },
 
     onSelectionChange: function(selModel, selectedRecs) {
@@ -427,13 +416,9 @@ Ext.define('Ext.form.field.Tag', {
      */
     createPicker: function() {
         var me = this,
-        picker = me.callParent(arguments);
+            picker = me.callParent(arguments);
 
-        me.mon(picker, {
-            'beforerefresh': me.onBeforeListRefresh,
-            scope: me
-        });
-
+        me.mon(picker, 'beforerefresh', me.onBeforeListRefresh, me);
         return picker;
     },
 
@@ -444,32 +429,27 @@ Ext.define('Ext.form.field.Tag', {
      * @protected
      */
     onDestroy: function() {
-        var me = this;
+        this.selectionModel = Ext.destroy(this.selectionModel);
 
-        Ext.destroyMembers(me, 'valueStore', 'selectionModel');
-
-        me.callParent(arguments);
+        // This will unbind the store, which will destroy the valueStore
+        this.callParent(arguments);
     },
 
     /**
      * Add empty text support to initial render.
      * @protected
      */
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var me = this,
-            data = me.callParent(),
-            isEmpty = me.emptyText && data.value.length < 1;
+            data = me.callParent(arguments),
+            emptyText = me.emptyText,
+            emptyInputCls = me.emptyInputCls,
+            isEmpty = emptyText && data.value.length < 1;
 
         data.value = '';
-        if (isEmpty) {
-            data.emptyText = me.emptyText;
-            data.emptyCls = me.emptyCls;
-            data.inputElCls = me.emptyInputCls;
-        } else {
-            data.emptyText = '';
-            data.emptyCls = me.emptyInputCls;
-            data.inputElCls = '';
-        }
+        data.emptyText = isEmpty ? emptyText : '';
+        data.emptyCls = isEmpty ? me.emptyCls : emptyInputCls;
+        data.inputElCls = isEmpty ? emptyInputCls : '';
 
         return data;
     },
@@ -481,7 +461,11 @@ Ext.define('Ext.form.field.Tag', {
      * @protected
      */
     afterRender: function() {
-        var me = this;
+        var me = this,
+            listWrapper = me.listWrapper,
+            itemList = me.itemList,
+            growMin = me.growMin,
+            growMax = me.growMax;
 
         if (Ext.supports.Placeholder && me.inputEl && me.emptyText) {
             delete me.inputEl.dom.placeholder;
@@ -490,20 +474,20 @@ Ext.define('Ext.form.field.Tag', {
         me.bodyEl.applyStyles('vertical-align:top');
 
         if (me.grow) {
-            if (Ext.isNumber(me.growMin) && (me.growMin > 0)) {
-                me.listWrapper.applyStyles('min-height:'+me.growMin+'px');
+            if (Ext.isNumber(growMin) && growMin > 0) {
+                listWrapper.applyStyles('min-height:' + growMin + 'px');
             }
-            if (Ext.isNumber(me.growMax) && (me.growMax > 0)) {
-                me.listWrapper.applyStyles('max-height:'+me.growMax+'px');
+            if (Ext.isNumber(growMax) && growMax > 0) {
+                listWrapper.applyStyles('max-height:' + growMax + 'px');
             }
         }
 
         if (me.stacked === true) {
-            me.itemList.addCls(Ext.baseCSSPrefix + 'tagfield-stacked');
+            itemList.addCls(Ext.baseCSSPrefix + 'tagfield-stacked');
         }
 
         if (!me.multiSelect) {
-            me.itemList.addCls(Ext.baseCSSPrefix + 'tagfield-singleselect');
+            itemList.addCls(Ext.baseCSSPrefix + 'tagfield-singleselect');
         }
 
         me.applyMultiselectItemMarkup();
@@ -519,18 +503,16 @@ Ext.define('Ext.form.field.Tag', {
      * @protected
      */
     findRecord: function(field, value) {
-        var ds = this.store,
-        matches;
+        var store = this.store,
+            matches;
 
-        if (!ds) {
-            return false;
+        if (store) {
+            matches = store.queryBy(function(rec) {
+                return rec.isEqual(rec.get(field), value);
+            });
         }
 
-        matches = ds.queryBy(function(rec) {
-            return rec.isEqual(rec.get(field), value);
-        });
-
-        return (matches.getCount() > 0) ? matches.first() : false;
+        return matches || false;
     },
 
     /**
@@ -540,12 +522,12 @@ Ext.define('Ext.form.field.Tag', {
      */
     onLoad: function() {
         var me = this,
-        valueField = me.valueField,
-        valueStore = me.valueStore,
-        changed = false;
+            valueField = me.valueField,
+            valueStore = me.valueStore,
+            changed = false;
 
         if (valueStore) {
-            if (!Ext.isEmpty(me.value) && (valueStore.getCount() == 0)) {
+            if (!Ext.isEmpty(me.value) && (valueStore.getCount() === 0)) {
                 me.setValue(me.value, false, true);
             }
 
@@ -561,7 +543,7 @@ Ext.define('Ext.form.field.Tag', {
             });
             valueStore.resumeEvents();
             if (changed) {
-                valueStore.fireEvent('datachanged', valueStore);
+                me.onValueStoreChange();
             }
         }
 
@@ -583,10 +565,10 @@ Ext.define('Ext.form.field.Tag', {
      */
     isFilteredRecord: function(record) {
         var me = this,
-        store = me.store,
-        valueField = me.valueField,
-        storeRecord,
-        filtered = false;
+            store = me.store,
+            valueField = me.valueField,
+            filtered = false,
+            storeRecord;
 
         storeRecord = store.findExact(valueField, record.get(valueField));
 
@@ -725,10 +707,11 @@ Ext.define('Ext.form.field.Tag', {
      */
     getCursorPosition: function() {
         var cursorPos;
-        if (Ext.isIE) {
+
+        if (document.selection) {
             cursorPos = document.selection.createRange();
             cursorPos.collapse(true);
-            cursorPos.moveStart("character", -this.inputEl.dom.value.length);
+            cursorPos.moveStart('character', -this.inputEl.dom.value.length);
             cursorPos = cursorPos.text.length;
         } else {
             cursorPos = this.inputEl.dom.selectionStart;
@@ -741,13 +724,15 @@ Ext.define('Ext.form.field.Tag', {
      * @private
      */
     hasSelectedText: function() {
-        var sel, range;
-        if (Ext.isIE) {
+        var inputEl = this.inputEl.dom,
+            sel, range;
+
+        if (document.selection) {
             sel = document.selection;
             range = sel.createRange();
-            return (range.parentElement() == this.inputEl.dom);
+            return (range.parentElement() === inputEl);
         } else {
-            return this.inputEl.dom.selectionStart != this.inputEl.dom.selectionEnd;
+            return inputEl.selectionStart !== inputEl.selectionEnd;
         }
     },
 
@@ -768,57 +753,59 @@ Ext.define('Ext.form.field.Tag', {
      *
      * @protected
      */
-    onKeyDown: function(e, t) {
+    onKeyDown: function(e) {
         var me = this,
             key = e.getKey(),
-            rawValue = me.inputEl.dom.value,
+            inputEl = me.inputEl,
+            rawValue = inputEl.dom.value,
             valueStore = me.valueStore,
             selModel = me.selectionModel,
-            stopEvent = false;
+            stopEvent = false,
+            lastSelectionIndex;
 
         if (me.readOnly || me.disabled || !me.editable) {
             return;
         }
 
-        if (me.isExpanded && (key == e.A && e.ctrlKey)) {
+        if (me.isExpanded && key === e.A && e.ctrlKey) {
             // CTRL-A when picker is expanded - add all items in current picker store page to current value
             me.select(me.getStore().getRange());
             selModel.setLastFocused(null);
             selModel.deselectAll();
             me.collapse();
-            me.inputEl.focus();
+            inputEl.focus();
             stopEvent = true;
         }
         // We have some values and (no input text or cursor is at left of all text)
         else if ((valueStore.getCount() > 0) &&
-                ((rawValue == '') || ((me.getCursorPosition() === 0) && !me.hasSelectedText()))) {
+                ((rawValue === '') || ((me.getCursorPosition() === 0) && !me.hasSelectedText()))) {
             // Keyboard navigation of current values
-            var lastSelectionIndex = (selModel.getCount() > 0) ? valueStore.indexOf(selModel.getLastSelected() || selModel.getLastFocused()) : -1;
+            lastSelectionIndex = (selModel.getCount() > 0) ? valueStore.indexOf(selModel.getLastSelected() || selModel.getLastFocused()) : -1;
 
             // Delete token
-            if ((key == e.BACKSPACE) || (key == e.DELETE)) {
+            if (key === e.BACKSPACE || key === e.DELETE) {
                 if (lastSelectionIndex > -1) {
                     if (selModel.getCount() > 1) {
                         lastSelectionIndex = -1;
                     }
-                    me.valueStore.remove(selModel.getSelection());
+                    valueStore.remove(selModel.getSelection());
                 } else {
-                    me.valueStore.remove(me.valueStore.last());
+                    valueStore.remove(valueStore.last());
                 }
                 selModel.clearSelections();
-                me.setValue(me.valueStore.getRange());
+                me.setValue(valueStore.getRange());
                 if (lastSelectionIndex > 0) {
                     selModel.select(lastSelectionIndex - 1);
                 }
                 stopEvent = true;
             }
             // Navigate and select tokens
-            else if ((key == e.RIGHT) || (key == e.LEFT)) {
-                if ((lastSelectionIndex == -1) && (key == e.LEFT)) {
+            else if (key === e.RIGHT || key === e.LEFT) {
+                if (lastSelectionIndex === -1 && key === e.LEFT) {
                     selModel.select(valueStore.last());
                     stopEvent = true;
                 } else if (lastSelectionIndex > -1) {
-                    if (key == e.RIGHT) {
+                    if (key === e.RIGHT) {
                         if (lastSelectionIndex < (valueStore.getCount() - 1)) {
                             selModel.select(lastSelectionIndex + 1, e.shiftKey);
                             stopEvent = true;
@@ -827,18 +814,18 @@ Ext.define('Ext.form.field.Tag', {
                             selModel.deselectAll();
                             stopEvent = true;
                         }
-                    } else if ((key == e.LEFT) && (lastSelectionIndex > 0)) {
+                    } else if (key === e.LEFT && (lastSelectionIndex > 0)) {
                         selModel.select(lastSelectionIndex - 1, e.shiftKey);
                         stopEvent = true;
                     }
                 }
             }
             // Select all tokens
-            else if (key == e.A && e.ctrlKey) {
+            else if (key === e.A && e.ctrlKey) {
                 selModel.selectAll();
                 stopEvent = e.A;
             }
-            me.inputEl.focus();
+            inputEl.focus();
         }
 
         if (stopEvent) {
@@ -848,7 +835,7 @@ Ext.define('Ext.form.field.Tag', {
         }
 
         // Prevent key up processing for enter if it is being handled by the picker
-        if (me.isExpanded && (key == e.ENTER) && me.picker.highlightedItem) {
+        if (me.isExpanded && key === e.ENTER && me.picker.highlightedItem) {
             me.preventKeyUpEvent = true;
         }
 
@@ -857,9 +844,9 @@ Ext.define('Ext.form.field.Tag', {
         }
 
         if (!e.isSpecialKey() && !e.hasModifier()) {
-            me.selectionModel.setLastFocused(null);
-            me.selectionModel.deselectAll();
-            me.inputEl.focus();
+            selModel.setLastFocused(null);
+            selModel.deselectAll();
+            inputEl.focus();
         }
     },
 
@@ -870,22 +857,24 @@ Ext.define('Ext.form.field.Tag', {
      */
     onKeyUp: function(e, t) {
         var me = this,
-            rawValue = me.inputEl.dom.value;
+            inputEl = me.inputEl,
+            rawValue = inputEl.dom.value,
+            preventKeyUpEvent = me.preventKeyUpEvent;
 
         if (me.preventKeyUpEvent) {
             e.stopEvent();
-            if ((me.preventKeyUpEvent === true) || (e.getKey() === me.preventKeyUpEvent)) {
+            if (preventKeyUpEvent === true || e.getKey() === preventKeyUpEvent) {
                 delete me.preventKeyUpEvent;
             }
             return;
         }
 
-        if (me.multiSelect && (me.delimiterRegexp && me.delimiterRegexp.test(rawValue)) ||
-                ((me.createNewOnEnter === true) && e.getKey() == e.ENTER)) {
+        if (me.multiSelect && me.delimiterRegexp && me.delimiterRegexp.test(rawValue) ||
+                ((me.createNewOnEnter === true) && e.getKey() === e.ENTER)) {
             rawValue = Ext.Array.clean(rawValue.split(me.delimiterRegexp));
-            me.inputEl.dom.value = '';
+            inputEl.dom.value = '';
             me.setValue(me.valueStore.getRange().concat(rawValue));
-            me.inputEl.focus();
+            inputEl.focus();
         }
 
         me.callParent([e,t]);
@@ -898,10 +887,11 @@ Ext.define('Ext.form.field.Tag', {
      */
     onPaste: function(e) {
         var me = this,
-            rawValue = me.inputEl.dom.value,
+            inputEl = me.inputEl,
+            rawValue = inputEl.dom.value,
             clipboard = (e && e.browserEvent && e.browserEvent.clipboardData) ? e.browserEvent.clipboardData : false;
 
-        if (me.multiSelect && (me.delimiterRegexp && me.delimiterRegexp.test(rawValue))) {
+        if (me.multiSelect && me.delimiterRegexp && me.delimiterRegexp.test(rawValue)) {
             if (clipboard && clipboard.getData) {
                 if (/text\/plain/.test(clipboard.types)) {
                     rawValue = clipboard.getData('text/plain');
@@ -911,9 +901,9 @@ Ext.define('Ext.form.field.Tag', {
             }
 
             rawValue = Ext.Array.clean(rawValue.split(me.delimiterRegexp));
-            me.inputEl.dom.value = '';
+            inputEl.dom.value = '';
             me.setValue(me.valueStore.getRange().concat(rawValue));
-            me.inputEl.focus();
+            inputEl.focus();
         }
     },
 
@@ -947,6 +937,7 @@ Ext.define('Ext.form.field.Tag', {
      */
     onItemListClick: function(evt) {
         var me = this,
+            selectionModel = me.selectionModel,
             itemEl = evt.getTarget('.' + Ext.baseCSSPrefix + 'tagfield-item'),
             closeEl = itemEl ? evt.getTarget('.' + Ext.baseCSSPrefix + 'tagfield-item-close') : false;
 
@@ -970,9 +961,9 @@ Ext.define('Ext.form.field.Tag', {
                 me.inputEl.focus();
             }
         } else {
-            if (me.selectionModel.getCount() > 0) {
-                me.selectionModel.setLastFocused(null);
-                me.selectionModel.deselectAll();
+            if (selectionModel.getCount() > 0) {
+                selectionModel.setLastFocused(null);
+                selectionModel.deselectAll();
             }
             if (me.triggerOnClick) {
                 me.onTriggerClick();
@@ -1035,7 +1026,7 @@ Ext.define('Ext.form.field.Tag', {
             item;
 
         if (itemList) {
-            while ((item = me.inputElCt.prev()) != null) {
+            while ((item = me.inputElCt.prev())) {
                 item.destroy();
             }
             me.inputElCt.insertHtml('beforeBegin', me.getMultiSelectItemMarkup());
@@ -1404,23 +1395,27 @@ Ext.define('Ext.form.field.Tag', {
     applyEmptyText : function() {
         var me = this,
             emptyText = me.emptyText,
-            inputEl, isEmpty;
+            emptyEl = me.emptyEl,
+            inputEl = me.inputEl,
+            listWrapper = me.listWrapper,
+            emptyCls = me.emptyCls,
+            emptyInputCls = me.emptyInputCls,
+            isEmpty;
 
         if (me.rendered && emptyText) {
             isEmpty = Ext.isEmpty(me.value) && !me.hasFocus;
-            inputEl = me.inputEl;
             if (isEmpty) {
                 inputEl.dom.value = '';
-                me.emptyEl.setHtml(emptyText);
-                me.emptyEl.addCls(me.emptyCls);
-                me.emptyEl.removeCls(me.emptyInputCls);
-                me.listWrapper.addCls(me.emptyCls);
-                me.inputEl.addCls(me.emptyInputCls);
+                emptyEl.setHtml(emptyText);
+                emptyEl.addCls(emptyCls);
+                emptyEl.removeCls(emptyInputCls);
+                listWrapper.addCls(emptyCls);
+                inputEl.addCls(emptyInputCls);
             } else {
-                me.emptyEl.addCls(me.emptyInputCls);
-                me.emptyEl.removeCls(me.emptyCls);
-                me.listWrapper.removeCls(me.emptyCls);
-                me.inputEl.removeCls(me.emptyInputCls);
+                emptyEl.addCls(emptyInputCls);
+                emptyEl.removeCls(emptyCls);
+                listWrapper.removeCls(emptyCls);
+                inputEl.removeCls(emptyInputCls);
             }
             me.autoSize();
         }
@@ -1432,7 +1427,7 @@ Ext.define('Ext.form.field.Tag', {
     preFocus : function(){
         var me = this,
             inputEl = me.inputEl,
-            isEmpty = (inputEl.dom.value == '');
+            isEmpty = inputEl.dom.value === '';
 
         me.emptyEl.addCls(me.emptyInputCls);
         me.emptyEl.removeCls(me.emptyCls);

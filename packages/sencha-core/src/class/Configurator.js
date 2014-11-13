@@ -524,22 +524,64 @@ Ext.Configurator.prototype = {
         return config;
     },
 
-    reconfigure: function (instance, instanceConfig, onlyIfNotSet) {
+    /**
+     * Merges the values of a config object onto a base config.
+     * @param {Ext.Base} instance
+     * @param {Object} baseConfig
+     * @param {Object} config
+     * @return {Object} the merged config
+     * @private
+     */
+    merge: function(instance, baseConfig, config) {
+        // Although this is a "private" method.  It is used by Sencha Architect and so
+        // its api should remain stable.
+        var configs = this.configs,
+            name, value, baseValue, cfg, merge;
+
+        for (name in config) {
+            value = config[name];
+            cfg = configs[name];
+            if (cfg) {
+                merge = cfg.merge;
+                if (merge) {
+                    value = merge.call(cfg, value, baseConfig[name], instance);
+                } else if (value && value.constructor === Object) {
+                    baseValue = baseConfig[name];
+                    if (baseValue && baseValue.constructor === Object) {
+                        value = Ext.Object.merge(baseValue, value);
+                    } else {
+                        value = Ext.clone(value);
+                    }
+                }
+            }
+            baseConfig[name] = value;
+        }
+
+        return baseConfig;
+    },
+
+    // private
+    reconfigure: function (instance, instanceConfig, options) {
         var currentConfig = instance.config,
             initialConfig = instance.initialConfig,
             configList = [],
             strict = instance.$configStrict,
+            configs = this.configs,
+            defaults = options && options.defaults,
+            applyProps = options && options.strict === false,
             cfg, getter, i, len, name, names, setter;
 
         for (name in instanceConfig) {
-            if (onlyIfNotSet && (name in initialConfig)) {
+            if (defaults && instance.hasOwnProperty(name)) {
                 continue;
             }
 
             currentConfig[name] = instanceConfig[name];
-            cfg = configPropMap[name];
+            cfg = configs[name];
 
             if (cfg) {
+                // To ensure that configs being set here get processed in the proper order
+                // we must give them init getters just in case they depend upon each other
                 instance[cfg.names.get] = cfg.initGetter || cfg.getInitGetter();
             } else if (strict) {
                 //<debug>
@@ -556,7 +598,7 @@ Ext.Configurator.prototype = {
 
         for (i = 0, len = configList.length; i < len; i++) {
             name = configList[i];
-            cfg = configPropMap[name];
+            cfg = configs[name];
 
             if (cfg) {
                 names = cfg.names;
@@ -571,11 +613,14 @@ Ext.Configurator.prototype = {
                     delete instance[getter];
                 }
             } else if (!strict) {
-                cfg = Ext.Config.get(name);
+                cfg = configPropMap[name] || Ext.Config.get(name);
                 names = cfg.names;
 
                 if (instance[names.set]) {
                     instance[names.set](instanceConfig[name]);
+                } else if (applyProps) {
+                    // apply non-config props directly to the instance if specified in options
+                    instance[name] = instanceConfig[name];
                 }
                 //<debug>
                 else if (name !== 'type') {

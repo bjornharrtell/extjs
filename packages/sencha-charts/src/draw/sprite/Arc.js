@@ -4,24 +4,29 @@
  * 
  *  A sprite that represents a circular arc.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'arc',
- *         cx: 100,
- *         cy: 100,
- *         r: 25,
- *         fillStyle: 'blue',
- *         startAngle: 0,
- *         endAngle: Math.PI,
- *         anticlockwise: true
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'arc',
+ *                 cx: 100,
+ *                 cy: 100,
+ *                 r: 25,
+ *                 fillStyle: 'blue',
+ *                 startAngle: 0,
+ *                 endAngle: Math.PI,
+ *                 anticlockwise: true
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
-Ext.define("Ext.draw.sprite.Arc", {
-    extend: "Ext.draw.sprite.Circle",
+Ext.define('Ext.draw.sprite.Arc', {
+    extend: 'Ext.draw.sprite.Circle',
     alias: 'sprite.arc',
     type: 'arc',
     inheritableStatics: {
@@ -30,23 +35,23 @@ Ext.define("Ext.draw.sprite.Arc", {
                 /**
                  * @cfg {Number} [startAngle=0] The beginning angle of the arc.
                  */
-                startAngle: "number",
+                startAngle: 'number',
 
                 /**
                  * @cfg {Number} [endAngle=Math.PI*2] The ending angle of the arc.
                  */
-                endAngle: "number",
+                endAngle: 'number',
 
                 /**
                  * @cfg {Boolean} [anticlockwise=false] Determines whether or not the arc is drawn clockwise.
                  */
-                anticlockwise: "bool"
+                anticlockwise: 'bool'
             },
             aliases: {
-                from: "startAngle",
-                to: "endAngle",
-                start: "startAngle",
-                end: "endAngle"
+                from: 'startAngle',
+                to: 'endAngle',
+                start: 'startAngle',
+                end: 'endAngle'
             },
             defaults: {
                 startAngle: 0,

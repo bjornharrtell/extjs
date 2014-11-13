@@ -145,7 +145,7 @@ Ext.define('Ext.chart.series.Series', {
          * @private
          * @cfg {Object} themeStyle Style configuration that is provided by the current theme.
          * It is composed of five objects:
-         * @cfg {Object} themeStyle.style Properties common to all the series, for instance the 'stroke-width'.
+         * @cfg {Object} themeStyle.style Properties common to all the series, for instance the 'lineWidth'.
          * @cfg {Object} themeStyle.subStyle Cyclic used if the series has multiple sprites.
          * @cfg {Object} themeStyle.label Sprite config for the labels, for instance the font and color.
          * @cfg {Object} themeStyle.marker Sprite config for the markers, for instance the size and stroke color.
@@ -244,13 +244,13 @@ Ext.define('Ext.chart.series.Series', {
          *
          * Default value: null.
          */
-        label: {textBaseline: 'middle', textAlign: 'center', font: '14px Helvetica'},
+        label: {},
 
         /**
          * @cfg {Number} labelOverflowPadding
          * Extra distance value for which the labelOverflow listener is triggered.
          */
-        labelOverflowPadding: 5,
+        labelOverflowPadding: null,
 
         /**
          * @cfg {String|String[]} labelField
@@ -357,10 +357,7 @@ Ext.define('Ext.chart.series.Series', {
          *       }
          *     }
          */
-        tooltip: {
-            lazy: true,
-            $value: null
-        }
+        tooltip: null
     },
 
     directions: [],
@@ -521,6 +518,9 @@ Ext.define('Ext.chart.series.Series', {
     },
 
     applyTooltip: function (tooltip, oldTooltip) {
+        var chart = this.getChart(),
+            interactions = chart.getInteractions(),
+            i, hasItemHighlight;
         var config = Ext.apply({}, tooltip, {
             renderer: Ext.emptyFn,
             constrainPosition: true,
@@ -529,6 +529,16 @@ Ext.define('Ext.chart.series.Series', {
             offsetX: 10,
             offsetY: 10
         });
+        for (i = 0; i < interactions.length; i++) {
+            if (interactions[i].type === 'itemhightlight') {
+                hasItemHighlight = true;
+                break;
+            }
+        }
+        if (!hasItemHighlight) {
+            interactions.push('itemhighlight');
+            chart.setInteractions(interactions);
+        }
         return new Ext.tip.ToolTip(config);
     },
 
@@ -576,9 +586,9 @@ Ext.define('Ext.chart.series.Series', {
             return;
         }
         clearTimeout(me.tooltipTimeout);
-        me.tooltipTimeout = setTimeout(function () {
+        me.tooltipTimeout = Ext.defer(function () {
             tooltip.hide();
-        }, 0);
+        }, 1);
     },
 
     applyStore: function (store) {
@@ -599,19 +609,25 @@ Ext.define('Ext.chart.series.Series', {
         oldStore = oldStore || chartStore;
 
         if (oldStore) {
-            oldStore.un('updaterecord', 'onUpdateRecord', me);
-            oldStore.un('refresh', 'refresh', me);
+            oldStore.un({
+                datachanged: 'onDataChanged',
+                update: 'onDataChanged',
+                scope: me
+            });
         }
         if (newStore) {
-            newStore.on('updaterecord', 'onUpdateRecord', me);
-            newStore.on('refresh', 'refresh', me);
+            newStore.on({
+                datachanged: 'onDataChanged',
+                update: 'onDataChanged',
+                scope: me
+            });
             for (i = 0; i < ln; i++) {
                 sprite = sprites[i];
                 if (sprite.setStore) {
                     sprite.setStore(newStore);
                 }
             }
-            me.refresh();
+            me.onDataChanged();
         }
     },
 
@@ -1015,13 +1031,13 @@ Ext.define('Ext.chart.series.Series', {
         if (sprite.bindMarker) {
             if (me.getShowMarkers() && me.getMarker()) {
                 marker = new Ext.chart.Markers();
-                config = Ext.merge({}, me.getMarker());
+                config = Ext.Object.chain(me.getMarker());
                 if (me.getHighlight()) {
                     config.highlight = me.getHighlight();
                     config.modifiers = ['highlight'];
                 }
                 marker.setTemplate(config);
-                marker.getTemplate().fx.setCustomDuration({
+                marker.getTemplate().fx.setCustomDurations({
                     translationX: 0,
                     translationY: 0
                 });
@@ -1051,13 +1067,15 @@ Ext.define('Ext.chart.series.Series', {
      */
     getSprites: Ext.emptyFn,
 
-    onUpdateRecord: function () {
-        // TODO: do something REALLY FAST.
-        this.processData();
-    },
+    onDataChanged: function () {
+        var me = this,
+            chart = me.getChart(),
+            chartStore = chart && chart.getStore(),
+            seriesStore = me.getStore();
 
-    refresh: function () {
-        this.processData();
+        if (seriesStore !== chartStore) {
+            me.processData();
+        }
     },
 
     isXType: function (xtype) {
@@ -1104,7 +1122,7 @@ Ext.define('Ext.chart.series.Series', {
     },
 
     applyMarker: function (marker, oldMarker) {
-        var type = (marker && marker.type) || (oldMarker && oldMarker.type) || 'circle',    // TODO:ps Should use marker theme instead of 'circle'
+        var type = (marker && marker.type) || (oldMarker && oldMarker.type) || 'circle',
             cls = Ext.ClassManager.get(Ext.ClassManager.getNameByAlias('sprite.' + type));
         if (cls && cls.def) {
             marker = cls.def.normalize(marker, true);
@@ -1151,9 +1169,10 @@ Ext.define('Ext.chart.series.Series', {
             darkerRatio = (Ext.isNumber(darker) ? darker : me.darkerStrokeRatio),
             strokeColors;
         if (darker) {
-            strokeColors = Ext.Array.map(colors, function(colorString) {
-                var color = Ext.draw.Color.fromString(colorString);
-                return color.getDarker(darkerRatio).toString();
+            strokeColors = Ext.Array.map(colors, function (color) {
+                color = Ext.isString(color) ? color : color.stops[0].color;
+                color = Ext.draw.Color.fromString(color);
+                return color.createDarker(darkerRatio).toString();
             });
         } else {
             strokeColors = Ext.Array.clone(colors);
@@ -1174,10 +1193,37 @@ Ext.define('Ext.chart.series.Series', {
         me.doUpdateStyles();
     },
 
+    updateTheme: function (theme) {
+        var me = this,
+            seriesTheme = theme.getSeries(),
+            initialConfig = me.getInitialConfig(),
+            defaultConfig = me.defaultConfig,
+            configs = me.getConfigurator().configs,
+            genericSeriesTheme = seriesTheme.defaults,
+            specificSeriesTheme = seriesTheme[me.type],
+            key, value, isObjValue, initialValue, cfg;
+
+        seriesTheme = Ext.merge({}, genericSeriesTheme, specificSeriesTheme);
+        for (key in seriesTheme) {
+            value = seriesTheme[key];
+            cfg = configs[key];
+            if (value !== null && value !== undefined && cfg) {
+                initialValue = initialConfig[key];
+                isObjValue = Ext.isObject(value);
+                if (initialValue === defaultConfig[key] || isObjValue) {
+                    if (isObjValue) {
+                        value = Ext.merge({}, value, initialValue);
+                    }
+                    me[cfg.names.set](value);
+                }
+            }
+        }
+    },
+
     /**
      * @private
      * When the chart's "colors" config changes, these colors are passed onto the series
-     * where they are used with the same priority as theme colors, ie. they do not override
+     * where they are used with the same priority as theme colors, i.e. they do not override
      * the series' "colors" config, nor the series' "style" config, but they do override
      * the colors from the theme's "seriesThemes" config.
      */
@@ -1206,19 +1252,23 @@ Ext.define('Ext.chart.series.Series', {
     },
 
     doUpdateStyles: function () {
-        var sprites = this.sprites,
-            itemInstancing = this.getItemInstancing(),
+        var me = this,
+            sprites = me.sprites,
+            itemInstancing = me.getItemInstancing(),
             i = 0, ln = sprites && sprites.length,
-            markerCfg = this.getMarker(),
+            markerCfg = me.getMarker(),
             style;
+
+        // TODO: make sure all series work nicely with the below change
+//        me.setAnimation(me.getChart().getAnimation());
         for (; i < ln; i++) {
-            style = this.getStyleByIndex(i);
+            style = me.getStyleByIndex(i);
             if (itemInstancing) {
                 sprites[i].itemsMarker.getTemplate().setAttributes(style);
             }
             sprites[i].setAttributes(style);
             if (markerCfg && sprites[i].dataMarker) {
-                sprites[i].dataMarker.getTemplate().setAttributes(this.getMarkerStyleByIndex(i));
+                sprites[i].dataMarker.getTemplate().setAttributes(me.getMarkerStyleByIndex(i));
             }
         }
     },
@@ -1386,7 +1436,7 @@ Ext.define('Ext.chart.series.Series', {
         target.push({
             name: this.getTitle() || this.getId(),
             mark: 'black',
-            disabled: false,
+            disabled: this.getHidden(),
             series: this.getId(),
             index: 0
         });

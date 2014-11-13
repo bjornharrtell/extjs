@@ -20,11 +20,10 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
         var me = this,
             stateful = false,
             filter = {},
-            statefulGrid, filterGt, filterLt, filterEq, value, operator;
+            filterGt, filterLt, filterEq, value, operator;
 
         me.callParent([config]);
 
-        statefulGrid = me.grid.stateful;
         value = me.value;
 
         filterLt = me.getStoreFilter('lt');
@@ -38,7 +37,7 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
             // Once we've reached this block, we know that this grid filter doesn't have a stateful filter, so if our
             // flag to begin saving future filter mutations is set we know that any configured filter must be nulled
             // out or it will replace our stateful filter.
-            if (statefulGrid && me.store.saveStatefulFilters) {
+            if (me.grid.stateful && me.getStore().saveStatefulFilters) {
                 value = undefined;
             }
 
@@ -137,7 +136,7 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
     hasActiveFilter: function () {
         var active = false,
             filters = this.filter,
-            filterCollection = this.store.getFilters();
+            filterCollection = this.getStore().getFilters();
 
         if (filterCollection.length) {
             for (filter in filters) {
@@ -174,7 +173,7 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
             add = [],
             remove = [],
             active = false,
-            filterCollection = me.store.getFilters(),
+            filterCollection = me.getStore().getFilters(),
             field, filter, v, i, len;
 
         if (me.settingValue) {

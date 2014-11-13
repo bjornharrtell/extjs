@@ -108,6 +108,14 @@ Ext.define('Ext.ComponentLoader', {
     target: null,
 
     /**
+     * @cfg {Boolean/Object} loadOnRender
+     * `true` to have the loader make a request when the {@link #target} is rendered. If the target is
+     * already rendered, a load will take place immediately.
+     * This argument can also be a set of options that will be passed to {@link #method-load} when it is called.
+     */
+    loadOnRender: false,
+
+    /**
      * @cfg {Boolean/Object} loadMask True or a {@link Ext.LoadMask} configuration to enable masking during loading.
      */
     loadMask: false,
@@ -153,7 +161,7 @@ The function must return false is loading is not successful. Below is a sample o
      * @param {String/Ext.Component} target The component to be the target of this loader. If a string is passed
      * it will be looked up via its id.
      */
-    setTarget: function(target){
+    setTarget: function(target) {
         var me = this;
 
         if (Ext.isString(target)) {
@@ -164,6 +172,18 @@ The function must return false is loading is not successful. Below is a sample o
             me.abort();
         }
         me.target = target;
+        if (target && me.loadOnRender) {
+            if (target.rendered) {
+                me.doLoadOnRender();
+            } else {
+                me.mon(target, 'render', me.doLoadOnRender, me);
+            }
+        }
+    },
+
+    doLoadOnRender: function() {
+        var loadOnRender = this.loadOnRender;
+        this.load(Ext.isObject(loadOnRender) ? loadOnRender : null);
     },
 
     // inherit docs

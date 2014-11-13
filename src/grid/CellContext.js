@@ -17,7 +17,7 @@ Ext.define('Ext.grid.CellContext', {
     
     isEqual: function(other) {
         if (other) {
-            return this.record === other.record && this.columnHeader === other.columnHeader;
+            return this.record === other.record && this.column === other.column;
         }
         return false;
     },
@@ -40,6 +40,17 @@ Ext.define('Ext.grid.CellContext', {
         return me;
     },
 
+    setAll: function(view, recordIndex, columnIndex, record, columnHeader) {
+        var me = this;
+
+        me.view = view;
+        me.rowIdx = recordIndex;
+        me.colIdx = columnIndex;
+        me.record = record;
+        me.column = columnHeader;
+        return me;
+    },
+
     setRow: function(row) {
         var me = this,
             dataSource = me.view.dataSource;
@@ -47,38 +58,49 @@ Ext.define('Ext.grid.CellContext', {
         if (row !== undefined) {
             // Row index passed
             if (typeof row === 'number') {
-                me.row = Math.max(Math.min(row, dataSource.getCount() - 1), 0);
+                me.rowIdx = Math.max(Math.min(row, dataSource.getCount() - 1), 0);
                 me.record = dataSource.getAt(row);
             }
             // row is a Record
             else if (row.isModel) {
                 me.record = row;
-                me.row = dataSource.indexOf(row);
+                me.rowIdx = dataSource.indexOf(row);
             }
             // row is a grid row
             else if (row.tagName) {
                 me.record = me.view.getRecord(row);
-                me.row = dataSource.indexOf(me.record);
+                me.rowIdx = dataSource.indexOf(me.record);
             }
         }
     },
     
     setColumn: function(col) {
         var me = this,
-            mgr = me.view.ownerCt.getColumnManager();
+            mgr = me.view.getVisibleColumnManager();
             
         if (col !== undefined) {
             if (typeof col === 'number') {
-                me.column = col;
-                me.columnHeader = mgr.getHeaderAtIndex(col);
+                me.colIdx = col;
+                me.column = mgr.getHeaderAtIndex(col);
             } else if (col.isHeader) {
-                me.columnHeader = col;
-                me.column = mgr.getHeaderIndex(col);
+                me.column = col;
+                me.colIdx = mgr.getHeaderIndex(col);
             }
         }
     },
 
     equal: function(other) {
-        return (other && other.isCellContext && other.view === this.view && other.record === this.record && other.columnHeader === this.columnHeader);
+        return (other && other.isCellContext && other.view === this.view && other.record === this.record && other.column === this.column);
+    },
+
+    clone: function() {
+        var me = this,
+            result = new me.self(me.view);
+
+        result.rowIdx = me.rowIdx;
+        result.colIdx = me.colIdx;
+        result.record = me.record;
+        result.column = me.column;
+        return result;
     }
 });

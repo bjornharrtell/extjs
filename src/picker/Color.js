@@ -21,6 +21,8 @@ Ext.define('Ext.picker.Color', {
     requires: 'Ext.XTemplate',
     alias: 'widget.colorpicker',
     alternateClassName: 'Ext.ColorPalette',
+    
+    focusable: true,
 
     /**
      * @cfg {String} [componentCls='x-color-picker']

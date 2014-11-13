@@ -1,3 +1,6 @@
+/**
+ * Base class for Range Map
+ */
 Ext.define('Ext.sparkline.RangeMap', {
     constructor: function (map) {
         var key,

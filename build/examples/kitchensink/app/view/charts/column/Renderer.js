@@ -36,7 +36,6 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
         store: {
             type: 'pie'
         },
-        theme: 'Sky',
         background: 'white',
         interactions: [
             {
@@ -62,7 +61,8 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                         record = storeItems[index],
                         // diff = record && (record.data['g2'] - record.data['g1']),
                         last = storeItems.length - 1,
-                        surface = sprite.getParent(),
+                        surface = sprite.getSurface(),
+                        isRtl = surface.getInherited().rtl,
                         changes = {},
                         lineSprites, firstColumnConfig, firstData, lastData, growth, string;
                     if (!record) {
@@ -105,7 +105,7 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                             string = (growth > 0 ? "+ " : "- ") + Math.abs(growth) + " %";
                             lineSprites[1].setAttributes({
                                 text: string,
-                                x: changes.x - 12,
+                                x: changes.x + (isRtl ? 12 : -12),
                                 y: firstColumnConfig.y + (changes.y - firstColumnConfig.y)/2 + 10,
                                 fill: '#00c',
                                 fontSize: 20,
@@ -142,6 +142,7 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                         diff = record && Math.round(record.data['g2'] - record.data['g1']),
                         changes = {},
                         surface = sprite.getParent(),
+                        isRtl = this.getSurface().getInherited().rtl,
                         textSprites, textSprite, rectSprite;
                     if (!record) {
                         return;
@@ -171,7 +172,7 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                         }
 
                         rectSprite.setAttributes({
-                            x: config.x + (index == last ? -17 : 16),
+                            x: config.x + (index == last ? -17 : (isRtl ? -50 : 16)),
                             y: config.y - 36,
                             width: 30 + (diff >= 10 ? (diff >= 100 ? (diff >= 1000 ? 18 : 12) : 6) : 0),
                             height: 18,
@@ -184,7 +185,7 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
 
                         textSprite.setAttributes({
                             text: "+ " + diff,
-                            x: config.x + (index == last ? -11 : 20),
+                            x: config.x + (index == last ? -11 : (isRtl ? -46 : 20)),
                             y: config.y - 23,
                             fill: 'red',
                             fontSize: 12,

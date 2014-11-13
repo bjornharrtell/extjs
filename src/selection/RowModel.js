@@ -35,16 +35,12 @@
  *     });
  */
 Ext.define('Ext.selection.RowModel', {
-    extend: 'Ext.selection.Model',
+    extend: 'Ext.selection.DataViewModel',
     alias: 'selection.rowmodel',
-    requires: ['Ext.util.KeyNav'],
+    requires: [
+        'Ext.grid.CellContext'
+    ],
 
-    /**
-     * @private
-     * Number of pixels to scroll to the left/right when pressing
-     * left/right keys.
-     */
-    deltaScroll: 5,
 
     /**
      * @cfg {Boolean} enableKeyNav
@@ -52,14 +48,6 @@ Ext.define('Ext.selection.RowModel', {
      * Turns on/off keyboard navigation within the grid.
      */
     enableKeyNav: true,
-
-    /**
-     * @cfg {Boolean} [ignoreRightMouseSelection=false]
-     * True to ignore selections that are made when using the right mouse button if there are
-     * records that are already selected. If no records are selected, selection will continue
-     * as normal
-     */
-    ignoreRightMouseSelection: false,
 
     /**
      * @event beforedeselect
@@ -97,70 +85,6 @@ Ext.define('Ext.selection.RowModel', {
 
     isRowModel: true,
 
-    constructor: function() {
-        this.views = [];
-        this.callParent(arguments);
-    },
-
-    bindComponent: function(view) {
-        var me = this;
-
-        view.on({
-            // Because we used to select on mousedown, contextmenu (right click) used to also select.
-            // Now we use click, for backward compatibility, we need to select on contextmenu too.
-            // Apps may assume that contextmenu selects: https://sencha.jira.com/browse/EXTJSIV-11297
-            rowcontextmenu: me.onRowClick,
-            rowclick: me.onRowClick,
-            scope: me
-        });
-
-        if (me.enableKeyNav) {
-            me.initKeyNav(view);
-        }
-    },
-
-    initKeyNav: function(view) {
-        var me = this;
-
-        if (!view.rendered) {
-            view.on('render', Ext.Function.bind(me.initKeyNav, me, [view], 0), me, {single: true});
-            return;
-        }
-
-        // view.el has tabIndex -1 to allow for
-        // keyboard events to be passed to it.
-        view.el.set({
-            tabIndex: -1
-        });
-
-        // Drive the KeyNav off the View's itemkeydown event so that beforeitemkeydown listeners may veto
-        me.keyNav = new Ext.util.KeyNav({
-            target: view,
-            ignoreInputFields: true,
-            eventName: 'itemkeydown',
-            processEvent: function(view, record, node, index, event) {
-                event.record = record;
-                event.recordIndex = index;
-                return event;
-            },
-            up: me.onKeyUp,
-            down: me.onKeyDown,
-            right: me.onKeyRight,
-            left: me.onKeyLeft,
-            pageDown: me.onKeyPageDown,
-            pageUp: me.onKeyPageUp,
-            home: me.onKeyHome,
-            end: me.onKeyEnd,
-            space: me.onKeySpace,
-            enter: me.onKeyEnter,
-            A: {
-                ctrl: true,
-                handler: me.selectAll
-            },
-            scope: me
-        });
-    },
-
     onUpdate: function(record) {
         var me = this,
             view = me.view,
@@ -180,7 +104,7 @@ Ext.define('Ext.selection.RowModel', {
     // of the same height and the first view is accurate.
     getRowsVisible: function() {
         var rowsVisible = false,
-            view = this.views[0],
+            view = this.view,
             firstRow = view.all.first(),
             rowHeight, gridViewHeight;
 
@@ -193,191 +117,13 @@ Ext.define('Ext.selection.RowModel', {
         return rowsVisible;
     },
 
-    // go to last visible record in grid.
-    onKeyEnd: function(e) {
-        var me = this,
-            view = me.views[0];
-
-        if (view.bufferedRenderer) {
-            // If rendering is buffered, we cannot just increment the row - the row may not be there
-            // We have to ask the BufferedRenderer to navigate to the target.
-            // And that may involve asynchronous I/O, so must postprocess in a callback.
-            view.bufferedRenderer.scrollTo(me.store.getCount() - 1, false, function(newIdx, newRecord) {
-                me.afterKeyNavigate(e, newRecord);
-            });
-        } else {
-            // Walk forwards to the end record
-            me.afterKeyNavigate(e, view.walkRecs(e.record, view.dataSource.getCount() - 1 - view.dataSource.indexOf(e.record)));
-        }
-    },
-
-    // go to first visible record in grid.
-    onKeyHome: function(e) {
-        var me = this,
-            view = me.views[0];
-
-        if (view.bufferedRenderer) {
-            // If rendering is buffered, we cannot just increment the row - the row may not be there
-            // We have to ask the BufferedRenderer to navigate to the target.
-            // And that may involve asynchronous I/O, so must postprocess in a callback.
-            view.bufferedRenderer.scrollTo(0, false, function(newIdx, newRecord) {
-                me.afterKeyNavigate(e, newRecord);
-            });
-        } else {
-            // Walk forwards to the first record
-            me.afterKeyNavigate(e, view.walkRecs(e.record, -view.dataSource.indexOf(e.record)));
-        }
-    },
-
-    // Go one page up from the lastFocused record in the grid.
-    onKeyPageUp: function(e) {
-        var me = this,
-            view = me.views[0],
-            rowsVisible = me.getRowsVisible(),
-            newIdx,
-            newRecord;
-
-        if (rowsVisible) {
-            // If rendering is buffered, we cannot just increment the row - the row may not be there
-            // We have to ask the BufferedRenderer to navigate to the target.
-            // And that may involve asynchronous I/O, so must postprocess in a callback.
-            if (view.bufferedRenderer) {
-                newIdx = Math.max(e.recordIndex - rowsVisible, 0);
-                me.lastKeyEvent = e;
-                view.bufferedRenderer.scrollTo(newIdx, false, me.afterBufferedScrollTo, me);
-            } else {
-                newRecord = view.walkRecs(e.record, -rowsVisible);
-                me.afterKeyNavigate(e, newRecord);
-            }
-        }
-    },
-
-    // Go one page down from the lastFocused record in the grid.
-    onKeyPageDown: function(e) {
-        var me = this,
-            view = me.views[0],
-            rowsVisible = me.getRowsVisible(),
-            newIdx,
-            newRecord;
-
-        if (rowsVisible) {
-            // If rendering is buffered, we cannot just increment the row - the row may not be there
-            // We have to ask the BufferedRenderer to navigate to the target.
-            // And that may involve asynchronous I/O, so must postprocess in a callback.
-            if (view.bufferedRenderer) {
-                newIdx = Math.min(e.recordIndex + rowsVisible, me.store.getCount() - 1);
-                me.lastKeyEvent = e;
-                view.bufferedRenderer.scrollTo(newIdx, false, me.afterBufferedScrollTo, me);
-            } else {
-                newRecord = view.walkRecs(e.record, rowsVisible);
-                me.afterKeyNavigate(e, newRecord);
-            }
-        }
-    },
-
-    // Select/Deselect based on pressing Spacebar.
-    onKeySpace: function(e) {
-        // KeyNav's processEvent stamps the record in.
-        var record = e.record || this.lastFocused;
-
-        if (record) {
-            this.afterKeyNavigate(e, record);
-        }
-    },
-
-    onKeyEnter: Ext.emptyFn,
-
-    // Navigate one record up. This could be a selection or
-    // could be simply focusing a record for discontiguous
-    // selection. Provides bounds checking.
-    onKeyUp: function(e) {
-        var newRecord = this.views[0].walkRecs(e.record, -1);
-
-        if (newRecord) {
-            this.afterKeyNavigate(e, newRecord);
-        }
-    },
-
-    // Navigate one record down. This could be a selection or
-    // could be simply focusing a record for discontiguous
-    // selection. Provides bounds checking.
-    onKeyDown: function(e) {
-        // If we are in the middle of an animated node expand, jump to next sibling.
-        // The first child record is in a temp animation DIV and will be removed, so will blur.
-        var newRecord = e.record.isExpandingOrCollapsing ? null : this.views[0].walkRecs(e.record, 1);
-
-        if (newRecord) {
-            this.afterKeyNavigate(e, newRecord);
-        }
-    },
-
-    afterBufferedScrollTo: function(newIdx, newRecord) {
-        this.afterKeyNavigate(this.lastKeyEvent, newRecord);
-    },
-
-    scrollByDeltaX: function(delta) {
-        var view    = this.views[0],
-            section = view.up(),
-            hScroll = section.horizontalScroller;
-
-        if (hScroll) {
-            hScroll.scrollByDeltaX(delta);
-        }
-    },
-
-    onKeyLeft: function(e) {
-        this.scrollByDeltaX(-this.deltaScroll);
-    },
-
-    onKeyRight: function(e) {
-        this.scrollByDeltaX(this.deltaScroll);
-    },
-
-    // Select the record with the event included so that
-    // we can take into account ctrlKey, shiftKey, etc
-    onRowClick: function(view, record, row, index, e) {
-        var me = this;
-
-        // Record index will be -1 if the clicked record is a metadata record and not selectable
-        if (index !== -1) {
-            if (!me.allowRightMouseSelection(e)) {
-                return;
-            }
-
-            // Don't process if it's a right-click over a previously selected record.
-            if (!(e.type === 'contextmenu' && this.isSelected(record))) {
-                me.processSelection(view, record, row, index, e);
-            }
-        }
-    },
-
-    // May be overridden by a subclass to process a click in different ways
-    processSelection: function(view, record, item, index, e) {
-        this.selectWithEvent(record, e);
-    },
-
-    /**
-     * Checks whether a selection should proceed based on the ignoreRightMouseSelection
-     * option.
-     * @private
-     * @param {Ext.event.Event} e The event
-     * @return {Boolean} False if the selection should not proceed
-     */
-    allowRightMouseSelection: function(e) {
-        var disallow = this.ignoreRightMouseSelection && e.button !== 0;
-        if (disallow) {
-            disallow = this.hasSelection();
-        }
-        return !disallow;
-    },
-
     // Allow the GridView to update the UI by
     // adding/removing a CSS class from the row.
     onSelectChange: function(record, isSelected, suppressEvent, commitFn) {
         var me      = this,
-            views   = me.views,
+            views   = me.views || [me.view],
             viewsLn = views.length,
-            rowIdx  = views[0].indexOf(record),
+            rowIdx,
             eventName = isSelected ? 'select' : 'deselect',
             i, view;
 
@@ -386,13 +132,17 @@ Ext.define('Ext.selection.RowModel', {
 
             for (i = 0; i < viewsLn; i++) {
                 view = views[i];
-                if (isSelected) {
-                    view.onRowSelect(rowIdx, suppressEvent);
-                } else {
-                    view.onRowDeselect(rowIdx, suppressEvent);
-                }
+                rowIdx  = view.indexOf(record);
 
-                me.publishSelection(isSelected ? record : null);
+                // The record might not be rendered due to either buffered rendering,
+                // or removal/hiding of all columns (eg empty locked side).
+                if (rowIdx !== -1) {
+                    if (isSelected) {
+                        view.onRowSelect(rowIdx, suppressEvent);
+                    } else {
+                        view.onRowDeselect(rowIdx, suppressEvent);
+                    }
+                }
             }
 
             if (!suppressEvent) {
@@ -401,40 +151,15 @@ Ext.define('Ext.selection.RowModel', {
         }
     },
 
-    publishSelection: function(record) {
-        var me = this,
-            single = me.selectionMode === "SINGLE",
-            grid = me.views[0].ownerGrid,
-            publishes;
-
-        if (me.setupPublish || (single && grid.reference)) {
-            if (!me.setupPublish) {
-                me.setupPublish = true;
-                publishes = grid.getPublishes() || {};
-                publishes.selection = 1;
-                grid.setPublishes(publishes);
-            }
-            me.lastPublish = record;
-            grid.publishState('selection', record);
-        }
-    },
-
-    onPrune: function(rec) {
-        var me = this;
-        if (me.lastPublish === rec) {
-            me.publishSelection(null);
-        }
-    },
-
     // Provide indication of what row was last focused via
     // the gridview.
     onLastFocusChanged: function(oldFocused, newFocused, supressFocus) {
-        var views   = this.views,
+        var views   = this.views || [this.view],
             viewsLn = views.length,
             rowIdx,
             i = 0;
 
-        if (oldFocused) {
+        if (oldFocused && viewsLn) {
             rowIdx = views[0].indexOf(oldFocused);
             if (rowIdx !== -1) {
                 for (; i < viewsLn; i++) {
@@ -443,7 +168,7 @@ Ext.define('Ext.selection.RowModel', {
             }
         }
 
-        if (newFocused) {
+        if (newFocused && viewsLn) {
             rowIdx = views[0].indexOf(newFocused);
             if (rowIdx !== -1) {
                 for (i = 0; i < viewsLn; i++) {
@@ -451,15 +176,13 @@ Ext.define('Ext.selection.RowModel', {
                 }
             }
         }
-        this.callParent(arguments);
     },
 
     onEditorTab: function(editingPlugin, e) {
         var me = this,
             view = editingPlugin.context.view,
             record = editingPlugin.getActiveRecord(),
-            header = editingPlugin.getActiveColumn(),
-            position = view.getPosition(record, header),
+            position = editingPlugin.context,
             direction = e.shiftKey ? 'left' : 'right',
             lastPos;
 
@@ -477,11 +200,12 @@ Ext.define('Ext.selection.RowModel', {
                 // fall out here.
                 return;
             }
-        } while (position && (!position.columnHeader.getEditor(record) || !editingPlugin.startEditByPosition(position)));
+        } while (position && (!position.column.getEditor(record) || !editingPlugin.startEditByPosition(position)));
     },
 
     /**
      * Returns position of the first selected cell in the selection in the format {row: row, column: column}
+     * @deprecated 5.0.1 Use the {@link Ext.view.Table#getNavigationModel NavigationModel} instead.
      */
     getCurrentPosition: function() {
         var firstSelection = this.selected.getAt(0);
@@ -508,7 +232,7 @@ Ext.define('Ext.selection.RowModel', {
             store = me.store,
             selection = me.getSelection(),
             record = selection[selection.length - 1],
-            index = me.views[0].indexOf(record) + 1,
+            index = me.view.indexOf(record) + 1,
             success;
 
         if (index === store.getCount() || index === 0) {
@@ -530,7 +254,7 @@ Ext.define('Ext.selection.RowModel', {
         var me = this,
             selection = me.getSelection(),
             record = selection[0],
-            index = me.views[0].indexOf(record) - 1,
+            index = me.view.indexOf(record) - 1,
             success;
 
         if (index < 0) {

@@ -5,4 +5,4 @@
  * to load properly for image slicing (required to support non-CSS3 browsers
  * such as IE9 and below).
  */
-@import '../../build/resources/ext-theme-classic-sandbox-all-rtl-debug.css';
+@import '../../../../build/temp/ext-theme-classic-sandbox/slicer-temp/ext-theme-classic-sandbox-all-rtl-debug.css';

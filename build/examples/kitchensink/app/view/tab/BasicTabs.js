@@ -31,10 +31,12 @@ Ext.define('KitchenSink.view.tab.BasicTabs', {
     }, {
         title: 'Disabled Tab',
         disabled: true
-    }],
-
-    listeners: {
-        scope: 'controller',
-        tabchange: 'onTabChange'
-    }
+    }, {
+        title: 'Closable Tab',
+        closable: true,
+        html: KitchenSink.DummyText.longText
+    }, {
+        title: 'Another inactive Tab',
+        html: KitchenSink.DummyText.extraLongText
+    }]
 });

@@ -2401,7 +2401,6 @@ Ext.chart = Ext.chart || {};
 
 Ext.define('Ext.chart.theme.Theme', (
 
-// This callback is executed right after when the class is created. This scope refers to the newly created class itself
 function() {
    /* Theme constructor: takes either a complex object with styles like:
   
@@ -6215,9 +6214,9 @@ Ext.define('Ext.chart.Tip', {
             return;
         }
         clearTimeout(this.tipTimeout);
-        this.tipTimeout = setTimeout(function() {
+        this.tipTimeout = Ext.defer(function() {
             tooltip.delayHide();
-        }, 0);
+        }, 1);
     }
 });
 
@@ -9831,7 +9830,43 @@ Ext.define('Ext.chart.series.Series', {
 
     /**
      * @cfg {Array} shadowAttributes
-     * An array with shadow attributes
+     * An array with shadow attributes.
+     * 
+     * Defaults to: 
+     *
+     *     [{
+     *         "stroke-width": 6,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(200, 200, 200)',
+     *         "translate": {
+     *             "x": 1.2,
+     *             "y": 2
+     *         }
+     *     },
+     *     {
+     *         "stroke-width": 4,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(150, 150, 150)',
+     *         "translate": {
+     *             "x": 0.9,
+     *             "y": 1.5
+     *         }
+     *     },
+     *     {
+     *         "stroke-width": 2,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(100, 100, 100)',
+     *         "translate": {
+     *             "x": 0.6,
+     *             "y": 1
+     *         }
+     *     }]
+     *
+     * Each object in the array will be applied to a sprite to make up the 
+     * underlying shadow. 
+     *
+     * Only applicable when the chart's shadow property is `true`.
+     * 
      */
     shadowAttributes: null,
 
@@ -14270,9 +14305,12 @@ Ext.define('Ext.chart.series.Line', {
                 x: x,
                 y: y
             }, true);
-            if (resizing && me.animation) {
-                me.animation.on('afteranimate', function() {
-                    label.show(true);
+            if (resizing && chart.animate) {
+                me.on({
+                    single: true,
+                    afterrender: function() {
+                        label.show(true);
+                    }
                 });
             } else {
                 label.show(true);
@@ -18859,9 +18897,9 @@ Ext.define('Ext.draw.engine.Svg', {
         if (Ext.isSafari3) {
             // Refreshing the view to fix bug EXTJSIV-1: rendering issue in old Safari 3
             me.webkitRect.show();
-            setTimeout(function () {
+            Ext.defer(function () {
                 me.webkitRect.hide();
-            });
+            }, 1);
         }
     },
 

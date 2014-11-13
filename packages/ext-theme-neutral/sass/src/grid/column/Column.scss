@@ -1,10 +1,13 @@
 .#{$prefix}column-header {
     border-right: $grid-column-header-border-width $grid-column-header-border-style $grid-header-border-color;
 
-    @if $grid-column-header-color {
+    @if not is-null($grid-column-header-color) {
         color: $grid-column-header-color;
     }
     font: $grid-column-header-font;
+
+    // This is to remove default focused element styling in Firefox and IE
+    outline: 0;
 
     @if not is-null($grid-header-background-gradient) {
         @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
@@ -32,6 +35,7 @@
 }
 
 .#{$prefix}column-header-inner {
+    position: relative;
     padding: $grid-header-padding;
     text-overflow: ellipsis;
 }
@@ -41,6 +45,33 @@
     // if the column width is too small.  Ensure this does not happen by clipping overflow
     // of empty colum headers.
     text-overflow: clip;
+}
+
+// Compound selector here to increase the specificity
+.#{$prefix}column-header.#{$prefix}column-header-focus {
+    .#{$prefix}column-header-inner:before {
+        content: "";
+        position: absolute;
+        top: $grid-column-header-focus-border-inset;
+        right: $grid-column-header-focus-border-inset;
+        bottom: $grid-column-header-focus-border-inset;
+        left: $grid-column-header-focus-border-inset;
+        border: $grid-column-header-focus-border-width $grid-column-header-focus-border-style $grid-column-header-focus-border-color;
+    }
+
+    // For some reason without this rule the inner focus border on grouped column headers
+    // looks 1px higher than it should. This does not apply to column headers outside a group
+    &.#{$prefix}group-sub-header .#{$prefix}column-header-inner:before {
+        bottom: 0px;
+    }
+
+    @if not is-null($grid-column-header-focus-color) {
+        color: $grid-column-header-focus-color;
+    }
+
+    @if not is-null($grid-column-header-focus-background-color) {
+        @include background-gradient($grid-column-header-focus-background-color, $grid-header-background-gradient);
+    }
 }
 
 .#{$prefix}column-header-over,

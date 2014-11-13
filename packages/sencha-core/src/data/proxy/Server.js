@@ -224,6 +224,7 @@ Ext.define('Ext.data.proxy.Server', {
             params   : params,
             action   : operation.getAction(),
             records  : operation.getRecords(),
+            url      : operation.getUrl(),
             operation: operation,
 
             // this is needed by JsonSimlet in order to properly construct responses for
@@ -250,10 +251,14 @@ Ext.define('Ext.data.proxy.Server', {
         if (success === true) {
             reader = me.getReader();
 
-            resultSet = reader.read(me.extractResponseData(response), {
-                // If we're doing an update, we want to construct the models ourselves.
-                recordCreator: operation.getRecordCreator()
-            });
+            if (response.status === 204) {
+                resultSet = reader.getNullResultSet();
+            } else {
+                resultSet = reader.read(me.extractResponseData(response), {
+                    // If we're doing an update, we want to construct the models ourselves.
+                    recordCreator: operation.getRecordCreator()
+                });
+            }
 
             operation.process(resultSet, request, response);
             exception = !operation.wasSuccessful();

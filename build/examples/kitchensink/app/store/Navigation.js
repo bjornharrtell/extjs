@@ -18,7 +18,8 @@ Ext.define('KitchenSink.store.Navigation', {
     },
 
     getChartNavItems: function() {
-        return [
+        var combinationExamples,
+            items = [
             {
                 text: 'Column Charts',
                 id: 'column-charts',
@@ -120,15 +121,27 @@ Ext.define('KitchenSink.store.Navigation', {
                 text: 'Combination Charts',
                 id: 'combination-charts',
                 expanded: true,
-                children: [
+                children: combinationExamples = [
                     { id: 'combination-pareto', text: 'Pareto', leaf: true },
                     { id: 'combination-dashboard', text: 'Interactive Dashboard', leaf: true },
-                    { id: 'combination-theme', text: 'Custom Theme', leaf: true }//,
-                    //{ id: 'combination-bindingtabs', text: 'Binding & Tabs', leaf: true}
+                    { id: 'unemployment', text: 'Infographic', leaf: true },
+                    { id: 'combination-theme', text: 'Custom Theme', leaf: true },
+                    { id: 'combination-bindingtabs', text: 'Binding & Tabs', leaf: true}
                 ]
             },
-            { id: 'free-paint', text: 'Free Paint', leaf: true }
-        ]
+            {
+                text: 'Drawing',
+                id: 'drawing',
+                expanded: true,
+                children: [
+                    { id: 'free-paint', text: 'Free Paint', leaf: true }
+                ]
+            }
+        ];
+        if (Ext.isiOS || Ext.isIE8) {
+            combinationExamples.splice(2, 1);
+        }
+        return items;
     },
 
     getNavItems: function() {
@@ -184,6 +197,7 @@ Ext.define('KitchenSink.store.Navigation', {
                     { id: 'binding-component-state', text: 'Component State', leaf: true },
                     { id: 'binding-chained-stores', text: 'Chaining Stores', leaf: true},
                     { id: 'binding-combo-chaining', text: 'Chained ComboBoxes', leaf: true },
+                    { id: 'binding-selection', text: 'Chaining Selection', leaf: true },
 //                    { id: 'binding-gridform', text: 'Grid + Form', leaf: true },
                     { id: 'binding-model-validation', text: 'Model Validation', leaf: true },
                     { id: 'binding-field-validation', text: 'Field Validation', leaf: true },
@@ -204,7 +218,8 @@ Ext.define('KitchenSink.store.Navigation', {
                     { id: 'check-tree', text: 'Check Tree', leaf: true },
                     { id: 'tree-xml', text: 'XML Tree', leaf: true },
                     { id: 'filtered-tree', text: 'Filtered Tree', leaf: true },
-                    { id: 'heterogeneous-tree', text: 'Heterogeneous Tree', leaf: true }
+                    { id: 'heterogeneous-tree', text: 'Heterogeneous Tree', leaf: true },
+                    { id: 'lineardata-tree', text: 'Linear Data Geographical Tree', leaf: true }
                 ]
             },
             {

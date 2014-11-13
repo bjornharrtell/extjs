@@ -15,10 +15,7 @@
  *      
  *                 // optional configs
  *                 dateFormat: 'm/d/Y',  // default
- *                 beforeText: 'Before', // default
- *                 afterText: 'After',   // default
- *                 onText: 'On',         // default
- *                 pickerOpts: {
+ *                 pickerDefaults: {
  *                     // any DatePicker configs
  *                 },
  *      
@@ -49,19 +46,13 @@ Ext.define('Ext.grid.filters.filter.Date', {
          *      },
          */
         fields: {
-            lt: {
-                text: 'Before'
-            },
-            gt: {
-                text: 'After'
-            },
-            eq: {
-                text: 'On'
-            }
+            lt: {text: 'Before'},
+            gt: {text: 'After'},
+            eq: {text: 'On'}
         },
 
         /**
-         * @cfg {Object} pickerOpts
+         * @cfg {Object} pickerDefaults
          * Configuration options for the date picker associated with each field.
          */
         pickerDefaults: {
@@ -83,9 +74,9 @@ Ext.define('Ext.grid.filters.filter.Date', {
     /**
      * @cfg {String} dateFormat
      * The date format to return when using getValue.
-     * Defaults to 'm/d/Y'.
+     * Defaults to {@link Ext.Date.defaultFormat}.
      */
-    dateFormat: 'm/d/Y',
+    dateFormat: null,
 
     /**
      * @cfg {Date} maxDate
@@ -98,7 +89,7 @@ Ext.define('Ext.grid.filters.filter.Date', {
      * Allowable date as passed to the Ext.DatePicker
      * Defaults to undefined.
      */
-
+    
     /**
      * @private
      * Will convert a timestamp to a Date object or vice-versa.
@@ -129,10 +120,14 @@ Ext.define('Ext.grid.filters.filter.Date', {
             fields, itemDefaults, pickerCfg, i, len,
             key, item, cfg, field;
 
-        this.callParent(arguments);
+        me.callParent(arguments);
 
         itemDefaults = me.getItemDefaults();
         fields = me.getFields();
+
+        if (!me.dateFormat) {
+            me.dateFormat = Ext.Date.defaultFormat;
+        }
 
         pickerCfg = Ext.apply({
             minDate: me.minDate,
@@ -186,21 +181,6 @@ Ext.define('Ext.grid.filters.filter.Date', {
     getPicker: function (item){
         return this.fields[item];
     },
-
-    /**
-     * @private
-     * Handler method called when there is a keyup event on an input
-     * item of this menu.
-     */
-    /*
-    onInputKeyUp : function (field, e) {
-        var k = e.getKey();
-        if (k == e.RETURN && field.isValid()) {
-            e.stopEvent();
-            this.menu.hide();
-        }
-    },
-    */
 
     /**
      * @private

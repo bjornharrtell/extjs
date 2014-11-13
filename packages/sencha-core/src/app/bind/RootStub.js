@@ -1,5 +1,5 @@
 /**
- * This class is the root stub for managing a `Session`.
+ * This class is the root stub for managing a `ViewModel`.
  * @private
  */
 Ext.define('Ext.app.bind.RootStub', {

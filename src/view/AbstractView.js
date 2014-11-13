@@ -9,7 +9,8 @@ Ext.define('Ext.view.AbstractView', {
         'Ext.LoadMask',
         'Ext.data.StoreManager',
         'Ext.CompositeElementLite',
-        'Ext.selection.DataViewModel'
+        'Ext.selection.DataViewModel',
+        'Ext.view.NavigationModel'
     ],
     mixins: [
         'Ext.util.StoreHolder'
@@ -161,6 +162,21 @@ Ext.define('Ext.view.AbstractView', {
             Ext.AnimationQueue.stop(me.flushChangeQueue, me);
         }
     },
+
+    config: {
+        selection: null,
+
+        // @cmd-auto-dependency { aliasPrefix: 'view.navigation.' }
+        /**
+         * @private
+         * The {@link Ext.view.NavigationModel} [default] alias to use.
+         * @since 5.0.1
+         */
+        navigationModel: 'default'
+    },
+
+    publishes: ['selection'],
+    twoWayBindable: ['selection'],
 
     /**
      * @cfg {Boolean} [throttledUpdate=false]
@@ -340,6 +356,8 @@ Ext.define('Ext.view.AbstractView', {
     
     //private
     last: false,
+    focusable: true,
+    tabIndex: 0,
 
     triggerEvent: 'itemclick',
     triggerCtEvent: 'containerclick',
@@ -488,6 +506,25 @@ Ext.define('Ext.view.AbstractView', {
             onFrame: !!Ext.global.requestAnimationFrame,
             scope: me
         });
+        
+        me.savedTabIndexAttribute = 'data-savedtabindex-' + me.id;
+
+        this.getNavigationModel().bindComponent(this);
+
+        // Init the SelectionModel after any on('render') listeners have been added.
+        // Drag plugins create a DragDrop instance in a render listener, and that needs
+        // to see an itemmousedown event first.
+        this.getSelectionModel().bindComponent(this);
+    },
+    
+    getElConfig: function() {
+        var result = this.mixins.renderable.getElConfig.call(this);
+
+        // Subclasses may set focusable to false (BoundList is not focusable)
+        if (this.focusable) {
+            result.tabIndex = 0;
+        }
+        return result;
     },
 
     onRender: function() {
@@ -582,10 +619,13 @@ Ext.define('Ext.view.AbstractView', {
     afterRender: function() {
         this.callParent(arguments);
 
-        // Init the SelectionModel after any on('render') listeners have been added.
-        // Drag plugins create a DragDrop instance in a render listener, and that needs
-        // to see an itemmousedown event first.
-        this.getSelectionModel().bindComponent(this);
+        // Subclasses may set focusable to false.
+        // BoundList and Table are not focusable.
+        // BoundList processes key events from its boundField, Table defers focus processing to
+        // its owning GridPanel.
+        if (this.focusable) {
+            this.focusEl = this.el;
+        }
     },
 
     getRefItems: function() {
@@ -598,13 +638,51 @@ Ext.define('Ext.view.AbstractView', {
         return result;
     },
 
+    getSelection: function() {
+        return this.getSelectionModel().getSelection();
+    },
+
+    updateSelection: function(selection) {
+        var me = this,
+            sm;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            sm = me.getSelectionModel();
+            if (selection) {
+                sm.select(selection);
+            } else {
+                sm.deselectAll();
+            }
+            me.ignoreNextSelection = false;
+        }
+    },
+
+    updateBindSelection: function(selModel, selection) {
+        var me = this,
+            selected = null;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            if (selection.length) {
+                selected = selModel.getLastSelected();
+                me.hasHadSelection = true;
+            }
+            if (me.hasHadSelection) {
+                me.setSelection(selected);
+            }
+            me.ignoreNextSelection = false;
+        }
+    },
+
     /**
      * Gets the selection model for this view.
      * @return {Ext.selection.Model} The selection model
      */
-    getSelectionModel: function(){
+    getSelectionModel: function() { 
         var me = this,
-            mode = 'SINGLE';
+            mode = 'SINGLE',
+            selModel = me.selModel;
 
         if (me.simpleSelect) {
             mode = 'SIMPLE';
@@ -613,29 +691,96 @@ Ext.define('Ext.view.AbstractView', {
         }
 
         // No selModel specified, or it's just a config; Instantiate
-        if (!me.selModel || !me.selModel.events) {
-            me.selModel = new Ext.selection.DataViewModel(Ext.apply({
+        if (!selModel || !selModel.events) {
+            selModel = me.selModel = new Ext.selection.DataViewModel(Ext.apply({
                 allowDeselect: me.allowDeselect,
                 mode: mode
-            }, me.selModel));
+            }, selModel));
         }
 
-        if (!me.selModel.hasRelaySetup) {
-            me.relayEvents(me.selModel, [
+        if (!selModel.hasRelaySetup) {
+            me.relayEvents(selModel, [
                 'selectionchange', 'beforeselect', 'beforedeselect', 'select', 'deselect', 'focuschange'
             ]);
-            me.selModel.hasRelaySetup = true;
+            selModel.hasRelaySetup = true;
+            selModel.on('selectionchange', me.updateBindSelection, me);
         }
 
         // lock the selection model if user
         // has disabled selection
         if (me.disableSelection) {
-            me.selModel.locked = true;
+            selModel.locked = true;
         }
 
-        return me.selModel;
+        return selModel;
     },
 
+    applyNavigationModel: function (navigationModel) {
+        return Ext.Factory.viewNavigation(navigationModel);
+    },
+
+    initFocusableEvents: function() {
+        var me = this;
+
+        this.mixins.focusable.initFocusableEvents.call(this);
+        me.focusEnterLeaveListeners = me.el.on({
+            focusenter: me.onFocusEnter,
+            focusleave: me.onFocusLeave,
+            scope: me,
+            destroyable: true
+        });
+    },
+
+    onFocus: function(e) {
+        this.callParent([e]);
+
+        // Focusing the main el delegates focus to a descendant view item
+        this.handleFocusEnter(e);
+    },
+
+    onFocusEnter: function(e) {
+        this.handleFocusEnter(e);
+    },
+
+    handleFocusEnter: function(e) {
+        var me = this,
+            navigationModel = me.getNavigationModel(),
+            focusPosition;
+
+        if (!me.containsFocus) {
+            focusPosition = navigationModel.getLastFocused();
+            navigationModel.setPosition(focusPosition || 0, e, null, !focusPosition);
+
+            // We now contain focus is that was successful
+            me.containsFocus = navigationModel.getPosition() != null;
+        }
+
+        if (me.containsFocus) {
+            this.focusEl.dom.setAttribute('tabindex', '-1');
+        }
+    },
+
+    onFocusLeave: function(e) {
+        var me = this;
+
+        // Ignore this event if we do not actually contain focus.
+        if (me.containsFocus) {
+
+            // Blur the focused cell
+            me.getNavigationModel().setPosition(null, e, null, true);
+
+            me.containsFocus = false;
+            me.focusEl.dom.setAttribute('tabindex', 0);
+        }
+    },
+
+    onRemoved: function(isDestroying) {
+        this.callParent([isDestroying]);
+
+        // IE does not fire focusleave on removal from DOM
+        this.onFocusLeave();
+    },
+    
     /**
      * Refreshes the view by reloading the data from the store and re-rendering the template.
      * @since 2.3.0
@@ -699,6 +844,8 @@ Ext.define('Ext.view.AbstractView', {
                 me.updateIndexes(0);
             }
 
+            Ext.deferCallback(targetEl.saveChildrenTabbableState, targetEl, [me.savedTabIndexAttribute]);
+            
             // Don't need to do this on the first refresh
             if (hasFirstRefresh) {
                 // Some subclasses do not need to do this. TableView does not need to do this.
@@ -739,7 +886,13 @@ Ext.define('Ext.view.AbstractView', {
     // Called by refresh to collect the view item nodes.
     collectNodes: function(targetEl) {
         var all = this.all;
+
         all.fill(Ext.fly(targetEl).query(this.getItemSelector()), all.startIndex || 0);
+
+        // Subclasses may set focusable to false (BoundList is not focusable)
+        if (this.focusable) {
+            all.set({tabindex: '-1'});
+        }
     },
 
     getViewRange: function() {
@@ -760,8 +913,22 @@ Ext.define('Ext.view.AbstractView', {
 
         if (sizeModel.height.shrinkWrap || sizeModel.width.shrinkWrap || forceLayout) {
             me.updateLayout();
-        } else if (scrollManager) {
-            scrollManager.refresh();
+        }
+
+        // We need to refresh the Scroller (BufferedRenderer has to do this if present).
+        // But the first refresh takes place on the leading edge of the first layout
+        // before the Scroller has been initialized, so do it as soon
+        // as we reach boxready.
+        else if (me.touchScroll && !me.bufferedRenderer) {
+            if (scrollManager) {
+                scrollManager.refresh();
+            } else {
+                me.on({
+                    boxready: me.refreshScroll,
+                    scope: me,
+                    single: true
+                });
+            }
         }
     },
 
@@ -782,14 +949,15 @@ Ext.define('Ext.view.AbstractView', {
 
     clearViewEl: function() {
         var me = this,
-            nodeContainerIsEl = me.getNodeContainer() === me.getEl();
+            targetEl = me.getTargetEl(),
+            nodeContainerIsTarget = me.getNodeContainer() === targetEl;
 
         me.clearEmptyEl();
         // If nodeContainer is the el, just clear the innerHTML. Otherwise, we need
         // to manually remove each node we know about.
-        me.all.clear(!nodeContainerIsEl);
-        if (nodeContainerIsEl) {
-            me.el.dom.innerHTML = '';
+        me.all.clear(!nodeContainerIsTarget);
+        if (nodeContainerIsTarget) {
+            targetEl.dom.innerHTML = '';
         }
     },
 
@@ -925,15 +1093,22 @@ Ext.define('Ext.view.AbstractView', {
     },
 
     // private
-    onUpdate: function(store, record, operation, modifiedFieldNames) {
-        var me = this;
+    onUpdate: function(store, record, operation, modifiedFieldNames, details) {
+        var me = this,
+            isFiltered = details && details.filtered;
 
-        // If we are throttling UI updates (See the updateDelay global config), ensure there's a change entry
-        // queued for the record in the global queue.
-        if (me.throttledUpdate) {
-            me.statics().queueRecordChange(me, store, record, operation, modifiedFieldNames);
-        } else {
-            me.handleUpdate.apply(me, arguments);
+        // If, due to filtering or buffered rendering, or node collapse, the updated record is not
+        // represented in the rendered structure, this is a no-op.
+        // The correct, new values will be rendered the next time the record becomes visible and is rendered.
+        if (!isFiltered && me.getNode(record)) {
+
+            // If we are throttling UI updates (See the updateDelay global config), ensure there's a change entry
+            // queued for the record in the global queue.
+            if (me.throttledUpdate) {
+                me.statics().queueRecordChange(me, store, record, operation, modifiedFieldNames);
+            } else {
+                me.handleUpdate.apply(me, arguments);
+            }
         }
     },
 
@@ -955,6 +1130,10 @@ Ext.define('Ext.view.AbstractView', {
                     me.updateIndexes(index, index);
                     // Maintain selection after update
                     me.selModel.onUpdate(record);
+                    me.refreshSizePending = true;
+                    if (me.selModel.isSelected(record)) {
+                        me.onItemSelect(record);
+                    }
                     if (me.hasListeners.itemupdate) {
                         me.fireEvent('itemupdate', record, index, node);
                     }
@@ -1165,33 +1344,21 @@ Ext.define('Ext.view.AbstractView', {
     },
 
     /**
-     * Returns the store associated with this DataView.
-     * @return {Ext.data.Store} The store
-     */
-    getStore : function() {
-        return this.store;
-    },
-
-    /**
      * Changes the data store bound to this view and refreshes it.
      * @param {Ext.data.Store} store The store to bind to this view
      * @since 3.4.0
      */
     bindStore: function(store, initial, propName) {
         var me = this;
+
         me.mixins.storeholder.bindStore.apply(me, arguments);
 
-        // Bind the store to our selection model unless it's the initial bind.
-        // Initial bind takes place afterRender
-        if (!initial) {
-            me.getSelectionModel().bindStore(store);
-        }
-
         // If we have already achieved our first layout, refresh immediately.
-        // If we have bound to the Store before the first layout, then onBoxReady will
+        // If we bind to the Store before the first layout, then beforeLayout will
         // call doFirstRefresh
-        if (me.componentLayoutCounter) {
-            me.doFirstRefresh(store);
+        if (me.componentLayoutCounter && !me.preventRefresh) {
+            // If not the initial bind, we enforce noDefer
+            me.doFirstRefresh(store, !initial);
         }
     },
 
@@ -1227,6 +1394,7 @@ Ext.define('Ext.view.AbstractView', {
     onBindStore: function(store, initial, propName) {
         var me = this;
 
+        me.getSelectionModel().bindStore(store);
         me.setMaskBind(store);
         // After the oldStore (.store) has been unbound/bound,
         // do the same for the old data source (.dataSource).
@@ -1489,7 +1657,7 @@ Ext.define('Ext.view.AbstractView', {
         me.emptyEl = null;
         me.callParent();
         me.bindStore(null);
-        Ext.destroy(me.selModel, me.scrollManager);
+        Ext.destroy(me.navigationModel, me.selModel, me.scrollManager);
     },
 
     // invoked by the selection model to maintain visual UI cues
@@ -1541,6 +1709,9 @@ Ext.define('Ext.view.AbstractView', {
     },
 
     privates: {
+        getFocusEl: function() {
+            return this.el;
+        },
         getOverflowEl: function() {
             // The desired behavior here is just to inherit from the superclass.  However,
             // the superclass method calls this.getTargetEl, which sends us into an infinte

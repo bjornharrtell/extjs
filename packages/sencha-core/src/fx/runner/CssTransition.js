@@ -197,6 +197,7 @@ Ext.define('Ext.fx.runner.CssTransition', {
 
         if (!testElement) {
             iframe = document.createElement('iframe');
+            iframe.setAttribute('tabindex', -1);
             iframeStyle = iframe.style;
             iframeStyle.setProperty('visibility', 'hidden', 'important');
             iframeStyle.setProperty('width', '0px', 'important');

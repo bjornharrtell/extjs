@@ -54,6 +54,56 @@
  *             vtype: 'email'  // requires value to be a valid email address format
  *         }]
  *     });
+ *
+ * # Custom Subclasses
+ *
+ * This class can be extended to provide additional functionality. The example below demonstrates creating
+ * a custom search field that uses the HTML5 search input type.
+ *
+ *     @example
+ *     // A simple subclass of Base that creates a HTML5 search field. Redirects to the
+ *     // searchUrl when the Enter key is pressed.222
+ *     Ext.define('Ext.form.SearchField', {
+ *         extend: 'Ext.form.field.Text',
+ *         alias: 'widget.searchfield',
+ *     
+ *         inputType: 'search',
+ *     
+ *         // Config defining the search URL
+ *         searchUrl: 'http://www.google.com/search?q={0}',
+ *     
+ *         // Add specialkey listener
+ *         initComponent: function() {
+ *             this.callParent();
+ *             this.on('specialkey', this.checkEnterKey, this);
+ *         },
+ *     
+ *         // Handle enter key presses, execute the search if the field has a value
+ *         checkEnterKey: function(field, e) {
+ *             var value = this.getValue();
+ *             if (e.getKey() === e.ENTER && !Ext.isEmpty(value)) {
+ *                 location.href = Ext.String.format(this.searchUrl, value);
+ *             }
+ *         }
+ *     });
+ *     
+ *     Ext.create('Ext.form.Panel', {
+ *         title: 'Base Example',
+ *         bodyPadding: 5,
+ *         width: 250,
+ *     
+ *         // Fields will be arranged vertically, stretched to full width
+ *         layout: 'anchor',
+ *         defaults: {
+ *             anchor: '100%'
+ *         },
+ *         items: [{
+ *             xtype: 'searchfield',
+ *             fieldLabel: 'Search',
+ *             name: 'query'
+ *         }],
+ *         renderTo: Ext.getBody()
+ *     });
  */
 Ext.define('Ext.form.field.Text', {
     extend:'Ext.form.field.Base',
@@ -72,6 +122,7 @@ Ext.define('Ext.form.field.Text', {
          */
         hideTrigger: false,
 
+        // @cmd-auto-dependency {aliasPrefix: "trigger.", isKeyedObject: true}
         /**
          * @cfg {Object} triggers
          * {@link Ext.form.trigger.Trigger Triggers} to use in this field.  The keys in
@@ -355,6 +406,8 @@ Ext.define('Ext.form.field.Text', {
     monitorTab: true,
     // private
     mimicing: false,
+    
+    needArrowKeys: true,
 
     childEls: [
         /**
@@ -443,32 +496,12 @@ Ext.define('Ext.form.field.Text', {
         me.fieldFocusCls = me.baseCls + '-focus';
         me.emptyUICls = emptyCls + ' ' + emptyCls + '-' + me.ui;
         me.addStateEvents('change');
-        me.setGrowSizePolicy();
-    },
-
-
-    // private
-    setGrowSizePolicy: function(){
-        if (this.grow) {
-            this.shrinkWrap |= 1; // width must shrinkWrap
-        }
     },
 
     // private
     initEvents: function(){
         var me = this,
             el = me.inputEl;
-
-        // a global before focus listener to detect when another component takes focus
-        // away from this field because el.focus() was explicitly called.  We have to
-        // attach this listener up front (vs. in onFocus) just in case focus is called
-        // multiple times in the same thread.  In such a case IE processes the events
-        // asynchronously.  for example:
-        //     someTrigger.focus();
-        //     someOther.focus(); // onOtherFocus would not be called here if we wait until
-        //                           onFocus of someTrigger to attach the listener
-        // See EXTJSIV-11712
-        this.mon(Ext.GlobalEvents, 'beforefocus', this.onOtherFocus, this);
 
         me.callParent();
         if(me.selectOnFocus || me.emptyText){
@@ -505,7 +538,7 @@ Ext.define('Ext.form.field.Text', {
         this.autoSize();
     },
 
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var me = this,
             value = me.getRawValue(),
             isEmpty = me.emptyText && value.length < 1,
@@ -532,7 +565,7 @@ Ext.define('Ext.form.field.Text', {
             }
         }
 
-        return Ext.apply(me.callParent(), {
+        return Ext.apply(me.callParent(arguments), {
             triggerWrapCls: me.triggerWrapCls,
             inputWrapCls: me.inputWrapCls,
             triggers: me.orderedTriggers,
@@ -913,81 +946,34 @@ Ext.define('Ext.form.field.Text', {
     onFocus: function(e) {
         var me = this;
 
-        // When this is focused, this flag must be cleared
-        me.otherFocused = false;
-
         me.callParent(arguments);
 
         if (me.emptyText) {
             me.autoSize();
         }
 
-        if (!me.mimicing) {
-            me.addCls(me.fieldFocusCls);
-            me.triggerWrap.addCls(me.triggerWrapFocusCls);
-            me.inputWrap.addCls(me.inputWrapFocusCls);
-            me.invokeTriggers('onFieldFocus', [e]);
-            me.mimicing = true;
-            me.mon(Ext.getDoc(), 'mousedown', me.mimicBlur, me, {
-                delay: 10
-            });
-            if (me.monitorTab) {
-                me.on('specialkey', me.checkTab, me);
-            }
-        }
-    },
-
-    /**
-     * @private
-     * The default blur handling must not occur for a TriggerField, implementing this template method disables that.
-     * Instead the tab key is monitored, and the superclass's onBlur is called when tab is detected
-     */
-    onBlur: function() {
-        // Only trigger a blur if blur() or focus() called programmatically
-        if (this.blurring || this.otherFocused) {
-            this.triggerBlur();
-            this.otherFocused = false;
-        }
-    },
-
-    // ensures we trigger a blur if some other component/element is programmatically
-    // focused (see EXTJSIV-11712)
-    onOtherFocus: function(dom) {
-        this.otherFocused = (this.hasFocus && !this.bodyEl.contains(dom));
+        me.addCls(me.fieldFocusCls);
+        me.triggerWrap.addCls(me.triggerWrapFocusCls);
+        me.inputWrap.addCls(me.inputWrapFocusCls);
+        me.invokeTriggers('onFieldFocus', [e]);
     },
 
     // @private
-    checkTab: function(me, e) {
-        if (!this.ignoreMonitorTab && e.getKey() === e.TAB) {
-            this.triggerBlur();
-        }
-    },
-
-    // @private
-    mimicBlur: function(e) {
-        if (!this.isDestroyed && !this.bodyEl.contains(e.target)) {
-            this.triggerBlur(e);
-        }
-    },
-
-    // @private
-    triggerBlur: function(e) {
+    onBlur: function(e) {
         var me = this;
 
-        me.mimicing = false;
-        me.mun(Ext.getDoc(), 'mousedown', me.mimicBlur, me);
-        if (me.monitorTab && me.inputEl) {
-            me.un('specialkey', me.checkTab, me);
-        }
-        Ext.form.field.Text.superclass.onBlur.call(me, e);
+        me.callParent(arguments);
+
         me.removeCls(me.fieldFocusCls);
         me.triggerWrap.removeCls(me.triggerWrapFocusCls);
         me.inputWrap.removeCls(me.inputWrapFocusCls);
         me.invokeTriggers('onFieldBlur', [e]);
+        
+        me.postBlur();
     },
 
     // private
-    postBlur: function(){
+    postBlur: function() {
         var task = this.inputFocusTask;
 
         this.callParent(arguments);
@@ -1127,16 +1113,16 @@ Ext.define('Ext.form.field.Text', {
      * @return {String[]} Array of any validation errors
      */
     getErrors: function(value) {
+        value = arguments.length ? (value == null ? '' : value) : this.processRawValue(this.getRawValue());
+
         var me = this,
-            errors = me.callParent(arguments),
+            errors = me.callParent([value]),
             validator = me.validator,
             vtype = me.vtype,
             vtypes = Ext.form.field.VTypes,
             regex = me.regex,
             format = Ext.String.format,
             msg, trimmed, isBlank;
-
-        value = value || me.processRawValue(me.getRawValue());
 
         if (Ext.isFunction(validator)) {
             msg = validator.call(me, value);
@@ -1222,7 +1208,7 @@ Ext.define('Ext.form.field.Text', {
         var me = this,
             triggers, triggerId, trigger, triggerWidth, inputEl, inputWidth, width, value;
 
-        if (me.grow && me.rendered) {
+        if (me.grow && me.rendered && me.getSizeModel().width.auto) {
             inputEl = me.inputEl;
             triggers = me.getTriggers();
             triggerWidth = 0;

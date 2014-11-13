@@ -20,7 +20,7 @@ Ext.define('Ext.aria.form.field.Base', {
             fmt = Ext.util.Format.attributes,
             data, attrs;
         
-        data  = me.callParent();
+        data  = me.callParent(arguments);
         attrs = me.ariaGetRenderAttributes();
         
         // Role is rendered separately

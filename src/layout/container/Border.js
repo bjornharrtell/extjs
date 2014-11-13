@@ -746,7 +746,7 @@ Ext.define('Ext.layout.container.Border', {
             }
         }
           
-        this.callParent([item, before]);
+        return this.callParent([item, before]);
     },
     
     /**

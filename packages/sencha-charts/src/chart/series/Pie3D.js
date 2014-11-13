@@ -4,29 +4,32 @@
  * 
  * Creates a 3D Pie Chart.
  *
- *     @example preview
- *     var chart = new Ext.chart.PolarChart({
- *         animation: true,
- *         interactions: ['rotate'],
- *         colors: ["#115fa6", "#94ae0a", "#a61120", "#ff8809", "#ffd13e"],
- *         store: {
- *           fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
- *           data: [
- *               {'name':'metric one', 'data1':10, 'data2':12, 'data3':14, 'data4':8, 'data5':13},
- *               {'name':'metric two', 'data1':7, 'data2':8, 'data3':16, 'data4':10, 'data5':3},
- *               {'name':'metric three', 'data1':5, 'data2':2, 'data3':14, 'data4':12, 'data5':7},
- *               {'name':'metric four', 'data1':2, 'data2':14, 'data3':6, 'data4':1, 'data5':23},
- *               {'name':'metric five', 'data1':27, 'data2':38, 'data3':36, 'data4':13, 'data5':33}
- *           ]
- *         },
- *         series: [{
- *             type: 'pie3d',
- *             field: 'data3',
- *             donut: 30
- *         }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'polar',
+ *             interactions: 'rotate',
+ *             store: {
+ *               fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
+ *               data: [
+ *                   {'name':'metric one', 'data1':10, 'data2':12, 'data3':14, 'data4':8, 'data5':13},
+ *                   {'name':'metric two', 'data1':7, 'data2':8, 'data3':16, 'data4':10, 'data5':3},
+ *                   {'name':'metric three', 'data1':5, 'data2':2, 'data3':14, 'data4':12, 'data5':7},
+ *                   {'name':'metric four', 'data1':2, 'data2':14, 'data3':6, 'data4':1, 'data5':23},
+ *                   {'name':'metric five', 'data1':27, 'data2':38, 'data3':36, 'data4':13, 'data5':33}
+ *               ]
+ *             },
+ *             series: {
+ *                 type: 'pie3d',
+ *                 field: 'data3',
+ *                 donut: 30
+ *             }
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(chart);
  */
 Ext.define('Ext.chart.series.Pie3D', {
     requires: ['Ext.chart.series.sprite.Pie3DPart'],
@@ -65,6 +68,8 @@ Ext.define('Ext.chart.series.Pie3D', {
         rotation: 0
     },
 
+    itemOffset: 5,
+
     setField: function (f) {
         return this.setXField(f);
     },
@@ -94,8 +99,10 @@ Ext.define('Ext.chart.series.Pie3D', {
     
     doUpdateStyles: function () {
         var sprites = this.getSprites(),
+            itemOffset = this.itemOffset,
             i = 0, j = 0, ln = sprites && sprites.length;
-        for (; i < ln; i += 5, j++) {
+
+        for (; i < ln; i += itemOffset, j++) {
             sprites[i].setAttributes(this.getStyleByIndex(j));
             sprites[i + 1].setAttributes(this.getStyleByIndex(j));
             sprites[i + 2].setAttributes(this.getStyleByIndex(j));
@@ -114,9 +121,9 @@ Ext.define('Ext.chart.series.Pie3D', {
             field = me.getField(),
             value, sum = 0, ratio,
             summation = [],
-            i,
             sprites = this.getSprites(),
-            lastAngle;
+            itemOffset = me.itemOffset,
+            commonAttributes, lastAngle, i;
 
         for (i = 0; i < length; i++) {
             value = items[i].get(field);
@@ -136,12 +143,12 @@ Ext.define('Ext.chart.series.Pie3D', {
         }
 
         for (i = 0, lastAngle = 0; i < length; i++) {
-            var commonAttributes = {opacity: 1, startAngle: lastAngle, endAngle: summation[i]};
-            sprites[i * 5].setAttributes(commonAttributes);
-            sprites[i * 5 + 1].setAttributes(commonAttributes);
-            sprites[i * 5 + 2].setAttributes(commonAttributes);
-            sprites[i * 5 + 3].setAttributes(commonAttributes);
-            sprites[i * 5 + 4].setAttributes(commonAttributes);
+            commonAttributes = {opacity: 1, startAngle: lastAngle, endAngle: summation[i]};
+            sprites[i * itemOffset].setAttributes(commonAttributes);
+            sprites[i * itemOffset + 1].setAttributes(commonAttributes);
+            sprites[i * itemOffset + 2].setAttributes(commonAttributes);
+            sprites[i * itemOffset + 3].setAttributes(commonAttributes);
+            sprites[i * itemOffset + 4].setAttributes(commonAttributes);
             lastAngle = summation[i];
         }
     },
@@ -155,8 +162,9 @@ Ext.define('Ext.chart.series.Pie3D', {
             return [];
         }
         var items = store.getData().items,
+            itemOffset = me.itemOffset,
             length = items.length,
-            animation = chart && chart.getAnimation(),
+            animation = me.getAnimation() || chart && chart.getAnimation(),
             rect = chart.getMainRect() || [0, 0, 1, 1],
             rotation = me.getRotation(),
             center = me.getCenter(),
@@ -171,12 +179,13 @@ Ext.define('Ext.chart.series.Pie3D', {
                 thickness: me.getThickness(),
                 distortion: me.getDistortion()
             }, sliceAttributes, twoPie = Math.PI * 2,
+            sprites = me.sprites,
             topSprite, startSprite, endSprite, innerSideSprite, outerSideSprite,
             i;
 
         for (i = 0; i < length; i++) {
             sliceAttributes = Ext.apply({}, this.getStyleByIndex(i), commonAttributes);
-            topSprite = me.sprites[i * 5];
+            topSprite = sprites[i * itemOffset];
             if (!topSprite) {
                 topSprite = surface.add({
                     type: 'pie3dPart',
@@ -215,17 +224,12 @@ Ext.define('Ext.chart.series.Pie3D', {
                 endSprite.fx.setDurationOn('baseRotation', 0);
                 innerSideSprite.fx.setDurationOn('baseRotation', 0);
                 outerSideSprite.fx.setDurationOn('baseRotation', 0);
-                topSprite.setAttributes(sliceAttributes);
-                startSprite.setAttributes(sliceAttributes);
-                endSprite.setAttributes(sliceAttributes);
-                innerSideSprite.setAttributes(sliceAttributes);
-                outerSideSprite.setAttributes(sliceAttributes);
-                me.sprites.push(topSprite, startSprite, endSprite, innerSideSprite, outerSideSprite);
+                sprites.push(topSprite, startSprite, endSprite, innerSideSprite, outerSideSprite);
             } else {
-                startSprite = me.sprites[i * 5 + 1];
-                endSprite = me.sprites[i * 5 + 2];
-                innerSideSprite = me.sprites[i * 5 + 3];
-                outerSideSprite = me.sprites[i * 5 + 4];
+                startSprite = sprites[i * itemOffset + 1];
+                endSprite = sprites[i * itemOffset + 2];
+                innerSideSprite = sprites[i * itemOffset + 3];
+                outerSideSprite = sprites[i * itemOffset + 4];
                 if (animation) {
                     topSprite.fx.setConfig(animation);
                     startSprite.fx.setConfig(animation);
@@ -233,17 +237,17 @@ Ext.define('Ext.chart.series.Pie3D', {
                     innerSideSprite.fx.setConfig(animation);
                     outerSideSprite.fx.setConfig(animation);
                 }
-                topSprite.setAttributes(sliceAttributes);
-                startSprite.setAttributes(sliceAttributes);
-                endSprite.setAttributes(sliceAttributes);
-                innerSideSprite.setAttributes(sliceAttributes);
-                outerSideSprite.setAttributes(sliceAttributes);
             }
+            topSprite.setAttributes(sliceAttributes);
+            startSprite.setAttributes(sliceAttributes);
+            endSprite.setAttributes(sliceAttributes);
+            innerSideSprite.setAttributes(sliceAttributes);
+            outerSideSprite.setAttributes(sliceAttributes);
         }
 
-        for (i *= 5; i < me.sprites.length; i++) {
-            me.sprites[i].fx.setConfig(animation);
-            me.sprites[i].setAttributes({
+        for (i *= itemOffset, ln = sprites.length; i < ln; i++) {
+            sprites[i].fx.setConfig(animation);
+            sprites[i].setAttributes({
                 opacity: 0,
                 startAngle: twoPie,
                 endAngle: twoPie,
@@ -251,6 +255,6 @@ Ext.define('Ext.chart.series.Pie3D', {
             });
         }
 
-        return me.sprites;
+        return sprites;
     }
 });

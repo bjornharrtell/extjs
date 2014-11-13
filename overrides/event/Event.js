@@ -8,33 +8,6 @@ Ext.define('Ext.overrides.event.Event', {
         touchstart: 1
     },
 
-    getXY: function() {
-        var me = this,
-            xy = me.xy,
-            x, browserEvent, doc, docEl, body;
-
-        if (!xy) {
-            xy = me.callParent();
-            x = xy[0];
-
-            // pageX/pageY not available (undefined, not null), use clientX/clientY instead
-            if (!x && x !== 0) {
-                browserEvent = me.browserEvent;
-                doc = document;
-                docEl = doc.documentElement;
-                body = doc.body;
-                xy[0] = browserEvent.clientX +
-                    (docEl && docEl.scrollLeft || body && body.scrollLeft || 0) -
-                    (docEl && docEl.clientLeft || body && body.clientLeft || 0);
-                xy[1] = browserEvent.clientY +
-                    (docEl && docEl.scrollTop  || body && body.scrollTop  || 0) -
-                    (docEl && docEl.clientTop  || body && body.clientTop  || 0);
-            }
-        }
-
-        return xy;
-    },
-
     /**
      * @method injectEvent
      * @member Ext.event.Event
@@ -266,15 +239,21 @@ Ext.define('Ext.overrides.event.Event', {
         var me = this,
             event = me.browserEvent;
 
-        if (event.preventDefault) {
-            event.preventDefault();
-        } else {
-            // IE9 and earlier do not support preventDefault
-            event.returnValue = false;
-            // Some keys events require setting the keyCode to -1 to be prevented
-            // all ctrl + X and F1 -> F12
-            if (event.ctrlKey || event.keyCode > 111 && event.keyCode < 124) {
-                event.keyCode = -1;
+
+        // This check is for IE8/9. The event object may have been
+        // invalidated, so we can't delve into the details of it. If so,
+        // just fall out gracefully and don't attempt to do anything.
+        if (typeof event.type !== 'unknown') {
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                // IE9 and earlier do not support preventDefault
+                event.returnValue = false;
+                // Some keys events require setting the keyCode to -1 to be prevented
+                // all ctrl + X and F1 -> F12
+                if (event.ctrlKey || event.keyCode > 111 && event.keyCode < 124) {
+                    event.keyCode = -1;
+                }
             }
         }
 
@@ -282,14 +261,21 @@ Ext.define('Ext.overrides.event.Event', {
     },
 
     stopPropagation: function() {
-        var me = this;
+        var me = this,
+            event = me.browserEvent;
 
-        if (me.mousedownEvents[me.type]) {
-            // Fire the "unstoppable" global mousedown event
-            // (used for menu hiding, etc)
-            Ext.GlobalEvents.fireMouseDown(me);
+        // This check is for IE8/9. The event object may have been
+        // invalidated, so we can't delve into the details of it. If so,
+        // just fall out gracefully and don't attempt to do anything.
+        if (typeof event.type !== 'unknown') {
+            if (me.mousedownEvents[me.type]) {
+                // Fire the "unstoppable" global mousedown event
+                // (used for menu hiding, etc)
+                Ext.GlobalEvents.fireMouseDown(me);
+            }
+            me.callParent();
         }
-        return me.callParent();
+        return me;
     },
 
     deprecated: {
@@ -308,11 +294,21 @@ Ext.define('Ext.overrides.event.Event', {
             }
         }
     }
-//<feature legacyBrowser>
 }, function() {
     var Event = this,
-        btnMap;
+        btnMap,
+        onKeyDown = function(e) {
+            if (e.keyCode === 9) {
+                Event.forwardTab = !e.shiftKey;
+            }
+        },
+        onKeyUp = function(e) {
+            if (e.keyCode === 9) {
+                delete Event.forwardTab;
+            }
+        };
 
+//<feature legacyBrowser>
     if (Ext.isIE9m) {
         btnMap = {
             1: 0,
@@ -385,6 +381,22 @@ Ext.define('Ext.overrides.event.Event', {
                 return me.callParent([selector, maxDepth, returnEl]);
             }
         });
+
+        // We place these listeners to capture Tab and Shift-Tab key strokes
+        // and pass this information in the focus/blur event if it happens
+        // between keydown/keyup pair.
+        document.attachEvent('onkeydown', onKeyDown);
+        document.attachEvent('onkeyup',   onKeyUp);
+        
+        window.attachEvent('onunload', function() {
+            document.detachEvent('onkeydown', onKeyDown);
+            document.detachEvent('onkeyup',   onKeyUp);
+        });
     }
+    else
 //</feature>
+    if (document.addEventListener) {
+        document.addEventListener('keydown', onKeyDown, true);
+        document.addEventListener('keyup',   onKeyUp,   true);
+    }
 });

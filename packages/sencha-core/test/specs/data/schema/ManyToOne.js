@@ -1,6 +1,8 @@
 describe("Ext.data.schema.ManyToOne", function() {
     
-    var schema, Post, Thread, threadRole, postRole;
+    var schema, Post, Thread, threadRole, postRole,
+        threadCalled =false, 
+        postCalled = false;
 
     function definePost(refCfg) {
         Post = Ext.define('spec.Post', {
@@ -10,7 +12,12 @@ describe("Ext.data.schema.ManyToOne", function() {
                 reference: Ext.apply({
                     type: 'Thread'
                 }, refCfg)
-            }]
+            }],
+
+            constructor: function() {
+                postCalled = true;
+                this.callParent(arguments);
+            }
         });
         
         threadRole = Post.associations.thread;
@@ -25,13 +32,19 @@ describe("Ext.data.schema.ManyToOne", function() {
     }
     
     beforeEach(function() {
+        threadCalled = postCalled = false;
         MockAjaxManager.addMethods();
         schema = Ext.data.Model.schema;
         schema.setNamespace('spec');
         
         Thread = Ext.define('spec.Thread', {
             extend: 'Ext.data.Model',
-            fields: ['id', 'title']
+            fields: ['id', 'title'],
+
+            constructor: function() {
+                threadCalled = true;
+                this.callParent(arguments);
+            }
         });
     });
     
@@ -42,6 +55,7 @@ describe("Ext.data.schema.ManyToOne", function() {
         
         schema.clear(true);
         Post = postRole = Thread = threadRole = schema = null;   
+        threadCalled = postCalled = false;
     });
     
     describe("Model.associations", function() {
@@ -147,6 +161,7 @@ describe("Ext.data.schema.ManyToOne", function() {
             });
             expect(postRole.association.owner).toBe(postRole);
             expect(postRole.owner).toBe(true);
+            expect(threadRole.owner).toBe(false);
         });
         
         it("should set the owner based on the parent param", function() {
@@ -155,6 +170,7 @@ describe("Ext.data.schema.ManyToOne", function() {
             });
             expect(postRole.association.owner).toBe(threadRole);
             expect(threadRole.owner).toBe(true);
+            expect(postRole.owner).toBe(false);
         });
         
         it("should be able to set a custom role", function() {
@@ -265,6 +281,11 @@ describe("Ext.data.schema.ManyToOne", function() {
                 });
             });
 
+            afterEach(function() {
+                Ext.undefine('spec.SubPost');
+                SubPost = null;
+            });
+
             it("should still have the original association", function() {
                 var inverse = Post.associations.thread.inverse;
                 expect(inverse.role).toBe('posts');
@@ -294,47 +315,410 @@ describe("Ext.data.schema.ManyToOne", function() {
             });
         });
     });
+
+    describe("nested loading", function() {
+        beforeEach(function() {
+            definePost();
+        });
+
+        it("should infer the key from the parent", function() {
+            var thread = Thread.load(1);
+            complete({
+                id: 1,
+                posts: [{
+                    id: 101
+                }, {
+                    id: 102
+                }]
+            });
+            var posts = thread.posts();
+            expect(posts.getAt(0).get('threadId')).toBe(1);
+            expect(posts.getAt(0).dirty).toBe(false);
+            expect(posts.getAt(1).get('threadId')).toBe(1);
+            expect(posts.getAt(1).dirty).toBe(false);
+        });
+    });
     
-    function createGetSetSuite(withSession) {
-        describe(withSession ? "with session" : "without session", function() {
-            var spy, session, post, thread;
+    describe("getters/setters", function() {
+        function createSuite(withSession) {
+            describe(withSession ? "with session" : "without session", function() {
+                var spy, session, post, thread;
 
-            beforeEach(function() {
-                spy = jasmine.createSpy();
-                if (withSession) {
-                    session = new Ext.data.Session();
-                }
-            });
-            
-            afterEach(function() {
-                if (withSession) {
-                    session.destroy();
-                }
-                session = post = thread = null;
-            });
-
-            describe("the one", function() {
                 beforeEach(function() {
-                    definePost();
+                    spy = jasmine.createSpy();
+                    if (withSession) {
+                        session = new Ext.data.Session();
+                    }
+                });
+                
+                afterEach(function() {
+                    if (withSession) {
+                        session.destroy();
+                    }
+                    session = post = thread = null;
                 });
 
-                describe("getter", function() {
+                describe("the one", function() {
                     beforeEach(function() {
-                        post = new Post({
-                            id: 4
-                        }, session);
-                        
+                        definePost();
                     });
-                    describe("without an instance", function() {
-                        describe("with no foreign key value", function() {
-                            it("should return null", function() {
-                                expect(post.getThread()).toBeNull();
+
+                    describe("getter", function() {
+                        beforeEach(function() {
+                            post = new Post({
+                                id: 4
+                            }, session);
+                            
+                        });
+                        describe("without an instance", function() {
+                            describe("with no foreign key value", function() {
+                                it("should return null", function() {
+                                    expect(post.getThread()).toBeNull();
+                                });
+
+                                it("should not make any request", function() {
+                                    spy = spyOn(Thread.getProxy(), 'read');
+                                    post.getThread();
+                                    expect(spy).not.toHaveBeenCalled();
+                                });
+
+                                describe("callbacks", function() {
+                                    it("should call the callbacks before the function returns", function() {
+                                        post.getThread(spy);
+                                        expect(spy).toHaveBeenCalled();
+                                        spy.reset();
+                                        post.getThread({
+                                            success: spy
+                                        });
+                                        expect(spy).toHaveBeenCalled();
+                                        spy.reset();
+                                        post.getThread({
+                                            callback: spy
+                                        });
+                                        expect(spy).toHaveBeenCalled();
+                                    });
+
+                                    it("should accept a function as the callback and default the scope to the model", function() {
+                                        post.getThread(spy);
+                                        var call = spy.mostRecentCall;
+                                        expect(call.args[0]).toBe(thread);
+                                        expect(call.args[1]).toBeNull();
+                                        expect(call.args[2]).toBe(true);
+                                        expect(call.object).toBe(post);
+                                    });
+                                    
+                                    it("should accept a function with a scope", function() {
+                                        var o = {};
+                                        post.getThread(spy, o);
+                                        expect(spy.mostRecentCall.object).toBe(o);   
+                                    });
+                                    
+                                    it("should accept an options object with success and default the scope to the model", function() {
+                                        post.getThread({
+                                            success: spy
+                                        });  
+                                        var call = spy.mostRecentCall; 
+                                        expect(call.args[0]).toBe(thread);
+                                        expect(call.args[1]).toBeNull();
+                                        expect(call.object).toBe(post);  
+                                    });
+
+                                    it("should accept an options object with success and a scope", function() {
+                                        var o = {},
+                                            call;
+
+                                        post.getThread({
+                                            scope: o,
+                                            success: spy
+                                        });  
+                                        call = spy.mostRecentCall; 
+                                        expect(call.object).toBe(o);  
+                                    });
+
+                                    it("should accept an options object with callback and default the scope to the model", function() {
+                                        post.getThread({
+                                            callback: spy
+                                        });  
+                                        var call = spy.mostRecentCall; 
+                                        expect(call.args[0]).toBe(thread);
+                                        expect(call.args[1]).toBeNull();
+                                        expect(call.args[2]).toBe(true);
+                                        expect(call.object).toBe(post); 
+                                    });
+                                    
+                                    it("should accept an options object with callback and a scope", function() {
+                                        var o = {},
+                                            call;
+
+                                        post.getThread({
+                                            scope: o,
+                                            callback: spy
+                                        });  
+                                        call = spy.mostRecentCall; 
+                                        expect(call.object).toBe(o); 
+                                    });
+                                });
                             });
 
-                            it("should not make any request", function() {
+                            describe("with a foreign key value", function() {
+                                beforeEach(function() {
+                                    post.set('threadId', 17);
+                                });
+
+                                if (withSession) {
+                                    it("should create an instance in the session", function() {
+                                        expect(post.getThread()).toBe(session.getRecord('Thread', 17, false));
+                                    });
+
+                                    it("should use an existing record instance", function() {
+                                        thread = session.getRecord('Thread', 17, false);
+                                        expect(post.getThread()).toBe(thread);
+                                    });
+
+                                    it("should not load an existing instance", function() {
+                                        thread = session.getRecord('Thread', {
+                                            id: 17
+                                        }, false);
+                                        post.getThread();
+                                        expect(thread.isLoading()).toBe(false);
+                                    });
+                                }
+
+                                it("should return an instance with the matching id", function() {
+                                    expect(post.getThread().getId()).toBe(17);
+                                });
+
+                                it("should be in a loading state", function() {
+                                    expect(post.getThread().isLoading()).toBe(true);
+                                });
+
+                                it("should trigger a load for the record", function() {
+                                    spy = spyOn(Thread.getProxy(), 'read');
+                                    post.getThread();
+                                    expect(spy.mostRecentCall.args[0].getId()).toBe(17);
+                                });
+
+                                describe("calling while during a load", function() {
+                                    it("should return the same record", function() {
+                                        var rec = post.getThread();
+                                        expect(post.getThread()).toBe(rec);
+                                    });
+
+                                    it("should not trigger a second load", function() {
+                                        post.getThread();
+                                        spy = spyOn(Thread.getProxy(), 'read');
+                                        post.getThread();
+                                        expect(spy).not.toHaveBeenCalled();
+                                    });
+
+                                    it("should not trigger any callback until load completes", function() {
+                                        post.getThread();
+                                        post.getThread({
+                                            success: spy,
+                                            callback: spy
+                                        });
+                                        expect(spy).not.toHaveBeenCalled();
+                                    });
+
+                                    it("should trigger the callbacks once loaded", function() {
+                                        post.getThread();
+                                        post.getThread({
+                                            success: spy,
+                                            callback: spy
+                                        });
+                                        complete({});
+                                        expect(spy.callCount).toBe(2);
+                                    });
+                                });
+
+                                describe("callbacks", function() {
+                                    it("should not trigger any callbacks until the load completes", function() {
+                                        post.getThread(spy);
+                                        post.getThread({
+                                            success: spy
+                                        });
+                                        post.getThread({
+                                            failure: spy
+                                        });
+                                        post.getThread({
+                                            callback: spy
+                                        });
+                                        expect(spy).not.toHaveBeenCalled();
+
+                                    });
+
+                                    describe("when successful", function() {
+                                        it("should accept a function as the callback and default the scope to the model", function() {
+                                            thread = post.getThread(spy);
+                                            complete({});
+                                            var call = spy.mostRecentCall;
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.args[2]).toBe(true);
+                                            expect(call.object).toBe(post);
+                                        });
+                                    
+                                        it("should accept a function with a scope", function() {
+                                            var o = {};
+                                            post.getThread(spy, o);
+                                            complete({});
+                                            expect(spy.mostRecentCall.object).toBe(o);   
+                                        });
+                                    
+                                        it("should accept an options object with success and default the scope to the model", function() {
+                                            thread = post.getThread({
+                                                success: spy
+                                            });  
+                                            complete({});
+                                            var call = spy.mostRecentCall; 
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.object).toBe(post);  
+                                        });
+
+                                        it("should accept an options object with success and a scope", function() {
+                                            var o = {},
+                                                call;
+
+                                            post.getThread({
+                                                scope: o,
+                                                success: spy
+                                            });  
+                                            complete({});
+                                            call = spy.mostRecentCall; 
+                                            expect(call.object).toBe(o);  
+                                        });
+
+                                        it("should accept an options object with callback and default the scope to the model", function() {
+                                            thread = post.getThread({
+                                                callback: spy
+                                            });  
+                                            complete({});
+                                            var call = spy.mostRecentCall; 
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.args[2]).toBe(true);
+                                            expect(call.object).toBe(post); 
+                                        });
+                                    
+                                        it("should accept an options object with callback and a scope", function() {
+                                            var o = {},
+                                                call;
+
+                                            post.getThread({
+                                                scope: o,
+                                                callback: spy
+                                            });  
+                                            complete({});
+                                            call = spy.mostRecentCall; 
+                                            expect(call.object).toBe(o); 
+                                        });
+                                    });
+
+                                    describe("when failed", function() {
+                                        it("should accept a function as the callback and default the scope to the model", function() {
+                                            thread = post.getThread(spy);
+                                            complete(null, 500);
+                                            var call = spy.mostRecentCall;
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.args[2]).toBe(false);
+                                            expect(call.object).toBe(post);
+                                        });
+                                    
+                                        it("should accept a function with a scope", function() {
+                                            var o = {};
+                                            post.getThread(spy, o);
+                                            complete(null, 500);
+                                            expect(spy.mostRecentCall.object).toBe(o);   
+                                        });
+                                    
+                                        it("should accept an options object with failure and default the scope to the model", function() {
+                                            thread = post.getThread({
+                                                failure: spy
+                                            });  
+                                            complete(null, 500);
+                                            var call = spy.mostRecentCall; 
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.object).toBe(post);  
+                                        });
+
+                                        it("should accept an options object with failure and a scope", function() {
+                                            var o = {},
+                                                call;
+
+                                            post.getThread({
+                                                scope: o,
+                                                failure: spy
+                                            });  
+                                            complete(null, 500);
+                                            call = spy.mostRecentCall; 
+                                            expect(call.object).toBe(o);  
+                                        });
+
+                                        it("should accept an options object with callback and default the scope to the model", function() {
+                                            thread = post.getThread({
+                                                callback: spy
+                                            });  
+                                            complete(null, 500);
+                                            var call = spy.mostRecentCall; 
+                                            expect(call.args[0]).toBe(thread);
+                                            expect(call.args[1].isOperation).toBe(true);
+                                            expect(call.args[2]).toBe(false);
+                                            expect(call.object).toBe(post); 
+                                        });
+                                    
+                                        it("should accept an options object with callback and a scope", function() {
+                                            var o = {},
+                                                call;
+
+                                            post.getThread({
+                                                scope: o,
+                                                callback: spy
+                                            });  
+                                            complete(null, 500);
+                                            call = spy.mostRecentCall; 
+                                            expect(call.object).toBe(o); 
+                                        });
+                                    });
+                                });
+                            });
+                        });
+
+                        describe("with an already loaded instance", function() {
+                            beforeEach(function() {
+                                thread = new Thread({
+                                    id: 2
+                                }, session);
+                                
+                                
+                                post.setThread(thread);
+                            });
+
+                            it("should return the same instance", function() {
+                                expect(post.getThread()).toBe(thread);
+                            });
+
+                            it("should not attempt to load", function() {
                                 spy = spyOn(Thread.getProxy(), 'read');
                                 post.getThread();
                                 expect(spy).not.toHaveBeenCalled();
+                            });
+
+                            it("should attempt to reload if called with options.reload", function() {
+                                spy = spyOn(Thread.getProxy(), 'read').andReturn();
+                                post.getThread({
+                                    reload: true
+                                });
+                                expect(spy).toHaveBeenCalled();
+                            });
+
+                            it("should reload the same record when called with reload", function() {
+                                var result = post.getThread({
+                                    reload: true
+                                });
+                                expect(result).toBe(thread);
                             });
 
                             describe("callbacks", function() {
@@ -414,939 +798,608 @@ describe("Ext.data.schema.ManyToOne", function() {
                                 });
                             });
                         });
+                    });
+                
+                    describe("setter", function() {
+                        beforeEach(function() {
+                            post = new Post({
+                                id: 7
+                            }, session);
+                        });
 
-                        describe("with a foreign key value", function() {
+                        describe("instance", function() {
+                            var thread;
                             beforeEach(function() {
-                                post.set('threadId', 17);
+                                thread = new Thread({
+                                    id: 3
+                                });
+                                post.setThread(thread);
                             });
 
-                            if (withSession) {
-                                it("should create an instance in the session", function() {
-                                    expect(post.getThread()).toBe(session.getRecord('Thread', 17, false));
-                                });
-
-                                it("should use an existing record instance", function() {
-                                    thread = session.getRecord('Thread', 17, false);
-                                    expect(post.getThread()).toBe(thread);
-                                });
-
-                                it("should not load an existing instance", function() {
-                                    thread = session.getRecord('Thread', {
-                                        id: 17
-                                    }, false);
-                                    post.getThread();
-                                    expect(thread.isLoading()).toBe(false);
-                                });
-                            }
-
-                            it("should return an instance with the matching id", function() {
-                                expect(post.getThread().getId()).toBe(17);
+                            it("should have the same record reference", function() {
+                                expect(post.getThread()).toBe(thread);
+                            });
+                            
+                            it("should set the underlying key value", function() {
+                                expect(post.get('threadId')).toBe(3);  
                             });
 
-                            it("should be in a loading state", function() {
-                                expect(post.getThread().isLoading()).toBe(true);
+                            it("should clear the instance and foreign key when setting to null", function() {
+                                post.setThread(null);
+                                expect(post.getThread()).toBeNull();
+                                expect(post.get('threadId')).toBeNull();
+                            });
+                        });
+                        
+                        describe("value", function() {
+                            it("should set the underlying key", function() {
+                                post.setThread(16);
+                                expect(post.get('threadId')).toBe(16);    
+                            });  
+                            
+                            it("should keep the same reference if setting the value with a matching id", function() {
+                                var thread = new Thread({
+                                    id: 3
+                                }, session);
+                                post.setThread(thread);
+                                post.setThread(3);
+                                expect(post.getThread()).toBe(thread);
+                            });
+                            
+                            it("should clear the reference if a model is already set and a new id is passed", function() {
+                                var thread = new Thread({
+                                    id: 3
+                                }, session);
+                                post.setThread(thread);
+                                post.setThread(13);
+                                spy = spyOn(Thread.getProxy(), 'read');
+                                // Reference doesn't exist, so need to grab it again here
+                                post.getThread();
+                                expect(spy.mostRecentCall.args[0].getId()).toBe(13);
                             });
 
-                            it("should trigger a load for the record", function() {
+                            it("should set the foreign key when setting to null", function() {
+                                post.setThread(13);
+                                post.setThread(null);
+                                expect(post.get('threadId')).toBeNull();
+
                                 spy = spyOn(Thread.getProxy(), 'read');
                                 post.getThread();
-                                expect(spy.mostRecentCall.args[0].getId()).toBe(17);
-                            });
-
-                            describe("calling while during a load", function() {
-                                it("should return the same record", function() {
-                                    var rec = post.getThread();
-                                    expect(post.getThread()).toBe(rec);
-                                });
-
-                                it("should not trigger a second load", function() {
-                                    post.getThread();
-                                    spy = spyOn(Thread.getProxy(), 'read');
-                                    post.getThread();
-                                    expect(spy).not.toHaveBeenCalled();
-                                });
-
-                                it("should not trigger any callback until load completes", function() {
-                                    post.getThread();
-                                    post.getThread({
-                                        success: spy,
-                                        callback: spy
-                                    });
-                                    expect(spy).not.toHaveBeenCalled();
-                                });
-
-                                it("should trigger the callbacks once loaded", function() {
-                                    post.getThread();
-                                    post.getThread({
-                                        success: spy,
-                                        callback: spy
-                                    });
-                                    complete({});
-                                    expect(spy.callCount).toBe(2);
-                                });
-                            });
-
-                            describe("callbacks", function() {
-                                it("should not trigger any callbacks until the load completes", function() {
-                                    post.getThread(spy);
-                                    post.getThread({
-                                        success: spy
-                                    });
-                                    post.getThread({
-                                        failure: spy
-                                    });
-                                    post.getThread({
-                                        callback: spy
-                                    });
-                                    expect(spy).not.toHaveBeenCalled();
-
-                                });
-
-                                describe("when successful", function() {
-                                    it("should accept a function as the callback and default the scope to the model", function() {
-                                        thread = post.getThread(spy);
-                                        complete({});
-                                        var call = spy.mostRecentCall;
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.args[2]).toBe(true);
-                                        expect(call.object).toBe(post);
-                                    });
-                                
-                                    it("should accept a function with a scope", function() {
-                                        var o = {};
-                                        post.getThread(spy, o);
-                                        complete({});
-                                        expect(spy.mostRecentCall.object).toBe(o);   
-                                    });
-                                
-                                    it("should accept an options object with success and default the scope to the model", function() {
-                                        thread = post.getThread({
-                                            success: spy
-                                        });  
-                                        complete({});
-                                        var call = spy.mostRecentCall; 
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.object).toBe(post);  
-                                    });
-
-                                    it("should accept an options object with success and a scope", function() {
-                                        var o = {},
-                                            call;
-
-                                        post.getThread({
-                                            scope: o,
-                                            success: spy
-                                        });  
-                                        complete({});
-                                        call = spy.mostRecentCall; 
-                                        expect(call.object).toBe(o);  
-                                    });
-
-                                    it("should accept an options object with callback and default the scope to the model", function() {
-                                        thread = post.getThread({
-                                            callback: spy
-                                        });  
-                                        complete({});
-                                        var call = spy.mostRecentCall; 
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.args[2]).toBe(true);
-                                        expect(call.object).toBe(post); 
-                                    });
-                                
-                                    it("should accept an options object with callback and a scope", function() {
-                                        var o = {},
-                                            call;
-
-                                        post.getThread({
-                                            scope: o,
-                                            callback: spy
-                                        });  
-                                        complete({});
-                                        call = spy.mostRecentCall; 
-                                        expect(call.object).toBe(o); 
-                                    });
-                                });
-
-                                describe("when failed", function() {
-                                    it("should accept a function as the callback and default the scope to the model", function() {
-                                        thread = post.getThread(spy);
-                                        complete(null, 500);
-                                        var call = spy.mostRecentCall;
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.args[2]).toBe(false);
-                                        expect(call.object).toBe(post);
-                                    });
-                                
-                                    it("should accept a function with a scope", function() {
-                                        var o = {};
-                                        post.getThread(spy, o);
-                                        complete(null, 500);
-                                        expect(spy.mostRecentCall.object).toBe(o);   
-                                    });
-                                
-                                    it("should accept an options object with failure and default the scope to the model", function() {
-                                        thread = post.getThread({
-                                            failure: spy
-                                        });  
-                                        complete(null, 500);
-                                        var call = spy.mostRecentCall; 
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.object).toBe(post);  
-                                    });
-
-                                    it("should accept an options object with failure and a scope", function() {
-                                        var o = {},
-                                            call;
-
-                                        post.getThread({
-                                            scope: o,
-                                            failure: spy
-                                        });  
-                                        complete(null, 500);
-                                        call = spy.mostRecentCall; 
-                                        expect(call.object).toBe(o);  
-                                    });
-
-                                    it("should accept an options object with callback and default the scope to the model", function() {
-                                        thread = post.getThread({
-                                            callback: spy
-                                        });  
-                                        complete(null, 500);
-                                        var call = spy.mostRecentCall; 
-                                        expect(call.args[0]).toBe(thread);
-                                        expect(call.args[1].isOperation).toBe(true);
-                                        expect(call.args[2]).toBe(false);
-                                        expect(call.object).toBe(post); 
-                                    });
-                                
-                                    it("should accept an options object with callback and a scope", function() {
-                                        var o = {},
-                                            call;
-
-                                        post.getThread({
-                                            scope: o,
-                                            callback: spy
-                                        });  
-                                        complete(null, 500);
-                                        call = spy.mostRecentCall; 
-                                        expect(call.object).toBe(o); 
-                                    });
-                                });
+                                expect(spy).not.toHaveBeenCalled();
                             });
                         });
-                    });
-
-                    describe("with an already loaded instance", function() {
-                        beforeEach(function() {
-                            thread = new Thread({
-                                id: 2
-                            }, session);
-                            
-                            
-                            post.setThread(thread);
-                        });
-
-                        it("should return the same instance", function() {
-                            expect(post.getThread()).toBe(thread);
-                        });
-
-                        it("should not attempt to load", function() {
-                            spy = spyOn(Thread.getProxy(), 'read');
-                            post.getThread();
-                            expect(spy).not.toHaveBeenCalled();
-                        });
-
-                        it("should attempt to reload if called with options.reload", function() {
-                            spy = spyOn(Thread.getProxy(), 'read').andReturn();
-                            post.getThread({
-                                reload: true
-                            });
-                            expect(spy).toHaveBeenCalled();
-                        });
-
-                        it("should reload the same record when called with reload", function() {
-                            var result = post.getThread({
-                                reload: true
-                            });
-                            expect(result).toBe(thread);
-                        });
-
+                        
                         describe("callbacks", function() {
-                            it("should call the callbacks before the function returns", function() {
-                                post.getThread(spy);
-                                expect(spy).toHaveBeenCalled();
-                                spy.reset();
-                                post.getThread({
-                                    success: spy
-                                });
-                                expect(spy).toHaveBeenCalled();
-                                spy.reset();
-                                post.getThread({
-                                    callback: spy
-                                });
-                                expect(spy).toHaveBeenCalled();
-                            });
-
-                            it("should accept a function as the callback and default the scope to the model", function() {
-                                post.getThread(spy);
+                            it("should accept a function as the second arg, scope should default to the model", function() {
+                                post.setThread(16, spy);
+                                complete({});
                                 var call = spy.mostRecentCall;
-                                expect(call.args[0]).toBe(thread);
-                                expect(call.args[1]).toBeNull();
-                                expect(call.args[2]).toBe(true);
+                                expect(call.args[0]).toBe(post);
                                 expect(call.object).toBe(post);
-                            });
+                            });    
                             
                             it("should accept a function with a scope", function() {
                                 var o = {};
-                                post.getThread(spy, o);
-                                expect(spy.mostRecentCall.object).toBe(o);   
+                                thread = post.setThread(16, spy, o);
+                                complete({});
+                                expect(spy.mostRecentCall.object).toBe(o);
                             });
                             
-                            it("should accept an options object with success and default the scope to the model", function() {
-                                post.getThread({
-                                    success: spy
-                                });  
-                                var call = spy.mostRecentCall; 
-                                expect(call.args[0]).toBe(thread);
-                                expect(call.args[1]).toBeNull();
-                                expect(call.object).toBe(post);  
-                            });
+                            describe("options object", function() {
+                                var successSpy, failureSpy, callbackSpy;
 
-                            it("should accept an options object with success and a scope", function() {
-                                var o = {},
-                                    call;
+                                beforeEach(function() {
+                                    successSpy = jasmine.createSpy();
+                                    failureSpy = jasmine.createSpy();
+                                    callbackSpy = jasmine.createSpy();
+                                });
 
-                                post.getThread({
-                                    scope: o,
-                                    success: spy
-                                });  
-                                call = spy.mostRecentCall; 
-                                expect(call.object).toBe(o);  
-                            });
+                                afterEach(function() {
+                                    successSpy = failureSpy = callbackSpy = null;
+                                });
 
-                            it("should accept an options object with callback and default the scope to the model", function() {
-                                post.getThread({
-                                    callback: spy
-                                });  
-                                var call = spy.mostRecentCall; 
-                                expect(call.args[0]).toBe(thread);
-                                expect(call.args[1]).toBeNull();
-                                expect(call.args[2]).toBe(true);
-                                expect(call.object).toBe(post); 
-                            });
-                            
-                            it("should accept an options object with callback and a scope", function() {
-                                var o = {},
-                                    call;
+                                describe("on success", function() {
+                                    it("should call success/callback and scope should default to the model", function() {
+                                        post.setThread(16, {
+                                            success: successSpy,
+                                            callback: callbackSpy,
+                                            failure: failureSpy
+                                        });
+                                        complete({});
+                                        expect(failureSpy).not.toHaveBeenCalled();
+                                        expect(successSpy).toHaveBeenCalled();
+                                        expect(callbackSpy).toHaveBeenCalled();
+                                        expect(successSpy.mostRecentCall.object).toBe(post);
+                                        expect(callbackSpy.mostRecentCall.object).toBe(post);
+                                    });
 
-                                post.getThread({
-                                    scope: o,
-                                    callback: spy
-                                });  
-                                call = spy.mostRecentCall; 
-                                expect(call.object).toBe(o); 
+                                    it("should use a passed scope", function() {
+                                        var scope = {};
+                                        post.setThread(16, {
+                                            scope: scope,
+                                            success: successSpy,
+                                            callback: callbackSpy
+                                        });
+                                        complete({});
+                                        expect(successSpy.mostRecentCall.object).toBe(scope);
+                                        expect(callbackSpy.mostRecentCall.object).toBe(scope);
+                                    });
+                                });
+
+                                describe("on failure", function() {
+                                    it("should call failure/callback and scope should default to the model", function() {
+                                        post.setThread(16, {
+                                            success: successSpy,
+                                            callback: callbackSpy,
+                                            failure: failureSpy
+                                        });
+                                        complete(null, 500);
+                                        expect(successSpy).not.toHaveBeenCalled();
+                                        expect(failureSpy).toHaveBeenCalled();
+                                        expect(callbackSpy).toHaveBeenCalled();
+                                        expect(failureSpy.mostRecentCall.object).toBe(post);
+                                        expect(callbackSpy.mostRecentCall.object).toBe(post);
+                                    });
+
+                                    it("should use a passed scope", function() {
+                                        var scope = {};
+                                        post.setThread(16, {
+                                            scope: scope,
+                                            failure: failureSpy,
+                                            callback: callbackSpy
+                                        });
+                                        complete(null, 500);
+                                        expect(failureSpy.mostRecentCall.object).toBe(scope);
+                                        expect(callbackSpy.mostRecentCall.object).toBe(scope);
+                                    });
+                                });
                             });
                         });
                     });
-                });
-            
-                describe("setter", function() {
-                    beforeEach(function() {
-                        post = new Post({
-                            id: 7
-                        }, session);
-                    });
 
-                    describe("instance", function() {
-                        var thread;
+                    describe("modifying the foreign key", function() {
+                        var thread, posts;
+
                         beforeEach(function() {
                             thread = new Thread({
-                                id: 3
-                            });
-                            post.setThread(thread);
-                        });
-
-                        it("should have the same record reference", function() {
-                            expect(post.getThread()).toBe(thread);
-                        });
-                        
-                        it("should set the underlying key value", function() {
-                            expect(post.get('threadId')).toBe(3);  
-                        });
-
-                        it("should clear the instance and foreign key when setting to null", function() {
-                            post.setThread(null);
-                            expect(post.getThread()).toBeNull();
-                            expect(post.get('threadId')).toBeNull();
-                        });
-                    });
-                    
-                    describe("value", function() {
-                        it("should set the underlying key", function() {
-                            post.setThread(16);
-                            expect(post.get('threadId')).toBe(16);    
-                        });  
-                        
-                        it("should keep the same reference if setting the value with a matching id", function() {
-                            var thread = new Thread({
-                                id: 3
+                                id: 1
                             }, session);
-                            post.setThread(thread);
-                            post.setThread(3);
-                            expect(post.getThread()).toBe(thread);
+                            posts = thread.posts();
                         });
-                        
-                        it("should clear the reference if a model is already set and a new id is passed", function() {
-                            var thread = new Thread({
-                                id: 3
+
+                        function makePost(id, threadId) {
+                            post = new Post({
+                                id: id,
+                                threadId: threadId || 1
                             }, session);
-                            post.setThread(thread);
-                            post.setThread(13);
-                            spy = spyOn(Thread.getProxy(), 'read');
-                            // Reference doesn't exist, so need to grab it again here
-                            post.getThread();
-                            expect(spy.mostRecentCall.args[0].getId()).toBe(13);
+                        }
+
+                        afterEach(function() {
+                            posts = thread = null;
                         });
 
-                        it("should set the foreign key when setting to null", function() {
-                            post.setThread(13);
-                            post.setThread(null);
-                            expect(post.get('threadId')).toBeNull();
-
-                            spy = spyOn(Thread.getProxy(), 'read');
-                            post.getThread();
-                            expect(spy).not.toHaveBeenCalled();
+                        it("should remove from the store when changing the key to null", function() {
+                            makePost(101);
+                            posts.add(post);
+                            post.set('threadId', null);
+                            expect(posts.getCount()).toBe(0);
                         });
-                    });
-                    
-                    describe("callbacks", function() {
-                        it("should accept a function as the second arg, scope should default to the model", function() {
-                            post.setThread(16, spy);
-                            complete({});
-                            var call = spy.mostRecentCall;
-                            expect(call.args[0]).toBe(post);
-                            expect(call.object).toBe(post);
-                        });    
-                        
-                        it("should accept a function with a scope", function() {
-                            var o = {};
-                            thread = post.setThread(16, spy, o);
-                            complete({});
-                            expect(spy.mostRecentCall.object).toBe(o);
+
+                        it("should remove from the store when changing the key to some other value", function() {
+                            makePost(101);
+                            posts.add(post);
+                            post.set('threadId', 4);
+                            expect(posts.getCount()).toBe(0);
                         });
-                        
-                        describe("options object", function() {
-                            var successSpy, failureSpy, callbackSpy;
 
-                            beforeEach(function() {
-                                successSpy = jasmine.createSpy();
-                                failureSpy = jasmine.createSpy();
-                                callbackSpy = jasmine.createSpy();
-                            });
-
-                            afterEach(function() {
-                                successSpy = failureSpy = callbackSpy = null;
-                            });
-
-                            describe("on success", function() {
-                                it("should call success/callback and scope should default to the model", function() {
-                                    post.setThread(16, {
-                                        success: successSpy,
-                                        callback: callbackSpy,
-                                        failure: failureSpy
-                                    });
-                                    complete({});
-                                    expect(failureSpy).not.toHaveBeenCalled();
-                                    expect(successSpy).toHaveBeenCalled();
-                                    expect(callbackSpy).toHaveBeenCalled();
-                                    expect(successSpy.mostRecentCall.object).toBe(post);
-                                    expect(callbackSpy.mostRecentCall.object).toBe(post);
-                                });
-
-                                it("should use a passed scope", function() {
-                                    var scope = {};
-                                    post.setThread(16, {
-                                        scope: scope,
-                                        success: successSpy,
-                                        callback: callbackSpy
-                                    });
-                                    complete({});
-                                    expect(successSpy.mostRecentCall.object).toBe(scope);
-                                    expect(callbackSpy.mostRecentCall.object).toBe(scope);
-                                });
-                            });
-
-                            describe("on failure", function() {
-                                it("should call failure/callback and scope should default to the model", function() {
-                                    post.setThread(16, {
-                                        success: successSpy,
-                                        callback: callbackSpy,
-                                        failure: failureSpy
-                                    });
-                                    complete(null, 500);
-                                    expect(successSpy).not.toHaveBeenCalled();
-                                    expect(failureSpy).toHaveBeenCalled();
-                                    expect(callbackSpy).toHaveBeenCalled();
-                                    expect(failureSpy.mostRecentCall.object).toBe(post);
-                                    expect(callbackSpy.mostRecentCall.object).toBe(post);
-                                });
-
-                                it("should use a passed scope", function() {
-                                    var scope = {};
-                                    post.setThread(16, {
-                                        scope: scope,
-                                        failure: failureSpy,
-                                        callback: callbackSpy
-                                    });
-                                    complete(null, 500);
-                                    expect(failureSpy.mostRecentCall.object).toBe(scope);
-                                    expect(callbackSpy.mostRecentCall.object).toBe(scope);
-                                });
-                            });
+                        it("should not remove the record from unrelated stores", function() {
+                            makePost(101);
+                            spyOn(Ext.log, 'warn');
+                            var someStore = new Ext.data.Store();
+                            someStore.add(post);
+                            posts.add(post);
+                            post.set('threadId', null);
+                            expect(posts.getCount()).toBe(0);
+                            expect(someStore.first()).toBe(post);
+                            someStore.destroy();
                         });
+
+                        if (withSession) {
+                            it("should add to an existing store if a matching key is found", function() {
+                                var otherThread = new Thread({
+                                    id: 2
+                                }, session);
+                                var otherPosts = otherThread.posts();
+
+                                makePost(101);
+                                posts.add(post);
+                                post.set('threadId', 2);
+                                expect(posts.getCount()).toBe(0);
+                                expect(otherPosts.first()).toBe(post);
+                            });
+
+                            it("should not create the record if the existing key does not exist", function() {
+                                makePost(101);
+                                posts.add(post);
+                                post.set('threadId', 2);
+                                expect(session.peekRecord('Thread', 2)).toBeNull();
+                            });
+
+                            it("should not create the store on an existing record", function() {
+                                var otherThread = new Thread({
+                                    id: 2
+                                }, session);
+                                var name = otherThread.associations.posts.getStoreName();
+
+                                makePost(101);
+                                posts.add(post);
+                                post.set('threadId', 2);
+                                expect(otherThread[name]).toBeUndefined();
+                            });
+
+                            it("should not add if an existing store is loading", function() {
+                                var otherThread = new Thread({
+                                    id: 2
+                                }, session);
+                                var otherPosts = otherThread.posts();
+                                otherPosts.load();
+
+                                makePost(101);
+                                posts.add(post);
+                                post.set('threadId', 2);
+                                expect(posts.getCount()).toBe(0);
+                                expect(otherPosts.getCount()).toBe(0);
+                            });
+                        }
                     });
                 });
-
-                describe("modifying the foreign key", function() {
-                    var thread, posts;
-
-                    beforeEach(function() {
+                
+                describe("the many", function() {
+                    var posts;
+                    function makeThread() {
                         thread = new Thread({
-                            id: 1
-                        }, session);
-                        posts = thread.posts();
-                    });
-
-                    function makePost(id, threadId) {
-                        post = new Post({
-                            id: id,
-                            threadId: threadId || 1
+                            id: 3
                         }, session);
                     }
-
+                    
+                    var thread;
+                    
                     afterEach(function() {
                         posts = thread = null;
                     });
-
-                    it("should remove from the store when changing the key to null", function() {
-                        makePost(101);
-                        posts.add(post);
-                        post.set('threadId', null);
-                        expect(posts.getCount()).toBe(0);
+                    
+                    it("should return a store", function() {
+                        definePost();
+                        makeThread();
+                        expect(thread.posts().isStore).toBe(true);         
                     });
-
-                    it("should remove from the store when changing the key to some other value", function() {
-                        makePost(101);
-                        posts.add(post);
-                        post.set('threadId', 4);
-                        expect(posts.getCount()).toBe(0);
-                    });
-
-                    it("should not remove the record from unrelated stores", function() {
-                        makePost(101);
-                        var someStore = new Ext.data.Store();
-                        someStore.add(post);
-                        posts.add(post);
-                        post.set('threadId', null);
-                        expect(posts.getCount()).toBe(0);
-                        expect(someStore.first()).toBe(post);
-                        someStore.destroy();
+                    
+                    it("should set the appropriate model type", function() {
+                        definePost();
+                        makeThread();
+                        expect(thread.posts().model).toBe(Post);    
                     });
 
                     if (withSession) {
-                        it("should add to an existing store if a matching key is found", function() {
-                            var otherThread = new Thread({
-                                id: 2
-                            }, session);
-                            var otherPosts = otherThread.posts();
-
-                            makePost(101);
-                            posts.add(post);
-                            post.set('threadId', 2);
-                            expect(posts.getCount()).toBe(0);
-                            expect(otherPosts.first()).toBe(post);
-                        });
-
-                        it("should not create the record if the existing key does not exist", function() {
-                            makePost(101);
-                            posts.add(post);
-                            post.set('threadId', 2);
-                            expect(session.peekRecord('Thread', 2)).toBeNull();
-                        });
-
-                        it("should not create the store on an existing record", function() {
-                            var otherThread = new Thread({
-                                id: 2
-                            }, session);
-                            var name = otherThread.associations.posts.getStoreName();
-
-                            makePost(101);
-                            posts.add(post);
-                            post.set('threadId', 2);
-                            expect(otherThread[name]).toBeUndefined();
-                        });
-
-                        it("should not add if an existing store is loading", function() {
-                            var otherThread = new Thread({
-                                id: 2
-                            }, session);
-                            var otherPosts = otherThread.posts();
-                            otherPosts.load();
-
-                            makePost(101);
-                            posts.add(post);
-                            post.set('threadId', 2);
-                            expect(posts.getCount()).toBe(0);
-                            expect(otherPosts.getCount()).toBe(0);
+                        it("should set the session on the store", function() {
+                            definePost();
+                            makeThread();
+                            expect(thread.posts().getSession()).toBe(session);
                         });
                     }
-                });
-            });
-            
-            describe("the many", function() {
-                var posts;
-                function makeThread() {
-                    thread = new Thread({
-                        id: 3
-                    }, session);
-                }
-                
-                var thread;
-                
-                afterEach(function() {
-                    posts = thread = null;
-                });
-                
-                it("should return a store", function() {
-                    definePost();
-                    makeThread();
-                    expect(thread.posts().isStore).toBe(true);         
-                });
-                
-                it("should set the appropriate model type", function() {
-                    definePost();
-                    makeThread();
-                    expect(thread.posts().model).toBe(Post);    
-                });
-
-                if (withSession) {
-                    it("should set the session on the store", function() {
-                        definePost();
-                        makeThread();
-                        expect(thread.posts().getSession()).toBe(session);
-                    });
-                }
-                
-                it("should return the same store instance on multiple calls", function() {
-                    definePost();
-                    makeThread();
-                    var s = thread.posts();
-                    expect(thread.posts()).toBe(s);
-                });
-                
-                it("should apply the storeConfig", function() {
-                    definePost({
-                        inverse: {
-                            storeConfig: {
-                                autoLoad: true
-                            }
-                        }
-                    });
-                    makeThread();
-                    posts = thread.posts();
-                    expect(posts.getAutoLoad()).toBe(true);
-                    posts.destroy();
-                });
-
-                it("should add a filter on the store", function() {
-                    definePost();
-                    makeThread();
-                    var s = thread.posts(),
-                        filter = s.getFilters().first();
-
-                    expect(filter.getProperty()).toBe('threadId');
-                    expect(filter.getValue()).toBe(3);
-                });
-                
-                describe("autoLoad", function() {
-                    it("should not load the store by default", function() {
-                        definePost();
-                        makeThread();
-                        var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
-                        thread.posts();
-                        expect(spy.callCount).toBe(0);    
-                    });  
                     
-                    it("should load the store if configured with autoLoad: true", function() {
+                    it("should return the same store instance on multiple calls", function() {
+                        definePost();
+                        makeThread();
+                        var s = thread.posts();
+                        expect(thread.posts()).toBe(s);
+                    });
+                    
+                    it("should apply the storeConfig", function() {
                         definePost({
                             inverse: {
-                                autoLoad: true
+                                storeConfig: {
+                                    autoLoad: true
+                                }
                             }
-                        }); 
-                        
+                        });
                         makeThread();
-                        var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
-                        thread.posts();
-                        expect(spy.callCount).toBe(1);          
+                        posts = thread.posts();
+                        expect(posts.getAutoLoad()).toBe(true);
+                        posts.destroy();
                     });
-                });
-                
-                describe("store modification", function() {
+
+                    it("should add a filter on the store", function() {
+                        definePost();
+                        makeThread();
+                        var s = thread.posts(),
+                            filter = s.getFilters().first();
+
+                        expect(filter.getProperty()).toBe('threadId');
+                        expect(filter.getValue()).toBe(3);
+                    });
                     
-                    beforeEach(function() {
-                        definePost();
-                        makeThread();
-                    });
-                    
-                    describe("adding", function() {
-                        it("should default to the key to the primaryKey", function() {
-                            var posts = thread.posts(),
-                                post;
-
-                            posts.load();
-                            complete([]);
-                            post = posts.add({})[0];
-                            expect(post.get('threadId')).toBe(3);
-                        });
-                    
-                        it("should set the primaryKey onto the foreignKey on add", function() {
-                            var posts = thread.posts(),
-                                post;
-
-                            posts.load();
-                            complete([]);
-                            post = posts.add({
-                                threadId: 1
-                            })[0];
-                            expect(post.get('threadId')).toBe(3);
-                        });
-                    });
-
-                    describe("removing", function() {
-                        it("should set the key to null when removing an item", function() {
-                            var posts = thread.posts(),
-                                post;
-
-                            posts.load();
-                            complete([{id: 12, threadId: 3}]);
-                            post = posts.first();
-
-                            posts.remove(post);
-                            expect(post.get('threadId')).toBeNull();
-                        });
-
-                        it("should set the key to null when removing all items", function() {
-                            var posts = thread.posts(),
-                                post1, post2, post3;
-
-                            posts.load();
-                            complete([{id: 11, threadId: 3}, {id: 12, threadId: 3}, {id: 13, threadId: 3}]);
-
-                            post1 = posts.getAt(0);
-                            post2 = posts.getAt(1);
-                            post3 = posts.getAt(2);
-
-                            posts.removeAll();
-                            expect(post1.get('threadId')).toBeNull();
-                            expect(post2.get('threadId')).toBeNull();
-                            expect(post3.get('threadId')).toBeNull();
-                        });
-                    });
-                });
-
-                describe("reload", function() {
-                    beforeEach(function() {
-                        definePost();
-                        makeThread();
-                    });
-
-                    it("should reload an existing store", function() {
-                        thread.posts();
-                        spy = spyOn(Post.getProxy(), 'read');
-                        thread.posts({
-                            reload: true
-                        });
-                        expect(spy).toHaveBeenCalled();
-                    });
-
-                    it("should not trigger an existing load if already loading", function() {
-                        posts = thread.posts({});
-                        expect(posts.isLoading()).toBe(true);
-                        spy = spyOn(Post.getProxy(), 'read');
-                        thread.posts({
-                            reload: true
-                        });
-                        expect(spy).not.toHaveBeenCalled();
-                    });
-                });
-
-                describe("calling while during a load", function() {
-                    beforeEach(function() {
-                        definePost();
-                        makeThread();
-                    });
-
-                    it("should not trigger a second load", function() {
-                        thread.posts({});
-                        spy = spyOn(Post.getProxy(), 'read');
-                        thread.posts({});
-                        expect(spy).not.toHaveBeenCalled();
-                    });
-
-                    it("should not trigger any callback until load completes", function() {
-                        thread.posts({});
-                        thread.posts({
-                            success: spy,
-                            callback: spy
-                        });
-                        expect(spy).not.toHaveBeenCalled();
-                    });
-
-                    it("should trigger the callbacks once loaded", function() {
-                        thread.posts({});
-                        thread.posts({
-                            success: spy,
-                            callback: spy
-                        });
-                        complete([]);
-                        expect(spy.callCount).toBe(2);
-                    });
-                });
-
-                describe("callbacks", function() {
-                    beforeEach(function() {
-                        definePost();
-                        makeThread();
-                    });
-
-                    describe("when not triggering a load", function() {
-                        beforeEach(function() {
+                    describe("autoLoad", function() {
+                        it("should not load the store by default", function() {
+                            definePost();
+                            makeThread();
+                            var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
                             thread.posts();
+                            expect(spy.callCount).toBe(0);    
+                        });  
+                        
+                        it("should load the store if configured with autoLoad: true", function() {
+                            definePost({
+                                inverse: {
+                                    autoLoad: true
+                                }
+                            }); 
+                            
+                            makeThread();
+                            var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
+                            thread.posts();
+                            expect(spy.callCount).toBe(1);          
+                        });
+                    });
+                    
+                    describe("store modification", function() {
+                        
+                        beforeEach(function() {
+                            definePost();
                         });
 
-                        it("should call the callbacks before the function returns", function() {
-                            thread.posts(spy);
-                            expect(spy).toHaveBeenCalled();
-                            spy.reset();
-                            thread.posts({
-                                success: spy
+                        describe("loading", function() {
+                            var postData;
+ 
+                             beforeEach(function() {
+                                 postData = [{id: 101, threadId: 3}, {id: 102, threadId: 3}, {id: 103, threadId: 3}];
+                             });
+
+                             it("should set the owner instance when loading", function() {
+                                makeThread();
+                                var posts = thread.posts();
+ 
+                                posts.load();
+                                complete(postData);
+ 
+                                var readSpy = spyOn(Post.getProxy(), 'read');
+                                expect(posts.getAt(0).getThread()).toBe(thread);
+                                expect(posts.getAt(1).getThread()).toBe(thread);
+                                expect(posts.getAt(2).getThread()).toBe(thread);
+                                expect(readSpy).not.toHaveBeenCalled();
                             });
-                            expect(spy).toHaveBeenCalled();
-                            spy.reset();
-                            thread.posts({
-                                callback: spy
+ 
+                            it("should set the owner instance when loading via nested loading", function() {
+                                 thread = Thread.load(3);
+                                complete({
+                                     id: 3,
+                                    posts: postData
+                                });
+ 
+                                var posts = thread.posts();
+ 
+                                var readSpy = spyOn(Post.getProxy(), 'read');
+                                expect(posts.getAt(0).getThread()).toBe(thread);
+                                expect(posts.getAt(1).getThread()).toBe(thread);
+                                expect(posts.getAt(2).getThread()).toBe(thread);
+                                expect(readSpy).not.toHaveBeenCalled();
                             });
-                            expect(spy).toHaveBeenCalled();
-                        });
-
-                        it("should accept a function as the callback and default the scope to the model", function() {
-                            posts = thread.posts(spy);
-                            var call = spy.mostRecentCall;
-                            expect(call.args[0]).toBe(posts);
-                            expect(call.args[1]).toBeNull();
-                            expect(call.args[2]).toBe(true);
-                            expect(call.object).toBe(thread);
                         });
                         
-                        it("should accept a function with a scope", function() {
-                            var o = {};
-                            thread.posts(spy, o);
-                            expect(spy.mostRecentCall.object).toBe(o);   
-                        });
+                        describe("adding", function() {
+                            beforeEach(function() {
+                                makeThread();
+                            });
+
+                            it("should default to the key to the primaryKey", function() {
+                                var posts = thread.posts(),
+                                    post;
+
+                                posts.load();
+                                complete([]);
+                                post = posts.add({})[0];
+                                expect(post.get('threadId')).toBe(3);
+                            });
                         
-                        it("should accept an options object with success and default the scope to the model", function() {
-                            posts = thread.posts({
-                                success: spy
-                            });  
-                            var call = spy.mostRecentCall; 
-                            expect(call.args[0]).toBe(posts);
-                            expect(call.args[1]).toBeNull();
-                            expect(call.object).toBe(thread);  
+                            it("should set the primaryKey onto the foreignKey on add", function() {
+                                var posts = thread.posts(),
+                                    post;
+
+                                posts.load();
+                                complete([]);
+                                post = posts.add({
+                                    threadId: 1
+                                })[0];
+                                expect(post.get('threadId')).toBe(3);
+                            });
+
+                            it("should set the owner instance when adding", function() {
+                                var posts = thread.posts();
+ 
+                                posts.load();
+                                complete([]);
+                                post = posts.add({})[0];
+ 
+                                var readSpy = spyOn(Post.getProxy(), 'read');
+                                expect(post.getThread()).toBe(thread);
+                                expect(readSpy).not.toHaveBeenCalled();
+                            });
                         });
 
-                        it("should accept an options object with success and a scope", function() {
-                            var o = {},
-                                call;
+                        describe("removing", function() {
+                            beforeEach(function() {
+                                makeThread();
+                            });
 
-                            thread.posts({
-                                scope: o,
-                                success: spy
-                            });  
-                            call = spy.mostRecentCall; 
-                            expect(call.object).toBe(o);  
-                        });
+                            it("should set the key to null when removing an item", function() {
+                                var posts = thread.posts(),
+                                    post;
 
-                        it("should accept an options object with callback and default the scope to the model", function() {
-                            posts = thread.posts({
-                                callback: spy
-                            });  
-                            var call = spy.mostRecentCall; 
-                            expect(call.args[0]).toBe(posts);
-                            expect(call.args[1]).toBeNull();
-                            expect(call.args[2]).toBe(true);
-                            expect(call.object).toBe(thread); 
-                        });
-                        
-                        it("should accept an options object with callback and a scope", function() {
-                            var o = {},
-                                call;
+                                posts.load();
+                                complete([{id: 12, threadId: 3}]);
+                                post = posts.first();
 
-                            thread.posts({
-                                scope: o,
-                                callback: spy
-                            });  
-                            call = spy.mostRecentCall; 
-                            expect(call.object).toBe(o); 
+                                posts.remove(post);
+                                expect(post.get('threadId')).toBeNull();
+                            });
+
+                            it("should set the key to null when removing all items", function() {
+                                var posts = thread.posts(),
+                                    post1, post2, post3;
+
+                                posts.load();
+                                complete([{id: 11, threadId: 3}, {id: 12, threadId: 3}, {id: 13, threadId: 3}]);
+
+                                post1 = posts.getAt(0);
+                                post2 = posts.getAt(1);
+                                post3 = posts.getAt(2);
+
+                                posts.removeAll();
+                                expect(post1.get('threadId')).toBeNull();
+                                expect(post2.get('threadId')).toBeNull();
+                                expect(post3.get('threadId')).toBeNull();
+                            });
+
+                            it("should not modify the store when removing the an item", function() {
+                                var posts = thread.posts(),
+                                    post;
+ 
+                                posts.load();
+                                complete([{id: 12, threadId: 3}]);
+                                post = posts.first();
+ 
+                                posts.remove(post);
+                                expect(thread.posts()).toBe(posts);
+                                expect(post.getThread()).toBeNull();
+                            });
+ 
+                            it("should not modify the store when removing the all items", function() {
+                                var posts = thread.posts(),
+                                    post1, post2, post3;
+ 
+                                posts.load();
+                                complete([{id: 11, threadId: 3}, {id: 12, threadId: 3}, {id: 13, threadId: 3}]);
+ 
+                                post1 = posts.getAt(0);
+                                post2 = posts.getAt(1);
+                                post3 = posts.getAt(2);
+ 
+                                posts.removeAll();
+                                expect(post1.getThread()).toBeNull();
+                                expect(post2.getThread()).toBeNull();
+                                expect(post3.getThread()).toBeNull();
+                                expect(thread.posts()).toBe(posts);
+                            });
                         });
                     });
 
-                    describe("when triggering a load", function() {
-                        it("should not trigger any callbacks until the load completes", function() {
-                            thread.posts(spy);
+                    describe("reload", function() {
+                        beforeEach(function() {
+                            definePost();
+                            makeThread();
+                        });
+
+                        it("should reload an existing store", function() {
+                            thread.posts();
+                            spy = spyOn(Post.getProxy(), 'read');
                             thread.posts({
-                                success: spy
+                                reload: true
                             });
+                            expect(spy).toHaveBeenCalled();
+                        });
+
+                        it("should not trigger an existing load if already loading", function() {
+                            posts = thread.posts({});
+                            expect(posts.isLoading()).toBe(true);
+                            spy = spyOn(Post.getProxy(), 'read');
                             thread.posts({
-                                failure: spy
+                                reload: true
                             });
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+                    });
+
+                    describe("calling while during a load", function() {
+                        beforeEach(function() {
+                            definePost();
+                            makeThread();
+                        });
+
+                        it("should not trigger a second load", function() {
+                            thread.posts({});
+                            spy = spyOn(Post.getProxy(), 'read');
+                            thread.posts({});
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should not trigger any callback until load completes", function() {
+                            thread.posts({});
                             thread.posts({
+                                success: spy,
                                 callback: spy
                             });
                             expect(spy).not.toHaveBeenCalled();
-
                         });
 
-                        describe("when successful", function() {
+                        it("should trigger the callbacks once loaded", function() {
+                            thread.posts({});
+                            thread.posts({
+                                success: spy,
+                                callback: spy
+                            });
+                            complete([]);
+                            expect(spy.callCount).toBe(2);
+                        });
+                    });
+
+                    describe("callbacks", function() {
+                        beforeEach(function() {
+                            definePost();
+                            makeThread();
+                        });
+
+                        describe("when not triggering a load", function() {
+                            beforeEach(function() {
+                                thread.posts();
+                            });
+
+                            it("should call the callbacks before the function returns", function() {
+                                thread.posts(spy);
+                                expect(spy).toHaveBeenCalled();
+                                spy.reset();
+                                thread.posts({
+                                    success: spy
+                                });
+                                expect(spy).toHaveBeenCalled();
+                                spy.reset();
+                                thread.posts({
+                                    callback: spy
+                                });
+                                expect(spy).toHaveBeenCalled();
+                            });
+
                             it("should accept a function as the callback and default the scope to the model", function() {
                                 posts = thread.posts(spy);
-                                complete([]);
                                 var call = spy.mostRecentCall;
                                 expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
+                                expect(call.args[1]).toBeNull();
                                 expect(call.args[2]).toBe(true);
                                 expect(call.object).toBe(thread);
                             });
-                        
+                            
                             it("should accept a function with a scope", function() {
                                 var o = {};
                                 thread.posts(spy, o);
-                                complete([]);
                                 expect(spy.mostRecentCall.object).toBe(o);   
                             });
-                        
+                            
                             it("should accept an options object with success and default the scope to the model", function() {
                                 posts = thread.posts({
                                     success: spy
                                 });  
-                                complete([]);
                                 var call = spy.mostRecentCall; 
                                 expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
+                                expect(call.args[1]).toBeNull();
                                 expect(call.object).toBe(thread);  
                             });
 
@@ -1358,7 +1411,6 @@ describe("Ext.data.schema.ManyToOne", function() {
                                     scope: o,
                                     success: spy
                                 });  
-                                complete([]);
                                 call = spy.mostRecentCall; 
                                 expect(call.object).toBe(o);  
                             });
@@ -1367,14 +1419,13 @@ describe("Ext.data.schema.ManyToOne", function() {
                                 posts = thread.posts({
                                     callback: spy
                                 });  
-                                complete([]);
                                 var call = spy.mostRecentCall; 
                                 expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
+                                expect(call.args[1]).toBeNull();
                                 expect(call.args[2]).toBe(true);
                                 expect(call.object).toBe(thread); 
                             });
-                        
+                            
                             it("should accept an options object with callback and a scope", function() {
                                 var o = {},
                                     call;
@@ -1383,134 +1434,622 @@ describe("Ext.data.schema.ManyToOne", function() {
                                     scope: o,
                                     callback: spy
                                 });  
-                                complete([]);
                                 call = spy.mostRecentCall; 
                                 expect(call.object).toBe(o); 
                             });
                         });
 
-                        describe("when failed", function() {
-                            it("should accept a function as the callback and default the scope to the model", function() {
-                                posts = thread.posts(spy);
-                                complete(null, 500);
-                                var call = spy.mostRecentCall;
-                                expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
-                                expect(call.args[2]).toBe(false);
-                                expect(call.object).toBe(thread);
-                            });
-                        
-                            it("should accept a function with a scope", function() {
-                                var o = {};
-                                thread.posts(spy, o);
-                                complete(null, 500);
-                                expect(spy.mostRecentCall.object).toBe(o);   
-                            });
-                        
-                            it("should accept an options object with failure and default the scope to the model", function() {
-                                posts = thread.posts({
-                                    failure: spy
-                                });  
-                                complete(null, 500);
-                                var call = spy.mostRecentCall; 
-                                expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
-                                expect(call.object).toBe(thread);  
-                            });
-
-                            it("should accept an options object with failure and a scope", function() {
-                                var o = {},
-                                    call;
-
+                        describe("when triggering a load", function() {
+                            it("should not trigger any callbacks until the load completes", function() {
+                                thread.posts(spy);
                                 thread.posts({
-                                    scope: o,
-                                    failure: spy
-                                });  
-                                complete(null, 500);
-                                call = spy.mostRecentCall; 
-                                expect(call.object).toBe(o);  
-                            });
-
-                            it("should accept an options object with callback and default the scope to the model", function() {
-                                posts = thread.posts({
-                                    callback: spy
-                                });  
-                                complete(null, 500);
-                                var call = spy.mostRecentCall; 
-                                expect(call.args[0]).toBe(posts);
-                                expect(call.args[1].isOperation).toBe(true);
-                                expect(call.args[2]).toBe(false);
-                                expect(call.object).toBe(thread); 
-                            });
-                        
-                            it("should accept an options object with callback and a scope", function() {
-                                var o = {},
-                                    call;
-
+                                    success: spy
+                                });
                                 thread.posts({
-                                    scope: o,
+                                    failure: spy
+                                });
+                                thread.posts({
                                     callback: spy
-                                });  
-                                complete(null, 500);
-                                call = spy.mostRecentCall; 
-                                expect(call.object).toBe(o); 
+                                });
+                                expect(spy).not.toHaveBeenCalled();
+
                             });
+
+                            describe("when successful", function() {
+                                it("should accept a function as the callback and default the scope to the model", function() {
+                                    posts = thread.posts(spy);
+                                    complete([]);
+                                    var call = spy.mostRecentCall;
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.args[2]).toBe(true);
+                                    expect(call.object).toBe(thread);
+                                });
+                            
+                                it("should accept a function with a scope", function() {
+                                    var o = {};
+                                    thread.posts(spy, o);
+                                    complete([]);
+                                    expect(spy.mostRecentCall.object).toBe(o);   
+                                });
+                            
+                                it("should accept an options object with success and default the scope to the model", function() {
+                                    posts = thread.posts({
+                                        success: spy
+                                    });  
+                                    complete([]);
+                                    var call = spy.mostRecentCall; 
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.object).toBe(thread);  
+                                });
+
+                                it("should accept an options object with success and a scope", function() {
+                                    var o = {},
+                                        call;
+
+                                    thread.posts({
+                                        scope: o,
+                                        success: spy
+                                    });  
+                                    complete([]);
+                                    call = spy.mostRecentCall; 
+                                    expect(call.object).toBe(o);  
+                                });
+
+                                it("should accept an options object with callback and default the scope to the model", function() {
+                                    posts = thread.posts({
+                                        callback: spy
+                                    });  
+                                    complete([]);
+                                    var call = spy.mostRecentCall; 
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.args[2]).toBe(true);
+                                    expect(call.object).toBe(thread); 
+                                });
+                            
+                                it("should accept an options object with callback and a scope", function() {
+                                    var o = {},
+                                        call;
+
+                                    thread.posts({
+                                        scope: o,
+                                        callback: spy
+                                    });  
+                                    complete([]);
+                                    call = spy.mostRecentCall; 
+                                    expect(call.object).toBe(o); 
+                                });
+                            });
+
+                            describe("when failed", function() {
+                                it("should accept a function as the callback and default the scope to the model", function() {
+                                    posts = thread.posts(spy);
+                                    complete(null, 500);
+                                    var call = spy.mostRecentCall;
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.args[2]).toBe(false);
+                                    expect(call.object).toBe(thread);
+                                });
+                            
+                                it("should accept a function with a scope", function() {
+                                    var o = {};
+                                    thread.posts(spy, o);
+                                    complete(null, 500);
+                                    expect(spy.mostRecentCall.object).toBe(o);   
+                                });
+                            
+                                it("should accept an options object with failure and default the scope to the model", function() {
+                                    posts = thread.posts({
+                                        failure: spy
+                                    });  
+                                    complete(null, 500);
+                                    var call = spy.mostRecentCall; 
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.object).toBe(thread);  
+                                });
+
+                                it("should accept an options object with failure and a scope", function() {
+                                    var o = {},
+                                        call;
+
+                                    thread.posts({
+                                        scope: o,
+                                        failure: spy
+                                    });  
+                                    complete(null, 500);
+                                    call = spy.mostRecentCall; 
+                                    expect(call.object).toBe(o);  
+                                });
+
+                                it("should accept an options object with callback and default the scope to the model", function() {
+                                    posts = thread.posts({
+                                        callback: spy
+                                    });  
+                                    complete(null, 500);
+                                    var call = spy.mostRecentCall; 
+                                    expect(call.args[0]).toBe(posts);
+                                    expect(call.args[1].isOperation).toBe(true);
+                                    expect(call.args[2]).toBe(false);
+                                    expect(call.object).toBe(thread); 
+                                });
+                            
+                                it("should accept an options object with callback and a scope", function() {
+                                    var o = {},
+                                        call;
+
+                                    thread.posts({
+                                        scope: o,
+                                        callback: spy
+                                    });  
+                                    complete(null, 500);
+                                    call = spy.mostRecentCall; 
+                                    expect(call.object).toBe(o); 
+                                });
+                            });
+                        });
+                    });
+
+                    if (withSession) {
+                        describe("local store modifications with loading", function() {
+                            var data;
+
+                            beforeEach(function() {
+                                definePost();
+                                makeThread();
+                                posts = thread.posts();
+
+                                data = [{
+                                    id: 101,
+                                    threadId: 3
+                                }, {
+                                    id: 102,
+                                    threadId: 3
+                                }, {
+                                    id: 103,
+                                    threadId: 3
+                                }];
+                            });
+
+                            it("should exclude records with local foreign key changes", function() {
+                                posts.load();
+                                complete(data);
+                                var rec = session.getRecord('Post', 102);
+                                posts.removeAt(1);
+                                expect(rec.get('threadId')).toBeNull();
+                                posts.load();
+                                complete(data);
+                                expect(posts.getCount()).toBe(2);
+                                expect(posts.indexOf(rec)).toBe(-1);
+                            });
+
+                            it("should append records with the key that were not attached", function() {
+                                posts.load();
+                                complete(data);
+                                var rec = session.getRecord('Post', 104);
+                                complete({
+                                    id: 104
+                                });
+                                posts.add(rec);
+                                expect(rec.get('threadId')).toBe(3);
+                                posts.load();
+                                complete(data);
+                                expect(posts.getCount()).toBe(4);
+                                expect(posts.indexOf(rec)).toBe(3);
+                            });
+
+                            it("should include records added to the session with a matching key", function() {
+                                posts.load();
+                                complete(data);
+
+                                var p1 = new Post({
+                                    id: 104,
+                                    threadId: 3
+                                }, session);
+
+                                var p2 = new Post({
+                                    id: 105,
+                                    threadId: 7
+                                }, session);
+
+                                expect(posts.indexOf(p1)).toBe(3);
+                                expect(posts.indexOf(p2)).toBe(-1);
+                            });
+                        });
+                    }
+                });
+            });
+        }
+        createSuite(false);
+        createSuite(true);
+    });
+
+    describe("dropping", function() {
+        function createSuite(withSession) {
+            var session, post, thread, storeData;
+
+            beforeEach(function() {
+                if (withSession) {
+                    session = new Ext.data.Session();
+                }
+
+                storeData = [{
+                    id: 1,
+                    posts: [{
+                        id: 101,
+                        threadId: 1
+                    }, {
+                        id: 102,
+                        threadId: 1
+                    }, {
+                        id: 103,
+                        threadId: 1
+                    }]
+                }];
+            });
+
+            afterEach(function() {
+                if (withSession) {
+                    session.destroy();
+                    session = null;
+                }
+                storeData = post = thread = null;
+            });
+
+            function makePost(id, threadId) {
+                var data = {
+                    id: id,
+                    threadId: threadId
+                };
+
+                // Session will be null if withSession is false
+                post = new Post(data, session);
+            }
+
+            function makeThread(id) {
+                // Session will be null if withSession = false
+                thread = new Thread({
+                    id: id
+                }, session);
+            }
+
+            function makeStore(data) {
+                var store = new Ext.data.Store({
+                    model: Thread,
+                    // Session will be null if withSession = false
+                    session: session
+                });
+                store.loadRawData(data || storeData);
+                return store;
+            }
+
+            describe(withSession ? "with session" : "without session", function() {
+                describe("the one", function() {
+                    beforeEach(function() {
+                        definePost();
+                    });
+
+                    describe("inverse not loaded", function() {
+                        it("should not create the the inverse record", function() {
+                            makePost(101, 1);
+                            post.drop();
+                            expect(threadCalled).toBe(false);
+                        });
+
+                        
+                        it("should clear the foreign key", function() {
+                            makePost(101, 1);
+                            post.drop();
+                            expect(post.get('threadId')).toBeNull();
+                        });
+                    });
+
+                    describe("inverse loaded", function() {
+                        var store, posts;
+
+                        beforeEach(function() {
+                            store = makeStore();
+                            thread = store.first();
+                            posts = thread.posts();
+                            post = posts.first();
+                        });
+
+                        afterEach(function() {
+                            store.destroy();
+                            store = posts = null;
+                        });
+
+                        it("should remove from the store", function() {
+                            expect(posts.getCount()).toBe(3);
+                            post.drop();
+                            expect(posts.getCount()).toBe(2);
+                            expect(posts.indexOf(post)).toBe(-1);
+                        });
+
+                        it("should clear the foreign key", function() {
+                            post.drop();
+                            expect(post.get('threadId')).toBeNull();
+                        });
+
+                        it("should not return the inverse record", function() {
+                            expect(post.getThread()).toBe(thread);
+                            post.drop();
+                            expect(post.getThread()).toBeNull();
                         });
                     });
                 });
 
-                if (withSession) {
-                    describe("local store modifications with loading", function() {
-                        var data;
-
+                describe("the many", function() {
+                    describe("inverse not loaded", function() {
                         beforeEach(function() {
                             definePost();
-                            makeThread();
-                            posts = thread.posts();
-
-                            data = [{
-                                id: 101,
-                                threadId: 3
-                            }, {
-                                id: 102,
-                                threadId: 3
-                            }, {
-                                id: 103,
-                                threadId: 3
-                            }];
                         });
 
-                        it("should exclude records with local foreign key changes", function() {
-                            posts.load();
-                            complete(data);
-                            var rec = session.getRecord('Post', 102);
-                            posts.removeAt(1);
-                            expect(rec.get('threadId')).toBeNull();
-                            posts.load();
-                            complete(data);
-                            expect(posts.getCount()).toBe(2);
-                            expect(posts.indexOf(rec)).toBe(-1);
-                        });
-
-                        it("should append records with the key that were not attached", function() {
-                            posts.load();
-                            complete(data);
-                            var rec = session.getRecord('Post', 104);
-                            complete({
-                                id: 104
-                            });
-                            posts.add(rec);
-                            expect(rec.get('threadId')).toBe(3);
-                            posts.load();
-                            complete(data);
-                            expect(posts.getCount()).toBe(4);
-                            expect(posts.indexOf(rec)).toBe(3);
+                        it("should not attempt to load the store", function() {
+                            makeThread(1);
+                            var spy = spyOn(Post.getProxy(), 'read');
+                            thread.drop();
+                            expect(spy).not.toHaveBeenCalled();
                         });
                     });
-                }
+
+                    describe("inverse loaded", function() {
+                        var store;
+
+                        afterEach(function() {
+                            if (store) {
+                                store.destroy();
+                            }
+                            store = null;
+                        });
+
+                        describe("no parent/child relationship", function() {
+                            beforeEach(function() {
+                                definePost();
+                            });
+
+                            it("should not raise an exception with an empty store", function() {
+                                store = makeStore([{
+                                    id: 1
+                                }]);
+                                thread = store.first();
+                                expect(function() {
+                                    thread.drop();
+                                }).not.toThrow();
+                            });
+
+                            it("should remove all children from the store", function() {
+                                store = makeStore();
+                                thread = store.first();
+                                var posts = thread.posts(),
+                                    allPosts = posts.getRange(),
+                                    spy = jasmine.createSpy();
+
+                                posts.on('clear', spy);
+                                thread.drop();
+                                expect(spy.mostRecentCall.args[1]).toEqual(allPosts);
+                            });
+
+                            it("should clear the foreign key for each child", function() {
+                                store = makeStore();
+                                thread = store.first();
+                                var posts = thread.posts(),
+                                    allPosts = posts.getRange();
+
+                                thread.drop();
+                                expect(allPosts[0].get('threadId')).toBeNull();
+                                expect(allPosts[1].get('threadId')).toBeNull();
+                                expect(allPosts[2].get('threadId')).toBeNull();
+                            });
+
+                            it("should not drop the child records", function() {
+                                store = makeStore();
+                                thread = store.first();
+                                var posts = thread.posts(),
+                                    allPosts = posts.getRange();
+
+                                thread.drop();
+                                expect(allPosts[0].dropped).toBe(false);
+                                expect(allPosts[1].dropped).toBe(false);
+                                expect(allPosts[2].dropped).toBe(false);
+                            });
+
+                            it("should clear the owner on the inverse", function() {
+                                store = makeStore();
+                                thread = store.first();
+                                var posts = thread.posts(),
+                                    allPosts = posts.getRange();
+
+                                thread.drop();
+
+                                expect(allPosts[0].getThread()).toBeNull();
+                                expect(allPosts[1].getThread()).toBeNull();
+                                expect(allPosts[2].getThread()).toBeNull();
+                            });
+                        });
+
+                        describe("as a parent", function() {
+                            var posts, allPosts;
+
+                            function createDefaults() {
+                                store = makeStore();
+                                thread = store.first();
+                                posts = thread.posts();
+                                allPosts = posts.getRange();
+                                post = posts.first();
+                            }
+
+                            beforeEach(function() {
+                                definePost({
+                                    type: null,
+                                    parent: 'Thread'
+                                });
+                            });
+
+                            afterEach(function() {
+                                posts = allPosts = null;
+                            });
+
+                            it("should not raise an exception with an empty store", function() {
+                                store = makeStore([{
+                                    id: 1
+                                }]);
+                                thread = store.first();
+                                expect(function() {
+                                    thread.drop();
+                                }).not.toThrow();
+                            });
+
+                            it("should drop each child in the store and remove it", function() {
+                                var spy = jasmine.createSpy();
+                                createDefaults();
+
+                                posts.on('clear', spy);
+                                thread.drop();
+                                expect(allPosts[0].dropped).toBe(true);
+                                expect(allPosts[1].dropped).toBe(true);
+                                expect(allPosts[2].dropped).toBe(true);
+                                expect(spy.mostRecentCall.args[1]).toEqual(allPosts);
+                            });
+
+                            it("should clear the foreign key for each child", function() {
+                                createDefaults();
+
+                                thread.drop();
+                                expect(allPosts[0].get('threadId')).toBeNull();
+                                expect(allPosts[1].get('threadId')).toBeNull();
+                                expect(allPosts[2].get('threadId')).toBeNull();
+                            });
+
+                            it("should clear the owner on the inverse", function() {
+                                createDefaults();
+
+                                thread.drop();
+
+                                expect(allPosts[0].getThread()).toBeNull();
+                                expect(allPosts[1].getThread()).toBeNull();
+                                expect(allPosts[2].getThread()).toBeNull();
+                            });
+
+                            describe("dropping the child", function() {
+                                it("should drop a child when removing it from the store", function() {
+                                    createDefaults();
+                                    posts.remove(post);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(true);
+                                });
+
+                                it("should drop a child when changing the foreign key", function() {
+                                    createDefaults();
+                                    post.set('threadId', null);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(true);
+                                    expect(posts.indexOf(post)).toBe(-1);
+                                });
+
+                                it("should drop a child when nulling out via the setter", function() {
+                                    createDefaults();
+                                    post.setThread(null);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(true);
+                                    expect(posts.indexOf(post)).toBe(-1);
+                                });
+
+                                if (withSession) {
+                                    it("should drop the child even if the store is not created", function() {
+                                        thread = new Thread({
+                                            id: 1
+                                        }, session);
+
+                                        var post1 = new Post({
+                                            id: 101,
+                                            threadId: 1
+                                        }, session);
+
+                                        var post2 = new Post({
+                                            id: 102,
+                                            threadId: 1
+                                        }, session);
+
+                                        var post3 = new Post({
+                                            id: 103,
+                                            threadId: 1
+                                        }, session);
+
+                                        var post4 = new Post({
+                                            id: 104,
+                                            threadId: 2
+                                        });
+
+                                        thread.drop();
+                                        expect(post1.dropped).toBe(true);
+                                        expect(post2.dropped).toBe(true);
+                                        expect(post3.dropped).toBe(true);
+                                        expect(post4.dropped).toBe(false);
+                                    });
+                                }
+                            });
+
+                            describe("not dropping the child", function() {
+                                it("should not drop the child when setting a new record", function() {
+                                    createDefaults();
+                                    var other = new Thread({
+                                        id: 2
+                                    }, session);
+                                    post.setThread(other);
+                                    expect(post.dropped).toBe(false);
+                                });
+
+                                it("should not drop the child when setting a new key", function() {
+                                    createDefaults();
+                                    post.setThread(2);
+                                    expect(post.dropped).toBe(false);
+                                });
+
+                                it("should not drop the child when adding to a new store", function() {
+                                    createDefaults();
+
+                                    var otherThread = new Thread({
+                                        id: 2
+                                    }, session);
+                                    posts.remove(post);
+
+                                    otherThread.posts().add(post);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(false);
+                                });
+
+                                it("should not drop the child when setting the foreign key", function() {
+                                    createDefaults();
+
+                                    posts.remove(post);
+                                    post.set('threadId', 2);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(false);
+                                });
+
+                                it("should not drop the child when setting a new parent", function() {
+                                    createDefaults();
+
+                                    var otherThread = new Thread({
+                                        id: 2
+                                    }, session);
+
+                                    posts.remove(post);
+                                    post.setThread(otherThread);
+                                    Ext.data.Model.schema.processKeyChecks(true);
+                                    expect(post.dropped).toBe(false);
+                                });
+                            });
+                        });
+                    });
+                });
             });
-        });
-    }
-    createGetSetSuite(false);
-    createGetSetSuite(true);
+        }
+        createSuite(false);
+        createSuite(true);
+    });
 });

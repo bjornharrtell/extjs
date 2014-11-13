@@ -235,7 +235,7 @@ Ext.define('Ext.form.FieldContainer', {
         return ret;
     },
 
-    getSubTplMarkup: function() {
+    getSubTplMarkup: function(fieldData) {
         var me = this,
             tpl = me.getTpl('fieldSubTpl'),
             html;
@@ -244,7 +244,7 @@ Ext.define('Ext.form.FieldContainer', {
             me.setupRenderTpl(tpl);
         }
 
-        html = tpl.apply(me.getSubTplData());
+        html = tpl.apply(me.getSubTplData(fieldData));
         return html;
     },
 

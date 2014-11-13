@@ -55,6 +55,10 @@ Ext.define('KitchenSink.view.charts.line.Basic', {
             xtype: 'cartesian',
             width: '100%',
             height: 500,
+            interactions: {
+                type: 'panzoom',
+                zoomOnPanGesture: true
+            },
             store: this.myDataStore,
             insetPadding: 40,
             innerPadding: {
@@ -64,7 +68,7 @@ Ext.define('KitchenSink.view.charts.line.Basic', {
             sprites: [{
                 type: 'text',
                 text: 'Line Charts - Basic Line',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -72,15 +76,15 @@ Ext.define('KitchenSink.view.charts.line.Basic', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 470
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 480
+                y: 485
             }],
             axes: [{
                 type: 'numeric',
@@ -89,7 +93,14 @@ Ext.define('KitchenSink.view.charts.line.Basic', {
                 grid: true,
                 minimum: 0,
                 maximum: 24,
-                renderer: function (v) { return v + '%'; }
+                renderer: function (v, layoutContext) {
+                    // Custom renderer overrides the native axis label renderer.
+                    // Since we don't want to do anything fancy with the value
+                    // ourselves except appending a '%' sign, but at the same time
+                    // don't want to loose the formatting done by the native renderer,
+                    // we let the native renderer process the value first.
+                    return layoutContext.renderer(v) + '%';
+                }
             }, {
                 type: 'category',
                 fields: 'month',

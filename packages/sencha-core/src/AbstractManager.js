@@ -41,19 +41,15 @@ Ext.define('Ext.AbstractManager', {
      */
     register: function(item) {
         //<debug>
-        var all = this.all,
-            key = all.getKey(item);
-
-        //<debug>
+        var key = this.all.getKey(item);
         if (key === undefined) {
             Ext.Error.raise('Key is undefined. Please ensure the item has a key before registering the item.');
         }
-        //</debug>
-
-        if (all.containsKey(key)) {
-            Ext.Error.raise('Registering duplicate id "' + key + '" with this manager');
+        if (this.all.containsKey(key)) {
+            Ext.Error.raise('Registering duplicate id "' + key + '" with ' + this.$className);
         }
         //</debug>
+
         this.all.add(item);
     },
 

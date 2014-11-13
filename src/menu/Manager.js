@@ -19,15 +19,22 @@ Ext.define('Ext.menu.Manager', {
     attached: false,
     lastShow: new Date(),
 
+    constructor: function() {
+        this.active = new Ext.util.MixedCollection();
+    },
+
     init: function() {
         var me = this;
-        
-        me.active = new Ext.util.MixedCollection();
-        Ext.getDoc().addKeyListener(27, function() {
-            if (me.active.length > 0) {
-                me.hideAll();
-            }
-        }, me);
+
+        // Only want to call this once
+        if (!me.initialized) {
+            // If document is ready, this will be called immediately, otherwise
+            // wait until we are
+            Ext.onReady(function() {
+                Ext.getDoc().addKeyListener(27, me.hideAll, me);
+            });
+        }
+        me.initialized = true;
     },
 
     /**
@@ -38,7 +45,7 @@ Ext.define('Ext.menu.Manager', {
         var active = this.active,
             menus, m, mLen;
 
-        if (active && active.length > 0) {
+        if (active.length > 0) {
             menus = Ext.Array.slice(active.items);
             mLen  = menus.length;
 
@@ -54,6 +61,7 @@ Ext.define('Ext.menu.Manager', {
     onHide: function(m) {
         var me = this,
             active = me.active;
+            
         active.remove(m);
         if (active.length < 1) {
             Ext.un('mousedown', me.onMouseDown, me);
@@ -133,9 +141,7 @@ Ext.define('Ext.menu.Manager', {
     register: function(menu) {
         var me = this;
 
-        if (!me.active) {
-            me.init();
-        }
+        me.init();
 
         if (menu.floating) {
             me.menus[menu.id] = menu;
@@ -153,23 +159,26 @@ Ext.define('Ext.menu.Manager', {
      * Returns a {@link Ext.menu.Menu} object
      * @param {String/Object} menu The string menu id, an existing menu object reference, or a Menu config that will
      * be used to generate and return a new Menu this.
+     * @param {Object} [config] A configuration to use when creating the menu.
      * @return {Ext.menu.Menu} The specified menu, or null if none are found
      */
-    get: function(menu) {
+    get: function(menu, config) {
         var menus = this.menus;
         
         if (typeof menu == 'string') { // menu id
             if (!menus) {  // not initialized, no menus to return
-                return null;
+                menu = null;
+            } else {
+                menu = menus[menu];
             }
-            return menus[menu];
-        } else if (menu.isMenu) {  // menu instance
-            return menu;
         } else if (Ext.isArray(menu)) { // array of menu items
-            return new Ext.menu.Menu({items:menu});
-        } else { // otherwise, must be a config
-            return Ext.ComponentManager.create(menu, 'menu');
+            config = Ext.apply({items:menu}, config);
+            menu = new Ext.menu.Menu(config);
+        } else if (!menu.isComponent) { // otherwise, must be a config
+            config = Ext.apply({}, menu, config);
+            menu = Ext.ComponentManager.create(config, 'menu');
         }
+        return menu;
     },
 
     // @private

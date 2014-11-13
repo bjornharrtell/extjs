@@ -1,15 +1,6 @@
 Ext.define('Ext.aria.container.Viewport', {
     override: 'Ext.container.Viewport',
     
-    requires: [
-        'Ext.aria.container.Container'
-    ],
-    
-    ariaRole: 'application',
-    
-    ariaFocusCls: Ext.baseCSSPrefix + 'aria-viewport-focus',
-    ariaFocusableContainerCls: Ext.baseCSSPrefix + 'aria-viewport',
-    
     initComponent: function() {
         var me = this,
             items = me.items,
@@ -30,12 +21,6 @@ Ext.define('Ext.aria.container.Viewport', {
         }
         
         me.callParent();
-    },
-    
-    onBoxReady: function() {
-        this.callParent();
-        
-        Ext.FocusManager.initViewport();
     },
     
     ariaGetAfterRenderAttributes: function() {

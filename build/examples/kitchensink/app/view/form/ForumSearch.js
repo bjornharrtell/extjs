@@ -49,7 +49,7 @@ Ext.define('KitchenSink.view.form.ForumSearch', {
         }
     }, {
         xtype: 'component',
-        style: 'margin-top: 10px',
+        margin: '10 0 0 0',
         html: 'Live search requires a minimum of 4 characters.'
     }]
 });

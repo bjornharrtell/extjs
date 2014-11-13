@@ -5,8 +5,6 @@ Ext.define('Ext.AnimationQueue', {
     singleton: true,
 
     constructor: function() {
-        var bind = Ext.Function.bind;
-
         this.queue = [];
         this.taskQueue = [];
         this.runningQueue = [];
@@ -14,11 +12,7 @@ Ext.define('Ext.AnimationQueue', {
         this.isRunning = false;
         this.isIdle = true;
 
-        this.run = bind(this.run, this);
-        this.whenIdle = bind(this.whenIdle, this);
-        this.processIdleQueueItem = bind(this.processIdleQueueItem, this);
-        this.processTaskQueueItem = bind(this.processTaskQueueItem, this);
-
+        this.run = Ext.Function.bind(this.run, this);
 
         // iOS has a nasty bug which causes pending requestAnimationFrame to not release
         // the callback when the WebView is switched back and forth from / to being background process
@@ -26,7 +20,7 @@ Ext.define('Ext.AnimationQueue', {
         // This timer has to be set as an interval from the very beginning and we have to keep it running for
         // as long as the app lives, setting it later doesn't seem to work
         if (Ext.os.is.iOS) {
-            setInterval(this.watch, 500);
+            Ext.interval(this.watch, 500, this);
         }
     },
 
@@ -151,7 +145,7 @@ Ext.define('Ext.AnimationQueue', {
             //</debug>
             this.isRunning = false;
 
-            this.idleTimer = setTimeout(this.whenIdle, 100);
+            this.idleTimer = Ext.defer(this.whenIdle, 100, this);
         }
     },
 
@@ -229,7 +223,7 @@ Ext.define('Ext.AnimationQueue', {
 
     processIdleQueue: function() {
         if (!this.hasOwnProperty('idleQueueTimer')) {
-            this.idleQueueTimer = setTimeout(this.processIdleQueueItem, 1);
+            this.idleQueueTimer = Ext.defer(this.processIdleQueueItem, 1, this);
         }
     },
 
@@ -252,7 +246,7 @@ Ext.define('Ext.AnimationQueue', {
 
     processTaskQueue: function() {
         if (!this.hasOwnProperty('taskQueueTimer')) {
-            this.taskQueueTimer = setTimeout(this.processTaskQueueItem, 15);
+            this.taskQueueTimer = Ext.defer(this.processTaskQueueItem, 15, this);
         }
     },
 

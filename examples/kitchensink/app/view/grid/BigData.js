@@ -28,16 +28,10 @@ Ext.define('KitchenSink.view.grid.BigData', {
         path: 'app/view/grid/BigDataController.js'
     },{
         type: 'Store',
-        path: 'app/store/GeoData.js'
+        path: 'app/store/BigData.js'
     },{
         type: 'Model',
-        path: 'app/model/tree/Country.js'
-    },{
-        type: 'Model',
-        path: 'app/model/tree/City.js'
-    },{
-        type: 'Data',
-        path: 'app/data/GeoData.js'
+        path: 'app/model/grid/Employee.js'
     }],
     exampleDescription: [
         '<p>This example uses locking columns, and incorporates the GroupSummary feature.</p>' +

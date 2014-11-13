@@ -2,6 +2,29 @@
  * A specialized tooltip class for tooltips that can be specified in markup and automatically managed
  * by the global {@link Ext.tip.QuickTipManager} instance.  See the QuickTipManager documentation for
  * additional usage details and examples.
+ *
+ *      @example     
+ *      Ext.tip.QuickTipManager.init(); // Instantiate the QuickTipManager 
+ *
+ *      Ext.create('Ext.Button', {
+ *
+ *          renderTo: Ext.getBody(),
+ *          text: 'My Button',
+ *          listeners: {
+ *
+ *              afterrender: function(me) {
+ *
+ *                  // Register the new tip with an element's ID
+ *                  Ext.tip.QuickTipManager.register({
+ *                      target: me.getId(), // Target button's ID
+ *                      title : 'My Tooltip',  // QuickTip Header
+ *                      text  : 'My Button has a QuickTip' // Tip content  
+ *                  });
+ *
+ *              }
+ *          }
+ *      });
+ *
  */
 Ext.define('Ext.tip.QuickTip', {
     extend: 'Ext.tip.ToolTip',
@@ -49,6 +72,12 @@ Ext.define('Ext.tip.QuickTip', {
         me.target = me.target || Ext.getDoc();
         me.targets = me.targets || {};
         me.callParent();
+    },
+
+    setTagConfig: function(cfg) {
+        this.tagConfig = Ext.apply({}, cfg);
+        // Let attr get recomputed
+        delete this.tagConfig.attr;
     },
 
     /**
@@ -139,7 +168,8 @@ Ext.define('Ext.tip.QuickTip', {
             cfg = this.tagConfig;
             attr = cfg.attr || (cfg.attr = cfg.namespace + cfg.attribute);
             target = Ext.fly(target).findParent(function(dom) {
-                return text = dom.getAttribute(attr);
+                // Want to test the truthiness of the attribute and save it.
+                return (text = dom.getAttribute(attr));
             });
             if (target) {
                 return {

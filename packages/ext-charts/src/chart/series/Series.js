@@ -99,7 +99,43 @@ Ext.define('Ext.chart.series.Series', {
 
     /**
      * @cfg {Array} shadowAttributes
-     * An array with shadow attributes
+     * An array with shadow attributes.
+     * 
+     * Defaults to: 
+     *
+     *     [{
+     *         "stroke-width": 6,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(200, 200, 200)',
+     *         "translate": {
+     *             "x": 1.2,
+     *             "y": 2
+     *         }
+     *     },
+     *     {
+     *         "stroke-width": 4,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(150, 150, 150)',
+     *         "translate": {
+     *             "x": 0.9,
+     *             "y": 1.5
+     *         }
+     *     },
+     *     {
+     *         "stroke-width": 2,
+     *         "stroke-opacity": 1,
+     *         "stroke": 'rgb(100, 100, 100)',
+     *         "translate": {
+     *             "x": 0.6,
+     *             "y": 1
+     *         }
+     *     }]
+     *
+     * Each object in the array will be applied to a sprite to make up the 
+     * underlying shadow. 
+     *
+     * Only applicable when the chart's shadow property is `true`.
+     * 
      */
     shadowAttributes: null,
 

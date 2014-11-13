@@ -46,8 +46,7 @@ Ext.onReady(function() {
     
     Ext.each(buttons, function(config) {
         var btn = Ext.create('Ext.Button', Ext.apply({}, config, defaultButtonConfig));
-        btn.show();
-    }, this);
+    });
     
     var tooltips = [{
             target: 'tip1',
@@ -55,7 +54,10 @@ Ext.onReady(function() {
         },{
             target: 'ajax-tip',
             width: 200,
-            autoLoad: {url: 'ajax-tip.html'},
+            loader: {
+                url: 'ajax-tip.html',
+                loadOnRender: true
+            },
             dismissDelay: 15000 // auto hide after 15 seconds
         },{
             target: 'tip2',

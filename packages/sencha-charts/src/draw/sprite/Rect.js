@@ -4,19 +4,24 @@
  *
  * A sprite that represents a rectangle.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'rect',
- *         x: 50,
- *         y: 50,
- *         width: 50,
- *         height: 50,
- *         fillStyle: 'blue'
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'rect',
+ *                 x: 50,
+ *                 y: 50,
+ *                 width: 50,
+ *                 height: 50,
+ *                 fillStyle: 'blue'
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 Ext.define('Ext.draw.sprite.Rect', {
     extend: 'Ext.draw.sprite.Path',

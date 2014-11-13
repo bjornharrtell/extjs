@@ -41,7 +41,7 @@ Ext.define('Ext.util.StoreHolder', {
         if (store) {
             me[propertyName] = store = Ext.data.StoreManager.lookup(store);
             me.bindStoreListeners(store);
-            me.onBindStore(store, initial, propertyName);
+            me.onBindStore(store, initial, propertyName, oldStore);
         } else {
             me[propertyName] = null;
         }
@@ -89,14 +89,16 @@ Ext.define('Ext.util.StoreHolder', {
      */
     bindStoreListeners: function(store) {
         // Can be overridden in the subclass for more complex binding
-        var me = this,
-            listeners = Ext.apply({}, me.getStoreListeners(store));
+        var listeners = this.getStoreListeners(store);
 
-        if (!listeners.scope) {
-            listeners.scope = me;
+        if (listeners) {
+            listeners = Ext.apply({}, listeners);
+            if (!listeners.scope) {
+                listeners.scope = this;
+            }
+            this.storeListeners = listeners;
+            store.on(listeners);
         }
-        me.storeListeners = listeners;
-        store.on(listeners);
     },
 
     /**

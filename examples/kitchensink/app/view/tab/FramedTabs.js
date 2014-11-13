@@ -36,7 +36,6 @@ Ext.define('KitchenSink.view.tab.FramedTabs', {
     }],
 
     listeners: {
-        scope: 'controller',
         tabchange: 'onTabChange'
     }
 });

@@ -84,6 +84,13 @@
  */
 Ext.define('Ext.util.KeyMap', {
     alternateClassName: 'Ext.KeyMap',
+    
+    inputTagRe: /input|textarea/i,
+
+    /**
+     * @property {Ext.event.Event} lastKeyEvent
+     * The last key event that this KeyMap handled.
+     */
 
     /**
      * @cfg {Ext.Component/Ext.dom.Element/HTMLElement/String} target
@@ -293,47 +300,47 @@ Ext.define('Ext.util.KeyMap', {
      * @private
      * @param {Ext.event.Event} event
      */
-    handleTargetEvent: (function() {
-        var tagRe = /input|textarea/i;
+    handleTargetEvent: function(event) {
+        var me = this,
+            tagRe = me.inputTagRe,
+            bindings, i, len,
+            target, contentEditable;
 
-        return function(event) {
-            var me = this,
-                bindings, i, len,
-                target, contentEditable;
+        if (me.enabled) {
+            bindings = me.bindings;
+            i = 0;
+            len = bindings.length;
 
-            if (me.enabled) { //just in case
-                bindings = me.bindings;
-                i = 0;
-                len = bindings.length;
+            // Process the event
+            me.lastKeyEvent = event = me.processEvent.apply(me||me.processEventScope, arguments);
 
-                // Process the event
-                event = me.processEvent.apply(me||me.processEventScope, arguments);
-
-                // Ignore events from input fields if configured to do so
-                if (me.ignoreInputFields) {
-                    target = event.target;
-                    contentEditable = target.contentEditable;
-                    // contentEditable will default to inherit if not specified, only check if the
-                    // attribute has been set or explicitly set to true
-                    // http://html5doctor.com/the-contenteditable-attribute/
-                    if (tagRe.test(target.tagName) || (contentEditable === '' || contentEditable === 'true')) {
-                        return;
-                    }
+            // Ignore events from input fields if configured to do so
+            if (me.ignoreInputFields) {
+                target = event.target;
+                contentEditable = target.contentEditable;
+                // contentEditable will default to inherit if not specified, only check if the
+                // attribute has been set or explicitly set to true
+                // http://html5doctor.com/the-contenteditable-attribute/
+                // Also skip <input> tags of type="button", we use them for checkboxes
+                // and radio buttons
+                if ((tagRe.test(target.tagName) && target.type !== 'button') ||
+                    (contentEditable === '' || contentEditable === 'true')) {
+                    return;
                 }
-
-                // If the processor does not return a keyEvent, we can't process it.
-                // Allow them to return false to cancel processing of the event
-                if (!event.getKey) {
-                    return event;
-                }
-                me.processing = true;
-                for(; i < len; ++i){
-                    me.processBinding(bindings[i], event);
-                }
-                me.processing = false;
             }
-        };
-    }()),
+
+            // If the processor does not return a keyEvent, we can't process it.
+            // Allow them to return false to cancel processing of the event
+            if (!event.getKey) {
+                return event;
+            }
+            me.processing = true;
+            for(; i < len; ++i){
+                me.processBinding(bindings[i], event);
+            }
+            me.processing = false;
+        }
+    },
 
     /**
      * @cfg {Function} processEvent
@@ -470,7 +477,7 @@ Ext.define('Ext.util.KeyMap', {
         var me = this;
         
         if (!me.enabled) {
-            me.target.on(me.eventName, me.handleTargetEvent, me);
+            me.target.on(me.eventName, me.handleTargetEvent, me, {capture: me.capture});
             me.enabled = true;
         }
     },

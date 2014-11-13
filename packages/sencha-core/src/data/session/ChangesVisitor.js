@@ -80,7 +80,7 @@ Ext.define('Ext.data.session.ChangesVisitor', {
             if (!(options = writerOptions[prop])) {
                 options = record.getProxy().getWriter().getConfig(prop);
                 writerOptions[prop] = options = Ext.Object.chain(options);
-                options.serialize = true;
+                me.setupOptions(options);
             }
 
             entry = record.getData(options);
@@ -99,6 +99,10 @@ Ext.define('Ext.data.session.ChangesVisitor', {
         bucket = result[name] || (result[name] = {});
         bucket = bucket[crud] || (bucket[crud] = []);
         bucket.push(entry);
+    },
+
+    setupOptions: function(options) {
+        options.serialize = true;
     },
 
     onMatrixChange: function (association, id1, id2, state) {

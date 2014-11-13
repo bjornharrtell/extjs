@@ -30,53 +30,6 @@
  * The content of the field body is defined by the {@link #fieldSubTpl} XTemplate, with its argument data
  * created by the {@link #getSubTplData} method. Override this template and/or method to create custom
  * field renderings.
- *
- * # Example usage:
- *
- *     @example
- *     // A simple subclass of Base that creates a HTML5 search field. Redirects to the
- *     // searchUrl when the Enter key is pressed.222
- *     Ext.define('Ext.form.SearchField', {
- *         extend: 'Ext.form.field.Base',
- *         alias: 'widget.searchfield',
- *     
- *         inputType: 'search',
- *     
- *         // Config defining the search URL
- *         searchUrl: 'http://www.google.com/search?q={0}',
- *     
- *         // Add specialkey listener
- *         initComponent: function() {
- *             this.callParent();
- *             this.on('specialkey', this.checkEnterKey, this);
- *         },
- *     
- *         // Handle enter key presses, execute the search if the field has a value
- *         checkEnterKey: function(field, e) {
- *             var value = this.getValue();
- *             if (e.getKey() === e.ENTER && !Ext.isEmpty(value)) {
- *                 location.href = Ext.String.format(this.searchUrl, value);
- *             }
- *         }
- *     });
- *     
- *     Ext.create('Ext.form.Panel', {
- *         title: 'Base Example',
- *         bodyPadding: 5,
- *         width: 250,
- *     
- *         // Fields will be arranged vertically, stretched to full width
- *         layout: 'anchor',
- *         defaults: {
- *             anchor: '100%'
- *         },
- *         items: [{
- *             xtype: 'searchfield',
- *             fieldLabel: 'Search',
- *             name: 'query'
- *         }],
- *         renderTo: Ext.getBody()
- *     });
  */
 Ext.define('Ext.form.field.Base', {
     extend: 'Ext.Component',
@@ -90,7 +43,8 @@ Ext.define('Ext.form.field.Base', {
         'Ext.util.DelayedTask',
         'Ext.XTemplate'
     ],
-
+    
+    focusable: true,
     shrinkWrap: true,
 
     /**
@@ -107,7 +61,7 @@ Ext.define('Ext.form.field.Base', {
             '{%if (values.maxLength !== undefined){%} maxlength="{maxLength}"{%}%}',
             '<tpl if="readOnly"> readonly="readonly"</tpl>',
             '<tpl if="disabled"> disabled="disabled"</tpl>',
-            '<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
+            '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
             '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
         ' class="{fieldCls} {typeCls} {typeCls}-{ui} {editableCls} {inputCls}" autocomplete="off"/>',
         {
@@ -153,6 +107,15 @@ Ext.define('Ext.form.field.Base', {
      * a plain unstyled file input you can use a Base with inputType:'file'.
      */
     inputType: 'text',
+
+    /**
+     * @cfg {Boolean} isTextInput
+     * `true` if this field renders as a text input.
+     *
+     * @private
+     * @since 5.0.1
+     */
+    isTextInput: true,
 
     /**
      * @cfg {Number} tabIndex
@@ -310,39 +273,6 @@ Ext.define('Ext.form.field.Base', {
      * @param {Boolean} Read only flag
      */
 
-     statics: {
-        /**
-         * Use a custom QuickTip instance separate from the main QuickTips singleton, so that we
-         * can give it a custom frame style. Responds to errorqtip rather than the qtip property.
-         * @static
-         */
-        initTip: function() {
-            var tip = this.tip;
-            if (!tip) {
-                tip = this.tip = Ext.create('Ext.tip.QuickTip', {
-                    //<debug>
-                    // tell the spec runner to ignore this element when checking if the dom is clean 
-                    sticky: true,
-                    //</debug>
-                    ui: 'form-invalid'
-                });
-                tip.tagConfig = Ext.apply({}, {attribute: 'errorqtip'}, tip.tagConfig);
-            }
-        },
-
-        /**
-         * Destroy the error tip instance.
-         * @static
-         */
-        destroyTip: function() {
-            var tip = this.tip;
-            if (tip) {
-                tip.destroy();
-                delete this.tip;
-            }
-        }
-    },
-
     // private
     initComponent : function() {
         var me = this;
@@ -380,7 +310,7 @@ Ext.define('Ext.form.field.Base', {
      * @return {Object} The template data
      * @template
      */
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var me = this,
             type = me.inputType,
             inputId = me.getInputId(),
@@ -397,9 +327,10 @@ Ext.define('Ext.form.field.Base', {
             type: type,
             fieldCls: me.fieldCls,
             fieldStyle: me.getFieldStyle(),
+            childElCls: fieldData.childElCls,
             tabIdx: me.tabIndex,
             inputCls: me.inputCls,
-            typeCls: Ext.baseCSSPrefix + 'form-' + (type === 'password' ? 'text' : type),
+            typeCls: Ext.baseCSSPrefix + 'form-' + (me.isTextInput ? 'text' : type),
             role: me.ariaRole
         }, me.subTplData);
 
@@ -412,9 +343,9 @@ Ext.define('Ext.form.field.Base', {
      * Gets the markup to be inserted into the outer template's bodyEl. For fields this is the actual input element.
      * @protected
      */
-    getSubTplMarkup: function() {
+    getSubTplMarkup: function(fieldData) {
         var me = this,
-            data = me.getSubTplData(),
+            data = me.getSubTplData(fieldData),
             preSubTpl = me.getTpl('preSubTpl'),
             postSubTpl = me.getTpl('postSubTpl'),
             markup = '';
@@ -456,9 +387,9 @@ Ext.define('Ext.form.field.Base', {
     },
 
     // private
-    onRender : function() {
+    onRender: function() {
         this.callParent(arguments);
-        Ext.form.field.Base.initTip();
+        this.mixins.labelable.self.initTip();
         this.renderActiveError();
     },
 
@@ -727,15 +658,6 @@ Ext.define('Ext.form.field.Base', {
         me.callParent();
     },
 
-    doComponentLayout: function() {
-        // In IE if propertychange is one of the checkChangeEvents, we need to remove
-        // the listener prior to layout and re-add it after, to prevent it from firing
-        // needlessly for attribute and style changes applied to the inputEl.
-        this.bindPropertyChange(false);
-        this.callParent(arguments);
-        this.bindPropertyChange(true);
-    },
-    
     /**
      * @private
      */
@@ -929,19 +851,29 @@ Ext.define('Ext.form.field.Base', {
         updateValueBinding: function (bindings) {
             var me = this,
                 newBinding = bindings.value,
-                validationBinding = bindings.validation;
-            
-            if (validationBinding && validationBinding.autoVal) {
-                validationBinding.destroy();
-                bindings.validation = null;
+                fieldBinding = bindings.$fieldBinding;
+
+            if (fieldBinding) {
+                fieldBinding.destroy();
+                bindings.$fieldBinding = null;
             }
 
-            if (newBinding && newBinding.bindValidation && !bindings.validation) {
-                validationBinding = newBinding.bindValidation('setValidation', me);
-
-                if (validationBinding) {
-                    bindings.validation = validationBinding;
-                    validationBinding.autoVal = true;
+            if (newBinding && newBinding.bindValidationField) {
+                me.fieldBinding = newBinding.bindValidationField('setValidationField', me);
+            }
+        }
+    },
+    
+    deprecated: {
+        "5": {
+            methods: {
+                doComponentLayout: function() {
+                    // In IE if propertychange is one of the checkChangeEvents, we need to remove
+                    // the listener prior to layout and re-add it after, to prevent it from firing
+                    // needlessly for attribute and style changes applied to the inputEl.
+                    this.bindPropertyChange(false);
+                    this.callParent(arguments);
+                    this.bindPropertyChange(true);
                 }
             }
         }

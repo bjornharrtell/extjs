@@ -255,8 +255,7 @@ Ext.deprecated = function (suggestion) {
         return; // build system or some such environment...
     }
 
-    var win = Ext.global,
-        last = 0,
+    var last = 0,
         // This method is called to notify the user of the current error status.
         notify = function() {
             var cnt = Ext.log && Ext.log.counters,
@@ -278,13 +277,13 @@ Ext.deprecated = function (suggestion) {
                 if (cnt.log) {
                     msg.push('Log: ' + cnt.log);
                 }
-                win.status = '*** ' + msg.join(' -- ');
+                window.status = '*** ' + msg.join(' -- ');
                 last = n;
             }
         };
 
     // window.onerror sounds ideal but it prevents the built-in error dialog from doing
     // its (better) thing.
-    win.setInterval(notify, 1000);
+    setInterval(notify, 1000);
 }());
 //</debug>

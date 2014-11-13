@@ -24,7 +24,7 @@ Ext.define('Ext.event.ListenerStack', {
             listeners = this.getAll(order),
             i = listeners.length,
             isMethodName = typeof fn === 'string',
-            bindingMap, listener, id;
+            bindingMap, listener, id, namedScope;
 
         if (isMethodName && scope && scope.isIdentifiable) {
             id = scope.getId();
@@ -57,10 +57,23 @@ Ext.define('Ext.event.ListenerStack', {
             }
         }
 
+        if (!isMethodName) {
+            namedScope = Ext._namedScopes[scope];
+
+            if (namedScope && namedScope.isController) {
+                // If the user declared the listener fn as a function reference, not a
+                // string, controller scope is invalid
+                Ext.Error.raise("Cannot resolve scope 'controller' for '" + options.type +
+                    "' listener declared on Observable: '" + observable.id + "'");
+            }
+
+            scope = (scope && !namedScope) ? scope : observable;
+        }
+
         listener = this.create(fn, scope, options, order, observable);
 
         // Allow for {foo: 'onFoo', scope: 'this/controller'}
-        if (isMethodName && (!scope || scope === 'this' || scope === 'controller')) {
+        if (isMethodName && (!scope || scope in Ext._namedScopes)) {
             listener.boundFn = this.bindDynamicScope(observable, fn, scope);
             listener.isLateBinding = false;
         }

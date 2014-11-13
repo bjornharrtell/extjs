@@ -30,21 +30,21 @@ Ext.define('Ext.data.validator.Bound', {
         /**
          * @cfg {String} minOnlyMessage
          * The error message to return when the value is less than the minimum
-         * and we only have a minimum specified.
+         * and only a minimum is specified.
          */
         minOnlyMessage: null,
         
         /**
          * @cfg {String} maxOnlyMessage
          * The error message to return when the value is more than the maximum
-         * and we only have a maximum specified.
+         * and only a maximum is specified.
          */
         maxOnlyMessage: null,
         
         /**
          * @cfg {String} bothMessage
          * The error message to return when the value is not in the specified range
-         * and we have both values.
+         * and both the minimum and maximum are specified.
          */
         bothOnlyMessage: null
     },
@@ -117,11 +117,11 @@ Ext.define('Ext.data.validator.Bound', {
             hasMax = me.hasMax,
             min = me.getMin(),
             max = me.getMax(),
-            msg = true,
+            msg = this.validateValue(value),
             len;
-            
-        if (value === undefined || value === null) {
-            return me.getEmptyMessage();
+
+        if (msg !== true) {
+            return msg;
         }
         
         value = me.getValue(value);
@@ -140,6 +140,13 @@ Ext.define('Ext.data.validator.Bound', {
         }
         
         return msg;
+    },
+
+    validateValue: function(value) {
+        if (value === undefined || value === null) {
+            return this.getEmptyMessage();
+        }
+        return true;
     },
     
     getValue: Ext.identityFn

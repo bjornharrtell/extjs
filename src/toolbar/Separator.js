@@ -19,7 +19,6 @@ Ext.define('Ext.toolbar.Separator', {
     alias: 'widget.tbseparator',
     alternateClassName: 'Ext.Toolbar.Separator',
     baseCls: Ext.baseCSSPrefix + 'toolbar-separator',
-    focusable: false,
     
     ariaRole: 'separator'
 });

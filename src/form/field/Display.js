@@ -49,6 +49,8 @@ Ext.define('Ext.form.field.Display', {
             disableFormats: true
         }
     ],
+    
+    focusable: false,
 
     /**
      * @cfg {Boolean} readOnly
@@ -141,7 +143,7 @@ Ext.define('Ext.form.field.Display', {
         return display;
     },
         
-    getSubTplData: function() {
+    getSubTplData: function(fieldData) {
         var ret = this.callParent(arguments);
 
         ret.value = this.getDisplayValue();

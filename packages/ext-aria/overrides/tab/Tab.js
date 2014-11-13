@@ -5,23 +5,12 @@ Ext.define('Ext.aria.tab.Tab', {
     closeText: 'closable',
     //</locale>
     
-    initKeyNav: function() {
-        var me = this;
-        
-        me.keyNav = new Ext.util.KeyNav(me.el, {
-            enter: me.onEnterKey,
-            space: me.onEnterKey,
-            del: me.onDeleteKey,
-            scope: me
-        });
-    },
-
     ariaGetAfterRenderAttributes: function() {
         var me = this,
             attrs;
         
         attrs = me.callParent(arguments);
-
+        
         attrs['aria-selected'] = !!me.active;
 
         if (me.card && me.card.getEl()) {
@@ -29,5 +18,17 @@ Ext.define('Ext.aria.tab.Tab', {
         }
         
         return attrs;
+    },
+    
+    activate: function(suppressEvent) {
+        this.callParent([suppressEvent]);
+        
+        this.ariaUpdate({ 'aria-selected': true });
+    },
+    
+    deactivate: function(suppressEvent) {
+        this.callParent([suppressEvent]);
+        
+        this.ariaUpdate({ 'aria-selected': false });
     }
 });

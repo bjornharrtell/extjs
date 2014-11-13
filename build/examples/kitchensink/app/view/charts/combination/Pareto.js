@@ -5,6 +5,7 @@
  */
 Ext.define('KitchenSink.view.charts.combination.Pareto', {
     extend: 'Ext.Panel',
+    requires: 'Ext.chart.theme.Category2',
     xtype: 'combination-pareto',
 
     // <example>
@@ -43,16 +44,16 @@ Ext.define('KitchenSink.view.charts.combination.Pareto', {
             items: [
                 '->',
             {
-                text: 'Save Chart',
+                text: Ext.os.is.Desktop ? 'Download' : 'Preview',
                 handler: function() {
-                    Ext.MessageBox.confirm('Confirm Download', 'Would you like to download the chart as an image?', function(choice){
-                        if(choice == 'yes'){
-                            me.down('cartesian').save({
-                                type: 'image/png'
-                            });
-                        }
-                    });
-
+                    var chart = me.down('cartesian');
+                    if (Ext.os.is.Desktop) {
+                        chart.download({
+                            filename: 'Redwood City Climate Data Chart'
+                        });
+                    } else {
+                        chart.preview();
+                    }
                 }
             }]
         }];
@@ -60,18 +61,18 @@ Ext.define('KitchenSink.view.charts.combination.Pareto', {
 
         me.items = [{
             xtype: 'cartesian',
+            theme: 'category2',
             width: '100%',
             height: 500,
             store: this.myDataStore,
-            insetPadding: 40,
-            interactions: ['itemhighlight'],
+            insetPadding: '40 40 20 40',
             legend: {
-                docked: 'right'
+                docked: 'bottom'
             },
             sprites: [{
                 type: 'text',
                 text: 'Restaurant Complaints by Reported Cause',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -89,7 +90,8 @@ Ext.define('KitchenSink.view.charts.combination.Pareto', {
                 fields: ['count'],
                 majorTickSteps: 10,
                 reconcileRange: true,
-                grid: true
+                grid: true,
+                minimum: 0
             }, {
                 type: 'category',
                 position: 'bottom',
@@ -139,12 +141,14 @@ Ext.define('KitchenSink.view.charts.combination.Pareto', {
                     opacity: 0.80
                 },
                 marker: {
-                    type: 'path',
-                    path: 'm7.778,5.419l-5.502,-5.502l5.501,-5.502l-2.828,-2.83l-5.502,5.502l-5.502,-5.502l-2.828,2.83l5.501,5.502l-5.502,5.502l2.83,2.829l5.501,-5.502l5.501,5.502z',
-                    scalingX: 0.5,
-                    scalingY: 0.5,
-                    fillStyle: 'lightblue',
-                    lineWidth: 1
+                    type: 'cross',
+                    fx: {
+                        duration: 200
+                    }
+                },
+                highlightCfg: {
+                    scaling: 2,
+                    rotationRads: Math.PI / 4
                 },
                 tooltip: {
                     trackMouse: true,

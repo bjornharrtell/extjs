@@ -31,17 +31,23 @@ Ext.define('KitchenSink.view.charts.line.ImageMarkers', {
         {
             text: 'Switch Theme',
             handler: function () {
-                var panel = this.up('panel'),
+                var panel = this.up().up(),
                     chart = panel.down('cartesian'),
+                    currentThemeClass = Ext.getClassName(chart.getTheme()),
                     themes = Ext.chart.theme,
-                    themeNames = [], name, currentIndex;
+                    themeNames = [],
+                    currentIndex = 0,
+                    name;
+
                 for (name in themes) {
-                    if (name !== 'Theme') {
+                    if (Ext.getClassName(themes[name]) === currentThemeClass) {
+                        currentIndex = themeNames.length;
+                    }
+                    if (name !== 'Base' && name.indexOf('Gradients') < 0) {
                         themeNames.push(name);
                     }
                 }
-                currentIndex = Ext.Array.indexOf(themeNames, chart.getTheme());
-                chart.setTheme(themeNames[(currentIndex + 1) % themeNames.length]);
+                chart.setTheme(themes[themeNames[++currentIndex % themeNames.length]]);
                 chart.redraw();
             }
         },
@@ -65,7 +71,6 @@ Ext.define('KitchenSink.view.charts.line.ImageMarkers', {
         store: {
             type: 'pie'
         },
-        theme: 'Sky',
         id: 'line-chart-markers',
         background: 'white',
         interactions: [

@@ -59,7 +59,8 @@ Ext.define('Ext.form.field.File', {
         'Ext.form.field.FileButton',
         'Ext.form.trigger.Component'
     ],
-
+    
+    needArrowKeys: false,
 
     triggers: {
         filebutton: {
@@ -181,6 +182,17 @@ Ext.define('Ext.form.field.File', {
             Ext.Error.raise(me.$className + ' requires a valid trigger config containing "filebutton" specification');
         }
         // </debug>
+    },
+    
+    getSubTplData: function(fieldData) {
+        var data = this.callParent([fieldData]);
+        
+        // Input field itself should not be focusable since it's always decorative;
+        // however the input element is naturally focusable (and tabbable) so we have to
+        // deactivate it by setting its tabIndex to -1.
+        data.tabIdx = -1;
+        
+        return data;
     },
 
     // @private
@@ -314,5 +326,11 @@ Ext.define('Ext.form.field.File', {
 
     getButtonMarginProp: function() {
         return 'margin-left:';
+    },
+    
+    privates: {
+        getFocusEl: function() {
+            return this.button;
+        }
     }
 });

@@ -30,7 +30,7 @@ Ext.theme.addManifest(
 
         {
             xtype: 'widget.button',
-            ui: 'gadget'
+            ui: 'default-toolbar'
         },
 
         {

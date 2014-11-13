@@ -9,7 +9,7 @@
      *
      * Parsers for sprite attributes used in animations.
      */
-    Ext.define("Ext.draw.sprite.AnimationParser", {
+    Ext.define('Ext.draw.sprite.AnimationParser', {
         singleton: true,
         attributeRe: /^url\(#([a-zA-Z\-]+)\)$/,
         requires: ['Ext.draw.Color'],
@@ -174,7 +174,7 @@
             }
         },
 
-        limited: "number",
-        limited01: "number"
+        limited: 'number',
+        limited01: 'number'
     });
 })();

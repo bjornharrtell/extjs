@@ -91,7 +91,7 @@ Ext.define('KitchenSink.view.charts.line.Spline', {
             sprites: [{
                 type: 'text',
                 text: 'Line Charts - Spline',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position

@@ -4,8 +4,8 @@
  * @extends Ext.draw.sprite.Sprite
  *
  * The axis sprite. Currently all types of the axis will be rendered with this sprite.
- * TODO(touch-2.2): Split different types of axis into different sprite classes.
  */
+
 Ext.define('Ext.chart.axis.sprite.Axis', {
     extend: 'Ext.draw.sprite.Sprite',
     type: 'axis',
@@ -108,7 +108,14 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 titleOffset: 'number',
 
                 /**
-                 * @cfg {Number} textPadding The padding around axis labels to determine collision.
+                 * @cfg {Number} [textPadding=0]
+                 * The padding around axis labels to determine collision.
+                 * The default is 0 for all axes except horizontal axes of cartesian charts,
+                 * where the default is 5 to prevent axis labels from blending one into another.
+                 * This default is defined in the {@link Ext.chart.theme.Base#axis axis} config
+                 * of the {@link Ext.chart.theme.Base Base} theme.
+                 * You may want to change this default to a smaller number or 0, if you have
+                 * horizontal axis labels rotated, which allows for more text to fit in.
                  */
                 textPadding: 'number',
 
@@ -186,7 +193,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 baseRotation: 0,
                 data: null,
                 titleOffset: 0,
-                textPadding: 5,
+                textPadding: 0,
                 scalingCenterY: 0,
                 scalingCenterX: 0,
                 // Override default
@@ -263,6 +270,11 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
 
     getBBox: function () { return null; },
 
+    doDefaultRender: function (v) {
+        // 'this' pointer in this case is a layoutContext
+        return this.segmenter.renderer(v, this);
+    },
+
     doLayout: function () {
         var me = this,
             chart = me.getAxis().getChart();
@@ -276,7 +288,8 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
             max = attr.dataMin + (attr.dataMax - attr.dataMin) * attr.visibleMax,
             context = {
                 attr: attr,
-                segmenter: me.getSegmenter()
+                segmenter: me.getSegmenter(),
+                renderer: me.doDefaultRender
             };
 
         if (attr.position === 'left' || attr.position === 'right') {
@@ -309,7 +322,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
 
     iterate: function (snaps, fn) {
         var i, position,
-            id, floatingAxes, floatingValues,
+            id, axis, floatingAxes, floatingValues,
             some = Ext.Array.some,
             abs = Math.abs,
             threshold;
@@ -324,11 +337,14 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 fn.call(this, snaps.max, snaps.getLabel(snaps.max), snaps.steps + 1, snaps);
             }
         } else {
-            floatingAxes = this.getAxis().floatingAxes;
+            axis = this.getAxis();
+            floatingAxes = axis.floatingAxes;
             floatingValues = [];
             threshold = (snaps.to - snaps.from) / (snaps.steps + 1);
-            for (id in floatingAxes) {
-                floatingValues.push(floatingAxes[id]);
+            if (axis.getFloating()) {
+                for (id in floatingAxes) {
+                    floatingValues.push(floatingAxes[id]);
+                }
             }
             // Don't render ticks in axes intersection points.
             function isTickVisible(position) {
@@ -985,3 +1001,8 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
         }
     }
 });
+
+/*
+    Moved TODO comments to bottom
+    TODO(touch-2.2): Split different types of axis into different sprite classes.
+*/

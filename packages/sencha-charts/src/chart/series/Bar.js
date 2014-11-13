@@ -4,46 +4,51 @@
  * 
  * Creates a Bar Chart.
  * 
- *     @example preview
- *     var chart = new Ext.chart.CartesianChart({
- *         store: {
- *           fields: ['name', 'value'],
- *           data: [
- *               {name: 'metric one', value: 10},
- *               {name: 'metric two', value: 7},
- *               {name: 'metric three', value: 5},
- *               {name: 'metric four', value: 2},
- *               {name: 'metric five', value: 27}
- *           ]
- *         },
- *         axes: [{
- *             type: 'numeric',
- *             position: 'left',
- *             title: {
- *                 text: 'Sample Values',
- *                 fontSize: 15
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'cartesian',
+ *             store: {
+ *                 fields: ['name', 'value'],
+ *                 data: [
+ *                     {name: 'metric one', value: 10},
+ *                     {name: 'metric two', value: 7},
+ *                     {name: 'metric three', value: 5},
+ *                     {name: 'metric four', value: 2},
+ *                     {name: 'metric five', value: 27}
+ *                 ]
  *             },
- *             fields: 'value'
- *         }, {
- *             type: 'category',
- *             position: 'bottom',
- *             title: {
- *                 text: 'Sample Values',
- *                 fontSize: 15
- *             },
- *             fields: 'name'
- *         }],
- *         series: [{
- *             type: 'bar',
- *             xField: 'name',
- *             yField: 'value',
- *             style: {
- *               fill: 'blue'
+ *             axes: [{
+ *                 type: 'numeric',
+ *                 position: 'left',
+ *                 title: {
+ *                     text: 'Sample Values',
+ *                     fontSize: 15
+ *                 },
+ *                 fields: 'value'
+ *             }, {
+ *                 type: 'category',
+ *                 position: 'bottom',
+ *                 title: {
+ *                     text: 'Sample Values',
+ *                     fontSize: 15
+ *                 },
+ *                 fields: 'name'
+ *             }],
+ *             series: {
+ *                 type: 'bar',
+ *                 xField: 'name',
+ *                 yField: 'value',
+ *                 style: {
+ *                     fill: 'blue'
+ *                 }
  *             }
- *         }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(chart);
  */
 Ext.define('Ext.chart.series.Bar', {
 
@@ -66,7 +71,7 @@ Ext.define('Ext.chart.series.Bar', {
         itemInstancing: {
             type: 'rect',
             fx: {
-                customDuration: {
+                customDurations: {
                     x: 0,
                     y: 0,
                     width: 0,

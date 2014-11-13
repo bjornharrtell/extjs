@@ -36,10 +36,10 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
             axes: [{
                 type: 'numeric',
                 position: 'left',
+                minimum: 40,
                 titleMargin: 20,
                 title: {
-                    text: 'Temperature in °C',
-                    fontSize: 14
+                    text: 'Temperature in °F'
                 },
                 listeners: {
                     rangechange: function (range) {
@@ -49,7 +49,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                             value;
 
                         store.each(function (rec) {
-                            var value = rec.get('high');
+                            var value = rec.get('highF');
                             if (value > max) {
                                 max = value;
                             }
@@ -63,7 +63,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                             value: value,
                             line: {
                                 title: {
-                                    text: 'Average high: ' + (value * 1.8 + 32).toFixed(2) +'°F'
+                                    text: 'Average high: ' + value.toFixed(2) + '°F'
                                 },
                                 lineDash: [2,2]
                             }
@@ -75,14 +75,14 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                 position: 'bottom'
             }],
             animation: Ext.isIE8 ? false : {
-                easing: 'bounceOut',
+                easing: 'backOut',
                 duration: 500
             },
             series: {
                 type: 'bar',
                 axis: 'left',
                 xField: 'month',
-                yField: 'high',
+                yField: 'highF',
                 style: {
                     minGapWidth: 20
                 },
@@ -92,7 +92,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                     lineDash: [5, 3]
                 },
                 label: {
-                    field: 'high',
+                    field: 'highF',
                     display: 'insideEnd',
                     renderer: function (value) {
                         return value.toFixed(1);
@@ -102,7 +102,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
             sprites: {
                 type: 'text',
                 text: 'Redwood City Climate Data',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -113,11 +113,16 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
         me.tbar = [
             '->',
             {
-                text: 'Download',
+                text: Ext.os.is.Desktop ? 'Download' : 'Preview',
                 handler: function() {
-                    me.down('cartesian').download({
-                        filename: 'Redwood City Climate Data Chart'
-                    });
+                    var chart = me.down('cartesian');
+                    if (Ext.os.is.Desktop) {
+                        chart.download({
+                            filename: 'Redwood City Climate Data Chart'
+                        });
+                    } else {
+                        chart.preview();
+                    }
                 }
             },
             {

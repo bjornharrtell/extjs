@@ -72,7 +72,7 @@ Ext.define('Ext.dd.DDProxy', {
             s;
 
         if (!body || !body.firstChild) {
-            setTimeout( function() { self.createFrame(); }, 50 );
+            Ext.defer( function() { self.createFrame(); }, 50 );
             return;
         }
 

@@ -185,7 +185,14 @@ Ext.define('Ext.dd.DragDropManager', {
         Ext.getDoc().on({
             //TODO delay: 1, // delay to let other mouseup events occur before us
             mouseup: me.handleMouseUp,
-            mousemove: me.handleMouseMove,
+
+            // Mousemove events do not need to be captured because they do not contend
+            // with scroll events - they're only processed when a drag has begun.
+            // Capturing was causing https://sencha.jira.com/browse/EXTJS-13952
+            mousemove: {
+                fn: me.handleMouseMove,
+                capture: false
+            },
             dragstart: me.preventDrag,
             drag: me.preventDrag,
             dragend: me.preventDrag,

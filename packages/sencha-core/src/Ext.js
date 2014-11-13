@@ -40,7 +40,6 @@
  * @singleton
  */
 var Ext = Ext || {};
-// @require Ext.Boot
 // @define Ext
 Ext._startTime = Date.now ? Date.now() : (+ new Date());
 (function() {

@@ -90,14 +90,6 @@ Ext.define('KitchenSink.view.charts.combination.Dashboard', {
             ],
             data: myData,
             listeners: {
-                beforesort: function() {
-                    if (barChart) {
-                        var a = barChart.animation;
-                        barChart.animation = false;
-                        barChart.series.get(0).unHighlightItem();
-                        barChart.animation = a;
-                    }
-                },
                 //add listener to (re)select bar item after sorting or refreshing the dataset.
                 refresh: {
                     fn: function() {

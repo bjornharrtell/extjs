@@ -3,14 +3,14 @@ Ext.define('KitchenSink.view.main.MainController', {
     alias: 'controller.main',
 
     applyState: function(state) {
+        var refs = this.getReferences();
+
         if (state.hasTreeNav) {
-            this.getView().add({
+            this.getView().moveBefore({
                 region: 'west',
                 reference: 'tree',
                 xtype: 'navigation-tree'
-            });
-
-            var refs = this.getReferences();
+            }, refs.contentPanel);
 
             refs.breadcrumb.hide();
             refs.contentPanel.header.hidden = false;
@@ -41,7 +41,7 @@ Ext.define('KitchenSink.view.main.MainController', {
             });
         }
 
-        refs['breadcrumb.toolbar'].setSelection(selection);
+        refs['breadcrumb.toolbar'].setSelection(selection || 'root');
 
         treeNav.hide();
         refs.contentPanel.getHeader().hide();
@@ -53,26 +53,29 @@ Ext.define('KitchenSink.view.main.MainController', {
     showTreeNav: function() {
         var refs = this.getReferences(),
             treeNav = refs.tree,
-            breadcrumbNav = refs.breadcrumb;
+            breadcrumbNav = refs.breadcrumb,
+            selection = refs['breadcrumb.toolbar'].getSelection();
 
         if (treeNav) {
             treeNav.show();
         } else {
-            treeNav = this.getView().add({
+            treeNav = this.getView().moveBefore({
                 region: 'west',
                 reference: 'tree',
                 xtype: 'navigation-tree'
-            });
+            }, refs.contentPanel);
         }
 
-        treeNav.getSelectionModel().select([
-            refs['breadcrumb.toolbar'].getSelection()
-        ]);
+        if (selection) {
+            treeNav.getSelectionModel().select([
+                selection
+            ]);
 
-        breadcrumbNav.hide();
-        refs.contentPanel.getHeader().show();
+            breadcrumbNav.hide();
+            refs.contentPanel.getHeader().show();
 
-        this._hasTreeNav = true;
-        this.getView().saveState();
+            this._hasTreeNav = true;
+            this.getView().saveState();
+        }
     }
 });

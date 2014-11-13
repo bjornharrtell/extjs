@@ -5,7 +5,7 @@ describe("Ext.event.ListenerStack", function() {
         beforeEach(function() {
             listenerStack = new Ext.event.ListenerStack();
             fn = function() {},
-            scope = null,
+            scope = {},
             options = {};
         });
 

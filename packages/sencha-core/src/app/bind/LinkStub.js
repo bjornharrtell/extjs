@@ -87,6 +87,14 @@ Ext.define('Ext.app.bind.LinkStub', {
     },
     
     privates: {
+        collect: function() {
+            var me = this,
+                result = me.callParent(),
+                binding = me.binding ? 1 : 0;
+            
+            return result + binding;
+        },
+        
         sort: function () {
             var binding = this.binding;
 

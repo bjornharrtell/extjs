@@ -125,7 +125,7 @@ Ext.define('Ext.event.gesture.DoubleTap', {
     setSingleTapTimer: function(e) {
         var me = this;
 
-        me.singleTapTimer = setTimeout(function() {
+        me.singleTapTimer = Ext.defer(function() {
             me.fireSingleTap(e);
         }, me.getMaxDuration());
     },

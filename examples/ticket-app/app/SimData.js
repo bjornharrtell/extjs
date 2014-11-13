@@ -332,10 +332,12 @@ Ext.define('Ticket.SimData', {
                         });
                         Ext.Object.each(totals, function(key, value) {
                             data.push({
-                                status: key,
+                                status: parseInt(key, 10),
                                 total: value
                             });
                         });
+                        // Prevent the filters from running in the sim
+                        ctx.params.filter = null;
                         return data;
                     }
                 },
@@ -371,6 +373,8 @@ Ext.define('Ticket.SimData', {
                                 total: value
                             });
                         });
+                        // Prevent the filters from running in the sim
+                        ctx.params.filter = null;
                         return data;
                     }
                 },

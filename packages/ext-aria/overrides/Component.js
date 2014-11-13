@@ -40,26 +40,20 @@ Ext.define('Ext.aria.Component', {
      */
     
     /**
-     * @cfg {Boolean} [ariaRenderToElement=true] ARIA attributes are usually rendered
-     * into the main element of the Component using autoEl config option. However for
-     * certain Components (form fields, etc.) the main element is presentational and
-     * ARIA attributes should be rendered into child elements of the Component markup;
-     * this is done using the Component templates.
+     * @cfg {Boolean} [ariaRenderAttributesToElement=true] ARIA attributes are usually
+     * rendered into the main element of the Component using autoEl config option.
+     * However for certain Components (form fields, etc.) the main element is
+     * presentational and ARIA attributes should be rendered into child elements
+     * of the Component markup; this is done using the Component templates.
      *
      * If this flag is set to `true` (default), the ARIA attributes will be applied
      * to the main element.
      * @private
      */
     ariaRenderAttributesToElement: true,
-    
-    ariaFocusCls: Ext.baseCSSPrefix + 'aria-focus',
-    ariaItemFocusCls: Ext.baseCSSPrefix + 'aria-item-focus',
 
     statics: {
-        ariaHighContrastModeCls: Ext.baseCSSPrefix + 'aria-highcontrast',
-        
-        // Focus frame width is detected when body element is available
-        ariaFocusFrameWidth: undefined
+        ariaHighContrastModeCls: Ext.baseCSSPrefix + 'aria-highcontrast'
     },
     
     // Several of the attributes, like aria-controls and aria-activedescendant
@@ -195,283 +189,12 @@ Ext.define('Ext.aria.Component', {
         return el;
     },
     
-    /*
-     * Return a string of CSS classes that are set on the Component's focusable element
-     * when it is focused. By default, no classes are applied to a Component.
-     *
-     * @return {String} CSS classes, if any
-     */
-    ariaGetFocusCls: Ext.emptyFn,
-    
-    ariaAddFocusCls: function(cls) {
-        var focusEl = this.ariaGetFocusEl();
-        
-        focusEl.addCls(cls);
-    },
-    
-    ariaRemoveFocusCls: function(cls) {
-        var focusEl = this.ariaGetFocusEl();
-        
-        focusEl.removeCls(cls);
-    },
-
-    /**
-     * Retrieves the first parent container that is designated as an Aria section
-     * @private
-     * @return {Ext.Container} A container that is focusable
-     * Returns `null` if there is no section.
-     */
-    ariaGetFocusableSection: function() {
-        return this.up('{ariaIsSection()}');
-    },
-        
-    ariaGetFocusFallback: function() {
-        return this.ariaGetFocusableSection();
-    },
-
-    ariaIsSection: function() {
-        return false;
-    },
-
-    ariaNextSibling: function(selector, loop) {
-        var me = this,
-            it = me.ownerCt && me.ownerCt.items,
-            last, idx, c, len, i;
-        
-        if (it) {
-            idx = it.indexOf(me);
-            
-            if (idx < 0) {
-                return null;
-            }
-            
-            len = it.getCount();
-            
-            if (loop) {
-                for (i = idx; ;) {
-                    // Increment index, and loop round if off either end
-                    if ((i += 1) >= len) {
-                        i = 0;
-                    }
-                    else if (i < 0) {
-                        i = len - 1;
-                    }
-
-                    // As soon as we loop back to the starting index, give up, there are no focusable siblings.
-                    if (i === idx) {
-                        return null;
-                    }
-                    
-                    c = it.getAt(i);
-                    
-                    if (selector && c.is(selector)) {
-                        return c;
-                    }
-                    else if (!selector) {
-                        return c;
-                    }
-                }
-            }
-            else {
-                if (selector) {
-                    for (last = it.getCount(); idx < last; idx++) {
-                        c = it.getAt(idx);
-                        
-                        if (c.is(selector)) {
-                            return c;
-                        }
-                    }
-                }
-                else {
-                    if (idx < len) {
-                        return it.getAt(idx);
-                    }
-                }
-            }
-        }
-        
-        return null;
-    },
-
-    ariaPreviousSibling: function(selector, loop) {
-        var me = this,
-            it = me.ownerCt && me.ownerCt.items,
-            idx, c, len, i;
-        
-        if (it) {
-            idx = it.indexOf(me);
-            
-            if (idx < 0) {
-                return null;
-            }
-            
-            len = it.getCount();
-            
-            if (loop) {
-                for (i = idx; ;) {
-                    // Increment index, and loop round if off either end
-                    if ((i -= 1) >= len) {
-                        i = 0;
-                    }
-                    else if (i < 0) {
-                        i = len - 1;
-                    }
-
-                    // As soon as we loop back to the starting index, give up, there are no focusable siblings.
-                    if (i === idx) {
-                        return null;
-                    }
-
-                    c = it.getAt(i);
-                    
-                    if (selector && c.is(selector)) {
-                        return c;
-                    }
-                    else if (!selector) {
-                        return c;
-                    }
-                }
-
-            }
-            else {
-                if (selector) {
-                    for (--idx; idx >= 0; idx--) {
-                        if ((c = it.getAt(idx)).is(selector)) {
-                            return c;
-                        }
-                    }
-                }
-                else {
-                    if (idx) {
-                        return it.getAt(--idx);
-                    }
-                }
-            }
-
-        }
-        
-        return null;
-    },
-
-    ariaPreviousNode: function() {
-        var node = this,
-            regionCt,
-            result,
-            it, len, i, idx;
-
-        regionCt = node.up('{ariaIsSection()}');
-
-        if (!regionCt) {
-            return null;
-        }
-        
-        it = regionCt.ariaGetFocusItems(true);
-        len = it.length;
-        
-        if (!len) {
-            return null;
-        }
-        
-        idx = Ext.Array.indexOf(it, node);
-
-        for (i = idx - 1; ; i--) {
-            // Increment index, and loop round if off either end
-            if (i === len) {
-                i = 0;
-            }
-            else if (i < 0) {
-                i = len - 1;
-            }
-            
-            // As soon as we loop back to the starting index, give up, there are no focusable siblings.
-            if (i === idx) {
-                return null;
-            }
-            
-            result = it[i];
-            
-            if (result && result.isFocusable()) {
-                return result;
-            }
-        }
-        
-        return null;
-    },
-
-    ariaNextNode: function() {
-        var node = this,
-            regionCt,
-            result,
-            it, len, i, idx;
-
-        regionCt = node.up('{ariaIsSection()}');
-        
-        if (!regionCt) {
-            return null;
-        }
-        
-        it = regionCt.ariaGetFocusItems(false);
-        len = it.length;
-        
-        if (!len) {
-            return null;
-        }
-        
-        idx = Ext.Array.indexOf(it, node);
-
-        for (i = idx + 1; ; i++) {
-            // Increment index, and loop round if off either end
-            if (i === len) {
-                i = 0;
-            }
-            else if (i < 0) {
-                i = len - 1;
-            }
-            
-            // As soon as we loop back to the starting index, give up, there are no focusable siblings.
-            if (i === idx) {
-                return null;
-            }
-
-            result = it[i];
-            
-            if (result && result.isFocusable()) {
-                return result;
-            }
-        }
-        
-        return null;
-    },
-    
-    afterHide: function () {
-        var me = this,
-            mgr = Ext.aria.FocusManager;
-       
-        // We must call this here to avoid losing focus before 
-        // processing
-        if (mgr.enabled) {            
-            mgr.onComponentHide(me);
-        }
-        
-        this.callParent(arguments);
-    },
-    
     onFocus: function(e, t, eOpts) {
         var me = this,
             mgr = Ext.aria.FocusManager,
-            focusCls, tip, el;
+            tip, el;
 
         me.callParent(arguments);
-        
-        focusCls = me.ariaGetFocusCls();
-        
-        if (focusCls) {
-            me.ariaAddFocusCls(focusCls);
-        }
-
-        if (me.isGroupedBy) {
-            me.isGroupedBy.lastFocus = me;
-        }
         
         if (me.tooltip && Ext.quickTipsActive) {
             tip = Ext.tip.QuickTipManager.getQuickTip();
@@ -488,16 +211,9 @@ Ext.define('Ext.aria.Component', {
 
     onBlur: function(e, t, eOpts) {
         var me = this,
-            mgr = Ext.aria.FocusManager,
-            focusCls;
+            mgr = Ext.aria.FocusManager;
             
         me.callParent(arguments);
-        
-        focusCls = me.ariaGetFocusCls();
-        
-        if (focusCls) {
-            me.ariaRemoveFocusCls(focusCls);
-        }
         
         if (me.tooltip && Ext.quickTipsActive) {
             Ext.tip.QuickTipManager.getQuickTip().cancelShow(me.ariaGetEl());
@@ -505,17 +221,6 @@ Ext.define('Ext.aria.Component', {
         
         if (!me.hasFocus && mgr.enabled) {
             return mgr.onComponentBlur(me);
-        }
-    },
-
-    onDestroy: function() {
-        var me = this,
-            mgr = Ext.aria.FocusManager;
-            
-        me.callParent(arguments);
-        
-        if (mgr.enabled) {
-            mgr.onComponentDestroy(me);
         }
     },
 
@@ -630,21 +335,10 @@ function() {
     }
     
     Ext.enableAria = true;
-    Ext.FocusManager = Ext.aria.FocusManager;
     
     Ext.onReady(function() {
         var supports = Ext.supports,
             flags, div;
-        
-        // Detect focus frame width
-        div = Ext.getBody().appendChild({
-            cls: Ext.baseCSSPrefix + 'aria-focus-frame-detector'
-        });
-    
-        if (div) {
-            Ext.Component.ariaFocusFrameWidth = div.getWidth();
-            div.destroy();
-        }
         
         flags = Ext.isWindows ? detectHighContrastMode() : {};
         

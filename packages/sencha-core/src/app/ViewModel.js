@@ -202,7 +202,7 @@
  *     var viewModel new Ext.app.ViewModel({
  *         links: {
  *             theUser: {
- *                 reference: 'User',
+ *                 type: 'User',
  *                 id: 17
  *             }
  *         },
@@ -230,7 +230,7 @@
  *     var viewModel = new Ext.app.ViewModel({
  *         links: {
  *             theUser: {
- *                 reference: 'User',
+ *                 type: 'User',
  *                 type: 22
  *             }
  *         }
@@ -278,7 +278,7 @@
  *     var viewModel = new Ext.app.ViewModel({
  *         links: {
  *             orderItem: {
- *                 reference: 'OrderItem',
+ *                 type: 'OrderItem',
  *                 id: 13
  *             }
  *         }
@@ -365,6 +365,8 @@ Ext.define('Ext.app.ViewModel', {
 
     destroyed: false,
 
+    collectTimeout: 100,
+
     expressionRe: /^(?:\{[!]?(?:(\d+)|([a-z_][\w\-\.]*))\})$/i,
 
     $configStrict: false, // allow "formulas" to be specified on derived class body
@@ -395,22 +397,7 @@ Ext.define('Ext.app.ViewModel', {
         formulas: {
             $value: null,
             merge: function (newValue, currentValue, target, mixinClass) {
-                var ret, key;
-
-                if (!currentValue) {
-                    ret = newValue;
-                } else if (!newValue) {
-                    ret = currentValue;
-                } else {
-                    ret = Ext.apply({}, currentValue);
-
-                    for (key in newValue) {
-                        if (!mixinClass || !ret[key]) {
-                            ret[key] = newValue[key];
-                        }
-                    }
-                }
-                return ret;
+                return this.mergeNew(newValue, currentValue, target, mixinClass);
             }
         },
 
@@ -421,10 +408,21 @@ Ext.define('Ext.app.ViewModel', {
          *
          *      links: {
          *          theUser: {
-         *              reference: 'User',
+         *              type: 'User',
          *              id: 12
          *          }
          *      }
+         *
+         * It is also possible to force a new phantom record to be created by not specifying an
+         * id but passing `create: true` as part of the descriptor. This is often useful when
+         * creating a new record for a child session.
+         *
+         *    links: {
+         *        newUser: {
+         *            type: 'User',
+         *            create: true
+         *        }
+         *    } 
          *
          * While that is the typical use, the value of each property in `links` may also be
          * a bind descriptor (see `{@link #method-bind}` for the various forms of bind
@@ -474,6 +472,7 @@ Ext.define('Ext.app.ViewModel', {
          */
         session: null,
 
+        // @cmd-auto-dependency {isKeyedObject: true, aliasPrefix: "store.", defaultType: "store"}
         /**
          * @cfg {Object} stores
          * A declaration of `Ext.data.Store` configurations that are first processed as
@@ -577,9 +576,16 @@ Ext.define('Ext.app.ViewModel', {
             scheduler = me._scheduler,
             stores = me.storeInfo,
             parent = me.getParent(),
+            task = me.collectTask,
             key, store, autoDestroy;
 
         me.destroy = Ext.emptyFn;
+
+        me.destroying = true;
+        if (task) {
+            task.cancel();
+            me.collectTask = null;
+        }
 
         if (stores) {
             for (key in stores) {
@@ -596,6 +602,7 @@ Ext.define('Ext.app.ViewModel', {
             parent.unregisterChild(me);
         }
 
+        
         me.getRoot().destroy();
 
         if (scheduler && scheduler.$owner === me) {
@@ -605,6 +612,8 @@ Ext.define('Ext.app.ViewModel', {
 
         me.hadValue = me.children = me.storeInfo = me._session = me._view = me._scheduler =
                       me._root = me._parent = me.formulaFn = me.$formulaData = null;
+
+        me.destroying = false;
     },
 
     /**
@@ -684,7 +693,7 @@ Ext.define('Ext.app.ViewModel', {
     linkTo: function (key, reference) {
         var me = this,
             stub = me.getStub(key),
-            modelType, linkStub;
+            id, modelType, linkStub;
 
         //<debug>
         if (stub.depth - me.getRoot().depth > 1) {
@@ -694,14 +703,24 @@ Ext.define('Ext.app.ViewModel', {
 
         if (reference.isModel) {
             reference = {
-                reference: reference.entityName,
+                type: reference.entityName,
                 id: reference.id
             };
         }
-        modelType = reference.reference;
+        // reference is backwards compat, type is preferred.
+        modelType = reference.type || reference.reference;
         if (modelType) {
             // It's a record
-            stub.set(me.getRecord(modelType, reference.id));
+            id = reference.id;
+            //<debug>
+            if (!reference.create && Ext.isEmpty(id)) {
+                Ext.Error.raise('No id specified. To create a phantom model, specify "create: true" as part of the reference.');
+            }
+            //</debug>
+            if (reference.create) {
+                id = undefined;
+            }
+            stub.set(me.getRecord(modelType, id));
         } else {
             if (!stub.isLinkStub) {
                 // Pass parent=null since we will graft in this new stub to replace us:
@@ -800,10 +819,15 @@ Ext.define('Ext.app.ViewModel', {
          getRecord: function(type, id) {
             var session = this.getSession(),
                 Model = type,
+                hasId = id !== undefined,
                 record;
 
             if (session) {
-                record = session.getRecord(type, id);
+                if (hasId) {
+                    record = session.getRecord(type, id);
+                } else {
+                    record = session.createRecord(type);
+                }
             } else {
                 if (!Model.$isClass) {
                     Model = this.getSchema().getEntity(Model);
@@ -813,8 +837,12 @@ Ext.define('Ext.app.ViewModel', {
                     }
                     //</debug>
                 }
-                record = Model.createWithId(id);
-                record.load();
+                if (hasId) {
+                    record = Model.createWithId(id);
+                    record.load();
+                } else {
+                    record = new Model();
+                }
             }
             return record;
         },
@@ -881,6 +909,28 @@ Ext.define('Ext.app.ViewModel', {
         },
 
         collect: function() {
+            var me = this,
+                parent = me.getParent(),
+                task = me.collectTask;
+
+            if (parent) {
+                parent.collect();
+                return;
+            }
+
+            if (!task) {
+                task = me.collectTask = new Ext.util.DelayedTask(me.doCollect, me);
+            }
+
+            // Useful for testing
+            if (me.collectTimeout === 0) {
+                me.doCollect();
+            } else {
+                task.delay(me.collectTimeout);
+            }
+        },
+
+        doCollect: function() {
             var children = this.children,
                 key;
             
@@ -888,10 +938,26 @@ Ext.define('Ext.app.ViewModel', {
             // that create bindings inside our VM. Attempt to clean them up first.
             if (children) {
                 for (key in children) {
-                    children[key].collect();
+                    children[key].doCollect();
                 }
             }
             this.getRoot().collect();
+        },
+
+        onBindDestroy: function() {
+            var me = this,
+                parent;
+
+            if (me.destroying) {
+                return;
+            }
+
+            parent = me.getParent();
+            if (parent) {
+                parent.onBindDestroy();
+            } else {
+                me.collect();
+            }
         },
 
         //-------------------------------------------------------------------------

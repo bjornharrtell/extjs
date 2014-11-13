@@ -50,6 +50,11 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
         ];
         //</example>
 
+        var markerFx = {
+            duration: 200,
+            easing: 'backOut'
+        };
+
         me.items = [{
             xtype: 'cartesian',
             width: '100%',
@@ -59,11 +64,10 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
             },
             store: this.myDataStore,
             insetPadding: 40,
-            interactions: 'itemhighlight',
             sprites: [{
                 type: 'text',
                 text: 'Line Charts - Marked Lines',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -71,15 +75,15 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 470
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 480
+                y: 485
             }],
             axes: [{
                 type: 'numeric',
@@ -107,17 +111,12 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
                 title: 'IE',
                 xField: 'month',
                 yField: 'data1',
-                style: {
-                    lineWidth: 4
-                },
                 marker: {
-                    radius: 4
+                    type: 'square',
+                    fx: markerFx
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    radius: 5,
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                highlightCfg: {
+                    scaling: 2
                 },
                 tooltip: {
                     trackMouse: true,
@@ -133,17 +132,12 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
                 title: 'Firefox',
                 xField: 'month',
                 yField: 'data2',
-                style: {
-                    lineWidth: 4
-                },
                 marker: {
-                    radius: 4
+                    type: 'triangle',
+                    fx: markerFx
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    radius: 5,
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                highlightCfg: {
+                    scaling: 2
                 },
                 tooltip: {
                     trackMouse: true,
@@ -159,17 +153,12 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
                 title: 'Chrome',
                 xField: 'month',
                 yField: 'data3',
-                style: {
-                    lineWidth: 4
-                },
                 marker: {
-                    radius: 4
+                    type: 'arrow',
+                    fx: markerFx
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    radius: 5,
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                highlightCfg: {
+                    scaling: 2
                 },
                 tooltip: {
                     trackMouse: true,
@@ -185,17 +174,12 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
                 title: 'Safari',
                 xField: 'month',
                 yField: 'data4',
-                style: {
-                    lineWidth: 4
-                },
                 marker: {
-                    radius: 4
+                    type: 'cross',
+                    fx: markerFx
                 },
-                highlight: {
-                    fillStyle: '#000',
-                    radius: 5,
-                    lineWidth: 2,
-                    strokeStyle: '#fff'
+                highlightCfg: {
+                    scaling: 2
                 },
                 tooltip: {
                     trackMouse: true,

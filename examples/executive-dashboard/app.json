@@ -188,6 +188,8 @@
      */
     "archivePath": "archive",
 
+    "output": "${ext.dir}/build/examples/executive-dashboard",
+
     /**
      * Uniquely generated id for this application, used as prefix for localStorage keys.
      * Normally you should never change this value.

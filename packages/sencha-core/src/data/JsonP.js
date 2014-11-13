@@ -161,7 +161,7 @@ Ext.define('Ext.data.JsonP', {
         };
 
         if (timeout > 0) {
-            request.timeout = setTimeout(Ext.bind(me.handleTimeout, me, [request]), timeout);
+            request.timeout = Ext.defer(me.handleTimeout, timeout, me, [request]);
         }
 
         me.setupErrorHandling(request);

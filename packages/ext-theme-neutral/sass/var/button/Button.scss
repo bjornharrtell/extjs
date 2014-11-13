@@ -82,6 +82,19 @@ $button-small-font-size-pressed: $button-small-font-size !default;
 
 /**
  * @var {number}
+ * The default font-size for a small {@link #scale} button when the button is focused and
+ * the cursor is over the button
+ */
+$button-small-font-size-focus-over: $button-small-font-size-over !default;
+
+/**
+ * @var {number}
+ * The default font-size for a small {@link #scale} button when the button is focused and pressed
+ */
+$button-small-font-size-focus-pressed: $button-small-font-size-pressed !default;
+
+/**
+ * @var {number}
  * The default font-size for a small {@link #scale} button when the button is disabled
  */
 $button-small-font-size-disabled: $button-small-font-size !default;
@@ -112,6 +125,20 @@ $button-small-font-weight-pressed: $button-small-font-weight !default;
 
 /**
  * @var {string}
+ * The default font-weight for a small {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-small-font-weight-focus-over: $button-small-font-weight-over !default;
+
+/**
+ * @var {string}
+ * The default font-weight for a small {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-small-font-weight-focus-pressed: $button-small-font-weight-pressed !default;
+
+/**
+ * @var {string}
  * The default font-weight for a small {@link #scale} button when the button is disabled
  */
 $button-small-font-weight-disabled: $button-small-font-weight !default;
@@ -139,6 +166,20 @@ $button-small-font-family-focus: $button-small-font-family-over !default;
  * The default font-family for a small {@link #scale} button when the button is pressed
  */
 $button-small-font-family-pressed: $button-small-font-family !default;
+
+/**
+ * @var {string}
+ * The default font-family for a small {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-small-font-family-focus-over: $button-small-font-family-over !default;
+
+/**
+ * @var {string}
+ * The default font-family for a small {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-small-font-family-focus-pressed: $button-small-font-family-pressed !default;
 
 /**
  * @var {string}
@@ -239,6 +280,20 @@ $button-medium-font-size-pressed: $button-medium-font-size !default;
 
 /**
  * @var {number}
+ * The default font-size for a medium {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-medium-font-size-focus-over: $button-medium-font-size-over !default;
+
+/**
+ * @var {number}
+ * The default font-size for a medium {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-medium-font-size-focus-pressed: $button-medium-font-size-pressed !default;
+
+/**
+ * @var {number}
  * The default font-size for a medium {@link #scale} button when the button is disabled
  */
 $button-medium-font-size-disabled: $button-medium-font-size !default;
@@ -269,6 +324,20 @@ $button-medium-font-weight-pressed: $button-medium-font-weight !default;
 
 /**
  * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-medium-font-weight-focus-over: $button-medium-font-weight-over !default;
+
+/**
+ * @var {string}
+ * The default font-weight for a medium {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-medium-font-weight-focus-pressed: $button-medium-font-weight-pressed !default;
+
+/**
+ * @var {string}
  * The default font-weight for a medium {@link #scale} button when the button is disabled
  */
 $button-medium-font-weight-disabled: $button-medium-font-weight !default;
@@ -296,6 +365,20 @@ $button-medium-font-family-focus: $button-medium-font-family-over !default;
  * The default font-family for a medium {@link #scale} button when the button is pressed
  */
 $button-medium-font-family-pressed: $button-medium-font-family !default;
+
+/**
+ * @var {string}
+ * The default font-family for a medium {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-medium-font-family-focus-over: $button-medium-font-family-over !default;
+
+/**
+ * @var {string}
+ * The default font-family for a medium {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-medium-font-family-focus-pressed: $button-medium-font-family-pressed !default;
 
 /**
  * @var {string}
@@ -396,6 +479,20 @@ $button-large-font-size-pressed: $button-large-font-size !default;
 
 /**
  * @var {number}
+ * The default font-size for a large {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-large-font-size-focus-over: $button-large-font-size-over !default;
+
+/**
+ * @var {number}
+ * The default font-size for a large {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-large-font-size-focus-pressed: $button-large-font-size-pressed !default;
+
+/**
+ * @var {number}
  * The default font-size for a large {@link #scale} button when the button is disabled
  */
 $button-large-font-size-disabled: $button-large-font-size !default;
@@ -426,6 +523,20 @@ $button-large-font-weight-pressed: $button-large-font-weight !default;
 
 /**
  * @var {string}
+ * The default font-weight for a large {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-large-font-weight-focus-over: $button-large-font-weight-over !default;
+
+/**
+ * @var {string}
+ * The default font-weight for a large {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-large-font-weight-focus-pressed: $button-large-font-weight-pressed !default;
+
+/**
+ * @var {string}
  * The default font-weight for a large {@link #scale} button when the button is disabled
  */
 $button-large-font-weight-disabled: $button-large-font-weight !default;
@@ -453,6 +564,20 @@ $button-large-font-family-focus: $button-large-font-family-over !default;
  * The default font-family for a large {@link #scale} button when the button is pressed
  */
 $button-large-font-family-pressed: $button-large-font-family !default;
+
+/**
+ * @var {string}
+ * The default font-family for a large {@link #scale} button when the button is focused
+ * and the cursor is over the button
+ */
+$button-large-font-family-focus-over: $button-large-font-family-over !default;
+
+/**
+ * @var {string}
+ * The default font-family for a large {@link #scale} button when the button is focused
+ * and pressed
+ */
+$button-large-font-family-focus-pressed: $button-large-font-family-pressed !default;
 
 /**
  * @var {string}
@@ -528,6 +653,19 @@ $button-default-base-color-pressed: button-default-background-color-pressed($but
 
 /**
  * @var {color}
+ * The base color for the `default` button UI when the button is focused and the cursor
+ * is over the button
+ */
+$button-default-base-color-focus-over: $button-default-base-color-over !default;
+
+/**
+ * @var {color}
+ * The base color for the `default` button UI when the button is focused and pressed
+ */
+$button-default-base-color-focus-pressed: $button-default-base-color-pressed !default;
+
+/**
+ * @var {color}
  * The base color for the `default` button UI when the button is disabled
  */
 $button-default-base-color-disabled: button-default-background-color-disabled($button-default-base-color) !default;
@@ -558,6 +696,19 @@ $button-default-border-color-pressed: button-default-border-color-pressed($butto
 
 /**
  * @var {color}
+ * The border-color for the `default` button UI when the button is focused and the cursor
+ * is over the button
+ */
+$button-default-border-color-focus-over: $button-default-border-color-over !default;
+
+/**
+ * @var {color}
+ * The border-color for the `default` button UI when the button is focused and pressed
+ */
+$button-default-border-color-focus-pressed: $button-default-border-color-pressed !default;
+
+/**
+ * @var {color}
  * The border-color for the `default` button UI when the button is disabled
  */
 $button-default-border-color-disabled: button-default-border-color-disabled($button-default-border-color) !default;
@@ -585,6 +736,19 @@ $button-default-background-color-focus: $button-default-base-color-focus !defaul
  * The background-color for the `default` button UI when the button is pressed
  */
 $button-default-background-color-pressed: $button-default-base-color-pressed !default;
+
+/**
+ * @var {color}
+ * The background-color for the `default` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-default-background-color-focus-over: $button-default-background-color-over !default;
+
+/**
+ * @var {color}
+ * The background-color for the `default` button UI when the button is focused and pressed
+ */
+$button-default-background-color-focus-pressed: $button-default-background-color-pressed !default;
 
 /**
  * @var {color}
@@ -626,6 +790,22 @@ $button-default-background-gradient-pressed: 'glossy-button-pressed' !default;
 
 /**
  * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is focused and the
+ * cursor is over the button. Can be either the name of a predefined gradient or a list
+ * of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-focus-over: $button-default-background-gradient-over !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default` button UI when the button is focused and
+ * pressed.  Can be either the name of a predefined gradient or a list of color stops.
+ * Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-default-background-gradient-focus-pressed: $button-default-background-gradient-pressed !default;
+
+/**
+ * @var {string/list}
  * The background-gradient for the `default` button UI when the button is disabled.  Can be
  * either the name of a predefined gradient or a list of color stops. Used as the `$type`
  * parameter for {@link Global_CSS#background-gradient}.
@@ -658,9 +838,126 @@ $button-default-color-pressed: button-default-color-pressed($button-default-colo
 
 /**
  * @var {color}
+ * The text color for the `default` button UI when the button is focused and the cursor
+ * is over the button
+ */
+$button-default-color-focus-over: $button-default-color-over !default;
+
+/**
+ * @var {color}
+ * The text color for the `default` button UI when the button is focused and pressed
+ */
+$button-default-color-focus-pressed: $button-default-color-pressed !default;
+
+/**
+ * @var {color}
  * The text color for the `default` button UI when the button is disabled
  */
 $button-default-color-disabled: button-default-color-disabled($button-default-color) !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI
+ */
+$button-default-inner-border-width: 'none' !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI when the cursor is over the button
+ */
+$button-default-inner-border-width-over: $button-default-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI when the button is focused
+ */
+$button-default-inner-border-width-focus: $button-default-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI when the button is pressed
+ */
+$button-default-inner-border-width-pressed: $button-default-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-default-inner-border-width-focus-over: $button-default-inner-border-width-focus !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default` button UI when the button is focused and pressed
+ */
+$button-default-inner-border-width-focus-pressed: $button-default-inner-border-width-focus !default;
+
+/**
+ * @var {number/lipressed}
+ * The inner border-width for the `default` button UI when the button is disabled
+ */
+$button-default-inner-border-width-disabled: $button-default-inner-border-width !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI
+ */
+$button-default-inner-border-color: button-default-inner-border-color($button-default-background-color, $button-default-color) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the cursor is over the button
+ */
+$button-default-inner-border-color-over: button-default-inner-border-color-over($button-default-background-color-over, $button-default-color-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the button is focused
+ */
+$button-default-inner-border-color-focus: button-default-inner-border-color-focus($button-default-background-color-focus, $button-default-color-focus) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the button is pressed
+ */
+$button-default-inner-border-color-pressed: button-default-inner-border-color-pressed($button-default-background-color-pressed, $button-default-color-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-default-inner-border-color-focus-over: button-default-inner-border-color-focus-over($button-default-background-color-focus-over, $button-default-color-focus-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the button is focused and pressed
+ */
+$button-default-inner-border-color-focus-pressed: button-default-inner-border-color-focus-pressed($button-default-background-color-focus-pressed, $button-default-color-focus-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default` button UI when the button is disabled
+ */
+$button-default-inner-border-color-disabled: button-default-inner-border-color-disabled($button-default-background-color-disabled, $button-default-color-disabled) !default;
+
+/**
+ * @var {number}
+ * The body outline width for the `default` button UI when the button is focused
+ */
+$button-default-body-outline-width-focus: 0 !default;
+
+/**
+ * @var {string}
+ * The body outline-style for the `default` button UI when the button is focused
+ */
+$button-default-body-outline-style-focus: dotted !default;
+
+/**
+ * @var {color}
+ * The body outline color for the `default` button UI when the button is focused
+ */
+$button-default-body-outline-color-focus: $button-default-color !default;
 
 /**
  * @var {color}
@@ -700,6 +997,20 @@ $button-toolbar-border-color-pressed: button-toolbar-border-color-pressed($butto
 
 /**
  * @var {color}
+ * The border-color for the `default-toolbar` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-toolbar-border-color-focus-over: $button-toolbar-border-color-over !default;
+
+/**
+ * @var {color}
+ * The border-color for the `default-toolbar` button UI when the button is focused and
+ * pressed
+ */
+$button-toolbar-border-color-focus-pressed: $button-toolbar-border-color-pressed !default;
+
+/**
+ * @var {color}
  * The border-color for the `default-toolbar` button UI when the button is disabled
  */
 $button-toolbar-border-color-disabled: button-toolbar-border-color-disabled($button-toolbar-border-color) !default;
@@ -727,6 +1038,20 @@ $button-toolbar-background-color-focus: button-toolbar-background-color-focus($b
  * The background-color for the `default-toolbar` button UI when the button is pressed
  */
 $button-toolbar-background-color-pressed: button-toolbar-background-color-pressed($button-toolbar-background-color) !default;
+
+/**
+ * @var {color}
+ * The background-color for the `default-toolbar` button UI when the button is focused
+ * and the cursor is over the button
+ */
+$button-toolbar-background-color-focus-over: $button-toolbar-background-color-over !default;
+
+/**
+ * @var {color}
+ * The background-color for the `default-toolbar` button UI when the button is focused
+ * and pressed
+ */
+$button-toolbar-background-color-focus-pressed: $button-toolbar-background-color-pressed !default;
 
 /**
  * @var {color}
@@ -768,6 +1093,22 @@ $button-toolbar-background-gradient-pressed: 'glossy-button-pressed' !default;
 
 /**
  * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is focused
+ * and the cursor is over the button. Can be either the name of a predefined gradient or a
+ * list of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient-focus-over: $button-toolbar-background-gradient-over !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `default-toolbar` button UI when the button is focused
+ * and pressed. Can be either the name of a predefined gradient or a list of color stops.
+ * Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-toolbar-background-gradient-focus-pressed: $button-toolbar-background-gradient-pressed !default;
+
+/**
+ * @var {string/list}
  * The background-gradient for the `default-toolbar` button UI when the button is disabled.
  * Can be either the name of a predefined gradient or a list of color stops. Used as the
  * `$type` parameter for {@link Global_CSS#background-gradient}.
@@ -800,9 +1141,128 @@ $button-toolbar-color-pressed: button-toolbar-color-pressed($button-toolbar-colo
 
 /**
  * @var {color}
+ * The text color for the `default-toolbar` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-toolbar-color-focus-over: $button-toolbar-color-over !default;
+
+/**
+ * @var {color}
+ * The text color for the `default-toolbar` button UI when the button is focused and pressed
+ */
+$button-toolbar-color-focus-pressed: $button-toolbar-color-pressed !default;
+
+/**
+ * @var {color}
  * The text color for the `default-toolbar` button UI when the button is disabled
  */
 $button-toolbar-color-disabled: button-toolbar-color-disabled($button-toolbar-color) !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI
+ */
+$button-toolbar-inner-border-width: 'none' !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the cursor is over the button
+ */
+$button-toolbar-inner-border-width-over: $button-toolbar-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the button is focused
+ */
+$button-toolbar-inner-border-width-focus: $button-toolbar-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the button is pressed
+ */
+$button-toolbar-inner-border-width-pressed: $button-toolbar-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the button is focused
+ * and the cursor is over the button
+ */
+$button-toolbar-inner-border-width-focus-over: $button-toolbar-inner-border-width-focus !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the button is focused
+ * and pressed
+ */
+$button-toolbar-inner-border-width-focus-pressed: $button-toolbar-inner-border-width-focus !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `default-toolbar` button UI when the button is disabled
+ */
+$button-toolbar-inner-border-width-disabled: $button-toolbar-inner-border-width !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI
+ */
+$button-toolbar-inner-border-color: button-toolbar-inner-border-color($button-toolbar-background-color, $button-toolbar-color) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the cursor is over the button
+ */
+$button-toolbar-inner-border-color-over: button-toolbar-inner-border-color-over($button-toolbar-background-color-over, $button-toolbar-color-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the button is focused
+ */
+$button-toolbar-inner-border-color-focus: button-toolbar-inner-border-color-focus($button-toolbar-background-color-focus, $button-toolbar-color-focus) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the button is pressed
+ */
+$button-toolbar-inner-border-color-pressed: button-toolbar-inner-border-color-pressed($button-toolbar-background-color-pressed, $button-toolbar-color-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the button is focused
+ * and the cursor is over the button
+ */
+$button-toolbar-inner-border-color-focus-over: button-toolbar-inner-border-color-focus-over($button-toolbar-background-color-focus-over, $button-toolbar-color-focus-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the button is focused
+ * and pressed
+ */
+$button-toolbar-inner-border-color-focus-pressed: button-toolbar-inner-border-color-focus-pressed($button-toolbar-background-color-focus-pressed, $button-toolbar-color-focus-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `default-toolbar` button UI when the button is disabled
+ */
+$button-toolbar-inner-border-color-disabled: button-toolbar-inner-border-color-disabled($button-toolbar-background-color-disabled, $button-toolbar-color-disabled) !default;
+
+/**
+ * @var {number}
+ * The body outline width for the `default-toolbar` button UI when the button is focused
+ */
+$button-toolbar-body-outline-width-focus: $button-default-body-outline-width-focus !default;
+
+/**
+ * @var {string}
+ * The body outline-style for the `default-toolbar` button UI when the button is focused
+ */
+$button-toolbar-body-outline-style-focus: $button-default-body-outline-style-focus !default;
+
+/**
+ * @var {color}
+ * The body outline color for the `default-toolbar` button UI when the button is focused
+ */
+$button-toolbar-body-outline-color-focus: $button-default-body-outline-color-focus !default;
 
 /**
  * @var {color}
@@ -925,10 +1385,6 @@ $include-button-default-toolbar-medium-ui: $include-button-default-toolbar-ui !d
 $include-button-default-toolbar-large-ui: $include-button-default-toolbar-ui !default;
 
 /**
- * @class Ext.cell.Button
- */
-
-/**
  * @var {number}
  * The default width for a grid cell button's {@link #cfg-menu} arrow
  */
@@ -1009,6 +1465,19 @@ $button-grid-cell-font-size-pressed: $button-grid-cell-font-size !default;
 
 /**
  * @var {number}
+ * The default font-size for a grid cell button when the button is focused and the cursor
+ * is over the button
+ */
+$button-grid-cell-font-size-focus-over: $button-grid-cell-font-size-over !default;
+
+/**
+ * @var {number}
+ * The default font-size for a grid cell button when the button is focused and pressed
+ */
+$button-grid-cell-font-size-focus-pressed: $button-grid-cell-font-size-pressed !default;
+
+/**
+ * @var {number}
  * The default font-size for a grid cell button when the button is disabled
  */
 $button-grid-cell-font-size-disabled: $button-grid-cell-font-size !default;
@@ -1036,6 +1505,19 @@ $button-grid-cell-font-weight-focus: $button-grid-cell-font-weight-over !default
  * The default font-weight for a grid cell button when the button is pressed
  */
 $button-grid-cell-font-weight-pressed: $button-grid-cell-font-weight !default;
+
+/**
+ * @var {string}
+ * The default font-weight for a grid cell button when the button is focused and the
+ * cursor is over the button
+ */
+$button-grid-cell-font-weight-focus-over: $button-grid-cell-font-weight-over !default;
+
+/**
+ * @var {string}
+ * The default font-weight for a grid cell button when the button is focused and pressed
+ */
+$button-grid-cell-font-weight-focus-pressed: $button-grid-cell-font-weight-pressed !default;
 
 /**
  * @var {string}
@@ -1069,6 +1551,19 @@ $button-grid-cell-font-family-pressed: $button-grid-cell-font-family !default;
 
 /**
  * @var {string}
+ * The default font-family for a grid cell button when the button is focused and the
+ * cursor is over the button
+ */
+$button-grid-cell-font-family-focus-over: $button-grid-cell-font-family-over !default;
+
+/**
+ * @var {string}
+ * The default font-family for a grid cell button when the button is focused and pressed
+ */
+$button-grid-cell-font-family-focus-pressed: $button-grid-cell-font-family-pressed !default;
+
+/**
+ * @var {string}
  * The default font-family for a grid cell button when the button is disabled
  */
 $button-grid-cell-font-family-disabled: $button-grid-cell-font-family !default;
@@ -1093,36 +1588,6 @@ $button-grid-cell-icon-spacing: $button-small-icon-spacing !default;
 
 /**
  * @var {color}
- * The base color for the `cell` button UI
- */
-$button-grid-cell-base-color: $button-default-base-color !default;
-
-/**
- * @var {color}
- * The base color for the `cell` button UI when the cursor is over the button
- */
-$button-grid-cell-base-color-over: $button-grid-cell-base-color !default;
-
-/**
- * @var {color}
- * The base color for the `cell` button UI when the button is focused
- */
-$button-grid-cell-base-color-focus: $button-grid-cell-base-color-over !default;
-
-/**
- * @var {color}
- * The base color for the `cell` button UI when the button is pressed
- */
-$button-grid-cell-base-color-pressed: $button-grid-cell-base-color !default;
-
-/**
- * @var {color}
- * The base color for the `cell` button UI when the button is disabled
- */
-$button-grid-cell-base-color-disabled: $button-default-base-color-disabled !default;
-
-/**
- * @var {color}
  * The border-color for the `cell` button UI
  */
 $button-grid-cell-border-color: $button-default-border-color !default;
@@ -1131,55 +1596,81 @@ $button-grid-cell-border-color: $button-default-border-color !default;
  * @var {color}
  * The border-color for the `cell` button UI when the cursor is over the button
  */
-$button-grid-cell-border-color-over: $button-default-border-color-over !default;
+$button-grid-cell-border-color-over: button-default-border-color-over($button-grid-cell-border-color) !default;
 
 /**
  * @var {color}
  * The border-color for the `cell` button UI when the button is focused
  */
-$button-grid-cell-border-color-focus: $button-default-border-color-focus !default;
+$button-grid-cell-border-color-focus: button-default-border-color-focus($button-grid-cell-border-color) !default;
 
 /**
  * @var {color}
  * The border-color for the `cell` button UI when the button is pressed
  */
-$button-grid-cell-border-color-pressed: $button-default-border-color-pressed !default;
+$button-grid-cell-border-color-pressed: button-default-border-color-pressed($button-grid-cell-border-color) !default;
+
+/**
+ * @var {color}
+ * The border-color for the `cell` button UI when the button is focused and the cursor
+ * is over the button
+ */
+$button-grid-cell-border-color-focus-over: $button-grid-cell-border-color-over !default;
+
+/**
+ * @var {color}
+ * The border-color for the `cell` button UI when the button is focused and pressed
+ */
+$button-grid-cell-border-color-focus-pressed: $button-grid-cell-border-color-pressed !default;
 
 /**
  * @var {color}
  * The border-color for the `cell` button UI when the button is disabled
  */
-$button-grid-cell-border-color-disabled: $button-default-border-color-disabled !default;
+$button-grid-cell-border-color-disabled: button-default-border-color-disabled($button-grid-cell-border-color) !default;
 
 /**
  * @var {color}
  * The background-color for the `cell` button UI
  */
-$button-grid-cell-background-color: $button-grid-cell-base-color !default;
+$button-grid-cell-background-color: $button-default-background-color !default;
 
 /**
  * @var {color}
  * The background-color for the `cell` button UI when the cursor is over the button
  */
-$button-grid-cell-background-color-over: $button-default-background-color-over !default;
+$button-grid-cell-background-color-over: button-default-background-color-over($button-grid-cell-background-color) !default;
 
 /**
  * @var {color}
  * The background-color for the `cell` button UI when the button is focused
  */
-$button-grid-cell-background-color-focus: $button-grid-cell-background-color-over !default;
+$button-grid-cell-background-color-focus: button-default-background-color-focus($button-grid-cell-background-color) !default;
 
 /**
  * @var {color}
  * The background-color for the `cell` button UI when the button is pressed
  */
-$button-grid-cell-background-color-pressed: $button-grid-cell-base-color-pressed !default;
+$button-grid-cell-background-color-pressed: button-default-background-color-pressed($button-grid-cell-background-color) !default;
+
+/**
+ * @var {color}
+ * The background-color for the `cell` button UI when the button is focused and the cursor
+ * is over the button
+ */
+$button-grid-cell-background-color-focus-over: $button-grid-cell-background-color-over !default;
+
+/**
+ * @var {color}
+ * The background-color for the `cell` button UI when the button is focused and pressed
+ */
+$button-grid-cell-background-color-focus-pressed: $button-grid-cell-background-color-pressed !default;
 
 /**
  * @var {color}
  * The background-color for the `cell` button UI when the button is disabled
  */
-$button-grid-cell-background-color-disabled: $button-default-background-color-disabled !default;
+$button-grid-cell-background-color-disabled: button-default-background-color-disabled($button-grid-cell-background-color) !default;
 
 /**
  * @var {string/list}
@@ -1215,6 +1706,22 @@ $button-grid-cell-background-gradient-pressed: $button-default-background-gradie
 
 /**
  * @var {string/list}
+ * The background-gradient for the `cell` button UI when the button is focused and the
+ * cursor is over the button.  Can be either the name of a predefined gradient or a list
+ * of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-grid-cell-background-gradient-focus-over: $button-grid-cell-background-gradient-over !default;
+
+/**
+ * @var {string/list}
+ * The background-gradient for the `cell` button UI when the button is focused and pressed.
+ * Can be either the name of a predefined gradient or a list of color stops. Used as the
+ * `$type` parameter for {@link Global_CSS#background-gradient}.
+ */
+$button-grid-cell-background-gradient-focus-pressed: $button-grid-cell-background-gradient-pressed !default;
+
+/**
+ * @var {string/list}
  * The background-gradient for the `cell` button UI when the button is disabled.  Can be
  * either the name of a predefined gradient or a list of color stops. Used as the `$type`
  * parameter for {@link Global_CSS#background-gradient}.
@@ -1231,25 +1738,142 @@ $button-grid-cell-color: $button-default-color !default;
  * @var {color}
  * The text color for the `cell` button UI when the cursor is over the button
  */
-$button-grid-cell-color-over: $button-grid-cell-color !default;
+$button-grid-cell-color-over: button-default-color-over($button-grid-cell-color) !default;
 
 /**
  * @var {color}
  * The text color for the `cell` button UI when the button is focused
  */
-$button-grid-cell-color-focus: $button-grid-cell-color-over !default;
+$button-grid-cell-color-focus: button-default-color-focus($button-grid-cell-color) !default;
 
 /**
  * @var {color}
  * The text color for the `cell` button UI when the button is pressed
  */
-$button-grid-cell-color-pressed: $button-grid-cell-color !default;
+$button-grid-cell-color-pressed: button-default-color-pressed($button-grid-cell-color) !default;
+
+/**
+ * @var {color}
+ * The text color for the `cell` button UI when the button is focused and the cursor is
+ * over the button
+ */
+$button-grid-cell-color-focus-over: $button-grid-cell-color-over !default;
+
+/**
+ * @var {color}
+ * The text color for the `cell` button UI when the button is focused and pressed
+ */
+$button-grid-cell-color-focus-pressed: $button-grid-cell-color-pressed !default;
 
 /**
  * @var {color}
  * The text color for the `cell` button UI when the button is disabled
  */
-$button-grid-cell-color-disabled: $button-grid-cell-color !default;
+$button-grid-cell-color-disabled: button-default-color-disabled($button-grid-cell-color) !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI
+ */
+$button-grid-cell-inner-border-width: 'none' !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the cursor is over the button
+ */
+$button-grid-cell-inner-border-width-over: $button-grid-cell-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the button is focused
+ */
+$button-grid-cell-inner-border-width-focus: $button-grid-cell-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the button is pressed
+ */
+$button-grid-cell-inner-border-width-pressed: $button-grid-cell-inner-border-width !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-grid-cell-inner-border-width-focus-over: $button-grid-cell-inner-border-width-focus !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the button is focused and pressed
+ */
+$button-grid-cell-inner-border-width-focus-pressed: $button-grid-cell-inner-border-width-focus !default;
+
+/**
+ * @var {number/list}
+ * The inner border-width for the `cell` button UI when the button is disabled
+ */
+$button-grid-cell-inner-border-width-disabled: $button-grid-cell-inner-border-width !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI
+ */
+$button-grid-cell-inner-border-color: button-default-inner-border-color($button-grid-cell-background-color, $button-grid-cell-color) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the cursor is over the button
+ */
+$button-grid-cell-inner-border-color-over: button-default-inner-border-color-over($button-grid-cell-background-color-over, $button-grid-cell-color-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the button is focused
+ */
+$button-grid-cell-inner-border-color-focus: button-default-inner-border-color-focus($button-grid-cell-background-color-focus, $button-grid-cell-color-focus) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the button is pressed
+ */
+$button-grid-cell-inner-border-color-pressed: button-default-inner-border-color-pressed($button-grid-cell-background-color-pressed, $button-grid-cell-color-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the button is focused and the
+ * cursor is over the button
+ */
+$button-grid-cell-inner-border-color-focus-over: button-default-inner-border-color-focus-over($button-grid-cell-background-color-focus-over, $button-grid-cell-color-focus-over) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the button is focused and pressed
+ */
+$button-grid-cell-inner-border-color-focus-pressed: button-default-inner-border-color-focus-pressed($button-grid-cell-background-color-focus-pressed, $button-grid-cell-color-focus-pressed) !default;
+
+/**
+ * @var {color}
+ * The inner border-color for the `cell` button UI when the button is disabled
+ */
+$button-grid-cell-inner-border-color-disabled: button-default-inner-border-color-disabled($button-grid-cell-background-color-disabled, $button-grid-cell-color-disabled) !default;
+
+/**
+ * @var {number}
+ * The body outline width for the `cell` button UI when the button is focused
+ */
+$button-grid-cell-body-outline-width-focus: $button-default-body-outline-width-focus !default;
+
+/**
+ * @var {string}
+ * The body outline-style for the `cell` button UI when the button is focused
+ */
+$button-grid-cell-body-outline-style-focus: $button-default-body-outline-style-focus !default;
+
+/**
+ * @var {color}
+ * The body outline color for the `cell` button UI when the button is focused
+ */
+$button-grid-cell-body-outline-color-focus: $button-default-body-outline-color-focus !default;
 
 /**
  * @var {color}

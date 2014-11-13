@@ -80,6 +80,7 @@ Ext.define('Ext.data.proxy.Proxy', {
          */
         model: undefined,
 
+        // @cmd-auto-dependency {aliasPrefix : "reader.", defaultPropertyName : "defaultReaderType"}
         /**
          * @cfg {Object/String/Ext.data.reader.Reader} reader
          * The Ext.data.reader.Reader to use to decode the server's response or data read
@@ -90,6 +91,7 @@ Ext.define('Ext.data.proxy.Proxy', {
             type: 'json'
         },
 
+        // @cmd-auto-dependency {aliasPrefix : "writer.", defaultPropertyName : "defaultWriterType"}
         /**
          * @cfg {Object/String/Ext.data.writer.Writer} writer
          * The Ext.data.writer.Writer to use to encode any request sent to the server or

@@ -18,10 +18,10 @@
 }
 
 .aria-itemselector .x-boundlist .x-boundlist-list-ct {
-    border: $focus-frame-width $focus-frame-style #3A4155;
+    border: 2px solid #3A4155;
 }
 
-.aria-itemselector .x-boundlist .x-aria-focus {
-    border: $focus-frame-width $focus-frame-style $focus-frame-color;
+.aria-itemselector .x-boundlist .x-focus {
+    border: 2px solid #3A4155;
 }
 

@@ -229,12 +229,12 @@ Ext.define('Ext.form.field.Number', {
      * @return {String[]} All validation errors for this field
      */
     getErrors: function(value) {
+        value = arguments.length > 0 ? value : this.processRawValue(this.getRawValue());
+
         var me = this,
-            errors = me.callParent(arguments),
+            errors = me.callParent([value]),
             format = Ext.String.format,
             num;
-
-        value = Ext.isDefined(value) ? value : this.processRawValue(this.getRawValue());
 
         if (value.length < 1) { // if it's blank and textfield didn't flag it then it's valid
              return errors;
@@ -383,13 +383,14 @@ Ext.define('Ext.form.field.Number', {
         return parseFloat(Ext.Number.toFixed(parseFloat(value), precision));
     },
 
-    beforeBlur : function() {
+    onBlur : function(e) {
         var me = this,
             v = me.rawToValue(me.getRawValue());
 
         if (!Ext.isEmpty(v)) {
             me.setValue(v);
         }
+        me.callParent([e]);
     },
     
     setSpinUpEnabled: function(enabled, /* private */ internal){
@@ -427,8 +428,7 @@ Ext.define('Ext.form.field.Number', {
     },
     
     setSpinValue: function(value) {
-        var me = this,
-            len;
+        var me = this;
             
         if (me.enforceMaxLength) {
             // We need to round the value here, otherwise we could end up with a

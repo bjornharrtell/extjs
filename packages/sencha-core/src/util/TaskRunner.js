@@ -112,6 +112,9 @@ Ext.define('Ext.util.TaskRunner', {
      * be easily started and stopped.
      * @param {Object} config The config object. For details on the supported properties,
      * see {@link #start}.
+     *
+     * @return {Ext.util.TaskRunner.Task} 
+     * Ext.util.TaskRunner.Task instance, which can be useful for method chaining.
      */
     newTask: function (config) {
         var task = new Ext.util.TaskRunner.Task(config);
@@ -351,7 +354,7 @@ Ext.define('Ext.util.TaskRunner', {
                 timeout = me.interval;
             }
 
-            me.timerId = setTimeout(me.timerFn, timeout);
+            me.timerId = Ext.defer(me.timerFn, timeout);
             me.nextExpires = expires;
         }
     }

@@ -8,6 +8,16 @@ Ext.apply(Ext, {
 // @require Ext
 // @require Ext.lang.*
 
+    // shortcut for the special named scopes for listener scope resolution
+    _namedScopes: {
+        'this': { isThis: 1 },
+        controller: { isController: 1 },
+        // these two are private, used to indicate that listeners were declared on the
+        // class body with either an unspecified scope, or scope:'controller'
+        self: { isSelf: 1 },
+        'self.controller': { isSelf: 1, isController: 1 }
+    },
+
     escapeId: (function(){
         var validIdRe = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/i,
             escapeRx = /([\W]{1})/g,
@@ -65,11 +75,11 @@ Ext.apply(Ext, {
             return;
         }
 
-        var preventClimb = scope === 'this' || scope === 'controller';
+        var namedScope = (scope in Ext._namedScopes);
         
         if (callback.charAt) { // if (isString(fn))
-            if ((!scope || preventClimb) && caller) {
-                scope = caller.resolveListenerScope(preventClimb ? scope : defaultScope);
+            if ((!scope || namedScope) && caller) {
+                scope = caller.resolveListenerScope(namedScope ? scope : defaultScope);
             }
             //<debug>
             if (!scope || !Ext.isObject(scope)) {
@@ -82,7 +92,7 @@ Ext.apply(Ext, {
             //</debug>
 
             callback = scope[callback];
-        } else if (preventClimb) {
+        } else if (namedScope) {
             scope = defaultScope || caller;
         } else if (!scope) {
             scope = caller;
@@ -334,9 +344,11 @@ Ext.apply(Ext, {
      * @return {Number} return.height The height of the horizontal scrollbar.
      */
     getScrollbarSize: function (force) {
-        if (!Ext.isReady) {
-            return {};
+        //<debug>
+        if (!Ext.isDomReady) {
+            Ext.Error.raise("getScrollbarSize called before DomReady");
         }
+        //</debug>
 
         var scrollbarSize = Ext._scrollbarSize;
 

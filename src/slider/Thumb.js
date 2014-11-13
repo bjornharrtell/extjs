@@ -6,6 +6,8 @@
  */
 Ext.define('Ext.slider.Thumb', {
     requires: ['Ext.dd.DragTracker', 'Ext.util.Format'],
+    
+    overCls: Ext.baseCSSPrefix + 'slider-thumb-over',
 
     /**
      * @cfg {Ext.slider.MultiSlider} slider (required)
@@ -135,11 +137,23 @@ Ext.define('Ext.slider.Thumb', {
             onDrag       : me.onDrag.bind(me),
             onEnd        : me.onDragEnd.bind(me),
             tolerance    : 3,
-            autoStart    : 300,
-            overCls      : Ext.baseCSSPrefix + 'slider-thumb-over'
+            autoStart    : 300
         });
+        
+        me.el.hover(me.addOverCls, me.removeOverCls, me);
     },
 
+    addOverCls: function() {
+        var me = this;
+        if (!me.disabled) {
+            me.el.addCls(me.overCls);
+        }
+    },
+    
+    removeOverCls: function() {
+        this.el.removeCls(this.overCls);
+    },
+    
     /**
      * @private
      * This is tied into the internal Ext.dd.DragTracker. If the slider is currently disabled,
@@ -247,9 +261,6 @@ Ext.define('Ext.slider.Thumb', {
 
         if (me.dragStartValue != value) {
             slider.fireEvent('changecomplete', slider, value, me);
-            if (slider.publishOnComplete) {
-                slider.publishValue(value);
-            }
         }
     },
 

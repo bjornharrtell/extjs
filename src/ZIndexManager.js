@@ -15,19 +15,54 @@ Ext.define('Ext.ZIndexManager', {
     alternateClassName: 'Ext.WindowGroup',
 
     requires: [
-        'Ext.GlobalEvents'
+        'Ext.util.SorterCollection',
+        'Ext.util.FilterCollection'
     ],
 
     statics: {
-        zBase : 9000
+        zBase : 9000,
+        activeCounter: 0
     },
 
     constructor: function(container) {
         var me = this;
 
-        me.map = {};
-        me.zIndexStack = [];
+        me.id = Ext.id(null, 'zindex-mgr-');
+
+        // The stack is a collection sorted on the incrementing activeCounter ascending, so recently active components
+        // sort to the top.
+        // The component's alwaysOnTop flag takes priority in the sort order and
+        // cause the component to gravitate to the correct end of the stack.
+        me.zIndexStack = new Ext.util.Collection({
+            sorters: {
+                sorterFn: function(comp1, comp2) {
+                    var ret = (comp1.alwaysOnTop || 0) - (comp2.alwaysOnTop || 0);
+                    if (!ret) {
+                       ret = comp1.getActiveCounter() - comp2.getActiveCounter();
+                    }
+                    return ret;
+                }
+            },
+            filters: {
+                filterFn: function(comp) {
+                    return comp.isVisible();
+                }
+            }
+        });
+
+        // zIndexStack will call into this class on key lifecycle events if methods exist here.
+        // Specifically, we implement onCollectionSort which is called by Component's updaters for activeCounter and alwaysOnTop.
+        me.zIndexStack.addObserver(me);
         me.front = null;
+
+        // Listen for global component hiding and showing.
+        // onComponentShowHide only reacts if we are managing the component.
+        me.globalListeners = Ext.globalEvents.on({
+            hide: me.onComponentShowHide,
+            show: me.onComponentShowHide,
+            scope: me,
+            destroyable: true
+        });
 
         if (container) {
 
@@ -57,128 +92,108 @@ Ext.define('Ext.ZIndexManager', {
         }
     },
 
+    // Required to be an Observer of a Collection
+    getId: function() {
+        return this.id;
+    },
+
     getNextZSeed: function() {
         return (Ext.ZIndexManager.zBase += 10000);
     },
 
     setBase: function(baseZIndex) {
         this.zseed = baseZIndex;
-        var result = this.assignZIndices();
-        this._activateLast();
-        return result;
+        return this.onCollectionSort();
     },
 
     // @private
-    assignZIndices: function() {
-        var a = this.zIndexStack,
+    // Called whenever the zIndexStack is sorted.
+    // That happens in reaction to the activeCounter time being set, or the alwaysOnTop config being set.
+    onCollectionSort: function() {
+        var me = this,
+            oldFront = me.front,
+            a = me.zIndexStack.getRange(),
             len = a.length,
-            i = 0,
-            zIndex = this.zseed,
+            i,
+            zIndex = me.zseed,
             comp,
-            topModal;
+            topModal,
+            doFocus;
 
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             comp = a[i];
-            if (comp && !comp.hidden) {
 
-                // Setting the zIndex of a Component returns the topmost zIndex consumed by
-                // that Component.
-                // If it's just a plain floating Component such as a BoundList, then the
-                // return value is the passed value plus 10, ready for the next item.
-                // If a floating *Container* has its zIndex set, it re-orders its managed
-                // floating children, starting from that new base, and returns a value 10000 above
-                // the highest zIndex which it allocates.
-                zIndex = comp.setZIndex(zIndex);
-                if (comp.modal) {
-                    topModal = comp;
-                }
+            // Setting the zIndex of a Component returns the topmost zIndex consumed by
+            // that Component.
+            // If it's just a plain floating Component such as a BoundList, then the
+            // return value is the passed value plus 10, ready for the next item.
+            // If a floating *Container* has its zIndex set, it re-orders its managed
+            // floating children, starting from that new base, and returns a value 10000 above
+            // the highest zIndex which it allocates.
+            zIndex = comp.setZIndex(zIndex);
+            if (comp.modal) {
+                topModal = comp;
             }
         }
-        
+
+        // Sort resulted in a different component at the top of the stack
+        if (comp && comp !== oldFront) {
+
+            // Clear active flag on old front component.
+            // Do not inform it, if the reason for its deactivation is that it's being destroyed.
+            if (oldFront && !oldFront.destroying) {
+                    oldFront.setActive(false, comp);
+                }
+
+            // Modals always get focused.
+            // Focus the new front unless it is configured not to do so on toFront
+            doFocus = comp.modal || (comp.focusOnToFront && !comp.preventFocusOnActivate);
+
+            comp.setActive(true, null, doFocus);
+        }
+
+        // Cache the top of the stack
+        me.front = comp;
+
         // If we encountered a modal in our reassigment, ensure our modal mask is just below it.
         if (topModal) {
-            this._showModalMask(topModal);
+            me._showModalMask(topModal);
+        }
+        // Otherwise, ensure the modal mask is hidden
+        else {
+            me._hideModalMask();
         }
         return zIndex;
     },
 
-    // @private
-    _setActiveChild: function(comp, oldFront) {
-        var front = this.front,
-            oldPreventFocus = comp.preventFocusOnActivate;
-
-        if (comp !== front) {
-
-            if (front && !front.destroying) {
-                front.setActive(false, comp);
-            }
-            this.front = comp;
-            if (comp && comp != oldFront) {
-
-                // If the previously active comp did not take focus, then do not disturb focus state by focusing the new front
-                comp.preventFocusOnActivate = comp.preventFocusOnActivate || oldFront && (oldFront.preventFocusOnActivate || !oldFront.focusOnToFront);
-
-                comp.setActive(true);
-                
-                // If the modal mask was utilized by the outgoing front component, reposition it.
-                if (comp.modal) {
-                    this._showModalMask(comp);
-                }
-
-                // Restore the new front's focusing flag
-                comp.preventFocusOnActivate = oldPreventFocus;
-            }
+    /**
+     * @private
+     * Called from {@link Ext.util.Floating} updater methods when a config which affects the stack order is
+     * updated in a Component.
+     *
+     * eg {@link Ext.Component#alwaysOnTop alwaysOnTop} or {@link Ext.Component#activeCounter activeCounter}
+     */
+    onComponentUpdate: function(comp) {
+        if (this.zIndexStack.contains(comp)) {
+            this.zIndexStack.sort();
         }
     },
 
-    onComponentHide: function(comp){
-        this._activateLast();
-    },
+    /**
+     * @private
+     * Called when the global hide and show events are fired. If it is one of our components, we must re-sort.
+     */
+    onComponentShowHide: function(comp) {
+        var zIndexStack = this.zIndexStack;
 
-    // @private
-    _activateLast: function() {
-        var me = this,
-            stack = me.zIndexStack,
-            i = stack.length - 1,
-            comp;
-
-        // Go down through the z-index stack.
-        // Activate the next visible one down.
-        // If that was modal, then we're done
-        
-        // Note that we're using an empty loop body here
-        // This is intentional!
-        for (; i >= 0 && stack[i].hidden; --i);
-
-        // The loop found a visible floater to activate
-        if ((comp = stack[i])) {
-            me._setActiveChild(comp, me.front);
-            if (comp.modal) {
-                return;
+        // If component has hidden, it will be filtered out, so we have to look in Collection's source if it's there.
+        if (comp.isFloating() && !this.hidingAll && (zIndexStack.getSource() || zIndexStack).contains(comp)) {
+            zIndexStack.itemChanged(comp, 'hidden');
+            zIndexStack.sort();
+            if (!comp.isVisible()) {
+                comp.setActive(false);
             }
         }
-        // No other floater to activate, just deactivate the current one
-        else {
-            if (me.front && !me.front.destroying) {
-                me.front.setActive(false);
-            }
-            me.front = null;
-        }
-
-        // If the new top one was not modal, keep going down to find the next visible
-        // modal one to shift the modal mask down under
-        for (; i >= 0; --i) {
-            comp = stack[i];
-            // If we find a visible modal further down the zIndex stack, move the mask to just under it.
-            if (comp.isVisible() && comp.modal) {
-                me._showModalMask(comp);
-                return;
-            }
-        }
-
-        // No visible modal Component was found in the run down the stack.
-        // So hide the modal mask
-        me._hideModalMask();
     },
 
     _showModalMask: function(comp) {
@@ -187,7 +202,7 @@ Ext.define('Ext.ZIndexManager', {
             maskTarget = comp.floatParent ? comp.floatParent.getTargetEl() : comp.container,
             mask = me.mask,
             shim = me.maskShim,
-            viewSize;
+            viewSize, tabbableAttr;
 
         if (!mask) {
             // Create the mask at zero size so that it does not affect upcoming target measurements.
@@ -203,9 +218,9 @@ Ext.define('Ext.ZIndexManager', {
             mask.setVisibilityMode(Ext.Element.DISPLAY);
             mask.on('click', me._onMaskClick, me);
         }
-        
+
         mask.maskTarget = maskTarget;
-        viewSize = me.getMaskBox();
+        viewSize = me._getMaskBox();
 
         if (shim) {
             shim.setStyle('zIndex', zIndex);
@@ -213,6 +228,10 @@ Ext.define('Ext.ZIndexManager', {
             shim.setBox(viewSize);
         }
         mask.setStyle('zIndex', zIndex);
+        
+        tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
+        maskTarget.saveTabbableState(tabbableAttr);
+        maskTarget.saveChildrenTabbableState(tabbableAttr);
 
         mask.show();
         mask.setBox(viewSize);
@@ -220,9 +239,15 @@ Ext.define('Ext.ZIndexManager', {
 
     _hideModalMask: function() {
         var mask = this.mask,
-            maskShim = this.maskShim;
+            maskShim = this.maskShim,
+            maskTarget, tabbableAttr;
 
         if (mask && mask.isVisible()) {
+            maskTarget = mask.maskTarget;
+            tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
+            maskTarget.restoreChildrenTabbableState(tabbableAttr);
+            maskTarget.restoreTabbableState(tabbableAttr);
+            
             mask.maskTarget = undefined;
             mask.hide();
             if (maskShim) {
@@ -236,8 +261,8 @@ Ext.define('Ext.ZIndexManager', {
             this.front.focus();
         }
     },
-    
-    getMaskBox: function(){
+
+    _getMaskBox: function(){
         var maskTarget = this.mask.maskTarget;
         if (maskTarget.dom === document.body) {
             return {
@@ -266,7 +291,7 @@ Ext.define('Ext.ZIndexManager', {
                 maskShim.hide();
             }
 
-            viewSize = me.getMaskBox();
+            viewSize = me._getMaskBox();
             if (maskShim) {
                 maskShim.setSize(viewSize);
                 maskShim.show();
@@ -291,22 +316,13 @@ Ext.define('Ext.ZIndexManager', {
      * @param {Ext.Component} comp The Component to register.
      */
     register : function(comp) {
-        var me = this,
-            compAfterHide = comp.afterHide;
-        
+        var me = this;
+
         if (comp.zIndexManager) {
             comp.zIndexManager.unregister(comp);
         }
         comp.zIndexManager = me;
-
-        me.map[comp.id] = comp;
-        me.zIndexStack.push(comp);
-        
-        // Hook into Component's afterHide processing
-        comp.afterHide = function() {
-            compAfterHide.apply(comp, arguments);
-            me.onComponentHide(comp);
-        };
+        me.zIndexStack.add(comp);
     },
 
     /**
@@ -316,20 +332,9 @@ Ext.define('Ext.ZIndexManager', {
      * @param {Ext.Component} comp The Component to unregister.
      */
     unregister : function(comp) {
-        var me = this,
-            map = me.map;
-        
         delete comp.zIndexManager;
-        if (map && map[comp.id]) {
-            delete map[comp.id];
-            
-            // Relinquish control of Component's afterHide processing
-            delete comp.afterHide;
-            Ext.Array.remove(me.zIndexStack, comp);
-
-            // Destruction requires that the topmost visible floater be activated. Same as hiding.
-            me._activateLast();
-        }
+        this.zIndexStack.remove(comp);
+        this.onCollectionSort();
     },
 
     /**
@@ -338,46 +343,40 @@ Ext.define('Ext.ZIndexManager', {
      * @return {Ext.Component}
      */
     get : function(id) {
-        return id.isComponent ? id : this.map[id];
+        return id.isComponent ? id : this.zIndexStack.get(id);
     },
 
    /**
      * Brings the specified Component to the front of any other active Components in this ZIndexManager.
-     * @param {String/Object} comp The id of the Component or a {@link Ext.Component} instance
-     * @return {Boolean} True if the dialog was brought to the front, else false
-     * if it was already in front
+     * @param {String/Object} comp The id of the Component or a {@link Ext.Component} instance.
+     * @param {Boolean} preventFocus Pass `true` to prevent the component being focused when moved to front.
+     * @return {Boolean} True if the component was brought to the front, else false
+     * if it was already in front, or another component remains at the front due to configuration (eg
+     * {@link Ext.util.Floating#alwaysOnTop}.
      */
     bringToFront : function(comp, preventFocus) {
         var me = this,
-            result = false,
-            zIndexStack = me.zIndexStack;
-        
-        comp = me.get(comp);
-        if (comp !== me.front) {
-            Ext.Array.remove(zIndexStack, comp);
-            if (comp.preventBringToFront) {
-                // this takes care of cases where a load mask should be displayed under a floated component
-                zIndexStack.unshift(comp);
-            } else {
-                // the default behavior is to push onto the stack
-                zIndexStack.push(comp);
-            }
+            zIndexStack = me.zIndexStack,
+            oldFront = zIndexStack.last(),
+            newFront,
+            preventFocusSetting = comp.preventFocusOnActivate;
 
-            me.assignZIndices();
-
-            // Activate new topmost
-            if (!preventFocus) {
-                me._activateLast();
-            }
-            result = true;
-            me.front = comp;
-            
-            // If new topmost is modal, ensure the mask is there
-            if (comp.modal) {
-                me._showModalMask(comp);
-            }
+        // Refuse to perform this operation if there is an visible alwaysOnTop component
+        if (zIndexStack.find('alwaysOnTop', true)) {
+            return false;
         }
-        return result;
+
+        comp = me.get(comp);
+
+        // The onCollectionSorted reaction to the setting of activeCounter will focus by default.
+        // Prevent it if requested.
+        comp.preventFocusOnActivate = preventFocus;
+        comp.setActiveCounter(++Ext.ZIndexManager.activeCounter);
+        comp.preventFocusOnActivate = preventFocusSetting;
+        newFront = zIndexStack.last();
+
+        // Return true if the passed component was moved to the front and was not already at the front
+        return (newFront === comp && newFront !== oldFront);
     },
 
     /**
@@ -386,13 +385,8 @@ Ext.define('Ext.ZIndexManager', {
      * @return {Ext.Component} The Component
      */
     sendToBack : function(comp) {
-        var me = this;
-        
-        comp = me.get(comp);
-        Ext.Array.remove(me.zIndexStack, comp);
-        me.zIndexStack.unshift(comp);
-        me.assignZIndices();
-        this._activateLast();
+        comp = this.get(comp);
+        comp.setActiveCounter(0);
         return comp;
     },
 
@@ -400,18 +394,15 @@ Ext.define('Ext.ZIndexManager', {
      * Hides all Components managed by this ZIndexManager.
      */
     hideAll : function() {
-        var map = this.map,
-            item,
-            id;
-            
-        for (id in map) {
-            if (map.hasOwnProperty(id)) {
-                item = map[id];
-                if (item.isComponent && item.isVisible()) {
-                    item.hide();
-                }
-            }
+        var all = this.zIndexStack.getRange(),
+            len = all.length,
+            i;
+
+        this.hidingAll = true;
+        for (i = 0; i < len; i++) {
+            all[i].hide();
         }
+        this.hidingAll = true;
     },
 
     /**
@@ -421,19 +412,16 @@ Ext.define('Ext.ZIndexManager', {
      * they should all be hidden just for the duration of the drag.
      */
     hide: function() {
-        var i = 0,
-            stack = this.zIndexStack,
-            len = stack.length,
+        var me = this,
+            all = me.tempHidden = me.zIndexStack.getRange(),
+            len = all.length,
+            i,
             comp;
 
-        this.tempHidden = [];
-        for (; i < len; i++) {
-            comp = stack[i];
-            if (comp.isVisible()) {
-                this.tempHidden.push(comp);
-                comp.el.hide();
-                comp.hidden = true;
-            }
+        for (i = 0; i < len; i++) {
+            comp = all[i];
+            comp.el.hide();
+            comp.hidden = true;
         }
     },
 
@@ -442,18 +430,18 @@ Ext.define('Ext.ZIndexManager', {
      * Restores temporarily hidden managed Components to visibility.
      */
     show: function() {
-        var i = 0,
+        var i,
             tempHidden = this.tempHidden,
             len = tempHidden ? tempHidden.length : 0,
             comp;
 
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             comp = tempHidden[i];
             comp.el.show();
             comp.hidden = false;
             comp.setPosition(comp.x, comp.y);
         }
-        delete this.tempHidden;
+        this.tempHidden = null;
     },
 
     /**
@@ -461,7 +449,7 @@ Ext.define('Ext.ZIndexManager', {
      * @return {Ext.Component} The active Component
      */
     getActive : function() {
-        return this.front;
+        return this.zIndexStack.last();
     },
 
     /**
@@ -469,24 +457,12 @@ Ext.define('Ext.ZIndexManager', {
      * The function should accept a single {@link Ext.Component} reference as its only argument and should
      * return true if the Component matches the search criteria, otherwise it should return false.
      * @param {Function} fn The search function
-     * @param {Object} [scope] The scope (this reference) in which the function is executed.
+     * @param {Object} [scope] The scope (`this` reference) in which the function is executed.
      * Defaults to the Component being tested. That gets passed to the function if not specified.
-     * @return {Array} An array of zero or more matching windows
+     * @return {Array} An array of zero or more matching floating components.
      */
     getBy : function(fn, scope) {
-        var r = [],
-            i = 0,
-            stack = this.zIndexStack,
-            len = stack.length,
-            comp;
-
-        for (; i < len; i++) {
-            comp = stack[i];
-            if (fn.call(scope||comp, comp) !== false) {
-                r.push(comp);
-            }
-        }
-        return r;
+        return this.zIndexStack.filterBy(fn, scope).getRange();
     },
 
     /**
@@ -497,18 +473,7 @@ Ext.define('Ext.ZIndexManager', {
      * is executed. Defaults to the current Component in the iteration.
      */
     each : function(fn, scope) {
-        var map = this.map,
-            id,
-            comp;
-            
-        for (id in map) {
-            if (map.hasOwnProperty(id)) {
-                comp = map[id];
-                if (comp.isComponent && fn.call(scope || comp, comp) === false) {
-                    return;
-                }
-            }
-        }
+        this.zIndexStack.each(fn, scope);
     },
 
     /**
@@ -520,12 +485,12 @@ Ext.define('Ext.ZIndexManager', {
      * is executed. Defaults to the current Component in the iteration.
      */
     eachBottomUp: function (fn, scope) {
-        var stack = this.zIndexStack,
-            i = 0,
+        var stack = this.zIndexStack.getRange(),
+            i,
             len = stack.length,
             comp;
 
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             comp = stack[i];
             if (comp.isComponent && fn.call(scope || comp, comp) === false) {
                 return;
@@ -542,11 +507,11 @@ Ext.define('Ext.ZIndexManager', {
      * is executed. Defaults to the current Component in the iteration.
      */
     eachTopDown: function (fn, scope) {
-        var stack = this.zIndexStack,
-            i = stack.length,
+        var stack = this.zIndexStack.getRange(),
+            i,
             comp;
 
-        for (; i-- > 0; ) {
+        for (i = stack.length; i-- > 0; ) {
             comp = stack[i];
             if (comp.isComponent && fn.call(scope || comp, comp) === false) {
                 return;
@@ -556,26 +521,16 @@ Ext.define('Ext.ZIndexManager', {
 
     destroy: function() {
         var me   = this,
-            map = me.map,
-            comp,
-            id;
+            stack = me.zIndexStack.getRange(),
+            len = stack.length,
+            i;
 
-        for (id in map) {
-            if (map.hasOwnProperty(id)) {
-                comp = map[id];
-
-                if (comp.isComponent) {
-                    comp.destroy();
-                }
-            }
+        for (i = 0; i < len; i++) {
+            Ext.destroy(stack[i]);
         }
 
-        Ext.destroy(me.mask);
-        Ext.destroy(me.maskShim);
-        delete me.zIndexStack;
-        delete me.map;
-        delete me.container;
-        delete me.targetEl;
+        Ext.destroy(me.mask, me.maskShim, me.zIndexStack, me.globalListeners);
+        me.zIndexStack = me.container = me.targetEl = me.globalListeners = null;
     }
 }, function() {
     /**

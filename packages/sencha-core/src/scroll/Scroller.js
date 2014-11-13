@@ -324,6 +324,8 @@ Ext.define('Ext.scroll.Scroller', {
 
         me.startPosition = { x: 0, y: 0 };
 
+        me.lastMaxPosition = { x: 0, y: 0 };
+
         me.velocity = { x: 0, y: 0 };
 
         me.isAxisEnabledFlags = { x: false, y: false };
@@ -605,19 +607,25 @@ Ext.define('Ext.scroll.Scroller', {
      * @return {Object}
      */
     getMaxPosition: function() {
-        var maxPosition = this.maxPosition,
+        var me = this,
+            maxPosition = me.maxPosition,
             size, containerSize;
 
         if (!maxPosition) {
-            size = this.getSize();
-            containerSize = this.getContainerSize();
+            size = me.getSize();
+            containerSize = me.getContainerSize();
 
-            this.maxPosition = maxPosition = {
+            me.maxPosition = maxPosition = {
                 x: Math.max(0, size.x - containerSize.x),
                 y: Math.max(0, size.y - containerSize.y)
             };
 
-            this.fireEvent('maxpositionchange', this, maxPosition);
+            // Only fire the event if either maximum changed.
+            if (maxPosition.x !== me.lastMaxPosition.x || maxPosition.y !== me.lastMaxPosition.y) {
+                me.fireEvent('maxpositionchange', me, maxPosition);
+                me.lastMaxPosition.x = maxPosition.x;
+                me.lastMaxPosition.y = maxPosition.y;
+            }
         }
 
         return maxPosition;

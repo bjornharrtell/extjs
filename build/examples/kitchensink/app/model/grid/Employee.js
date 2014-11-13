@@ -44,20 +44,28 @@ Ext.define('KitchenSink.model.grid.Employee', {
     }],
     idField: 'employeeNo',
 
-    afterEdit: function(modifiedFieldNames) {
+    // Override set to update dependent fields
+    set: function(data, value) {
+        var dataObj;
+
+        // Convert 2 arg form to object form
+        if (Ext.isString(data)) {
+            dataObj = {};
+            dataObj[data] = value;
+            data = dataObj;
+        }
+
         // "name" is a calculated field, so update it on edit of "forename" or "surname".
-        if (Ext.Array.contains(modifiedFieldNames, 'forename') || Ext.Array.contains(modifiedFieldNames, 'surname')) {
-            this.data.name = this.data.forename + ' ' + this.data.surname;
-            modifiedFieldNames.push('name');
+        if (data.forename || data.surname) {
+            data.name = (data.forename || this.get('forename')) + ' ' + (data.surname || this.get('surname'));
         }
         // Likewise, update two name fields if whole name gets updated
-        else if (Ext.Array.contains(modifiedFieldNames, 'name')) {
-            var names = this.convertName(this.data.name);
-            this.data.forename = names[0];
-            this.data.surname = names[1];
-            modifiedFieldNames.push('forename', 'surname');
+        else if (data.name) {
+            var names = this.convertName(data.name);
+            data.forename = names[0];
+            data.surname = names[1];
         }
-        return this.callParent(arguments);
+        return this.callParent([data]);
     },
     
     convertName: function(name) {

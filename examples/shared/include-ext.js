@@ -42,6 +42,7 @@
         rtl = getQueryParam('rtl'),
         theme = getQueryParam('theme') || 'crisp',
         includeCSS = !hasOption('nocss', path),
+        useDebug = hasOption('debug'),
         hasOverrides = !hasOption('nooverrides', path) && !!{
             // TODO: remove neptune
             neptune: 1,
@@ -55,7 +56,7 @@
         packagePath,
         themePath,
         i = 3,
-        overridePath;
+        overridePath, extPrefix;
 
     rtl = rtl && rtl.toString() === 'true';
 
@@ -73,7 +74,9 @@
                             themePath + '-debug.css"/>');
     }
 
-    document.write('<script type="text/javascript" src="' + path + '/ext-all' +
+    extPrefix = useDebug ? '/ext' : '/ext-all';
+    
+    document.write('<script type="text/javascript" src="' + path + extPrefix +
                             (rtl ? '-rtl' : '') + '.js"></script>');
 
     if (hasOverrides) {

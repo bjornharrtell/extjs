@@ -43,6 +43,14 @@ Ext.define('Ext.panel.Bar', {
         this.callParent([destroying]);
     },
 
+    beforeRender: function() {
+        if (!this.ownerCt) {
+            // allows bars to be rendered directly to body with no owner container
+            this.initOrientation();
+        }
+        this.callParent();
+    },
+
     setDock: function(dock) {
         var me = this,
             layout, vertical;
@@ -80,7 +88,6 @@ Ext.define('Ext.panel.Bar', {
         initOrientation: function() {
             var me = this,
                 dock = me.dock,
-                ownerCt = me.ownerCt,
                 vertical = me.vertical = (dock ? dock in me._verticalSides : me.vertical);
 
             me.addClsWithUI([

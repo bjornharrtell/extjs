@@ -37,7 +37,7 @@
     </macrodef>
 
     <target name="-watch-sass-dir">
-        <x-run-compass-watch directory="${app.sass.dir}" refName="compass-watch"/>
+        <x-run-compass-watch directory="${app.sass.dir}"/>
     </target>
     
     <target name="-stop-compass-watch">

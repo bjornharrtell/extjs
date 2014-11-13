@@ -12,6 +12,12 @@
     z-index: 3;
 }
 
+.#{$prefix}tab-button {
+    // tab-button needs position relative because it contains an absolutely positioned
+    // pseudo element to hold the focus outline in classic themes
+   position: relative;
+}
+
 .#{$prefix}tab-close-btn {
     display: block;
     position: absolute;

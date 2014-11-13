@@ -30,6 +30,30 @@ Ext.define('Ext.GlobalEvents', {
      */
 
     /**
+     * @event beforeresponsiveupdate
+     * Fires before {@link Ext.mixin.Responsive} perform any updates in response to
+     * dynamic changes. This is prior to refreshing `responsiveFormulas`.
+     * @param {Object} context The context object used by `responsiveConfig` expressions.
+     * @since 5.0.1
+     */
+
+    /**
+     * @event beginresponsiveupdate
+     * Fires when {@link Ext.mixin.Responsive} is about to perform updates in response to
+     * dynamic changes. At this point all `responsiveFormulas` have been refreshed.
+     * @param {Object} context The context object used by `responsiveConfig` expressions.
+     * @since 5.0.1
+     */
+
+    /**
+     * @event responsiveupdate
+     * Fires after {@link Ext.mixin.Responsive} has performed updates in response to
+     * dynamic changes.
+     * @param {Object} context The context object used by `responsiveConfig` expressions.
+     * @since 5.0.1
+     */
+
+    /**
      * @event collapse
      * Fires when a Component is collapsed (e.g., a panel).
      * @param {Ext.Component} component

@@ -191,8 +191,7 @@ Ext.define('Ext.grid.plugin.Editing', {
     },
 
     resolveListenerScope: function(defaultScope) {
-        var grid = this.grid;
-        return grid ? grid.resolveListenerScope(defaultScope) : this.callParent([defaultScope]);
+        return this.grid.resolveListenerScope(defaultScope);
     },
     
     onBeforeReconfigure: function() {
@@ -321,13 +320,13 @@ Ext.define('Ext.grid.plugin.Editing', {
         columnHeader.field = this.createColumnField(columnHeader);
     },
 
-    createColumnField: function (columnHeader, defaultField) {
-        var field = columnHeader.field,
+    createColumnField: function (column, defaultField) {
+        var field = column.field,
             dataIndex;
 
-        if (!field && columnHeader.editor) {
-            field = columnHeader.editor;
-            columnHeader.editor = null;
+        if (!field && column.editor) {
+            field = column.editor;
+            column.editor = null;
         }
 
         if (!field && defaultField) {
@@ -335,21 +334,21 @@ Ext.define('Ext.grid.plugin.Editing', {
         }
 
         if (field) {
-            dataIndex = columnHeader.dataIndex;
+            dataIndex = column.dataIndex;
 
             if (field.isComponent) {
-                field.column = columnHeader;
+                field.column = column;
             } else {
                 if (Ext.isString(field)) {
                     field = {
                         name: dataIndex,
                         xtype: field,
-                        column: columnHeader
+                        column: column
                     };
                 } else {
                     field = Ext.apply({
                         name: dataIndex,
-                        column: columnHeader
+                        column: column
                     }, field);
                 }
                 field = Ext.ComponentManager.create(field, this.defaultFieldXType);
@@ -361,7 +360,7 @@ Ext.define('Ext.grid.plugin.Editing', {
             field.dataIndex = dataIndex;
 
             field.isEditorComponent = true;
-            columnHeader.field = field;
+            column.field = field;
         }
         return field;
     },
@@ -405,8 +404,13 @@ Ext.define('Ext.grid.plugin.Editing', {
         // add/remove header event listeners need to be added immediately because
         // columns can be added/removed before render
         me.initAddRemoveHeaderEvents();
-        // wait until render to initialize keynav events since they are attached to an element
-        view.on('render', me.initKeyNavHeaderEvents, me, {single: true});
+
+        // Attach new bindings to the View's NavigationModel which processes cellkeydown events.
+        me.view.getNavigationModel().addKeyBindings({
+            enter: me.onEnterKey,
+            esc: me.onEscKey,
+            scope: me
+        });
     },
 
     // Override of View's method so that we can pre-empt the View's processing if the view is being triggered by a mousedown
@@ -455,16 +459,6 @@ Ext.define('Ext.grid.plugin.Editing', {
         });
     },
 
-    initKeyNavHeaderEvents: function() {
-        var me = this;
-
-        me.keyNav = Ext.create('Ext.util.KeyNav', me.view.el, {
-            enter: me.onEnterKey,
-            esc: me.onEscKey,
-            scope: me
-        });
-    },
-
     // @private
     onColumnAdd: function(ct, column) {
         this.initFieldAccessors(column);
@@ -475,28 +469,25 @@ Ext.define('Ext.grid.plugin.Editing', {
 
     // @private
     onEnterKey: function(e) {
-        var me = this,
-            grid = me.grid,
-            selModel = grid.getSelectionModel(),
-            record,
-            pos,
-            columnHeader;
+        if (e.view === this.view) {
+            var me = this,
+                grid = me.grid,
+                navModel = grid.getView().getNavigationModel(),
+                record,
+                pos,
+                column;
 
-        // Calculate editing start position from SelectionModel if there is a selection
-        // Note that the condition below tests the result of an assignment to the "pos" variable.
-        if (selModel.getCurrentPosition && (pos = selModel.getCurrentPosition())) {
-            record = pos.record;
-            columnHeader = pos.columnHeader;
-        }
-        // RowSelectionModel
-        else {
-            record = selModel.getLastSelected();
-            columnHeader = grid.getColumnManager().getHeaderAtIndex(0);
-        }
+            // Calculate editing start position from NavigationModel
+            pos = navModel.getPosition();
+            if (pos) {
+                record = pos.record;
+                column = pos.column;
+            }
 
-        // If there was a selection to provide a starting context...
-        if (record && columnHeader) {
-            me.startEdit(record, columnHeader);
+            // If there was a selection to provide a starting context...
+            if (record && column) {
+                me.startEdit(record, column);
+            }
         }
     },
 
@@ -538,8 +529,8 @@ Ext.define('Ext.grid.plugin.Editing', {
             return false;
         }
 
-        // If grid collapsed, or view not truly visible, don't even calculate a context - we cannot edit
-        if (me.grid.collapsed || !me.grid.view.isVisible(true)) {
+        // If disabled or grid collapsed, or view not truly visible, don't even calculate a context - we cannot edit
+        if (me.disabled || me.grid.collapsed || !me.grid.view.isVisible(true)) {
             return false;
         }
 
@@ -556,21 +547,21 @@ Ext.define('Ext.grid.plugin.Editing', {
         return context;
     },
 
-    // TODO: Have this use a new class Ext.grid.CellContext for use here, and in CellSelectionModel
     /**
      * @private
      * Collects all information necessary for any subclasses to perform their editing functions.
-     * @param record
-     * @param {Ext.grid.column.Column/Number} columnHeader
-     * @returns {Object/undefined} The editing context based upon the passed record and column
+     * @param {Ext.data.Model/Number} record The record or record index to edit.
+     * @param {Ext.grid.column.Column/Number} columnHeader The column of column index to edit.
+     * @returns {Ext.grid.CellContext/undefined} The editing context based upon the passed record and column
      */
     getEditingContext: function(record, columnHeader) {
         var me = this,
             grid = me.grid,
-            colMgr = grid.columnManager,
+            colMgr = grid.visibleColumnManager,
             view,
             gridRow,
-            rowIdx, colIdx;
+            rowIdx, colIdx,
+            result;
 
         // They've asked to edit by column number.
         // Note that in a locked grid, the columns are enumerated in a unified set for this purpose.
@@ -614,18 +605,17 @@ Ext.define('Ext.grid.plugin.Editing', {
             return;
         }
 
-        return {
-            grid   : grid,
-            view   : view,
-            store  : view.dataSource,
-            record : record,
-            field  : columnHeader.dataIndex,
-            value  : record.get(columnHeader.dataIndex),
-            row    : gridRow,
-            column : columnHeader,
-            rowIdx : rowIdx,
-            colIdx : colIdx
-        };
+        // Create a new CellContext
+        result = new Ext.grid.CellContext(view).setAll(view, rowIdx, colIdx, record, columnHeader);
+
+        // Add extra Editing information
+        result.grid = grid;
+        result.store = view.dataSource;
+        result.field = columnHeader.dataIndex;
+        result.value = record.get(columnHeader.dataIndex);
+        result.row = gridRow;
+        
+        return result;
     },
 
     /**

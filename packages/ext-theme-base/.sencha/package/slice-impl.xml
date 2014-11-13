@@ -1,6 +1,87 @@
 <project name="slice-impl">
 
-    <target name="-generate-slicer-bootstrap" depends="-init-compiler">
+    <!--
+    Uses the compiler to generate a special theme-only scss file containing
+    rules for all framework / package / app components.  This is then used
+    by the slicer example page to capture theme sprites
+    -->
+    <target name="-compile-slicer-sass" depends="-init-compiler">
+        <local name="package.example.scss.tmp"/>
+        <property name="package.example.scss.tmp" value="${package.example.scss}.tmp"/>
+        <x-normalize-path
+                path="${build.out.resources.dir}"
+                property="image.search.path"/>
+
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+                restore
+                    package-${package.name}-all
+                and
+                include
+                    -all
+                and
+                sass
+                    +class-name-vars
+                    +etc
+                    +vars
+                    +rules
+                    -variable=$image-search-path:'${image.search.path}'
+                    -variable=$theme-name: '${app.theme}' !default
+                    -output=${package.example.scss.tmp}
+                and
+                restore
+                    package-${package.name}-all
+                and
+                sass
+                    +ruby
+                    -output=${package.example.out.ruby}
+            ]]>
+        </x-compile>
+
+        <if>
+            <not>
+                <filesmatch file1="${package.example.scss.tmp}" file2="${package.example.scss}"/>
+            </not>
+            <then>
+                <copy file="${package.example.scss.tmp}" tofile="${package.example.scss}" overwrite="true"/>
+            </then>
+        </if>
+
+    </target>
+
+    <!--
+    Compiles the scss file for the theme slicer page
+    -->
+    <target name="-compass-compile-slicer-css" depends="-compile-slicer-sass">
+        <x-compass-compile
+                dir="${package.example.build.dir}"
+                trace="${compass.compile.trace}"
+                boring="${compass.compile.boring}"
+                force="${compass.compile.force}"
+                sassdir="${package.example.build.dir}"
+                cssdir="${package.example.build.dir}"
+                config="${package.example.compass.config}"/>
+    </target>
+
+
+    <target name="-generate-slicer-manifest" depends="-compass-compile-slicer-css" if="framework.isV5">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+                slicer-manifest
+                    -cssFile=${package.example.css}
+                    -basePath=${bootstrap.base.path}
+                    -out=${bootstrap.example.json}
+                and
+                microload
+                    -operation=microloader
+                    -microloaderPath=${build.slicer.microloader.file}
+                    -bootPath=${build.boot.file}
+                    -out=${bootstrap.example.js}
+            ]]>
+        </x-compile>
+    </target>
+ 
+    <target name="-generate-slicer-bootstrap" depends="-init-compiler" unless="framework.isV5">
 
         <local name="relpath"/>
         <x-get-relative-path from="${bootstrap.base.path}"
@@ -10,27 +91,6 @@
         <local name="override.tpl"/>
         <local name="override.tpl.type"/>
 
-        <x-script-def name="x-detect-sencha-5">
-            <![CDATA[
-                importPackage(com.sencha.util);
-                importPackage(com.sencha.logging);
-                
-                var frameworkName = project.getProperty("framework.name"),
-                    frameworkVersion = project.getProperty("framework.version") || "0.0.0.0";
-                    
-                try {
-                    var frameworkVer = new Version(frameworkVersion),
-                        limit = new Version('5.0.0.0');
-                    if(frameworkVer.compareTo(limit) >= 0) {
-                        project.setProperty('override.tpl.type', 'jsonp');
-                        project.setProperty('override.tpl', 'Ext.Loader.loadScriptsSync');
-                    }
-                } catch (err) {
-                }
-            ]]>
-        </x-script-def>
-        <x-detect-sencha-5/>  
-        
         <property name="override.tpl.type" value="tpl"/>
         <property name="override.tpl" value='Ext.Loader.loadScriptFile("{0}", Ext.emptyFn);'/>
         
@@ -51,7 +111,7 @@ Ext.Boot.loadSync([
 ]]>
         </x-bootstrap>
     </target>
- 
+    
     <target name="-update-slicer-css">
         <x-get-relative-path
             from="${package.example.dir}"
@@ -73,15 +133,15 @@ Ext.Boot.loadSync([
  
  
     <target name="-capture-theme-image"
-            depends="-generate-slicer-bootstrap,-update-slicer-css">
+            depends="-generate-slicer-bootstrap,-generate-slicer-manifest,-update-slicer-css">
         <echo>Capture theme image to ${build.dir}/theme-capture.png</echo>
         <x-sencha-command dir="${package.dir}">
             <![CDATA[
             theme
                 capture
-                    -page=${package.sass.dir}/example/theme.html
-                    -image=${build.dir}/theme-capture.png
-                    -manifest=${build.dir}/theme-capture.json
+                    -page=${package.example.theme.html}
+                    -image=${build.capture.png}
+                    -manifest=${build.capture.json}
             ]]>
         </x-sencha-command>
     </target>
@@ -93,8 +153,8 @@ Ext.Boot.loadSync([
             fs
                 slice
                     ${build.slice.options}
-                    -image=${build.dir}/theme-capture.png
-                    -manifest=${build.dir}/theme-capture.json
+                    -image=${build.capture.png}
+                    -manifest=${build.capture.json}
                     -out=${build.resources.dir}
             ]]>
         </x-sencha-command>

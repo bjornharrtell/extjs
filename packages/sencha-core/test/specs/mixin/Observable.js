@@ -117,6 +117,7 @@ describe("Ext.mixin.Observable", function() {
                 });
 
                 var expectedOptions = {
+                    scope: scope,
                     single: true
                 };
 
@@ -153,6 +154,43 @@ describe("Ext.mixin.Observable", function() {
                 expect(foo.doAddListener.argsForCall[1]).toEqual(['two', two, scope2, listener2, order]);
             });
 
+            it("should not mutate the options object", function() {
+                var fooOptions = {
+                        foo: 'onFoo',
+                        scope: 'this'
+                    },
+                    fooClone = Ext.clone(fooOptions);
+
+                var Foo = Ext.define(null, {
+                    extend: 'Ext.mixin.Observable',
+                    listeners: fooOptions,
+                    onFoo: function() {},
+                    onBar: function() {},
+                    onBaz: function() {}
+                });
+
+                var foo = new Foo(),
+                    barOptions = {
+                        bar: foo.onBar,
+                        scope: foo
+                    },
+                    barClone = Ext.clone(barOptions),
+                    bazOptions = {
+                        isBaz: true
+                    },
+                    bazClone = Ext.clone(bazOptions);
+
+                foo.on(barOptions);
+                foo.on('baz', foo.onBaz, foo, bazOptions);
+
+                foo.fireEvent('foo');
+                foo.fireEvent('bar');
+                foo.fireEvent('baz');
+
+                expect(fooOptions).toEqual(fooClone);
+                expect(barOptions).toEqual(barClone);
+                expect(bazOptions).toEqual(bazClone);
+            });
         });
 
         describe("removeListener()", function() {
@@ -177,9 +215,13 @@ describe("Ext.mixin.Observable", function() {
                     scope: scope
                 });
 
+                var expectedOptions = {
+                    scope: scope
+                };
+
                 expect(foo.doRemoveListener.callCount).toBe(2);
-                expect(foo.doRemoveListener.argsForCall[0]).toEqual(['one', one, scope, options, order]);
-                expect(foo.doRemoveListener.argsForCall[1]).toEqual(['two', two, scope, options, order]);
+                expect(foo.doRemoveListener.argsForCall[0]).toEqual(['one', one, scope, expectedOptions, order]);
+                expect(foo.doRemoveListener.argsForCall[1]).toEqual(['two', two, scope, expectedOptions, order]);
             });
         });
 
@@ -528,7 +570,7 @@ describe("Ext.mixin.Observable", function() {
                         var controller = arguments[arguments.length - 1];
                         controller.pause();
 
-                        setTimeout(function() {
+                        Ext.defer(function() {
                             controller.resume();
                         }, 50);
                     });
@@ -641,8 +683,35 @@ describe("Ext.mixin.Observable", function() {
                 expect(foo.doRemoveListener).toHaveBeenCalled();
                 expect(foo.doRemoveListener.callCount).toBe(3);
                 expect(foo.doRemoveListener.calls[0].args[0]).toEqual('destroy');
-                expect(foo.doRemoveListener.calls[1].args).toEqual(['foo', fn, bar, options, order]);
-                expect(foo.doRemoveListener.calls[2].args).toEqual(['bar', fn2, bar, options, order]);
+                expect(foo.doRemoveListener.calls[1].args).toEqual(['foo', fn, bar, {}, order]);
+                expect(foo.doRemoveListener.calls[2].args).toEqual(['bar', fn2, bar, {}, order]);
+            });
+        });
+
+        describe("resolveListenerScope", function() {
+            beforeEach(function() {
+                foo = new Foo();
+            });
+
+            it("should resolve to the observable instance by default", function() {
+                expect(foo.resolveListenerScope()).toBe(foo);
+            });
+
+            it("should resolve to an object if passed", function() {
+                var scope = {};
+                expect(foo.resolveListenerScope(scope)).toBe(scope);
+            });
+
+            it("should resolve to the observable instance if 'this' is passed", function() {
+                expect(foo.resolveListenerScope('this')).toBe(foo);
+            });
+
+            it("should throw an error if 'controller' is passed", function() {
+                expect(function() {
+                    foo.resolveListenerScope('controller');
+                }).toThrow(
+                    'scope: "controller" can only be specified on classes that derive from Ext.Component or Ext.Widget'
+                );
             });
         });
     });
@@ -707,7 +776,7 @@ describe("Ext.mixin.Observable", function() {
                 });
 
                 describe("addListener", function() {
-                    it("should handle an event", function() {
+                    itFiresMouseEvents("should handle an event", function() {
                         addListener();
                         fire();
                         expect(handler.callCount).toBe(1);
@@ -717,7 +786,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(scope).toBe(element);
                     });
 
-                    it("should handle an event that bubbled from a descendant element", function() {
+                    itFiresMouseEvents("should handle an event that bubbled from a descendant element", function() {
                         addListener();
                         fire(grandchild);
                         expect(handler.callCount).toBe(1);
@@ -727,7 +796,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(scope).toBe(element);
                     });
 
-                    it("should attach multiple handlers to the same event", function() {
+                    itFiresMouseEvents("should attach multiple handlers to the same event", function() {
                         addListener();
                         addListener({ click: handler2 });
                         fire();
@@ -735,7 +804,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(handler2.callCount).toBe(1);
                     });
 
-                    it("should call the event handler with the correct scope when the scope option is used", function() {
+                    itFiresMouseEvents("should call the event handler with the correct scope when the scope option is used", function() {
                         var obj = {};
 
                         addListener({ scope: obj });
@@ -743,7 +812,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(scope).toBe(obj);
                     });
 
-                    it("should call the handler multiple times if the event fires more than once", function() {
+                    itFiresMouseEvents("should call the handler multiple times if the event fires more than once", function() {
                         addListener();
                         fire();
                         fire();
@@ -751,7 +820,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(handler.callCount).toBe(3);
                     });
 
-                    it("should remove a single listener after the first fire", function() {
+                    itFiresMouseEvents("should remove a single listener after the first fire", function() {
                         addListener({ single: true });
                         fire();
                         expect(handler.callCount).toBe(1);
@@ -761,7 +830,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(handler.callCount).toBe(1);
                     });
 
-                    it("should delay the listener", function() {
+                    itFiresMouseEvents("should delay the listener", function() {
                         addListener({ delay: 150 });
                         fire();
                         waits(100);
@@ -774,7 +843,7 @@ describe("Ext.mixin.Observable", function() {
                         });
                     });
 
-                    it("should buffer the listener", function() {
+                    itFiresMouseEvents("should buffer the listener", function() {
                         addListener({ buffer: 150 });
                         fire();
                         waits(100);
@@ -792,7 +861,7 @@ describe("Ext.mixin.Observable", function() {
                         });
                     });
 
-                    it("should attach listeners with a delegate selector", function() {
+                    itFiresMouseEvents("should attach listeners with a delegate selector", function() {
                         addListener({ delegate: '.grandchild' });
                         fire(child);
                         expect(handler).not.toHaveBeenCalled();
@@ -814,7 +883,7 @@ describe("Ext.mixin.Observable", function() {
                             child.destroy();
                         });
 
-                        it("should fire bubble listeners in bottom-up order", function() {
+                        itFiresMouseEvents("should fire bubble listeners in bottom-up order", function() {
                             element.on({
                                 click: function() {
                                     results.push(1);
@@ -838,7 +907,7 @@ describe("Ext.mixin.Observable", function() {
                             expect(results).toEqual([3, 2, 1]);
                         });
 
-                        it("should fire capture listeners in top-down order", function() {
+                        itFiresMouseEvents("should fire capture listeners in top-down order", function() {
                             element.on({
                                 click: function() {
                                     results.push(1);
@@ -865,7 +934,7 @@ describe("Ext.mixin.Observable", function() {
                             expect(results).toEqual([1, 2, 3]);
                         });
 
-                        it("should stop bubbling when stopPropagation is called", function() {
+                        itFiresMouseEvents("should stop bubbling when stopPropagation is called", function() {
                             element.on({
                                 click: handler
                             });
@@ -881,7 +950,7 @@ describe("Ext.mixin.Observable", function() {
                             expect(handler).not.toHaveBeenCalled();
                         });
 
-                        it("should stop propagating when stopPropagation is called during the capture phase", function() {
+                        itFiresMouseEvents("should stop propagating when stopPropagation is called during the capture phase", function() {
                             element.on({
                                 click: function(e) {
                                     e.stopPropagation();
@@ -899,7 +968,7 @@ describe("Ext.mixin.Observable", function() {
                             expect(handler).not.toHaveBeenCalled();
                         });
 
-                        it("should skip the entire bubble phase if stopPropagation is called during the capture phase", function() {
+                        itFiresMouseEvents("should skip the entire bubble phase if stopPropagation is called during the capture phase", function() {
                             element.on({
                                 click: function(e) {
                                     e.stopPropagation();
@@ -931,7 +1000,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(handler).not.toHaveBeenCalled();
                     });
 
-                    it("should remove the event listener with scope", function() {
+                    itFiresMouseEvents("should remove the event listener with scope", function() {
                         var scope = {};
                         addListener({ scope: scope });
                         removeListener({ scope: scope });
@@ -939,7 +1008,7 @@ describe("Ext.mixin.Observable", function() {
                         expect(handler).not.toHaveBeenCalled();
                     });
 
-                    it("should remove multiple handlers from the same event", function() {
+                    itFiresMouseEvents("should remove multiple handlers from the same event", function() {
                         addListener();
                         addListener({ click: handler2 });
                         removeListener();
@@ -952,14 +1021,14 @@ describe("Ext.mixin.Observable", function() {
                     });
 
 
-                    it("should remove a single event listener", function() {
+                    itFiresMouseEvents("should remove a single event listener", function() {
                         addListener({ single: true });
                         removeListener();
                         fire();
                         expect(handler).not.toHaveBeenCalled();
                     });
 
-                    it("should remove a delayed event listener", function() {
+                    itFiresMouseEvents("should remove a delayed event listener", function() {
                         addListener({ delay: 50 });
                         removeListener();
                         fire();
@@ -969,7 +1038,7 @@ describe("Ext.mixin.Observable", function() {
                         });
                     });
 
-                    it("should remove a buffered event listener", function() {
+                    itFiresMouseEvents("should remove a buffered event listener", function() {
                         addListener({ buffer: 50 });
                         removeListener();
                         fire();
@@ -979,7 +1048,7 @@ describe("Ext.mixin.Observable", function() {
                         });
                     });
 
-                    it("should remove listeners with a delegate selector", function() {
+                    itFiresMouseEvents("should remove listeners with a delegate selector", function() {
                         addListener({ delegate: '.grandchild' });
                         removeListener({ delegate: '.grandchild' });
                         fire(grandchild);
@@ -988,7 +1057,7 @@ describe("Ext.mixin.Observable", function() {
                 });
 
                 describe("clearListeners", function() {
-                    it("should remove all the listeners", function() {
+                    itFiresMouseEvents("should remove all the listeners", function() {
                         var handler3 = jasmine.createSpy(),
                             handler4 = jasmine.createSpy();
 
@@ -1540,6 +1609,40 @@ describe("Ext.mixin.Observable", function() {
                 'childClass:theId',
                 'childInstance:theId'
             ]);
+        });
+
+        it("should not call addListener if extending and no listeners are declared", function() {
+            var spy = jasmine.createSpy();
+
+            var Cls = Ext.define(null, {
+                extend: 'Ext.mixin.Observable',
+                constructor: function(config) {
+                    this.callParent(arguments);
+                },
+
+                addListener: spy
+            });
+            new Cls();
+            expect(spy).not.toHaveBeenCalled();
+        });
+
+        it("should not call addListener if mixing in and no listeners are declared", function() {
+            var spy = jasmine.createSpy();
+
+            var Cls = Ext.define(null, {
+                mixins: [
+                    'Ext.mixin.Observable'
+                ],
+
+                constructor: function(config) {
+                    this.mixins.observable.constructor.apply(this, arguments);
+                },
+                
+                addListener: spy
+            });
+            
+            new Cls();
+            expect(spy).not.toHaveBeenCalled();
         });
     });
 });

@@ -190,7 +190,8 @@ Ext.define('Ext.state.Stateful', {
                     run: me.saveState,
                     scope: me,
                     interval: delay,
-                    repeat: 1
+                    repeat: 1,
+                    fireIdleEvent: false
                 });
             }
 

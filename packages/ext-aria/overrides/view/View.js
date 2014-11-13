@@ -12,8 +12,7 @@ Ext.define('Ext.aria.view.View', {
         selModel.on({
             scope: me,
             select: me.ariaSelect,
-            deselect: me.ariaDeselect,
-            focuschange: me.ariaFocusChanged
+            deselect: me.ariaDeselect
         });
         
         me.on({
@@ -22,10 +21,6 @@ Ext.define('Ext.aria.view.View', {
             itemadd: me.ariaItemAdd,
             itemremove: me.ariaItemRemove
         });
-    },
-    
-    ariaGetFocusCls: function() {
-        return this.ariaFocusCls;
     },
 
     ariaGetRenderAttributes: function() {
@@ -78,58 +73,8 @@ Ext.define('Ext.aria.view.View', {
     processItemEvent: function(record, row, rowIndex, e) {
         var me = this;
         
-        if (e.type == 'keydown' && (e.keyCode === Ext.EventObject.ENTER)) {
+        if (e.type === 'keydown' && (e.keyCode === Ext.event.Event.ENTER)) {
             me.fireEvent('itemclick', me, record, row, rowIndex, e);
-        }
-    },
-
-    onBlur: function() {
-        var me = this;
-        
-        me.ariaStepOut();
-        
-        me.callParent(arguments);
-    },
-
-    onFocus: function() {
-        var me = this;
-        
-        me.callParent(arguments);
-        
-        if (me.hasFocus) {
-            me.ariaStepIn();
-        }
-    },
-
-    ariaStepOut: function() {
-        var me = this,
-            last;
-        
-        last = me.getSelectionModel().getLastFocused();
-
-        if (last) {
-            me.ariaRemoveFocus(me.getNode(last));
-        }
-    },
-
-    ariaStepIn: function() {
-        var me = this,
-            last;
-        
-        last = me.getSelectionModel().getLastSelected();
-        
-        if (last) {
-            me.ariaAddFocus(me.getNode(last));
-        }
-    },
-
-    refresh: function() {
-        var me = this;
-        
-        me.callParent(arguments);
-        
-        if (!me.isDestroyed && me.hasFocus) {
-            me.focus();
         }
     },
 
@@ -159,31 +104,6 @@ Ext.define('Ext.aria.view.View', {
         }
     },
 
-    ariaRemoveFocus: function(node) {
-        if (node) {
-            Ext.fly(node).removeCls(this.ariaItemFocusCls);
-        }
-    },
-
-    ariaAddFocus: function(node) {
-        var me = this,
-            curFocus;
-        
-        curFocus = me.el.selectNode('.' + me.ariaItemFocusCls);
-        
-        if (curFocus) {
-            if (curFocus === node) {
-                return;
-            }
-            
-            Ext.fly(curFocus).removeCls(me.ariaItemFocusCls);
-        }
-        
-        if (node) {
-            Ext.fly(node).addCls(me.ariaItemFocusCls);
-        }
-    },
-
     ariaItemRemove: function(records, index, nodes) {
         if (!nodes) {
             return;
@@ -201,13 +121,6 @@ Ext.define('Ext.aria.view.View', {
                 break;
             }
         }
-        
-        if (me.hasFocus && me.getNodes().length > 1) {
-            me.getSelectionModel().selectByPosition({
-                row: index === 0 ? 0 : index - 1,
-                column: 0
-            });
-        }
     },
 
     ariaItemAdd: function(records, index, nodes) {
@@ -219,20 +132,5 @@ Ext.define('Ext.aria.view.View', {
         
         me.title = title;
         me.ariaUpdate({ 'aria-label': title });
-    },
-
-    ariaFocusChanged: function(selModel, oldFocus, newFocus) {
-        var me = this,
-            node;
-
-        if (oldFocus) {
-            node = me.getNode(oldFocus);
-            me.ariaRemoveFocus(node);
-        }
-        
-        if (newFocus) {
-            node = me.getNode(newFocus);
-            me.ariaAddFocus(node);
-        }
     }
 });

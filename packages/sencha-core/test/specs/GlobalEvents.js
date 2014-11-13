@@ -17,7 +17,7 @@ describe("Ext.GlobalEvents", function() {
             Ext.un('idle', onIdle);
         });
 
-        it("should fire after DOM event handler are invoked, but before control is returned to the browser", function() {
+        itFiresMouseEvents("should fire after DOM event handler are invoked, but before control is returned to the browser", function() {
             var element = Ext.getBody().createChild(),
                 handledCount = 0;
 
@@ -88,10 +88,10 @@ describe("Ext.GlobalEvents", function() {
                 });
             });
         });
-
+        
         it("should fire after an Ajax request is processed", function() {
             Ext.Ajax.request({
-                url: 'foo',
+                url: 'resources/foo.json',
                 callback: function() {
                     done = true;
                 }

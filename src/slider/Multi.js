@@ -29,6 +29,12 @@ Ext.define('Ext.slider.Multi', {
         'Ext.util.Format',
         'Ext.Template'
     ],
+    
+    focusable: true,
+    needArrowKeys: true,
+    tabIndex: 0,
+    
+    focusCls: 'slider-focus',
 
     childEls: [
         'endEl', 'innerEl'
@@ -38,7 +44,7 @@ Ext.define('Ext.slider.Multi', {
     fieldSubTpl: [
         '<div id="{id}" role="{role}" {inputAttrTpl} class="' + Ext.baseCSSPrefix + 'slider {fieldCls} {vertical}',
         '{childElCls}"',
-        '<tpl if="tabIdx != null"> tabIndex="{tabIdx}"</tpl>',
+        '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
         '<tpl if="isVertical"> aria-orientation="vertical"<tpl else> aria-orientation="horizontal"</tpl>',
         '>',
             '<div id="{cmpId}-endEl" data-ref="endEl" class="' + Ext.baseCSSPrefix + 'slider-end" role="presentation">',
@@ -342,10 +348,10 @@ Ext.define('Ext.slider.Multi', {
     },
 
     // private override
-    getSubTplData : function() {
+    getSubTplData : function(fieldData) {
         var me = this;
 
-        return Ext.apply(me.callParent(), {
+        return Ext.apply(me.callParent(arguments), {
             $comp: me,
             isVertical: me.vertical,
             vertical: me.vertical ? Ext.baseCSSPrefix + 'slider-vert' : Ext.baseCSSPrefix + 'slider-horz',
@@ -379,6 +385,9 @@ Ext.define('Ext.slider.Multi', {
      */
     initEvents : function() {
         var me = this;
+        
+        me.callParent();
+        
         me.mon(me.el, {
             scope    : me,
             mousedown: me.onMouseDown,
@@ -417,6 +426,11 @@ Ext.define('Ext.slider.Multi', {
     },
 
     transformTrackPoints: Ext.identityFn,
+    
+    // Base field checkChange method will fire 'change' event with signature common to all fields,
+    // but Slider fires the same event with different signature. Hence we disable checkChange here
+    // to avoid breakage.
+    checkChange: Ext.emptyFn,
 
     /**
      * @private
@@ -537,8 +551,6 @@ Ext.define('Ext.slider.Multi', {
                 val = e.ctrlKey ? me.minValue : me.getValue(0) - me.keyIncrement;
                 me.setValue(0, val, undefined, true);
             break;
-            default:
-                e.preventDefault();
         }
     },
 
@@ -623,7 +635,6 @@ Ext.define('Ext.slider.Multi', {
     setValue : function(index, value, animate, changeComplete) {
         var me = this,
             thumbs = me.thumbs,
-            publishOnComplete = me.publishOnComplete,
             thumb, len, i, values;
 
         if (Ext.isArray(index)) {
@@ -653,15 +664,6 @@ Ext.define('Ext.slider.Multi', {
 
                 if (changeComplete) {
                     me.fireEvent('changecomplete', me, value, thumb);
-                    if (publishOnComplete) {
-                        me.publishValue(value);
-                    }
-                } else if (publishOnComplete === false) {
-                    // The publishOnComplete config is defined by the Single slider (our
-                    // derived class). The multi-slider (this class) does not publish
-                    // values at present so we only do this when publishOnComplete is
-                    // either true or false (not falsey).
-                    me.publishValue(value);
                 }
             }
         }
@@ -890,10 +892,12 @@ Ext.define('Ext.slider.Multi', {
             tLen   = thumbs.length,
             thumb;
 
-        for (; t < tLen; t++) {
-            thumb = thumbs[t];
+        if (me.rendered) {
+            for (; t < tLen; t++) {
+                thumb = thumbs[t];
 
-            Ext.destroy(thumb);
+                Ext.destroy(thumb);
+            }
         }
 
         me.callParent();

@@ -68,7 +68,7 @@ Ext.define('KitchenSink.view.charts.pie.Exploded', {
             sprites: [{
                 type: 'text',
                 text: 'Pie Charts - Exploded',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -76,15 +76,13 @@ Ext.define('KitchenSink.view.charts.pie.Exploded', {
             }, {
                 type: 'text',
                 text: 'Data: IDC Predictions - 2017',
-                font: '10px Helvetica',
                 x: 12,
                 y: 380
             }, {
                 type: 'text',
                 text: 'Source: Internet',
-                font: '10px Helvetica',
                 x: 12,
-                y: 390
+                y: 395
             }],
             series: [{
                 type: 'pie',

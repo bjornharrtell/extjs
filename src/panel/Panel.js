@@ -391,6 +391,7 @@ Ext.define('Ext.panel.Panel', {
      */
     constrainHeader: false,
 
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype"}
     /**
      * @cfg {Object/Object[]} dockedItems
      * A component or series of components to be added as docked items to this panel. The docked items can be docked to
@@ -406,6 +407,154 @@ Ext.define('Ext.panel.Panel', {
      *         }]
      *     });
      */
+    dockedItems: null,
+
+    /**
+     * @cfg {String} buttonAlign
+     * The alignment of any buttons added to this panel. Valid values are 'right', 'left' and 'center' (defaults to
+     * 'right' for buttons/fbar, 'left' for other toolbar types).
+     *
+     * **NOTE:** The prefered way to specify toolbars is to use the dockedItems config. Instead of buttonAlign you
+     * would add the layout: { pack: 'start' | 'center' | 'end' } option to the dockedItem config.
+     */
+
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultType: "toolbar"}
+    /**
+     * @cfg {Object/Object[]} tbar
+     * Convenience config. Short for 'Top Bar'.
+     *
+     *     tbar: [
+     *       { xtype: 'button', text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'top',
+     *         items: [
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     */
+    tbar: null,
+
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultType: "toolbar"}
+    /**
+     * @cfg {Object/Object[]} bbar
+     * Convenience config. Short for 'Bottom Bar'.
+     *
+     *     bbar: [
+     *       { xtype: 'button', text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'bottom',
+     *         items: [
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     */
+    bbar: null,
+
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultType: "toolbar"}
+    /**
+     * @cfg {Object/Object[]} fbar
+     * Convenience config used for adding items to the bottom of the panel. Short for Footer Bar.
+     *
+     *     fbar: [
+     *       { type: 'button', text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'bottom',
+     *         ui: 'footer',
+     *         defaults: {minWidth: {@link #minButtonWidth}},
+     *         items: [
+     *             { xtype: 'component', flex: 1 },
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     *
+     * The {@link #minButtonWidth} is used as the default {@link Ext.button.Button#minWidth minWidth} for
+     * each of the buttons in the fbar.
+     */
+    fbar: null,
+
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultType: "toolbar"}
+    /**
+     * @cfg {Object/Object[]} lbar
+     * Convenience config. Short for 'Left Bar' (left-docked, vertical toolbar).
+     *
+     *     lbar: [
+     *       { xtype: 'button', text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'left',
+     *         items: [
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     */
+    lbar: null,
+
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultType: "toolbar"}
+    /**
+     * @cfg {Object/Object[]} rbar
+     * Convenience config. Short for 'Right Bar' (right-docked, vertical toolbar).
+     *
+     *     rbar: [
+     *       { xtype: 'button', text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'right',
+     *         items: [
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     */
+    rbar: null,
+
+    /**
+     * @cfg {Object/Object[]} buttons
+     * Convenience config used for adding buttons docked to the bottom of the panel. This is a
+     * synonym for the {@link #fbar} config.
+     *
+     *     buttons: [
+     *       { text: 'Button 1' }
+     *     ]
+     *
+     * is equivalent to
+     *
+     *     dockedItems: [{
+     *         xtype: 'toolbar',
+     *         dock: 'bottom',
+     *         ui: 'footer',
+     *         defaults: {minWidth: {@link #minButtonWidth}},
+     *         items: [
+     *             { xtype: 'component', flex: 1 },
+     *             { xtype: 'button', text: 'Button 1' }
+     *         ]
+     *     }]
+     *
+     * The {@link #minButtonWidth} is used as the default {@link Ext.button.Button#minWidth minWidth} for
+     * each of the buttons in the buttons toolbar.
+     */
+    buttons: null,
 
     /**
      * @cfg {Boolean} floatable
@@ -444,16 +593,16 @@ Ext.define('Ext.panel.Panel', {
      * By default the panel {@link #title} is inserted after items configured in this config, but before any tools.
      * To insert the title at any point in the full array, specify the {@link Ext.panel.Header#titlePosition titlePosition} config:
      *
-     *    new Ext.panel.Panel({
-     *        title: 'Test',
-     *        tools: [{
-     *            type: 'refresh
-     *        }, {
-     *            type: 'help'
-     *        }],
-     *        titlePosition: 2 // Title will come AFTER the two tools
-     *        ...
-     *    });
+     *     new Ext.panel.Panel({
+     *         title: 'Test',
+     *         tools: [{
+     *             type: 'refresh'
+     *         }, {
+     *             type: 'help'
+     *         }],
+     *         titlePosition: 2 // Title will come AFTER the two tools
+     *         ...
+     *     });
      *
      */
 
@@ -1142,117 +1291,21 @@ Ext.define('Ext.panel.Panel', {
             return toolbar;
         }
 
-        // Short-hand toolbars (tbar, bbar and fbar plus new lbar and rbar):
-
-        /**
-         * @cfg {String} buttonAlign
-         * The alignment of any buttons added to this panel. Valid values are 'right', 'left' and 'center' (defaults to
-         * 'right' for buttons/fbar, 'left' for other toolbar types).
-         *
-         * **NOTE:** The prefered way to specify toolbars is to use the dockedItems config. Instead of buttonAlign you
-         * would add the layout: { pack: 'start' | 'center' | 'end' } option to the dockedItem config.
-         */
-
-        /**
-         * @cfg {Object/Object[]} tbar
-         * Convenience config. Short for 'Top Bar'.
-         *
-         *     tbar: [
-         *       { xtype: 'button', text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'top',
-         *         items: [
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         */
         if (me.tbar) {
             docked.push(initToolbar(me.tbar, 'top'));
             me.tbar = null;
         }
 
-        /**
-         * @cfg {Object/Object[]} bbar
-         * Convenience config. Short for 'Bottom Bar'.
-         *
-         *     bbar: [
-         *       { xtype: 'button', text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'bottom',
-         *         items: [
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         */
         if (me.bbar) {
             docked.push(initToolbar(me.bbar, 'bottom'));
             me.bbar = null;
         }
 
-        /**
-         * @cfg {Object/Object[]} buttons
-         * Convenience config used for adding buttons docked to the bottom of the panel. This is a
-         * synonym for the {@link #fbar} config.
-         *
-         *     buttons: [
-         *       { text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'bottom',
-         *         ui: 'footer',
-         *         defaults: {minWidth: {@link #minButtonWidth}},
-         *         items: [
-         *             { xtype: 'component', flex: 1 },
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         *
-         * The {@link #minButtonWidth} is used as the default {@link Ext.button.Button#minWidth minWidth} for
-         * each of the buttons in the buttons toolbar.
-         */
         if (me.buttons) {
             me.fbar = me.buttons;
             me.buttons = null;
         }
 
-        /**
-         * @cfg {Object/Object[]} fbar
-         * Convenience config used for adding items to the bottom of the panel. Short for Footer Bar.
-         *
-         *     fbar: [
-         *       { type: 'button', text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'bottom',
-         *         ui: 'footer',
-         *         defaults: {minWidth: {@link #minButtonWidth}},
-         *         items: [
-         *             { xtype: 'component', flex: 1 },
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         *
-         * The {@link #minButtonWidth} is used as the default {@link Ext.button.Button#minWidth minWidth} for
-         * each of the buttons in the fbar.
-         */
         if (me.fbar) {
             fbar = initToolbar(me.fbar, 'bottom', true); // only we useButtonAlign
             fbar.ui = 'footer';
@@ -1285,47 +1338,11 @@ Ext.define('Ext.panel.Panel', {
             me.fbar = null;
         }
 
-        /**
-         * @cfg {Object/Object[]} lbar
-         * Convenience config. Short for 'Left Bar' (left-docked, vertical toolbar).
-         *
-         *     lbar: [
-         *       { xtype: 'button', text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'left',
-         *         items: [
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         */
         if (me.lbar) {
             docked.push(initToolbar(me.lbar, 'left'));
             me.lbar = null;
         }
 
-        /**
-         * @cfg {Object/Object[]} rbar
-         * Convenience config. Short for 'Right Bar' (right-docked, vertical toolbar).
-         *
-         *     rbar: [
-         *       { xtype: 'button', text: 'Button 1' }
-         *     ]
-         *
-         * is equivalent to
-         *
-         *     dockedItems: [{
-         *         xtype: 'toolbar',
-         *         dock: 'right',
-         *         items: [
-         *             { xtype: 'button', text: 'Button 1' }
-         *         ]
-         *     }]
-         */
         if (me.rbar) {
             docked.push(initToolbar(me.rbar, 'right'));
             me.rbar = null;
@@ -1472,6 +1489,9 @@ Ext.define('Ext.panel.Panel', {
             headerPosition: me.getHeaderPosition(),
             titleRotation: me.getTitleRotation(),
             baseCls: me.baseCls,
+            getRefOwner: function () {
+                return me.getRefOwner();
+            },
             cls: me.baseCls + '-ghost ' + (cls || '')
         };
     },
@@ -1886,14 +1906,6 @@ Ext.define('Ext.panel.Panel', {
         return collapsedClasses;
     },
 
-    getHeightAuthority: function() {
-        if (this.collapsed && this.collapsedVertical()) {
-            return 1; // the panel determine's its own height
-        }
-
-        return this.callParent();
-    },
-
     // @private
     getKeyMap: function() {
         return this.keyMap || (this.keyMap = new Ext.util.KeyMap(Ext.apply({
@@ -2080,6 +2092,9 @@ Ext.define('Ext.panel.Panel', {
             for (i = tools.length; i--;) {
                 ghostHeader.remove(tools[i]);
             }
+            // reset the title position to ensure that the title gets moved into the correct
+            // place after we add the tools (if the position didn't change the updater won't run)
+            ghostHeader.setTitlePosition(0);
             ghostPanel.addTool(me.ghostTools());
             ghostPanel.setTitle(me.getTitle());
             ghostHeader.setTitlePosition(header.titlePosition);
@@ -2205,7 +2220,7 @@ Ext.define('Ext.panel.Panel', {
         // Backwards compatibility
         me.bridgeToolbars();
 
-        this.initBorderProps();
+        me.initBorderProps();
         me.callParent();
         me.collapseDirection = me.collapseDirection || me.getHeaderPosition() || Ext.Component.DIRECTION_TOP;
 
@@ -2675,6 +2690,125 @@ Ext.define('Ext.panel.Panel', {
         me.border = border;
     },
 
+    /**
+     * Collapses or expands the panel.
+     * @param {Boolean} collapsed `true` to collapse the panel, `false` to expand it.
+     */
+    setCollapsed: function(collapsed) {
+        this[collapsed ? 'collapse' : 'expand']();
+    },
+
+    setGlyph: function(glyph) {
+        var me = this,
+            oldGlyph = me.glyph,
+            header = me.header,
+            placeholder = me.placeholder;
+
+        if (glyph !== oldGlyph) {
+            me.glyph = glyph;
+
+            if (header) {
+                if (header.isHeader) {
+                    header.setGlyph(glyph);
+                } else {
+                    header.glyph = glyph;
+                }
+            } else if (me.rendered) {
+                me.updateHeader();
+            }
+
+            if (placeholder && placeholder.setGlyph) {
+                placeholder.setGlyph(glyph);
+            }
+
+            me.fireEvent('glyphchange', me, glyph, oldGlyph);
+        }
+    },
+
+    setIcon: function(icon) {
+        var me = this,
+            oldIcon = me.icon,
+            header = me.header,
+            placeholder = me.placeholder;
+
+        if (icon !== oldIcon) {
+            me.icon = icon;
+
+            if (header) {
+                if (header.isHeader) {
+                    header.setIcon(icon);
+                } else {
+                    header.icon = icon;
+                }
+            } else if (me.rendered) {
+                me.updateHeader();
+            }
+
+            if (placeholder && placeholder.setIcon) {
+                placeholder.setIcon(icon);
+            }
+
+            me.fireEvent('iconchange', me, icon, oldIcon);
+        }
+    },
+
+    setIconCls: function(iconCls) {
+        var me = this,
+            oldIconCls = me.iconCls,
+            header = me.header,
+            placeholder = me.placeholder;
+
+        if (iconCls !== oldIconCls) {
+            me.iconCls = iconCls;
+
+            if (header) {
+                if (header.isHeader) {
+                    header.setIconCls(iconCls);
+                } else {
+                    header.iconCls = iconCls;
+                }
+            } else if (me.rendered) {
+                me.updateHeader();
+            }
+
+            if (placeholder && placeholder.setIconCls) {
+                placeholder.setIconCls(iconCls);
+            }
+
+            me.fireEvent('iconclschange', me, iconCls, oldIconCls);
+        }
+    },
+
+    setTitle: function(title) {
+        var me = this,
+            oldTitle = me.title,
+            header = me.header,
+            reExpander = me.reExpander,
+            placeholder = me.placeholder;
+
+        if (title !== oldTitle) {
+            me.title = title;
+
+            if (header) {
+                if (header.isHeader) {
+                    header.setTitle(title);
+                }
+            } else if (me.rendered) {
+                me.updateHeader();
+            }
+
+            if (reExpander) {
+                reExpander.setTitle(title);
+            }
+
+            if (placeholder && placeholder.setTitle) {
+                placeholder.setTitle(title);
+            }
+
+            me.fireEvent('titlechange', me, title, oldTitle);
+        }
+    },
+
     setHiddenDocked: function(){
         // Hide Panel content except reExpander using visibility to prevent focusing of contained elements.
         // Track what we hide to re-show on expand
@@ -2740,30 +2874,6 @@ Ext.define('Ext.panel.Panel', {
         }
     },
 
-    updateGlyph: function(glyph, oldGlyph) {
-        var me = this,
-            header = me.header,
-            placeholder = me.placeholder;
-
-        if (header) {
-            if (header.isHeader) {
-                header.setGlyph(glyph);
-            } else {
-                header.glyph = glyph;
-            }
-        } else {
-            if (!me._updatingHeader) {
-                me.updateHeader();
-            }
-        }
-
-        if (placeholder && placeholder.setGlyph) {
-            placeholder.setIcon(glyph);
-        }
-
-        me.fireEvent('glyphchange', me, glyph, oldGlyph);
-    },
-
     updateHeaderPosition: function(position) {
         var header = this.header;
 
@@ -2772,92 +2882,12 @@ Ext.define('Ext.panel.Panel', {
         }
     },
 
-    updateIcon: function(icon, oldIcon) {
-        var me = this,
-            header = me.header,
-            placeholder = me.placeholder;
-
-        if (header) {
-            if (header.isHeader) {
-                header.setIcon(icon);
-            } else {
-                header.icon = icon;
-            }
-        } else {
-            if (!me._updatingHeader) {
-                me.updateHeader();
-            }
-        }
-
-        if (placeholder && placeholder.setIcon) {
-            placeholder.setIcon(icon);
-        }
-
-        me.fireEvent('iconchange', me, icon, oldIcon);
-    },
-
     updateIconAlign: function(align) {
         var header = this.header;
 
         if (header && header.isHeader) {
             header.setIconAlign(align);
         }
-    },
-
-    /**
-     * Set the iconCls for the panel's header. See {@link Ext.panel.Header#iconCls}. It will fire the
-     * {@link #iconclschange} event after completion.
-     * @param {String} iconCls The new CSS class name
-     */
-    updateIconCls: function(iconCls, oldIconCls) {
-        var me = this,
-            header = me.header,
-            placeholder = me.placeholder;
-
-        if (header) {
-            if (header.isHeader) {
-                header.setIconCls(iconCls);
-            } else {
-                header.iconCls = iconCls;
-            }
-        } else {
-            if (!me._updatingHeader) {
-                me.updateHeader();
-            }
-        }
-
-        if (placeholder && placeholder.setIconCls) {
-            placeholder.setIconCls(iconCls);
-        }
-
-        me.fireEvent('iconclschange', me, iconCls, oldIconCls);
-    },
-
-    updateTitle: function(title, oldTitle) {
-        var me = this,
-            header = me.header,
-            reExpander = me.reExpander,
-            placeholder = me.placeholder;
-
-        if (header) {
-            if (header.isHeader) {
-                header.setTitle(title);
-            } else {
-                header.title = title;
-            }
-        } else if (me.rendered) {
-            me.updateHeader();
-        }
-
-        if (reExpander) {
-            reExpander.setTitle(title);
-        }
-
-        if (placeholder && placeholder.setTitle) {
-            placeholder.setTitle(title);
-        }
-
-        me.fireEvent('titlechange', me, title, oldTitle);
     },
 
     updateTitleAlign: function(align) {
@@ -2909,8 +2939,6 @@ Ext.define('Ext.panel.Panel', {
      * @param {Boolean} force True to force the header to be created
      */
     updateHeader: function(force) {
-        this._updatingHeader = true;
-
         var me = this,
             header = me.header,
             title = me.getTitle(),
@@ -2966,7 +2994,6 @@ Ext.define('Ext.panel.Panel', {
         } else if (header) {
             header.hide();
         }
-        me._updatingHeader = false;
     },
 
     // ***********************************************************************************
@@ -2997,14 +3024,6 @@ Ext.define('Ext.panel.Panel', {
         getTargetEl: function() {
             var me = this;
             return me.body || me.protoBody || me.frameBody || me.el;
-        },
-
-        getWidthAuthority: function() {
-            if (this.collapsed && this.collapsedHorizontal()) {
-                return 1; // the panel determine's its own width
-            }
-
-            return this.callParent();
         },
 
         // @private

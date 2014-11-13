@@ -117,8 +117,12 @@ Ext.define('Ext.form.field.ComboBox', {
     ],
 
     config: {
-        filters: null
+        filters: null,
+        selection: null
     },
+
+    publishes: ['selection'],
+    twoWayBindable: ['selection'],
 
     /**
      * @cfg {String/String[]/Ext.XTemplate} displayTpl
@@ -159,6 +163,10 @@ Ext.define('Ext.form.field.ComboBox', {
     hiddenDataCls: Ext.baseCSSPrefix + 'hidden-display ' + Ext.baseCSSPrefix + 'form-data-hidden',
     
     ariaRole: 'combobox',
+
+    childEls: {
+        'hiddenDataEl': true
+    },
 
     /**
      * @property {Boolean} filtered
@@ -562,10 +570,6 @@ Ext.define('Ext.form.field.ComboBox', {
             displayTpl = me.displayTpl,
             transformSelect, isLocalMode;
 
-        Ext.applyIf(me.renderSelectors, {
-            hiddenDataEl: '.' + me.hiddenDataCls.split(' ').join('.')
-        });
-
         //<debug>
         if (me.typeAhead && me.multiSelect) {
             Ext.Error.raise('typeAhead and multiSelect are mutually exclusive options -- please remove one of them.');
@@ -648,11 +652,14 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
 
-    getSubTplMarkup: function() {
+    getSubTplMarkup: function(fieldData) {
         var me = this,
-            hiddenDataElMarkup =
-                '<div class="' + me.hiddenDataCls + '" role="presentation"></div>',
-            markup = me.callParent();
+            hiddenDataElMarkup = '',
+            markup = me.callParent(arguments);
+
+        if (me.hiddenName) {
+            hiddenDataElMarkup = '<div id="' + fieldData.id + '-hiddenDataEl" data-ref="hiddenDataEl" class="' + me.hiddenDataCls + '" role="presentation"></div>';
+        }
 
         return hiddenDataElMarkup + markup;
     },
@@ -739,7 +746,7 @@ Ext.define('Ext.form.field.ComboBox', {
         return this.store;
     },
 
-    beforeBlur: function() {
+    onBlur: function(e) {
         var me = this,
             filter = me.queryFilter;
             
@@ -749,12 +756,13 @@ Ext.define('Ext.form.field.ComboBox', {
         if (filter && me.queryMode === 'local' && me.clearFilterOnBlur) {
             me.getStore().getFilters().remove(filter);
         }
+        me.callParent([e]);
     },
     
-    onFocus: function() {
+    onFocus: function(e) {
         var me = this;
         
-        me.callParent(arguments);    
+        me.callParent([e]);    
         if (!me.duringTriggerClick && me.triggerAction !== 'all' && me.queryFilter && me.queryMode === 'local' && me.clearFilterOnBlur) {
             delete me.lastQuery;
             me.doRawQuery();
@@ -1188,16 +1196,11 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     doAutoSelect: function() {
         var me = this,
-            picker = me.picker,
-            lastSelected, itemNode;
+            picker = me.picker;
+
         if (picker && me.autoSelect && me.store.getCount() > 0) {
             // Highlight the last selected item and scroll it into view
-            lastSelected = picker.getSelectionModel().lastSelected;
-            itemNode = picker.getNode(lastSelected || 0);
-            if (itemNode) {
-                picker.highlightItem(itemNode);
-                picker.listEl.scrollChildIntoView(itemNode, false);
-            }
+            picker.getNavigationModel().setPosition(me.picker.getSelectionModel().lastSelected || 0);
         }
     },
 
@@ -1228,10 +1231,6 @@ Ext.define('Ext.form.field.ComboBox', {
                 } else {
                     me.doQuery(me.getRawValue(), false, true);
                 }
-            }
-            // If not using touch interactions, focus the input
-            if (!Ext.supports.Touch) {
-                me.inputEl.focus();
             }
         }
         delete me.duringTriggerClick;
@@ -1287,8 +1286,7 @@ Ext.define('Ext.form.field.ComboBox', {
             me.typeAheadTask.cancel();
             me.typeAheadTask = null;
         }
-        
-        Ext.destroy(me.listKeyNav);
+
         me.bindStore(null);
         me.callParent();
     },
@@ -1311,13 +1309,13 @@ Ext.define('Ext.form.field.ComboBox', {
                 xtype: 'boundlist',
                 pickerField: me,
                 selModel: {
-                    mode: me.multiSelect ? 'SIMPLE' : 'SINGLE'
+                    mode: me.multiSelect ? 'SIMPLE' : 'SINGLE',
+                    enableInitialSelection: false
                 },
                 floating: true,
                 hidden: true,
                 store: me.store,
                 displayField: me.displayField,
-                focusOnToFront: false,
                 preserveScrollOnRefresh: true,
                 pageSize: me.pageSize,
                 tpl: me.tpl
@@ -1329,7 +1327,6 @@ Ext.define('Ext.form.field.ComboBox', {
         }
 
         me.mon(picker, {
-            itemclick: me.onItemClick,
             refresh: me.onListRefresh,
             scope: me
         });
@@ -1374,25 +1371,6 @@ Ext.define('Ext.form.field.ComboBox', {
         this.syncSelection();
     },
 
-    onItemClick: function(picker, record){
-        /*
-         * If we're doing single selection, the selection change events won't fire when
-         * clicking on the selected element. Detect it here.
-         */
-        var me = this,
-            selection = me.picker.getSelectionModel().getSelection(),
-            valueField = me.valueField;
-
-        if (!me.multiSelect && selection.length) {
-            if (record.get(valueField) === selection[0].get(valueField)) {
-                // Make sure we also update the display value if it's only partial
-                me.displayTplData = [record.data];
-                me.setRawValue(me.getDisplayValue());
-                me.collapse();
-            }
-        }
-    },
-
     onBeforeSelect: function(list, record) {
         return this.fireEvent('beforeselect', this, record, this.getStore().indexOf(record));
     },
@@ -1401,31 +1379,71 @@ Ext.define('Ext.form.field.ComboBox', {
         return this.fireEvent('beforedeselect', this, record, this.getStore().indexOf(record));
     },
 
-    onListSelectionChange: function(list, selectedRecords) {
+    getSelection: function() {
+        var selModel = this.getPicker().getSelectionModel(),
+            selection = selModel.getSelection();
+
+        return selection.length ? selModel.getLastSelected() : null;
+    },
+
+    updateSelection: function(selection) {
+        var me = this,
+            sm;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            sm = me.getPicker().getSelectionModel();
+            me.processSelectionChange = true;
+            if (selection) {
+                sm.select(selection);
+            } else {
+                sm.deselectAll();
+            }
+            me.processSelectionChange = false;
+            me.ignoreNextSelection = false;
+        }
+    },
+
+    updateBindSelection: function(selModel, selection) {
+        var me = this,
+            selected = null;
+
+        if (!me.ignoreNextSelection) {
+            me.ignoreNextSelection = true;
+            if (selection.length) {
+                selected = selModel.getLastSelected();
+                me.hasHadSelection = true;
+            }
+            if (me.hasHadSelection) {
+                me.setSelection(selected);
+            }
+            me.ignoreNextSelection = false;
+        }
+    },
+
+    onListSelectionChange: function(selModel, selectedRecords) {
         var me = this,
             isMulti = me.multiSelect,
-            hasRecords = selectedRecords.length > 0;
+            hasRecords = selectedRecords.length > 0,
+            processSelectionChange = me.processSelectionChange;
+
+        me.updateBindSelection(selModel, selectedRecords);
         // Only react to selection if it is not called from setValue, and if our list is
         // expanded (ignores changes to the selection model triggered elsewhere)
-        if (!me.ignoreSelection && me.isExpanded) {
+        if (!me.ignoreSelection && (me.isExpanded || processSelectionChange)) {
             if (!isMulti) {
-                Ext.defer(me.collapse, 1, me);
+                me.collapse();
             }
             /*
              * Only set the value here if we're in multi selection mode or we have
              * a selection. Otherwise setValue will be called with an empty value
              * which will cause the change event to fire twice.
              */
-            if (isMulti || hasRecords) {
+            if (isMulti || hasRecords || processSelectionChange) {
                 me.setValue(selectedRecords, false);
             }
             if (hasRecords) {
                 me.fireEvent('select', me, selectedRecords);
-            }
-
-            // If not using touch interactions, focus the input
-            if (!Ext.supports.Touch) {
-                me.inputEl.focus();
             }
         }
     },
@@ -1436,50 +1454,15 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     onExpand: function() {
         var me = this,
-            keyNav = me.listKeyNav,
-            selectOnTab = me.selectOnTab,
-            picker = me.getPicker();
-
-        // Handle BoundList navigation from the input field. Insert a tab listener specially to enable selectOnTab.
-        if (keyNav) {
-            keyNav.enable();
-        } else {
-            keyNav = me.listKeyNav = new Ext.view.BoundListKeyNav(me.inputEl, {
-                boundList: picker,
-                forceKeyDown: true,
-                tab: function(e) {
-                    if (selectOnTab) {
-                        this.selectHighlighted(e);
-                        me.triggerBlur();
-                    }
-                    // Tab key event is allowed to propagate to field
-                    return true;
-                },
-                enter: function(e){
-                    var selModel = picker.getSelectionModel(),
-                        count = selModel.getCount();
-
-                    this.selectHighlighted(e);
-
-                    // Handle the case where the highlighted item is already selected
-                    // In this case, the change event won't fire, so just collapse
-                    if (!me.multiSelect && count === selModel.getCount()) {
-                        me.collapse();
-                    }
-                }
-            });
-        }
+            keyNav;
 
         // While list is expanded, stop tab monitoring from Ext.form.field.Trigger so it doesn't short-circuit selectOnTab
-        if (selectOnTab) {
+        if (me.selectOnTab) {
             me.ignoreMonitorTab = true;
         }
 
-        // If not using touch interactions, focus the input
-        if (!Ext.supports.Touch) {
-            Ext.defer(keyNav.enable, 1, keyNav); //wait a bit so it doesn't react to the down arrow opening the picker
-            me.inputEl.focus();
-        }
+        keyNav = me.getPicker().getNavigationModel();
+        Ext.defer(keyNav.enable, 1, keyNav); //wait a bit so it doesn't react to the down arrow opening the picker
     },
 
     /**
@@ -1488,7 +1471,7 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     onCollapse: function() {
         var me = this,
-            keyNav = me.listKeyNav;
+            keyNav = me.getPicker().getNavigationModel();
         if (keyNav) {
             keyNav.disable();
             me.ignoreMonitorTab = false;
@@ -1760,7 +1743,7 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     syncSelection: function() {
         var me = this,
-            picker = me.picker,
+            picker = me.getPicker(),
             selection, selModel,
             values = me.valueModels || [],
             vLen  = values.length, v, value;
@@ -1779,16 +1762,17 @@ Ext.define('Ext.form.field.ComboBox', {
             // Update the selection to match
             me.ignoreSelection++;
             selModel = picker.getSelectionModel();
-            selModel.deselectAll();
             if (selection.length) {
-                selModel.select(selection, undefined, true);
+                selModel.select(selection, false);
+            } else {
+                selModel.deselectAll();
             }
             me.ignoreSelection--;
         }
     },
 
     onEditorTab: function(e){
-        var keyNav = this.listKeyNav;
+        var keyNav = this.getPicker().getNavigationModel();
 
         if (this.selectOnTab && keyNav) {
             keyNav.selectHighlighted(e);

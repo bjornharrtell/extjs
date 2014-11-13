@@ -198,6 +198,10 @@ Ext.define('Ext.toolbar.Toolbar', {
     ],
     alias: 'widget.toolbar',
     alternateClassName: 'Ext.Toolbar',
+    
+    mixins: [
+        'Ext.util.FocusableContainer'
+    ],
 
     /**
      * @property {Boolean} isToolbar
@@ -303,7 +307,7 @@ Ext.define('Ext.toolbar.Toolbar', {
      * an `{@link #overflowHandler}`.
      * @param {Number} lastHiddenCount The number of overflowing items that used to be hidden.
      * @param {Number} hiddenCount The number of overflowing items that are hidden now.
-     * @param {Array} The hidden items
+     * @param {Array} hiddenItems The hidden items
      */
 
     statics: {
@@ -470,7 +474,7 @@ Ext.define('Ext.toolbar.Toolbar', {
         this.callParent(arguments);
         this.trackMenu(c, true);
     },
-
+    
     privates: {
         // @private
         applyDefaults: function (c) {

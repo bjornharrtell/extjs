@@ -14,7 +14,7 @@ the target provided here. Doing that can create problems for upgrading to newer
 versions of Cmd so it is not recommended but it will be easier to manage than editing
 this file in most cases.
 -->
-<project name="app-build-impl">
+<project name="app-build-impl" default=".help">
     <!--
     ===============================================================
     helper targets for ant integrations with IDE's 
@@ -181,7 +181,8 @@ this file in most cases.
                      -before-init-defaults,
                      -init-defaults,
                      -after-init-defaults,
-                     -init-compiler"/>
+                     -init-compiler,
+                     -init-native-package"/>
     
     <!--
     ===============================================================
@@ -214,7 +215,7 @@ this file in most cases.
     -->
     <target name="-before-clean"/>
     <target name="-clean">
-        <delete dir="${build.dir}"/>
+        <delete dir="${app.output.base}"/>
         <delete dir="${build.temp.dir}"/>
     </target>
     <target name="-after-clean"/>
@@ -421,6 +422,8 @@ this file in most cases.
     ===============================================================
     -->
     <import file="${basedir}/.sencha/app/packager-impl.xml"/>
+    <import file="${basedir}/.sencha/app/cordova-impl.xml"/>
+    <import file="${basedir}/.sencha/app/phonegap-impl.xml"/>
     <target name="native-package"
             depends="init"
             description="Builds native packages of the application">

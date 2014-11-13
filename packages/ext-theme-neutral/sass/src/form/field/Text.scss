@@ -56,16 +56,16 @@
  * element and triggers) when the field is not sized explicitly using the {@link #width}
  * config, or sized by it's containing layout.
  *
- * @param {color} [$form-text-field-invalid-background-color=$form-field-invalid-background-color]
+ * @param {color} [$ui-invalid-background-color=$form-field-invalid-background-color]
  * Background color of the input element when the field value is invalid.
  *
- * @param {string} [$form-text-field-invalid-background-image=$form-field-invalid-background-image]
+ * @param {string} [$ui-invalid-background-image=$form-field-invalid-background-image]
  * Background image of the input element when the field value is invalid.
  *
- * @param {string} [$form-text-field-invalid-background-repeat=$form-field-invalid-background-repeat]
+ * @param {string} [$ui-invalid-background-repeat=$form-field-invalid-background-repeat]
  * Background repeat of the input element when the field value is invalid.
  *
- * @param {string/list} [$form-text-field-invalid-background-position=$form-field-invalid-background-position]
+ * @param {string/list} [$ui-invalid-background-position=$form-field-invalid-background-position]
  * Background position of the input element when the field value is invalid.
  *
  * @param {number} [$ui-trigger-width=$form-trigger-width]

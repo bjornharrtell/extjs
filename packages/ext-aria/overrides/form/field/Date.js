@@ -2,8 +2,7 @@ Ext.define('Ext.aria.form.field.Date', {
     override: 'Ext.form.field.Date',
     
     requires: [
-        'Ext.aria.form.field.Picker',
-        'Ext.aria.picker.Date'
+        'Ext.aria.form.field.Picker'
     ],
     
     formatText: 'Expected date format {0}',

@@ -10,6 +10,7 @@ Ext.define('Ext.overrides.event.publisher.Dom', {
         DomPublisher.override({
             initHandlers: function() {
                 var me = this,
+                    docBody = document.body,
                     superOnDelegatedEvent, superOnDirectEvent;
 
                 me.callParent();
@@ -22,6 +23,14 @@ Ext.define('Ext.overrides.event.publisher.Dom', {
 
                 me.onDelegatedEvent = function(e) {
                     e.target = e.srcElement || window;
+                    
+                    if (e.type === 'focusin') {
+                        e.relatedTarget = e.fromElement === docBody ? null : e.fromElement;
+                    }
+                    else if (e.type === 'focusout') {
+                        e.relatedTarget = e.toElement === docBody ? null : e.toElement;
+                    }
+                    
                     superOnDelegatedEvent.call(me, e);
                 };
 

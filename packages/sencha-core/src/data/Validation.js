@@ -77,12 +77,11 @@ Ext.define('Ext.data.Validation', {
             record = me.record,
             fields = record.fields,
             generation = record.generation,
-            validators = record.validators,
             recordData = record.data,
-            defaultMessage,
             sep = record.validationSeparator,
             values = null,
-            currentValue, error, field, item, i, j, jLen, len, msg, val, name;
+            defaultMessage, currentValue, error, field, 
+            item, i, j, jLen, len, msg, val, name;
 
         if (force || me.syncGeneration !== generation) {
             me.syncGeneration = generation;
@@ -107,27 +106,6 @@ Ext.define('Ext.data.Validation', {
                     msg = field.validate(val, sep);
                     if (msg !== true) {
                         error = msg || defaultMessage;
-                    }
-                }
-
-                if ((sep || !error) && validators) {
-                    item = validators[name];
-                    if (item) {
-                        for (j = 0, jLen = item.length; j < jLen; ++j) {
-                            msg = item[j].validate(val, me);
-                            if (msg !== true) {
-                                if (error) {
-                                    // to be here we must have a "validationSeparator"
-                                    error += sep;
-                                    error += msg || defaultMessage;
-                                } else {
-                                    error = msg || defaultMessage;
-                                    if (!sep) {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
 

@@ -1,4 +1,4 @@
-/*
+/**
  * Base class for bar highlighting
  */
 Ext.define('Ext.sparkline.BarBase', {

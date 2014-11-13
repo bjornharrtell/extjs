@@ -312,6 +312,7 @@ Ext.define('Ext.app.Controller', {
         }
     },
 
+    // @cmd-auto-dependency {aliasPrefix : "model.", mvc : true, blame: "all"}
     /**
      * @cfg {String/String[]} models
      * Array of models to require from AppName.model namespace. For example:
@@ -337,7 +338,9 @@ Ext.define('Ext.app.Controller', {
      *      });
      *
      */
+    models: null,
 
+    // @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, blame: "all"}
     /**
      * @cfg {String/String[]} views
      * Array of views to require from AppName.view namespace and to generate getter methods for.
@@ -363,7 +366,9 @@ Ext.define('Ext.app.Controller', {
      *          }
      *      });
      */
+    views: null,
 
+    // @cmd-auto-dependency {aliasPrefix: "store.", mvc: true, blame: "all"}
     /**
      * @cfg {String/String[]} stores
      * Array of stores to require from AppName.store namespace and to generate getter methods for.
@@ -393,6 +398,10 @@ Ext.define('Ext.app.Controller', {
      *          }
      *      });
      */
+    stores: null,
+
+    // @cmd-auto-dependency {aliasPrefix: "controller.", mvc: true, blame: "all"}
+    controllers: null,
 
     config : {
         /**
@@ -468,7 +477,7 @@ Ext.define('Ext.app.Controller', {
             var Controller = Ext.app.Controller,
                 ctrlRegex  = Controller.controllerRegex,
                 requires   = [],
-                className, namespace, requires, proto, match;
+                className, namespace, proto, match;
 
             proto = cls.prototype;
             
@@ -516,6 +525,8 @@ Ext.define('Ext.app.Controller', {
     constructor: function(config) {
         this.callParent(arguments);
         this.initAutoGetters();
+        // Assuming we haven't set this in updateControl or updateListen, force it here
+        this.ensureId();
     },
 
     /**
@@ -607,6 +618,16 @@ Ext.define('Ext.app.Controller', {
                 fn.call(this);
             }
         }
+    },
+
+    updateControl: function(control) {
+        this.ensureId();
+        this.callParent([control]);
+    },
+
+    updateListen: function(listen) {
+        this.ensureId();
+        this.callParent([listen]);
     },
 
     doInit: function(app) {

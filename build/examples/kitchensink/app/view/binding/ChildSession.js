@@ -23,6 +23,12 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
     }, {
         type: 'View',
         path: 'app/view/binding/ChildSessionForm.js'
+    }, {
+        type: 'Model',
+        path: 'app/model/Customer.js'
+    }, {
+        type: 'Model',
+        path: 'app/model/Order.js'
     }],
     //</example>
 
@@ -47,6 +53,7 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
     items: [{
         flex: 1,
         xtype: 'grid',
+        reference: 'customerGrid',
         bind: '{customers}',
         columns: [{
             dataIndex: 'name',
@@ -62,9 +69,20 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
             widget: {
                 xtype: 'button',
                 text: 'Edit',
-                handler: 'onEditClick'
+                handler: 'onEditCustomerClick'
             }
         }]
+    }],
+
+    tbar: [{
+        text: 'Add Customer',
+        handler: 'onAddCustomerClick'
+    }, {
+        text: 'Remove Customer',
+        handler: 'onRemoveCustomerClick',
+        bind: {
+            disabled: '{!customerGrid.selection}'
+        }
     }],
 
     buttons: [{

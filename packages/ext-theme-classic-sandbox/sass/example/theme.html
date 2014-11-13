@@ -11,38 +11,17 @@
     Load all required links and scripts
     -->
     <script>
-        // In sandboxed build all CSS classes must be prefixed with 'x4-'
+        // In sandboxed build all CSS classes must be prefixed with 'x5-'
         // The Ext global is not set if it already exists. And the buildSettings.baseCSSPrefix:
         // is used as Ext.baseCSSPrefix in platform/core/src/Ext.js
         Ext = {
             buildSettings: {
-                baseCSSPrefix: 'x4-'
+                baseCSSPrefix: 'x5-'
             }
         };
     </script>
     <link rel="stylesheet" type="text/css" href="example.css" />
     <script type="text/javascript" src="bootstrap.js"></script>
-
-
-    <style>
-        .widget-container {
-            margin: 10px;
-            width: 400px;
-            position: relative;
-            overflow: visible;
-        }
-
-        .x-slicer-target,
-        .x-slicer-target * {
-            opacity: 1;
-        }
-
-        /* ensure body does not overlap the rounded corners of framed panel/window when slicing */
-        .x-panel-body,
-        .x-window-body {
-            background: transparent;
-        }
-    </style>
 </head>
     <body></body>
 </html>

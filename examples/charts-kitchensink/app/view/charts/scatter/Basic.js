@@ -117,7 +117,7 @@ Ext.define('ChartsKitchenSink.view.charts.scatter.Basic', {
                 },
                 label: {
                     display: 'over',
-                    font: '18px',
+                    font: '18px Arial',
                     renderer: function(value, label, storeItem, item, i, display, animate, index) {
                         return storeItem.get('x') + ',' + storeItem.get('y');
                     }

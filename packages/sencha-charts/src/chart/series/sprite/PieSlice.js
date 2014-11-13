@@ -20,16 +20,14 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
                 doCallout: 'bool',
 
                 /**
-                 * @cfg {Boolean} [rotateLabels=true]
-                 * 'true' if the labels are rotated for easier reading.
-                 */
-                rotateLabels: 'bool',
-
-                /**
                  * @cfg {String} [label='']
                  * Label associated with the Pie sprite.
                  */
                 label: 'string',
+
+                // @deprecated Use series.label.orientation config instead.
+                // @since 5.0.1
+                rotateLabels: 'bool',
 
                 /**
                  * @cfg {Number} [labelOverflowPadding=10]
@@ -87,7 +85,7 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
         }
 
         // Draw the sector
-        me.callParent(arguments);
+        me.callParent([surface, ctx, clip, rect]);
 
         // Draw the labels
         if (attr.label && me.getBoundMarker('labels')) {
@@ -105,6 +103,8 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
             margin = attr.margin,
             centerX = attr.centerX,
             centerY = attr.centerY,
+            sinMidAngle = Math.sin(midAngle),
+            cosMidAngle = Math.cos(midAngle),
             startRho = Math.min(attr.startRho, attr.endRho) + margin,
             endRho = Math.max(attr.startRho, attr.endRho) + margin,
             midRho = (startRho + endRho) * 0.5,
@@ -120,28 +120,42 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
 
         labelCfg.text = attr.label;
 
-        x = centerX + Math.cos(midAngle) * midRho;
-        y = centerY + Math.sin(midAngle) * midRho;
+        x = centerX + cosMidAngle * midRho;
+        y = centerY + sinMidAngle * midRho;
         labelCfg.x = surfaceMatrix.x(x, y);
         labelCfg.y = surfaceMatrix.y(x, y);
 
-        x = centerX + Math.cos(midAngle) * endRho;
-        y = centerY + Math.sin(midAngle) * endRho;
+        x = centerX + cosMidAngle * endRho;
+        y = centerY + sinMidAngle * endRho;
         labelCfg.calloutStartX = surfaceMatrix.x(x, y);
         labelCfg.calloutStartY = surfaceMatrix.y(x, y);
 
-        x = centerX + Math.cos(midAngle) * (endRho + calloutLineLength);
-        y = centerY + Math.sin(midAngle) * (endRho + calloutLineLength);
+        x = centerX + cosMidAngle * (endRho + calloutLineLength);
+        y = centerY + sinMidAngle * (endRho + calloutLineLength);
         labelCfg.calloutPlaceX = surfaceMatrix.x(x, y);
         labelCfg.calloutPlaceY = surfaceMatrix.y(x, y);
 
-        if (attr.rotateLabels) {
-            labelCfg.rotationRads = midAngle + Math.atan2(
-                surfaceMatrix.y(1, 0) - surfaceMatrix.y(0, 0),
-                surfaceMatrix.x(1, 0) - surfaceMatrix.x(0, 0)
-            );
-        } else {
+        if (!attr.rotateLabels) {
             labelCfg.rotationRads = 0;
+            //<debug>
+            Ext.log.warn("'series.style.rotateLabels' config is deprecated. " +
+                "Use 'series.label.orientation' config instead.");
+            //</debug>
+        } else {
+            switch (labelTpl.attr.orientation) {
+                case 'horizontal':
+                    labelCfg.rotationRads = midAngle + Math.atan2(
+                            surfaceMatrix.y(1, 0) - surfaceMatrix.y(0, 0),
+                            surfaceMatrix.x(1, 0) - surfaceMatrix.x(0, 0)
+                    ) + Math.PI/2;
+                    break;
+                case 'vertical':
+                    labelCfg.rotationRads = midAngle + Math.atan2(
+                            surfaceMatrix.y(1, 0) - surfaceMatrix.y(0, 0),
+                            surfaceMatrix.x(1, 0) - surfaceMatrix.x(0, 0)
+                    );
+                    break;
+            }
         }
         labelCfg.calloutColor = (calloutLine && calloutLine.color) || me.attr.fillStyle;
         if (calloutLine) {

@@ -1,3 +1,8 @@
+// @define Ext.draw.engine.excanvas
+Ext.draw || (Ext.draw = {});
+Ext.draw.engine || (Ext.draw.engine = {});
+Ext.draw.engine.excanvas = true;
+
 // Copyright 2006 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -1210,7 +1215,7 @@ if (!document.createElement('canvas').getContext) {
       case 'alphabetic':
       case 'ideographic':
       case 'bottom':
-        offset.y = -fontStyle.size / 2.25;
+        offset.y = -fontStyle.size / 3;
         break;
     }
 

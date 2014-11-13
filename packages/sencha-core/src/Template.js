@@ -45,6 +45,9 @@
  * - `disableFormats` reduces `{@link #apply}` time when no formatting is required.
  */
 Ext.define('Ext.Template', {
+// @define Ext.String.format
+// @define Ext.util.Format.format
+    
     requires: [
         //'Ext.dom.Helper',
         'Ext.util.Format'
@@ -410,4 +413,52 @@ Ext.define('Ext.Template', {
         var newNode = Ext.DomHelper.overwrite(Ext.getDom(el), this.apply(values));
         return returnElement ? Ext.get(newNode) : newNode;
     }
+}, function(Template){
+    
+    var formatRe = /\{\d+\}/,
+        generateFormatFn = function(format) {
+            // Generate a function which substitutes value tokens
+            if (formatRe.test(format)) {
+                format = new Template(format, formatTplConfig);
+                return function() {
+                    return format.apply(arguments);
+                };
+            }
+            // No value tokens
+            else {
+                return function() {
+                    return format;
+                };
+            }
+        },
+        // Flags for the template compile process.
+        // stringFormat means that token 0 consumes argument 1 etc.
+        // So that String.format does not have to slice the argument list.
+        formatTplConfig = { useFormat: false, compiled: true, stringFormat: true },
+        formatFns = {};
+
+    /**
+     * Alias for {@link Ext.String#format}.
+     * @method format
+     * @inheritdoc Ext.String#format
+     * @member Ext.util.Format
+     */
+    /**
+     * Allows you to define a tokenized string and pass an arbitrary number of arguments to replace the tokens.  Each
+     * token must be unique, and must increment in the format {0}, {1}, etc.  Example usage:
+     *
+     *     var cls = 'my-class',
+     *         text = 'Some text';
+     *     var s = Ext.String.format('<div class="{0}">{1}</div>', cls, text);
+     *     // s now contains the string: '<div class="my-class">Some text</div>'
+     *
+     * @param {String} string The tokenized string to be formatted.
+     * @param {Mixed...} values The values to replace tokens `{0}`, `{1}`, etc in order.
+     * @return {String} The formatted string.
+     * @member Ext.String
+     */
+    Ext.String.format = Ext.util.Format.format = function(format) {
+        var formatFn = formatFns[format] || (formatFns[format] = generateFormatFn(format));
+        return formatFn.apply(this, arguments);
+    };
 });

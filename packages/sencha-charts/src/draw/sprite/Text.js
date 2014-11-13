@@ -4,19 +4,24 @@
  *
  * A sprite that represents text.
  *
- *     @example preview miniphone
- *     var container = new Ext.draw.Container({
- *       items: [{
- *         type: 'text',
- *         x: 50,
- *         y: 50,
- *         text: 'Sencha',
- *         fontSize: 18,
- *         fillStyle: 'blue'
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                 type: 'text',
+ *                 x: 50,
+ *                 y: 50,
+ *                 text: 'Sencha',
+ *                 fontSize: 18,
+ *                 fillStyle: 'blue'
+ *             }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(container);
  */
 Ext.define('Ext.draw.sprite.Text', {
     extend: 'Ext.draw.sprite.Sprite',
@@ -115,11 +120,7 @@ Ext.define('Ext.draw.sprite.Text', {
                  */
                 textAlign: (function (textAligns) {
                     return function (n) {
-                        if (!n) {
-                            return 'center';
-                        } else {
-                            return textAligns[n];
-                        }
+                        return textAligns[n] || 'center';
                     };
                 })({
                     start: 'start',
@@ -135,21 +136,16 @@ Ext.define('Ext.draw.sprite.Text', {
                  */
                 textBaseline: (function (textBaselines) {
                     return function (n) {
-                        if (n === false) {
-                            return 'alphabetic';
-                        } else if (n in textBaselines) {
-                            return n;
-                        } else if (n === 'center') {
-                            return 'middle';
-                        }
+                        return textBaselines[n] || 'alphabetic';
                     };
                 })({
-                    top: true,
-                    hanging: true,
-                    middle: true,
-                    alphabetic: true,
-                    ideographic: true,
-                    bottom: true
+                    top: 'top',
+                    hanging: 'hanging',
+                    middle: 'middle',
+                    center: 'middle',
+                    alphabetic: 'alphabetic',
+                    ideographic: 'ideographic',
+                    bottom: 'bottom'
                 }),
 
                 /**
@@ -176,8 +172,7 @@ Ext.define('Ext.draw.sprite.Text', {
                 font: '10px sans-serif',
                 textBaseline: 'alphabetic',
                 textAlign: 'start',
-                strokeStyle: 'rgba(0, 0, 0, 0)',
-                divBased: true,
+                strokeStyle: Ext.draw.Color.RGBA_NONE,
                 fillStyle: '#000',
                 x: 0,
                 y: 0,
@@ -244,6 +239,9 @@ Ext.define('Ext.draw.sprite.Text', {
                     if (attrs.fontWeight) {
                         font += attrs.fontWeight + ' ';
                     }
+                    if (attrs.fontStyle) {
+                        font += attrs.fontStyle + ' ';
+                    }
                     if (attrs.fontVariant) {
                         font += attrs.fontVariant + ' ';
                     }
@@ -251,10 +249,10 @@ Ext.define('Ext.draw.sprite.Text', {
                         font += attrs.fontSize + ' ';
                     }
                     if (attrs.fontFamily) {
-                        font += attrs.fontFamily + ' ';
+                        font += attrs.fontFamily;
                     }
                     this.setAttributes({
-                        font: font.substr(0, font.length - 1)
+                        font: font
                     }, true);
                 }
             }
@@ -262,6 +260,14 @@ Ext.define('Ext.draw.sprite.Text', {
     },
 
     constructor: function (config) {
+        if (config && config.font) {
+            config = Ext.clone(config);
+            for (var key in config) {
+                if (key !== 'font' && key.indexOf('font') === 0) {
+                    delete config[key];
+                }
+            }
+        }
         Ext.draw.sprite.Sprite.prototype.constructor.call(this, config);
     },
 
@@ -321,6 +327,12 @@ Ext.define('Ext.draw.sprite.Text', {
             lineWidth,
             i = 0;
 
+        // To get consistent results in all browsers we don't apply textAlign and textBaseline
+        // attributes of the sprite to context, so text is always left aligned and has an alphabetic baseline.
+        // Instead we have to calculate the horizontal offset of each line based on sprite's textAlign,
+        // and the vertical offset of the bounding box based on sprite's textBaseline.
+        // These offsets are then used by the sprite's 'render' method to position text properly.
+
         switch (baseline) {
             case 'hanging' :
             case 'top':
@@ -333,7 +345,6 @@ Ext.define('Ext.draw.sprite.Text', {
                 y -= blockHeight * 0.8;
                 break;
             case 'middle' :
-            case 'center' :
                 y -= blockHeight * 0.5;
                 break;
         }
@@ -341,13 +352,7 @@ Ext.define('Ext.draw.sprite.Text', {
             x = rect[2] - rect[0] - x;
             alignment = me.rtlAlignments[alignment];
         }
-        // We don't apply textAlign attribute of the sprite to context,
-        // so text is always left aligned, and we have to calculate the
-        // offset of each line based on sprite's textAlign attribute.
-        // These offsets are then used by the sprite's 'render' method
-        // to position text property.
-        // TODO: ^^ This was probably done because of the differences in
-        // TODO: Canvas and SVG when it comes to text alignment. Have to check this.
+
         switch (alignment) {
             case 'start':
                 if (isRtl) {
@@ -421,6 +426,7 @@ Ext.define('Ext.draw.sprite.Text', {
             mat = Ext.draw.Matrix.fly(attr.matrix.elements.slice(0)),
             bbox = me.getBBox(true),
             dx = attr.textAlignOffsets,
+            none = Ext.draw.Color.RGBA_NONE,
             x, y, i, lines, lineHeight;
         if (attr.text.length === 0) {
             return;
@@ -430,7 +436,8 @@ Ext.define('Ext.draw.sprite.Text', {
         lineHeight = bbox.height / lines.length;
         // Simulate textBaseline and textAlign.
         x = attr.bbox.plain.x;
-        y = attr.bbox.plain.y;
+        // lineHeight * 0.78 is the approximate distance between the top and the alphabetic baselines
+        y = attr.bbox.plain.y + lineHeight * 0.78;
         mat.toContext(ctx);
         if (surface.getInherited().rtl) {
             // Canvas element in RTL mode automatically flips text alignment.
@@ -441,10 +448,10 @@ Ext.define('Ext.draw.sprite.Text', {
         }
 
         for (i = 0; i < lines.length; i++) {
-            if (ctx.fillStyle !== 'rgba(0, 0, 0, 0)') {
+            if (ctx.fillStyle !== none) {
                 ctx.fillText(lines[i], x + (dx[i] || 0), y + lineHeight * i);
             }
-            if (ctx.strokeStyle !== 'rgba(0, 0, 0, 0)') {
+            if (ctx.strokeStyle !== none) {
                 ctx.strokeText(lines[i], x + (dx[i] || 0), y + lineHeight * i);
             }
         }

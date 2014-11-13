@@ -23,7 +23,7 @@ Ext.define('Ext.dashboard.Column', {
 
     synthetic: true, // not user-defined
 
-    onRemove: function (comp, isDestroying) {
+    onRemove: function (dashPanel, isDestroying) {
         var me = this,
             ownerCt = me.ownerCt,
             remainingSiblings,
@@ -31,19 +31,16 @@ Ext.define('Ext.dashboard.Column', {
             totalColumnWidth = 0,
             i;
 
-        // If we've just emptied this column, and the component is being destroyed:
-        // NOT going to have its width allocated to a recipient column - see DropZone#notifyDrop,
-        // then we must reallocate the flexes evenly.
-        if (isDestroying && ownerCt && me.items.getCount() === 0) {
-
-            // Collect remaining column siblings when this one has gone.
-            remainingSiblings = Ext.Array.filter(ownerCt.query('>' + me.xtype), function(c){
+        // If we've just emptied this column.
+        if (ownerCt && me.items.getCount() === 0) {
+            // Collect remaining column siblings of the same row, when this one has gone.
+            remainingSiblings = Ext.Array.filter(ownerCt.query('>' + me.xtype+ '[rowIndex=' + me.rowIndex + ']'), function(c){
                 return c !== me;
             });
             numRemaining = remainingSiblings.length;
 
             // If this column is not destroyed, then remove this column (unless it is the last one!)
-            if (!me.destroyed && numRemaining) {
+            if (!me.destroying && !me.isDestroyed) {
                 ownerCt.remove(me);
 
                 // Down to just one column; it must take up full width
@@ -54,7 +51,7 @@ Ext.define('Ext.dashboard.Column', {
                 // still total 1.0
                 else {
                     for (i = 0; i < numRemaining; i++) {
-                        totalColumnWidth += remainingSiblings[i].columnWidth;
+                        totalColumnWidth += remainingSiblings[i].columnWidth || 0;
                     }
                     for (i = 0; i < numRemaining; i++) {
                         remainingSiblings[i].columnWidth = remainingSiblings[i].columnWidth / totalColumnWidth;
@@ -63,7 +60,9 @@ Ext.define('Ext.dashboard.Column', {
 
                 // Needed if user is *closing* the last portlet in a column as opposed to just dragging it to another place
                 // The destruction will not force a layout
-                ownerCt.updateLayout();
+                if (isDestroying) {
+                    ownerCt.updateLayout();
+                }
             }
         }
     }

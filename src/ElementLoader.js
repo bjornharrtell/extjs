@@ -57,8 +57,8 @@ Ext.define('Ext.ElementLoader', {
 
     /**
      * @cfg {Boolean/Object} autoLoad
-     * True to have the loader make a request as soon as it is created.
-     * This argument can also be a set of options that will be passed to {@link #method-load} is called.
+     * `true` to have the loader make a request as soon as it is created.
+     * This argument can also be a set of options that will be passed to {@link #method-load} when it is called.
      */
     autoLoad: false,
 
@@ -172,15 +172,17 @@ Ext.define('Ext.ElementLoader', {
 
         config = config || {};
         Ext.apply(me, config);
-        me.setTarget(me.target);
-
+        
         // don't pass config because we have already applied it.
         me.mixins.observable.constructor.call(me);
+
+        me.setTarget(me.target);
+
 
         if (me.autoLoad) {
             autoLoad = me.autoLoad;
             if (autoLoad === true) {
-                autoLoad = {};
+                autoLoad = null;
             }
             me.load(autoLoad);
         }
@@ -372,7 +374,7 @@ Ext.define('Ext.ElementLoader', {
     startAutoRefresh: function(interval, options){
         var me = this;
         me.stopAutoRefresh();
-        me.autoRefresh = setInterval(function(){
+        me.autoRefresh = Ext.interval(function(){
             me.load(options);
         }, interval);
     },

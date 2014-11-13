@@ -10,7 +10,7 @@
     @if $border-color == transparent or is-null($border-color) {
         @return transparent;
     } @else {
-        @return mix(#000, $border-color, 8%);
+        @return $border-color;
     }
 }
 
@@ -42,7 +42,31 @@
     @if $background-color == transparent or is-null($background-color) {
         @return transparent;
     } @else {
-        @return mix(#000, $background-color, 8%);
+        @return $background-color;
+    }
+}
+
+@function button-default-inner-border-color-focus($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function button-default-inner-border-color-focus-over($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function button-default-inner-border-color-focus-pressed($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
     }
 }
 
@@ -62,6 +86,30 @@
     }
 }
 
+@function button-toolbar-inner-border-color-focus($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function button-toolbar-inner-border-color-focus-over($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function button-toolbar-inner-border-color-focus-pressed($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
 @function button-toolbar-border-color-over($border-color) {
     @if $border-color == transparent or is-null($border-color) {
         @return transparent;
@@ -74,7 +122,7 @@
     @if $border-color == transparent or is-null($border-color) {
         @return transparent;
     } @else {
-        @return mix(#000, $border-color, 4%);
+        @return $border-color;
     }
 }
 
@@ -106,7 +154,7 @@
     @if $background-color == transparent or is-null($background-color) {
         @return transparent;
     } @else {
-        @return mix(#000, $background-color, 4%);
+        @return $background-color;
     }
 }
 
@@ -123,5 +171,29 @@
         @return transparent;
     } @else {
         @return $background-color;
+    }
+}
+
+@function tab-inner-border-color-focus($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function tab-inner-border-color-focus-over($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
+    }
+}
+
+@function tab-inner-border-color-focus-active($background-color, $border-color) {
+    @if $background-color == transparent or is-null($background-color) {
+        @return transparent;
+    } @else {
+        @return mix($background-color, $border-color, 20%)
     }
 }

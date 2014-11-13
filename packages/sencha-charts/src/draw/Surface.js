@@ -507,13 +507,9 @@ Ext.define('Ext.draw.Surface', {
 
         if (isRtl) {
             width = container.getWidth();
-            if (Ext.isIE8) {
-                result[0] = pageXY[0] + xy[0] - rect[0] + width - document.body.clientWidth;
-            } else {
-                // The line below is actually a simplified form of
-                // rect[2] - (pageXY[0] - xy[0] - (width - (rect[0] + rect[2]))).
-                result[0] = xy[0] - pageXY[0] - rect[0] + width;
-            }
+            // The line below is actually a simplified form of
+            // rect[2] - (pageXY[0] - xy[0] - (width - (rect[0] + rect[2]))).
+            result[0] = xy[0] - pageXY[0] - rect[0] + width;
         } else {
             result[0] = pageXY[0] - xy[0] - rect[0];
         }
@@ -561,7 +557,7 @@ Ext.define('Ext.draw.Surface', {
     repaint: function () {
         var me = this;
         me.repaint = Ext.emptyFn;
-        setTimeout(function () {
+        Ext.defer(function () {
             delete me.repaint;
             me.element.repaint();
         }, 1);

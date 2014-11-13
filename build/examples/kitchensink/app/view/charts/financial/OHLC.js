@@ -76,24 +76,34 @@ Ext.define('KitchenSink.view.charts.financial.OHLC', {
         background: 'white',
         insetPadding: 20,
         interactions: [
-             {
-                 type: 'panzoom',
-                 enabled: false,
-                 zoomOnPanGesture: false,
-                 axes: {
-                     left: {
-                         allowPan: false,
-                         allowZoom: false
-                     },
-                     bottom: {
-                         allowPan: true,
-                         allowZoom: true
-                     }
-                 }
-             },
-             {
-                 type: 'crosshair'
-             }
+            {
+                type: 'panzoom',
+                enabled: false,
+                zoomOnPanGesture: false,
+                axes: {
+                    left: {
+                        allowPan: false,
+                        allowZoom: false
+                    },
+                    bottom: {
+                        allowPan: true,
+                        allowZoom: true
+                    }
+                }
+            },
+            {
+                type: 'crosshair',
+                axes: {
+                    label: {
+                        fillStyle: 'white'
+                    },
+                    rect: {
+                        fillStyle: '#344459',
+                        opacity: 0.7,
+                        radius: 5
+                    }
+                }
+            }
         ],
         series: [
             {
@@ -115,9 +125,6 @@ Ext.define('KitchenSink.view.charts.financial.OHLC', {
                         fill: 'rgb(55,153,19)',
                         stroke: 'rgb(55,153,19)'
                     }
-                },
-                aggregator: {
-                    strategy: 'time'
                 }
             }
         ],

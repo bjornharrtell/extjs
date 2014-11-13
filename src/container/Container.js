@@ -524,6 +524,7 @@ Ext.define('Ext.container.Container', {
      */
     detachOnRemove: true,
 
+    // @cmd-auto-dependency {aliasPrefix: "widget.", typeProperty: "xtype", defaultTypeProperty: "defaultType", defaultsProperty: "defaults"}
     /**
      * @cfg {Object/Object[]} items
      * A single item, or an array of child Components to be added to this container
@@ -566,7 +567,9 @@ Ext.define('Ext.container.Container', {
      *
      * @since 2.3.0
      */
+    items: undefined,  // Not "null" so that Ext.applyIf(this, {items: []}) works
 
+    // @cmd-auto-dependency { aliasPrefix : "layout." }
     /**
      * @cfg {Ext.enums.Layout/Object} layout
      * **Important**: In order for child items to be correctly sized and
@@ -637,7 +640,6 @@ Ext.define('Ext.container.Container', {
      *
      * @since 2.3.0
      * 
-     * @cmd-auto-dependency { aliasPrefix : "layout." }
      */
     layout: 'auto',
 
@@ -667,6 +669,12 @@ Ext.define('Ext.container.Container', {
     // ***********************************************************************************
     // Begin Properties
     // ***********************************************************************************
+
+    // private
+    _applyDefaultsOptions: {
+        defaults: true,
+        strict: false
+    },
 
     ariaRole: 'presentation',
 
@@ -1486,12 +1494,13 @@ Ext.define('Ext.container.Container', {
      * account for layout-generated components like splitters and should be used instead
      * of index based `{@link #move}`. If `before` is `null` then the `item` will be the
      * last item in this container.
-     * @param {Ext.Component} item
-     * @param {Ext.Component} before
+     * @param {Object/Ext.Component} item The item to move. May be a component configuration object.
+     * @param {Ext.Component} before The reference component. May be `null`.
+     * @return {Ext.Component} The moved item.
      * @since 5.0.0
      */
     moveBefore: function (item, before) {
-        this.layout.moveItemBefore(item, before);
+        return this.layout.moveItemBefore(item, before);
     },
 
     /**
@@ -1499,8 +1508,9 @@ Ext.define('Ext.container.Container', {
      * account for layout-generated components like splitters and should be used instead
      * of index based `{@link #move}`. If `after` is `null` then the `item` will be the
      * first item in this container.
-     * @param {Ext.Component} item
-     * @param {Ext.Component} after
+     * @param {Ext.Component} item The item to move. May be a component configuration object.
+     * @param {Ext.Component} after The reference component. May be `null`.
+     * @return {Ext.Component} The moved item.
      * @since 5.0.0
      */
     moveAfter: function (item, after) {
@@ -1510,7 +1520,7 @@ Ext.define('Ext.container.Container', {
             index = after ? layout.getMoveAfterIndex(after) : 0,
             before = items.getAt(index);
         
-        layout.moveItemBefore(item, before);
+        return layout.moveItemBefore(item, before);
     },
 
     /**
@@ -1662,10 +1672,11 @@ Ext.define('Ext.container.Container', {
     remove: function(component, autoDestroy) {
         var me = this,
             c = me.getComponent(component);
+
         //<debug>
-            if (Ext.isDefined(Ext.global.console) && !c) {
-                Ext.global.console.warn("Attempted to remove a component that does not exist. Ext.container.Container: remove takes an argument of the component to remove. cmp.remove() is incorrect usage.");
-            }
+        if (!arguments.length) {
+            Ext.log.warn("Ext.container.Container: remove takes an argument of the component to remove. cmp.remove() is incorrect usage.");
+        }
         //</debug>
 
         if (c && (!me.hasListeners.beforeremove || me.fireEvent('beforeremove', me, c) !== false)) {
@@ -1800,17 +1811,29 @@ Ext.define('Ext.container.Container', {
     privates: {
         // @private
         applyDefaults: function(config) {
-            var defaults = this.defaults;
+            var me = this,
+                defaults = me.defaults;
 
             if (defaults) {
                 if (Ext.isFunction(defaults)) {
-                    defaults = defaults.call(this, config);
+                    defaults = defaults.call(me, config);
                 }
 
                 if (Ext.isString(config)) {
                     config = Ext.ComponentManager.get(config);
                 }
-                Ext.applyIf(config, defaults);
+
+                if (config.isComponent) {
+                    // If we already have a component instance the best we can do is
+                    // conditionally set all the configs in defaults if they have not
+                    // yet been set on the component instance.
+                    config.setConfig(defaults, null, me._applyDefaultsOptions);
+                } else {
+                    // If we have a config object (not a component instance) we can do a
+                    // full (deep) merge of the config with the defaults object.
+                    // Fork the defaults object first so that we don't modify the original
+                    config = me.getConfigurator().merge(me, Ext.Object.fork(defaults), config);
+                }
             }
             return config;
         },

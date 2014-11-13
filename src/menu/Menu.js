@@ -159,6 +159,8 @@ Ext.define('Ext.menu.Menu', {
      * 
      * See also the {@link #showSeparator} config.
      */
+    
+    focusable: true,
 
     // private
     baseCls: Ext.baseCSSPrefix + 'menu',
@@ -239,6 +241,11 @@ Ext.define('Ext.menu.Menu', {
         });
     },
 
+    // Private implementation for Menus. They are a special case, in that in the vast majority
+    // (nearly all?) of use cases they shouldn't be constrained to anything other than the viewport.
+    // See EXTJS-13596.
+    initFloatConstrain: Ext.emptyFn,
+
     // Menus do not have owning containers on which they depend for visibility. They stand outside
     // any container hierarchy.
     initHierarchyEvents: Ext.emptyFn,
@@ -296,13 +303,6 @@ Ext.define('Ext.menu.Menu', {
                 keyMap: me.getKeyMap()
             });
         }
-    },
-
-    getRefOwner: function() {
-        // ownerItem === owning menuItem
-        // If a menu of a Button, it will have an ownerButton property
-        // Else use the default method.
-        return this.ownerItem || this.ownerButton || this.callParent(arguments);
     },
 
     /**
@@ -434,6 +434,8 @@ Ext.define('Ext.menu.Menu', {
                 cmp.cls = (cmp.cls || '') + ' ' + cls.join(' ');
             }
         }
+
+        // @noOptimize.callParent
         this.callParent(arguments);
     },
 
@@ -467,7 +469,7 @@ Ext.define('Ext.menu.Menu', {
         var me = this;
 
         Ext.menu.Manager.unregister(me);
-        me.parentMenu = me.ownerButton = null;
+        me.parentMenu = me.ownerCmp = null;
         if (me.rendered) {
             me.el.un(me.mouseMonitor);
             Ext.destroy(me.keyNav);
@@ -500,11 +502,11 @@ Ext.define('Ext.menu.Menu', {
             mouseEnter = !me.el.contains(fromEl),
             item = me.getItemFromEvent(e),
             parentMenu = me.parentMenu,
-            ownerItem = me.ownerItem;
+            ownerCmp = me.ownerCmp;
 
         if (mouseEnter && parentMenu) {
-            parentMenu.setActiveItem(ownerItem);
-            ownerItem.cancelDeferHide();
+            parentMenu.setActiveItem(ownerCmp);
+            ownerCmp.cancelDeferHide();
             parentMenu.mouseMonitor.mouseenter();
         }
 
@@ -574,7 +576,7 @@ Ext.define('Ext.menu.Menu', {
 
     privates: {
         getFocusEl: function() {
-            return this.focusedItem || this.items.items[0];
+            return this.el;
         }
     }
 });

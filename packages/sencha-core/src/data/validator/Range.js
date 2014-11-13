@@ -19,24 +19,32 @@ Ext.define('Ext.data.validator.Range', {
          */
         
         /**
-         * @cfg {String} minOnlyMessage
-         * The error message to return when the value is less than the minimum
-         * and we only have a minimum specified.
+         * @inheritdoc
          */
-        minOnlyMessage: 'Must be greater than {0}',
+        minOnlyMessage: 'Must be must be at least {0}',
         
         /**
-         * @cfg {String} maxOnlyMessage
-         * The error message to return when the value is more than the maximum
-         * and we only have a maximum specified.
+         * @inheritdoc
          */
-        maxOnlyMessage: 'Must be less than {0}',
+        maxOnlyMessage: 'Must be no more than than {0}',
         
         /**
-         * @cfg {String} bothMessage
-         * The error message to return when the value is not in the specified 
-         * range and we have both values.
+         * @inheritdoc
          */
-        bothMessage: 'Must be between {0} and {1}'
+        bothMessage: 'Must be between {0} and {1}',
+
+        /**
+         * @cfg {String} nanMessage
+         * The error message to return when the value is not numeric.
+         */
+        nanMessage: 'Must be numeric'
+    },
+
+    validateValue: function(value) {
+        var msg = this.callParent([value]);
+        if (msg === true && isNaN(value)) {
+            msg = this.getNanMessage();
+        }
+        return msg;
     }
 });

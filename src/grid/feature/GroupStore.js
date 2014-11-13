@@ -102,6 +102,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
                         modelData[groupField] = key;
                         group.placeholder = groupPlaceholder = new Model(modelData);
                         groupPlaceholder.isNonData = groupPlaceholder.isCollapsedPlaceholder = true;
+                        groupPlaceholder.group = group;
                         data.add(groupPlaceholder);
                     }
 
@@ -243,6 +244,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
             modelData[store.getGroupField()] = key;
             groupPlaceholder = group.placeholder = new Model(modelData);
             groupPlaceholder.isNonData = groupPlaceholder.isCollapsedPlaceholder = true;
+            groupPlaceholder.group = group;
         }
         return group.placeholder;
     },

@@ -7,6 +7,16 @@ Ext.define('Ext.dom.Fly', {
     extend: 'Ext.dom.Element',
     alternateClassName: 'Ext.dom.Element.Fly',
 
+    // This adds the ability to wrap DOCUMENT_FRAGMENT_NODE
+    // Document Fragments cannot have event listeners and therefore do not
+    // need  the caching mechanism provided by Ext.get.
+    // However the many Element APIs are useful such as Traversal, child appending/removing.
+    validNodeTypes: {
+        1: 1, // ELEMENT_NODE
+        9: 1, // DOCUMENT_NODE
+        11: 1 // DOCUMENT_FRAGMENT_NODE
+    },
+
     /**
      * @property {Boolean} isFly
      * This is `true` to identify Element flyweights
@@ -23,23 +33,24 @@ Ext.define('Ext.dom.Fly', {
     },
 
     attach: function (dom) {
-        if (!dom) {
-            return this.detach();
-        }
-        var me = this,
-            cacheEntry = Ext.cache[dom.id];
+        var me = this;
 
+        if (!dom) {
+            return me.detach();
+        }
         me.dom = dom;
 
-        me.isSynchronized = false;
-        if (cacheEntry) {
-            cacheEntry.isSynchronized = false;
+        // If the element is not being managed by an Ext.Element instance,
+        // we have to assume that the classList/classMap in the data object are out of sync with reality.
+        if (!Ext.cache[dom.id]) {
+            me.getData().isSynchronized = false;
         }
-        return this;
+
+        return me;
     },
 
     detach: function() {
-        this.dom = this.classList = this.hasClassMap = null;
+        this.dom = null;
     },
 
     addListener:
@@ -114,7 +125,7 @@ Ext.define('Ext.dom.Fly', {
             // check if we have a valid node type or if the el is a window object before
             // proceeding. This allows elements, document fragments, and document/window
             // objects (even those inside iframes) to be wrapped.
-            if (Ext.Element.validNodeTypes[nodeType] || (!nodeType && (dom.window === dom))) {
+            if (Fly.prototype.validNodeTypes[nodeType] || (!nodeType && (dom.window === dom))) {
                 fly = Ext.cache[dom.id];
 
                 // If there's no Element cached, or the element cached is for another DOM node, return a Fly

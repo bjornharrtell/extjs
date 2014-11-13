@@ -8,11 +8,10 @@ Ext.define('Ext.grid.filters.filter.SingleFilter', {
 
     constructor: function (config) {
         var me = this,
-            statefulGrid, filter, value;
+            filter, value;
 
         me.callParent([config]);
 
-        statefulGrid = me.grid.stateful;
         value = me.value;
 
         filter = me.getStoreFilter();
@@ -24,12 +23,12 @@ Ext.define('Ext.grid.filters.filter.SingleFilter', {
             // Once we've reached this block, we know that this grid filter doesn't have a stateful filter, so if our
             // flag to begin saving future filter mutations is set we know that any configured filter must be nulled
             // out or it will replace our stateful filter.
-            if (statefulGrid && me.store.saveStatefulFilters) {
+            if (me.grid.stateful && me.getStore().saveStatefulFilters) {
                 value = undefined;
             }
 
             // TODO: What do we mean by value === null ?
-            me.active = !!value;
+            me.active = value !== undefined;
 
             // Now we're acting on user configs so let's not futz with any assumed settings.
             filter = me.createFilter({

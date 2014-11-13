@@ -6,7 +6,9 @@
     "detailedDescription": "Use AMF-based server (e.g. BlazeDS, Coldfusion) as data sources for grid. Also allows making RMI calls to the server using Direct.",
     "version": "1.0.0",
     "compatVersion": "1.0.0",
+    "framework": "ext",
     "format": "1",
+    "output": "${package.dir}/build",
     "local": true,
     "requires": []
 }

@@ -544,9 +544,9 @@ Ext.define('Ext.draw.engine.Svg', {
         if (Ext.isSafari3) {
             // Refreshing the view to fix bug EXTJSIV-1: rendering issue in old Safari 3
             me.webkitRect.show();
-            setTimeout(function () {
+            Ext.defer(function () {
                 me.webkitRect.hide();
-            });
+            }, 1);
         }
     },
 

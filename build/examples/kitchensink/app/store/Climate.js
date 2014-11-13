@@ -38,14 +38,17 @@ Ext.define('KitchenSink.store.Climate', {
 
     generateData: function () {
         var data = this.config.data,
-            i, item, result = [];
+            i, result = [],
+            temp = 15,
+            min = this.counter % 2 === 1 ? 0 : temp;
         for (i = 0; i < data.length; i++) {
             result.push({
                 month: data[i].month,
-                high: 20 + Math.random() * 20,
-                low: Math.random() * 20
+                high: min + temp + Math.random() * temp,
+                low: min + Math.random() * temp
             });
         }
+        this.counter++;
         return result;
     },
 

@@ -13,7 +13,8 @@ Ext.define('Ext.layout.container.Box', {
         'Ext.layout.container.boxOverflow.Menu',
         'Ext.layout.container.boxOverflow.Scroller',
         'Ext.util.Format',
-        'Ext.dd.DragDropManager'
+        'Ext.dd.DragDropManager',
+        'Ext.resizer.Splitter'
     ],
 
     type: 'box',

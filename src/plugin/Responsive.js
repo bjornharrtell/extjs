@@ -36,7 +36,8 @@ Ext.define('Ext.plugin.Responsive', {
         var me = this,
             cmp = config.cmp,
             c = Ext.apply({
-                responsiveConfig: cmp.responsiveConfig
+                responsiveConfig: cmp.responsiveConfig,
+                responsiveFormulas: cmp.responsiveFormulas
             }, config);
 
         delete c.cmp;
@@ -63,10 +64,21 @@ Ext.define('Ext.plugin.Responsive', {
         transformInstanceConfig: function (config) {
             // Since the responsiveConfigs we manage are for the component and not for us,
             // we set them aside here to be picked up by the constructor.
-            this.transformed = this.callParent([config]);
+            var transformed = this.callParent([config]);
+
+            // in case we are created from a config w/ptype
+            if (transformed.ptype) {
+                transformed = Ext.apply({}, transformed);
+                delete transformed.ptype;
+            }
+
+            this.transformed = transformed;
 
             var ret = Ext.apply({}, config);
+            delete ret.ptype;
             delete ret.responsiveConfig; // already processed
+            delete ret.responsiveFormulas;
+
             return ret;
         },
 

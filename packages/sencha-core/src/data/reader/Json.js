@@ -268,7 +268,7 @@ Ext.define('Ext.data.reader.Json', {
             me.onMetaChange(data.metaData);
         }
 
-        return me.callParent(arguments);
+        return me.callParent([data, readOptions]);
     },
 
     //inherit docs
@@ -349,19 +349,15 @@ Ext.define('Ext.data.reader.Json', {
      * up directly on the source object (e.g. {@link #successProperty}, {@link #messageProperty}, etc.).
      */
     createAccessor: (function() {
-        var re = /[\[\.]/,
-            // This grossness is to do simple replacement when we have a mapping specified
-            // such as '["foo"]'. It's used to replace the starting brackets as well as the
-            // optional quotes (both flavours) if they are specified so we just end up with
-            // 'foo'
-            stripRe = /^\[(?:\'|\")?([^\'\"]*)(?:\'|\")?\]$/;
+        var re = /[\[\.]/;
 
         return function(expr) {
             var me = this,
                 simple = me.getUseSimpleAccessors(),
-                operatorIndex = 0,
-                result,
-                parts, len, i, tempResult, buffer;
+                operatorIndex, result,
+                current, parts, part, inExpr,
+                isDot, isLeft, isRight,
+                special, c, i, bracketed, len;
 
             if (!(expr || expr === 0)) {
                 return;
@@ -375,32 +371,64 @@ Ext.define('Ext.data.reader.Json', {
                 operatorIndex = String(expr).search(re);
             }
             
-            if (simple === true || operatorIndex <= 0) {
-                if (operatorIndex === 0) {
-                    // If it matched at index 0 then it must be bracket syntax (e.g. ["foo"]). In this case simply
-                    // join the two, e.g. 'field["foo"]':
-                    expr = expr.replace(stripRe, '$1');
-                }
+            if (simple === true || operatorIndex < 0) {
                 result = function(raw) {
                     return raw[expr];
                 };
             } else {
-                // If it matched at index > 0 it must be either dot syntax (e.g. field.foo) or a values array
-                // item (e.g. values[0]). For the latter, we can simply concatenate the values reference to
-                // the source directly like 'field.values[0]'. For dot notation we have to support arbitrary
-                // levels (field.foo.bar), any of which could be null or undefined, so we have to create the
-                // returned value such that the references will be assigned defensively in the calling code.
-                // The output should look like 'field.foo && field.foo.bar' in that case.
-                parts = expr.split('.');
-                len = parts.length;
-                tempResult = 'raw.' + parts[0];
-                buffer = [tempResult]; // for 'field.values[0]' this will be the returned result
-                
-                for (i = 1; i < len; i++) {
-                    tempResult += '.' + parts[i];
-                    buffer.push(tempResult);
+                // The purpose of this part is to generate a "safe" accessor for any complex 
+                // json expression. For example 'foo.bar.baz' will get transformed:
+                // raw.foo && raw.foo.bar && raw.foo.bar.baz
+                current = 'raw';
+                parts = [];
+                part = '';
+                inExpr = 0;
+                len = expr.length;
+
+                // The <= is intentional here. We handle the last character
+                // being undefined so that we can append any final values at
+                // the end
+                for (i = 0; i <= len; ++i) {
+                    c = expr[i];
+
+                    isDot = c === '.';
+                    isLeft = c === '[';
+                    isRight = c === ']';
+
+                    special = isDot || isLeft || isRight || !c;
+                    // If either:
+                    // a) Not a special char
+                    // b) We're nested more than 1 deep, no single char can bring us out
+                    // c) We are in an expr & it's not an ending brace
+                    // Then just push the character on
+                    if (!special || inExpr > 1 || (inExpr && !isRight)) {
+                        part += c;
+                    } else if (special) {
+                        bracketed = false;
+                        if (isLeft) {
+                            ++inExpr;
+                        } else if (isRight) {
+                            --inExpr;
+                            bracketed = true;
+                        }
+
+                        if (part) {
+                            if (bracketed) {
+                                part = '[' + part + ']';
+                            } else {
+                                part = '.' + part;
+                            }
+                            current += part;
+                            // Concatting the empty string to the start fixes a very odd intermittent bug with IE9/10.
+                            // On some occasions, without it, it will end up generating
+                            // raw.foo.bar.baz && raw.foo.bar.baz && raw.foo.bar.baz
+                            // At this point, not really sure why forcibly casting it to a string makes a difference
+                            parts.push('' + current);
+                            part = '';
+                        }
+                    }
                 }
-                result = buffer.join(' && ');
+                result = parts.join(' && ');
                 result = Ext.functionFactory('raw', 'return ' + result);
             }
             return result;

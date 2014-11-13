@@ -1,5 +1,5 @@
 /*
-This file is part of Ext JS 5.0.0.970
+This file is part of Ext JS 5.0.1.1255
 
 Copyright (c) 2011-2014 Sencha Inc
 
@@ -16,9 +16,1383 @@ requirements will be met: http://www.gnu.org/copyleft/gpl.html.
 If you are unsure which license is appropriate for your use, please contact the sales department
 at http://www.sencha.com/contact.
 
-Version: 5.0.0.970 Build date: 2014-06-01 15:45:20 (660862da42511e0f769c1d37b9fd8e156edd73eb)
+Version: 5.0.1.1255 Build date: 2014-08-05 20:16:49 (2852ec9b146a917f790d13cfa9b9c2fa041fccf8)
 
 */
+
+
+
+
+
+var Ext = Ext || {};
+
+
+
+Ext.Boot = (function (emptyFn) {
+
+    var doc = document,
+        apply = function (dest, src, defaults) {
+            if (defaults) {
+                apply(dest, defaults);
+            }
+
+            if (dest && src && typeof src == 'object') {
+                for (var key in src) {
+                    dest[key] = src[key];
+                }
+            }
+            return dest;
+        },
+        _config = {
+            
+            disableCaching: (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
+                !(/http[s]?\:/i.test(location.href)) ||
+                /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
+                true,
+
+            
+            disableCachingParam: '_dc',
+
+            
+            loadDelay: false,
+
+            
+            preserveScripts: true,
+
+            
+            charset: undefined
+        },
+
+        cssRe = /\.css(?:\?|$)/i,
+        resolverEl = doc.createElement('a'),
+        isBrowser = typeof window !== 'undefined',
+        _environment = {
+            browser: isBrowser,
+            node: !isBrowser && (typeof require === 'function'),
+            phantom: (typeof phantom !== 'undefined' && phantom.fs)
+        },
+        _tags = {},
+
+    
+        _debug = function (message) {
+            
+        },
+    
+        _apply = function (object, config, defaults) {
+            if (defaults) {
+                _apply(object, defaults);
+            }
+            if (object && config && typeof config === 'object') {
+                for (var i in config) {
+                    object[i] = config[i];
+                }
+            }
+            return object;
+        },
+    
+        Boot = {
+            loading: 0,
+            loaded: 0,
+            env: _environment,
+            config: _config,
+
+            
+            
+            scripts: {
+                
+            },
+
+            
+            currentFile: null,
+            suspendedQueue: [],
+            currentRequest: null,
+
+            
+            
+            syncMode: false,
+
+            
+            
+            debug: _debug,
+            
+            listeners: [],
+
+            Request: Request,
+
+            Entry: Entry,
+
+            platformTags: _tags,
+
+            
+            detectPlatformTags: function () {
+                var ua = navigator.userAgent,
+                    isMobile = _tags.isMobile = /Mobile(\/|\s)/.test(ua),
+                    isPhone, isDesktop, isTablet, touchSupported, isIE10, isBlackberry,
+                    element = document.createElement('div'),
+                    uaTagChecks = [
+                        'iPhone',
+                        'iPod',
+                        'Android',
+                        'Silk',
+                        'Android 2',
+                        'BlackBerry',
+                        'BB',
+                        'iPad',
+                        'RIM Tablet OS',
+                        'MSIE 10',
+                        'Trident',
+                        'Chrome',
+                        'Tizen',
+                        'Firefox',
+                        'Safari',
+                        'Windows Phone'
+                    ],
+                    isEventSupported = function(name, tag) {
+                        if (tag === undefined) {
+                            tag = window;
+                        }
+
+                        var eventName = 'on' + name.toLowerCase(),
+                            isSupported = (eventName in element);
+
+                        if (!isSupported) {
+                            if (element.setAttribute && element.removeAttribute) {
+                                element.setAttribute(eventName, '');
+                                isSupported = typeof element[eventName] === 'function';
+
+                                if (typeof element[eventName] !== 'undefined') {
+                                    element[eventName] = undefined;
+                                }
+
+                                element.removeAttribute(eventName);
+                            }
+                        }
+
+                        return isSupported;
+                    },
+                    uaTags = {},
+                    len = uaTagChecks.length, check, c;
+
+                for (c = 0; c < len; c++) {
+                    check = uaTagChecks[c];
+                    uaTags[check] = new RegExp(check).test(ua);
+                }
+
+                isPhone =
+                    (uaTags.iPhone || uaTags.iPod) ||
+                    (!uaTags.Silk && (uaTags.Android && (uaTags['Android 2'] || isMobile))) ||
+                    ((uaTags.BlackBerry || uaTags.BB) && uaTags.isMobile) ||
+                    (uaTags['Windows Phone']);
+
+                isTablet =
+                    (!_tags.isPhone) && (
+                    uaTags.iPad ||
+                    uaTags.Android ||
+                    uaTags.Silk ||
+                    uaTags['RIM Tablet OS'] ||
+                    (uaTags['MSIE 10'] && /; Touch/.test(ua))
+                    );
+
+                touchSupported =
+                    
+                    
+                    isEventSupported('touchend') ||
+                    
+                    
+                    
+                    navigator.maxTouchPoints ||
+                    
+                    navigator.msMaxTouchPoints;
+
+                isDesktop = !isPhone && !isTablet;
+                isIE10 = uaTags['MSIE 10'];
+                isBlackberry = uaTags.Blackberry || uaTags.BB;
+
+                apply(_tags, Boot.loadPlatformsParam(), {
+                    phone: isPhone,
+                    tablet: isTablet,
+                    desktop: isDesktop,
+                    touch: touchSupported,
+                    ios: (uaTags.iPad || uaTags.iPhone || uaTags.iPod),
+                    android: uaTags.Android || uaTags.Silk,
+                    blackberry: isBlackberry,
+                    safari: uaTags.Safari && isBlackberry,
+                    chrome: uaTags.Chrome,
+                    ie10: isIE10,
+                    windows: isIE10 || uaTags.Trident,
+                    tizen: uaTags.Tizen,
+                    firefox: uaTags.Firefox
+                });
+            },
+
+            
+            loadPlatformsParam: function () {
+                
+                var paramsString = window.location.search.substr(1),
+                    paramsArray = paramsString.split("&"),
+                    params = {}, i,
+                    platforms = {},
+                    tmpArray, tmplen, platform, name, enabled;
+
+                for (i = 0; i < paramsArray.length; i++) {
+                    tmpArray = paramsArray[i].split("=");
+                    params[tmpArray[0]] = tmpArray[1];
+                }
+
+                if (params.platformTags) {
+                    tmpArray = params.platform.split(/\W/);
+                    for (tmplen = tmpArray.length, i = 0; i < tmplen; i++) {
+                        platform = tmpArray[i].split(":");
+                        name = platform[0];
+                        if (platform.length > 1) {
+                            enabled = platform[1];
+                            if (enabled === 'false' || enabled === '0') {
+                                enabled = false;
+                            } else {
+                                enabled = true;
+                            }
+                        }
+                        platforms[name] = enabled;
+                    }
+                }
+                return platform;
+            },
+
+            getPlatformTags: function () {
+                return Boot.platformTags;
+            },
+
+            filterPlatform: function (platform) {
+                platform = [].concat(platform);
+                var tags = Boot.getPlatformTags(),
+                    len, p, tag;
+
+                for (len = platform.length, p = 0; p < len; p++) {
+                    tag = platform[p];
+                    if (tags.hasOwnProperty(tag)) {
+                        return !!tags[tag];
+                    }
+                }
+                return false;
+            },
+
+            init: function () {
+                var me = this,
+                    scriptEls = doc.getElementsByTagName('script'),
+                    len = scriptEls.length,
+                    re = /\/ext(\-[a-z\-]+)?\.js$/,
+                    entry, script, src, state, baseUrl, key, n, origin;
+
+                
+                
+                
+                for (n = 0; n < len; n++) {
+                    src = (script = scriptEls[n]).src;
+                    if (!src) {
+                        continue;
+                    }
+                    state = script.readyState || null;
+
+                    
+                    if (!baseUrl) {
+                        if (re.test(src)) {
+                            me.hasReadyState = ("readyState" in script);
+                            me.hasAsync = ("async" in script) || !me.hasReadyState;
+                            baseUrl = src;
+                        }
+                    }
+
+                    if (!me.scripts[key = me.canonicalUrl(src)]) {
+                        
+                        _debug("creating entry " + key + " in Boot.init");
+                        
+                        entry = new Entry({
+                            key: key,
+                            url: src,
+                            done: state === null ||  
+                                state === 'loaded' || state === 'complete', 
+                            el: script,
+                            prop: 'src'
+                        });
+                    }
+                }
+
+                if (!baseUrl) {
+                    script = scriptEls[scriptEls.length - 1];
+                    baseUrl = script.src;
+                    me.hasReadyState = ('readyState' in script);
+                    me.hasAsync = ("async" in script) || !me.hasReadyState;
+                }
+
+                me.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+                origin = window.location.origin ||
+                    window.location.protocol +
+                    "//" +
+                    window.location.hostname +
+                    (window.location.port ? ':' + window.location.port: '');
+                me.origin = origin;
+
+                me.detectPlatformTags();
+                Ext.filterPlatform = me.filterPlatform;
+            },
+
+            
+            canonicalUrl: function (url) {
+                
+                
+                resolverEl.href = url;
+
+                var ret = resolverEl.href,
+                    dc = _config.disableCachingParam,
+                    pos = dc ? ret.indexOf(dc + '=') : -1,
+                    c, end;
+
+                
+                
+                if (pos > 0 && ((c = ret.charAt(pos - 1)) === '?' || c === '&')) {
+                    end = ret.indexOf('&', pos);
+                    end = (end < 0) ? '' : ret.substring(end);
+                    if (end && c === '?') {
+                        ++pos; 
+                        end = end.substring(1); 
+                    }
+                    ret = ret.substring(0, pos - 1) + end;
+                }
+
+                return ret;
+            },
+
+            
+            getConfig: function (name) {
+                return name ? this.config[name] : this.config;
+            },
+
+            
+            setConfig: function (name, value) {
+                if (typeof name === 'string') {
+                    this.config[name] = value;
+                } else {
+                    for (var s in name) {
+                        this.setConfig(s, name[s]);
+                    }
+                }
+                return this;
+            },
+
+            getHead: function () {
+                return this.docHead ||
+                    (this.docHead = doc.head ||
+                        doc.getElementsByTagName('head')[0]);
+            },
+
+            create: function (url, key, cfg) {
+                var config = cfg || {};
+                config.url = url;
+                config.key = key;
+                return this.scripts[key] = new Entry(config);
+            },
+
+            getEntry: function (url, cfg) {
+                var key = this.canonicalUrl(url),
+                    entry = this.scripts[key];
+                if (!entry) {
+                    entry = this.create(url, key, cfg);
+                }
+                return entry;
+            },
+
+            processRequest: function(request, sync) {
+                request.loadEntries(sync);
+            },
+
+            load: function (request) {
+                
+                _debug("Boot.load called");
+                
+                var me = this,
+                    request = new Request(request);
+
+                if(request.sync || me.syncMode) {
+                    return me.loadSync(request);
+                }
+
+                
+                
+                if (me.currentRequest) {
+                    
+                    _debug("current active request, suspending this request");
+                    
+                    
+                    
+                    
+                    request.getEntries();
+                    me.suspendedQueue.push(request);
+                } else {
+                    me.currentRequest = request;
+                    me.processRequest(request, false);
+                }
+                return me;
+            },
+
+            loadSync: function (request) {
+                
+                _debug("Boot.loadSync called");
+                
+                var me = this,
+                    request = new Request(request);
+
+                me.syncMode++;
+                me.processRequest(request, true);
+                me.syncMode--;
+                return me;
+            },
+
+            loadBasePrefix: function(request) {
+                request = new Request(request);
+                request.prependBaseUrl = true;
+                return this.load(request);
+            },
+
+            loadSyncBasePrefix: function(request) {
+                request = new Request(request);
+                request.prependBaseUrl = true;
+                return this.loadSync(request);
+            },
+
+            requestComplete: function(request) {
+                var me = this,
+                    next;
+                if(me.currentRequest === request) {
+                    me.currentRequest = null;
+                    while(me.suspendedQueue.length > 0) {
+                        next = me.suspendedQueue.shift();
+                        if(!next.done) {
+                            
+                            _debug("resuming suspended request");
+                            
+                            me.load(next);
+                            break;
+                        }
+                    }
+                }
+                if(!me.currentRequest && me.suspendedQueue.length == 0) {
+                    me.fireListeners();
+                }
+            },
+
+            isLoading: function () {
+                return !this.currentRequest && this.suspendedQueue.length == 0;
+            },
+
+            fireListeners: function () {
+                var listener;
+                while (this.isLoading() && (listener = this.listeners.shift())) {
+                    listener();
+                }
+            },
+
+            onBootReady: function (listener) {
+                if (!this.isLoading()) {
+                    listener();
+                } else {
+                    this.listeners.push(listener);
+                }
+            },
+
+            
+            getPathsFromIndexes: function (indexMap, loadOrder) {
+                return Request.prototype.getPathsFromIndexes(indexMap, loadOrder);
+            },
+
+            createLoadOrderMap: function(loadOrder) {
+                return Request.prototype.createLoadOrderMap(loadOrder);
+            },
+
+            fetchSync: function(url) {
+                var exception, xhr, status, content;
+
+                exception = false;
+                xhr = new XMLHttpRequest();
+
+                try {
+                    xhr.open('GET', url, false);
+                    xhr.send(null);
+                } catch (e) {
+                    exception = true;
+                }
+
+                status = (xhr.status === 1223) ? 204 :
+                    (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
+                        (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
+                content = xhr.responseText;
+
+                xhr = null; 
+
+                return {
+                    content: content,
+                    exception: exception,
+                    status: status
+                };
+            },
+
+            notifyAll: function(entry) {
+                entry.notifyRequests();
+            }
+        };
+
+    
+    function Request(cfg) {
+        if(cfg.$isRequest) {
+            return cfg;
+        }
+
+        var cfg = cfg.url ? cfg : {url: cfg},
+            url = cfg.url,
+            urls = url.charAt ? [ url ] : url,
+            boot = cfg.boot || Boot,
+            charset = cfg.charset || boot.config.charset,
+            buster = (('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
+                (boot.config.disableCachingParam + '=' + new Date().getTime());
+        _apply(cfg, {
+            urls: urls,
+            boot: boot,
+            charset: charset,
+            buster: buster
+        });
+        _apply(this, cfg);
+    };
+    Request.prototype = {
+        $isRequest: true,
+
+        
+        createLoadOrderMap: function (loadOrder) {
+            var len = loadOrder.length,
+                loadOrderMap = {},
+                i, element;
+
+            for (i = 0; i < len; i++) {
+                element = loadOrder[i];
+                loadOrderMap[element.path] = element;
+            }
+
+            return loadOrderMap;
+        },
+
+        
+        getLoadIndexes: function (index, indexMap, loadOrder, includeUses, skipLoaded) {
+            var item = loadOrder[index],
+                len, i, reqs, entry, stop, added, idx, ridx, url;
+
+            if (indexMap[index]) {
+                
+                return indexMap;
+            }
+
+            indexMap[index] = true;
+
+            stop = false;
+            while (!stop) {
+                added = false;
+
+                
+                
+                for (idx in indexMap) {
+                    if (indexMap.hasOwnProperty(idx)) {
+                        item = loadOrder[idx];
+                        if (!item) {
+                            continue;
+                        }
+                        url = this.prepareUrl(item.path);
+                        entry = Boot.getEntry(url);
+                        if (!skipLoaded || !entry || !entry.done) {
+                            reqs = item.requires;
+                            if (includeUses && item.uses) {
+                                reqs = reqs.concat(item.uses);
+                            }
+                            for (len = reqs.length, i = 0; i < len; i++) {
+                                ridx = reqs[i];
+                                
+                                
+                                
+                                
+                                if (!indexMap[ridx]) {
+                                    indexMap[ridx] = true;
+                                    added = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                
+                
+                if (!added) {
+                    stop = true;
+                }
+            }
+
+            return indexMap;
+        },
+
+        getPathsFromIndexes: function (indexMap, loadOrder) {
+            var indexes = [],
+                paths = [],
+                index, len, i;
+
+            for (index in indexMap) {
+                if (indexMap.hasOwnProperty(index) && indexMap[index]) {
+                    indexes.push(index);
+                }
+            }
+
+            indexes.sort(function (a, b) {
+                return a - b;
+            });
+
+            
+            for (len = indexes.length, i = 0; i < len; i++) {
+                paths.push(loadOrder[indexes[i]].path);
+            }
+
+            return paths;
+        },
+
+        expandUrl: function (url, indexMap, includeUses, skipLoaded) {
+            if (typeof url == 'string') {
+                url = [url];
+            }
+
+            var me = this,
+                loadOrder = me.loadOrder,
+                loadOrderMap = me.loadOrderMap;
+
+            if (loadOrder) {
+                loadOrderMap = loadOrderMap || me.createLoadOrderMap(loadOrder);
+                me.loadOrderMap = loadOrderMap;
+                indexMap = indexMap || {};
+                var len = url.length,
+                    unmapped = [],
+                    i, item;
+
+                for (i = 0; i < len; i++) {
+                    item = loadOrderMap[url[i]];
+                    if (item) {
+                        me.getLoadIndexes(item.idx, indexMap, loadOrder, includeUses, skipLoaded);
+                    } else {
+                        unmapped.push(url[i]);
+                    }
+                }
+
+
+                return me.getPathsFromIndexes(indexMap, loadOrder).concat(unmapped);
+            }
+            return url;
+        },
+
+        expandUrls: function (urls, includeUses) {
+            if (typeof urls == "string") {
+                urls = [urls];
+            }
+
+            var expanded = [],
+                expandMap = {},
+                tmpExpanded,
+                len = urls.length,
+                i, t, tlen, tUrl;
+
+            for (i = 0; i < len; i++) {
+                tmpExpanded = this.expandUrl(urls[i], {}, includeUses, true);
+                for (t = 0, tlen = tmpExpanded.length; t < tlen; t++) {
+                    tUrl = tmpExpanded[t];
+                    if (!expandMap[tUrl]) {
+                        expandMap[tUrl] = true;
+                        expanded.push(tUrl);
+                    }
+                }
+            }
+
+            if (expanded.length == 0) {
+                expanded = urls;
+            }
+
+            return expanded;
+        },
+
+        expandLoadOrder: function () {
+            var me = this,
+                urls = me.urls,
+                expanded;
+
+            if (!me.expanded) {
+                expanded = this.expandUrls(urls);
+                me.expanded = true;
+            } else {
+                expanded = urls;
+            }
+
+            me.urls = expanded;
+
+            
+            
+            if (urls.length != expanded.length) {
+                me.sequential = true;
+            }
+
+            return me;
+        },
+
+        getUrls: function () {
+            this.expandLoadOrder();
+            return this.urls;
+        },
+
+        prepareUrl: function(url) {
+            if(this.prependBaseUrl) {
+                return Boot.baseUrl + url;
+            }
+            return url;
+        },
+
+        getEntries: function () {
+            var me = this,
+                entries = me.entries,
+                i, entry, urls, url;
+            if (!entries) {
+                entries = [];
+                urls = me.getUrls();
+                for (i = 0; i < urls.length; i++) {
+                    url = me.prepareUrl(urls[i]);
+                    entry = Boot.getEntry(url, {
+                        buster: me.buster,
+                        charset: me.charset
+                    });
+                    entry.requests.push(me);
+                    entries.push(entry);
+                }
+                me.entries = entries;
+            }
+            return entries;
+        },
+
+        loadEntries: function(sync) {
+            var me = this,
+                entries = me.getEntries(),
+                len = entries.length,
+                start = me.loadStart || 0,
+                continueLoad, entry, i;
+
+            if(sync !== undefined) {
+                me.sync = sync;
+            }
+
+            me.loaded = me.loaded || 0;
+            me.loading = me.loading || len;
+
+            for(i = start; i < len; i++) {
+                entry = entries[i];
+                if(!entry.loaded) {
+                    continueLoad = entries[i].load(me.sync);
+                } else {
+                    continueLoad = true;
+                }
+                if(!continueLoad) {
+                    me.loadStart = i;
+                    entry.onDone(function(){
+                        me.loadEntries(sync);
+                    });
+                    break;
+                }
+            }
+            me.processLoadedEntries();
+        },
+
+        processLoadedEntries: function () {
+            var me = this,
+                entries = me.getEntries(),
+                len = entries.length,
+                start = me.startIndex || 0,
+                i, entry;
+
+            if (!me.done) {
+                for (i = start; i < len; i++) {
+                    entry = entries[i];
+
+                    if (!entry.loaded) {
+                        me.startIndex = i;
+                        return;
+                    }
+
+                    if (!entry.evaluated) {
+                        entry.evaluate();
+                    }
+
+                    if (entry.error) {
+                        me.error = true;
+                    }
+                }
+                me.notify();
+            }
+        },
+
+        notify: function () {
+            var me = this;
+            if (!me.done) {
+                var error = me.error,
+                    fn = me[error ? 'failure' : 'success'],
+                    delay = ('delay' in me)
+                        ? me.delay
+                        : (error ? 1 : Boot.config.chainDelay),
+                    scope = me.scope || me;
+                me.done = true;
+                if (fn) {
+                    if (delay === 0 || delay > 0) {
+                        
+                        setTimeout(function () {
+                            fn.call(scope, me);
+                        }, delay);
+                    } else {
+                        fn.call(scope, me);
+                    }
+                }
+                me.fireListeners();
+                Boot.requestComplete(me);
+            }
+        },
+
+        onDone: function(listener) {
+            var me = this,
+                listeners = me.listeners || (me.listeners = []);
+            if(me.done) {
+                listener(me);
+            } else {
+                listeners.push(listener);
+            }
+        },
+
+        fireListeners: function() {
+            var listeners = this.listeners,
+                listener;
+            if(listeners) {
+                
+                _debug("firing request listeners");
+                
+                while((listener = listeners.shift())) {
+                    listener(this);
+                }
+            }
+        }
+    };
+
+    
+    function Entry(cfg) {
+        if(cfg.$isEntry) {
+            return cfg;
+        }
+
+        
+        _debug("creating entry for " + cfg.url);
+        
+
+        var boot = cfg.boot || Boot,
+            charset = cfg.charset || boot.config.charset,
+            buster = cfg.buster || ((('cache' in cfg) ? !cfg.cache : boot.config.disableCaching) &&
+                (boot.config.disableCachingParam + '=' + new Date().getTime()));
+
+        _apply(cfg, {
+            boot: boot,
+            charset: charset,
+            buster: buster,
+            requests: []
+        });
+        _apply(this, cfg);
+    };
+    Entry.prototype = {
+        $isEntry: true,
+        done: false,
+        evaluated: false,
+        loaded: false,
+
+        isCrossDomain: function() {
+            var me = this;
+            if(me.crossDomain === undefined) {
+                
+                _debug("checking " + me.getLoadUrl() + " for prefix " + Boot.origin);
+                
+                me.crossDomain = (me.getLoadUrl().indexOf(Boot.origin) !== 0);
+            }
+            return me.crossDomain;
+        },
+
+        isCss: function () {
+            var me = this;
+            if (me.css === undefined) {
+                me.css = me.url && cssRe.test(me.url);
+            }
+            return this.css;
+        },
+
+        getElement: function (tag) {
+            var me = this,
+                el = me.el;
+            if (!el) {
+                
+                _debug("creating element for " + me.url);
+                
+                if (me.isCss()) {
+                    tag = tag || "link";
+                    el = doc.createElement(tag);
+                    if(tag == "link") {
+                        el.rel = 'stylesheet';
+                        me.prop = 'href';
+                    } else {
+                        me.prop="textContent";
+                    }
+                    el.type = "text/css";
+                } else {
+                    tag = tag || "script";
+                    el = doc.createElement(tag);
+                    el.type = 'text/javascript';
+                    me.prop = 'src';
+                    if (Boot.hasAsync) {
+                        el.async = false;
+                    }
+                }
+                me.el = el;
+            }
+            return el;
+        },
+
+        getLoadUrl: function () {
+            var me = this,
+                url = Boot.canonicalUrl(me.url);
+            if (!me.loadUrl) {
+                me.loadUrl = !!me.buster
+                    ? (url + (url.indexOf('?') === -1 ? '?' : '&') + me.buster)
+                    : url;
+            }
+            return me.loadUrl;
+        },
+
+        fetch: function (req) {
+            var url = this.getLoadUrl(),
+                async = !!req.async,
+                xhr = new XMLHttpRequest(),
+                complete = req.complete,
+                status, content, exception = false,
+                readyStateChange = function () {
+                    if (xhr && xhr.readyState == 4) {
+                        if (complete) {
+                            status = (xhr.status === 1223) ? 204 :
+                                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
+                                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
+                            content = xhr.responseText;
+                            complete({
+                                content: content,
+                                status: status,
+                                exception: exception
+                            });
+                        }
+                        xhr = null;
+                    }
+                };
+
+            async = !!async;
+
+            if(async) {
+                xhr.onreadystatechange = readyStateChange;
+            }
+
+            try {
+                
+                _debug("fetching " + url + " " + (async ? "async" : "sync"));
+                
+                xhr.open('GET', url, async);
+                xhr.send(null);
+            } catch (err) {
+                exception = err;
+                readyStateChange();
+            }
+
+            if(!async) {
+                readyStateChange();
+            }
+        },
+
+        onContentLoaded: function (response) {
+            var me = this,
+                status = response.status,
+                content = response.content,
+                exception = response.exception,
+                url = this.getLoadUrl();
+            me.loaded = true;
+            if ((exception || status === 0) && !_environment.phantom) {
+                me.error =
+                    
+                    ("Failed loading synchronously via XHR: '" + url +
+                        "'. It's likely that the file is either being loaded from a " +
+                        "different domain or from the local file system where cross " +
+                        "origin requests are not allowed for security reasons. Try " +
+                        "asynchronous loading instead.") ||
+                    
+                    true;
+                me.evaluated = true;
+            }
+            else if ((status >= 200 && status < 300) || status === 304
+                || _environment.phantom
+                || (status === 0 && content.length > 0)
+                ) {
+                me.content = content;
+            }
+            else {
+                me.error =
+                    
+                    ("Failed loading synchronously via XHR: '" + url +
+                        "'. Please verify that the file exists. XHR status code: " +
+                        status) ||
+                    
+                    true;
+                me.evaluated = true;
+            }
+        },
+
+        createLoadElement: function(callback) {
+            var me = this,
+                el = me.getElement(),
+                readyStateChange = function(){
+                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
+                        if(callback) {
+                            callback();
+                        }
+                    }
+                },
+                errorFn = function() {
+                    me.error = true;
+                    if(callback) {
+                        callback();
+                    }
+                };
+            me.preserve = true;
+            el.onerror = errorFn;
+            if(Boot.hasReadyState) {
+                el.onreadystatechange = readyStateChange;
+            } else {
+                el.onload = callback;
+            }
+            
+            el[me.prop] = me.getLoadUrl();
+        },
+
+        onLoadElementReady: function() {
+            Boot.getHead().appendChild(this.getElement());
+            this.evaluated = true;
+        },
+
+        inject: function (content, asset) {
+            
+            _debug("injecting content for " + this.url);
+            
+            var me = this,
+                head = Boot.getHead(),
+                url = me.url,
+                key = me.key,
+                base, el, ieMode, basePath;
+
+            if (me.isCss()) {
+                me.preserve = true;
+                basePath = key.substring(0, key.lastIndexOf("/") + 1);
+                base = doc.createElement('base');
+                base.href = basePath;
+                if(head.firstChild) {
+                    head.insertBefore(base, head.firstChild);
+                } else {
+                    head.appendChild(base);
+                }
+                
+                base.href = base.href;
+
+                if (url) {
+                    content += "\n/*# sourceURL=" + key + " */";
+                }
+
+                
+                el = me.getElement("style");
+
+                ieMode = ('styleSheet' in el);
+
+                head.appendChild(base);
+                if(ieMode) {
+                    head.appendChild(el);
+                    el.styleSheet.cssText = content;
+                } else {
+                    el.textContent = content;
+                    head.appendChild(el);
+                }
+                head.removeChild(base);
+
+            } else {
+                
+                
+                
+                if (url) {
+                    content += "\n//# sourceURL=" + key;
+                }
+                Ext.globalEval(content);
+            }
+            return me;
+        },
+
+        loadCrossDomain: function() {
+            var me = this,
+                complete = function(){
+                    me.loaded = me.evaluated = me.done = true;
+                    me.notifyRequests();
+                };
+            if(me.isCss()) {
+                me.createLoadElement();
+                me.evaluateLoadElement();
+                complete();
+            } else {
+                me.createLoadElement(function(){
+                    complete();
+                });
+                me.evaluateLoadElement();
+                
+                
+                
+                return false;
+            }
+            return true;
+        },
+
+        loadSync: function() {
+            var me = this;
+            me.fetch({
+                async: false,
+                complete: function (response) {
+                    me.onContentLoaded(response);
+                }
+            });
+            me.evaluate();
+            me.notifyRequests();
+        },
+
+        load: function (sync) {
+            var me = this;
+            if (!me.loaded) {
+                if(me.loading) {
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    return false;
+                }
+                me.loading = true;
+
+                
+                if (!sync) {
+                    
+                    
+                    if(me.isCrossDomain()) {
+                        return me.loadCrossDomain();
+                    }
+                    
+                    
+                    
+                    else if(!me.isCss() && Boot.hasReadyState) {
+                        me.createLoadElement(function () {
+                            me.loaded = true;
+                            me.notifyRequests();
+                        });
+                    }
+
+                    
+                    
+                    else {
+                        me.fetch({
+                            async: !sync,
+                            complete: function (response) {
+                                me.onContentLoaded(response);
+                                me.notifyRequests();
+                            }
+                        });
+                    }
+                }
+
+                
+                
+                
+                else {
+                    me.loadSync();
+                }
+            }
+            
+            return true;
+        },
+
+        evaluateContent: function () {
+            this.inject(this.content);
+            this.content = null;
+        },
+
+        evaluateLoadElement: function() {
+            Boot.getHead().appendChild(this.getElement());
+        },
+
+        evaluate: function () {
+            var me = this;
+            if(!me.evaluated) {
+                if(me.evaluating) {
+                    return;
+                }
+                me.evaluating = true;
+                if(me.content !== undefined) {
+                    me.evaluateContent();
+                } else if(!me.error) {
+                    me.evaluateLoadElement();
+                }
+                me.evaluated = me.done = true;
+                me.cleanup();
+            }
+        },
+
+        
+        cleanup: function () {
+            var me = this,
+                el = me.el,
+                prop;
+
+            if (!el) {
+                return;
+            }
+
+            if (!me.preserve) {
+                me.el = null;
+
+                el.parentNode.removeChild(el); 
+
+                for (prop in el) {
+                    try {
+                        if (prop !== me.prop) {
+                            
+                            
+                            el[prop] = null;
+                        }
+                        delete el[prop];      
+                    } catch (cleanEx) {
+                        
+                    }
+                }
+            }
+
+            
+            
+            
+            el.onload = el.onerror = el.onreadystatechange = emptyFn;
+        },
+
+        notifyRequests: function () {
+            var requests = this.requests,
+                len = requests.length,
+                i, request;
+            for (i = 0; i < len; i++) {
+                request = requests[i];
+                request.processLoadedEntries();
+            }
+            if(this.done) {
+                this.fireListeners();
+            }
+        },
+
+        onDone: function(listener) {
+            var me = this,
+                listeners = me.listeners || (me.listeners = []);
+            if(me.done) {
+                listener(me);
+            } else {
+                listeners.push(listener);
+            }
+        },
+
+        fireListeners: function() {
+            var listeners = this.listeners,
+                listener;
+            if(listeners && listeners.length > 0) {
+                
+                _debug("firing event listeners for url " + this.url);
+                
+                while((listener = listeners.shift())) {
+                    listener(this);
+                }
+            }
+        }
+    };
+
+    
+    Ext.disableCacheBuster = function (disable, path) {
+        var date = new Date();
+        date.setTime(date.getTime() + (disable ? 10 * 365 : -1) * 24 * 60 * 60 * 1000);
+        date = date.toGMTString();
+        doc.cookie = 'ext-cache=1; expires=' + date + '; path=' + (path || '/');
+    };
+
+
+    if (_environment.node) {
+        Boot.prototype.load = Boot.prototype.loadSync = function (request) {
+            
+            require(filePath);
+            onLoad.call(scope);
+        };
+        Boot.prototype.init = emptyFn;
+    }
+
+
+    Boot.init();
+    return Boot;
+
+
+
+}(function () {
+}));
+
+
+Ext.globalEval = Ext.globalEval || (this.execScript
+    ? function (code) { execScript(code); }
+    : function ($$code) { eval.call(window, $$code); });
+
+
+
+if (!Function.prototype.bind) {
+    (function () {
+        var slice = Array.prototype.slice,
+        
+        
+            bind = function (me) {
+                var args = slice.call(arguments, 1),
+                    method = this;
+
+                if (args.length) {
+                    return function () {
+                        var t = arguments;
+                        
+                        return method.apply(me, t.length ? args.concat(slice.call(t)) : args);
+                    };
+                }
+                
+
+                args = null;
+                return function () {
+                    return method.apply(me, arguments);
+                };
+            };
+        Function.prototype.bind = bind;
+        bind.$extjs = true; 
+    }());
+}
+
+
 
 
 var Ext = Ext || {};
@@ -40,7 +1414,6 @@ var Ext = Ext || {};
     "Ext.Array": "../packages/sencha-core/src/lang/Array.js",
     "Ext.Assert": "../packages/sencha-core/src/lang/Assert.js",
     "Ext.Base": "../packages/sencha-core/src/class/Base.js",
-    "Ext.Boot": "../packages/sencha-core/.sencha/package/Boot.js",
     "Ext.Class": "../packages/sencha-core/src/class/Class.js",
     "Ext.ClassManager": "../packages/sencha-core/src/class/ClassManager.js",
     "Ext.ComponentManager": "../packages/sencha-core/src/ComponentManager.js",
@@ -62,6 +1435,7 @@ var Ext = Ext || {};
     "Ext.Object": "../packages/sencha-core/src/lang/Object.js",
     "Ext.Script": "../packages/sencha-core/src/class/Inventory.js",
     "Ext.String": "../packages/sencha-core/src/lang/String.js",
+    "Ext.String.format": "../packages/sencha-core/src/Template.js",
     "Ext.TaskQueue": "../packages/sencha-core/src/TaskQueue.js",
     "Ext.Template": "../packages/sencha-core/src/Template.js",
     "Ext.Util": "../packages/sencha-core/src/Util.js",
@@ -105,6 +1479,9 @@ var Ext = Ext || {};
     "Ext.util.Cookies": "../src/util/Cookies.js",
     "Ext.util.ElementContainer": "../src/util/ElementContainer.js",
     "Ext.util.Floating": "../src/util/Floating.js",
+    "Ext.util.Focusable": "../src/util/Focusable.js",
+    "Ext.util.FocusableContainer": "../src/util/FocusableContainer.js",
+    "Ext.util.Format.format": "../packages/sencha-core/src/Template.js",
     "Ext.util.History": "../src/util/History.js",
     "Ext.util.KeyMap": "../src/util/KeyMap.js",
     "Ext.util.KeyNav": "../src/util/KeyNav.js",
@@ -116,200 +1493,206 @@ var Ext = Ext || {};
   },
   "loadOrder": [
     {
-      "path": "../packages/sencha-core/src/mixin/Identifiable.js",
+      "path": "../packages/sencha-core/src/event/ListenerStack.js",
       "requires": [],
       "uses": [],
       "idx": 0
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Recognizer.js",
-      "requires": [
-        0
-      ],
+      "path": "../packages/sencha-core/src/event/Controller.js",
+      "requires": [],
       "uses": [],
       "idx": 1
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/SingleTouch.js",
+      "path": "../packages/sencha-core/src/event/Dispatcher.js",
       "requires": [
+        0,
         1
       ],
       "uses": [],
       "idx": 2
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/DoubleTap.js",
-      "requires": [
-        2
-      ],
+      "path": "../packages/sencha-core/src/class/Mixin.js",
+      "requires": [],
       "uses": [],
       "idx": 3
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Drag.js",
-      "requires": [
-        2
-      ],
+      "path": "../packages/sencha-core/src/mixin/Identifiable.js",
+      "requires": [],
       "uses": [],
       "idx": 4
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Swipe.js",
+      "path": "../packages/sencha-core/src/mixin/Observable.js",
       "requires": [
-        2
+        2,
+        3,
+        4
       ],
       "uses": [],
       "idx": 5
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/EdgeSwipe.js",
+      "path": "../packages/sencha-core/src/util/HashMap.js",
       "requires": [
         5
       ],
-      "uses": [
-        23
-      ],
+      "uses": [],
       "idx": 6
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/LongPress.js",
+      "path": "../packages/sencha-core/src/AbstractManager.js",
       "requires": [
-        2
+        6
       ],
       "uses": [],
       "idx": 7
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/MultiTouch.js",
-      "requires": [
-        1
+      "path": "../packages/sencha-core/src/data/flash/BinaryXhr.js",
+      "requires": [],
+      "uses": [
+        48
       ],
-      "uses": [],
       "idx": 8
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Pinch.js",
+      "path": "../packages/sencha-core/src/data/Connection.js",
       "requires": [
+        5,
         8
       ],
-      "uses": [],
+      "uses": [
+        18,
+        48
+      ],
       "idx": 9
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Rotate.js",
+      "path": "../packages/sencha-core/src/Ajax.js",
       "requires": [
-        8
+        9
       ],
       "uses": [],
       "idx": 10
     },
     {
-      "path": "../packages/sencha-core/src/event/gesture/Tap.js",
-      "requires": [
-        2
-      ],
+      "path": "../packages/sencha-core/src/AnimationQueue.js",
+      "requires": [],
       "uses": [],
       "idx": 11
     },
     {
-      "path": "../packages/sencha-core/src/event/publisher/Publisher.js",
+      "path": "../packages/sencha-core/src/ComponentManager.js",
       "requires": [],
       "uses": [],
       "idx": 12
     },
     {
-      "path": "../packages/sencha-core/src/util/Offset.js",
+      "path": "../packages/sencha-core/src/util/Operators.js",
       "requires": [],
       "uses": [],
       "idx": 13
     },
     {
-      "path": "../packages/sencha-core/src/util/Region.js",
+      "path": "../packages/sencha-core/src/util/LruCache.js",
       "requires": [
-        13
+        6
       ],
       "uses": [],
       "idx": 14
     },
     {
-      "path": "../packages/sencha-core/src/util/Point.js",
+      "path": "../packages/sencha-core/src/ComponentQuery.js",
       "requires": [
+        12,
+        13,
         14
       ],
-      "uses": [],
+      "uses": [
+        52
+      ],
       "idx": 15
     },
     {
-      "path": "../packages/sencha-core/src/event/Event.js",
+      "path": "../packages/sencha-core/src/Evented.js",
       "requires": [
-        15
+        5
       ],
       "uses": [],
       "idx": 16
     },
     {
-      "path": "../packages/sencha-core/src/event/ListenerStack.js",
+      "path": "../packages/sencha-core/src/util/Positionable.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        18,
+        80
+      ],
       "idx": 17
     },
     {
-      "path": "../packages/sencha-core/src/event/Controller.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/dom/Element.js",
+      "requires": [
+        5,
+        17
+      ],
+      "uses": [
+        19,
+        20,
+        48,
+        52,
+        57,
+        80,
+        181
+      ],
       "idx": 18
     },
     {
-      "path": "../packages/sencha-core/src/event/Dispatcher.js",
+      "path": "../packages/sencha-core/src/dom/Fly.js",
       "requires": [
-        17,
         18
       ],
       "uses": [],
       "idx": 19
     },
     {
-      "path": "../packages/sencha-core/src/class/Mixin.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/dom/CompositeElementLite.js",
+      "requires": [
+        19
+      ],
+      "uses": [
+        18
+      ],
       "idx": 20
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Observable.js",
-      "requires": [
-        0,
-        19,
-        20
-      ],
+      "path": "../packages/sencha-core/src/util/Filter.js",
+      "requires": [],
       "uses": [],
       "idx": 21
     },
     {
-      "path": "../packages/sencha-core/src/util/Positionable.js",
+      "path": "../packages/sencha-core/src/util/DelayedTask.js",
       "requires": [],
       "uses": [
-        14,
-        23
+        48
       ],
       "idx": 22
     },
     {
-      "path": "../packages/sencha-core/src/dom/Element.js",
+      "path": "../packages/sencha-core/src/util/Event.js",
       "requires": [
-        21,
         22
       ],
-      "uses": [
-        14,
-        24,
-        25,
-        54,
-        196
-      ],
+      "uses": [],
       "idx": 23
     },
     {
-      "path": "../packages/sencha-core/src/dom/Fly.js",
+      "path": "../packages/sencha-core/src/util/Observable.js",
       "requires": [
         23
       ],
@@ -317,95 +1700,96 @@ var Ext = Ext || {};
       "idx": 24
     },
     {
-      "path": "../packages/sencha-core/src/dom/CompositeElementLite.js",
+      "path": "../packages/sencha-core/src/util/AbstractMixedCollection.js",
       "requires": [
+        21,
         24
       ],
-      "uses": [
-        23
-      ],
+      "uses": [],
       "idx": 25
     },
     {
-      "path": "../packages/sencha-core/src/util/Filter.js",
+      "path": "../packages/sencha-core/src/util/Sorter.js",
       "requires": [],
       "uses": [],
       "idx": 26
     },
     {
-      "path": "../packages/sencha-core/src/util/DelayedTask.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/util/Sortable.js",
+      "requires": [
+        26
+      ],
       "uses": [
-        54
+        28
       ],
       "idx": 27
     },
     {
-      "path": "../packages/sencha-core/src/util/Event.js",
+      "path": "../packages/sencha-core/src/util/MixedCollection.js",
       "requires": [
+        25,
         27
       ],
       "uses": [],
       "idx": 28
     },
     {
-      "path": "../packages/sencha-core/src/util/Observable.js",
-      "requires": [
-        28
-      ],
-      "uses": [],
-      "idx": 29
-    },
-    {
-      "path": "../packages/sencha-core/src/util/AbstractMixedCollection.js",
-      "requires": [
-        26,
-        29
-      ],
-      "uses": [],
-      "idx": 30
-    },
-    {
-      "path": "../packages/sencha-core/src/util/Sorter.js",
-      "requires": [],
-      "uses": [],
-      "idx": 31
-    },
-    {
-      "path": "../packages/sencha-core/src/util/Sortable.js",
-      "requires": [
-        31
-      ],
-      "uses": [
-        33
-      ],
-      "idx": 32
-    },
-    {
-      "path": "../packages/sencha-core/src/util/MixedCollection.js",
-      "requires": [
-        30,
-        32
-      ],
-      "uses": [],
-      "idx": 33
-    },
-    {
       "path": "../packages/sencha-core/src/util/TaskRunner.js",
       "requires": [],
       "uses": [
-        54
+        48
       ],
-      "idx": 34
+      "idx": 29
     },
     {
       "path": "../src/fx/target/Target.js",
       "requires": [],
       "uses": [],
-      "idx": 35
+      "idx": 30
     },
     {
       "path": "../src/fx/target/Element.js",
+      "requires": [
+        30
+      ],
+      "uses": [],
+      "idx": 31
+    },
+    {
+      "path": "../src/fx/target/ElementCSS.js",
+      "requires": [
+        31
+      ],
+      "uses": [],
+      "idx": 32
+    },
+    {
+      "path": "../src/fx/target/CompositeElement.js",
+      "requires": [
+        31
+      ],
+      "uses": [],
+      "idx": 33
+    },
+    {
+      "path": "../src/fx/target/CompositeElementCSS.js",
+      "requires": [
+        32,
+        33
+      ],
+      "uses": [],
+      "idx": 34
+    },
+    {
+      "path": "../src/fx/target/Sprite.js",
+      "requires": [
+        30
+      ],
+      "uses": [],
+      "idx": 35
+    },
+    {
+      "path": "../src/fx/target/CompositeSprite.js",
       "requires": [
         35
       ],
@@ -413,24 +1797,34 @@ var Ext = Ext || {};
       "idx": 36
     },
     {
-      "path": "../src/fx/target/ElementCSS.js",
+      "path": "../src/fx/target/Component.js",
       "requires": [
-        36
+        30
       ],
-      "uses": [],
+      "uses": [
+        48
+      ],
       "idx": 37
     },
     {
-      "path": "../src/fx/target/CompositeElement.js",
+      "path": "../src/fx/Queue.js",
       "requires": [
-        36
+        6
       ],
       "uses": [],
       "idx": 38
     },
     {
-      "path": "../src/fx/target/CompositeElementCSS.js",
+      "path": "../src/fx/Manager.js",
       "requires": [
+        28,
+        29,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
         37,
         38
       ],
@@ -438,41 +1832,38 @@ var Ext = Ext || {};
       "idx": 39
     },
     {
-      "path": "../src/fx/target/Sprite.js",
+      "path": "../src/fx/Animator.js",
       "requires": [
-        35
+        24,
+        39
       ],
-      "uses": [],
+      "uses": [
+        45
+      ],
       "idx": 40
     },
     {
-      "path": "../src/fx/target/CompositeSprite.js",
-      "requires": [
-        40
-      ],
+      "path": "../src/fx/CubicBezier.js",
+      "requires": [],
       "uses": [],
       "idx": 41
     },
     {
-      "path": "../src/fx/target/Component.js",
+      "path": "../src/fx/Easing.js",
       "requires": [
-        35
+        41
       ],
-      "uses": [
-        54
-      ],
+      "uses": [],
       "idx": 42
     },
     {
-      "path": "../packages/sencha-core/src/util/HashMap.js",
-      "requires": [
-        21
-      ],
+      "path": "../src/fx/DrawPath.js",
+      "requires": [],
       "uses": [],
       "idx": 43
     },
     {
-      "path": "../src/fx/Queue.js",
+      "path": "../src/fx/PropertyHandler.js",
       "requires": [
         43
       ],
@@ -480,13 +1871,9 @@ var Ext = Ext || {};
       "idx": 44
     },
     {
-      "path": "../src/fx/Manager.js",
+      "path": "../src/fx/Anim.js",
       "requires": [
-        33,
-        34,
-        36,
-        37,
-        38,
+        24,
         39,
         40,
         41,
@@ -497,140 +1884,137 @@ var Ext = Ext || {};
       "idx": 45
     },
     {
-      "path": "../src/fx/Animator.js",
-      "requires": [
-        29,
-        45
-      ],
-      "uses": [
-        51
-      ],
-      "idx": 46
-    },
-    {
-      "path": "../src/fx/CubicBezier.js",
-      "requires": [],
-      "uses": [],
-      "idx": 47
-    },
-    {
-      "path": "../src/fx/Easing.js",
-      "requires": [
-        47
-      ],
-      "uses": [],
-      "idx": 48
-    },
-    {
-      "path": "../src/fx/DrawPath.js",
-      "requires": [],
-      "uses": [],
-      "idx": 49
-    },
-    {
-      "path": "../src/fx/PropertyHandler.js",
-      "requires": [
-        49
-      ],
-      "uses": [],
-      "idx": 50
-    },
-    {
-      "path": "../src/fx/Anim.js",
-      "requires": [
-        29,
-        45,
-        46,
-        47,
-        48,
-        50
-      ],
-      "uses": [],
-      "idx": 51
-    },
-    {
       "path": "../src/util/Animate.js",
       "requires": [
-        45,
-        51
+        39,
+        45
       ],
       "uses": [],
-      "idx": 52
+      "idx": 46
     },
     {
       "path": "../packages/sencha-core/src/dom/GarbageCollector.js",
       "requires": [],
       "uses": [],
-      "idx": 53
+      "idx": 47
     },
     {
       "path": "../packages/sencha-core/src/GlobalEvents.js",
       "requires": [
-        21,
-        23
+        5,
+        18
       ],
       "uses": [],
+      "idx": 48
+    },
+    {
+      "path": "../packages/sencha-core/src/JSON.js",
+      "requires": [],
+      "uses": [],
+      "idx": 49
+    },
+    {
+      "path": "../packages/sencha-core/src/TaskQueue.js",
+      "requires": [
+        11
+      ],
+      "uses": [],
+      "idx": 50
+    },
+    {
+      "path": "../packages/sencha-core/src/util/Format.js",
+      "requires": [],
+      "uses": [
+        52,
+        181
+      ],
+      "idx": 51
+    },
+    {
+      "path": "../packages/sencha-core/src/Template.js",
+      "requires": [
+        51
+      ],
+      "uses": [
+        181
+      ],
+      "idx": 52
+    },
+    {
+      "path": "../packages/sencha-core/src/mixin/Inheritable.js",
+      "requires": [
+        3
+      ],
+      "uses": [],
+      "idx": 53
+    },
+    {
+      "path": "../packages/sencha-core/src/mixin/Bindable.js",
+      "requires": [],
+      "uses": [
+        89
+      ],
       "idx": 54
     },
     {
-      "path": "../packages/sencha-core/src/event/publisher/Dom.js",
+      "path": "../packages/sencha-core/src/Widget.js",
       "requires": [
-        12,
         16,
+        53,
         54
       ],
-      "uses": [],
+      "uses": [
+        12,
+        15,
+        18
+      ],
       "idx": 55
     },
     {
-      "path": "../packages/sencha-core/src/AnimationQueue.js",
+      "path": "../src/util/ProtoElement.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        18,
+        181
+      ],
       "idx": 56
     },
     {
-      "path": "../packages/sencha-core/src/event/publisher/Gesture.js",
+      "path": "../packages/sencha-core/src/dom/CompositeElement.js",
       "requires": [
-        15,
-        55,
-        56
+        20
       ],
-      "uses": [
-        16,
-        53
-      ],
+      "uses": [],
       "idx": 57
     },
     {
-      "path": "../packages/sencha-core/src/AbstractManager.js",
-      "requires": [
-        43
-      ],
+      "path": "../src/util/ElementContainer.js",
+      "requires": [],
       "uses": [],
       "idx": 58
     },
     {
-      "path": "../packages/sencha-core/src/data/flash/BinaryXhr.js",
-      "requires": [],
+      "path": "../src/util/Renderable.js",
+      "requires": [
+        18
+      ],
       "uses": [
-        54
+        65,
+        88,
+        181
       ],
       "idx": 59
     },
     {
-      "path": "../packages/sencha-core/src/data/Connection.js",
+      "path": "../src/state/Provider.js",
       "requires": [
-        21,
-        59
+        24
       ],
-      "uses": [
-        23,
-        54
-      ],
+      "uses": [],
       "idx": 60
     },
     {
-      "path": "../packages/sencha-core/src/Ajax.js",
+      "path": "../src/state/Manager.js",
       "requires": [
         60
       ],
@@ -638,174 +2022,203 @@ var Ext = Ext || {};
       "idx": 61
     },
     {
-      "path": "../packages/sencha-core/src/ComponentManager.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/state/Stateful.js",
+      "requires": [
+        61
+      ],
+      "uses": [
+        29
+      ],
       "idx": 62
     },
     {
-      "path": "../packages/sencha-core/src/util/Operators.js",
+      "path": "../src/util/Floating.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        18,
+        48,
+        287,
+        442
+      ],
       "idx": 63
     },
     {
-      "path": "../packages/sencha-core/src/util/LruCache.js",
+      "path": "../src/util/Focusable.js",
       "requires": [
-        43
+        22
       ],
-      "uses": [],
+      "uses": [
+        65
+      ],
       "idx": 64
     },
     {
-      "path": "../packages/sencha-core/src/ComponentQuery.js",
+      "path": "../src/Component.js",
       "requires": [
+        12,
+        15,
+        17,
+        24,
+        46,
+        48,
+        53,
+        54,
+        56,
+        57,
+        58,
+        59,
         62,
         63,
         64
       ],
-      "uses": [],
+      "uses": [
+        18,
+        22,
+        39,
+        88,
+        110,
+        181,
+        282,
+        283,
+        284,
+        287,
+        297,
+        299,
+        417,
+        442,
+        542,
+        553,
+        557,
+        559
+      ],
       "idx": 65
     },
     {
-      "path": "../packages/sencha-core/src/Evented.js",
-      "requires": [
-        21
-      ],
+      "path": "../src/layout/container/border/Region.js",
+      "requires": [],
       "uses": [],
       "idx": 66
     },
     {
-      "path": "../packages/sencha-core/src/JSON.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/event/gesture/Recognizer.js",
+      "requires": [
+        4
+      ],
       "uses": [],
       "idx": 67
     },
     {
-      "path": "../packages/sencha-core/src/TaskQueue.js",
+      "path": "../packages/sencha-core/src/event/gesture/SingleTouch.js",
       "requires": [
-        56
+        67
       ],
       "uses": [],
       "idx": 68
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Inheritable.js",
+      "path": "../packages/sencha-core/src/event/gesture/DoubleTap.js",
       "requires": [
-        20
+        68
       ],
       "uses": [],
       "idx": 69
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Bindable.js",
-      "requires": [],
-      "uses": [
-        75
+      "path": "../packages/sencha-core/src/event/gesture/Drag.js",
+      "requires": [
+        68
       ],
+      "uses": [],
       "idx": 70
     },
     {
-      "path": "../packages/sencha-core/src/Widget.js",
+      "path": "../packages/sencha-core/src/event/gesture/Swipe.js",
       "requires": [
-        66,
-        69,
-        70
+        68
       ],
-      "uses": [
-        23,
-        62,
-        65
-      ],
+      "uses": [],
       "idx": 71
     },
     {
-      "path": "../packages/sencha-core/src/util/XTemplateParser.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/event/gesture/EdgeSwipe.js",
+      "requires": [
+        71
+      ],
+      "uses": [
+        18
+      ],
       "idx": 72
     },
     {
-      "path": "../packages/sencha-core/src/util/XTemplateCompiler.js",
+      "path": "../packages/sencha-core/src/event/gesture/LongPress.js",
       "requires": [
-        72
+        68
       ],
       "uses": [],
       "idx": 73
     },
     {
-      "path": "../packages/sencha-core/src/XTemplate.js",
+      "path": "../packages/sencha-core/src/event/gesture/MultiTouch.js",
       "requires": [
-        73
+        67
       ],
       "uses": [],
       "idx": 74
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Factoryable.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/event/gesture/Pinch.js",
+      "requires": [
+        74
+      ],
       "uses": [],
       "idx": 75
     },
     {
-      "path": "../packages/sencha-core/src/util/CollectionKey.js",
+      "path": "../packages/sencha-core/src/event/gesture/Rotate.js",
       "requires": [
-        0
+        74
       ],
       "uses": [],
       "idx": 76
     },
     {
-      "path": "../packages/sencha-core/src/util/Grouper.js",
+      "path": "../packages/sencha-core/src/event/gesture/Tap.js",
       "requires": [
-        31
+        68
       ],
       "uses": [],
       "idx": 77
     },
     {
-      "path": "../packages/sencha-core/src/util/Collection.js",
-      "requires": [
-        21,
-        26,
-        31,
-        76,
-        77
-      ],
-      "uses": [
-        142,
-        143,
-        144
-      ],
+      "path": "../packages/sencha-core/src/event/publisher/Publisher.js",
+      "requires": [],
+      "uses": [],
       "idx": 78
     },
     {
-      "path": "../packages/sencha-core/src/util/Scheduler.js",
-      "requires": [
-        21,
-        78
-      ],
+      "path": "../packages/sencha-core/src/util/Offset.js",
+      "requires": [],
       "uses": [],
       "idx": 79
     },
     {
-      "path": "../packages/sencha-core/src/util/ObjectTemplate.js",
+      "path": "../packages/sencha-core/src/util/Region.js",
       "requires": [
-        74
+        79
       ],
       "uses": [],
       "idx": 80
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/Role.js",
-      "requires": [],
-      "uses": [
-        75
+      "path": "../packages/sencha-core/src/util/Point.js",
+      "requires": [
+        80
       ],
+      "uses": [],
       "idx": 81
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/Association.js",
+      "path": "../packages/sencha-core/src/event/Event.js",
       "requires": [
         81
       ],
@@ -813,103 +2226,118 @@ var Ext = Ext || {};
       "idx": 82
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/OneToOne.js",
+      "path": "../packages/sencha-core/src/event/publisher/Dom.js",
       "requires": [
+        48,
+        78,
         82
       ],
       "uses": [],
       "idx": 83
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/ManyToOne.js",
+      "path": "../packages/sencha-core/src/event/publisher/Gesture.js",
       "requires": [
+        11,
+        81,
+        83
+      ],
+      "uses": [
+        47,
         82
       ],
-      "uses": [],
       "idx": 84
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/ManyToMany.js",
+      "path": "../packages/sencha-core/src/event/publisher/Focus.js",
       "requires": [
+        83
+      ],
+      "uses": [
         82
       ],
-      "uses": [],
       "idx": 85
     },
     {
-      "path": "../packages/sencha-core/src/util/Inflector.js",
+      "path": "../packages/sencha-core/src/util/XTemplateParser.js",
       "requires": [],
       "uses": [],
       "idx": 86
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/Namer.js",
+      "path": "../packages/sencha-core/src/util/XTemplateCompiler.js",
       "requires": [
-        75,
         86
       ],
       "uses": [],
       "idx": 87
     },
     {
-      "path": "../packages/sencha-core/src/data/schema/Schema.js",
+      "path": "../packages/sencha-core/src/XTemplate.js",
       "requires": [
-        75,
-        80,
-        83,
-        84,
-        85,
+        52,
         87
       ],
       "uses": [],
       "idx": 88
     },
     {
-      "path": "../packages/sencha-core/src/data/Batch.js",
-      "requires": [
-        21
-      ],
+      "path": "../packages/sencha-core/src/mixin/Factoryable.js",
+      "requires": [],
       "uses": [],
       "idx": 89
     },
     {
-      "path": "../packages/sencha-core/src/data/matrix/Slice.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/util/CollectionKey.js",
+      "requires": [
+        4
+      ],
       "uses": [],
       "idx": 90
     },
     {
-      "path": "../packages/sencha-core/src/data/matrix/Side.js",
+      "path": "../packages/sencha-core/src/util/Grouper.js",
       "requires": [
-        90
+        26
       ],
       "uses": [],
       "idx": 91
     },
     {
-      "path": "../packages/sencha-core/src/data/matrix/Matrix.js",
+      "path": "../packages/sencha-core/src/util/Collection.js",
       "requires": [
+        5,
+        21,
+        26,
+        90,
         91
       ],
-      "uses": [],
+      "uses": [
+        156,
+        157,
+        158
+      ],
       "idx": 92
     },
     {
-      "path": "../packages/sencha-core/src/data/session/ChangesVisitor.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/util/Scheduler.js",
+      "requires": [
+        5,
+        92
+      ],
       "uses": [],
       "idx": 93
     },
     {
-      "path": "../packages/sencha-core/src/data/session/ChildChangesVisitor.js",
+      "path": "../packages/sencha-core/src/util/ObjectTemplate.js",
       "requires": [
-        93
+        88
       ],
       "uses": [],
       "idx": 94
     },
     {
-      "path": "../packages/sencha-core/src/data/session/BatchVisitor.js",
+      "path": "../packages/sencha-core/src/data/schema/Role.js",
       "requires": [],
       "uses": [
         89
@@ -917,214 +2345,174 @@ var Ext = Ext || {};
       "idx": 95
     },
     {
-      "path": "../packages/sencha-core/src/data/Session.js",
+      "path": "../packages/sencha-core/src/data/schema/Association.js",
       "requires": [
-        88,
-        89,
-        92,
-        93,
-        94,
         95
       ],
       "uses": [],
       "idx": 96
     },
     {
-      "path": "../packages/sencha-core/src/util/Schedulable.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/data/schema/OneToOne.js",
+      "requires": [
+        96
+      ],
       "uses": [],
       "idx": 97
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/BaseBinding.js",
+      "path": "../packages/sencha-core/src/data/schema/ManyToOne.js",
       "requires": [
-        97
+        96
       ],
       "uses": [],
       "idx": 98
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/Binding.js",
+      "path": "../packages/sencha-core/src/data/schema/ManyToMany.js",
       "requires": [
-        98
+        96
       ],
       "uses": [],
       "idx": 99
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/AbstractStub.js",
-      "requires": [
-        97,
-        99
-      ],
+      "path": "../packages/sencha-core/src/util/Inflector.js",
+      "requires": [],
       "uses": [],
       "idx": 100
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/Stub.js",
+      "path": "../packages/sencha-core/src/data/schema/Namer.js",
       "requires": [
-        99,
+        89,
         100
       ],
-      "uses": [
-        105
-      ],
+      "uses": [],
       "idx": 101
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/LinkStub.js",
+      "path": "../packages/sencha-core/src/data/schema/Schema.js",
       "requires": [
+        89,
+        94,
+        97,
+        98,
+        99,
         101
       ],
       "uses": [],
       "idx": 102
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/RootStub.js",
+      "path": "../packages/sencha-core/src/data/Batch.js",
       "requires": [
-        100,
-        101,
-        102
+        5
       ],
       "uses": [],
       "idx": 103
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/Multi.js",
-      "requires": [
-        98
-      ],
+      "path": "../packages/sencha-core/src/data/matrix/Slice.js",
+      "requires": [],
       "uses": [],
       "idx": 104
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/Formula.js",
+      "path": "../packages/sencha-core/src/data/matrix/Side.js",
       "requires": [
-        64,
-        97
+        104
       ],
       "uses": [],
       "idx": 105
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/Template.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/data/matrix/Matrix.js",
+      "requires": [
+        105
+      ],
       "uses": [],
       "idx": 106
     },
     {
-      "path": "../packages/sencha-core/src/app/bind/TemplateBinding.js",
-      "requires": [
-        98,
-        104,
-        106
-      ],
+      "path": "../packages/sencha-core/src/data/session/ChangesVisitor.js",
+      "requires": [],
       "uses": [],
       "idx": 107
     },
     {
-      "path": "../packages/sencha-core/src/data/AbstractStore.js",
+      "path": "../packages/sencha-core/src/data/session/ChildChangesVisitor.js",
       "requires": [
-        21,
-        26,
-        75,
-        78,
-        88
+        107
       ],
-      "uses": [
-        161
-      ],
+      "uses": [],
       "idx": 108
     },
     {
-      "path": "../packages/sencha-core/src/data/LocalStore.js",
-      "requires": [
-        20
-      ],
+      "path": "../packages/sencha-core/src/data/session/BatchVisitor.js",
+      "requires": [],
       "uses": [
-        78
+        103
       ],
       "idx": 109
     },
     {
-      "path": "../packages/sencha-core/src/data/ChainedStore.js",
+      "path": "../packages/sencha-core/src/data/Session.js",
       "requires": [
+        102,
+        103,
+        106,
+        107,
         108,
         109
       ],
-      "uses": [
-        161
-      ],
+      "uses": [],
       "idx": 110
     },
     {
-      "path": "../packages/sencha-core/src/app/ViewModel.js",
-      "requires": [
-        0,
-        75,
-        79,
-        96,
-        102,
-        103,
-        104,
-        105,
-        107,
-        110
-      ],
-      "uses": [
-        88
-      ],
+      "path": "../packages/sencha-core/src/util/Schedulable.js",
+      "requires": [],
+      "uses": [],
       "idx": 111
     },
     {
-      "path": "../packages/sencha-core/src/data/ResultSet.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/app/bind/BaseBinding.js",
+      "requires": [
+        111
+      ],
       "uses": [],
       "idx": 112
     },
     {
-      "path": "../packages/sencha-core/src/data/reader/Reader.js",
+      "path": "../packages/sencha-core/src/app/bind/Binding.js",
       "requires": [
-        21,
-        74,
-        75,
         112
       ],
-      "uses": [
-        88
-      ],
+      "uses": [],
       "idx": 113
     },
     {
-      "path": "../packages/sencha-core/src/data/writer/Writer.js",
+      "path": "../packages/sencha-core/src/app/bind/AbstractStub.js",
       "requires": [
-        75
+        111,
+        113
       ],
       "uses": [],
       "idx": 114
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Proxy.js",
+      "path": "../packages/sencha-core/src/app/bind/Stub.js",
       "requires": [
-        21,
-        75,
-        88,
         113,
         114
       ],
       "uses": [
-        89,
-        118,
-        119,
-        120,
-        121,
-        122,
-        136
+        119
       ],
       "idx": 115
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Client.js",
+      "path": "../packages/sencha-core/src/app/bind/LinkStub.js",
       "requires": [
         115
       ],
@@ -1132,116 +2520,130 @@ var Ext = Ext || {};
       "idx": 116
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Memory.js",
+      "path": "../packages/sencha-core/src/app/bind/RootStub.js",
       "requires": [
+        114,
+        115,
         116
       ],
-      "uses": [
-        26,
-        32
-      ],
+      "uses": [],
       "idx": 117
     },
     {
-      "path": "../packages/sencha-core/src/data/operation/Operation.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/app/bind/Multi.js",
+      "requires": [
+        112
+      ],
       "uses": [],
       "idx": 118
     },
     {
-      "path": "../packages/sencha-core/src/data/operation/Create.js",
+      "path": "../packages/sencha-core/src/app/bind/Formula.js",
       "requires": [
-        118
+        14,
+        111
       ],
       "uses": [],
       "idx": 119
     },
     {
-      "path": "../packages/sencha-core/src/data/operation/Destroy.js",
+      "path": "../packages/sencha-core/src/app/bind/Template.js",
       "requires": [
-        118
+        51
       ],
       "uses": [],
       "idx": 120
     },
     {
-      "path": "../packages/sencha-core/src/data/operation/Read.js",
+      "path": "../packages/sencha-core/src/app/bind/TemplateBinding.js",
       "requires": [
-        118
+        112,
+        118,
+        120
       ],
       "uses": [],
       "idx": 121
     },
     {
-      "path": "../packages/sencha-core/src/data/operation/Update.js",
+      "path": "../packages/sencha-core/src/data/AbstractStore.js",
       "requires": [
-        118
+        5,
+        21,
+        89,
+        92,
+        102
       ],
-      "uses": [],
+      "uses": [
+        175
+      ],
       "idx": 122
     },
     {
-      "path": "../packages/sencha-core/src/data/ProxyStore.js",
+      "path": "../packages/sencha-core/src/data/LocalStore.js",
       "requires": [
-        108,
-        115,
+        3
+      ],
+      "uses": [
+        92
+      ],
+      "idx": 123
+    },
+    {
+      "path": "../packages/sencha-core/src/data/ChainedStore.js",
+      "requires": [
+        122,
+        123
+      ],
+      "uses": [
+        175
+      ],
+      "idx": 124
+    },
+    {
+      "path": "../packages/sencha-core/src/app/ViewModel.js",
+      "requires": [
+        4,
+        89,
+        93,
+        110,
+        116,
         117,
         118,
         119,
-        120,
         121,
-        122
+        124
       ],
       "uses": [
-        27,
-        88,
-        136
+        22,
+        102
       ],
-      "idx": 123
+      "idx": 125
     },
     {
       "path": "../packages/sencha-core/src/data/Error.js",
       "requires": [],
       "uses": [],
-      "idx": 124
+      "idx": 126
     },
     {
       "path": "../packages/sencha-core/src/data/ErrorCollection.js",
       "requires": [
-        33,
-        124
+        28,
+        126
       ],
       "uses": [
-        128
+        135
       ],
-      "idx": 125
-    },
-    {
-      "path": "../packages/sencha-core/src/data/SortTypes.js",
-      "requires": [],
-      "uses": [],
-      "idx": 126
-    },
-    {
-      "path": "../packages/sencha-core/src/data/validator/Validator.js",
-      "requires": [
-        75
-      ],
-      "uses": [],
       "idx": 127
     },
     {
-      "path": "../packages/sencha-core/src/data/field/Field.js",
-      "requires": [
-        75,
-        126,
-        127
-      ],
+      "path": "../packages/sencha-core/src/data/operation/Operation.js",
+      "requires": [],
       "uses": [],
       "idx": 128
     },
     {
-      "path": "../packages/sencha-core/src/data/field/Boolean.js",
+      "path": "../packages/sencha-core/src/data/operation/Create.js",
       "requires": [
         128
       ],
@@ -1249,7 +2651,7 @@ var Ext = Ext || {};
       "idx": 129
     },
     {
-      "path": "../packages/sencha-core/src/data/field/Date.js",
+      "path": "../packages/sencha-core/src/data/operation/Destroy.js",
       "requires": [
         128
       ],
@@ -1257,7 +2659,7 @@ var Ext = Ext || {};
       "idx": 130
     },
     {
-      "path": "../packages/sencha-core/src/data/field/Integer.js",
+      "path": "../packages/sencha-core/src/data/operation/Read.js",
       "requires": [
         128
       ],
@@ -1265,7 +2667,7 @@ var Ext = Ext || {};
       "idx": 131
     },
     {
-      "path": "../packages/sencha-core/src/data/field/Number.js",
+      "path": "../packages/sencha-core/src/data/operation/Update.js",
       "requires": [
         128
       ],
@@ -1273,545 +2675,576 @@ var Ext = Ext || {};
       "idx": 132
     },
     {
-      "path": "../packages/sencha-core/src/data/field/String.js",
-      "requires": [
-        128
-      ],
+      "path": "../packages/sencha-core/src/data/SortTypes.js",
+      "requires": [],
       "uses": [],
       "idx": 133
     },
     {
-      "path": "../packages/sencha-core/src/data/identifier/Generator.js",
+      "path": "../packages/sencha-core/src/data/validator/Validator.js",
       "requires": [
-        75
+        89
       ],
       "uses": [],
       "idx": 134
     },
     {
-      "path": "../packages/sencha-core/src/data/identifier/Sequential.js",
+      "path": "../packages/sencha-core/src/data/field/Field.js",
       "requires": [
+        89,
+        133,
         134
       ],
       "uses": [],
       "idx": 135
     },
     {
+      "path": "../packages/sencha-core/src/data/field/Boolean.js",
+      "requires": [
+        135
+      ],
+      "uses": [],
+      "idx": 136
+    },
+    {
+      "path": "../packages/sencha-core/src/data/field/Date.js",
+      "requires": [
+        135
+      ],
+      "uses": [],
+      "idx": 137
+    },
+    {
+      "path": "../packages/sencha-core/src/data/field/Integer.js",
+      "requires": [
+        135
+      ],
+      "uses": [],
+      "idx": 138
+    },
+    {
+      "path": "../packages/sencha-core/src/data/field/Number.js",
+      "requires": [
+        135
+      ],
+      "uses": [],
+      "idx": 139
+    },
+    {
+      "path": "../packages/sencha-core/src/data/field/String.js",
+      "requires": [
+        135
+      ],
+      "uses": [],
+      "idx": 140
+    },
+    {
+      "path": "../packages/sencha-core/src/data/identifier/Generator.js",
+      "requires": [
+        89
+      ],
+      "uses": [],
+      "idx": 141
+    },
+    {
+      "path": "../packages/sencha-core/src/data/identifier/Sequential.js",
+      "requires": [
+        141
+      ],
+      "uses": [],
+      "idx": 142
+    },
+    {
       "path": "../packages/sencha-core/src/data/Model.js",
       "requires": [
-        88,
-        118,
-        119,
-        120,
-        121,
-        122,
-        125,
+        102,
         127,
         128,
         129,
         130,
         131,
         132,
-        133,
         134,
-        135
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142
       ],
       "uses": [
-        75,
-        113,
-        166
+        89,
+        145,
+        180
       ],
-      "idx": 136
-    },
-    {
-      "path": "../packages/sencha-core/src/data/proxy/Server.js",
-      "requires": [
-        115
-      ],
-      "uses": [
-        160
-      ],
-      "idx": 137
-    },
-    {
-      "path": "../packages/sencha-core/src/data/proxy/Ajax.js",
-      "requires": [
-        61,
-        137
-      ],
-      "uses": [],
-      "idx": 138
-    },
-    {
-      "path": "../packages/sencha-core/src/data/reader/Json.js",
-      "requires": [
-        67,
-        113
-      ],
-      "uses": [],
-      "idx": 139
-    },
-    {
-      "path": "../packages/sencha-core/src/data/writer/Json.js",
-      "requires": [
-        114
-      ],
-      "uses": [],
-      "idx": 140
-    },
-    {
-      "path": "../packages/sencha-core/src/util/Group.js",
-      "requires": [
-        78
-      ],
-      "uses": [],
-      "idx": 141
-    },
-    {
-      "path": "../packages/sencha-core/src/util/SorterCollection.js",
-      "requires": [
-        31,
-        78
-      ],
-      "uses": [],
-      "idx": 142
-    },
-    {
-      "path": "../packages/sencha-core/src/util/FilterCollection.js",
-      "requires": [
-        26,
-        78
-      ],
-      "uses": [],
       "idx": 143
     },
     {
-      "path": "../packages/sencha-core/src/util/GroupCollection.js",
-      "requires": [
-        78,
-        141,
-        142,
-        143
-      ],
+      "path": "../packages/sencha-core/src/data/ResultSet.js",
+      "requires": [],
       "uses": [],
       "idx": 144
     },
     {
-      "path": "../packages/sencha-core/src/data/Store.js",
+      "path": "../packages/sencha-core/src/data/reader/Reader.js",
       "requires": [
-        27,
-        109,
-        123,
-        136,
-        138,
-        139,
-        140,
+        5,
+        88,
+        89,
         144
       ],
       "uses": [
-        77,
-        149,
-        161
+        102
       ],
       "idx": 145
     },
     {
-      "path": "../packages/sencha-core/src/data/reader/Array.js",
+      "path": "../packages/sencha-core/src/data/writer/Writer.js",
       "requires": [
-        139
+        89
       ],
       "uses": [],
       "idx": 146
     },
     {
-      "path": "../packages/sencha-core/src/data/ArrayStore.js",
+      "path": "../packages/sencha-core/src/data/proxy/Proxy.js",
       "requires": [
-        117,
+        5,
+        89,
+        102,
         145,
         146
       ],
-      "uses": [],
+      "uses": [
+        103,
+        128,
+        129,
+        130,
+        131,
+        132,
+        143
+      ],
       "idx": 147
     },
     {
-      "path": "../packages/sencha-core/src/data/PageMap.js",
+      "path": "../packages/sencha-core/src/data/proxy/Client.js",
       "requires": [
-        64
+        147
       ],
       "uses": [],
       "idx": 148
     },
     {
-      "path": "../packages/sencha-core/src/data/BufferedStore.js",
+      "path": "../packages/sencha-core/src/data/proxy/Memory.js",
       "requires": [
-        26,
-        31,
-        77,
-        123,
         148
       ],
       "uses": [
-        142,
-        143,
-        144
+        21,
+        27
       ],
       "idx": 149
     },
     {
-      "path": "../packages/sencha-core/src/direct/Manager.js",
+      "path": "../packages/sencha-core/src/data/ProxyStore.js",
       "requires": [
-        29,
-        33
+        122,
+        128,
+        129,
+        130,
+        131,
+        132,
+        143,
+        147,
+        149
       ],
-      "uses": [],
+      "uses": [
+        22,
+        102
+      ],
       "idx": 150
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Direct.js",
+      "path": "../packages/sencha-core/src/data/proxy/Server.js",
       "requires": [
-        137,
-        150
+        147
       ],
-      "uses": [],
+      "uses": [
+        52,
+        174
+      ],
       "idx": 151
     },
     {
-      "path": "../packages/sencha-core/src/data/DirectStore.js",
+      "path": "../packages/sencha-core/src/data/proxy/Ajax.js",
       "requires": [
-        145,
+        10,
         151
       ],
       "uses": [],
       "idx": 152
     },
     {
-      "path": "../packages/sencha-core/src/data/JsonP.js",
-      "requires": [],
-      "uses": [
-        54
+      "path": "../packages/sencha-core/src/data/reader/Json.js",
+      "requires": [
+        49,
+        145
       ],
+      "uses": [],
       "idx": 153
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/JsonP.js",
+      "path": "../packages/sencha-core/src/data/writer/Json.js",
       "requires": [
-        137,
-        153
+        146
       ],
       "uses": [],
       "idx": 154
     },
     {
-      "path": "../packages/sencha-core/src/data/JsonPStore.js",
+      "path": "../packages/sencha-core/src/util/Group.js",
       "requires": [
-        139,
-        145,
-        154
+        92
       ],
       "uses": [],
       "idx": 155
     },
     {
-      "path": "../packages/sencha-core/src/data/JsonStore.js",
+      "path": "../packages/sencha-core/src/util/SorterCollection.js",
       "requires": [
-        138,
-        139,
-        140,
-        145
+        26,
+        92
       ],
       "uses": [],
       "idx": 156
     },
     {
-      "path": "../packages/sencha-core/src/data/ModelManager.js",
+      "path": "../packages/sencha-core/src/util/FilterCollection.js",
       "requires": [
-        88
+        21,
+        92
       ],
-      "uses": [
-        136
-      ],
+      "uses": [],
       "idx": 157
     },
     {
-      "path": "../packages/sencha-core/src/data/NodeInterface.js",
+      "path": "../packages/sencha-core/src/util/GroupCollection.js",
       "requires": [
-        21,
-        129,
-        131,
-        133,
-        140
+        92,
+        155,
+        156,
+        157
       ],
-      "uses": [
-        88
-      ],
+      "uses": [],
       "idx": 158
     },
     {
-      "path": "../packages/sencha-core/src/data/NodeStore.js",
+      "path": "../packages/sencha-core/src/data/Store.js",
       "requires": [
-        145,
+        22,
+        123,
+        143,
+        150,
+        152,
+        153,
+        154,
         158
       ],
-      "uses": [],
+      "uses": [
+        91,
+        163,
+        175
+      ],
       "idx": 159
     },
     {
-      "path": "../packages/sencha-core/src/data/Request.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/data/reader/Array.js",
+      "requires": [
+        153
+      ],
       "uses": [],
       "idx": 160
     },
     {
-      "path": "../packages/sencha-core/src/data/StoreManager.js",
+      "path": "../packages/sencha-core/src/data/ArrayStore.js",
       "requires": [
-        33,
-        147
+        149,
+        159,
+        160
       ],
-      "uses": [
-        75,
-        117,
-        140,
-        145,
-        146
-      ],
+      "uses": [],
       "idx": 161
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Queryable.js",
-      "requires": [],
-      "uses": [
-        65
+      "path": "../packages/sencha-core/src/data/PageMap.js",
+      "requires": [
+        14
       ],
+      "uses": [],
       "idx": 162
     },
     {
-      "path": "../packages/sencha-core/src/data/TreeModel.js",
+      "path": "../packages/sencha-core/src/data/BufferedStore.js",
       "requires": [
-        136,
-        158,
+        21,
+        26,
+        91,
+        150,
         162
       ],
-      "uses": [],
+      "uses": [
+        156,
+        157,
+        158
+      ],
       "idx": 163
     },
     {
-      "path": "../packages/sencha-core/src/data/TreeStore.js",
+      "path": "../packages/sencha-core/src/direct/Manager.js",
       "requires": [
-        31,
-        158,
-        159,
-        163
+        24,
+        28
       ],
       "uses": [],
       "idx": 164
     },
     {
-      "path": "../packages/sencha-core/src/data/Types.js",
+      "path": "../packages/sencha-core/src/data/proxy/Direct.js",
       "requires": [
-        126
+        151,
+        164
       ],
       "uses": [],
       "idx": 165
     },
     {
-      "path": "../packages/sencha-core/src/data/Validation.js",
+      "path": "../packages/sencha-core/src/data/DirectStore.js",
       "requires": [
-        136
+        159,
+        165
       ],
       "uses": [],
       "idx": 166
     },
     {
-      "path": "../packages/sencha-core/src/dom/Query.js",
-      "requires": [
-        63
-      ],
+      "path": "../packages/sencha-core/src/data/JsonP.js",
+      "requires": [],
       "uses": [
-        64
+        48
       ],
       "idx": 167
     },
     {
-      "path": "../packages/sencha-core/src/data/reader/Xml.js",
+      "path": "../packages/sencha-core/src/data/proxy/JsonP.js",
       "requires": [
-        113,
+        151,
         167
       ],
       "uses": [],
       "idx": 168
     },
     {
-      "path": "../packages/sencha-core/src/data/writer/Xml.js",
+      "path": "../packages/sencha-core/src/data/JsonPStore.js",
       "requires": [
-        114
+        153,
+        159,
+        168
       ],
       "uses": [],
       "idx": 169
     },
     {
-      "path": "../packages/sencha-core/src/data/XmlStore.js",
+      "path": "../packages/sencha-core/src/data/JsonStore.js",
       "requires": [
-        138,
-        145,
-        168,
-        169
+        152,
+        153,
+        154,
+        159
       ],
       "uses": [],
       "idx": 170
     },
     {
-      "path": "../packages/sencha-core/src/data/identifier/Negative.js",
+      "path": "../packages/sencha-core/src/data/ModelManager.js",
       "requires": [
-        135
+        102
       ],
-      "uses": [],
+      "uses": [
+        143
+      ],
       "idx": 171
     },
     {
-      "path": "../packages/sencha-core/src/data/identifier/Uuid.js",
+      "path": "../packages/sencha-core/src/data/NodeInterface.js",
       "requires": [
-        134
+        5,
+        136,
+        138,
+        140,
+        154
       ],
-      "uses": [],
+      "uses": [
+        102
+      ],
       "idx": 172
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/WebStorage.js",
+      "path": "../packages/sencha-core/src/data/NodeStore.js",
       "requires": [
-        116,
-        135
+        159,
+        172
       ],
       "uses": [
-        31,
-        112
+        143
       ],
       "idx": 173
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/LocalStorage.js",
-      "requires": [
-        173
-      ],
+      "path": "../packages/sencha-core/src/data/Request.js",
+      "requires": [],
       "uses": [],
       "idx": 174
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Rest.js",
+      "path": "../packages/sencha-core/src/data/StoreManager.js",
       "requires": [
-        138
+        28,
+        161
       ],
-      "uses": [],
+      "uses": [
+        89,
+        149,
+        154,
+        159,
+        160
+      ],
       "idx": 175
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/SessionStorage.js",
-      "requires": [
-        173
+      "path": "../packages/sencha-core/src/mixin/Queryable.js",
+      "requires": [],
+      "uses": [
+        15
       ],
-      "uses": [],
       "idx": 176
     },
     {
-      "path": "../packages/sencha-core/src/data/proxy/Sql.js",
+      "path": "../packages/sencha-core/src/data/TreeModel.js",
       "requires": [
-        116
+        143,
+        172,
+        176
       ],
-      "uses": [
-        78,
-        112
-      ],
+      "uses": [],
       "idx": 177
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Bound.js",
+      "path": "../packages/sencha-core/src/data/TreeStore.js",
       "requires": [
-        127
+        26,
+        172,
+        173,
+        177
       ],
       "uses": [],
       "idx": 178
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Format.js",
+      "path": "../packages/sencha-core/src/data/Types.js",
       "requires": [
-        127
+        133
       ],
       "uses": [],
       "idx": 179
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Email.js",
+      "path": "../packages/sencha-core/src/data/Validation.js",
       "requires": [
-        179
+        143
       ],
       "uses": [],
       "idx": 180
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/List.js",
-      "requires": [
-        127
+      "path": "../packages/sencha-core/src/dom/Helper.js",
+      "requires": [],
+      "uses": [
+        52
       ],
-      "uses": [],
       "idx": 181
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Exclusion.js",
+      "path": "../packages/sencha-core/src/dom/Query.js",
       "requires": [
+        13,
         181
       ],
-      "uses": [],
+      "uses": [
+        14
+      ],
       "idx": 182
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Inclusion.js",
+      "path": "../packages/sencha-core/src/data/reader/Xml.js",
       "requires": [
-        181
+        145,
+        182
       ],
       "uses": [],
       "idx": 183
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Length.js",
+      "path": "../packages/sencha-core/src/data/writer/Xml.js",
       "requires": [
-        178
+        146
       ],
       "uses": [],
       "idx": 184
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Presence.js",
+      "path": "../packages/sencha-core/src/data/XmlStore.js",
       "requires": [
-        127
+        152,
+        159,
+        183,
+        184
       ],
       "uses": [],
       "idx": 185
     },
     {
-      "path": "../packages/sencha-core/src/data/validator/Range.js",
+      "path": "../packages/sencha-core/src/data/identifier/Negative.js",
       "requires": [
-        178
+        142
       ],
       "uses": [],
       "idx": 186
     },
     {
-      "path": "../packages/sencha-core/src/direct/Event.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/data/identifier/Uuid.js",
+      "requires": [
+        141
+      ],
       "uses": [],
       "idx": 187
     },
     {
-      "path": "../packages/sencha-core/src/direct/RemotingEvent.js",
+      "path": "../packages/sencha-core/src/data/proxy/WebStorage.js",
       "requires": [
-        187
+        142,
+        148
       ],
       "uses": [
-        150
+        26,
+        52,
+        144
       ],
       "idx": 188
     },
     {
-      "path": "../packages/sencha-core/src/direct/ExceptionEvent.js",
+      "path": "../packages/sencha-core/src/data/proxy/LocalStorage.js",
       "requires": [
         188
       ],
@@ -1819,138 +3252,124 @@ var Ext = Ext || {};
       "idx": 189
     },
     {
-      "path": "../packages/sencha-core/src/direct/Provider.js",
+      "path": "../packages/sencha-core/src/data/proxy/Rest.js",
       "requires": [
-        29
+        152
       ],
       "uses": [],
       "idx": 190
     },
     {
-      "path": "../packages/sencha-core/src/direct/JsonProvider.js",
+      "path": "../packages/sencha-core/src/data/proxy/SessionStorage.js",
       "requires": [
-        190
+        188
       ],
-      "uses": [
-        150,
-        189
-      ],
+      "uses": [],
       "idx": 191
     },
     {
-      "path": "../packages/sencha-core/src/direct/PollingProvider.js",
+      "path": "../packages/sencha-core/src/data/proxy/Sql.js",
       "requires": [
-        27,
-        61,
-        191
+        148
       ],
       "uses": [
-        150,
-        189,
-        264
+        92,
+        144
       ],
       "idx": 192
     },
     {
-      "path": "../packages/sencha-core/src/direct/RemotingMethod.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/data/validator/Bound.js",
+      "requires": [
+        134
+      ],
+      "uses": [
+        52
+      ],
       "idx": 193
     },
     {
-      "path": "../packages/sencha-core/src/direct/Transaction.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/data/validator/Format.js",
+      "requires": [
+        134
+      ],
       "uses": [],
       "idx": 194
     },
     {
-      "path": "../packages/sencha-core/src/direct/RemotingProvider.js",
+      "path": "../packages/sencha-core/src/data/validator/Email.js",
       "requires": [
-        27,
-        33,
-        191,
-        193,
         194
       ],
-      "uses": [
-        61,
-        150,
-        189
-      ],
+      "uses": [],
       "idx": 195
     },
     {
-      "path": "../packages/sencha-core/src/dom/CompositeElement.js",
+      "path": "../packages/sencha-core/src/data/validator/List.js",
       "requires": [
-        25
+        134
       ],
       "uses": [],
       "idx": 196
     },
     {
-      "path": "../packages/sencha-core/src/util/paintmonitor/Abstract.js",
-      "requires": [],
-      "uses": [
-        23
+      "path": "../packages/sencha-core/src/data/validator/Exclusion.js",
+      "requires": [
+        196
       ],
+      "uses": [],
       "idx": 197
     },
     {
-      "path": "../packages/sencha-core/src/util/paintmonitor/CssAnimation.js",
+      "path": "../packages/sencha-core/src/data/validator/Inclusion.js",
       "requires": [
-        197
+        196
       ],
       "uses": [],
       "idx": 198
     },
     {
-      "path": "../packages/sencha-core/src/util/paintmonitor/OverflowChange.js",
+      "path": "../packages/sencha-core/src/data/validator/Length.js",
       "requires": [
-        197
+        193
       ],
       "uses": [],
       "idx": 199
     },
     {
-      "path": "../packages/sencha-core/src/util/PaintMonitor.js",
+      "path": "../packages/sencha-core/src/data/validator/Presence.js",
       "requires": [
-        198,
-        199
+        134
       ],
       "uses": [],
       "idx": 200
     },
     {
-      "path": "../packages/sencha-core/src/event/publisher/ElementPaint.js",
+      "path": "../packages/sencha-core/src/data/validator/Range.js",
       "requires": [
-        12,
-        68,
-        200
+        193
       ],
       "uses": [],
       "idx": 201
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Templatable.js",
-      "requires": [
-        20
-      ],
-      "uses": [
-        23
-      ],
+      "path": "../packages/sencha-core/src/direct/Event.js",
+      "requires": [],
+      "uses": [],
       "idx": 202
     },
     {
-      "path": "../packages/sencha-core/src/util/sizemonitor/Abstract.js",
+      "path": "../packages/sencha-core/src/direct/RemotingEvent.js",
       "requires": [
-        68,
         202
       ],
-      "uses": [],
+      "uses": [
+        164
+      ],
       "idx": 203
     },
     {
-      "path": "../packages/sencha-core/src/util/sizemonitor/Default.js",
+      "path": "../packages/sencha-core/src/direct/ExceptionEvent.js",
       "requires": [
         203
       ],
@@ -1958,71 +3377,76 @@ var Ext = Ext || {};
       "idx": 204
     },
     {
-      "path": "../packages/sencha-core/src/util/sizemonitor/Scroll.js",
+      "path": "../packages/sencha-core/src/direct/Provider.js",
       "requires": [
-        203
+        24
       ],
-      "uses": [
-        68
-      ],
+      "uses": [],
       "idx": 205
     },
     {
-      "path": "../packages/sencha-core/src/util/sizemonitor/OverflowChange.js",
+      "path": "../packages/sencha-core/src/direct/JsonProvider.js",
       "requires": [
-        203
+        205
       ],
       "uses": [
-        68
+        164,
+        204
       ],
       "idx": 206
     },
     {
-      "path": "../packages/sencha-core/src/util/SizeMonitor.js",
+      "path": "../packages/sencha-core/src/direct/PollingProvider.js",
       "requires": [
-        204,
-        205,
+        10,
+        22,
         206
       ],
-      "uses": [],
+      "uses": [
+        164,
+        204,
+        278
+      ],
       "idx": 207
     },
     {
-      "path": "../packages/sencha-core/src/event/publisher/ElementSize.js",
-      "requires": [
-        12,
-        207
-      ],
-      "uses": [
-        68
-      ],
+      "path": "../packages/sencha-core/src/direct/RemotingMethod.js",
+      "requires": [],
+      "uses": [],
       "idx": 208
     },
     {
-      "path": "../packages/sencha-core/src/fx/State.js",
+      "path": "../packages/sencha-core/src/direct/Transaction.js",
       "requires": [],
       "uses": [],
       "idx": 209
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Abstract.js",
+      "path": "../packages/sencha-core/src/direct/RemotingProvider.js",
       "requires": [
-        66,
+        22,
+        28,
+        206,
+        208,
         209
       ],
-      "uses": [],
+      "uses": [
+        10,
+        164,
+        204
+      ],
       "idx": 210
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Slide.js",
-      "requires": [
-        210
+      "path": "../packages/sencha-core/src/util/paintmonitor/Abstract.js",
+      "requires": [],
+      "uses": [
+        18
       ],
-      "uses": [],
       "idx": 211
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/SlideOut.js",
+      "path": "../packages/sencha-core/src/util/paintmonitor/CssAnimation.js",
       "requires": [
         211
       ],
@@ -2030,121 +3454,125 @@ var Ext = Ext || {};
       "idx": 212
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Fade.js",
+      "path": "../packages/sencha-core/src/util/paintmonitor/OverflowChange.js",
       "requires": [
-        210
+        211
       ],
       "uses": [],
       "idx": 213
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/FadeOut.js",
+      "path": "../packages/sencha-core/src/util/PaintMonitor.js",
       "requires": [
+        212,
         213
       ],
       "uses": [],
       "idx": 214
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Flip.js",
+      "path": "../packages/sencha-core/src/event/publisher/ElementPaint.js",
       "requires": [
-        210
+        50,
+        78,
+        214
       ],
       "uses": [],
       "idx": 215
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Pop.js",
+      "path": "../packages/sencha-core/src/mixin/Templatable.js",
       "requires": [
-        210
+        3
       ],
-      "uses": [],
+      "uses": [
+        18
+      ],
       "idx": 216
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/PopOut.js",
+      "path": "../packages/sencha-core/src/util/sizemonitor/Abstract.js",
       "requires": [
+        50,
         216
       ],
       "uses": [],
       "idx": 217
     },
     {
-      "path": "../packages/sencha-core/src/fx/Animation.js",
+      "path": "../packages/sencha-core/src/util/sizemonitor/Default.js",
       "requires": [
-        211,
-        212,
-        213,
-        214,
-        215,
-        216,
         217
       ],
-      "uses": [
-        210
-      ],
+      "uses": [],
       "idx": 218
     },
     {
-      "path": "../packages/sencha-core/src/fx/runner/Css.js",
+      "path": "../packages/sencha-core/src/util/sizemonitor/Scroll.js",
       "requires": [
-        66,
-        218
+        217
       ],
-      "uses": [],
+      "uses": [
+        50
+      ],
       "idx": 219
     },
     {
-      "path": "../packages/sencha-core/src/fx/runner/CssTransition.js",
+      "path": "../packages/sencha-core/src/util/sizemonitor/OverflowChange.js",
       "requires": [
-        56,
-        219
+        217
       ],
       "uses": [
-        218
+        50
       ],
       "idx": 220
     },
     {
-      "path": "../packages/sencha-core/src/fx/Runner.js",
+      "path": "../packages/sencha-core/src/util/SizeMonitor.js",
       "requires": [
+        218,
+        219,
         220
       ],
       "uses": [],
       "idx": 221
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Cube.js",
+      "path": "../packages/sencha-core/src/event/publisher/ElementSize.js",
       "requires": [
-        210
+        78,
+        221
       ],
-      "uses": [],
+      "uses": [
+        50
+      ],
       "idx": 222
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/Wipe.js",
-      "requires": [
-        218
-      ],
+      "path": "../packages/sencha-core/src/fx/State.js",
+      "requires": [],
       "uses": [],
       "idx": 223
     },
     {
-      "path": "../packages/sencha-core/src/fx/animation/WipeOut.js",
+      "path": "../packages/sencha-core/src/fx/animation/Abstract.js",
       "requires": [
+        16,
         223
       ],
       "uses": [],
       "idx": 224
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/Abstract.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/fx/animation/Slide.js",
+      "requires": [
+        224
+      ],
       "uses": [],
       "idx": 225
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/Bounce.js",
+      "path": "../packages/sencha-core/src/fx/animation/SlideOut.js",
       "requires": [
         225
       ],
@@ -2152,74 +3580,83 @@ var Ext = Ext || {};
       "idx": 226
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/Momentum.js",
+      "path": "../packages/sencha-core/src/fx/animation/Fade.js",
       "requires": [
-        225
+        224
       ],
       "uses": [],
       "idx": 227
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/BoundMomentum.js",
+      "path": "../packages/sencha-core/src/fx/animation/FadeOut.js",
       "requires": [
-        225,
-        226,
         227
       ],
       "uses": [],
       "idx": 228
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/Linear.js",
+      "path": "../packages/sencha-core/src/fx/animation/Flip.js",
       "requires": [
-        225
+        224
       ],
       "uses": [],
       "idx": 229
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/EaseIn.js",
+      "path": "../packages/sencha-core/src/fx/animation/Pop.js",
       "requires": [
-        229
+        224
       ],
       "uses": [],
       "idx": 230
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/EaseOut.js",
+      "path": "../packages/sencha-core/src/fx/animation/PopOut.js",
       "requires": [
-        229
+        230
       ],
       "uses": [],
       "idx": 231
     },
     {
-      "path": "../packages/sencha-core/src/fx/easing/Easing.js",
+      "path": "../packages/sencha-core/src/fx/Animation.js",
       "requires": [
-        229
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231
       ],
-      "uses": [],
+      "uses": [
+        224
+      ],
       "idx": 232
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Abstract.js",
+      "path": "../packages/sencha-core/src/fx/runner/Css.js",
       "requires": [
-        66
+        16,
+        232
       ],
       "uses": [],
       "idx": 233
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Style.js",
+      "path": "../packages/sencha-core/src/fx/runner/CssTransition.js",
       "requires": [
-        218,
+        11,
         233
       ],
-      "uses": [],
+      "uses": [
+        232
+      ],
       "idx": 234
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Slide.js",
+      "path": "../packages/sencha-core/src/fx/Runner.js",
       "requires": [
         234
       ],
@@ -2227,203 +3664,195 @@ var Ext = Ext || {};
       "idx": 235
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Cover.js",
+      "path": "../packages/sencha-core/src/fx/animation/Cube.js",
       "requires": [
-        234
+        224
       ],
       "uses": [],
       "idx": 236
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Reveal.js",
+      "path": "../packages/sencha-core/src/fx/animation/Wipe.js",
       "requires": [
-        234
+        232
       ],
       "uses": [],
       "idx": 237
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Fade.js",
+      "path": "../packages/sencha-core/src/fx/animation/WipeOut.js",
       "requires": [
-        234
+        237
       ],
       "uses": [],
       "idx": 238
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Flip.js",
-      "requires": [
-        234
-      ],
+      "path": "../packages/sencha-core/src/fx/easing/Abstract.js",
+      "requires": [],
       "uses": [],
       "idx": 239
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Pop.js",
+      "path": "../packages/sencha-core/src/fx/easing/Bounce.js",
       "requires": [
-        234
+        239
       ],
       "uses": [],
       "idx": 240
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Scroll.js",
+      "path": "../packages/sencha-core/src/fx/easing/Momentum.js",
       "requires": [
-        229,
-        233
+        239
       ],
-      "uses": [
-        56
-      ],
+      "uses": [],
       "idx": 241
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/Card.js",
+      "path": "../packages/sencha-core/src/fx/easing/BoundMomentum.js",
       "requires": [
-        235,
-        236,
-        237,
-        238,
         239,
         240,
         241
       ],
-      "uses": [
-        233
-      ],
+      "uses": [],
       "idx": 242
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/Cube.js",
+      "path": "../packages/sencha-core/src/fx/easing/Linear.js",
       "requires": [
-        234
+        239
       ],
       "uses": [],
       "idx": 243
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/ScrollCover.js",
+      "path": "../packages/sencha-core/src/fx/easing/EaseIn.js",
       "requires": [
-        241
+        243
       ],
       "uses": [],
       "idx": 244
     },
     {
-      "path": "../packages/sencha-core/src/fx/layout/card/ScrollReveal.js",
+      "path": "../packages/sencha-core/src/fx/easing/EaseOut.js",
       "requires": [
-        241
+        243
       ],
       "uses": [],
       "idx": 245
     },
     {
-      "path": "../packages/sencha-core/src/fx/runner/CssAnimation.js",
+      "path": "../packages/sencha-core/src/fx/easing/Easing.js",
       "requires": [
-        219
+        243
       ],
-      "uses": [
-        218
-      ],
+      "uses": [],
       "idx": 246
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Hookable.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Abstract.js",
       "requires": [
-        20
+        16
       ],
       "uses": [],
       "idx": 247
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Mashup.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Style.js",
       "requires": [
-        20
+        232,
+        247
       ],
       "uses": [],
       "idx": 248
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Responsive.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Slide.js",
       "requires": [
-        20
+        248
       ],
-      "uses": [
-        23
-      ],
+      "uses": [],
       "idx": 249
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Selectable.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Cover.js",
       "requires": [
-        20
+        248
       ],
-      "uses": [
-        33
-      ],
+      "uses": [],
       "idx": 250
     },
     {
-      "path": "../packages/sencha-core/src/mixin/Traversable.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Reveal.js",
       "requires": [
-        20
+        248
       ],
       "uses": [],
       "idx": 251
     },
     {
-      "path": "../packages/sencha-core/src/perf/Accumulator.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Fade.js",
       "requires": [
-        74
+        248
       ],
       "uses": [],
       "idx": 252
     },
     {
-      "path": "../packages/sencha-core/src/perf/Monitor.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Flip.js",
       "requires": [
-        252
+        248
       ],
       "uses": [],
       "idx": 253
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/Abstract.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Pop.js",
       "requires": [
-        66,
-        229
+        248
       ],
-      "uses": [
-        56
-      ],
+      "uses": [],
       "idx": 254
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/Dom.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Scroll.js",
       "requires": [
-        254
+        243,
+        247
       ],
-      "uses": [],
+      "uses": [
+        11
+      ],
       "idx": 255
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/CssTransform.js",
+      "path": "../packages/sencha-core/src/fx/layout/Card.js",
       "requires": [
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
         255
       ],
-      "uses": [],
+      "uses": [
+        247
+      ],
       "idx": 256
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/ScrollPosition.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/Cube.js",
       "requires": [
-        255
+        248
       ],
       "uses": [],
       "idx": 257
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/ScrollParent.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/ScrollCover.js",
       "requires": [
         255
       ],
@@ -2431,7 +3860,7 @@ var Ext = Ext || {};
       "idx": 258
     },
     {
-      "path": "../packages/sencha-core/src/util/translatable/CssPosition.js",
+      "path": "../packages/sencha-core/src/fx/layout/card/ScrollReveal.js",
       "requires": [
         255
       ],
@@ -2439,394 +3868,368 @@ var Ext = Ext || {};
       "idx": 259
     },
     {
-      "path": "../packages/sencha-core/src/util/Translatable.js",
+      "path": "../packages/sencha-core/src/fx/runner/CssAnimation.js",
       "requires": [
-        256,
-        257,
-        258,
-        259
+        233
       ],
-      "uses": [],
+      "uses": [
+        232
+      ],
       "idx": 260
     },
     {
-      "path": "../packages/sencha-core/src/scroll/Scroller.js",
+      "path": "../packages/sencha-core/src/mixin/Hookable.js",
       "requires": [
-        66,
-        228,
-        231,
-        260
+        3
       ],
       "uses": [],
       "idx": 261
     },
     {
-      "path": "../packages/sencha-core/src/util/Base64.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/mixin/Mashup.js",
+      "requires": [
+        3
+      ],
       "uses": [],
       "idx": 262
     },
     {
-      "path": "../packages/sencha-core/src/util/LocalStorage.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/mixin/Responsive.js",
+      "requires": [
+        3,
+        48
+      ],
+      "uses": [
+        18
+      ],
       "idx": 263
     },
     {
-      "path": "../packages/sencha-core/src/util/TaskManager.js",
+      "path": "../packages/sencha-core/src/mixin/Selectable.js",
       "requires": [
-        34
+        3
       ],
-      "uses": [],
+      "uses": [
+        28
+      ],
       "idx": 264
     },
     {
-      "path": "../packages/sencha-core/src/util/TextMetrics.js",
+      "path": "../packages/sencha-core/src/mixin/Traversable.js",
       "requires": [
-        23
+        3
       ],
       "uses": [],
       "idx": 265
     },
     {
-      "path": "../src/Action.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/perf/Accumulator.js",
+      "requires": [
+        88
+      ],
       "uses": [],
       "idx": 266
     },
     {
-      "path": "../src/util/ProtoElement.js",
-      "requires": [],
-      "uses": [
-        23
+      "path": "../packages/sencha-core/src/perf/Monitor.js",
+      "requires": [
+        266
       ],
+      "uses": [],
       "idx": 267
     },
     {
-      "path": "../src/util/ElementContainer.js",
-      "requires": [],
-      "uses": [],
+      "path": "../packages/sencha-core/src/util/translatable/Abstract.js",
+      "requires": [
+        16,
+        243
+      ],
+      "uses": [
+        11
+      ],
       "idx": 268
     },
     {
-      "path": "../src/util/Renderable.js",
+      "path": "../packages/sencha-core/src/util/translatable/Dom.js",
       "requires": [
-        23
+        268
       ],
-      "uses": [
-        74,
-        274
-      ],
+      "uses": [],
       "idx": 269
     },
     {
-      "path": "../src/state/Provider.js",
+      "path": "../packages/sencha-core/src/util/translatable/CssTransform.js",
       "requires": [
-        29
+        269
       ],
       "uses": [],
       "idx": 270
     },
     {
-      "path": "../src/state/Manager.js",
+      "path": "../packages/sencha-core/src/util/translatable/ScrollPosition.js",
       "requires": [
-        270
+        269
       ],
       "uses": [],
       "idx": 271
     },
     {
-      "path": "../src/state/Stateful.js",
+      "path": "../packages/sencha-core/src/util/translatable/ScrollParent.js",
       "requires": [
-        271
+        269
       ],
-      "uses": [
-        34
-      ],
+      "uses": [],
       "idx": 272
     },
     {
-      "path": "../src/util/Floating.js",
-      "requires": [],
-      "uses": [
-        54,
-        282,
-        433
+      "path": "../packages/sencha-core/src/util/translatable/CssPosition.js",
+      "requires": [
+        269
       ],
+      "uses": [],
       "idx": 273
     },
     {
-      "path": "../src/Component.js",
+      "path": "../packages/sencha-core/src/util/Translatable.js",
       "requires": [
-        22,
-        29,
-        52,
-        54,
-        62,
-        65,
-        69,
-        70,
-        196,
-        267,
-        268,
-        269,
+        270,
+        271,
         272,
         273
       ],
-      "uses": [
-        23,
-        27,
-        45,
-        74,
-        96,
-        277,
-        278,
-        279,
-        282,
-        292,
-        294,
-        408,
-        433,
-        533,
-        544,
-        548,
-        550
-      ],
+      "uses": [],
       "idx": 274
     },
     {
-      "path": "../src/layout/container/border/Region.js",
-      "requires": [],
+      "path": "../packages/sencha-core/src/scroll/Scroller.js",
+      "requires": [
+        16,
+        242,
+        245,
+        274
+      ],
       "uses": [],
       "idx": 275
     },
     {
-      "path": "../src/ElementLoader.js",
+      "path": "../packages/sencha-core/src/util/Base64.js",
+      "requires": [],
+      "uses": [],
+      "idx": 276
+    },
+    {
+      "path": "../packages/sencha-core/src/util/LocalStorage.js",
+      "requires": [],
+      "uses": [],
+      "idx": 277
+    },
+    {
+      "path": "../packages/sencha-core/src/util/TaskManager.js",
       "requires": [
         29
       ],
-      "uses": [
-        60,
-        61
+      "uses": [],
+      "idx": 278
+    },
+    {
+      "path": "../packages/sencha-core/src/util/TextMetrics.js",
+      "requires": [
+        18
       ],
-      "idx": 276
+      "uses": [],
+      "idx": 279
+    },
+    {
+      "path": "../src/Action.js",
+      "requires": [],
+      "uses": [],
+      "idx": 280
+    },
+    {
+      "path": "../src/ElementLoader.js",
+      "requires": [
+        24
+      ],
+      "uses": [
+        9,
+        10
+      ],
+      "idx": 281
     },
     {
       "path": "../src/ComponentLoader.js",
       "requires": [
-        276
+        281
       ],
       "uses": [],
-      "idx": 277
+      "idx": 282
     },
     {
       "path": "../src/layout/SizeModel.js",
       "requires": [],
       "uses": [],
-      "idx": 278
+      "idx": 283
     },
     {
       "path": "../src/layout/Layout.js",
       "requires": [
-        74,
-        75,
-        278
+        88,
+        89,
+        283
       ],
       "uses": [
-        533
+        542
       ],
-      "idx": 279
+      "idx": 284
     },
     {
       "path": "../src/layout/container/Container.js",
       "requires": [
-        74,
-        268,
-        279
+        58,
+        88,
+        284
       ],
-      "uses": [],
-      "idx": 280
+      "uses": [
+        181
+      ],
+      "idx": 285
     },
     {
       "path": "../src/layout/container/Auto.js",
       "requires": [
-        280
+        285
       ],
       "uses": [
-        74
+        88
       ],
-      "idx": 281
+      "idx": 286
     },
     {
       "path": "../src/ZIndexManager.js",
       "requires": [
-        54
+        156,
+        157
       ],
       "uses": [
-        23
+        18,
+        48,
+        92
       ],
-      "idx": 282
+      "idx": 287
     },
     {
       "path": "../src/container/Container.js",
       "requires": [
-        33,
-        162,
-        274,
-        281,
-        282
+        28,
+        65,
+        176,
+        286,
+        287
       ],
       "uses": [
-        30,
-        62,
-        65,
-        75
+        12,
+        15,
+        25,
+        89
       ],
-      "idx": 283
+      "idx": 288
     },
     {
       "path": "../src/layout/container/Editor.js",
       "requires": [
-        280
+        285
       ],
       "uses": [],
-      "idx": 284
+      "idx": 289
     },
     {
       "path": "../src/Editor.js",
       "requires": [
-        283,
-        284
+        288,
+        289
       ],
       "uses": [
-        23,
-        62
+        12,
+        18
       ],
-      "idx": 285
+      "idx": 290
     },
     {
       "path": "../src/EventManager.js",
       "requires": [],
       "uses": [
-        54
+        48
       ],
-      "idx": 286
+      "idx": 291
     },
     {
       "path": "../src/util/KeyMap.js",
       "requires": [],
       "uses": [],
-      "idx": 287
+      "idx": 292
     },
     {
       "path": "../src/util/KeyNav.js",
       "requires": [
-        287
-      ],
-      "uses": [],
-      "idx": 288
-    },
-    {
-      "path": "../src/FocusManager.js",
-      "requires": [
-        29,
-        43,
-        62,
-        65,
-        274,
-        288
-      ],
-      "uses": [
-        23,
-        27
-      ],
-      "idx": 289
-    },
-    {
-      "path": "../src/Img.js",
-      "requires": [
-        274
-      ],
-      "uses": [],
-      "idx": 290
-    },
-    {
-      "path": "../src/util/StoreHolder.js",
-      "requires": [],
-      "uses": [
-        161
-      ],
-      "idx": 291
-    },
-    {
-      "path": "../src/LoadMask.js",
-      "requires": [
-        274,
-        291
-      ],
-      "uses": [
-        54,
-        161
-      ],
-      "idx": 292
-    },
-    {
-      "path": "../src/layout/component/Component.js",
-      "requires": [
-        279
+        292
       ],
       "uses": [],
       "idx": 293
     },
     {
-      "path": "../src/layout/component/Auto.js",
+      "path": "../src/FocusManager.js",
       "requires": [
+        6,
+        12,
+        15,
+        24,
+        65,
         293
       ],
-      "uses": [],
+      "uses": [
+        18,
+        22
+      ],
       "idx": 294
     },
     {
-      "path": "../src/layout/component/ProgressBar.js",
+      "path": "../src/Img.js",
       "requires": [
-        294
+        65
       ],
       "uses": [],
       "idx": 295
     },
     {
-      "path": "../src/ProgressBar.js",
-      "requires": [
-        196,
-        264,
-        274,
-        295
-      ],
+      "path": "../src/util/StoreHolder.js",
+      "requires": [],
       "uses": [
-        51,
-        74
+        175
       ],
       "idx": 296
     },
     {
-      "path": "../src/ProgressBarWidget.js",
+      "path": "../src/LoadMask.js",
       "requires": [
-        71,
+        65,
         296
       ],
       "uses": [
-        74
+        48,
+        175
       ],
       "idx": 297
     },
     {
-      "path": "../src/ShadowPool.js",
-      "requires": [],
+      "path": "../src/layout/component/Component.js",
+      "requires": [
+        284
+      ],
       "uses": [],
       "idx": 298
     },
     {
-      "path": "../src/Shadow.js",
+      "path": "../src/layout/component/Auto.js",
       "requires": [
         298
       ],
@@ -2834,792 +4237,795 @@ var Ext = Ext || {};
       "idx": 299
     },
     {
-      "path": "../src/app/EventDomain.js",
+      "path": "../src/layout/component/ProgressBar.js",
       "requires": [
-        28
+        299
       ],
       "uses": [],
       "idx": 300
     },
     {
-      "path": "../src/app/domain/Component.js",
+      "path": "../src/ProgressBar.js",
       "requires": [
-        71,
-        274,
+        52,
+        57,
+        65,
+        278,
         300
       ],
-      "uses": [],
+      "uses": [
+        45,
+        88
+      ],
       "idx": 301
     },
     {
-      "path": "../src/app/EventBus.js",
+      "path": "../src/ProgressBarWidget.js",
       "requires": [
+        55,
         301
       ],
       "uses": [
-        300
+        88
       ],
       "idx": 302
     },
     {
-      "path": "../src/app/domain/Global.js",
+      "path": "../src/ShadowPool.js",
       "requires": [
-        300
+        181
       ],
-      "uses": [],
+      "uses": [
+        52
+      ],
       "idx": 303
     },
     {
-      "path": "../src/app/BaseController.js",
+      "path": "../src/Shadow.js",
       "requires": [
-        29,
-        302,
         303
       ],
-      "uses": [
-        309,
-        310,
-        411
-      ],
+      "uses": [],
       "idx": 304
     },
     {
-      "path": "../src/app/Util.js",
-      "requires": [],
+      "path": "../src/app/EventDomain.js",
+      "requires": [
+        23
+      ],
       "uses": [],
       "idx": 305
     },
     {
-      "path": "../src/app/domain/Store.js",
+      "path": "../src/app/domain/Component.js",
       "requires": [
-        108,
-        300
+        55,
+        65,
+        305
       ],
       "uses": [],
       "idx": 306
     },
     {
-      "path": "../src/app/route/Queue.js",
-      "requires": [],
+      "path": "../src/app/EventBus.js",
+      "requires": [
+        306
+      ],
       "uses": [
-        33
+        305
       ],
       "idx": 307
     },
     {
-      "path": "../src/app/route/Route.js",
-      "requires": [],
+      "path": "../src/app/domain/Global.js",
+      "requires": [
+        305
+      ],
       "uses": [],
       "idx": 308
     },
     {
-      "path": "../src/util/History.js",
+      "path": "../src/app/BaseController.js",
       "requires": [
-        29
+        24,
+        307,
+        308
       ],
       "uses": [
-        23,
-        264
+        314,
+        315,
+        420
       ],
       "idx": 309
     },
     {
-      "path": "../src/app/route/Router.js",
-      "requires": [
-        307,
-        308,
-        309
-      ],
+      "path": "../src/app/Util.js",
+      "requires": [],
       "uses": [],
       "idx": 310
     },
     {
-      "path": "../src/app/Controller.js",
+      "path": "../src/app/domain/Store.js",
       "requires": [
-        62,
-        161,
-        301,
-        304,
-        305,
-        306,
-        310
+        122,
+        305
       ],
-      "uses": [
-        65,
-        88
-      ],
+      "uses": [],
       "idx": 311
     },
     {
-      "path": "../src/panel/Bar.js",
-      "requires": [
-        283
+      "path": "../src/app/route/Queue.js",
+      "requires": [],
+      "uses": [
+        28
       ],
-      "uses": [],
       "idx": 312
     },
     {
-      "path": "../src/panel/Title.js",
-      "requires": [
-        274
+      "path": "../src/app/route/Route.js",
+      "requires": [],
+      "uses": [
+        52
       ],
-      "uses": [],
       "idx": 313
     },
     {
-      "path": "../src/panel/Tool.js",
+      "path": "../src/util/History.js",
       "requires": [
-        274
+        24
       ],
       "uses": [
-        346
+        278
       ],
       "idx": 314
     },
     {
-      "path": "../src/panel/Header.js",
+      "path": "../src/app/route/Router.js",
       "requires": [
-        96,
-        294,
         312,
         313,
         314
       ],
-      "uses": [
-        62
-      ],
+      "uses": [],
       "idx": 315
     },
     {
-      "path": "../src/toolbar/Fill.js",
+      "path": "../src/app/Controller.js",
       "requires": [
-        274
+        12,
+        175,
+        306,
+        309,
+        310,
+        311,
+        315
       ],
-      "uses": [],
+      "uses": [
+        15,
+        102
+      ],
       "idx": 316
     },
     {
-      "path": "../src/layout/container/boxOverflow/None.js",
+      "path": "../src/panel/Bar.js",
       "requires": [
-        75
+        288
       ],
       "uses": [],
       "idx": 317
     },
     {
-      "path": "../src/toolbar/Item.js",
+      "path": "../src/panel/Title.js",
       "requires": [
-        274
+        65
       ],
       "uses": [],
       "idx": 318
     },
     {
-      "path": "../src/toolbar/Separator.js",
+      "path": "../src/panel/Tool.js",
       "requires": [
-        318
+        65
       ],
-      "uses": [],
+      "uses": [
+        353
+      ],
       "idx": 319
     },
     {
-      "path": "../src/dom/ButtonElement.js",
+      "path": "../src/panel/Header.js",
       "requires": [
-        23
+        110,
+        299,
+        317,
+        318,
+        319
       ],
-      "uses": [],
+      "uses": [
+        12
+      ],
       "idx": 320
     },
     {
-      "path": "../src/button/Manager.js",
-      "requires": [],
+      "path": "../src/toolbar/Fill.js",
+      "requires": [
+        65
+      ],
       "uses": [],
       "idx": 321
     },
     {
-      "path": "../src/menu/Manager.js",
+      "path": "../src/layout/container/boxOverflow/None.js",
       "requires": [
-        33,
-        287
+        89
       ],
-      "uses": [
-        62,
-        96,
-        330,
-        339,
-        506
-      ],
+      "uses": [],
       "idx": 322
     },
     {
-      "path": "../src/util/ClickRepeater.js",
+      "path": "../src/toolbar/Item.js",
       "requires": [
-        29
+        65
       ],
       "uses": [],
       "idx": 323
     },
     {
-      "path": "../src/button/Button.js",
+      "path": "../src/toolbar/Separator.js",
       "requires": [
-        162,
-        265,
-        274,
-        287,
-        320,
-        321,
-        322,
         323
       ],
-      "uses": [
-        16,
-        346
-      ],
+      "uses": [],
       "idx": 324
     },
     {
-      "path": "../src/layout/container/boxOverflow/Menu.js",
+      "path": "../src/dom/ButtonElement.js",
       "requires": [
-        317,
-        319,
-        324
+        18
       ],
-      "uses": [
-        96,
-        294,
-        316,
-        330,
-        339,
-        506
-      ],
+      "uses": [],
       "idx": 325
     },
     {
-      "path": "../src/layout/container/boxOverflow/Scroller.js",
-      "requires": [
-        21,
-        23,
-        317,
-        323
-      ],
+      "path": "../src/button/Manager.js",
+      "requires": [],
       "uses": [],
       "idx": 326
     },
     {
-      "path": "../src/dd/DragDropManager.js",
+      "path": "../src/menu/Manager.js",
       "requires": [
-        14
+        28,
+        292
       ],
       "uses": [
-        346,
-        380
+        12,
+        515
       ],
       "idx": 327
     },
     {
-      "path": "../src/layout/container/Box.js",
+      "path": "../src/util/ClickRepeater.js",
       "requires": [
-        280,
-        317,
-        325,
-        326,
-        327
+        24
       ],
-      "uses": [
-        75,
-        96,
-        278,
-        294,
-        396
-      ],
+      "uses": [],
       "idx": 328
     },
     {
-      "path": "../src/layout/container/HBox.js",
+      "path": "../src/button/Button.js",
       "requires": [
+        65,
+        176,
+        279,
+        292,
+        325,
+        326,
+        327,
         328
       ],
-      "uses": [],
+      "uses": [
+        82,
+        353
+      ],
       "idx": 329
     },
     {
-      "path": "../src/layout/container/VBox.js",
+      "path": "../src/layout/container/boxOverflow/Menu.js",
       "requires": [
-        328
+        322,
+        324,
+        329
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        321,
+        336,
+        346,
+        515
+      ],
       "idx": 330
     },
     {
-      "path": "../src/toolbar/Toolbar.js",
+      "path": "../src/layout/container/boxOverflow/Scroller.js",
       "requires": [
-        96,
-        283,
-        294,
-        316,
-        329,
-        330
+        5,
+        18,
+        322,
+        328
       ],
-      "uses": [
-        319,
-        458
-      ],
+      "uses": [],
       "idx": 331
     },
     {
-      "path": "../src/dd/DragDrop.js",
+      "path": "../src/dd/DragDropManager.js",
       "requires": [
-        327
+        80
       ],
       "uses": [
-        23
+        353,
+        388
       ],
       "idx": 332
     },
     {
-      "path": "../src/dd/DD.js",
+      "path": "../src/resizer/Splitter.js",
       "requires": [
-        327,
-        332
+        65,
+        88
       ],
       "uses": [
-        23
+        435
       ],
       "idx": 333
     },
     {
-      "path": "../src/dd/DDProxy.js",
+      "path": "../src/layout/container/Box.js",
       "requires": [
+        51,
+        285,
+        322,
+        330,
+        331,
+        332,
         333
       ],
       "uses": [
-        327
+        89,
+        110,
+        283,
+        299
       ],
       "idx": 334
     },
     {
-      "path": "../src/dd/StatusProxy.js",
+      "path": "../src/layout/container/HBox.js",
       "requires": [
-        274
+        334
       ],
       "uses": [],
       "idx": 335
     },
     {
-      "path": "../src/dd/DragSource.js",
+      "path": "../src/layout/container/VBox.js",
       "requires": [
-        327,
-        334,
-        335
+        334
+      ],
+      "uses": [],
+      "idx": 336
+    },
+    {
+      "path": "../src/util/FocusableContainer.js",
+      "requires": [
+        3,
+        293
       ],
       "uses": [
-        96,
-        294
+        65
       ],
-      "idx": 336
+      "idx": 337
+    },
+    {
+      "path": "../src/toolbar/Toolbar.js",
+      "requires": [
+        110,
+        288,
+        299,
+        321,
+        335,
+        336,
+        337
+      ],
+      "uses": [
+        324,
+        467
+      ],
+      "idx": 338
+    },
+    {
+      "path": "../src/dd/DragDrop.js",
+      "requires": [
+        332
+      ],
+      "uses": [
+        18
+      ],
+      "idx": 339
+    },
+    {
+      "path": "../src/dd/DD.js",
+      "requires": [
+        332,
+        339
+      ],
+      "uses": [
+        18
+      ],
+      "idx": 340
+    },
+    {
+      "path": "../src/dd/DDProxy.js",
+      "requires": [
+        340
+      ],
+      "uses": [
+        332
+      ],
+      "idx": 341
+    },
+    {
+      "path": "../src/dd/StatusProxy.js",
+      "requires": [
+        65
+      ],
+      "uses": [],
+      "idx": 342
+    },
+    {
+      "path": "../src/dd/DragSource.js",
+      "requires": [
+        332,
+        341,
+        342
+      ],
+      "uses": [
+        110,
+        299
+      ],
+      "idx": 343
     },
     {
       "path": "../src/panel/Proxy.js",
       "requires": [],
       "uses": [
-        23
-      ],
-      "idx": 337
-    },
-    {
-      "path": "../src/panel/DD.js",
-      "requires": [
-        336,
-        337
-      ],
-      "uses": [],
-      "idx": 338
-    },
-    {
-      "path": "../src/layout/component/Dock.js",
-      "requires": [
-        293
-      ],
-      "uses": [
-        23,
-        65,
-        278
-      ],
-      "idx": 339
-    },
-    {
-      "path": "../src/util/Memento.js",
-      "requires": [],
-      "uses": [],
-      "idx": 340
-    },
-    {
-      "path": "../src/container/DockingContainer.js",
-      "requires": [
-        23,
-        33
-      ],
-      "uses": [
-        30,
-        65
-      ],
-      "idx": 341
-    },
-    {
-      "path": "../src/panel/Panel.js",
-      "requires": [
-        23,
-        33,
-        51,
-        74,
-        283,
-        287,
-        315,
-        331,
-        338,
-        339,
-        340,
-        341
-      ],
-      "uses": [
-        27,
-        96,
-        196,
-        267,
-        274,
-        281,
-        294,
-        314,
-        408
-      ],
-      "idx": 342
-    },
-    {
-      "path": "../src/tip/Tip.js",
-      "requires": [
-        342
-      ],
-      "uses": [
-        274
-      ],
-      "idx": 343
-    },
-    {
-      "path": "../src/tip/ToolTip.js",
-      "requires": [
-        343
-      ],
-      "uses": [
-        23
+        18
       ],
       "idx": 344
     },
     {
-      "path": "../src/tip/QuickTip.js",
+      "path": "../src/panel/DD.js",
       "requires": [
+        343,
         344
       ],
       "uses": [],
       "idx": 345
     },
     {
-      "path": "../src/tip/QuickTipManager.js",
+      "path": "../src/layout/component/Dock.js",
       "requires": [
-        345
+        298
       ],
-      "uses": [],
+      "uses": [
+        15,
+        18,
+        283
+      ],
       "idx": 346
     },
     {
-      "path": "../src/app/Application.js",
-      "requires": [
-        33,
-        309,
-        311,
-        346
-      ],
-      "uses": [
-        310
-      ],
+      "path": "../src/util/Memento.js",
+      "requires": [],
+      "uses": [],
       "idx": 347
     },
     {
-      "path": "../src/app/domain/View.js",
+      "path": "../src/container/DockingContainer.js",
       "requires": [
-        300
+        18,
+        28
       ],
       "uses": [
-        274
+        15,
+        25,
+        181
       ],
       "idx": 348
     },
     {
-      "path": "../src/app/ViewController.js",
+      "path": "../src/panel/Panel.js",
       "requires": [
-        75,
-        304,
+        18,
+        28,
+        45,
+        88,
+        288,
+        292,
+        320,
+        338,
+        345,
+        346,
+        347,
         348
       ],
-      "uses": [],
+      "uses": [
+        22,
+        56,
+        57,
+        65,
+        110,
+        286,
+        299,
+        319,
+        417
+      ],
       "idx": 349
     },
     {
-      "path": "../src/form/Labelable.js",
+      "path": "../src/tip/Tip.js",
       "requires": [
-        20,
-        74
+        349
       ],
       "uses": [
-        23,
-        345
+        65
       ],
       "idx": 350
     },
     {
-      "path": "../src/form/field/Field.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/tip/ToolTip.js",
+      "requires": [
+        350
+      ],
+      "uses": [
+        18
+      ],
       "idx": 351
     },
     {
-      "path": "../src/form/field/Base.js",
+      "path": "../src/tip/QuickTip.js",
       "requires": [
-        27,
-        74,
-        274,
-        350,
         351
       ],
-      "uses": [
-        96,
-        281,
-        339,
-        345
-      ],
+      "uses": [],
       "idx": 352
     },
     {
-      "path": "../src/form/field/Display.js",
+      "path": "../src/tip/QuickTipManager.js",
       "requires": [
-        74,
         352
       ],
       "uses": [],
       "idx": 353
     },
     {
-      "path": "../src/layout/container/Fit.js",
+      "path": "../src/app/Application.js",
       "requires": [
-        280
+        28,
+        314,
+        316,
+        353
       ],
-      "uses": [],
+      "uses": [
+        315
+      ],
       "idx": 354
     },
     {
-      "path": "../src/panel/Table.js",
+      "path": "../src/app/domain/View.js",
       "requires": [
-        342,
-        354
+        305
       ],
       "uses": [
-        27,
-        161,
-        372,
-        387,
-        518,
-        519,
-        551,
-        555
+        65
       ],
       "idx": 355
     },
     {
-      "path": "../src/selection/Model.js",
+      "path": "../src/app/ViewController.js",
       "requires": [
-        29,
-        161,
-        291
+        89,
+        309,
+        355
       ],
-      "uses": [
-        33
-      ],
+      "uses": [],
       "idx": 356
     },
     {
-      "path": "../src/selection/DataViewModel.js",
+      "path": "../src/form/Labelable.js",
       "requires": [
-        288,
-        356
+        3,
+        88
       ],
-      "uses": [],
+      "uses": [
+        18,
+        352
+      ],
       "idx": 357
     },
     {
-      "path": "../src/view/AbstractView.js",
-      "requires": [
-        25,
-        161,
-        274,
-        291,
-        292,
-        357
-      ],
-      "uses": [
-        56,
-        74,
-        264
-      ],
+      "path": "../src/form/field/Field.js",
+      "requires": [],
+      "uses": [],
       "idx": 358
     },
     {
-      "path": "../src/view/View.js",
+      "path": "../src/form/field/Base.js",
       "requires": [
+        22,
+        65,
+        88,
+        357,
         358
       ],
-      "uses": [],
+      "uses": [
+        181
+      ],
       "idx": 359
     },
     {
-      "path": "../src/grid/CellContext.js",
-      "requires": [],
+      "path": "../src/form/field/Display.js",
+      "requires": [
+        51,
+        88,
+        359
+      ],
       "uses": [],
       "idx": 360
     },
     {
-      "path": "../src/util/CSS.js",
-      "requires": [],
-      "uses": [
-        23
+      "path": "../src/layout/container/Fit.js",
+      "requires": [
+        285
       ],
+      "uses": [],
       "idx": 361
     },
     {
-      "path": "../src/view/TableLayout.js",
+      "path": "../src/panel/Table.js",
       "requires": [
-        294,
+        349,
         361
       ],
-      "uses": [],
+      "uses": [
+        22,
+        175,
+        181,
+        368,
+        380,
+        395,
+        399,
+        527,
+        528,
+        560,
+        564
+      ],
       "idx": 362
     },
     {
-      "path": "../src/view/NodeCache.js",
+      "path": "../src/selection/Model.js",
       "requires": [
-        25
+        24,
+        175,
+        296
       ],
       "uses": [
-        23,
-        24
+        28
       ],
       "idx": 363
     },
     {
-      "path": "../src/view/Table.js",
+      "path": "../src/selection/DataViewModel.js",
       "requires": [
-        27,
-        33,
-        359,
-        360,
-        362,
+        293,
         363
       ],
-      "uses": [
-        24,
-        74,
-        387
-      ],
+      "uses": [],
       "idx": 364
     },
     {
-      "path": "../src/grid/View.js",
+      "path": "../src/view/NavigationModel.js",
       "requires": [
-        364
+        24,
+        89
       ],
-      "uses": [],
+      "uses": [
+        293
+      ],
       "idx": 365
     },
     {
-      "path": "../src/grid/Panel.js",
+      "path": "../src/view/AbstractView.js",
       "requires": [
-        355,
+        20,
+        65,
+        175,
+        296,
+        297,
+        364,
         365
       ],
-      "uses": [],
+      "uses": [
+        11,
+        52,
+        88,
+        89,
+        181,
+        278
+      ],
       "idx": 366
     },
     {
-      "path": "../src/form/CheckboxManager.js",
+      "path": "../src/view/View.js",
       "requires": [
-        33
+        366
       ],
       "uses": [],
       "idx": 367
     },
     {
-      "path": "../src/form/field/Checkbox.js",
-      "requires": [
-        74,
-        352,
-        367
-      ],
+      "path": "../src/grid/CellContext.js",
+      "requires": [],
       "uses": [],
       "idx": 368
     },
     {
-      "path": "../src/app/bindinspector/Util.js",
+      "path": "../src/util/CSS.js",
       "requires": [],
-      "uses": [],
+      "uses": [
+        18
+      ],
       "idx": 369
     },
     {
-      "path": "../src/app/bindinspector/ComponentDetail.js",
+      "path": "../src/view/TableLayout.js",
       "requires": [
-        96,
-        274,
-        283,
-        294,
-        329,
-        330,
-        342,
-        353,
-        366,
-        368,
+        299,
         369
       ],
-      "uses": [
-        316,
-        324,
-        331,
-        339,
-        354,
-        405
-      ],
+      "uses": [],
       "idx": 370
     },
     {
-      "path": "../src/tree/View.js",
+      "path": "../src/view/NodeCache.js",
       "requires": [
-        159,
-        364
+        20
       ],
       "uses": [
-        74
+        18,
+        19
       ],
       "idx": 371
     },
     {
-      "path": "../src/selection/RowModel.js",
+      "path": "../src/view/Table.js",
       "requires": [
-        288,
-        356
+        22,
+        28,
+        367,
+        368,
+        370,
+        371
       ],
       "uses": [
-        360
+        19,
+        88,
+        395
       ],
       "idx": 372
     },
     {
-      "path": "../src/selection/TreeModel.js",
+      "path": "../src/grid/View.js",
       "requires": [
         372
       ],
@@ -3627,1453 +5033,1482 @@ var Ext = Ext || {};
       "idx": 373
     },
     {
-      "path": "../src/grid/ColumnLayout.js",
+      "path": "../src/grid/Panel.js",
       "requires": [
-        329,
-        355
+        362,
+        373
       ],
       "uses": [],
       "idx": 374
     },
     {
-      "path": "../src/plugin/Abstract.js",
-      "requires": [],
+      "path": "../src/form/CheckboxManager.js",
+      "requires": [
+        28
+      ],
       "uses": [],
       "idx": 375
     },
     {
-      "path": "../src/dd/DragTracker.js",
+      "path": "../src/form/field/Checkbox.js",
       "requires": [
-        29
+        88,
+        359,
+        375
       ],
-      "uses": [
-        14
-      ],
+      "uses": [],
       "idx": 376
     },
     {
-      "path": "../src/grid/plugin/HeaderResizer.js",
-      "requires": [
-        14,
-        375,
-        376
-      ],
+      "path": "../src/app/bindinspector/Util.js",
+      "requires": [],
       "uses": [
-        389
+        52
       ],
       "idx": 377
     },
     {
-      "path": "../src/dd/DragZone.js",
+      "path": "../src/app/bindinspector/ComponentDetail.js",
       "requires": [
-        336
+        65,
+        110,
+        288,
+        299,
+        335,
+        336,
+        349,
+        360,
+        374,
+        376,
+        377
       ],
       "uses": [
-        381,
-        383
+        52,
+        321,
+        329,
+        338,
+        346,
+        361,
+        414
       ],
       "idx": 378
     },
     {
-      "path": "../src/grid/header/DragZone.js",
+      "path": "../src/tree/View.js",
       "requires": [
-        378
+        173,
+        372
       ],
-      "uses": [],
+      "uses": [
+        88
+      ],
       "idx": 379
     },
     {
-      "path": "../src/dd/DDTarget.js",
+      "path": "../src/selection/RowModel.js",
       "requires": [
-        332
+        364,
+        368
       ],
       "uses": [],
       "idx": 380
     },
     {
-      "path": "../src/dd/ScrollManager.js",
+      "path": "../src/selection/TreeModel.js",
       "requires": [
-        327
+        380
       ],
       "uses": [],
       "idx": 381
     },
     {
-      "path": "../src/dd/DropTarget.js",
+      "path": "../src/grid/ColumnLayout.js",
       "requires": [
-        380,
-        381
+        335,
+        362
       ],
       "uses": [],
       "idx": 382
     },
     {
-      "path": "../src/dd/Registry.js",
+      "path": "../src/plugin/Abstract.js",
       "requires": [],
       "uses": [],
       "idx": 383
     },
     {
-      "path": "../src/dd/DropZone.js",
+      "path": "../src/dd/DragTracker.js",
       "requires": [
-        382,
-        383
+        24
       ],
       "uses": [
-        327
+        80
       ],
       "idx": 384
     },
     {
-      "path": "../src/grid/header/DropZone.js",
+      "path": "../src/grid/plugin/HeaderResizer.js",
       "requires": [
+        80,
+        383,
         384
       ],
       "uses": [
-        327
+        397
       ],
       "idx": 385
     },
     {
-      "path": "../src/grid/plugin/HeaderReorderer.js",
+      "path": "../src/dd/DragZone.js",
       "requires": [
-        375,
-        379,
-        385
+        343
       ],
-      "uses": [],
+      "uses": [
+        389,
+        391
+      ],
       "idx": 386
     },
     {
-      "path": "../src/grid/header/Container.js",
+      "path": "../src/grid/header/DragZone.js",
       "requires": [
-        283,
-        374,
-        377,
         386
       ],
-      "uses": [
-        27,
-        96,
-        294,
-        330,
-        339,
-        389,
-        481,
-        503,
-        505,
-        506
-      ],
+      "uses": [],
       "idx": 387
     },
     {
-      "path": "../src/grid/ColumnComponentLayout.js",
+      "path": "../src/dd/DDTarget.js",
       "requires": [
-        294
+        339
       ],
       "uses": [],
       "idx": 388
     },
     {
-      "path": "../src/grid/column/Column.js",
+      "path": "../src/dd/ScrollManager.js",
       "requires": [
-        106,
-        288,
-        374,
-        387,
-        388
+        332
       ],
-      "uses": [
-        377
-      ],
+      "uses": [],
       "idx": 389
     },
     {
-      "path": "../src/tree/Column.js",
+      "path": "../src/dd/DropTarget.js",
       "requires": [
+        388,
         389
       ],
       "uses": [],
       "idx": 390
     },
     {
-      "path": "../src/tree/Panel.js",
+      "path": "../src/dd/Registry.js",
+      "requires": [],
+      "uses": [],
+      "idx": 391
+    },
+    {
+      "path": "../src/dd/DropZone.js",
       "requires": [
-        164,
-        355,
-        371,
-        373,
-        390
+        390,
+        391
       ],
       "uses": [
-        96,
-        161,
-        281,
-        388
+        332
       ],
-      "idx": 391
+      "idx": 392
+    },
+    {
+      "path": "../src/grid/header/DropZone.js",
+      "requires": [
+        392
+      ],
+      "uses": [
+        332
+      ],
+      "idx": 393
+    },
+    {
+      "path": "../src/grid/plugin/HeaderReorderer.js",
+      "requires": [
+        383,
+        387,
+        393
+      ],
+      "uses": [],
+      "idx": 394
+    },
+    {
+      "path": "../src/grid/header/Container.js",
+      "requires": [
+        288,
+        293,
+        337,
+        382,
+        385,
+        394
+      ],
+      "uses": [
+        22,
+        110,
+        299,
+        336,
+        346,
+        397,
+        490,
+        512,
+        514,
+        515
+      ],
+      "idx": 395
+    },
+    {
+      "path": "../src/grid/ColumnComponentLayout.js",
+      "requires": [
+        299
+      ],
+      "uses": [],
+      "idx": 396
+    },
+    {
+      "path": "../src/grid/column/Column.js",
+      "requires": [
+        120,
+        382,
+        395,
+        396
+      ],
+      "uses": [
+        51,
+        385
+      ],
+      "idx": 397
+    },
+    {
+      "path": "../src/tree/Column.js",
+      "requires": [
+        397
+      ],
+      "uses": [],
+      "idx": 398
+    },
+    {
+      "path": "../src/grid/NavigationModel.js",
+      "requires": [
+        365
+      ],
+      "uses": [
+        19,
+        82,
+        293,
+        368
+      ],
+      "idx": 399
+    },
+    {
+      "path": "../src/tree/NavigationModel.js",
+      "requires": [
+        399
+      ],
+      "uses": [
+        82
+      ],
+      "idx": 400
+    },
+    {
+      "path": "../src/tree/Panel.js",
+      "requires": [
+        178,
+        362,
+        379,
+        381,
+        398,
+        400
+      ],
+      "uses": [
+        110,
+        175,
+        286,
+        396,
+        528
+      ],
+      "idx": 401
     },
     {
       "path": "../src/form/field/VTypes.js",
       "requires": [],
       "uses": [],
-      "idx": 392
+      "idx": 402
     },
     {
       "path": "../src/form/trigger/Trigger.js",
       "requires": [
-        75,
-        323
+        89,
+        328
       ],
       "uses": [
-        23,
-        74
-      ],
-      "idx": 393
-    },
-    {
-      "path": "../src/form/field/Text.js",
-      "requires": [
-        265,
-        352,
-        392,
-        393
-      ],
-      "uses": [
-        27,
-        54,
-        196
-      ],
-      "idx": 394
-    },
-    {
-      "path": "../src/app/bindinspector/ComponentList.js",
-      "requires": [
-        391,
-        394
-      ],
-      "uses": [
-        65,
-        96,
-        281,
-        294,
-        316,
-        324,
-        331,
-        339,
-        344,
-        369,
-        388,
-        390
-      ],
-      "idx": 395
-    },
-    {
-      "path": "../src/resizer/Splitter.js",
-      "requires": [
-        74,
-        274
-      ],
-      "uses": [
-        426
-      ],
-      "idx": 396
-    },
-    {
-      "path": "../src/resizer/BorderSplitter.js",
-      "requires": [
-        396
-      ],
-      "uses": [
-        545
-      ],
-      "idx": 397
-    },
-    {
-      "path": "../src/layout/container/Border.js",
-      "requires": [
-        51,
-        275,
-        280,
-        397
-      ],
-      "uses": [
-        96,
-        294
-      ],
-      "idx": 398
-    },
-    {
-      "path": "../src/layout/container/Card.js",
-      "requires": [
-        354
-      ],
-      "uses": [],
-      "idx": 399
-    },
-    {
-      "path": "../src/tab/Tab.js",
-      "requires": [
-        288,
-        324
-      ],
-      "uses": [
-        23
-      ],
-      "idx": 400
-    },
-    {
-      "path": "../src/layout/component/Body.js",
-      "requires": [
-        294
-      ],
-      "uses": [],
-      "idx": 401
-    },
-    {
-      "path": "../src/tab/Bar.js",
-      "requires": [
-        15,
-        312,
-        400,
-        401
-      ],
-      "uses": [
-        14
-      ],
-      "idx": 402
-    },
-    {
-      "path": "../src/tab/Panel.js",
-      "requires": [
-        342,
-        399,
-        402
-      ],
-      "uses": [
-        96,
-        294,
-        400
+        18,
+        88
       ],
       "idx": 403
     },
     {
-      "path": "../src/app/bindinspector/Environment.js",
+      "path": "../src/form/field/Text.js",
       "requires": [
-        78
+        279,
+        359,
+        402,
+        403
       ],
       "uses": [
-        62,
-        440
+        22,
+        51,
+        52,
+        57
       ],
       "idx": 404
     },
     {
-      "path": "../src/app/bindinspector/ViewModelDetail.js",
+      "path": "../src/app/bindinspector/ComponentList.js",
       "requires": [
-        391
+        401,
+        404
       ],
       "uses": [
-        96,
-        281,
-        369,
-        388,
-        390
+        15,
+        110,
+        286,
+        299,
+        321,
+        329,
+        338,
+        346,
+        351,
+        377,
+        396,
+        398
       ],
       "idx": 405
     },
     {
-      "path": "../src/app/bindinspector/noconflict/BaseModel.js",
+      "path": "../src/resizer/BorderSplitter.js",
       "requires": [
-        136
+        333
       ],
-      "uses": [],
+      "uses": [
+        554
+      ],
       "idx": 406
     },
     {
-      "path": "../src/app/bindinspector/Container.js",
+      "path": "../src/layout/container/Border.js",
       "requires": [
-        96,
-        274,
-        283,
-        294,
-        329,
-        369,
-        370,
-        395,
-        398,
-        403,
-        404,
-        405,
+        45,
+        66,
+        285,
         406
       ],
       "uses": [
-        88,
-        281,
-        339,
-        342,
-        354
+        51,
+        110,
+        299
       ],
       "idx": 407
     },
     {
-      "path": "../src/util/ComponentDragger.js",
+      "path": "../src/layout/container/Card.js",
       "requires": [
-        376
+        361
       ],
-      "uses": [
-        14,
-        23
-      ],
+      "uses": [],
       "idx": 408
     },
     {
-      "path": "../src/window/Window.js",
+      "path": "../src/tab/Tab.js",
       "requires": [
-        14,
-        342,
-        408
+        293,
+        329
       ],
-      "uses": [],
+      "uses": [
+        18
+      ],
       "idx": 409
     },
     {
-      "path": "../src/app/bindinspector/Inspector.js",
+      "path": "../src/layout/component/Body.js",
       "requires": [
-        346,
-        354,
-        407,
-        409
+        299
       ],
-      "uses": [
-        96,
-        294,
-        398,
-        404
-      ],
+      "uses": [],
       "idx": 410
     },
     {
-      "path": "../src/app/domain/Controller.js",
+      "path": "../src/tab/Bar.js",
       "requires": [
-        300,
-        311
+        81,
+        317,
+        337,
+        409,
+        410
       ],
       "uses": [
-        304
+        80
       ],
       "idx": 411
     },
     {
-      "path": "../src/app/domain/Direct.js",
+      "path": "../src/tab/Panel.js",
       "requires": [
-        190,
-        300
+        349,
+        408,
+        411
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        409
+      ],
       "idx": 412
     },
     {
-      "path": "../src/button/Split.js",
+      "path": "../src/app/bindinspector/Environment.js",
       "requires": [
-        324
+        92
       ],
-      "uses": [],
+      "uses": [
+        12,
+        449
+      ],
       "idx": 413
     },
     {
-      "path": "../src/button/Cycle.js",
+      "path": "../src/app/bindinspector/ViewModelDetail.js",
       "requires": [
-        413
+        401
       ],
-      "uses": [],
+      "uses": [
+        52,
+        110,
+        286,
+        377,
+        396,
+        398
+      ],
       "idx": 414
     },
     {
-      "path": "../src/button/Segmented.js",
+      "path": "../src/app/bindinspector/noconflict/BaseModel.js",
       "requires": [
-        283,
-        324
+        143
       ],
       "uses": [],
       "idx": 415
     },
     {
-      "path": "../src/layout/container/Table.js",
+      "path": "../src/app/bindinspector/Container.js",
       "requires": [
-        280
+        65,
+        110,
+        288,
+        299,
+        335,
+        377,
+        378,
+        405,
+        407,
+        412,
+        413,
+        414,
+        415
       ],
-      "uses": [],
+      "uses": [
+        102,
+        286,
+        346,
+        349,
+        361
+      ],
       "idx": 416
     },
     {
-      "path": "../src/container/ButtonGroup.js",
+      "path": "../src/util/ComponentDragger.js",
       "requires": [
-        342,
-        416
+        384
       ],
-      "uses": [],
+      "uses": [
+        18,
+        80
+      ],
       "idx": 417
     },
     {
-      "path": "../src/container/Monitor.js",
-      "requires": [],
-      "uses": [
-        33
+      "path": "../src/window/Window.js",
+      "requires": [
+        80,
+        349,
+        417
       ],
+      "uses": [],
       "idx": 418
     },
     {
-      "path": "../src/plugin/Responsive.js",
+      "path": "../src/app/bindinspector/Inspector.js",
       "requires": [
-        249
+        353,
+        361,
+        416,
+        418
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        407,
+        413
+      ],
       "idx": 419
     },
     {
-      "path": "../src/plugin/Viewport.js",
+      "path": "../src/app/domain/Controller.js",
       "requires": [
-        419
+        305,
+        316
       ],
       "uses": [
-        23
+        309
       ],
       "idx": 420
     },
     {
-      "path": "../src/container/Viewport.js",
+      "path": "../src/app/domain/Direct.js",
       "requires": [
-        249,
-        283,
-        420
+        205,
+        305
       ],
       "uses": [],
       "idx": 421
     },
     {
-      "path": "../src/layout/container/Anchor.js",
+      "path": "../src/button/Split.js",
       "requires": [
-        281
+        329
       ],
       "uses": [],
       "idx": 422
     },
     {
-      "path": "../src/dashboard/Panel.js",
+      "path": "../src/button/Cycle.js",
       "requires": [
-        342
+        422
       ],
-      "uses": [
-        62
-      ],
+      "uses": [],
       "idx": 423
     },
     {
-      "path": "../src/dashboard/Column.js",
+      "path": "../src/button/Segmented.js",
       "requires": [
-        283,
-        422,
-        423
+        288,
+        329
       ],
       "uses": [],
       "idx": 424
     },
     {
-      "path": "../src/layout/container/Column.js",
+      "path": "../src/layout/container/Table.js",
       "requires": [
-        281
+        285
       ],
       "uses": [],
       "idx": 425
     },
     {
-      "path": "../src/resizer/SplitterTracker.js",
+      "path": "../src/container/ButtonGroup.js",
       "requires": [
-        14,
-        376
+        349,
+        425
       ],
-      "uses": [
-        23
-      ],
+      "uses": [],
       "idx": 426
     },
     {
-      "path": "../src/layout/container/ColumnSplitterTracker.js",
-      "requires": [
-        426
+      "path": "../src/container/Monitor.js",
+      "requires": [],
+      "uses": [
+        28
       ],
-      "uses": [],
       "idx": 427
     },
     {
-      "path": "../src/layout/container/ColumnSplitter.js",
+      "path": "../src/plugin/Responsive.js",
       "requires": [
-        396,
-        427
+        263
       ],
       "uses": [],
       "idx": 428
     },
     {
-      "path": "../src/layout/container/SplitColumn.js",
+      "path": "../src/plugin/Viewport.js",
       "requires": [
-        425,
         428
       ],
       "uses": [
-        96,
-        294
+        18
       ],
       "idx": 429
     },
     {
-      "path": "../src/dashboard/DropZone.js",
+      "path": "../src/container/Viewport.js",
       "requires": [
-        382
+        263,
+        288,
+        429
       ],
-      "uses": [
-        381
-      ],
+      "uses": [],
       "idx": 430
     },
     {
-      "path": "../src/dashboard/Part.js",
+      "path": "../src/layout/container/Anchor.js",
       "requires": [
-        0,
-        75,
-        80
+        286
       ],
       "uses": [],
       "idx": 431
     },
     {
-      "path": "../src/dashboard/Dashboard.js",
+      "path": "../src/dashboard/Panel.js",
       "requires": [
-        342,
-        424,
-        429,
-        430,
-        431
+        349
       ],
       "uses": [
-        75,
-        78,
-        271
+        12
       ],
       "idx": 432
     },
     {
-      "path": "../src/dom/Layer.js",
+      "path": "../src/dashboard/Column.js",
       "requires": [
-        23
+        288,
+        431,
+        432
+      ],
+      "uses": [],
+      "idx": 433
+    },
+    {
+      "path": "../src/layout/container/Column.js",
+      "requires": [
+        286
+      ],
+      "uses": [],
+      "idx": 434
+    },
+    {
+      "path": "../src/resizer/SplitterTracker.js",
+      "requires": [
+        80,
+        384
       ],
       "uses": [
+        18
+      ],
+      "idx": 435
+    },
+    {
+      "path": "../src/layout/container/ColumnSplitterTracker.js",
+      "requires": [
+        435
+      ],
+      "uses": [],
+      "idx": 436
+    },
+    {
+      "path": "../src/layout/container/ColumnSplitter.js",
+      "requires": [
+        333,
+        436
+      ],
+      "uses": [],
+      "idx": 437
+    },
+    {
+      "path": "../src/layout/container/Dashboard.js",
+      "requires": [
+        434,
+        437
+      ],
+      "uses": [
+        110,
         299
       ],
-      "idx": 433
+      "idx": 438
+    },
+    {
+      "path": "../src/dashboard/DropZone.js",
+      "requires": [
+        390
+      ],
+      "uses": [],
+      "idx": 439
+    },
+    {
+      "path": "../src/dashboard/Part.js",
+      "requires": [
+        4,
+        89,
+        94
+      ],
+      "uses": [],
+      "idx": 440
+    },
+    {
+      "path": "../src/dashboard/Dashboard.js",
+      "requires": [
+        349,
+        433,
+        438,
+        439,
+        440
+      ],
+      "uses": [
+        61,
+        89,
+        92
+      ],
+      "idx": 441
+    },
+    {
+      "path": "../src/dom/Layer.js",
+      "requires": [
+        18
+      ],
+      "uses": [
+        181,
+        304
+      ],
+      "idx": 442
     },
     {
       "path": "../src/enums.js",
       "requires": [],
       "uses": [],
-      "idx": 434
+      "idx": 443
     },
     {
       "path": "../src/flash/Component.js",
       "requires": [
-        274
-      ],
-      "uses": [],
-      "idx": 435
-    },
-    {
-      "path": "../src/form/action/Action.js",
-      "requires": [],
-      "uses": [],
-      "idx": 436
-    },
-    {
-      "path": "../src/form/action/Load.js",
-      "requires": [
-        60,
-        436
-      ],
-      "uses": [
-        61
-      ],
-      "idx": 437
-    },
-    {
-      "path": "../src/form/action/Submit.js",
-      "requires": [
-        436
-      ],
-      "uses": [
-        61
-      ],
-      "idx": 438
-    },
-    {
-      "path": "../src/form/field/TextArea.js",
-      "requires": [
-        27,
-        74,
-        394
-      ],
-      "uses": [
-        265
-      ],
-      "idx": 439
-    },
-    {
-      "path": "../src/window/MessageBox.js",
-      "requires": [
-        296,
-        324,
-        329,
-        331,
-        353,
-        394,
-        409,
-        422,
-        439
-      ],
-      "uses": [
-        96,
-        274,
-        283,
-        294,
-        295
-      ],
-      "idx": 440
-    },
-    {
-      "path": "../src/form/Basic.js",
-      "requires": [
-        27,
-        29,
-        33,
-        125,
-        437,
-        438,
-        440
-      ],
-      "uses": [
-        418
-      ],
-      "idx": 441
-    },
-    {
-      "path": "../src/form/FieldAncestor.js",
-      "requires": [
-        20,
-        418
-      ],
-      "uses": [],
-      "idx": 442
-    },
-    {
-      "path": "../src/layout/component/field/FieldContainer.js",
-      "requires": [
-        294
-      ],
-      "uses": [],
-      "idx": 443
-    },
-    {
-      "path": "../src/form/FieldContainer.js",
-      "requires": [
-        283,
-        350,
-        442,
-        443
+        65
       ],
       "uses": [],
       "idx": 444
     },
     {
-      "path": "../src/layout/container/CheckboxGroup.js",
-      "requires": [
-        280
-      ],
+      "path": "../src/form/action/Action.js",
+      "requires": [],
       "uses": [],
       "idx": 445
     },
     {
-      "path": "../src/form/CheckboxGroup.js",
+      "path": "../src/form/action/Load.js",
       "requires": [
-        351,
-        352,
-        368,
-        444,
+        9,
         445
       ],
-      "uses": [],
+      "uses": [
+        10
+      ],
       "idx": 446
     },
     {
-      "path": "../src/form/FieldSet.js",
+      "path": "../src/form/action/Submit.js",
       "requires": [
-        283,
-        442
+        445
       ],
       "uses": [
-        23,
-        96,
-        267,
-        274,
-        280,
-        294,
-        314,
-        368,
-        422,
-        535
+        10,
+        181
       ],
       "idx": 447
     },
     {
-      "path": "../src/form/Label.js",
+      "path": "../src/form/field/TextArea.js",
       "requires": [
-        274
+        22,
+        88,
+        404
       ],
-      "uses": [],
+      "uses": [
+        51,
+        279
+      ],
       "idx": 448
     },
     {
-      "path": "../src/form/Panel.js",
+      "path": "../src/window/MessageBox.js",
       "requires": [
-        34,
-        342,
-        441,
-        442
+        301,
+        329,
+        335,
+        338,
+        360,
+        404,
+        418,
+        431,
+        448
       ],
-      "uses": [],
+      "uses": [
+        65,
+        110,
+        288,
+        299,
+        300
+      ],
       "idx": 449
     },
     {
-      "path": "../src/form/RadioManager.js",
+      "path": "../src/form/Basic.js",
       "requires": [
-        33
+        22,
+        24,
+        28,
+        127,
+        446,
+        447,
+        449
       ],
-      "uses": [],
+      "uses": [
+        427
+      ],
       "idx": 450
     },
     {
-      "path": "../src/form/field/Radio.js",
+      "path": "../src/form/FieldAncestor.js",
       "requires": [
-        368,
-        450
+        3,
+        427
       ],
       "uses": [],
       "idx": 451
     },
     {
-      "path": "../src/form/RadioGroup.js",
+      "path": "../src/layout/component/field/FieldContainer.js",
       "requires": [
-        446,
-        451
+        299
       ],
-      "uses": [
-        450
-      ],
+      "uses": [],
       "idx": 452
     },
     {
-      "path": "../src/form/action/DirectLoad.js",
+      "path": "../src/form/FieldContainer.js",
       "requires": [
-        150,
-        437
+        288,
+        357,
+        451,
+        452
       ],
       "uses": [],
       "idx": 453
     },
     {
-      "path": "../src/form/action/DirectSubmit.js",
+      "path": "../src/layout/container/CheckboxGroup.js",
       "requires": [
-        150,
-        438
+        285
       ],
-      "uses": [],
+      "uses": [
+        181
+      ],
       "idx": 454
     },
     {
-      "path": "../src/form/action/StandardSubmit.js",
+      "path": "../src/form/CheckboxGroup.js",
       "requires": [
-        438
+        358,
+        359,
+        376,
+        453,
+        454
       ],
       "uses": [],
       "idx": 455
     },
     {
-      "path": "../src/form/field/Picker.js",
+      "path": "../src/form/FieldSet.js",
       "requires": [
         288,
-        394
+        451
       ],
-      "uses": [],
+      "uses": [
+        18,
+        56,
+        65,
+        110,
+        181,
+        285,
+        299,
+        319,
+        376,
+        431,
+        544
+      ],
       "idx": 456
     },
     {
-      "path": "../src/layout/component/BoundList.js",
+      "path": "../src/form/Label.js",
       "requires": [
-        294
+        51,
+        65
       ],
       "uses": [],
       "idx": 457
     },
     {
-      "path": "../src/toolbar/TextItem.js",
+      "path": "../src/form/Panel.js",
       "requires": [
-        74,
-        318
+        29,
+        349,
+        450,
+        451
       ],
       "uses": [],
       "idx": 458
     },
     {
-      "path": "../src/form/trigger/Spinner.js",
+      "path": "../src/form/RadioManager.js",
       "requires": [
-        393
+        28
       ],
       "uses": [],
       "idx": 459
     },
     {
-      "path": "../src/form/field/Spinner.js",
+      "path": "../src/form/field/Radio.js",
       "requires": [
-        288,
-        394,
+        376,
         459
       ],
       "uses": [],
       "idx": 460
     },
     {
-      "path": "../src/form/field/Number.js",
+      "path": "../src/form/RadioGroup.js",
       "requires": [
+        337,
+        455,
         460
       ],
-      "uses": [],
+      "uses": [
+        459
+      ],
       "idx": 461
     },
     {
-      "path": "../src/toolbar/Paging.js",
+      "path": "../src/form/action/DirectLoad.js",
       "requires": [
-        291,
-        331,
-        458,
-        461
+        164,
+        446
       ],
-      "uses": [
-        96,
-        294,
-        459
-      ],
+      "uses": [],
       "idx": 462
     },
     {
-      "path": "../src/view/BoundList.js",
+      "path": "../src/form/action/DirectSubmit.js",
       "requires": [
-        23,
-        162,
-        359,
-        457,
-        462
+        164,
+        447
       ],
-      "uses": [
-        74,
-        96,
-        294
-      ],
+      "uses": [],
       "idx": 463
     },
     {
-      "path": "../src/view/BoundListKeyNav.js",
+      "path": "../src/form/action/StandardSubmit.js",
       "requires": [
-        288,
-        463
+        447
       ],
       "uses": [],
       "idx": 464
     },
     {
-      "path": "../src/form/field/ComboBox.js",
+      "path": "../src/form/field/Picker.js",
       "requires": [
-        27,
-        161,
-        291,
-        456,
-        463,
-        464
+        293,
+        404
       ],
-      "uses": [
-        16,
-        23,
-        26,
-        74,
-        96,
-        143,
-        457
-      ],
+      "uses": [],
       "idx": 465
     },
     {
-      "path": "../src/picker/Month.js",
+      "path": "../src/layout/component/BoundList.js",
       "requires": [
-        74,
-        274,
-        323,
-        324
+        299
       ],
-      "uses": [
-        96,
-        294
-      ],
+      "uses": [],
       "idx": 466
     },
     {
-      "path": "../src/picker/Date.js",
+      "path": "../src/toolbar/TextItem.js",
       "requires": [
-        45,
-        74,
-        274,
-        288,
-        323,
-        324,
-        413,
-        466
+        88,
+        323
       ],
-      "uses": [
-        16,
-        96,
-        294
-      ],
+      "uses": [],
       "idx": 467
     },
     {
-      "path": "../src/form/field/Date.js",
+      "path": "../src/form/trigger/Spinner.js",
       "requires": [
-        456,
-        467
+        403
       ],
-      "uses": [
-        96,
-        294
-      ],
+      "uses": [],
       "idx": 468
     },
     {
-      "path": "../src/form/field/FileButton.js",
+      "path": "../src/form/field/Spinner.js",
       "requires": [
-        324
+        293,
+        404,
+        468
       ],
       "uses": [],
       "idx": 469
     },
     {
-      "path": "../src/form/trigger/Component.js",
+      "path": "../src/form/field/Number.js",
       "requires": [
-        393
+        469
       ],
-      "uses": [],
+      "uses": [
+        51,
+        52
+      ],
       "idx": 470
     },
     {
-      "path": "../src/form/field/File.js",
+      "path": "../src/toolbar/Paging.js",
       "requires": [
-        394,
-        469,
+        296,
+        338,
+        467,
         470
       ],
       "uses": [
-        96,
-        294
+        52,
+        110,
+        299,
+        468
       ],
       "idx": 471
     },
     {
-      "path": "../src/form/field/Hidden.js",
+      "path": "../src/view/BoundList.js",
       "requires": [
-        352
+        18,
+        176,
+        367,
+        466,
+        471
       ],
-      "uses": [],
+      "uses": [
+        88,
+        110,
+        299
+      ],
       "idx": 472
     },
     {
-      "path": "../src/picker/Color.js",
+      "path": "../src/view/BoundListKeyNav.js",
       "requires": [
-        74,
-        274
+        365
       ],
-      "uses": [],
+      "uses": [
+        293
+      ],
       "idx": 473
     },
     {
-      "path": "../src/layout/component/field/HtmlEditor.js",
+      "path": "../src/form/field/ComboBox.js",
       "requires": [
-        443
+        22,
+        175,
+        296,
+        465,
+        472,
+        473
       ],
-      "uses": [],
+      "uses": [
+        18,
+        21,
+        82,
+        88,
+        110,
+        157,
+        181,
+        466
+      ],
       "idx": 474
     },
     {
-      "path": "../src/form/field/HtmlEditor.js",
+      "path": "../src/picker/Month.js",
       "requires": [
-        318,
-        330,
-        331,
-        346,
-        351,
-        444,
-        473,
-        474
+        65,
+        88,
+        328,
+        329
       ],
       "uses": [
-        27,
-        96,
-        264,
-        274,
-        294,
-        339,
-        506
+        110,
+        299
       ],
       "idx": 475
     },
     {
-      "path": "../src/form/field/Tag.js",
+      "path": "../src/picker/Date.js",
       "requires": [
-        145,
-        356,
-        465
+        39,
+        65,
+        88,
+        293,
+        328,
+        329,
+        422,
+        475
       ],
       "uses": [
-        26,
-        54,
-        74
+        52,
+        110,
+        181,
+        299
       ],
       "idx": 476
     },
     {
-      "path": "../src/picker/Time.js",
+      "path": "../src/form/field/Date.js",
       "requires": [
-        145,
-        463
+        465,
+        476
       ],
       "uses": [
-        26
+        52,
+        110,
+        299
       ],
       "idx": 477
     },
     {
-      "path": "../src/form/field/Time.js",
+      "path": "../src/form/field/FileButton.js",
       "requires": [
-        464,
-        465,
-        468,
-        477
+        329
       ],
-      "uses": [
-        74,
-        96,
-        457
-      ],
+      "uses": [],
       "idx": 478
     },
     {
-      "path": "../src/form/field/Trigger.js",
+      "path": "../src/form/trigger/Component.js",
       "requires": [
-        323,
-        394
+        403
       ],
       "uses": [],
       "idx": 479
     },
     {
-      "path": "../src/grid/CellEditor.js",
+      "path": "../src/form/field/File.js",
       "requires": [
-        285
+        404,
+        478,
+        479
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299
+      ],
       "idx": 480
     },
     {
-      "path": "../src/grid/ColumnManager.js",
-      "requires": [],
+      "path": "../src/form/field/Hidden.js",
+      "requires": [
+        359
+      ],
       "uses": [],
       "idx": 481
     },
     {
-      "path": "../src/grid/RowEditorButtons.js",
+      "path": "../src/picker/Color.js",
       "requires": [
-        283
+        65,
+        88
       ],
-      "uses": [
-        96,
-        294,
-        324,
-        342
-      ],
+      "uses": [],
       "idx": 482
     },
     {
-      "path": "../src/grid/RowEditor.js",
+      "path": "../src/layout/component/field/HtmlEditor.js",
       "requires": [
-        288,
-        344,
-        449,
-        482
+        452
       ],
-      "uses": [
-        54,
-        96,
-        281,
-        283,
-        294,
-        339,
-        353
-      ],
+      "uses": [],
       "idx": 483
     },
     {
-      "path": "../src/grid/Scroller.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/form/field/HtmlEditor.js",
+      "requires": [
+        51,
+        323,
+        336,
+        338,
+        353,
+        358,
+        453,
+        482,
+        483
+      ],
+      "uses": [
+        22,
+        52,
+        65,
+        110,
+        181,
+        278,
+        299,
+        346,
+        515
+      ],
       "idx": 484
     },
     {
-      "path": "../src/view/DropZone.js",
+      "path": "../src/form/field/Tag.js",
       "requires": [
-        384
+        159,
+        363,
+        474
       ],
       "uses": [
-        96,
-        274,
-        294
+        21,
+        48,
+        88
       ],
       "idx": 485
     },
     {
-      "path": "../src/grid/ViewDropZone.js",
+      "path": "../src/picker/Time.js",
       "requires": [
-        485
+        159,
+        472
       ],
-      "uses": [],
+      "uses": [
+        21
+      ],
       "idx": 486
     },
     {
-      "path": "../src/grid/column/Action.js",
+      "path": "../src/form/field/Time.js",
       "requires": [
-        389
+        473,
+        474,
+        477,
+        486
       ],
-      "uses": [],
+      "uses": [
+        52,
+        88,
+        110,
+        466
+      ],
       "idx": 487
     },
     {
-      "path": "../src/grid/column/Boolean.js",
+      "path": "../src/form/field/Trigger.js",
       "requires": [
-        389
+        181,
+        328,
+        404
       ],
       "uses": [],
       "idx": 488
     },
     {
-      "path": "../src/grid/column/Check.js",
+      "path": "../src/grid/CellEditor.js",
       "requires": [
-        389
+        290
       ],
       "uses": [],
       "idx": 489
     },
     {
-      "path": "../src/grid/column/Date.js",
-      "requires": [
-        389
-      ],
+      "path": "../src/grid/ColumnManager.js",
+      "requires": [],
       "uses": [],
       "idx": 490
     },
     {
-      "path": "../src/grid/column/Number.js",
+      "path": "../src/grid/RowEditorButtons.js",
       "requires": [
-        389
+        288
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        329,
+        349
+      ],
       "idx": 491
     },
     {
-      "path": "../src/grid/column/RowNumberer.js",
+      "path": "../src/grid/RowEditor.js",
       "requires": [
-        389
+        293,
+        351,
+        458,
+        491
       ],
-      "uses": [],
+      "uses": [
+        18,
+        48,
+        110,
+        286,
+        288,
+        299,
+        346,
+        360
+      ],
       "idx": 492
     },
     {
-      "path": "../src/grid/column/Template.js",
-      "requires": [
-        74,
-        389
-      ],
-      "uses": [
-        489
-      ],
+      "path": "../src/grid/Scroller.js",
+      "requires": [],
+      "uses": [],
       "idx": 493
     },
     {
-      "path": "../src/grid/column/Widget.js",
+      "path": "../src/view/DropZone.js",
       "requires": [
-        389
+        392
       ],
-      "uses": [],
+      "uses": [
+        65,
+        110,
+        299
+      ],
       "idx": 494
     },
     {
-      "path": "../src/grid/feature/Feature.js",
+      "path": "../src/grid/ViewDropZone.js",
       "requires": [
-        29
+        494
       ],
       "uses": [],
       "idx": 495
     },
     {
-      "path": "../src/grid/feature/AbstractSummary.js",
+      "path": "../src/grid/column/Action.js",
       "requires": [
-        495
+        397
       ],
       "uses": [],
       "idx": 496
     },
     {
-      "path": "../src/grid/feature/GroupStore.js",
+      "path": "../src/grid/column/Boolean.js",
       "requires": [
-        29
+        397
       ],
-      "uses": [
-        78
-      ],
+      "uses": [],
       "idx": 497
     },
     {
-      "path": "../src/grid/feature/Grouping.js",
+      "path": "../src/grid/column/Check.js",
       "requires": [
-        495,
-        496,
-        497
+        397
       ],
-      "uses": [
-        74,
-        387
-      ],
+      "uses": [],
       "idx": 498
     },
     {
-      "path": "../src/grid/feature/GroupingSummary.js",
+      "path": "../src/grid/column/Date.js",
       "requires": [
-        498
+        397
       ],
-      "uses": [],
+      "uses": [
+        51
+      ],
       "idx": 499
     },
     {
-      "path": "../src/grid/feature/RowBody.js",
+      "path": "../src/grid/column/Number.js",
       "requires": [
-        495
+        51,
+        397
       ],
-      "uses": [
-        74
-      ],
+      "uses": [],
       "idx": 500
     },
     {
-      "path": "../src/grid/feature/Summary.js",
+      "path": "../src/grid/column/RowNumberer.js",
       "requires": [
-        496
+        397
       ],
-      "uses": [
-        96,
-        274,
-        294
-      ],
+      "uses": [],
       "idx": 501
     },
     {
-      "path": "../src/menu/Item.js",
+      "path": "../src/grid/column/Template.js",
       "requires": [
-        162,
-        274
+        88,
+        397
       ],
       "uses": [
-        23,
-        322,
-        346
+        498
       ],
       "idx": 502
     },
     {
-      "path": "../src/menu/CheckItem.js",
+      "path": "../src/grid/column/Widget.js",
       "requires": [
-        502
+        397
       ],
-      "uses": [
-        322
-      ],
+      "uses": [],
       "idx": 503
     },
     {
-      "path": "../src/menu/KeyNav.js",
+      "path": "../src/grid/feature/Feature.js",
       "requires": [
-        288
+        24
       ],
-      "uses": [
-        322
-      ],
+      "uses": [],
       "idx": 504
     },
     {
-      "path": "../src/menu/Separator.js",
+      "path": "../src/grid/feature/AbstractSummary.js",
       "requires": [
-        502
+        504
       ],
-      "uses": [],
+      "uses": [
+        143
+      ],
       "idx": 505
     },
     {
-      "path": "../src/menu/Menu.js",
+      "path": "../src/grid/feature/GroupStore.js",
       "requires": [
-        322,
-        330,
-        342,
-        502,
-        503,
-        504,
-        505
+        24
       ],
       "uses": [
-        23,
-        54,
-        62,
-        96,
-        294
+        92
       ],
       "idx": 506
     },
     {
-      "path": "../src/grid/filters/filter/Base.js",
+      "path": "../src/grid/feature/Grouping.js",
       "requires": [
-        75,
-        96,
-        330,
-        339,
+        504,
+        505,
         506
       ],
       "uses": [
-        26
+        88,
+        395
       ],
       "idx": 507
     },
     {
-      "path": "../src/grid/filters/filter/SingleFilter.js",
+      "path": "../src/grid/feature/GroupingSummary.js",
       "requires": [
         507
       ],
@@ -5081,794 +6516,918 @@ var Ext = Ext || {};
       "idx": 508
     },
     {
-      "path": "../src/grid/filters/filter/Boolean.js",
+      "path": "../src/grid/feature/RowBody.js",
       "requires": [
-        508
+        504
       ],
-      "uses": [],
+      "uses": [
+        88
+      ],
       "idx": 509
     },
     {
-      "path": "../src/grid/filters/filter/TriFilter.js",
+      "path": "../src/grid/feature/Summary.js",
       "requires": [
-        507
+        505
       ],
-      "uses": [],
+      "uses": [
+        65,
+        110,
+        143,
+        299
+      ],
       "idx": 510
     },
     {
-      "path": "../src/grid/filters/filter/Date.js",
+      "path": "../src/menu/Item.js",
       "requires": [
-        96,
-        294,
-        503,
-        510
+        65,
+        176
       ],
       "uses": [
-        467,
-        506
+        18,
+        327,
+        353
       ],
       "idx": 511
     },
     {
-      "path": "../src/grid/filters/filter/List.js",
+      "path": "../src/menu/CheckItem.js",
       "requires": [
-        508
+        511
       ],
       "uses": [
-        117,
-        140,
-        146,
-        147
+        327
       ],
       "idx": 512
     },
     {
-      "path": "../src/grid/filters/filter/Number.js",
+      "path": "../src/menu/KeyNav.js",
       "requires": [
-        96,
-        294,
-        459,
-        510
+        293
       ],
       "uses": [
-        461
+        327
       ],
       "idx": 513
     },
     {
-      "path": "../src/grid/filters/filter/String.js",
+      "path": "../src/menu/Separator.js",
       "requires": [
-        96,
-        294,
-        394,
-        508
+        511
       ],
       "uses": [],
       "idx": 514
     },
     {
-      "path": "../src/grid/filters/Filters.js",
+      "path": "../src/menu/Menu.js",
       "requires": [
-        375,
-        507,
-        508,
-        509,
-        510,
+        327,
+        336,
+        349,
         511,
         512,
         513,
         514
       ],
       "uses": [
-        75
+        12,
+        18,
+        48,
+        110,
+        299
       ],
       "idx": 515
     },
     {
-      "path": "../src/grid/locking/HeaderContainer.js",
+      "path": "../src/grid/filters/filter/Base.js",
       "requires": [
-        387,
-        481
+        89,
+        110,
+        336,
+        346,
+        515
       ],
-      "uses": [],
+      "uses": [
+        21
+      ],
       "idx": 516
     },
     {
-      "path": "../src/grid/locking/View.js",
+      "path": "../src/grid/filters/filter/SingleFilter.js",
       "requires": [
-        29,
-        274,
-        291,
-        358
+        516
       ],
-      "uses": [
-        62,
-        292,
-        364
-      ],
+      "uses": [],
       "idx": 517
     },
     {
-      "path": "../src/grid/locking/Lockable.js",
+      "path": "../src/grid/filters/filter/Boolean.js",
       "requires": [
-        274,
-        364,
-        387,
-        516,
         517
       ],
-      "uses": [
-        96,
-        161,
-        281,
-        294,
-        328,
-        396
-      ],
+      "uses": [],
       "idx": 518
     },
     {
-      "path": "../src/grid/plugin/BufferedRenderer.js",
+      "path": "../src/grid/filters/filter/TriFilter.js",
       "requires": [
-        375
+        516
       ],
-      "uses": [
-        27
-      ],
+      "uses": [],
       "idx": 519
     },
     {
-      "path": "../src/grid/plugin/Editing.js",
+      "path": "../src/grid/filters/filter/Date.js",
       "requires": [
-        29,
-        288,
-        352,
-        364,
-        375,
-        389
+        110,
+        299,
+        512,
+        519
       ],
       "uses": [
-        62,
-        96,
-        294
+        476,
+        515
       ],
       "idx": 520
     },
     {
-      "path": "../src/grid/plugin/CellEditing.js",
+      "path": "../src/grid/filters/filter/List.js",
       "requires": [
-        27,
-        480,
-        520
+        517
       ],
       "uses": [
-        16,
-        33,
-        96,
-        284,
-        294,
-        360
+        149,
+        154,
+        160,
+        161
       ],
       "idx": 521
     },
     {
-      "path": "../src/grid/plugin/DragDrop.js",
+      "path": "../src/grid/filters/filter/Number.js",
       "requires": [
-        375
+        110,
+        299,
+        468,
+        519
       ],
       "uses": [
-        486,
-        576
+        470
       ],
       "idx": 522
     },
     {
-      "path": "../src/grid/plugin/RowEditing.js",
+      "path": "../src/grid/filters/filter/String.js",
       "requires": [
-        483,
-        520
+        110,
+        299,
+        404,
+        517
       ],
       "uses": [],
       "idx": 523
     },
     {
-      "path": "../src/grid/plugin/RowExpander.js",
+      "path": "../src/grid/filters/Filters.js",
       "requires": [
-        375,
-        500
+        296,
+        383,
+        516,
+        517,
+        518,
+        519,
+        520,
+        521,
+        522,
+        523
       ],
       "uses": [
-        74,
-        389
+        89
       ],
       "idx": 524
     },
     {
-      "path": "../src/grid/property/Grid.js",
+      "path": "../src/grid/locking/HeaderContainer.js",
       "requires": [
-        366
+        395,
+        490
       ],
-      "uses": [
-        62,
-        74,
-        96,
-        136,
-        284,
-        294,
-        352,
-        364,
-        394,
-        459,
-        461,
-        465,
-        468,
-        480,
-        521,
-        526,
-        529
-      ],
+      "uses": [],
       "idx": 525
     },
     {
-      "path": "../src/grid/property/HeaderContainer.js",
+      "path": "../src/grid/locking/View.js",
       "requires": [
-        387
+        24,
+        64,
+        65,
+        296,
+        366
       ],
-      "uses": [],
+      "uses": [
+        12,
+        297,
+        372,
+        399
+      ],
       "idx": 526
     },
     {
-      "path": "../src/grid/property/Property.js",
+      "path": "../src/grid/locking/Lockable.js",
       "requires": [
-        136
+        65,
+        372,
+        395,
+        525,
+        526
       ],
-      "uses": [],
+      "uses": [
+        22,
+        110,
+        175,
+        286,
+        299,
+        333,
+        334
+      ],
       "idx": 527
     },
     {
-      "path": "../src/grid/property/Reader.js",
+      "path": "../src/grid/plugin/BufferedRenderer.js",
       "requires": [
-        113
+        383
       ],
       "uses": [
-        112
+        22
       ],
       "idx": 528
     },
     {
-      "path": "../src/grid/property/Store.js",
+      "path": "../src/grid/plugin/Editing.js",
       "requires": [
-        117,
-        145,
-        527,
-        528
+        24,
+        293,
+        359,
+        372,
+        383,
+        397
       ],
       "uses": [
-        140
+        12,
+        110,
+        299,
+        368
       ],
       "idx": 529
     },
     {
-      "path": "../src/layout/ClassList.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/grid/plugin/CellEditing.js",
+      "requires": [
+        22,
+        489,
+        529
+      ],
+      "uses": [
+        28,
+        110,
+        289,
+        299
+      ],
       "idx": 530
     },
     {
-      "path": "../src/util/Queue.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/grid/plugin/DragDrop.js",
+      "requires": [
+        383
+      ],
+      "uses": [
+        495,
+        585
+      ],
       "idx": 531
     },
     {
-      "path": "../src/layout/ContextItem.js",
+      "path": "../src/grid/plugin/RowEditing.js",
       "requires": [
-        530
+        492,
+        529
       ],
-      "uses": [
-        33,
-        45,
-        51,
-        278
-      ],
+      "uses": [],
       "idx": 532
     },
     {
-      "path": "../src/layout/Context.js",
+      "path": "../src/grid/plugin/RowExpander.js",
       "requires": [
-        45,
-        51,
-        253,
-        279,
-        531,
-        532
+        383,
+        509
       ],
-      "uses": [],
+      "uses": [
+        88,
+        397
+      ],
       "idx": 533
     },
     {
-      "path": "../src/layout/SizePolicy.js",
-      "requires": [],
-      "uses": [],
+      "path": "../src/grid/property/Grid.js",
+      "requires": [
+        374
+      ],
+      "uses": [
+        12,
+        88,
+        110,
+        143,
+        289,
+        299,
+        359,
+        372,
+        404,
+        468,
+        470,
+        474,
+        477,
+        489,
+        530,
+        535,
+        538
+      ],
       "idx": 534
     },
     {
-      "path": "../src/layout/component/FieldSet.js",
+      "path": "../src/grid/property/HeaderContainer.js",
       "requires": [
-        401
+        51,
+        395
       ],
       "uses": [],
       "idx": 535
     },
     {
-      "path": "../src/layout/container/Absolute.js",
+      "path": "../src/grid/property/Property.js",
       "requires": [
-        422
+        143
       ],
       "uses": [],
       "idx": 536
     },
     {
-      "path": "../src/layout/container/Accordion.js",
+      "path": "../src/grid/property/Reader.js",
       "requires": [
-        330
+        145
       ],
-      "uses": [],
+      "uses": [
+        144
+      ],
       "idx": 537
     },
     {
-      "path": "../src/layout/container/Center.js",
+      "path": "../src/grid/property/Store.js",
       "requires": [
-        354
+        149,
+        159,
+        536,
+        537
       ],
-      "uses": [],
+      "uses": [
+        154
+      ],
       "idx": 538
     },
     {
-      "path": "../src/layout/container/Form.js",
-      "requires": [
-        281
-      ],
+      "path": "../src/layout/ClassList.js",
+      "requires": [],
       "uses": [],
       "idx": 539
     },
     {
-      "path": "../src/layout/container/SegmentedButton.js",
-      "requires": [
-        280
-      ],
+      "path": "../src/util/Queue.js",
+      "requires": [],
       "uses": [],
       "idx": 540
     },
     {
-      "path": "../src/menu/ColorPicker.js",
+      "path": "../src/layout/ContextItem.js",
       "requires": [
-        473,
-        506
+        539
       ],
       "uses": [
-        96,
-        294,
-        322
+        28,
+        39,
+        45,
+        283
       ],
       "idx": 541
     },
     {
-      "path": "../src/menu/DatePicker.js",
+      "path": "../src/layout/Context.js",
       "requires": [
-        467,
-        506
+        39,
+        45,
+        267,
+        284,
+        540,
+        541
       ],
-      "uses": [
-        96,
-        294,
-        322
-      ],
+      "uses": [],
       "idx": 542
     },
     {
-      "path": "../src/panel/Pinnable.js",
-      "requires": [
-        20
-      ],
-      "uses": [
-        96,
-        294,
-        314
-      ],
+      "path": "../src/layout/SizePolicy.js",
+      "requires": [],
+      "uses": [],
       "idx": 543
     },
     {
-      "path": "../src/plugin/Manager.js",
-      "requires": [],
+      "path": "../src/layout/component/FieldSet.js",
+      "requires": [
+        410
+      ],
       "uses": [],
       "idx": 544
     },
     {
-      "path": "../src/resizer/BorderSplitterTracker.js",
+      "path": "../src/layout/container/Absolute.js",
       "requires": [
-        14,
-        426
+        431
       ],
       "uses": [],
       "idx": 545
     },
     {
-      "path": "../src/resizer/Handle.js",
+      "path": "../src/layout/container/Accordion.js",
       "requires": [
-        274
+        336
       ],
       "uses": [],
       "idx": 546
     },
     {
-      "path": "../src/resizer/ResizeTracker.js",
+      "path": "../src/layout/container/Center.js",
       "requires": [
-        376
+        361
       ],
       "uses": [],
       "idx": 547
     },
     {
-      "path": "../src/resizer/Resizer.js",
+      "path": "../src/layout/container/Form.js",
       "requires": [
-        29
+        286
       ],
-      "uses": [
-        23,
-        274,
-        547
-      ],
+      "uses": [],
       "idx": 548
     },
     {
-      "path": "../src/scroll/Indicator.js",
-      "requires": [],
+      "path": "../src/layout/container/SegmentedButton.js",
+      "requires": [
+        285
+      ],
       "uses": [],
       "idx": 549
     },
     {
-      "path": "../src/scroll/Manager.js",
+      "path": "../src/menu/ColorPicker.js",
       "requires": [
-        29,
-        54,
-        261,
-        549
+        482,
+        515
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        327
+      ],
       "idx": 550
     },
     {
-      "path": "../src/selection/CellModel.js",
+      "path": "../src/menu/DatePicker.js",
       "requires": [
-        288,
-        356,
-        360
+        476,
+        515
       ],
-      "uses": [],
+      "uses": [
+        110,
+        299,
+        327
+      ],
       "idx": 551
     },
     {
-      "path": "../src/slider/Thumb.js",
+      "path": "../src/panel/Pinnable.js",
       "requires": [
-        376
+        3
       ],
       "uses": [
-        51
+        110,
+        299,
+        319
       ],
       "idx": 552
     },
     {
-      "path": "../src/slider/Tip.js",
-      "requires": [
-        343
-      ],
+      "path": "../src/plugin/Manager.js",
+      "requires": [],
       "uses": [],
       "idx": 553
     },
     {
-      "path": "../src/slider/Multi.js",
+      "path": "../src/resizer/BorderSplitterTracker.js",
       "requires": [
-        352,
-        552,
-        553
+        80,
+        435
       ],
       "uses": [],
       "idx": 554
     },
     {
-      "path": "../src/selection/CheckboxModel.js",
+      "path": "../src/resizer/Handle.js",
       "requires": [
-        372
+        65
       ],
       "uses": [],
       "idx": 555
     },
     {
-      "path": "../src/slider/Single.js",
+      "path": "../src/resizer/ResizeTracker.js",
       "requires": [
-        554
+        384
       ],
       "uses": [],
       "idx": 556
     },
     {
-      "path": "../src/slider/Widget.js",
+      "path": "../src/resizer/Resizer.js",
       "requires": [
-        71,
-        554
+        24
       ],
       "uses": [
-        51
+        18,
+        52,
+        65,
+        181,
+        556
       ],
       "idx": 557
     },
     {
-      "path": "../src/sparkline/Shape.js",
+      "path": "../src/scroll/Indicator.js",
       "requires": [],
       "uses": [],
       "idx": 558
     },
     {
-      "path": "../src/sparkline/CanvasBase.js",
+      "path": "../src/scroll/Manager.js",
       "requires": [
+        24,
+        48,
+        275,
         558
       ],
       "uses": [],
       "idx": 559
     },
     {
-      "path": "../src/sparkline/CanvasCanvas.js",
+      "path": "../src/selection/CellModel.js",
       "requires": [
-        559
+        364,
+        368
       ],
       "uses": [],
       "idx": 560
     },
     {
-      "path": "../src/sparkline/VmlCanvas.js",
+      "path": "../src/slider/Thumb.js",
       "requires": [
-        559
+        51,
+        384
       ],
-      "uses": [],
+      "uses": [
+        45
+      ],
       "idx": 561
     },
     {
-      "path": "../src/sparkline/Base.js",
+      "path": "../src/slider/Tip.js",
       "requires": [
-        71,
-        74,
-        560,
-        561
+        350
       ],
-      "uses": [
-        96,
-        281,
-        339,
-        344
-      ],
+      "uses": [],
       "idx": 562
     },
     {
-      "path": "../src/sparkline/BarBase.js",
+      "path": "../src/slider/Multi.js",
       "requires": [
+        51,
+        52,
+        359,
+        561,
         562
       ],
-      "uses": [],
+      "uses": [
+        181
+      ],
       "idx": 563
     },
     {
-      "path": "../src/sparkline/RangeMap.js",
-      "requires": [],
+      "path": "../src/selection/CheckboxModel.js",
+      "requires": [
+        380
+      ],
       "uses": [],
       "idx": 564
     },
     {
-      "path": "../src/sparkline/Bar.js",
+      "path": "../src/slider/Single.js",
       "requires": [
-        74,
-        563,
-        564
+        563
       ],
       "uses": [],
       "idx": 565
     },
     {
-      "path": "../src/sparkline/Box.js",
+      "path": "../src/slider/Widget.js",
       "requires": [
-        74,
-        562
+        55,
+        563
       ],
-      "uses": [],
+      "uses": [
+        45,
+        51
+      ],
       "idx": 566
     },
     {
-      "path": "../src/sparkline/Bullet.js",
-      "requires": [
-        74,
-        562
-      ],
+      "path": "../src/sparkline/Shape.js",
+      "requires": [],
       "uses": [],
       "idx": 567
     },
     {
-      "path": "../src/sparkline/Discrete.js",
+      "path": "../src/sparkline/CanvasBase.js",
       "requires": [
-        74,
-        563
+        567
       ],
       "uses": [],
       "idx": 568
     },
     {
-      "path": "../src/sparkline/Line.js",
+      "path": "../src/sparkline/CanvasCanvas.js",
       "requires": [
-        74,
-        562,
-        564
+        568
       ],
       "uses": [],
       "idx": 569
     },
     {
-      "path": "../src/sparkline/Pie.js",
+      "path": "../src/sparkline/VmlCanvas.js",
       "requires": [
-        74,
-        562
+        568
       ],
       "uses": [],
       "idx": 570
     },
     {
-      "path": "../src/sparkline/TriState.js",
+      "path": "../src/sparkline/Base.js",
       "requires": [
-        74,
-        563,
-        564
+        55,
+        88,
+        569,
+        570
       ],
-      "uses": [],
+      "uses": [
+        110,
+        286,
+        346,
+        351
+      ],
       "idx": 571
     },
     {
-      "path": "../src/state/CookieProvider.js",
+      "path": "../src/sparkline/BarBase.js",
       "requires": [
-        270
+        571
       ],
       "uses": [],
       "idx": 572
     },
     {
-      "path": "../src/state/LocalStorageProvider.js",
-      "requires": [
-        263,
-        270
-      ],
+      "path": "../src/sparkline/RangeMap.js",
+      "requires": [],
       "uses": [],
       "idx": 573
     },
     {
-      "path": "../src/toolbar/Breadcrumb.js",
+      "path": "../src/sparkline/Bar.js",
       "requires": [
-        164,
-        283,
-        413
+        88,
+        572,
+        573
       ],
       "uses": [],
       "idx": 574
     },
     {
-      "path": "../src/toolbar/Spacer.js",
+      "path": "../src/sparkline/Box.js",
       "requires": [
-        274
+        88,
+        571
       ],
       "uses": [],
       "idx": 575
     },
     {
-      "path": "../src/view/DragZone.js",
+      "path": "../src/sparkline/Bullet.js",
       "requires": [
-        378
+        88,
+        571
       ],
       "uses": [],
       "idx": 576
     },
     {
-      "path": "../src/tree/ViewDragZone.js",
+      "path": "../src/sparkline/Discrete.js",
       "requires": [
-        576
+        88,
+        572
       ],
       "uses": [],
       "idx": 577
     },
     {
-      "path": "../src/tree/ViewDropZone.js",
+      "path": "../src/sparkline/Line.js",
       "requires": [
-        485
+        88,
+        571,
+        573
       ],
       "uses": [],
       "idx": 578
     },
     {
-      "path": "../src/tree/plugin/TreeViewDragDrop.js",
+      "path": "../src/sparkline/Pie.js",
       "requires": [
-        375
+        88,
+        571
       ],
-      "uses": [
-        577,
-        578
-      ],
+      "uses": [],
       "idx": 579
     },
     {
-      "path": "../src/util/Cookies.js",
-      "requires": [],
+      "path": "../src/sparkline/TriState.js",
+      "requires": [
+        88,
+        572,
+        573
+      ],
       "uses": [],
       "idx": 580
     },
     {
-      "path": "../src/view/MultiSelectorSearch.js",
+      "path": "../src/state/CookieProvider.js",
       "requires": [
-        342
+        60
       ],
-      "uses": [
-        26,
-        96,
-        161,
-        294,
-        339,
-        354,
-        366,
-        394
-      ],
+      "uses": [],
       "idx": 581
     },
     {
-      "path": "../src/view/MultiSelector.js",
+      "path": "../src/state/LocalStorageProvider.js",
       "requires": [
-        96,
-        339,
-        354,
-        366,
-        581
+        60,
+        277
       ],
       "uses": [],
       "idx": 582
     },
     {
-      "path": "../src/window/Toast.js",
+      "path": "../src/toolbar/Breadcrumb.js",
       "requires": [
-        409
+        178,
+        288,
+        337,
+        422
       ],
       "uses": [
-        27
+        175
       ],
       "idx": 583
+    },
+    {
+      "path": "../src/toolbar/Spacer.js",
+      "requires": [
+        65
+      ],
+      "uses": [],
+      "idx": 584
+    },
+    {
+      "path": "../src/view/DragZone.js",
+      "requires": [
+        386
+      ],
+      "uses": [
+        52
+      ],
+      "idx": 585
+    },
+    {
+      "path": "../src/tree/ViewDragZone.js",
+      "requires": [
+        585
+      ],
+      "uses": [
+        52
+      ],
+      "idx": 586
+    },
+    {
+      "path": "../src/tree/ViewDropZone.js",
+      "requires": [
+        494
+      ],
+      "uses": [],
+      "idx": 587
+    },
+    {
+      "path": "../src/tree/plugin/TreeViewDragDrop.js",
+      "requires": [
+        383
+      ],
+      "uses": [
+        586,
+        587
+      ],
+      "idx": 588
+    },
+    {
+      "path": "../src/util/Cookies.js",
+      "requires": [],
+      "uses": [],
+      "idx": 589
+    },
+    {
+      "path": "../src/view/MultiSelectorSearch.js",
+      "requires": [
+        349
+      ],
+      "uses": [
+        21,
+        110,
+        175,
+        299,
+        346,
+        361,
+        374,
+        404
+      ],
+      "idx": 590
+    },
+    {
+      "path": "../src/view/MultiSelector.js",
+      "requires": [
+        110,
+        346,
+        361,
+        374,
+        590
+      ],
+      "uses": [],
+      "idx": 591
+    },
+    {
+      "path": "../src/window/Toast.js",
+      "requires": [
+        418
+      ],
+      "uses": [
+        22
+      ],
+      "idx": 592
     }
   ],
   "classes": {
     "Ext.AbstractManager": {
-      "idx": 58,
+      "idx": 7,
       "alias": [],
       "alternates": []
     },
     "Ext.Action": {
-      "idx": 266,
+      "idx": 280,
       "alias": [],
       "alternates": []
     },
     "Ext.Ajax": {
-      "idx": 61,
+      "idx": 10,
       "alias": [],
       "alternates": []
     },
     "Ext.AnimationQueue": {
-      "idx": 56,
+      "idx": 11,
       "alias": [],
       "alternates": []
     },
     "Ext.Component": {
-      "idx": 274,
+      "idx": 65,
       "alias": [
         "widget.box",
         "widget.component"
@@ -5878,62 +7437,62 @@ var Ext = Ext || {};
       ]
     },
     "Ext.ComponentLoader": {
-      "idx": 277,
+      "idx": 282,
       "alias": [],
       "alternates": []
     },
     "Ext.ComponentManager": {
-      "idx": 62,
+      "idx": 12,
       "alias": [],
       "alternates": [
         "Ext.ComponentMgr"
       ]
     },
     "Ext.ComponentQuery": {
-      "idx": 65,
+      "idx": 15,
       "alias": [],
       "alternates": []
     },
     "Ext.Editor": {
-      "idx": 285,
+      "idx": 290,
       "alias": [
         "widget.editor"
       ],
       "alternates": []
     },
     "Ext.ElementLoader": {
-      "idx": 276,
+      "idx": 281,
       "alias": [],
       "alternates": []
     },
     "Ext.EventManager": {
-      "idx": 286,
+      "idx": 291,
       "alias": [],
       "alternates": []
     },
     "Ext.Evented": {
-      "idx": 66,
+      "idx": 16,
       "alias": [],
       "alternates": [
         "Ext.EventedBase"
       ]
     },
     "Ext.FocusManager": {
-      "idx": 289,
+      "idx": 294,
       "alias": [],
       "alternates": [
         "Ext.FocusMgr"
       ]
     },
     "Ext.GlobalEvents": {
-      "idx": 54,
+      "idx": 48,
       "alias": [],
       "alternates": [
         "Ext.globalEvents"
       ]
     },
     "Ext.Img": {
-      "idx": 290,
+      "idx": 295,
       "alias": [
         "widget.image",
         "widget.imagecomponent"
@@ -5941,256 +7500,257 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.LoadMask": {
-      "idx": 292,
+      "idx": 297,
       "alias": [
         "widget.loadmask"
       ],
       "alternates": []
     },
     "Ext.Mixin": {
-      "idx": 20,
+      "idx": 3,
       "alias": [],
       "alternates": []
     },
     "Ext.ProgressBar": {
-      "idx": 296,
+      "idx": 301,
       "alias": [
         "widget.progressbar"
       ],
       "alternates": []
     },
     "Ext.ProgressBarWidget": {
-      "idx": 297,
+      "idx": 302,
       "alias": [
         "widget.progressbarwidget"
       ],
       "alternates": []
     },
     "Ext.Shadow": {
-      "idx": 299,
+      "idx": 304,
       "alias": [],
       "alternates": []
     },
     "Ext.ShadowPool": {
-      "idx": 298,
+      "idx": 303,
       "alias": [],
       "alternates": []
     },
     "Ext.TaskQueue": {
-      "idx": 68,
+      "idx": 50,
       "alias": [],
       "alternates": []
     },
     "Ext.Template": {
+      "idx": 52,
       "alias": [],
       "alternates": []
     },
     "Ext.Widget": {
-      "idx": 71,
+      "idx": 55,
       "alias": [
         "widget.widget"
       ],
       "alternates": []
     },
     "Ext.XTemplate": {
-      "idx": 74,
+      "idx": 88,
       "alias": [],
       "alternates": []
     },
     "Ext.ZIndexManager": {
-      "idx": 282,
+      "idx": 287,
       "alias": [],
       "alternates": [
         "Ext.WindowGroup"
       ]
     },
     "Ext.app.Application": {
-      "idx": 347,
+      "idx": 354,
       "alias": [],
       "alternates": []
     },
     "Ext.app.BaseController": {
-      "idx": 304,
+      "idx": 309,
       "alias": [],
       "alternates": []
     },
     "Ext.app.Controller": {
-      "idx": 311,
+      "idx": 316,
       "alias": [],
       "alternates": []
     },
     "Ext.app.EventBus": {
-      "idx": 302,
+      "idx": 307,
       "alias": [],
       "alternates": []
     },
     "Ext.app.EventDomain": {
-      "idx": 300,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.Util": {
       "idx": 305,
       "alias": [],
       "alternates": []
     },
+    "Ext.app.Util": {
+      "idx": 310,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.app.ViewController": {
-      "idx": 349,
+      "idx": 356,
       "alias": [],
       "alternates": []
     },
     "Ext.app.ViewModel": {
-      "idx": 111,
+      "idx": 125,
       "alias": [
         "viewmodel.default"
       ],
       "alternates": []
     },
     "Ext.app.bind.AbstractStub": {
-      "idx": 100,
+      "idx": 114,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.BaseBinding": {
-      "idx": 98,
+      "idx": 112,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Binding": {
-      "idx": 99,
+      "idx": 113,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Formula": {
-      "idx": 105,
+      "idx": 119,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.LinkStub": {
-      "idx": 102,
+      "idx": 116,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Multi": {
-      "idx": 104,
+      "idx": 118,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.RootStub": {
-      "idx": 103,
+      "idx": 117,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Stub": {
-      "idx": 101,
+      "idx": 115,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.Template": {
-      "idx": 106,
+      "idx": 120,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bind.TemplateBinding": {
-      "idx": 107,
+      "idx": 121,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.ComponentDetail": {
-      "idx": 370,
+      "idx": 378,
       "alias": [
         "widget.bindinspector-componentdetail"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.ComponentList": {
-      "idx": 395,
+      "idx": 405,
       "alias": [
         "widget.bindinspector-componentlist"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.Container": {
-      "idx": 407,
+      "idx": 416,
       "alias": [
         "widget.bindinspector-container"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.Environment": {
-      "idx": 404,
+      "idx": 413,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.Inspector": {
-      "idx": 410,
+      "idx": 419,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.Util": {
-      "idx": 369,
+      "idx": 377,
       "alias": [],
       "alternates": []
     },
     "Ext.app.bindinspector.ViewModelDetail": {
-      "idx": 405,
+      "idx": 414,
       "alias": [
         "widget.bindinspector-viewmodeldetail"
       ],
       "alternates": []
     },
     "Ext.app.bindinspector.noconflict.BaseModel": {
-      "idx": 406,
+      "idx": 415,
       "alias": [],
       "alternates": []
     },
     "Ext.app.domain.Component": {
-      "idx": 301,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Controller": {
-      "idx": 411,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Direct": {
-      "idx": 412,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Global": {
-      "idx": 303,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.app.domain.Store": {
       "idx": 306,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.domain.View": {
-      "idx": 348,
+    "Ext.app.domain.Controller": {
+      "idx": 420,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.route.Queue": {
-      "idx": 307,
+    "Ext.app.domain.Direct": {
+      "idx": 421,
       "alias": [],
       "alternates": []
     },
-    "Ext.app.route.Route": {
+    "Ext.app.domain.Global": {
       "idx": 308,
       "alias": [],
       "alternates": []
     },
+    "Ext.app.domain.Store": {
+      "idx": 311,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.domain.View": {
+      "idx": 355,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.route.Queue": {
+      "idx": 312,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.app.route.Route": {
+      "idx": 313,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.app.route.Router": {
-      "idx": 310,
+      "idx": 315,
       "alias": [],
       "alternates": []
     },
     "Ext.button.Button": {
-      "idx": 324,
+      "idx": 329,
       "alias": [
         "widget.button"
       ],
@@ -6199,7 +7759,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.button.Cycle": {
-      "idx": 414,
+      "idx": 423,
       "alias": [
         "widget.cycle"
       ],
@@ -6208,21 +7768,21 @@ var Ext = Ext || {};
       ]
     },
     "Ext.button.Manager": {
-      "idx": 321,
+      "idx": 326,
       "alias": [],
       "alternates": [
         "Ext.ButtonToggleManager"
       ]
     },
     "Ext.button.Segmented": {
-      "idx": 415,
+      "idx": 424,
       "alias": [
         "widget.segmentedbutton"
       ],
       "alternates": []
     },
     "Ext.button.Split": {
-      "idx": 413,
+      "idx": 422,
       "alias": [
         "widget.splitbutton"
       ],
@@ -6231,7 +7791,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.container.ButtonGroup": {
-      "idx": 417,
+      "idx": 426,
       "alias": [
         "widget.buttongroup"
       ],
@@ -6240,7 +7800,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.container.Container": {
-      "idx": 283,
+      "idx": 288,
       "alias": [
         "widget.container"
       ],
@@ -6250,17 +7810,17 @@ var Ext = Ext || {};
       ]
     },
     "Ext.container.DockingContainer": {
-      "idx": 341,
+      "idx": 348,
       "alias": [],
       "alternates": []
     },
     "Ext.container.Monitor": {
-      "idx": 418,
+      "idx": 427,
       "alias": [],
       "alternates": []
     },
     "Ext.container.Viewport": {
-      "idx": 421,
+      "idx": 430,
       "alias": [
         "widget.viewport"
       ],
@@ -6269,45 +7829,45 @@ var Ext = Ext || {};
       ]
     },
     "Ext.dashboard.Column": {
-      "idx": 424,
+      "idx": 433,
       "alias": [
         "widget.dashboard-column"
       ],
       "alternates": []
     },
     "Ext.dashboard.Dashboard": {
-      "idx": 432,
+      "idx": 441,
       "alias": [
         "widget.dashboard"
       ],
       "alternates": []
     },
     "Ext.dashboard.DropZone": {
-      "idx": 430,
+      "idx": 439,
       "alias": [],
       "alternates": []
     },
     "Ext.dashboard.Panel": {
-      "idx": 423,
+      "idx": 432,
       "alias": [
         "widget.dashboard-panel"
       ],
       "alternates": []
     },
     "Ext.dashboard.Part": {
-      "idx": 431,
+      "idx": 440,
       "alias": [
         "part.part"
       ],
       "alternates": []
     },
     "Ext.data.AbstractStore": {
-      "idx": 108,
+      "idx": 122,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ArrayStore": {
-      "idx": 147,
+      "idx": 161,
       "alias": [
         "store.array"
       ],
@@ -6316,137 +7876,137 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.Batch": {
-      "idx": 89,
+      "idx": 103,
       "alias": [],
       "alternates": []
     },
     "Ext.data.BufferedStore": {
-      "idx": 149,
+      "idx": 163,
       "alias": [
         "store.buffered"
       ],
       "alternates": []
     },
     "Ext.data.ChainedStore": {
-      "idx": 110,
+      "idx": 124,
       "alias": [
         "store.chained"
       ],
       "alternates": []
     },
     "Ext.data.Connection": {
-      "idx": 60,
+      "idx": 9,
       "alias": [],
       "alternates": []
     },
     "Ext.data.DirectStore": {
-      "idx": 152,
+      "idx": 166,
       "alias": [
         "store.direct"
       ],
       "alternates": []
     },
     "Ext.data.Error": {
-      "idx": 124,
+      "idx": 126,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ErrorCollection": {
-      "idx": 125,
+      "idx": 127,
       "alias": [],
       "alternates": [
         "Ext.data.Errors"
       ]
     },
     "Ext.data.JsonP": {
-      "idx": 153,
+      "idx": 167,
       "alias": [],
       "alternates": []
     },
     "Ext.data.JsonPStore": {
-      "idx": 155,
+      "idx": 169,
       "alias": [
         "store.jsonp"
       ],
       "alternates": []
     },
     "Ext.data.JsonStore": {
-      "idx": 156,
+      "idx": 170,
       "alias": [
         "store.json"
       ],
       "alternates": []
     },
     "Ext.data.LocalStore": {
-      "idx": 109,
+      "idx": 123,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Model": {
-      "idx": 136,
+      "idx": 143,
       "alias": [],
       "alternates": [
         "Ext.data.Record"
       ]
     },
     "Ext.data.ModelManager": {
-      "idx": 157,
+      "idx": 171,
       "alias": [],
       "alternates": [
         "Ext.ModelMgr"
       ]
     },
     "Ext.data.NodeInterface": {
-      "idx": 158,
+      "idx": 172,
       "alias": [],
       "alternates": []
     },
     "Ext.data.NodeStore": {
-      "idx": 159,
+      "idx": 173,
       "alias": [
         "store.node"
       ],
       "alternates": []
     },
     "Ext.data.PageMap": {
-      "idx": 148,
+      "idx": 162,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ProxyStore": {
-      "idx": 123,
+      "idx": 150,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Request": {
-      "idx": 160,
+      "idx": 174,
       "alias": [],
       "alternates": []
     },
     "Ext.data.ResultSet": {
-      "idx": 112,
+      "idx": 144,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Session": {
-      "idx": 96,
+      "idx": 110,
       "alias": [],
       "alternates": []
     },
     "Ext.data.SortTypes": {
-      "idx": 126,
+      "idx": 133,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Store": {
-      "idx": 145,
+      "idx": 159,
       "alias": [
         "store.store"
       ],
       "alternates": []
     },
     "Ext.data.StoreManager": {
-      "idx": 161,
+      "idx": 175,
       "alias": [],
       "alternates": [
         "Ext.StoreMgr",
@@ -6455,36 +8015,36 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.TreeModel": {
-      "idx": 163,
+      "idx": 177,
       "alias": [],
       "alternates": []
     },
     "Ext.data.TreeStore": {
-      "idx": 164,
+      "idx": 178,
       "alias": [
         "store.tree"
       ],
       "alternates": []
     },
     "Ext.data.Types": {
-      "idx": 165,
+      "idx": 179,
       "alias": [],
       "alternates": []
     },
     "Ext.data.Validation": {
-      "idx": 166,
+      "idx": 180,
       "alias": [],
       "alternates": []
     },
     "Ext.data.XmlStore": {
-      "idx": 170,
+      "idx": 185,
       "alias": [
         "store.xml"
       ],
       "alternates": []
     },
     "Ext.data.field.Boolean": {
-      "idx": 129,
+      "idx": 136,
       "alias": [
         "data.field.bool",
         "data.field.boolean"
@@ -6492,14 +8052,14 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.data.field.Date": {
-      "idx": 130,
+      "idx": 137,
       "alias": [
         "data.field.date"
       ],
       "alternates": []
     },
     "Ext.data.field.Field": {
-      "idx": 128,
+      "idx": 135,
       "alias": [
         "data.field.auto"
       ],
@@ -6508,7 +8068,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.field.Integer": {
-      "idx": 131,
+      "idx": 138,
       "alias": [
         "data.field.int",
         "data.field.integer"
@@ -6516,7 +8076,7 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.data.field.Number": {
-      "idx": 132,
+      "idx": 139,
       "alias": [
         "data.field.float",
         "data.field.number"
@@ -6524,97 +8084,97 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.data.field.String": {
-      "idx": 133,
+      "idx": 140,
       "alias": [
         "data.field.string"
       ],
       "alternates": []
     },
     "Ext.data.flash.BinaryXhr": {
-      "idx": 59,
+      "idx": 8,
       "alias": [],
       "alternates": []
     },
     "Ext.data.identifier.Generator": {
-      "idx": 134,
+      "idx": 141,
       "alias": [
         "data.identifier.default"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Negative": {
-      "idx": 171,
+      "idx": 186,
       "alias": [
         "data.identifier.negative"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Sequential": {
-      "idx": 135,
+      "idx": 142,
       "alias": [
         "data.identifier.sequential"
       ],
       "alternates": []
     },
     "Ext.data.identifier.Uuid": {
-      "idx": 172,
+      "idx": 187,
       "alias": [
         "data.identifier.uuid"
       ],
       "alternates": []
     },
     "Ext.data.matrix.Matrix": {
-      "idx": 92,
+      "idx": 106,
       "alias": [],
       "alternates": []
     },
     "Ext.data.matrix.Side": {
-      "idx": 91,
+      "idx": 105,
       "alias": [],
       "alternates": []
     },
     "Ext.data.matrix.Slice": {
-      "idx": 90,
+      "idx": 104,
       "alias": [],
       "alternates": []
     },
     "Ext.data.operation.Create": {
-      "idx": 119,
+      "idx": 129,
       "alias": [
         "data.operation.create"
       ],
       "alternates": []
     },
     "Ext.data.operation.Destroy": {
-      "idx": 120,
+      "idx": 130,
       "alias": [
         "data.operation.destroy"
       ],
       "alternates": []
     },
     "Ext.data.operation.Operation": {
-      "idx": 118,
+      "idx": 128,
       "alias": [],
       "alternates": [
         "Ext.data.Operation"
       ]
     },
     "Ext.data.operation.Read": {
-      "idx": 121,
+      "idx": 131,
       "alias": [
         "data.operation.read"
       ],
       "alternates": []
     },
     "Ext.data.operation.Update": {
-      "idx": 122,
+      "idx": 132,
       "alias": [
         "data.operation.update"
       ],
       "alternates": []
     },
     "Ext.data.proxy.Ajax": {
-      "idx": 138,
+      "idx": 152,
       "alias": [
         "proxy.ajax"
       ],
@@ -6624,14 +8184,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Client": {
-      "idx": 116,
+      "idx": 148,
       "alias": [],
       "alternates": [
         "Ext.data.ClientProxy"
       ]
     },
     "Ext.data.proxy.Direct": {
-      "idx": 151,
+      "idx": 165,
       "alias": [
         "proxy.direct"
       ],
@@ -6640,7 +8200,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.JsonP": {
-      "idx": 154,
+      "idx": 168,
       "alias": [
         "proxy.jsonp",
         "proxy.scripttag"
@@ -6650,7 +8210,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.LocalStorage": {
-      "idx": 174,
+      "idx": 189,
       "alias": [
         "proxy.localstorage"
       ],
@@ -6659,7 +8219,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Memory": {
-      "idx": 117,
+      "idx": 149,
       "alias": [
         "proxy.memory"
       ],
@@ -6668,7 +8228,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Proxy": {
-      "idx": 115,
+      "idx": 147,
       "alias": [
         "proxy.proxy"
       ],
@@ -6678,7 +8238,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Rest": {
-      "idx": 175,
+      "idx": 190,
       "alias": [
         "proxy.rest"
       ],
@@ -6687,7 +8247,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Server": {
-      "idx": 137,
+      "idx": 151,
       "alias": [
         "proxy.server"
       ],
@@ -6696,7 +8256,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.SessionStorage": {
-      "idx": 176,
+      "idx": 191,
       "alias": [
         "proxy.sessionstorage"
       ],
@@ -6705,7 +8265,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.Sql": {
-      "idx": 177,
+      "idx": 192,
       "alias": [
         "proxy.sql"
       ],
@@ -6714,14 +8274,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.proxy.WebStorage": {
-      "idx": 173,
+      "idx": 188,
       "alias": [],
       "alternates": [
         "Ext.data.WebStorageProxy"
       ]
     },
     "Ext.data.reader.Array": {
-      "idx": 146,
+      "idx": 160,
       "alias": [
         "reader.array"
       ],
@@ -6730,7 +8290,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.reader.Json": {
-      "idx": 139,
+      "idx": 153,
       "alias": [
         "reader.json"
       ],
@@ -6739,7 +8299,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.reader.Reader": {
-      "idx": 113,
+      "idx": 145,
       "alias": [
         "reader.base"
       ],
@@ -6749,7 +8309,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.reader.Xml": {
-      "idx": 168,
+      "idx": 183,
       "alias": [
         "reader.xml"
       ],
@@ -6758,131 +8318,131 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.schema.Association": {
-      "idx": 82,
+      "idx": 96,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.ManyToMany": {
-      "idx": 85,
+      "idx": 99,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.ManyToOne": {
-      "idx": 84,
+      "idx": 98,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Namer": {
-      "idx": 87,
+      "idx": 101,
       "alias": [
         "namer.default"
       ],
       "alternates": []
     },
     "Ext.data.schema.OneToOne": {
-      "idx": 83,
+      "idx": 97,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Role": {
-      "idx": 81,
+      "idx": 95,
       "alias": [],
       "alternates": []
     },
     "Ext.data.schema.Schema": {
-      "idx": 88,
+      "idx": 102,
       "alias": [
         "schema.default"
       ],
       "alternates": []
     },
     "Ext.data.session.BatchVisitor": {
-      "idx": 95,
+      "idx": 109,
       "alias": [],
       "alternates": []
     },
     "Ext.data.session.ChangesVisitor": {
-      "idx": 93,
+      "idx": 107,
       "alias": [],
       "alternates": []
     },
     "Ext.data.session.ChildChangesVisitor": {
-      "idx": 94,
+      "idx": 108,
       "alias": [],
       "alternates": []
     },
     "Ext.data.validator.Bound": {
-      "idx": 178,
+      "idx": 193,
       "alias": [
         "data.validator.bound"
       ],
       "alternates": []
     },
     "Ext.data.validator.Email": {
-      "idx": 180,
+      "idx": 195,
       "alias": [
         "data.validator.email"
       ],
       "alternates": []
     },
     "Ext.data.validator.Exclusion": {
-      "idx": 182,
+      "idx": 197,
       "alias": [
         "data.validator.exclusion"
       ],
       "alternates": []
     },
     "Ext.data.validator.Format": {
-      "idx": 179,
+      "idx": 194,
       "alias": [
         "data.validator.format"
       ],
       "alternates": []
     },
     "Ext.data.validator.Inclusion": {
-      "idx": 183,
+      "idx": 198,
       "alias": [
         "data.validator.inclusion"
       ],
       "alternates": []
     },
     "Ext.data.validator.Length": {
-      "idx": 184,
+      "idx": 199,
       "alias": [
         "data.validator.length"
       ],
       "alternates": []
     },
     "Ext.data.validator.List": {
-      "idx": 181,
+      "idx": 196,
       "alias": [
         "data.validator.list"
       ],
       "alternates": []
     },
     "Ext.data.validator.Presence": {
-      "idx": 185,
+      "idx": 200,
       "alias": [
         "data.validator.presence"
       ],
       "alternates": []
     },
     "Ext.data.validator.Range": {
-      "idx": 186,
+      "idx": 201,
       "alias": [
         "data.validator.range"
       ],
       "alternates": []
     },
     "Ext.data.validator.Validator": {
-      "idx": 127,
+      "idx": 134,
       "alias": [
         "data.validator.base"
       ],
       "alternates": []
     },
     "Ext.data.writer.Json": {
-      "idx": 140,
+      "idx": 154,
       "alias": [
         "writer.json"
       ],
@@ -6891,7 +8451,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.writer.Writer": {
-      "idx": 114,
+      "idx": 146,
       "alias": [
         "writer.base"
       ],
@@ -6901,7 +8461,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.data.writer.Xml": {
-      "idx": 169,
+      "idx": 184,
       "alias": [
         "writer.xml"
       ],
@@ -6910,27 +8470,27 @@ var Ext = Ext || {};
       ]
     },
     "Ext.dd.DD": {
-      "idx": 333,
+      "idx": 340,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DDProxy": {
-      "idx": 334,
+      "idx": 341,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DDTarget": {
-      "idx": 380,
+      "idx": 388,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragDrop": {
-      "idx": 332,
+      "idx": 339,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragDropManager": {
-      "idx": 327,
+      "idx": 332,
       "alias": [],
       "alternates": [
         "Ext.dd.DragDropMgr",
@@ -6938,106 +8498,106 @@ var Ext = Ext || {};
       ]
     },
     "Ext.dd.DragSource": {
-      "idx": 336,
+      "idx": 343,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.DragTracker": {
-      "idx": 376,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DragZone": {
-      "idx": 378,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DropTarget": {
-      "idx": 382,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.dd.DropZone": {
       "idx": 384,
       "alias": [],
       "alternates": []
     },
+    "Ext.dd.DragZone": {
+      "idx": 386,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.dd.DropTarget": {
+      "idx": 390,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.dd.DropZone": {
+      "idx": 392,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.dd.Registry": {
-      "idx": 383,
+      "idx": 391,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.ScrollManager": {
-      "idx": 381,
+      "idx": 389,
       "alias": [],
       "alternates": []
     },
     "Ext.dd.StatusProxy": {
-      "idx": 335,
+      "idx": 342,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.Event": {
-      "idx": 187,
+      "idx": 202,
       "alias": [
         "direct.event"
       ],
       "alternates": []
     },
     "Ext.direct.ExceptionEvent": {
-      "idx": 189,
+      "idx": 204,
       "alias": [
         "direct.exception"
       ],
       "alternates": []
     },
     "Ext.direct.JsonProvider": {
-      "idx": 191,
+      "idx": 206,
       "alias": [
         "direct.jsonprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Manager": {
-      "idx": 150,
+      "idx": 164,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.PollingProvider": {
-      "idx": 192,
+      "idx": 207,
       "alias": [
         "direct.pollingprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Provider": {
-      "idx": 190,
+      "idx": 205,
       "alias": [
         "direct.provider"
       ],
       "alternates": []
     },
     "Ext.direct.RemotingEvent": {
-      "idx": 188,
+      "idx": 203,
       "alias": [
         "direct.rpc"
       ],
       "alternates": []
     },
     "Ext.direct.RemotingMethod": {
-      "idx": 193,
+      "idx": 208,
       "alias": [],
       "alternates": []
     },
     "Ext.direct.RemotingProvider": {
-      "idx": 195,
+      "idx": 210,
       "alias": [
         "direct.remotingprovider"
       ],
       "alternates": []
     },
     "Ext.direct.Transaction": {
-      "idx": 194,
+      "idx": 209,
       "alias": [
         "direct.transaction"
       ],
@@ -7046,44 +8606,45 @@ var Ext = Ext || {};
       ]
     },
     "Ext.dom.ButtonElement": {
-      "idx": 320,
+      "idx": 325,
       "alias": [],
       "alternates": []
     },
     "Ext.dom.CompositeElement": {
-      "idx": 196,
+      "idx": 57,
       "alias": [],
       "alternates": [
         "Ext.CompositeElement"
       ]
     },
     "Ext.dom.CompositeElementLite": {
-      "idx": 25,
+      "idx": 20,
       "alias": [],
       "alternates": [
         "Ext.CompositeElementLite"
       ]
     },
     "Ext.dom.Element": {
-      "idx": 23,
+      "idx": 18,
       "alias": [],
       "alternates": [
         "Ext.Element"
       ]
     },
     "Ext.dom.Fly": {
-      "idx": 24,
+      "idx": 19,
       "alias": [],
       "alternates": [
         "Ext.dom.Element.Fly"
       ]
     },
     "Ext.dom.GarbageCollector": {
-      "idx": 53,
+      "idx": 47,
       "alias": [],
       "alternates": []
     },
     "Ext.dom.Helper": {
+      "idx": 181,
       "alias": [],
       "alternates": [
         "Ext.DomHelper",
@@ -7091,14 +8652,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.dom.Layer": {
-      "idx": 433,
+      "idx": 442,
       "alias": [],
       "alternates": [
         "Ext.Layer"
       ]
     },
     "Ext.dom.Query": {
-      "idx": 167,
+      "idx": 182,
       "alias": [],
       "alternates": [
         "Ext.core.DomQuery",
@@ -7106,111 +8667,116 @@ var Ext = Ext || {};
       ]
     },
     "Ext.event.Controller": {
-      "idx": 18,
+      "idx": 1,
       "alias": [],
       "alternates": []
     },
     "Ext.event.Dispatcher": {
-      "idx": 19,
+      "idx": 2,
       "alias": [],
       "alternates": []
     },
     "Ext.event.Event": {
-      "idx": 16,
+      "idx": 82,
       "alias": [],
       "alternates": [
         "Ext.EventObjectImpl"
       ]
     },
     "Ext.event.ListenerStack": {
-      "idx": 17,
+      "idx": 0,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.DoubleTap": {
-      "idx": 3,
+      "idx": 69,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Drag": {
-      "idx": 4,
+      "idx": 70,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.EdgeSwipe": {
-      "idx": 6,
+      "idx": 72,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.LongPress": {
-      "idx": 7,
+      "idx": 73,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.MultiTouch": {
-      "idx": 8,
+      "idx": 74,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Pinch": {
-      "idx": 9,
+      "idx": 75,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Recognizer": {
-      "idx": 1,
+      "idx": 67,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Rotate": {
-      "idx": 10,
+      "idx": 76,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.SingleTouch": {
-      "idx": 2,
+      "idx": 68,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Swipe": {
-      "idx": 5,
+      "idx": 71,
       "alias": [],
       "alternates": []
     },
     "Ext.event.gesture.Tap": {
-      "idx": 11,
+      "idx": 77,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.Dom": {
-      "idx": 55,
+      "idx": 83,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.ElementPaint": {
-      "idx": 201,
+      "idx": 215,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.ElementSize": {
-      "idx": 208,
+      "idx": 222,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.event.publisher.Focus": {
+      "idx": 85,
       "alias": [],
       "alternates": []
     },
     "Ext.event.publisher.Gesture": {
-      "idx": 57,
+      "idx": 84,
       "alias": [],
       "alternates": [
         "Ext.event.publisher.TouchGesture"
       ]
     },
     "Ext.event.publisher.Publisher": {
-      "idx": 12,
+      "idx": 78,
       "alias": [],
       "alternates": []
     },
     "Ext.flash.Component": {
-      "idx": 435,
+      "idx": 444,
       "alias": [
         "widget.flash"
       ],
@@ -7219,57 +8785,57 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.Basic": {
-      "idx": 441,
+      "idx": 450,
       "alias": [],
       "alternates": [
         "Ext.form.BasicForm"
       ]
     },
     "Ext.form.CheckboxGroup": {
-      "idx": 446,
+      "idx": 455,
       "alias": [
         "widget.checkboxgroup"
       ],
       "alternates": []
     },
     "Ext.form.CheckboxManager": {
-      "idx": 367,
+      "idx": 375,
       "alias": [],
       "alternates": []
     },
     "Ext.form.FieldAncestor": {
-      "idx": 442,
+      "idx": 451,
       "alias": [],
       "alternates": []
     },
     "Ext.form.FieldContainer": {
-      "idx": 444,
+      "idx": 453,
       "alias": [
         "widget.fieldcontainer"
       ],
       "alternates": []
     },
     "Ext.form.FieldSet": {
-      "idx": 447,
+      "idx": 456,
       "alias": [
         "widget.fieldset"
       ],
       "alternates": []
     },
     "Ext.form.Label": {
-      "idx": 448,
+      "idx": 457,
       "alias": [
         "widget.label"
       ],
       "alternates": []
     },
     "Ext.form.Labelable": {
-      "idx": 350,
+      "idx": 357,
       "alias": [],
       "alternates": []
     },
     "Ext.form.Panel": {
-      "idx": 449,
+      "idx": 458,
       "alias": [
         "widget.form"
       ],
@@ -7279,26 +8845,26 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.RadioGroup": {
-      "idx": 452,
+      "idx": 461,
       "alias": [
         "widget.radiogroup"
       ],
       "alternates": []
     },
     "Ext.form.RadioManager": {
-      "idx": 450,
+      "idx": 459,
       "alias": [],
       "alternates": []
     },
     "Ext.form.action.Action": {
-      "idx": 436,
+      "idx": 445,
       "alias": [],
       "alternates": [
         "Ext.form.Action"
       ]
     },
     "Ext.form.action.DirectLoad": {
-      "idx": 453,
+      "idx": 462,
       "alias": [
         "formaction.directload"
       ],
@@ -7307,7 +8873,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.action.DirectSubmit": {
-      "idx": 454,
+      "idx": 463,
       "alias": [
         "formaction.directsubmit"
       ],
@@ -7316,7 +8882,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.action.Load": {
-      "idx": 437,
+      "idx": 446,
       "alias": [
         "formaction.load"
       ],
@@ -7325,14 +8891,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.action.StandardSubmit": {
-      "idx": 455,
+      "idx": 464,
       "alias": [
         "formaction.standardsubmit"
       ],
       "alternates": []
     },
     "Ext.form.action.Submit": {
-      "idx": 438,
+      "idx": 447,
       "alias": [
         "formaction.submit"
       ],
@@ -7341,7 +8907,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Base": {
-      "idx": 352,
+      "idx": 359,
       "alias": [
         "widget.field"
       ],
@@ -7351,7 +8917,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Checkbox": {
-      "idx": 368,
+      "idx": 376,
       "alias": [
         "widget.checkbox",
         "widget.checkboxfield"
@@ -7361,7 +8927,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.ComboBox": {
-      "idx": 465,
+      "idx": 474,
       "alias": [
         "widget.combo",
         "widget.combobox"
@@ -7371,7 +8937,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Date": {
-      "idx": 468,
+      "idx": 477,
       "alias": [
         "widget.datefield"
       ],
@@ -7381,7 +8947,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Display": {
-      "idx": 353,
+      "idx": 360,
       "alias": [
         "widget.displayfield"
       ],
@@ -7391,12 +8957,12 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Field": {
-      "idx": 351,
+      "idx": 358,
       "alias": [],
       "alternates": []
     },
     "Ext.form.field.File": {
-      "idx": 471,
+      "idx": 480,
       "alias": [
         "widget.filefield",
         "widget.fileuploadfield"
@@ -7408,14 +8974,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.FileButton": {
-      "idx": 469,
+      "idx": 478,
       "alias": [
         "widget.filebutton"
       ],
       "alternates": []
     },
     "Ext.form.field.Hidden": {
-      "idx": 472,
+      "idx": 481,
       "alias": [
         "widget.hidden",
         "widget.hiddenfield"
@@ -7425,7 +8991,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.HtmlEditor": {
-      "idx": 475,
+      "idx": 484,
       "alias": [
         "widget.htmleditor"
       ],
@@ -7434,7 +9000,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Number": {
-      "idx": 461,
+      "idx": 470,
       "alias": [
         "widget.numberfield"
       ],
@@ -7444,7 +9010,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Picker": {
-      "idx": 456,
+      "idx": 465,
       "alias": [
         "widget.pickerfield"
       ],
@@ -7453,7 +9019,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Radio": {
-      "idx": 451,
+      "idx": 460,
       "alias": [
         "widget.radio",
         "widget.radiofield"
@@ -7463,7 +9029,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Spinner": {
-      "idx": 460,
+      "idx": 469,
       "alias": [
         "widget.spinnerfield"
       ],
@@ -7472,14 +9038,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Tag": {
-      "idx": 476,
+      "idx": 485,
       "alias": [
         "widget.tagfield"
       ],
       "alternates": []
     },
     "Ext.form.field.Text": {
-      "idx": 394,
+      "idx": 404,
       "alias": [
         "widget.textfield"
       ],
@@ -7489,7 +9055,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.TextArea": {
-      "idx": 439,
+      "idx": 448,
       "alias": [
         "widget.textarea",
         "widget.textareafield"
@@ -7499,7 +9065,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Time": {
-      "idx": 478,
+      "idx": 487,
       "alias": [
         "widget.timefield"
       ],
@@ -7509,7 +9075,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.Trigger": {
-      "idx": 479,
+      "idx": 488,
       "alias": [
         "widget.trigger",
         "widget.triggerfield"
@@ -7521,102 +9087,102 @@ var Ext = Ext || {};
       ]
     },
     "Ext.form.field.VTypes": {
-      "idx": 392,
+      "idx": 402,
       "alias": [],
       "alternates": [
         "Ext.form.VTypes"
       ]
     },
     "Ext.form.trigger.Component": {
-      "idx": 470,
+      "idx": 479,
       "alias": [
         "trigger.component"
       ],
       "alternates": []
     },
     "Ext.form.trigger.Spinner": {
-      "idx": 459,
+      "idx": 468,
       "alias": [
         "trigger.spinner"
       ],
       "alternates": []
     },
     "Ext.form.trigger.Trigger": {
-      "idx": 393,
+      "idx": 403,
       "alias": [
         "trigger.trigger"
       ],
       "alternates": []
     },
     "Ext.fx.Anim": {
-      "idx": 51,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.Animation": {
-      "idx": 218,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.Animator": {
-      "idx": 46,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.CubicBezier": {
-      "idx": 47,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.DrawPath": {
-      "idx": 49,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.Easing": {
-      "idx": 48,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.Manager": {
       "idx": 45,
       "alias": [],
       "alternates": []
     },
-    "Ext.fx.PropertyHandler": {
-      "idx": 50,
+    "Ext.fx.Animation": {
+      "idx": 232,
       "alias": [],
       "alternates": []
     },
-    "Ext.fx.Queue": {
+    "Ext.fx.Animator": {
+      "idx": 40,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.CubicBezier": {
+      "idx": 41,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.DrawPath": {
+      "idx": 43,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.Easing": {
+      "idx": 42,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.Manager": {
+      "idx": 39,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.PropertyHandler": {
       "idx": 44,
       "alias": [],
       "alternates": []
     },
+    "Ext.fx.Queue": {
+      "idx": 38,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.fx.Runner": {
-      "idx": 221,
+      "idx": 235,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.State": {
-      "idx": 209,
+      "idx": 223,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.animation.Abstract": {
-      "idx": 210,
+      "idx": 224,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.animation.Cube": {
-      "idx": 222,
+      "idx": 236,
       "alias": [
         "animation.cube"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Fade": {
-      "idx": 213,
+      "idx": 227,
       "alias": [
         "animation.fade",
         "animation.fadeIn"
@@ -7626,21 +9192,21 @@ var Ext = Ext || {};
       ]
     },
     "Ext.fx.animation.FadeOut": {
-      "idx": 214,
+      "idx": 228,
       "alias": [
         "animation.fadeOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Flip": {
-      "idx": 215,
+      "idx": 229,
       "alias": [
         "animation.flip"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Pop": {
-      "idx": 216,
+      "idx": 230,
       "alias": [
         "animation.pop",
         "animation.popIn"
@@ -7650,14 +9216,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.fx.animation.PopOut": {
-      "idx": 217,
+      "idx": 231,
       "alias": [
         "animation.popOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Slide": {
-      "idx": 211,
+      "idx": 225,
       "alias": [
         "animation.slide",
         "animation.slideIn"
@@ -7667,243 +9233,250 @@ var Ext = Ext || {};
       ]
     },
     "Ext.fx.animation.SlideOut": {
-      "idx": 212,
+      "idx": 226,
       "alias": [
         "animation.slideOut"
       ],
       "alternates": []
     },
     "Ext.fx.animation.Wipe": {
-      "idx": 223,
+      "idx": 237,
       "alias": [],
       "alternates": [
         "Ext.fx.animation.WipeIn"
       ]
     },
     "Ext.fx.animation.WipeOut": {
-      "idx": 224,
+      "idx": 238,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Abstract": {
-      "idx": 225,
+      "idx": 239,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Bounce": {
-      "idx": 226,
+      "idx": 240,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.BoundMomentum": {
-      "idx": 228,
+      "idx": 242,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.EaseIn": {
-      "idx": 230,
+      "idx": 244,
       "alias": [
         "easing.ease-in"
       ],
       "alternates": []
     },
     "Ext.fx.easing.EaseOut": {
-      "idx": 231,
+      "idx": 245,
       "alias": [
         "easing.ease-out"
       ],
       "alternates": []
     },
     "Ext.fx.easing.Easing": {
-      "idx": 232,
+      "idx": 246,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.easing.Linear": {
-      "idx": 229,
+      "idx": 243,
       "alias": [
         "easing.linear"
       ],
       "alternates": []
     },
     "Ext.fx.easing.Momentum": {
-      "idx": 227,
+      "idx": 241,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.Card": {
-      "idx": 242,
+      "idx": 256,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.card.Abstract": {
-      "idx": 233,
+      "idx": 247,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.layout.card.Cover": {
-      "idx": 236,
+      "idx": 250,
       "alias": [
         "fx.layout.card.cover"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Cube": {
-      "idx": 243,
+      "idx": 257,
       "alias": [
         "fx.layout.card.cube"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Fade": {
-      "idx": 238,
+      "idx": 252,
       "alias": [
         "fx.layout.card.fade"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Flip": {
-      "idx": 239,
+      "idx": 253,
       "alias": [
         "fx.layout.card.flip"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Pop": {
-      "idx": 240,
+      "idx": 254,
       "alias": [
         "fx.layout.card.pop"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Reveal": {
-      "idx": 237,
+      "idx": 251,
       "alias": [
         "fx.layout.card.reveal"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Scroll": {
-      "idx": 241,
+      "idx": 255,
       "alias": [
         "fx.layout.card.scroll"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.ScrollCover": {
-      "idx": 244,
+      "idx": 258,
       "alias": [
         "fx.layout.card.scrollcover"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.ScrollReveal": {
-      "idx": 245,
+      "idx": 259,
       "alias": [
         "fx.layout.card.scrollreveal"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Slide": {
-      "idx": 235,
+      "idx": 249,
       "alias": [
         "fx.layout.card.slide"
       ],
       "alternates": []
     },
     "Ext.fx.layout.card.Style": {
-      "idx": 234,
+      "idx": 248,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.Css": {
-      "idx": 219,
+      "idx": 233,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.CssAnimation": {
-      "idx": 246,
+      "idx": 260,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.runner.CssTransition": {
-      "idx": 220,
+      "idx": 234,
       "alias": [],
       "alternates": []
     },
     "Ext.fx.target.Component": {
-      "idx": 42,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.target.CompositeElement": {
-      "idx": 38,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.target.CompositeElementCSS": {
-      "idx": 39,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.target.CompositeSprite": {
-      "idx": 41,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.target.Element": {
-      "idx": 36,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.fx.target.ElementCSS": {
       "idx": 37,
       "alias": [],
       "alternates": []
     },
-    "Ext.fx.target.Sprite": {
-      "idx": 40,
+    "Ext.fx.target.CompositeElement": {
+      "idx": 33,
       "alias": [],
       "alternates": []
     },
-    "Ext.fx.target.Target": {
+    "Ext.fx.target.CompositeElementCSS": {
+      "idx": 34,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.target.CompositeSprite": {
+      "idx": 36,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.target.Element": {
+      "idx": 31,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.target.ElementCSS": {
+      "idx": 32,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.fx.target.Sprite": {
       "idx": 35,
       "alias": [],
       "alternates": []
     },
+    "Ext.fx.target.Target": {
+      "idx": 30,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.grid.CellContext": {
-      "idx": 360,
+      "idx": 368,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.CellEditor": {
-      "idx": 480,
+      "idx": 489,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.ColumnComponentLayout": {
-      "idx": 388,
+      "idx": 396,
       "alias": [
         "layout.columncomponent"
       ],
       "alternates": []
     },
     "Ext.grid.ColumnLayout": {
-      "idx": 374,
+      "idx": 382,
       "alias": [
         "layout.gridcolumn"
       ],
       "alternates": []
     },
     "Ext.grid.ColumnManager": {
-      "idx": 481,
+      "idx": 490,
       "alias": [],
       "alternates": [
         "Ext.grid.ColumnModel"
       ]
     },
+    "Ext.grid.NavigationModel": {
+      "idx": 399,
+      "alias": [
+        "view.navigation.grid"
+      ],
+      "alternates": []
+    },
     "Ext.grid.Panel": {
-      "idx": 366,
+      "idx": 374,
       "alias": [
         "widget.grid",
         "widget.gridpanel"
@@ -7915,38 +9488,38 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.RowEditor": {
-      "idx": 483,
+      "idx": 492,
       "alias": [
         "widget.roweditor"
       ],
       "alternates": []
     },
     "Ext.grid.RowEditorButtons": {
-      "idx": 482,
+      "idx": 491,
       "alias": [
         "widget.roweditorbuttons"
       ],
       "alternates": []
     },
     "Ext.grid.Scroller": {
-      "idx": 484,
+      "idx": 493,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.View": {
-      "idx": 365,
+      "idx": 373,
       "alias": [
         "widget.gridview"
       ],
       "alternates": []
     },
     "Ext.grid.ViewDropZone": {
-      "idx": 486,
+      "idx": 495,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.column.Action": {
-      "idx": 487,
+      "idx": 496,
       "alias": [
         "widget.actioncolumn"
       ],
@@ -7955,7 +9528,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Boolean": {
-      "idx": 488,
+      "idx": 497,
       "alias": [
         "widget.booleancolumn"
       ],
@@ -7964,7 +9537,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Check": {
-      "idx": 489,
+      "idx": 498,
       "alias": [
         "widget.checkcolumn"
       ],
@@ -7974,7 +9547,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Column": {
-      "idx": 389,
+      "idx": 397,
       "alias": [
         "widget.gridcolumn"
       ],
@@ -7983,7 +9556,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Date": {
-      "idx": 490,
+      "idx": 499,
       "alias": [
         "widget.datecolumn"
       ],
@@ -7992,7 +9565,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Number": {
-      "idx": 491,
+      "idx": 500,
       "alias": [
         "widget.numbercolumn"
       ],
@@ -8001,7 +9574,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.RowNumberer": {
-      "idx": 492,
+      "idx": 501,
       "alias": [
         "widget.rownumberer"
       ],
@@ -8010,7 +9583,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Template": {
-      "idx": 493,
+      "idx": 502,
       "alias": [
         "widget.templatecolumn"
       ],
@@ -8019,94 +9592,94 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.column.Widget": {
-      "idx": 494,
+      "idx": 503,
       "alias": [
         "widget.widgetcolumn"
       ],
       "alternates": []
     },
     "Ext.grid.feature.AbstractSummary": {
-      "idx": 496,
+      "idx": 505,
       "alias": [
         "feature.abstractsummary"
       ],
       "alternates": []
     },
     "Ext.grid.feature.Feature": {
-      "idx": 495,
+      "idx": 504,
       "alias": [
         "feature.feature"
       ],
       "alternates": []
     },
     "Ext.grid.feature.GroupStore": {
-      "idx": 497,
+      "idx": 506,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.feature.Grouping": {
-      "idx": 498,
+      "idx": 507,
       "alias": [
         "feature.grouping"
       ],
       "alternates": []
     },
     "Ext.grid.feature.GroupingSummary": {
-      "idx": 499,
+      "idx": 508,
       "alias": [
         "feature.groupingsummary"
       ],
       "alternates": []
     },
     "Ext.grid.feature.RowBody": {
-      "idx": 500,
+      "idx": 509,
       "alias": [
         "feature.rowbody"
       ],
       "alternates": []
     },
     "Ext.grid.feature.Summary": {
-      "idx": 501,
+      "idx": 510,
       "alias": [
         "feature.summary"
       ],
       "alternates": []
     },
     "Ext.grid.filters.Filters": {
-      "idx": 515,
+      "idx": 524,
       "alias": [
         "plugin.gridfilters"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Base": {
-      "idx": 507,
+      "idx": 516,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.filters.filter.Boolean": {
-      "idx": 509,
+      "idx": 518,
       "alias": [
         "grid.filter.boolean"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Date": {
-      "idx": 511,
+      "idx": 520,
       "alias": [
         "grid.filter.date"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.List": {
-      "idx": 512,
+      "idx": 521,
       "alias": [
         "grid.filter.list"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.Number": {
-      "idx": 513,
+      "idx": 522,
       "alias": [
         "grid.filter.number",
         "grid.filter.numeric"
@@ -8114,116 +9687,116 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.grid.filters.filter.SingleFilter": {
-      "idx": 508,
+      "idx": 517,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.filters.filter.String": {
-      "idx": 514,
+      "idx": 523,
       "alias": [
         "grid.filter.string"
       ],
       "alternates": []
     },
     "Ext.grid.filters.filter.TriFilter": {
-      "idx": 510,
+      "idx": 519,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.header.Container": {
-      "idx": 387,
+      "idx": 395,
       "alias": [
         "widget.headercontainer"
       ],
       "alternates": []
     },
     "Ext.grid.header.DragZone": {
-      "idx": 379,
+      "idx": 387,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.header.DropZone": {
-      "idx": 385,
+      "idx": 393,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.locking.HeaderContainer": {
-      "idx": 516,
+      "idx": 525,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.locking.Lockable": {
-      "idx": 518,
+      "idx": 527,
       "alias": [],
       "alternates": [
         "Ext.grid.Lockable"
       ]
     },
     "Ext.grid.locking.View": {
-      "idx": 517,
+      "idx": 526,
       "alias": [],
       "alternates": [
         "Ext.grid.LockingView"
       ]
     },
     "Ext.grid.plugin.BufferedRenderer": {
-      "idx": 519,
+      "idx": 528,
       "alias": [
         "plugin.bufferedrenderer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.CellEditing": {
-      "idx": 521,
+      "idx": 530,
       "alias": [
         "plugin.cellediting"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.DragDrop": {
-      "idx": 522,
+      "idx": 531,
       "alias": [
         "plugin.gridviewdragdrop"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.Editing": {
-      "idx": 520,
+      "idx": 529,
       "alias": [
         "editing.editing"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.HeaderReorderer": {
-      "idx": 386,
+      "idx": 394,
       "alias": [
         "plugin.gridheaderreorderer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.HeaderResizer": {
-      "idx": 377,
+      "idx": 385,
       "alias": [
         "plugin.gridheaderresizer"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.RowEditing": {
-      "idx": 523,
+      "idx": 532,
       "alias": [
         "plugin.rowediting"
       ],
       "alternates": []
     },
     "Ext.grid.plugin.RowExpander": {
-      "idx": 524,
+      "idx": 533,
       "alias": [
         "plugin.rowexpander"
       ],
       "alternates": []
     },
     "Ext.grid.property.Grid": {
-      "idx": 525,
+      "idx": 534,
       "alias": [
         "widget.propertygrid"
       ],
@@ -8232,84 +9805,84 @@ var Ext = Ext || {};
       ]
     },
     "Ext.grid.property.HeaderContainer": {
-      "idx": 526,
+      "idx": 535,
       "alias": [],
       "alternates": [
         "Ext.grid.PropertyColumnModel"
       ]
     },
     "Ext.grid.property.Property": {
-      "idx": 527,
+      "idx": 536,
       "alias": [],
       "alternates": [
         "Ext.PropGridProperty"
       ]
     },
     "Ext.grid.property.Reader": {
-      "idx": 528,
+      "idx": 537,
       "alias": [],
       "alternates": []
     },
     "Ext.grid.property.Store": {
-      "idx": 529,
+      "idx": 538,
       "alias": [],
       "alternates": [
         "Ext.grid.PropertyStore"
       ]
     },
     "Ext.layout.ClassList": {
-      "idx": 530,
+      "idx": 539,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.Context": {
-      "idx": 533,
+      "idx": 542,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.ContextItem": {
-      "idx": 532,
+      "idx": 541,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.Layout": {
-      "idx": 279,
+      "idx": 284,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.SizeModel": {
-      "idx": 278,
+      "idx": 283,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.component.Auto": {
-      "idx": 294,
+      "idx": 299,
       "alias": [
         "layout.autocomponent"
       ],
       "alternates": []
     },
     "Ext.layout.component.Body": {
-      "idx": 401,
+      "idx": 410,
       "alias": [
         "layout.body"
       ],
       "alternates": []
     },
     "Ext.layout.component.BoundList": {
-      "idx": 457,
+      "idx": 466,
       "alias": [
         "layout.boundlist"
       ],
       "alternates": []
     },
     "Ext.layout.component.Component": {
-      "idx": 293,
+      "idx": 298,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.component.Dock": {
-      "idx": 339,
+      "idx": 346,
       "alias": [
         "layout.dock"
       ],
@@ -8318,35 +9891,35 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.component.FieldSet": {
-      "idx": 535,
+      "idx": 544,
       "alias": [
         "layout.fieldset"
       ],
       "alternates": []
     },
     "Ext.layout.component.ProgressBar": {
-      "idx": 295,
+      "idx": 300,
       "alias": [
         "layout.progressbar"
       ],
       "alternates": []
     },
     "Ext.layout.component.field.FieldContainer": {
-      "idx": 443,
+      "idx": 452,
       "alias": [
         "layout.fieldcontainer"
       ],
       "alternates": []
     },
     "Ext.layout.component.field.HtmlEditor": {
-      "idx": 474,
+      "idx": 483,
       "alias": [
         "layout.htmleditor"
       ],
       "alternates": []
     },
     "Ext.layout.container.Absolute": {
-      "idx": 536,
+      "idx": 545,
       "alias": [
         "layout.absolute"
       ],
@@ -8355,7 +9928,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Accordion": {
-      "idx": 537,
+      "idx": 546,
       "alias": [
         "layout.accordion"
       ],
@@ -8364,7 +9937,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Anchor": {
-      "idx": 422,
+      "idx": 431,
       "alias": [
         "layout.anchor"
       ],
@@ -8373,7 +9946,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Auto": {
-      "idx": 281,
+      "idx": 286,
       "alias": [
         "layout.auto",
         "layout.autocontainer"
@@ -8381,7 +9954,7 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.layout.container.Border": {
-      "idx": 398,
+      "idx": 407,
       "alias": [
         "layout.border"
       ],
@@ -8390,7 +9963,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Box": {
-      "idx": 328,
+      "idx": 334,
       "alias": [
         "layout.box"
       ],
@@ -8399,7 +9972,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Card": {
-      "idx": 399,
+      "idx": 408,
       "alias": [
         "layout.card"
       ],
@@ -8408,7 +9981,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Center": {
-      "idx": 538,
+      "idx": 547,
       "alias": [
         "layout.center",
         "layout.ux.center"
@@ -8418,14 +9991,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.CheckboxGroup": {
-      "idx": 445,
+      "idx": 454,
       "alias": [
         "layout.checkboxgroup"
       ],
       "alternates": []
     },
     "Ext.layout.container.Column": {
-      "idx": 425,
+      "idx": 434,
       "alias": [
         "layout.column"
       ],
@@ -8434,19 +10007,19 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.ColumnSplitter": {
-      "idx": 428,
+      "idx": 437,
       "alias": [
         "widget.columnsplitter"
       ],
       "alternates": []
     },
     "Ext.layout.container.ColumnSplitterTracker": {
-      "idx": 427,
+      "idx": 436,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.container.Container": {
-      "idx": 280,
+      "idx": 285,
       "alias": [
         "layout.container"
       ],
@@ -8454,15 +10027,22 @@ var Ext = Ext || {};
         "Ext.layout.ContainerLayout"
       ]
     },
+    "Ext.layout.container.Dashboard": {
+      "idx": 438,
+      "alias": [
+        "layout.dashboard"
+      ],
+      "alternates": []
+    },
     "Ext.layout.container.Editor": {
-      "idx": 284,
+      "idx": 289,
       "alias": [
         "layout.editor"
       ],
       "alternates": []
     },
     "Ext.layout.container.Fit": {
-      "idx": 354,
+      "idx": 361,
       "alias": [
         "layout.fit"
       ],
@@ -8471,7 +10051,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.Form": {
-      "idx": 539,
+      "idx": 548,
       "alias": [
         "layout.form"
       ],
@@ -8480,7 +10060,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.HBox": {
-      "idx": 329,
+      "idx": 335,
       "alias": [
         "layout.hbox"
       ],
@@ -8489,21 +10069,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.SegmentedButton": {
-      "idx": 540,
+      "idx": 549,
       "alias": [
         "layout.segmentedbutton"
       ],
       "alternates": []
     },
-    "Ext.layout.container.SplitColumn": {
-      "idx": 429,
-      "alias": [
-        "layout.split-column"
-      ],
-      "alternates": []
-    },
     "Ext.layout.container.Table": {
-      "idx": 416,
+      "idx": 425,
       "alias": [
         "layout.table"
       ],
@@ -8512,7 +10085,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.VBox": {
-      "idx": 330,
+      "idx": 336,
       "alias": [
         "layout.vbox"
       ],
@@ -8521,12 +10094,12 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.border.Region": {
-      "idx": 275,
+      "idx": 66,
       "alias": [],
       "alternates": []
     },
     "Ext.layout.container.boxOverflow.Menu": {
-      "idx": 325,
+      "idx": 330,
       "alias": [
         "box.overflow.Menu",
         "box.overflow.menu"
@@ -8536,7 +10109,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.boxOverflow.None": {
-      "idx": 317,
+      "idx": 322,
       "alias": [
         "box.overflow.None",
         "box.overflow.none"
@@ -8546,7 +10119,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.layout.container.boxOverflow.Scroller": {
-      "idx": 326,
+      "idx": 331,
       "alias": [
         "box.overflow.Scroller",
         "box.overflow.scroller"
@@ -8556,28 +10129,28 @@ var Ext = Ext || {};
       ]
     },
     "Ext.menu.CheckItem": {
-      "idx": 503,
+      "idx": 512,
       "alias": [
         "widget.menucheckitem"
       ],
       "alternates": []
     },
     "Ext.menu.ColorPicker": {
-      "idx": 541,
+      "idx": 550,
       "alias": [
         "widget.colormenu"
       ],
       "alternates": []
     },
     "Ext.menu.DatePicker": {
-      "idx": 542,
+      "idx": 551,
       "alias": [
         "widget.datemenu"
       ],
       "alternates": []
     },
     "Ext.menu.Item": {
-      "idx": 502,
+      "idx": 511,
       "alias": [
         "widget.menuitem"
       ],
@@ -8586,88 +10159,88 @@ var Ext = Ext || {};
       ]
     },
     "Ext.menu.KeyNav": {
-      "idx": 504,
+      "idx": 513,
       "alias": [],
       "alternates": []
     },
     "Ext.menu.Manager": {
-      "idx": 322,
+      "idx": 327,
       "alias": [],
       "alternates": [
         "Ext.menu.MenuMgr"
       ]
     },
     "Ext.menu.Menu": {
-      "idx": 506,
+      "idx": 515,
       "alias": [
         "widget.menu"
       ],
       "alternates": []
     },
     "Ext.menu.Separator": {
-      "idx": 505,
+      "idx": 514,
       "alias": [
         "widget.menuseparator"
       ],
       "alternates": []
     },
     "Ext.mixin.Bindable": {
-      "idx": 70,
+      "idx": 54,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Factoryable": {
-      "idx": 75,
+      "idx": 89,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Hookable": {
-      "idx": 247,
+      "idx": 261,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Identifiable": {
-      "idx": 0,
+      "idx": 4,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Inheritable": {
-      "idx": 69,
+      "idx": 53,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Mashup": {
-      "idx": 248,
+      "idx": 262,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Observable": {
-      "idx": 21,
+      "idx": 5,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Queryable": {
-      "idx": 162,
+      "idx": 176,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Responsive": {
-      "idx": 249,
+      "idx": 263,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Selectable": {
-      "idx": 250,
+      "idx": 264,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Templatable": {
-      "idx": 202,
+      "idx": 216,
       "alias": [],
       "alternates": []
     },
     "Ext.mixin.Traversable": {
-      "idx": 251,
+      "idx": 265,
       "alias": [],
       "alternates": []
     },
@@ -8708,24 +10281,24 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.panel.Bar": {
-      "idx": 312,
+      "idx": 317,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.DD": {
-      "idx": 338,
+      "idx": 345,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.Header": {
-      "idx": 315,
+      "idx": 320,
       "alias": [
         "widget.header"
       ],
       "alternates": []
     },
     "Ext.panel.Panel": {
-      "idx": 342,
+      "idx": 349,
       "alias": [
         "widget.panel"
       ],
@@ -8734,52 +10307,52 @@ var Ext = Ext || {};
       ]
     },
     "Ext.panel.Pinnable": {
-      "idx": 543,
+      "idx": 552,
       "alias": [],
       "alternates": []
     },
     "Ext.panel.Proxy": {
-      "idx": 337,
+      "idx": 344,
       "alias": [],
       "alternates": [
         "Ext.dd.PanelProxy"
       ]
     },
     "Ext.panel.Table": {
-      "idx": 355,
+      "idx": 362,
       "alias": [
         "widget.tablepanel"
       ],
       "alternates": []
     },
     "Ext.panel.Title": {
-      "idx": 313,
+      "idx": 318,
       "alias": [
         "widget.title"
       ],
       "alternates": []
     },
     "Ext.panel.Tool": {
-      "idx": 314,
+      "idx": 319,
       "alias": [
         "widget.tool"
       ],
       "alternates": []
     },
     "Ext.perf.Accumulator": {
-      "idx": 252,
+      "idx": 266,
       "alias": [],
       "alternates": []
     },
     "Ext.perf.Monitor": {
-      "idx": 253,
+      "idx": 267,
       "alias": [],
       "alternates": [
         "Ext.Perf"
       ]
     },
     "Ext.picker.Color": {
-      "idx": 473,
+      "idx": 482,
       "alias": [
         "widget.colorpicker"
       ],
@@ -8788,7 +10361,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.picker.Date": {
-      "idx": 467,
+      "idx": 476,
       "alias": [
         "widget.datepicker"
       ],
@@ -8797,7 +10370,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.picker.Month": {
-      "idx": 466,
+      "idx": 475,
       "alias": [
         "widget.monthpicker"
       ],
@@ -8806,21 +10379,21 @@ var Ext = Ext || {};
       ]
     },
     "Ext.picker.Time": {
-      "idx": 477,
+      "idx": 486,
       "alias": [
         "widget.timepicker"
       ],
       "alternates": []
     },
     "Ext.plugin.Abstract": {
-      "idx": 375,
+      "idx": 383,
       "alias": [],
       "alternates": [
         "Ext.AbstractPlugin"
       ]
     },
     "Ext.plugin.Manager": {
-      "idx": 544,
+      "idx": 553,
       "alias": [],
       "alternates": [
         "Ext.PluginManager",
@@ -8828,57 +10401,57 @@ var Ext = Ext || {};
       ]
     },
     "Ext.plugin.Responsive": {
-      "idx": 419,
+      "idx": 428,
       "alias": [
         "plugin.responsive"
       ],
       "alternates": []
     },
     "Ext.plugin.Viewport": {
-      "idx": 420,
+      "idx": 429,
       "alias": [
         "plugin.viewport"
       ],
       "alternates": []
     },
     "Ext.resizer.BorderSplitter": {
-      "idx": 397,
+      "idx": 406,
       "alias": [
         "widget.bordersplitter"
       ],
       "alternates": []
     },
     "Ext.resizer.BorderSplitterTracker": {
-      "idx": 545,
+      "idx": 554,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.Handle": {
-      "idx": 546,
+      "idx": 555,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.ResizeTracker": {
-      "idx": 547,
+      "idx": 556,
       "alias": [],
       "alternates": []
     },
     "Ext.resizer.Resizer": {
-      "idx": 548,
+      "idx": 557,
       "alias": [],
       "alternates": [
         "Ext.Resizable"
       ]
     },
     "Ext.resizer.Splitter": {
-      "idx": 396,
+      "idx": 333,
       "alias": [
         "widget.splitter"
       ],
       "alternates": []
     },
     "Ext.resizer.SplitterTracker": {
-      "idx": 426,
+      "idx": 435,
       "alias": [],
       "alternates": []
     },
@@ -8914,10 +10487,6 @@ var Ext = Ext || {};
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.form.field.Checkbox": {
-      "alias": [],
-      "alternates": []
-    },
     "Ext.rtl.form.field.File": {
       "alias": [],
       "alternates": []
@@ -8926,15 +10495,15 @@ var Ext = Ext || {};
       "alias": [],
       "alternates": []
     },
-    "Ext.rtl.form.field.Spinner": {
-      "alias": [],
-      "alternates": []
-    },
     "Ext.rtl.grid.CellEditor": {
       "alias": [],
       "alternates": []
     },
     "Ext.rtl.grid.ColumnLayout": {
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.grid.NavigationModel": {
       "alias": [],
       "alternates": []
     },
@@ -9058,7 +10627,15 @@ var Ext = Ext || {};
       "alias": [],
       "alternates": []
     },
+    "Ext.rtl.util.FocusableContainer": {
+      "alias": [],
+      "alternates": []
+    },
     "Ext.rtl.util.Renderable": {
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.rtl.view.NavigationModel": {
       "alias": [],
       "alternates": []
     },
@@ -9067,62 +10644,62 @@ var Ext = Ext || {};
       "alternates": []
     },
     "Ext.scroll.Indicator": {
-      "idx": 549,
+      "idx": 558,
       "alias": [],
       "alternates": []
     },
     "Ext.scroll.Manager": {
-      "idx": 550,
+      "idx": 559,
       "alias": [],
       "alternates": []
     },
     "Ext.scroll.Scroller": {
-      "idx": 261,
+      "idx": 275,
       "alias": [],
       "alternates": []
     },
     "Ext.selection.CellModel": {
-      "idx": 551,
+      "idx": 560,
       "alias": [
         "selection.cellmodel"
       ],
       "alternates": []
     },
     "Ext.selection.CheckboxModel": {
-      "idx": 555,
+      "idx": 564,
       "alias": [
         "selection.checkboxmodel"
       ],
       "alternates": []
     },
     "Ext.selection.DataViewModel": {
-      "idx": 357,
+      "idx": 364,
       "alias": [],
       "alternates": []
     },
     "Ext.selection.Model": {
-      "idx": 356,
+      "idx": 363,
       "alias": [],
       "alternates": [
         "Ext.AbstractSelectionModel"
       ]
     },
     "Ext.selection.RowModel": {
-      "idx": 372,
+      "idx": 380,
       "alias": [
         "selection.rowmodel"
       ],
       "alternates": []
     },
     "Ext.selection.TreeModel": {
-      "idx": 373,
+      "idx": 381,
       "alias": [
         "selection.treemodel"
       ],
       "alternates": []
     },
     "Ext.slider.Multi": {
-      "idx": 554,
+      "idx": 563,
       "alias": [
         "widget.multislider"
       ],
@@ -9131,7 +10708,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.slider.Single": {
-      "idx": 556,
+      "idx": 565,
       "alias": [
         "widget.slider",
         "widget.sliderfield"
@@ -9144,144 +10721,144 @@ var Ext = Ext || {};
       ]
     },
     "Ext.slider.Thumb": {
-      "idx": 552,
+      "idx": 561,
       "alias": [],
       "alternates": []
     },
     "Ext.slider.Tip": {
-      "idx": 553,
+      "idx": 562,
       "alias": [
         "widget.slidertip"
       ],
       "alternates": []
     },
     "Ext.slider.Widget": {
-      "idx": 557,
+      "idx": 566,
       "alias": [
         "widget.sliderwidget"
       ],
       "alternates": []
     },
     "Ext.sparkline.Bar": {
-      "idx": 565,
+      "idx": 574,
       "alias": [
         "widget.sparklinebar"
       ],
       "alternates": []
     },
     "Ext.sparkline.BarBase": {
-      "idx": 563,
+      "idx": 572,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Base": {
-      "idx": 562,
+      "idx": 571,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Box": {
-      "idx": 566,
+      "idx": 575,
       "alias": [
         "widget.sparklinebox"
       ],
       "alternates": []
     },
     "Ext.sparkline.Bullet": {
-      "idx": 567,
+      "idx": 576,
       "alias": [
         "widget.sparklinebullet"
       ],
       "alternates": []
     },
     "Ext.sparkline.CanvasBase": {
-      "idx": 559,
+      "idx": 568,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.CanvasCanvas": {
-      "idx": 560,
+      "idx": 569,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Discrete": {
-      "idx": 568,
+      "idx": 577,
       "alias": [
         "widget.sparklinediscrete"
       ],
       "alternates": []
     },
     "Ext.sparkline.Line": {
-      "idx": 569,
+      "idx": 578,
       "alias": [
         "widget.sparklineline"
       ],
       "alternates": []
     },
     "Ext.sparkline.Pie": {
-      "idx": 570,
+      "idx": 579,
       "alias": [
         "widget.sparklinepie"
       ],
       "alternates": []
     },
     "Ext.sparkline.RangeMap": {
-      "idx": 564,
+      "idx": 573,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.Shape": {
-      "idx": 558,
+      "idx": 567,
       "alias": [],
       "alternates": []
     },
     "Ext.sparkline.TriState": {
-      "idx": 571,
+      "idx": 580,
       "alias": [
         "widget.sparklinetristate"
       ],
       "alternates": []
     },
     "Ext.sparkline.VmlCanvas": {
-      "idx": 561,
+      "idx": 570,
       "alias": [],
       "alternates": []
     },
     "Ext.state.CookieProvider": {
-      "idx": 572,
+      "idx": 581,
       "alias": [],
       "alternates": []
     },
     "Ext.state.LocalStorageProvider": {
-      "idx": 573,
+      "idx": 582,
       "alias": [
         "state.localstorage"
       ],
       "alternates": []
     },
     "Ext.state.Manager": {
-      "idx": 271,
+      "idx": 61,
       "alias": [],
       "alternates": []
     },
     "Ext.state.Provider": {
-      "idx": 270,
+      "idx": 60,
       "alias": [],
       "alternates": []
     },
     "Ext.state.Stateful": {
-      "idx": 272,
+      "idx": 62,
       "alias": [],
       "alternates": []
     },
     "Ext.tab.Bar": {
-      "idx": 402,
+      "idx": 411,
       "alias": [
         "widget.tabbar"
       ],
       "alternates": []
     },
     "Ext.tab.Panel": {
-      "idx": 403,
+      "idx": 412,
       "alias": [
         "widget.tabpanel"
       ],
@@ -9290,14 +10867,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.tab.Tab": {
-      "idx": 400,
+      "idx": 409,
       "alias": [
         "widget.tab"
       ],
       "alternates": []
     },
     "Ext.tip.QuickTip": {
-      "idx": 345,
+      "idx": 352,
       "alias": [
         "widget.quicktip"
       ],
@@ -9306,14 +10883,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.tip.QuickTipManager": {
-      "idx": 346,
+      "idx": 353,
       "alias": [],
       "alternates": [
         "Ext.QuickTips"
       ]
     },
     "Ext.tip.Tip": {
-      "idx": 343,
+      "idx": 350,
       "alias": [
         "widget.tip"
       ],
@@ -9322,7 +10899,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.tip.ToolTip": {
-      "idx": 344,
+      "idx": 351,
       "alias": [
         "widget.tooltip"
       ],
@@ -9331,14 +10908,14 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Breadcrumb": {
-      "idx": 574,
+      "idx": 583,
       "alias": [
         "widget.breadcrumb"
       ],
       "alternates": []
     },
     "Ext.toolbar.Fill": {
-      "idx": 316,
+      "idx": 321,
       "alias": [
         "widget.tbfill"
       ],
@@ -9347,7 +10924,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Item": {
-      "idx": 318,
+      "idx": 323,
       "alias": [
         "widget.tbitem"
       ],
@@ -9356,7 +10933,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Paging": {
-      "idx": 462,
+      "idx": 471,
       "alias": [
         "widget.pagingtoolbar"
       ],
@@ -9365,7 +10942,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Separator": {
-      "idx": 319,
+      "idx": 324,
       "alias": [
         "widget.tbseparator"
       ],
@@ -9374,7 +10951,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Spacer": {
-      "idx": 575,
+      "idx": 584,
       "alias": [
         "widget.tbspacer"
       ],
@@ -9383,7 +10960,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.TextItem": {
-      "idx": 458,
+      "idx": 467,
       "alias": [
         "widget.tbtext"
       ],
@@ -9392,7 +10969,7 @@ var Ext = Ext || {};
       ]
     },
     "Ext.toolbar.Toolbar": {
-      "idx": 331,
+      "idx": 338,
       "alias": [
         "widget.toolbar"
       ],
@@ -9401,14 +10978,21 @@ var Ext = Ext || {};
       ]
     },
     "Ext.tree.Column": {
-      "idx": 390,
+      "idx": 398,
       "alias": [
         "widget.treecolumn"
       ],
       "alternates": []
     },
+    "Ext.tree.NavigationModel": {
+      "idx": 400,
+      "alias": [
+        "view.navigation.tree"
+      ],
+      "alternates": []
+    },
     "Ext.tree.Panel": {
-      "idx": 391,
+      "idx": 401,
       "alias": [
         "widget.treepanel"
       ],
@@ -9418,358 +11002,369 @@ var Ext = Ext || {};
       ]
     },
     "Ext.tree.View": {
-      "idx": 371,
+      "idx": 379,
       "alias": [
         "widget.treeview"
       ],
       "alternates": []
     },
     "Ext.tree.ViewDragZone": {
-      "idx": 577,
+      "idx": 586,
       "alias": [],
       "alternates": []
     },
     "Ext.tree.ViewDropZone": {
-      "idx": 578,
+      "idx": 587,
       "alias": [],
       "alternates": []
     },
     "Ext.tree.plugin.TreeViewDragDrop": {
-      "idx": 579,
+      "idx": 588,
       "alias": [
         "plugin.treeviewdragdrop"
       ],
       "alternates": []
     },
     "Ext.util.AbstractMixedCollection": {
-      "idx": 30,
+      "idx": 25,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Animate": {
-      "idx": 52,
+      "idx": 46,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Base64": {
-      "idx": 262,
+      "idx": 276,
       "alias": [],
       "alternates": []
     },
     "Ext.util.CSS": {
-      "idx": 361,
+      "idx": 369,
       "alias": [],
       "alternates": []
     },
     "Ext.util.ClickRepeater": {
-      "idx": 323,
+      "idx": 328,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Collection": {
-      "idx": 78,
+      "idx": 92,
       "alias": [],
       "alternates": []
     },
     "Ext.util.CollectionKey": {
-      "idx": 76,
+      "idx": 90,
       "alias": [],
       "alternates": []
     },
     "Ext.util.ComponentDragger": {
-      "idx": 408,
+      "idx": 417,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Cookies": {
-      "idx": 580,
+      "idx": 589,
       "alias": [],
       "alternates": []
     },
     "Ext.util.ElementContainer": {
-      "idx": 268,
+      "idx": 58,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Event": {
-      "idx": 28,
+      "idx": 23,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Filter": {
-      "idx": 26,
+      "idx": 21,
       "alias": [],
       "alternates": []
     },
     "Ext.util.FilterCollection": {
-      "idx": 143,
+      "idx": 157,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Floating": {
-      "idx": 273,
+      "idx": 63,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Focusable": {
+      "idx": 64,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.FocusableContainer": {
+      "idx": 337,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Format": {
+      "idx": 51,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Group": {
-      "idx": 141,
+      "idx": 155,
       "alias": [],
       "alternates": []
     },
     "Ext.util.GroupCollection": {
-      "idx": 144,
+      "idx": 158,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Grouper": {
-      "idx": 77,
+      "idx": 91,
       "alias": [],
       "alternates": []
     },
     "Ext.util.HashMap": {
-      "idx": 43,
+      "idx": 6,
       "alias": [],
       "alternates": []
     },
     "Ext.util.History": {
-      "idx": 309,
+      "idx": 314,
       "alias": [],
       "alternates": [
         "Ext.History"
       ]
     },
     "Ext.util.Inflector": {
-      "idx": 86,
+      "idx": 100,
       "alias": [],
       "alternates": []
     },
     "Ext.util.KeyMap": {
-      "idx": 287,
+      "idx": 292,
       "alias": [],
       "alternates": [
         "Ext.KeyMap"
       ]
     },
     "Ext.util.KeyNav": {
-      "idx": 288,
+      "idx": 293,
       "alias": [],
       "alternates": [
         "Ext.KeyNav"
       ]
     },
     "Ext.util.LocalStorage": {
-      "idx": 263,
+      "idx": 277,
       "alias": [],
       "alternates": []
     },
     "Ext.util.LruCache": {
-      "idx": 64,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Memento": {
-      "idx": 340,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.MixedCollection": {
-      "idx": 33,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ObjectTemplate": {
-      "idx": 80,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Observable": {
-      "idx": 29,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Offset": {
-      "idx": 13,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.PaintMonitor": {
-      "idx": 200,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Point": {
-      "idx": 15,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Positionable": {
-      "idx": 22,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.ProtoElement": {
-      "idx": 267,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Queue": {
-      "idx": 531,
-      "alias": [],
-      "alternates": []
-    },
-    "Ext.util.Region": {
       "idx": 14,
       "alias": [],
       "alternates": []
     },
-    "Ext.util.Renderable": {
-      "idx": 269,
+    "Ext.util.Memento": {
+      "idx": 347,
       "alias": [],
       "alternates": []
     },
-    "Ext.util.Schedulable": {
-      "idx": 97,
+    "Ext.util.MixedCollection": {
+      "idx": 28,
       "alias": [],
       "alternates": []
     },
-    "Ext.util.Scheduler": {
+    "Ext.util.ObjectTemplate": {
+      "idx": 94,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Observable": {
+      "idx": 24,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Offset": {
       "idx": 79,
       "alias": [],
       "alternates": []
     },
+    "Ext.util.PaintMonitor": {
+      "idx": 214,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Point": {
+      "idx": 81,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Positionable": {
+      "idx": 17,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.ProtoElement": {
+      "idx": 56,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Queue": {
+      "idx": 540,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Region": {
+      "idx": 80,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Renderable": {
+      "idx": 59,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Schedulable": {
+      "idx": 111,
+      "alias": [],
+      "alternates": []
+    },
+    "Ext.util.Scheduler": {
+      "idx": 93,
+      "alias": [],
+      "alternates": []
+    },
     "Ext.util.SizeMonitor": {
-      "idx": 207,
+      "idx": 221,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Sortable": {
-      "idx": 32,
+      "idx": 27,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Sorter": {
-      "idx": 31,
+      "idx": 26,
       "alias": [],
       "alternates": []
     },
     "Ext.util.SorterCollection": {
-      "idx": 142,
+      "idx": 156,
       "alias": [],
       "alternates": []
     },
     "Ext.util.StoreHolder": {
-      "idx": 291,
+      "idx": 296,
       "alias": [],
       "alternates": []
     },
     "Ext.util.TaskManager": {
-      "idx": 264,
+      "idx": 278,
       "alias": [],
       "alternates": [
         "Ext.TaskManager"
       ]
     },
     "Ext.util.TaskRunner": {
-      "idx": 34,
+      "idx": 29,
       "alias": [],
       "alternates": []
     },
     "Ext.util.TextMetrics": {
-      "idx": 265,
+      "idx": 279,
       "alias": [],
       "alternates": []
     },
     "Ext.util.Translatable": {
-      "idx": 260,
+      "idx": 274,
       "alias": [],
       "alternates": []
     },
     "Ext.util.XTemplateCompiler": {
-      "idx": 73,
+      "idx": 87,
       "alias": [],
       "alternates": []
     },
     "Ext.util.XTemplateParser": {
-      "idx": 72,
+      "idx": 86,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.Abstract": {
-      "idx": 197,
+      "idx": 211,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.CssAnimation": {
-      "idx": 198,
+      "idx": 212,
       "alias": [],
       "alternates": []
     },
     "Ext.util.paintmonitor.OverflowChange": {
-      "idx": 199,
+      "idx": 213,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Abstract": {
-      "idx": 203,
+      "idx": 217,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Default": {
-      "idx": 204,
+      "idx": 218,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.OverflowChange": {
-      "idx": 206,
+      "idx": 220,
       "alias": [],
       "alternates": []
     },
     "Ext.util.sizemonitor.Scroll": {
-      "idx": 205,
+      "idx": 219,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.Abstract": {
-      "idx": 254,
+      "idx": 268,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.CssPosition": {
-      "idx": 259,
+      "idx": 273,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.CssTransform": {
-      "idx": 256,
+      "idx": 270,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.Dom": {
-      "idx": 255,
+      "idx": 269,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.ScrollParent": {
-      "idx": 258,
+      "idx": 272,
       "alias": [],
       "alternates": []
     },
     "Ext.util.translatable.ScrollPosition": {
-      "idx": 257,
+      "idx": 271,
       "alias": [],
       "alternates": []
     },
     "Ext.view.AbstractView": {
-      "idx": 358,
+      "idx": 366,
       "alias": [],
       "alternates": []
     },
     "Ext.view.BoundList": {
-      "idx": 463,
+      "idx": 472,
       "alias": [
         "widget.boundlist"
       ],
@@ -9778,55 +11373,64 @@ var Ext = Ext || {};
       ]
     },
     "Ext.view.BoundListKeyNav": {
-      "idx": 464,
-      "alias": [],
+      "idx": 473,
+      "alias": [
+        "view.navigation.boundlist"
+      ],
       "alternates": []
     },
     "Ext.view.DragZone": {
-      "idx": 576,
+      "idx": 585,
       "alias": [],
       "alternates": []
     },
     "Ext.view.DropZone": {
-      "idx": 485,
+      "idx": 494,
       "alias": [],
       "alternates": []
     },
     "Ext.view.MultiSelector": {
-      "idx": 582,
+      "idx": 591,
       "alias": [
         "widget.multiselector"
       ],
       "alternates": []
     },
     "Ext.view.MultiSelectorSearch": {
-      "idx": 581,
+      "idx": 590,
       "alias": [
         "widget.multiselector-search"
       ],
       "alternates": []
     },
+    "Ext.view.NavigationModel": {
+      "idx": 365,
+      "alias": [
+        "view.navigation.default"
+      ],
+      "alternates": []
+    },
     "Ext.view.NodeCache": {
-      "idx": 363,
+      "idx": 371,
       "alias": [],
       "alternates": []
     },
     "Ext.view.Table": {
-      "idx": 364,
+      "idx": 372,
       "alias": [
         "widget.tableview"
       ],
       "alternates": []
     },
     "Ext.view.TableLayout": {
-      "idx": 362,
+      "idx": 370,
       "alias": [
         "layout.tableview"
       ],
       "alternates": []
     },
     "Ext.view.View": {
-      "idx": 359,
+      "idx": 367,
       "alias": [
         "widget.dataview"
       ],
@@ -9835,21 +11439,21 @@ var Ext = Ext || {};
       ]
     },
     "Ext.window.MessageBox": {
-      "idx": 440,
+      "idx": 449,
       "alias": [
         "widget.messagebox"
       ],
       "alternates": []
     },
     "Ext.window.Toast": {
-      "idx": 583,
+      "idx": 592,
       "alias": [
         "widget.toast"
       ],
       "alternates": []
     },
     "Ext.window.Window": {
-      "idx": 409,
+      "idx": 418,
       "alias": [
         "widget.window"
       ],
@@ -9869,11 +11473,15 @@ var Ext = Ext || {};
         "ext"
       ],
       "type": "framework",
-      "version": "5.0.0.970"
+      "version": "5.0.1.1255"
     },
     "sencha-core": {
       "creator": "Sencha",
+      "output": "${package.dir}/build",
       "requires": [],
+      "slicer": {
+        "js": []
+      },
       "type": "code",
       "version": "5.0.0"
     }
@@ -9882,963 +11490,7 @@ var Ext = Ext || {};
 });
 
 
-
-
-
-
-
-
-
-
-var Ext = Ext || window['Ext'] || {};
-
-
-
-Ext.Boot = Ext.Boot || (function (emptyFn) {
-
-    var doc = document,
-        _config = {
-            
-            disableCaching:
-                (/[?&](?:cache|disableCacheBuster)\b/i.test(location.search) ||
-                    /(^|[ ;])ext-cache=1/.test(doc.cookie)) ? false :
-                    true,
-
-            
-            disableCachingParam: '_dc',
-
-            
-            loadDelay: false,
-
-            
-            preserveScripts: true,
-
-            
-            charset: undefined
-        },
-
-    
-        _currentRequest,
-
-    
-        _suspendedQueue = [],
-
-    
-    
-        _items = {
-            
-        },
-        cssRe = /\.css(?:\?|$)/i,
-        pathTailRe = /\/[^\/]*$/,
-        resolverEl = doc.createElement('a'),
-        isBrowser = typeof window !== 'undefined',
-        _environment = {
-            browser: isBrowser,
-            node: !isBrowser && (typeof require === 'function'),
-            phantom: (typeof phantom !== 'undefined' && phantom.fs)
-        },
-        _listeners = [],
-
-    
-        _entries = 0,
-
-    
-    
-        _syncMode = 0;
-
-    var Boot = {
-        loading: 0,
-
-        loaded: 0,
-
-        env: _environment,
-
-        
-        config: _config,
-
-        
-        scripts: _items,
-
-        
-        currentFile: null,
-
-        
-        canonicalUrl: function (url) {
-            
-            
-            resolverEl.href = url;
-
-            var ret = resolverEl.href,
-                dc = _config.disableCachingParam,
-                pos = dc ? ret.indexOf(dc + '=') : -1,
-                c, end;
-
-            
-            
-            if (pos > 0 && ((c = ret.charAt(pos - 1)) === '?' || c === '&')) {
-                end = ret.indexOf('&', pos);
-                end = (end < 0) ? '' : ret.substring(end);
-                if (end && c === '?') {
-                    ++pos; 
-                    end = end.substring(1); 
-                }
-                ret = ret.substring(0, pos - 1) + end;
-            }
-
-            return ret;
-        },
-
-        init: function () {
-            var scriptEls = doc.getElementsByTagName('script'),
-                len = scriptEls.length,
-                re = /\/ext(\-[a-z\-]+)?\.js$/,
-                entry, script, src, state, baseUrl, key, n;
-
-            
-            
-            
-            for(n = 0; n < len; n++) {
-                src = (script = scriptEls[n]).src;
-                if (!src) {
-                    continue;
-                }
-                state = script.readyState || null;
-
-                
-                if (!baseUrl) {
-                    if (re.test(src)) {
-                        Boot.hasAsync = ("async" in script) || !('readyState' in script);
-                        baseUrl = src;
-                    }
-                }
-
-                if (!_items[key = Boot.canonicalUrl(src)]) {
-                    _items[key] = entry = {
-                        key: key,
-                        url: src,
-                        done: state === null ||  
-                            state === 'loaded' || state === 'complete', 
-                        el: script,
-                        prop: 'src'
-                    };
-
-                    if (!entry.done) { 
-                        Boot.watch(entry);
-                    }
-                }
-            }
-            if (!baseUrl) {
-                script = scriptEls[scriptEls.length - 1];
-                baseUrl = script.src;
-                Boot.hasAsync = ("async" in script) || !('readyState' in script);
-            }
-            Boot.baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-        },
-
-        create: function (url, key) {
-            var css = url && cssRe.test(url),
-                el = doc.createElement(css ? 'link' : 'script'),
-                prop;
-
-            if (css) {
-                el.rel = 'stylesheet';
-                prop = 'href';
-            } else {
-                el.type = 'text/javascript';
-                if (!url) {
-                    return el;
-                }
-                prop = 'src';
-
-                if(Boot.hasAsync) {
-                    el.async = false;
-                }
-            }
-
-            key = key || url;
-            return _items[key] = {
-                key: key,
-                url: url,
-                css: css,
-                done: false,
-                el: el,
-                prop: prop,
-                loaded: false,
-                evaluated: false
-            };
-        },
-
-        
-        getConfig: function(name) {
-            return name ? _config[name] : _config;
-        },
-
-        
-        setConfig: function (name, value) {
-            if (typeof name === 'string') {
-                _config[name] = value;
-            } else {
-                for (var s in name) {
-                    Boot.setConfig(s, name[s]);
-                }
-            }
-
-            return Boot;
-        },
-
-        getHead: function () {
-            return Boot.docHead ||
-                (Boot.docHead = doc.head ||
-                    doc.getElementsByTagName('head')[0]);
-        },
-
-        inject: function (content, url, asset) {
-            var head = Boot.getHead(),
-                base, el, css = false, key = Boot.canonicalUrl(url),
-                entry;
-
-            if (cssRe.test(url)) {
-                css = true;
-                el = doc.createElement('style');
-                el.type = 'text/css';
-                el.textContent = content;
-
-                if (asset) {
-                    if ('id' in asset) {
-                        el.id = asset.id;
-                    }
-
-                    if ('disabled' in asset) {
-                        el.disabled = asset.disabled;
-                    }
-                }
-
-                base = doc.createElement('base');
-                base.href = key.replace(pathTailRe, '/');
-                head.appendChild(base);
-                head.appendChild(el);
-                head.removeChild(base);
-            } else {
-                
-                
-                
-                if (url) {
-                    content += "\n//@ sourceURL=" + key;
-                }
-                Ext.globalEval(content);
-            }
-
-            entry = _items[key] || (_items[key] = {
-                key: key,
-                css: css,
-                url: url,
-                el: el
-            });
-            entry.done = true;
-            return entry;
-        },
-
-        
-        load: function (request) {
-            if (request.sync || _syncMode) {
-                return this.loadSync(request);
-            }
-
-            
-            if (!request.url) {
-                request = {
-                    url: request
-                };
-            }
-
-            
-            
-            if (_currentRequest) {
-                _suspendedQueue.push(request);
-            } else {
-                Boot.expandLoadOrder(request);
-
-                var url = request.url,
-                    urls = url.charAt ? [ url ] : url,
-                    length = urls.length,
-                    i;
-
-                
-                
-                request.urls = urls;
-                request.loaded = 0;
-                request.loading = length;
-                request.charset = request.charset || _config.charset;
-                request.buster = (('cache' in request) ? !request.cache : _config.disableCaching) &&
-                    (_config.disableCachingParam + '=' + (+new Date()));
-
-                _currentRequest = request;
-                request.sequential = false;
-
-                for (i = 0; i < length; ++i) {
-                    Boot.loadUrl(urls[i], request);
-                }
-            }
-
-            return this;
-        },
-
-        loadUrl: function(url, request) {
-            var entry,
-                buster = request.buster,
-                charset = request.charset,
-                head = Boot.getHead(),
-                el, key;
-
-            if (request.prependBaseUrl) {
-                url = Boot.baseUrl + url;
-            }
-
-            if (request.sequential) {
-                Boot.currentFile = url;
-            } else {
-                Boot.currentFile = null;
-            }
-
-            key = Boot.canonicalUrl(url);
-            if (!(entry = _items[key])) {
-                
-                _entries++;
-
-                
-                
-                entry = Boot.create(url, key);
-                el = entry.el;
-                if (!entry.css && charset) {
-                    el.charset = charset;
-                }
-                entry.requests = [request];
-
-                Boot.watch(entry);
-
-                if (buster) {
-                    
-                    url += (url.indexOf('?') === -1 ? '?' : '&') + buster;
-                }
-
-                if(!Boot.hasAsync && !entry.css) {
-                    entry.loaded = false;
-                    entry.evaluated = false;
-
-                    var onLoadWas,
-                        newOnLoad = function() {
-                            entry.loaded = true;
-                            var rurls = request.urls,
-                                rlen = rurls.length, r, e, k;
-                            for(r = 0; r < rlen; r++) {
-                                k = Boot.canonicalUrl(rurls[r]);
-                                e = _items[k];
-                                if(e) {
-                                    if(!e.loaded) {
-                                        return;
-                                    } else if(!e.evaluated) {
-                                        head.appendChild(e.el);
-                                        e.evaluated = true;
-                                        e.onLoadWas.apply(e.el, arguments);
-                                    }
-                                }
-                            }
-                        };
-                    
-                    if (!('readyState' in el)) {
-                        onLoadWas = el.onload;
-                        el.onload = newOnLoad;
-                    } else {
-                        
-                        onLoadWas = el.onreadystatechange;
-                        el.onreadystatechange = function() {
-                            if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                                newOnLoad.apply(this, arguments);
-                            }
-                        };
-                    }
-
-                    entry.onLoadWas = onLoadWas;
-                    el[entry.prop] = url; 
-                } else {
-                    el[entry.prop] = url; 
-                    head.appendChild(el); 
-                }
-            }
-            else if (entry.done) {
-                Boot.notify(entry, request);
-            }
-            
-            
-            
-            
-            
-            else if (entry.requests) {
-                entry.requests.push(request);
-            }
-            else {
-                entry.requests = [ request ];
-            }
-        },
-
-        loadSequential: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                }
-            }
-            request.sequential = true;
-            Boot.load(request);
-        },
-
-        loadSequentialBasePrefix: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                };
-            }
-            request.prependBaseUrl = true;
-            Boot.loadSequential(request);
-        },
-
-        fetchSync: function(url) {
-            var exception, xhr, status, content;
-
-            exception = false;
-            xhr = new XMLHttpRequest();
-
-            try {
-                xhr.open('GET', url, false);
-                xhr.send(null);
-            } catch (e) {
-                exception = true;
-            }
-
-            status = (xhr.status === 1223) ? 204 :
-                (xhr.status === 0 && ((self.location || {}).protocol === 'file:' ||
-                    (self.location || {}).protocol === 'ionp:')) ? 200 : xhr.status;
-            content = xhr.responseText;
-
-            xhr = null; 
-
-            return {
-                content: content,
-                exception: exception,
-                status: status
-            };
-
-
-        },
-
-        
-        loadSync: function (request) {
-            _syncMode++;
-            var request = Boot.expandLoadOrder(request.url ? request : {url: request}),
-                url = request.url,
-                urls = url.charAt ? [ url ] : url,
-                length = urls.length,
-                buster = _config.disableCaching &&
-                    ('?' + _config.disableCachingParam + '=' + (+new Date())),
-                content, entry, i, key, status, exception;
-
-            
-            
-            request.loading = length;
-            request.urls = urls;
-            request.loaded = 0;
-
-            
-            
-            _entries++;
-
-            for (i = 0; i < length; ++i) {
-                url = urls[i];
-                if (request.prependBaseUrl) {
-                    url = Boot.baseUrl + url;
-                }
-                Boot.currentFile = url;
-
-                key = Boot.canonicalUrl(url);
-                if (!(entry = _items[key])) {
-                    
-                    _entries++;
-
-                    _items[key] = entry = {
-                        key: key,
-                        url: url,
-                        done: false,
-                        requests: [request],
-                        el: null
-                    };
-                } else {
-                    
-                    
-                    if (entry.done) {
-                        Boot.notify(entry, request);
-                        continue;
-                    }
-                    if (entry.el) {
-                        entry.preserve = false;
-                        Boot.cleanup(entry);
-                    }
-
-                    if (entry.requests) {
-                        entry.requests.push(request);
-                    } else {
-                        entry.requests = [request];
-                    }
-                }
-
-                entry.sync = true;
-
-                if (buster) {
-                    url += buster;
-                }
-
-                ++Boot.loading;
-
-
-                content = Boot.fetchSync(url);
-                entry.done = true;
-
-                exception = content.exception;
-                status = content.status;
-                content = content.content || '';
-
-                if ((exception || status === 0) && !_environment.phantom) {
-                    entry.error =
-                        ("Failed loading synchronously via XHR: '" + url +
-                            "'. It's likely that the file is either being loaded from a " +
-                            "different domain or from the local file system where cross " +
-                            "origin requests are not allowed for security reasons. Try " +
-                            "asynchronous loading instead.") ||
-                            true;
-                }
-                else if ((status >= 200 && status < 300) || status === 304
-                    || _environment.phantom
-                    || (status === 0 && content.length > 0)
-                    ) {
-                    Boot.inject(content, url);
-                }
-                else {
-                    entry.error =
-                        ("Failed loading synchronously via XHR: '" + url +
-                            "'. Please verify that the file exists. XHR status code: " +
-                            status) ||
-                            true;
-                }
-
-                Boot.notifyAll(entry);
-            }
-            _syncMode--;
-
-            
-            _entries--;
-            Boot.fireListeners();
-            Boot.currentFile = null;
-            return this;
-        },
-
-        loadSyncBasePrefix: function(request) {
-            if(!request.url) {
-                request = {
-                    url: request
-                };
-            }
-            request.prependBaseUrl = true;
-            Boot.loadSync(request);
-        },
-
-        notify: function (entry, request) {
-            if (request.preserve) {
-                
-                entry.preserve = true;
-            }
-
-            ++request.loaded;
-
-            if (!request.loading) {
-                throw new Error('Unexpected script load notification ' + entry.url);
-            }
-
-            if (entry.error) {
-                (request.errors || (request.errors = [])).push(entry);
-            }
-
-            if (! --request.loading) {
-                
-                _currentRequest = null;
-
-                var errors = request.errors,
-                    fn = request[errors ? 'failure' : 'success'],
-                    delay = ('delay' in request) ? request.delay :
-                        (errors ? 1 : _config.chainDelay),
-                    scope = request.scope || request;
-
-                
-                
-                if (_suspendedQueue.length) {
-                    Boot.load(_suspendedQueue.shift());
-                }
-
-                if (fn) {
-                    if (delay === 0 || delay > 0) {
-                        
-                        setTimeout(function() {
-                            fn.call(scope, request);
-                        }, delay);
-                    } else {
-                        fn.call(scope, request);
-                    }
-                }
-
-            } else if (!_syncMode && request.sequential && (request.loaded < request.urls.length)) {
-                Boot.loadUrl(request.urls[request.loaded], request);
-            }
-        },
-
-        notifyAll: function (entry) {
-            var requests = entry.requests,
-                length = requests && requests.length,
-                i;
-
-            entry.done = true;
-            entry.requests = null;
-            --Boot.loading;
-            ++Boot.loaded;
-
-            for (i = 0; i < length; ++i) {
-                Boot.notify(entry, requests[i]);
-            }
-
-            if (!length) {
-                entry.preserve = true;
-            }
-
-            Boot.cleanup(entry);
-            _entries--;
-            Boot.fireListeners();
-        },
-
-        watch: function (entry) {
-            var el = entry.el,
-                requests = entry.requests,
-                listener = requests && requests[0],
-                onLoadFn = function () {
-                    if (!entry.done) {
-                        Boot.notifyAll(entry);
-                    }
-                };
-
-            el.onerror = function () {
-                entry.error = true;
-                Boot.notifyAll(entry);
-            };
-
-            entry.preserve = (listener && ('preserve' in listener))
-                ? listener.preserve : _config.preserveScripts;
-
-            
-            if (!('readyState' in el)) {
-                el.onload = onLoadFn;
-            } else {
-                
-                el.onreadystatechange = function() {
-                    if (this.readyState === 'loaded' || this.readyState === 'complete') {
-                        onLoadFn();
-                    }
-                };
-            }
-
-            ++Boot.loading;
-        },
-
-        
-        cleanup: function (entry) {
-            var el = entry.el,
-                prop;
-
-            if(!el) {
-                return;
-            }
-
-            if (!entry.preserve) {
-                entry.el = null;
-
-                el.parentNode.removeChild(el); 
-
-                for (prop in el) {
-                    try {
-                        if (prop !== entry.prop) {
-                            
-                            
-                            el[prop] = null;
-                        }
-                        delete el[prop];      
-                    } catch (cleanEx) {
-                        
-                    }
-                }
-            }
-
-            
-            
-            
-            el.onload = el.onerror = el.onreadystatechange = emptyFn;
-        },
-
-        fireListeners: function() {
-            var listener;
-            while(!_entries && (listener = _listeners.shift())) {
-                listener();
-            }
-        },
-
-        onBootReady: function(listener) {
-            if (!_entries) {
-                listener();
-            } else {
-                _listeners.push(listener);
-            }
-        },
-
-        
-        createLoadOrderMap: function(loadOrder) {
-            var len = loadOrder.length,
-                loadOrderMap = {},
-                i, element;
-
-            for(i = 0; i < len; i++) {
-                element = loadOrder[i];
-                loadOrderMap[element.path] = element;
-            }
-
-            return loadOrderMap;
-        },
-
-        
-        getLoadIndexes: function(index, indexMap, loadOrder, includeUses, skipLoaded) {
-            var item = loadOrder[index],
-                len, i, reqs, key, entry, stop, added, idx, ridx;
-
-            if(indexMap[index]) {
-                
-                return indexMap;
-            }
-
-            indexMap[index] = true;
-
-            stop = false;
-            while(!stop) {
-                added = false;
-
-                
-                
-                for(idx in indexMap) {
-                    if(indexMap.hasOwnProperty(idx)) {
-                        item = loadOrder[idx];
-                        if(!item) {
-                            continue;
-                        }
-                        key = Boot.canonicalUrl(item.path);
-                        entry = _items[key];
-                        if(!skipLoaded || !entry || !entry.done) {
-                            reqs = item.requires;
-                            if(includeUses && item.uses) {
-                                reqs = reqs.concat(item.uses);
-                            }
-                            for(len = reqs.length, i = 0; i < len; i++) {
-                                ridx = reqs[i];
-                                
-                                
-                                
-                                
-                                if(!indexMap[ridx]) {
-                                    indexMap[ridx] = true;
-                                    added = true;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                
-                
-                if(!added) {
-                    stop = true;
-                }
-            }
-
-            return indexMap;
-        },
-
-        getPathsFromIndexes: function(indexMap, loadOrder) {
-            var indexes = [],
-                paths = [],
-                index, len, i;
-
-            for(index in indexMap) {
-                if(indexMap.hasOwnProperty(index) && indexMap[index]) {
-                    indexes.push(index);
-                }
-            }
-
-            indexes.sort(function(a, b){
-                return a-b;
-            });
-
-            
-            for (len = indexes.length, i = 0; i < len; i++) {
-                paths.push(loadOrder[indexes[i]].path);
-            }
-
-            return paths;
-        },
-
-        
-        expandUrl: function(url, loadOrder, loadOrderMap, indexMap, includeUses, skipLoaded) {
-            if(typeof url == 'string') {
-                url = [url];
-            }
-
-            if(loadOrder) {
-                loadOrderMap = loadOrderMap || Boot.createLoadOrderMap(loadOrder);
-                indexMap = indexMap || {};
-                var len = url.length,
-                    unmapped = [],
-                    i, item;
-
-                for(i = 0; i < len; i++) {
-                    item = loadOrderMap[url[i]];
-                    if(item) {
-                        Boot.getLoadIndexes(item.idx, indexMap, loadOrder, includeUses, skipLoaded);
-                    } else {
-                        unmapped.push(url[i]);
-                    }
-                }
-
-
-
-                return Boot.getPathsFromIndexes(indexMap, loadOrder).concat(unmapped);
-            }
-            return url;
-        },
-
-        expandUrls: function(urls, loadOrder, loadOrderMap, includeUses) {
-            if(typeof urls == "string") {
-                urls = [urls];
-            }
-
-            var expanded = [],
-                len = urls.length,
-                i;
-
-            for(i = 0; i < len; i++) {
-                expanded = expanded.concat(
-                    Boot.expandUrl(urls[i], loadOrder, loadOrderMap, {}, includeUses, true));
-            }
-
-            if(expanded.length == 0) {
-                expanded = urls;
-            }
-
-            return expanded;
-        },
-
-        
-        expandLoadOrder: function(request) {
-            var urls = request.url,
-                loadOrder = request.loadOrder,
-                loadOrderMap = request.loadOrderMap,
-                expanded;
-
-            if(!request.expanded) {
-                expanded = Boot.expandUrls(urls, loadOrder, loadOrderMap);
-                request.expanded = true;
-            } else {
-                expanded = urls;
-            }
-
-            request.url = expanded;
-
-            
-            
-            if(urls.length != expanded.length) {
-                request.sequential = true;
-            }
-
-            return request;
-        }
-    };
-
-    
-    Ext.disableCacheBuster = function (disable, path) {
-        var date = new Date();
-        date.setTime(date.getTime() + (disable ? 10*365 : -1) * 24*60*60*1000);
-        date = date.toGMTString();
-        doc.cookie = 'ext-cache=1; expires=' + date + '; path='+(path || '/');
-    };
-
-
-    Boot.init();
-    return Boot;
-
-
-
-}(function() {}));
-
-
-Ext.globalEval = this.execScript
-    ? function(code) {
-    execScript(code);
-}
-    : function($$code) {
-    
-    
-    (function(){
-        
-        
-        
-        var Ext = this.Ext;
-        eval($$code);
-    }());
-};
-
-
-if (!Function.prototype.bind) {
-    (function () {
-        var slice = Array.prototype.slice,
-        
-        
-            bind = function (me) {
-                var args = slice.call(arguments, 1),
-                    method = this;
-
-                if (args.length) {
-                    return function () {
-                        var t = arguments;
-                        
-                        return method.apply(me, t.length ? args.concat(slice.call(t)) : args);
-                    };
-                }
-                
-
-                args = null;
-                return function () {
-                    return method.apply(me, arguments);
-                };
-            };
-        Function.prototype.bind = bind;
-        bind.$extjs = true; 
-    }());
-}
-
-
-
-
-
 var Ext = Ext || {};
-
 
 Ext._startTime = Date.now ? Date.now() : (+ new Date());
 (function() {
@@ -11545,8 +12197,7 @@ Ext.deprecated = function (suggestion) {
         return; 
     }
 
-    var win = Ext.global,
-        last = 0,
+    var last = 0,
         
         notify = function() {
             var cnt = Ext.log && Ext.log.counters,
@@ -11568,14 +12219,14 @@ Ext.deprecated = function (suggestion) {
                 if (cnt.log) {
                     msg.push('Log: ' + cnt.log);
                 }
-                win.status = '*** ' + msg.join(' -- ');
+                window.status = '*** ' + msg.join(' -- ');
                 last = n;
             }
         };
 
     
     
-    win.setInterval(notify, 1000);
+    setInterval(notify, 1000);
 }());
 
 
@@ -12583,7 +13234,6 @@ Ext.String = (function() {
 
     var trimRegex     = /^[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000]+|[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,
         escapeRe      = /('|\\)/g,
-        formatRe      = /\{\d+\}/,
         escapeRegexRe = /([-.*+?\^${}()|\[\]\/\\])/g,
         basicTrimRe   = /^\s+|\s+$/g,
         whitespaceRe  = /\s+/,
@@ -12606,25 +13256,6 @@ Ext.String = (function() {
             return other.length <= s.length; 
         },
         
-        
-        
-        formatTplConfig = {useFormat: false, compiled: true, stringFormat: true},
-        formatFns = {},
-        generateFormatFn = function(format) {
-            
-            if (formatRe.test(format)) {
-                format = new Ext.Template(format, formatTplConfig);
-                return function() {
-                    return format.apply(arguments);
-                };
-            }
-            
-            else {
-                return function() {
-                    return format;
-                };
-            }
-        },
         ExtString;
 
     return ExtString = {
@@ -12834,12 +13465,6 @@ Ext.String = (function() {
                 result = character + result;
             }
             return result;
-        },
-
-        
-        format: function(format) {
-            var formatFn = formatFns[format] || (formatFns[format] = generateFormatFn(format));
-            return formatFn.apply(this, arguments);
         },
 
         
@@ -14078,329 +14703,399 @@ return utilDate = {
 }());
 
 
-Ext.Function = {
+Ext.Function = (function() {
 
 
 
 
-    
-    flexSetter: function(setter) {
-        return function(name, value) {
-            var k, i;
+    var lastTime = 0,
+        animFrameId,
+        animFrameHandlers = [],
+        animFrameNoArgs = [],
+        idSource = 0,
+        animFrameMap = {},
+        win = window,
+        requestAnimFrame = win.requestAnimationFrame || win.webkitRequestAnimationFrame ||
+            win.mozRequestAnimationFrame || win.oRequestAnimationFrame ||
+            function(callback) {
+                var currTime = Ext.now(),
+                    timeToCall = Math.max(0, 16 - (currTime - lastTime)),
+                    id = win.setTimeout(function() {
+                        callback(currTime + timeToCall);
+                    }, timeToCall);
+                lastTime = currTime + timeToCall;
+                return id;
+            },
+        fireHandlers = function() {
+            var len = animFrameHandlers.length,
+                id, i, handler;
 
-            if (name !== null) {
-                if (typeof name !== 'string') {
-                    for (k in name) {
-                        if (name.hasOwnProperty(k)) {
-                            setter.call(this, k, name[k]);
-                        }
-                    }
+            animFrameId = null;
+            
+            for (i = 0; i < len; i++) {
+                handler = animFrameHandlers[i];
+                id = handler[3];
+                
+                
+                if (animFrameMap[id]) {
+                    handler[0].apply(handler[1] || Ext.global, handler[2] || animFrameNoArgs);
+                    delete animFrameMap[id];
+                }
+            }
 
-                    if (Ext.enumerables) {
-                        for (i = Ext.enumerables.length; i--;) {
-                            k = Ext.enumerables[i];
+            
+            
+            animFrameHandlers = animFrameHandlers.slice(len);
+        },
+        fireElevatedHandlers = function() {
+            Ext.elevateFunction(fireHandlers);
+        },
+        ExtFunction = {
+        
+        flexSetter: function(setter) {
+            return function(name, value) {
+                var k, i;
+
+                if (name !== null) {
+                    if (typeof name !== 'string') {
+                        for (k in name) {
                             if (name.hasOwnProperty(k)) {
                                 setter.call(this, k, name[k]);
                             }
                         }
+
+                        if (Ext.enumerables) {
+                            for (i = Ext.enumerables.length; i--;) {
+                                k = Ext.enumerables[i];
+                                if (name.hasOwnProperty(k)) {
+                                    setter.call(this, k, name[k]);
+                                }
+                            }
+                        }
+                    } else {
+                        setter.call(this, name, value);
                     }
+                }
+
+                return this;
+            };
+        },
+
+        
+        bind: function(fn, scope, args, appendArgs) {
+            if (arguments.length === 2) {
+                return function() {
+                    return fn.apply(scope, arguments);
+                };
+            }
+
+            var method = fn,
+                slice = Array.prototype.slice;
+
+            return function() {
+                var callArgs = args || arguments;
+
+                if (appendArgs === true) {
+                    callArgs = slice.call(arguments, 0);
+                    callArgs = callArgs.concat(args);
+                }
+                else if (typeof appendArgs == 'number') {
+                    callArgs = slice.call(arguments, 0); 
+                    Ext.Array.insert(callArgs, appendArgs, args);
+                }
+
+                return method.apply(scope || Ext.global, callArgs);
+            };
+        },
+
+        
+        bindCallback: function (callback, scope, args, delay, caller) {
+            return function () {
+                var a = Ext.Array.slice(arguments);
+                return Ext.callback(callback, scope, args ? args.concat(a) : a, delay, caller);
+            };
+        },
+
+        
+        pass: function(fn, args, scope) {
+            if (!Ext.isArray(args)) {
+                if (Ext.isIterable(args)) {
+                    args = Ext.Array.clone(args);
                 } else {
-                    setter.call(this, name, value);
+                    args = args !== undefined ? [args] : [];
                 }
             }
 
-            return this;
-        };
-    },
-
-    
-    bind: function(fn, scope, args, appendArgs) {
-        if (arguments.length === 2) {
             return function() {
-                return fn.apply(scope, arguments);
+                var fnArgs = args.slice();
+                fnArgs.push.apply(fnArgs, arguments);
+                return fn.apply(scope || this, fnArgs);
             };
-        }
-
-        var method = fn,
-            slice = Array.prototype.slice;
-
-        return function() {
-            var callArgs = args || arguments;
-
-            if (appendArgs === true) {
-                callArgs = slice.call(arguments, 0);
-                callArgs = callArgs.concat(args);
-            }
-            else if (typeof appendArgs == 'number') {
-                callArgs = slice.call(arguments, 0); 
-                Ext.Array.insert(callArgs, appendArgs, args);
-            }
-
-            return method.apply(scope || Ext.global, callArgs);
-        };
-    },
-
-    
-    bindCallback: function (callback, scope, args, delay, caller) {
-        return function () {
-            var a = Ext.Array.slice(arguments);
-            return Ext.callback(callback, scope, args ? args.concat(a) : a, delay, caller);
-        };
-    },
-
-    
-    pass: function(fn, args, scope) {
-        if (!Ext.isArray(args)) {
-            if (Ext.isIterable(args)) {
-                args = Ext.Array.clone(args);
-            } else {
-                args = args !== undefined ? [args] : [];
-            }
-        }
-
-        return function() {
-            var fnArgs = args.slice();
-            fnArgs.push.apply(fnArgs, arguments);
-            return fn.apply(scope || this, fnArgs);
-        };
-    },
-
-    
-    alias: function(object, methodName) {
-        return function() {
-            return object[methodName].apply(object, arguments);
-        };
-    },
-
-    
-    clone: function(method) {
-        return function() {
-            return method.apply(this, arguments);
-        };
-    },
-
-    
-    createInterceptor: function(origFn, newFn, scope, returnValue) {
-        if (!Ext.isFunction(newFn)) {
-            return origFn;
-        } else {
-            returnValue = Ext.isDefined(returnValue) ? returnValue : null;
-            return function() {
-                var me = this,
-                    args = arguments;
-                    
-                newFn.target = me;
-                newFn.method = origFn;
-                return (newFn.apply(scope || me || Ext.global, args) !== false) ? 
-                            origFn.apply(me || Ext.global, args) : returnValue;
-            };
-        }
-    },
-
-    
-    createDelayed: function(fn, delay, scope, args, appendArgs) {
-        if (scope || args) {
-            fn = Ext.Function.bind(fn, scope, args, appendArgs);
-        }
-
-        return function() {
-            var me = this,
-                args = Array.prototype.slice.call(arguments);
-
-            setTimeout(function() {
-                fn.apply(me, args);
-            }, delay);
-        };
-    },
-
-    
-    defer: function(fn, millis, scope, args, appendArgs) {
-        fn = Ext.Function.bind(fn, scope, args, appendArgs);
-        if (millis > 0) {
-            return setTimeout(Ext.supports.TimeoutActualLateness ? function () {
-                fn();
-            } : fn, millis);
-        }
-        fn();
-        return 0;
-    },
-
-    
-    createSequence: function(originalFn, newFn, scope) {
-        if (!newFn) {
-            return originalFn;
-        }
-        else {
-            return function() {
-                var result = originalFn.apply(this, arguments);
-                newFn.apply(scope || this, arguments);
-                return result;
-            };
-        }
-    },
-
-    
-    createBuffered: function(fn, buffer, scope, args) {
-        var timerId;
-
-        return function() {
-            var callArgs = args || Array.prototype.slice.call(arguments, 0),
-                me = scope || this;
-
-            if (timerId) {
-                clearTimeout(timerId);
-            }
-
-            timerId = setTimeout(function(){
-                fn.apply(me, callArgs);
-            }, buffer);
-        };
-    },
-
-    
-    createAnimationFrame: function(fn, scope, args, queueStrategy) {
-        var Function = Ext.Function,
-            timerId;
-
-        queueStrategy = queueStrategy || 3;
-
-        return function() {
-            var callArgs = args || Array.prototype.slice.call(arguments, 0);
-
-            scope = scope || this;
-
-            if (queueStrategy === 3) {
-                Function.cancelAnimationFrame(timerId);
-            }
-
-            if ((queueStrategy & 1) || !timerId) {
-                timerId = Function.requestAnimationFrame(function() {
-                    timerId = null;
-                    fn.apply(scope, callArgs);
-                });
-            }
-        };
-    },
-
-    requestAnimationFrame: (function() {
-        var lastTime = 0,
-            win = window,
-            requestAnimFrame = win.requestAnimationFrame || win.webkitRequestAnimationFrame ||
-                win.mozRequestAnimationFrame || win.oRequestAnimationFrame ||
-                function(callback) {
-                    var currTime = Ext.now(),
-                        timeToCall = Math.max(0, 16 - (currTime - lastTime)),
-                        id = window.setTimeout(function() {
-                            callback(currTime + timeToCall);
-                        }, timeToCall);
-                    lastTime = currTime + timeToCall;
-                    return id;
-                };
-
-        return function(fn) {
-            return requestAnimFrame(fn);
-        };
-    })(),
-
-    cancelAnimationFrame: (function() {
-        var win = window,
-            cancelAnimFrame = win.cancelAnimationFrame || win.webkitCancelAnimationFrame ||
-                win.mozCancelAnimationFrame || win.oCancelAnimationFrame ||
-                function(id) {
-                    clearTimeout(id);
-                };
-
-        return function(id) {
-            cancelAnimFrame(id);
-        }
-    })(),
-
-    
-    createThrottled: function(fn, interval, scope) {
-        var lastCallTime = 0,
-            elapsed,
-            lastArgs,
-            timer,
-            execute = function() {
-                fn.apply(scope, lastArgs);
-                lastCallTime = Ext.now();
-                timer = null;
-            };
-
-        return function() {
-            
-            if (!scope) {
-                scope = this;
-            }
-            elapsed = Ext.now() - lastCallTime;
-            lastArgs = arguments;
-
-            
-            
-            if (elapsed >= interval) {
-                clearTimeout(timer);
-                execute();
-            }
-            
-            else if (!timer) {
-                timer = setTimeout(execute, interval - elapsed);
-            }
-        };
-    },
+        },
 
         
-    createBarrier: function(count, fn, scope) {
-        return function() {
-            if (!--count) {
-                fn.apply(scope, arguments);
+        alias: function(object, methodName) {
+            return function() {
+                return object[methodName].apply(object, arguments);
+            };
+        },
+
+        
+        clone: function(method) {
+            return function() {
+                return method.apply(this, arguments);
+            };
+        },
+
+        
+        createInterceptor: function(origFn, newFn, scope, returnValue) {
+            if (!Ext.isFunction(newFn)) {
+                return origFn;
+            } else {
+                returnValue = Ext.isDefined(returnValue) ? returnValue : null;
+                return function() {
+                    var me = this,
+                        args = arguments;
+
+                    newFn.target = me;
+                    newFn.method = origFn;
+                    return (newFn.apply(scope || me || Ext.global, args) !== false) ? 
+                                origFn.apply(me || Ext.global, args) : returnValue;
+                };
             }
-        };
-    },
+        },
 
-    
-    interceptBefore: function(object, methodName, fn, scope) {
-        var method = object[methodName] || Ext.emptyFn;
-
-        return (object[methodName] = function() {
-            var ret = fn.apply(scope || this, arguments);
-            method.apply(this, arguments);
-
-            return ret;
-        });
-    },
-
-    
-    interceptAfter: function(object, methodName, fn, scope) {
-        var method = object[methodName] || Ext.emptyFn;
-
-        return (object[methodName] = function() {
-            method.apply(this, arguments);
-            return fn.apply(scope || this, arguments);
-        });
-    },
-
-    makeCallback: function (callback, scope) {
-        if (!scope[callback]) {
-            if (scope.$className) {
-                Ext.Error.raise('No method "' + callback + '" on ' + scope.$className);
+        
+        createDelayed: function(fn, delay, scope, args, appendArgs) {
+            if (scope || args) {
+                fn = Ext.Function.bind(fn, scope, args, appendArgs);
             }
-            Ext.Error.raise('No method "' + callback + '"');
+
+            return function() {
+                var me = this,
+                    args = Array.prototype.slice.call(arguments);
+
+                setTimeout(function() {
+                    if (Ext.elevateFunction) {
+                        Ext.elevateFunction(fn, me, args);
+                    } else {
+                        fn.apply(me, args);
+                    }
+                }, delay);
+            };
+        },
+
+        
+        defer: function(fn, millis, scope, args, appendArgs) {
+            fn = Ext.Function.bind(fn, scope, args, appendArgs);
+            if (millis > 0) {
+                return setTimeout(function () {
+                    if (Ext.elevateFunction) {
+                        Ext.elevateFunction(fn);
+                    } else {
+                        fn();
+                    }
+                }, millis);
+            }
+            fn();
+            return 0;
+        },
+
+        
+        interval: function(fn, millis, scope, args, appendArgs) {
+            fn = Ext.Function.bind(fn, scope, args, appendArgs);
+            return setInterval(function () {
+                if (Ext.elevateFunction) {
+                    Ext.elevateFunction(fn);
+                } else {
+                    fn();
+                }
+            }, millis);
+        },
+
+        
+        createSequence: function(originalFn, newFn, scope) {
+            if (!newFn) {
+                return originalFn;
+            }
+            else {
+                return function() {
+                    var result = originalFn.apply(this, arguments);
+                    newFn.apply(scope || this, arguments);
+                    return result;
+                };
+            }
+        },
+
+        
+        createBuffered: function(fn, buffer, scope, args) {
+            var timerId;
+
+            return function() {
+                var callArgs = args || Array.prototype.slice.call(arguments, 0),
+                    me = scope || this;
+
+                if (timerId) {
+                    clearTimeout(timerId);
+                }
+
+                timerId = setTimeout(function(){
+                    if (Ext.elevateFunction) {
+                        Ext.elevateFunction(fn, me, callArgs);
+                    } else {
+                        fn.apply(me, callArgs);
+                    }
+                }, buffer);
+            };
+        },
+
+        
+        createAnimationFrame: function(fn, scope, args, queueStrategy) {
+            var timerId;
+
+            queueStrategy = queueStrategy || 3;
+
+            return function() {
+                var callArgs = args || Array.prototype.slice.call(arguments, 0);
+
+                scope = scope || this;
+
+                if (queueStrategy === 3 && timerId) {
+                    ExtFunction.cancelAnimationFrame(timerId);
+                }
+
+                if ((queueStrategy & 1) || !timerId) {
+                    timerId = ExtFunction.requestAnimationFrame(function() {
+                        timerId = null;
+                        fn.apply(scope, callArgs);
+                    });
+                }
+            };
+        },
+
+        
+        requestAnimationFrame: function(fn, scope, args) {
+            var id = ++idSource,  
+                handler = Array.prototype.slice.call(arguments, 0);
+
+            handler[3] = id;
+            animFrameMap[id] = 1; 
+            
+            
+            
+            animFrameHandlers.push(handler);
+
+            if (!animFrameId) {
+                animFrameId = requestAnimFrame(Ext.elevateFunction ? fireElevatedHandlers : fireHandlers);
+            }
+            return id;
+        },
+
+        cancelAnimationFrame: function(id) {
+            
+            
+            
+            delete animFrameMap[id];
+        },
+
+        
+        createThrottled: function(fn, interval, scope) {
+            var lastCallTime = 0,
+                elapsed,
+                lastArgs,
+                timer,
+                execute = function() {
+                    if (Ext.elevateFunction) {
+                        Ext.elevateFunction(fn, scope, lastArgs);
+                    } else {
+                        fn.apply(scope, lastArgs);
+                    }
+                    lastCallTime = Ext.now();
+                    timer = null;
+                };
+
+            return function() {
+                
+                if (!scope) {
+                    scope = this;
+                }
+                elapsed = Ext.now() - lastCallTime;
+                lastArgs = arguments;
+
+                
+                
+                if (elapsed >= interval) {
+                    clearTimeout(timer);
+                    execute();
+                }
+                
+                else if (!timer) {
+                    timer = Ext.defer(execute, interval - elapsed);
+                }
+            };
+        },
+
+            
+        createBarrier: function(count, fn, scope) {
+            return function() {
+                if (!--count) {
+                    fn.apply(scope, arguments);
+                }
+            };
+        },
+
+        
+        interceptBefore: function(object, methodName, fn, scope) {
+            var method = object[methodName] || Ext.emptyFn;
+
+            return (object[methodName] = function() {
+                var ret = fn.apply(scope || this, arguments);
+                method.apply(this, arguments);
+
+                return ret;
+            });
+        },
+
+        
+        interceptAfter: function(object, methodName, fn, scope) {
+            var method = object[methodName] || Ext.emptyFn;
+
+            return (object[methodName] = function() {
+                method.apply(this, arguments);
+                return fn.apply(scope || this, arguments);
+            });
+        },
+
+        makeCallback: function (callback, scope) {
+            if (!scope[callback]) {
+                if (scope.$className) {
+                    Ext.Error.raise('No method "' + callback + '" on ' + scope.$className);
+                }
+                Ext.Error.raise('No method "' + callback + '"');
+            }
+
+            return function () {
+                return scope[callback].apply(scope, arguments);
+            };
         }
+    };
 
-        return function () {
-            return scope[callback].apply(scope, arguments);
-        };
-    }
-};
+    
+    Ext.defer = ExtFunction.defer;
 
+    
+    Ext.interval = ExtFunction.interval;
 
-Ext.defer = Ext.Function.defer;
+    
+    Ext.pass = ExtFunction.pass;
 
+    
+    Ext.bind = ExtFunction.bind;
 
-Ext.pass = Ext.Function.pass;
+    Ext.deferCallback = ExtFunction.requestAnimationFrame;
 
-
-Ext.bind = Ext.Function.bind;
+    return ExtFunction;
+})();
 
 
 Ext.Number = new function() {
@@ -14479,11 +15174,18 @@ Ext.Number = new function() {
 
             
             
+            
+            if (min === null) {
+                min = number;
+            }
+
+            if (max === null) {
+                max = number;
+            }
 
             
             
-            
-            
+
             
             return (x < min) ? min : ((x > max) ? max : x);
         },
@@ -15077,6 +15779,16 @@ Ext.apply(Ext, {
 
 
 
+    
+    _namedScopes: {
+        'this': { isThis: 1 },
+        controller: { isController: 1 },
+        
+        
+        self: { isSelf: 1 },
+        'self.controller': { isSelf: 1, isController: 1 }
+    },
+
     escapeId: (function(){
         var validIdRe = /^[a-zA-Z_][a-zA-Z0-9_\-]*$/i,
             escapeRx = /([\W]{1})/g,
@@ -15104,11 +15816,11 @@ Ext.apply(Ext, {
             return;
         }
 
-        var preventClimb = scope === 'this' || scope === 'controller';
+        var namedScope = (scope in Ext._namedScopes);
         
         if (callback.charAt) { 
-            if ((!scope || preventClimb) && caller) {
-                scope = caller.resolveListenerScope(preventClimb ? scope : defaultScope);
+            if ((!scope || namedScope) && caller) {
+                scope = caller.resolveListenerScope(namedScope ? scope : defaultScope);
             }
             if (!scope || !Ext.isObject(scope)) {
                 Ext.Error.raise('Named method "' + callback + '" requires a scope object');
@@ -15119,7 +15831,7 @@ Ext.apply(Ext, {
             }
 
             callback = scope[callback];
-        } else if (preventClimb) {
+        } else if (namedScope) {
             scope = defaultScope || caller;
         } else if (!scope) {
             scope = caller;
@@ -15286,8 +15998,8 @@ Ext.apply(Ext, {
 
     
     getScrollbarSize: function (force) {
-        if (!Ext.isReady) {
-            return {};
+        if (!Ext.isDomReady) {
+            Ext.Error.raise("getScrollbarSize called before DomReady");
         }
 
         var scrollbarSize = Ext._scrollbarSize;
@@ -16124,6 +16836,25 @@ Ext.Config.prototype = {
         return target.$configPrefixed ? this.names.internal : this.name;
     },
 
+    mergeNew: function (newValue, oldValue, target, mixinClass) {
+        var ret, key;
+
+        if (!oldValue) {
+            ret = newValue;
+        } else if (!newValue) {
+            ret = oldValue;
+        } else {
+            ret = Ext.Object.chain(oldValue);
+
+            for (key in newValue) {
+                if (!mixinClass || !(key in ret)) {
+                    ret[key] = newValue[key];
+                }
+            }
+        }
+        return ret;
+    },
+
     
     mergeSets: function (newValue, oldValue, preserveExisting) {
         var ret = oldValue ? Ext.Object.chain(oldValue) : {},
@@ -16675,22 +17406,57 @@ Ext.Configurator.prototype = {
         return config;
     },
 
-    reconfigure: function (instance, instanceConfig, onlyIfNotSet) {
+    
+    merge: function(instance, baseConfig, config) {
+        
+        
+        var configs = this.configs,
+            name, value, baseValue, cfg, merge;
+
+        for (name in config) {
+            value = config[name];
+            cfg = configs[name];
+            if (cfg) {
+                merge = cfg.merge;
+                if (merge) {
+                    value = merge.call(cfg, value, baseConfig[name], instance);
+                } else if (value && value.constructor === Object) {
+                    baseValue = baseConfig[name];
+                    if (baseValue && baseValue.constructor === Object) {
+                        value = Ext.Object.merge(baseValue, value);
+                    } else {
+                        value = Ext.clone(value);
+                    }
+                }
+            }
+            baseConfig[name] = value;
+        }
+
+        return baseConfig;
+    },
+
+    
+    reconfigure: function (instance, instanceConfig, options) {
         var currentConfig = instance.config,
             initialConfig = instance.initialConfig,
             configList = [],
             strict = instance.$configStrict,
+            configs = this.configs,
+            defaults = options && options.defaults,
+            applyProps = options && options.strict === false,
             cfg, getter, i, len, name, names, setter;
 
         for (name in instanceConfig) {
-            if (onlyIfNotSet && (name in initialConfig)) {
+            if (defaults && instance.hasOwnProperty(name)) {
                 continue;
             }
 
             currentConfig[name] = instanceConfig[name];
-            cfg = configPropMap[name];
+            cfg = configs[name];
 
             if (cfg) {
+                
+                
                 instance[cfg.names.get] = cfg.initGetter || cfg.getInitGetter();
             } else if (strict) {
                 if (name !== 'type') {
@@ -16705,7 +17471,7 @@ Ext.Configurator.prototype = {
 
         for (i = 0, len = configList.length; i < len; i++) {
             name = configList[i];
-            cfg = configPropMap[name];
+            cfg = configs[name];
 
             if (cfg) {
                 names = cfg.names;
@@ -16720,11 +17486,14 @@ Ext.Configurator.prototype = {
                     delete instance[getter];
                 }
             } else if (!strict) {
-                cfg = Ext.Config.get(name);
+                cfg = configPropMap[name] || Ext.Config.get(name);
                 names = cfg.names;
 
                 if (instance[names.set]) {
                     instance[names.set](instanceConfig[name]);
+                } else if (applyProps) {
+                    
+                    instance[name] = instanceConfig[name];
                 }
                 else if (name !== 'type') {
                     Ext.Error.raise('Config "' + name + '" has no setter on class ' +
@@ -17067,7 +17836,7 @@ var noArgs = [],
                 defaultConfig = !isStatic && target.defaultConfig,
                 enumerables = Ext.enumerables,
                 privates = members.privates,
-                configs, i, ln, member, name, subPrivacy;
+                configs, i, ln, member, name, subPrivacy, privateStatics;
 
             var displayName = (me.$className || '') + '#';
 
@@ -17075,13 +17844,16 @@ var noArgs = [],
                 
                 
                 delete members.privates;
-
+                if (!isStatic) {
+                    privateStatics = privates.statics;
+                    delete privates.statics;
+                }
+                
                 subPrivacy = privates.privacy || privacy || 'framework';
 
                 me.addMembers(privates, isStatic, subPrivacy);
-                privates = privates.statics;
-                if (privates && !isStatic) {
-                    me.addMembers(privates, true, subPrivacy);
+                if (privateStatics) {
+                    me.addMembers(privateStatics, true, subPrivacy);
                 }
             }
 
@@ -17534,19 +18306,24 @@ var noArgs = [],
         getConfig: getConfig,
 
         
-        setConfig: function(name, value) {
-            var me = this,
-                cfg;
+        setConfig: function(name, value,  options) {
             
-            if (typeof name === 'string') {
-                cfg = Ext.Config.map[name];
-                if (!cfg) {
-                    Ext.Logger.error("Invalid property name for setter: '" + name + "' for '" + this.$className + "'.");
+            
+            
+            
+            
+            var me = this,
+                config;
+
+            if (name) {
+                if (typeof name === 'string') {
+                    config = {};
+                    config[name] = value;
+                } else {
+                    config = name;
                 }
-                this[cfg.names.set](value);
-            } else if (name) {
-                
-                me.getConfigurator().reconfigure(me, name);
+
+                me.getConfigurator().reconfigure(me, config, options);
             }
 
             return me;
@@ -18255,7 +19032,7 @@ Ext.Inventory.prototype = {
     },
 
     getAlternatesByName: function (name) {
-        return this.nameToAliases[name] || null;
+        return this.nameToAlternates[name] || null;
     },
 
     
@@ -19489,7 +20266,7 @@ var makeCtor = Ext.Class.makeCtor,
             paths = manifest.paths,
             aliases = {},
             alternates = {},
-            className, obj, name;
+            className, obj, name, path, baseUrl;
 
         if(paths) {
             
@@ -19551,7 +20328,7 @@ Ext.env.Browser = function (userAgent, publish) {
         engineVersion = '',
         majorVer = '',
         isWebView = false,
-        i, mode, name;
+        i, prefix, mode, name, maxIEVersion;
 
     
     me.userAgent = userAgent;
@@ -19625,29 +20402,24 @@ Ext.env.Browser = function (userAgent, publish) {
                 majorVer = 9;
             } else if (mode == 10 || (majorVer == 10 && mode != 7 && mode != 8 && mode != 9)) {
                 majorVer = 10;
+            } else if (mode == 11 || (majorVer == 11 && mode != 7 && mode != 8 && mode != 9 && mode != 10)) {
+                majorVer = 11;
             }
 
-            if (majorVer <= 7) {
-                Ext.isIE7m = true;
-            }
-            if (majorVer <= 8) {
-                Ext.isIE8m = true;
-            }
-            if (majorVer <= 9) {
-                Ext.isIE9m = true;
-            }
+            maxIEVersion = Math.max(majorVer, 11);
+            for (i = 7; i <= maxIEVersion; ++i) {
+                prefix = 'isIE' + i; 
+                if (majorVer <= i) {
+                    Ext[prefix + 'm'] = true;
+                }
 
-            if (majorVer >= 7) {
-                Ext.isIE7p = true;
-            }
-            if (majorVer >= 8) {
-                Ext.isIE8p = true;
-            }
-            if (majorVer >= 9) {
-                Ext.isIE9p = true;
-            }
-            if (majorVer >= 10) {
-                Ext.isIE10p = true;
+                if (majorVer === i) {
+                    Ext[prefix] = true;
+                }
+
+                if (majorVer >= i) {
+                    Ext[prefix + 'p'] = true;
+                }
             }
         }
 
@@ -20275,14 +21047,6 @@ Ext.feature = {
         }
     },{
         
-        name: 'TimeoutActualLateness',
-        fn: function () {
-            setTimeout(function() {
-                Ext.supports.TimeoutActualLateness = arguments.length !== 0;
-            }, 0);
-        }
-    },{
-        
         name: 'Canvas',
         fn: function() {
             var element = this.getTestElement('canvas');
@@ -20586,10 +21350,10 @@ Ext.feature = {
                 i;
             for (i = 0; i < domPrefixes.length; i++) {
                 if (doc.documentElement.style[domPrefixes[i]] !== undefined) {
-                    return true;
+                    pass = true;
                 }
             }
-            return pass;
+            return pass && !Ext.isIE9;
         }
     },
 
@@ -20652,7 +21416,7 @@ Ext.feature = {
     {
         name: 'Direct2DBug',
         fn: function(doc) {
-            return Ext.isString(doc.documentElement.style.msTransformOrigin) && Ext.isIE10m;
+            return Ext.isString(doc.documentElement.style.msTransformOrigin) && Ext.isIE9m;
         }
     },
 
@@ -20922,9 +21686,20 @@ Ext.feature = {
 
             return width === 50;
         }
+    },
+    
+    
+    {
+        name: 'FocusinFocusoutEvents',
+        
+        
+        
+        
+        fn: function() {
+            return !Ext.isGecko;
+        }
     }
-
-
+    
     ]
 };
 
@@ -20940,7 +21715,7 @@ Ext.env.Ready = {
 
 
     
-    blocks: 0,
+    blocks: (location.search || '').indexOf('ext-pauseReadyFire') > 0 ? 1 : 0,
 
     
     bound: 0,
@@ -20998,6 +21773,7 @@ Ext.env.Ready = {
 
     block: function () {
         ++this.blocks;
+        Ext.isReady = false;
     },
 
     
@@ -21019,7 +21795,7 @@ Ext.env.Ready = {
                 
                 
                 
-                me.timer = setTimeout(function() {
+                me.timer = Ext.defer(function() {
                     me.timer = null;
                     me.handleReadySoon();
                 }, 1);
@@ -21034,15 +21810,11 @@ Ext.env.Ready = {
         var me = this;
 
         if (me.state === 1) {
-            if (me.isPaused()) {
-                me.handleReadySoon(250); 
-            } else {
-                me.state = 2;
+            me.state = 2;
 
-                Ext._beforeReadyTime = Ext.now();
-                me.invokeAll();
-                Ext._afterReadytime = Ext.now();
-            }
+            Ext._beforeReadyTime = Ext.now();
+            me.invokeAll();
+            Ext._afterReadytime = Ext.now();
         }
     },
 
@@ -21051,7 +21823,7 @@ Ext.env.Ready = {
         var me = this;
 
         if (!me.timer) {
-            me.timer = setTimeout(function () {
+            me.timer = Ext.defer(function () {
                 me.timer = null;
                 me.handleReady();
             }, delay || me.delay);
@@ -21063,7 +21835,7 @@ Ext.env.Ready = {
         var delay = listener.delay;
 
         if (delay) {
-            setTimeout(function () {
+            Ext.defer(function () {
                 listener.fn.call(listener.scope);
             }, delay);
         } else {
@@ -21078,8 +21850,6 @@ Ext.env.Ready = {
             listener;
 
         if (!me.blocks) {
-            
-            
             
             Ext.isReady = true;
         }
@@ -21111,12 +21881,6 @@ Ext.env.Ready = {
         }
 
         me.firing = false;
-    },
-
-    
-    isPaused: function () {
-        return (location.search || '').indexOf('ext-pauseReadyFire') > 0 &&
-                !Ext._continueFireReady;
     },
 
     
@@ -21165,6 +21929,16 @@ Ext.env.Ready = {
     
     onReadyEvent: function (ev) {
         var me = Ext.env.Ready;
+
+        if (Ext.elevateFunction) {
+            Ext.elevateFunction(me.doReadyEvent, me, arguments);
+        } else {
+            me.doReadyEvent(ev);
+        }
+    },
+
+    doReadyEvent: function (ev) {
+        var me = this;
 
         if (ev && ev.type) {
             me.events.push(ev);
@@ -21221,7 +21995,9 @@ Ext.env.Ready = {
 (function () {
     var Ready = Ext.env.Ready;
 
-    if (Ext.isIE8) {
+
+    
+    if (Ext.isIE9m) {
         
         Ext.apply(Ready, {
             
@@ -21250,7 +22026,7 @@ Ext.env.Ready = {
                      
                      
                      
-                    Ready.scrollTimer = setTimeout(Ready.pollScroll, 20);
+                    Ready.scrollTimer = Ext.defer(Ready.pollScroll, 20);
                 }
 
                 return scrollable;
@@ -21613,24 +22389,6 @@ Ext.Loader = new function() {
                 
                 
                 
-                
-                
-                
-                
-                Ext.each(missingClassNames, function(name, index) {
-                    Manager.onExists(function() {
-                        var key = Ext.Boot.canonicalUrl(urls[index]),
-                            entry = Ext.Boot.scripts[key];
-                        if (entry && !entry.done) {
-                            Ext.Boot.notifyAll(entry);
-                        }
-                    }, Loader, name);
-                });
-
-                
-                
-                
-                
                 Manager.onExists(function () {
                     Ext.Array.remove(Loader.classesLoading, missingClassNames);
                     Ext.each(missingClassNames, function(name){
@@ -21705,7 +22463,7 @@ Ext.Loader = new function() {
                 onError.call(options.userScope, options);
             }
             else {
-                Ext.Error.raise("[Ext.Loader] Some requested files failed to load.");
+                Ext.log.error("[Ext.Loader] Some requested files failed to load.");
             }
 
             Loader.checkReady();
@@ -22119,338 +22877,6 @@ if (Ext._beforereadyhandler){
     Ext._beforereadyhandler();
 }
 
-Ext.define('Ext.overrides.event.Event', {
-    override: 'Ext.event.Event',
-
-    
-    mousedownEvents: {
-        mousedown: 1,
-        pointerdown: 1,
-        touchstart: 1
-    },
-
-    getXY: function() {
-        var me = this,
-            xy = me.xy,
-            x, browserEvent, doc, docEl, body;
-
-        if (!xy) {
-            xy = me.callParent();
-            x = xy[0];
-
-            
-            if (!x && x !== 0) {
-                browserEvent = me.browserEvent;
-                doc = document;
-                docEl = doc.documentElement;
-                body = doc.body;
-                xy[0] = browserEvent.clientX +
-                    (docEl && docEl.scrollLeft || body && body.scrollLeft || 0) -
-                    (docEl && docEl.clientLeft || body && body.clientLeft || 0);
-                xy[1] = browserEvent.clientY +
-                    (docEl && docEl.scrollTop  || body && body.scrollTop  || 0) -
-                    (docEl && docEl.clientTop  || body && body.clientTop  || 0);
-            }
-        }
-
-        return xy;
-    },
-
-    
-    injectEvent: (function () {
-        var API,
-            dispatchers = {}, 
-            crazyIEButtons;
-
-        
-
-        
-        
-
-        if (!Ext.isIE9m && document.createEvent) { 
-            API = {
-                createHtmlEvent: function (doc, type, bubbles, cancelable) {
-                    var event = doc.createEvent('HTMLEvents');
-
-                    event.initEvent(type, bubbles, cancelable);
-                    return event;
-                },
-
-                createMouseEvent: function (doc, type, bubbles, cancelable, detail,
-                                            clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
-                                            button, relatedTarget) {
-                    var event = doc.createEvent('MouseEvents'),
-                        view = doc.defaultView || window;
-
-                    if (event.initMouseEvent) {
-                        event.initMouseEvent(type, bubbles, cancelable, view, detail,
-                                    clientX, clientY, clientX, clientY, ctrlKey, altKey,
-                                    shiftKey, metaKey, button, relatedTarget);
-                    } else { 
-                        event = doc.createEvent('UIEvents');
-                        event.initEvent(type, bubbles, cancelable);
-                        event.view = view;
-                        event.detail = detail;
-                        event.screenX = clientX;
-                        event.screenY = clientY;
-                        event.clientX = clientX;
-                        event.clientY = clientY;
-                        event.ctrlKey = ctrlKey;
-                        event.altKey = altKey;
-                        event.metaKey = metaKey;
-                        event.shiftKey = shiftKey;
-                        event.button = button;
-                        event.relatedTarget = relatedTarget;
-                    }
-
-                    return event;
-                },
-
-                createUIEvent: function (doc, type, bubbles, cancelable, detail) {
-                    var event = doc.createEvent('UIEvents'),
-                        view = doc.defaultView || window;
-
-                    event.initUIEvent(type, bubbles, cancelable, view, detail);
-                    return event;
-                },
-
-                fireEvent: function (target, type, event) {
-                    target.dispatchEvent(event);
-                }
-            };
-        } else if (document.createEventObject) { 
-            crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
-
-            API = {
-                createHtmlEvent: function (doc, type, bubbles, cancelable) {
-                    var event = doc.createEventObject();
-                    event.bubbles = bubbles;
-                    event.cancelable = cancelable;
-                    return event;
-                },
-
-                createMouseEvent: function (doc, type, bubbles, cancelable, detail,
-                                            clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
-                                            button, relatedTarget) {
-                    var event = doc.createEventObject();
-                    event.bubbles = bubbles;
-                    event.cancelable = cancelable;
-                    event.detail = detail;
-                    event.screenX = clientX;
-                    event.screenY = clientY;
-                    event.clientX = clientX;
-                    event.clientY = clientY;
-                    event.ctrlKey = ctrlKey;
-                    event.altKey = altKey;
-                    event.shiftKey = shiftKey;
-                    event.metaKey = metaKey;
-                    event.button = crazyIEButtons[button] || button;
-                    event.relatedTarget = relatedTarget; 
-                    return event;
-                },
-
-                createUIEvent: function (doc, type, bubbles, cancelable, detail) {
-                    var event = doc.createEventObject();
-                    event.bubbles = bubbles;
-                    event.cancelable = cancelable;
-                    return event;
-                },
-
-                fireEvent: function (target, type, event) {
-                    target.fireEvent('on' + type, event);
-                }
-            };
-        }
-
-        
-        
-
-        Ext.Object.each({
-                load:   [false, false],
-                unload: [false, false],
-                select: [true, false],
-                change: [true, false],
-                submit: [true, true],
-                reset:  [true, false],
-                resize: [true, false],
-                scroll: [true, false]
-            },
-            function (name, value) {
-                var bubbles = value[0], cancelable = value[1];
-                dispatchers[name] = function (targetEl, srcEvent) {
-                    var e = API.createHtmlEvent(name, bubbles, cancelable);
-                    API.fireEvent(targetEl, name, e);
-                };
-            });
-
-        
-        
-
-        function createMouseEventDispatcher (type, detail) {
-            var cancelable = (type != 'mousemove');
-            return function (targetEl, srcEvent) {
-                var xy = srcEvent.getXY(),
-                    e = API.createMouseEvent(targetEl.ownerDocument, type, true, cancelable,
-                                detail, xy[0], xy[1], srcEvent.ctrlKey, srcEvent.altKey,
-                                srcEvent.shiftKey, srcEvent.metaKey, srcEvent.button,
-                                srcEvent.relatedTarget);
-                API.fireEvent(targetEl, type, e);
-            };
-        }
-
-        Ext.each(['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mousemove', 'mouseout'],
-            function (eventName) {
-                dispatchers[eventName] = createMouseEventDispatcher(eventName, 1);
-            });
-
-        
-        
-
-        Ext.Object.each({
-                focusin:  [true, false],
-                focusout: [true, false],
-                activate: [true, true],
-                focus:    [false, false],
-                blur:     [false, false]
-            },
-            function (name, value) {
-                var bubbles = value[0], cancelable = value[1];
-                dispatchers[name] = function (targetEl, srcEvent) {
-                    var e = API.createUIEvent(targetEl.ownerDocument, name, bubbles, cancelable, 1);
-                    API.fireEvent(targetEl, name, e);
-                };
-            });
-
-        
-        if (!API) {
-            
-
-            dispatchers = {}; 
-
-            API = {};
-        }
-
-        function cannotInject (target, srcEvent) {
-            
-        }
-
-        return function (target) {
-            var me = this,
-                dispatcher = dispatchers[me.type] || cannotInject,
-                t = target ? (target.dom || target) : me.getTarget();
-
-            dispatcher(t, me);
-        };
-    }()), 
-
-    preventDefault: function() {
-        var me = this,
-            event = me.browserEvent;
-
-        if (event.preventDefault) {
-            event.preventDefault();
-        } else {
-            
-            event.returnValue = false;
-            
-            
-            if (event.ctrlKey || event.keyCode > 111 && event.keyCode < 124) {
-                event.keyCode = -1;
-            }
-        }
-
-        return me;
-    },
-
-    stopPropagation: function() {
-        var me = this;
-
-        if (me.mousedownEvents[me.type]) {
-            
-            
-            Ext.GlobalEvents.fireMouseDown(me);
-        }
-        return me.callParent();
-    },
-
-    deprecated: {
-        '5.0': {
-            methods: {
-                
-                clone: function() {
-                    return new this.self(this.browserEvent, this);
-                }
-            }
-        }
-    }
-}, function() {
-    var Event = this,
-        btnMap;
-
-    if (Ext.isIE9m) {
-        btnMap = {
-            1: 0,
-            4: 1,
-            2: 2
-        };
-
-        Event.override({
-            statics: {
-                
-                enableIEAsync: function(browserEvent) {
-                    var name,
-                        fakeEvent = {};
-
-                    for (name in browserEvent) {
-                        fakeEvent[name] = browserEvent[name];
-                    }
-
-                    return fakeEvent;
-                }
-            },
-
-            constructor: function(event, info, touchesMap, identifiers) {
-                var me = this;
-                me.callParent([event, info, touchesMap, identifiers]);
-                me.button = btnMap[event.button];
-
-                
-                
-                
-                me.toElement = event.toElement;
-                me.fromElement = event.fromElement;
-            },
-
-            mouseLeaveRe: /(mouseout|mouseleave)/,
-            mouseEnterRe: /(mouseover|mouseenter)/,
-
-            
-            enableIEAsync: function(browserEvent) {
-                this.browserEvent = this.self.enableIEAsync(browserEvent);
-            },
-
-            getRelatedTarget: function(selector, maxDepth, returnEl) {
-                var me = this,
-                    type, target;
-
-                if (!me.relatedTarget) {
-                    type = me.type;
-                    if (me.mouseLeaveRe.test(type)) {
-                        target = me.toElement;
-                    } else if (me.mouseEnterRe.test(type)) {
-                        target = me.fromElement;
-                    }
-                    if (target) {
-                        me.relatedTarget = me.self.resolveTextNode(target);
-                    }
-                }
-
-                return me.callParent([selector, maxDepth, returnEl]);
-            }
-        });
-    }
-});
-
 
 Ext.define('Ext.overrides.util.Positionable', {
     override: 'Ext.util.Positionable',
@@ -22553,452 +22979,6 @@ Ext.define('Ext.overrides.util.Positionable', {
 });
 
 
-Ext.define('Ext.dom.Helper', function() {
-    var afterbegin = 'afterbegin',
-        afterend = 'afterend',
-        beforebegin = 'beforebegin',
-        beforeend = 'beforeend',
-        bbValues = ['BeforeBegin', 'previousSibling'],
-        aeValues = ['AfterEnd', 'nextSibling'],
-        bb_ae_PositionHash = {
-            beforebegin: bbValues,
-            afterend: aeValues
-        },
-        fullPositionHash = {
-            beforebegin: bbValues,
-            afterend: aeValues,
-            afterbegin: ['AfterBegin', 'firstChild'],
-            beforeend: ['BeforeEnd', 'lastChild']
-        };
-
-    return {
-        singleton: true,
-
-        alternateClassName: [
-            'Ext.DomHelper',
-            'Ext.core.DomHelper'
-        ],
-
-        emptyTags: /^(?:br|frame|hr|img|input|link|meta|range|spacer|wbr|area|param|col)$/i,
-        confRe: /^(?:tag|children|cn|html|tpl|tplData)$/i,
-        endRe: /end/i,
-
-        
-        attributeTransform: { cls : 'class', htmlFor : 'for' },
-
-        closeTags: {},
-
-        detachedDiv: document.createElement('div'),
-
-        decamelizeName: function () {
-            var camelCaseRe = /([a-z])([A-Z])/g,
-                cache = {};
-
-            function decamel (match, p1, p2) {
-                return p1 + '-' + p2.toLowerCase();
-            }
-
-            return function (s) {
-                return cache[s] || (cache[s] = s.replace(camelCaseRe, decamel));
-            };
-        }(),
-
-        generateMarkup: function(spec, buffer) {
-            var me = this,
-                specType = typeof spec,
-                attr, val, tag, i, closeTags;
-
-            if (specType === "string" || specType === "number") {
-                buffer.push(spec);
-            } else if (Ext.isArray(spec)) {
-                for (i = 0; i < spec.length; i++) {
-                    if (spec[i]) {
-                        me.generateMarkup(spec[i], buffer);
-                    }
-                }
-            } else {
-                tag = spec.tag || 'div';
-                buffer.push('<', tag);
-
-                for (attr in spec) {
-                    if (spec.hasOwnProperty(attr)) {
-                        val = spec[attr];
-                        if (val !== undefined && !me.confRe.test(attr)) {
-                            if (typeof val === "object") {
-                                buffer.push(' ', attr, '="');
-                                me.generateStyles(val, buffer, true).push('"');
-                            } else {
-                                buffer.push(' ', me.attributeTransform[attr] || attr, '="', val, '"');
-                            }
-                        }
-                    }
-                }
-
-                
-                if (me.emptyTags.test(tag)) {
-                    buffer.push('/>');
-                } else {
-                    buffer.push('>');
-
-                    
-                    if ((val = spec.tpl)) {
-                        val.applyOut(spec.tplData, buffer);
-                    }
-                    if ((val = spec.html)) {
-                        buffer.push(val);
-                    }
-                    if ((val = spec.cn || spec.children)) {
-                        me.generateMarkup(val, buffer);
-                    }
-
-                    
-                    closeTags = me.closeTags;
-                    buffer.push(closeTags[tag] || (closeTags[tag] = '</' + tag + '>'));
-                }
-            }
-
-            return buffer;
-        },
-
-        
-        generateStyles: function (styles, buffer, encode) {
-            var a = buffer || [],
-                name, val;
-
-            for (name in styles) {
-                if (styles.hasOwnProperty(name)) {
-                    val = styles[name];
-                    
-                    
-                    
-                    name = this.decamelizeName(name);
-                    if (encode && Ext.String.hasHtmlCharacters(val)) {
-                        val = Ext.String.htmlEncode(val);
-                    }
-                    a.push(name, ':', val, ';');
-                }
-            }
-
-            return buffer || a.join('');
-        },
-
-        
-        markup: function(spec) {
-            if (typeof spec === "string") {
-                return spec;
-            }
-
-            var buf = this.generateMarkup(spec, []);
-            return buf.join('');
-        },
-
-        
-        applyStyles: function(el, styles) {
-            Ext.fly(el).applyStyles(styles);
-        },
-
-        
-        createContextualFragment: function(html){
-            var div = this.detachedDiv,
-                fragment = document.createDocumentFragment(),
-                length, childNodes;
-
-            div.innerHTML = html;
-            childNodes = div.childNodes;
-            length = childNodes.length;
-
-            
-            while (length--) {
-                fragment.appendChild(childNodes[0]);
-            }
-            return fragment;
-        },
-
-        
-        createDom: function(o, parentNode){
-            var me = this,
-                markup = me.markup(o),
-                div = me.detachedDiv;
-
-            div.innerHTML = markup;
-
-            return div.firstChild;
-        },
-
-        
-        insertHtml: function(where, el, html) {
-            var me = this,
-                hashVal,
-                range,
-                rangeEl,
-                setStart,
-                frag;
-
-            where = where.toLowerCase();
-
-            
-            if (el.insertAdjacentHTML) {
-
-                if (me.ieInsertHtml) {
-                    
-                    frag = me.ieInsertHtml(where, el, html);
-                    if (frag) {
-                        return frag;
-                    }
-                }
-
-                hashVal = fullPositionHash[where];
-                if (hashVal) {
-                    if (Ext.global.MSApp && Ext.global.MSApp.execUnsafeLocalFunction) {
-                        
-                        MSApp.execUnsafeLocalFunction(function () {
-                            el.insertAdjacentHTML(hashVal[0], html);
-                        });
-                    } else {
-                        el.insertAdjacentHTML(hashVal[0], html);
-                    }
-
-                    return el[hashVal[1]];
-                }
-                
-            } else {
-                
-                if (el.nodeType === 3) {
-                    where = where === afterbegin ? beforebegin : where;
-                    where = where === beforeend ? afterend : where;
-                }
-                range = Ext.supports.CreateContextualFragment ? el.ownerDocument.createRange() : undefined;
-                setStart = 'setStart' + (this.endRe.test(where) ? 'After' : 'Before');
-                if (bb_ae_PositionHash[where]) {
-                    if (range) {
-                        range[setStart](el);
-                        frag = range.createContextualFragment(html);
-                    } else {
-                        frag = this.createContextualFragment(html);
-                    }
-                    el.parentNode.insertBefore(frag, where === beforebegin ? el : el.nextSibling);
-                    return el[(where === beforebegin ? 'previous' : 'next') + 'Sibling'];
-                } else {
-                    rangeEl = (where === afterbegin ? 'first' : 'last') + 'Child';
-                    if (el.firstChild) {
-                        if (range) {
-                            
-                            
-                            
-                            try {
-                                range[setStart](el[rangeEl]);
-                                frag = range.createContextualFragment(html);
-                            }
-                            catch(e) {
-                                frag = this.createContextualFragment(html);
-                            }
-                        } else {
-                            frag = this.createContextualFragment(html);
-                        }
-
-                        if (where === afterbegin) {
-                            el.insertBefore(frag, el.firstChild);
-                        } else {
-                            el.appendChild(frag);
-                        }
-                    } else {
-                        el.innerHTML = html;
-                    }
-                    return el[rangeEl];
-                }
-            }
-            Ext.Error.raise({
-                sourceClass: 'Ext.DomHelper',
-                sourceMethod: 'insertHtml',
-                htmlToInsert: html,
-                targetElement: el,
-                msg: 'Illegal insertion point reached: "' + where + '"'
-            });
-        },
-
-        
-        insertBefore: function(el, o, returnElement) {
-            return this.doInsert(el, o, returnElement, beforebegin);
-        },
-
-        
-        insertAfter: function(el, o, returnElement) {
-            return this.doInsert(el, o, returnElement, afterend);
-        },
-
-        
-        insertFirst: function(el, o, returnElement) {
-            return this.doInsert(el, o, returnElement, afterbegin);
-        },
-
-        
-        append: function(el, o, returnElement) {
-            return this.doInsert(el, o, returnElement, beforeend);
-        },
-
-        
-        overwrite: function(el, html, returnElement) {
-            var me = this,
-                newNode;
-
-            el = Ext.getDom(el);
-            html = me.markup(html);
-
-            if (me.ieOverwrite) {
-                
-                newNode = me.ieOverwrite(el, html);
-            }
-            if (!newNode) {
-                el.innerHTML = html;
-                newNode = el.firstChild;
-            }
-            return returnElement ? Ext.get(newNode) : newNode;
-        },
-
-        doInsert: function(el, o, returnElement, where) {
-            var me = this,
-                newNode;
-
-            el = el.dom || Ext.getDom(el);
-
-            if ('innerHTML' in el) {
-                
-                
-                
-                
-                newNode = me.insertHtml(where, el, me.markup(o));
-            } else {
-                
-                newNode = me.createDom(o, null);
-
-                
-                if (el.nodeType === 3) {
-                    where = where === afterbegin ? beforebegin : where;
-                    where = where === beforeend ? afterend : where;
-                }
-                if (bb_ae_PositionHash[where]) {
-                    el.parentNode.insertBefore(newNode, where === beforebegin ? el : el.nextSibling);
-                } else if (el.firstChild && where === afterbegin) {
-                    el.insertBefore(newNode, el.firstChild);
-                } else {
-                    el.appendChild(newNode);
-                }
-            }
-
-            return returnElement ? Ext.get(newNode) : newNode;
-        },
-
-        
-        createTemplate: function(o) {
-            var html = this.markup(o);
-            return new Ext.Template(html);
-        },
-
-        
-        createHtml: function(spec) {
-            return this.markup(spec);
-        }
-    };
-});
-
-Ext.define('Ext.overrides.dom.Helper', (function() {
-    var tableRe = /^(?:table|thead|tbody|tr|td)$/i,
-        tableElRe = /td|tr|tbody|thead/i,
-        ts = '<table>',
-        te = '</table>',
-        tbs = ts+'<tbody>',
-        tbe = '</tbody>'+te,
-        trs = tbs + '<tr>',
-        tre = '</tr>'+tbe;
-
-    return {
-        override: 'Ext.dom.Helper',
-
-        ieInsertHtml: function(where, el, html) {
-            var frag = null;
-
-            
-            if (Ext.isIE9m && tableRe.test(el.tagName)) {
-                frag = this.insertIntoTable(el.tagName.toLowerCase(), where, el, html);
-            }
-            return frag;
-        },
-
-        ieOverwrite: function(el, html) {
-            
-            
-            if (Ext.isIE9m && tableRe.test(el.tagName)) {
-                
-                while (el.firstChild) {
-                    el.removeChild(el.firstChild);
-                }
-                if (html) {
-                    return this.insertHtml('afterbegin', el, html);
-                }
-            } 
-        },
-
-        ieTable: function(depth, openingTags, htmlContent, closingTags){
-            var i = -1,
-                el = this.detachedDiv,
-                ns, nx;
-
-            el.innerHTML = [openingTags, htmlContent, closingTags].join('');
-
-            while (++i < depth) {
-                el = el.firstChild;
-            }
-            
-            ns = el.nextSibling;
-
-            if (ns) {
-                ns = el;
-                el = document.createDocumentFragment();
-                
-                while (ns) {
-                     nx = ns.nextSibling;
-                     el.appendChild(ns);
-                     ns = nx;
-                }
-            }
-            return el;
-        },
-
-        
-        insertIntoTable: function(tag, where, destinationEl, html) {
-            var node,
-                before,
-                bb = where === 'beforebegin',
-                ab = where === 'afterbegin',
-                be = where === 'beforeend',
-                ae = where === 'afterend';
-
-            if (tag === 'td' && (ab || be) || !tableElRe.test(tag) && (bb || ae)) {
-                return null;
-            }
-            before = bb ? destinationEl :
-                     ae ? destinationEl.nextSibling :
-                     ab ? destinationEl.firstChild : null;
-
-            if (bb || ae) {
-                destinationEl = destinationEl.parentNode;
-            }
-
-            if (tag === 'td' || (tag === 'tr' && (be || ab))) {
-                node = this.ieTable(4, trs, html, tre);
-            } else if (((tag === 'tbody' || tag === 'thead') && (be || ab)) ||
-                    (tag === 'tr' && (bb || ae))) {
-                node = this.ieTable(3, tbs, html, tbe);
-            } else {
-                node = this.ieTable(2, ts, html, te);
-            }
-            destinationEl.insertBefore(node, before);
-            return node;
-        }
-    };
-})());
-
-
 Ext.define('Ext.overrides.dom.Element', (function() {
     var Element, 
         WIN = window,
@@ -23037,6 +23017,10 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 '</div>',
             '</div>'
         ].join(''),
+        tabbableSelector = 'a[href],button,iframe,input,select,textarea,[tabindex]',
+        tabbableRe = /^BUTTON|IFRAME|INPUT|SELECT|TEXTAREA$/,
+        tabbableSavedFlagAttribute = 'data-tabindexsaved',
+        tabbableSavedAttribute = 'data-savedtabindex',
         scriptTagRe = /(?:<script([^>]*)?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         replaceScriptTagRe = /(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)/ig,
         srcRe = /\ssrc=([\'\"])(.*?)\1/i,
@@ -23118,15 +23102,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             getViewportWidth: function() {
                 return (!Ext.isStrict && !Ext.isOpera) ? document.body.clientWidth :
                        Ext.isIE9m ? DOC.documentElement.clientWidth : WIN.innerWidth;
-            },
-
-            addListener: function(element, eventName, handler) {
-                element = Ext.getDom(element);
-                if (element.addEventListener) {
-                    element.addEventListener(eventName, handler, false);
-                } else {
-                    element.attachEvent('on' + eventName, handler);
-                }
             }
         },
 
@@ -24007,34 +23982,20 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         isFocusable: function ( asFocusEl) {
             var me = this,
                 dom = me.dom,
-                tabIndexAttr = dom.getAttributeNode('tabIndex'),
-                tabIndex,
+                hasTabIndex = dom.hasAttribute('tabindex'),
+                tabIndex = hasTabIndex && dom.getAttribute('tabindex'),
                 nodeName = dom.nodeName,
                 canFocus = false;
 
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            if (tabIndexAttr && tabIndexAttr.specified) {
-                tabIndex = tabIndexAttr.value;
-            }
             if (dom && !dom.disabled) {
                 
-                
-                if (tabIndex == -1) { 
-                    canFocus = Ext.enableFocusManager && asFocusEl;
+                if (tabIndex == "-1") { 
+                    canFocus = asFocusEl;
                 }
                 else {
                     
                     if (focusRe.test(nodeName)) {
-                        if ((nodeName !== 'a') || dom.href) {
+                        if ((nodeName !== 'A') || dom.href) {
                             canFocus = true;
                         }
                     }
@@ -24047,14 +24008,15 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             }
             return canFocus;
         },
-
         
-        isMasked: function() {
+        
+        isMasked: function(deep) {
             var me = this,
                 data = me.getData(),
                 maskEl = data.maskEl,
                 maskMsg = data.maskMsg,
-                hasMask = false; 
+                hasMask = false,
+                parent;
 
             if (maskEl && maskEl.isVisible()) {
                 if (maskMsg) {
@@ -24062,6 +24024,14 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 }
                 hasMask = true;
             }
+            else if (deep) {
+                parent = me.findParentNode();
+                
+                if (parent) {
+                    return Ext.fly(parent).isMasked(deep);
+                }
+            }
+            
             return hasMask;
         },
 
@@ -24134,9 +24104,15 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 maskMsg.setDisplayed(false);
             }
 
+            
             if (dom === DOC.body) {
                 maskEl.addCls(Ext.baseCSSPrefix + 'mask-fixed');
             }
+            else {
+                me.saveTabbableState();
+            }
+            
+            me.saveChildrenTabbableState();
 
             
             if (Ext.isIE9m && dom !== DOC.body && me.isStyle('height', 'auto')) {
@@ -24154,7 +24130,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                         if (Ext.isIE9m) {
                             e.enableIEAsync();
                         }
-                        timer = setTimeout(Ext.Function.bind(handler, scope||me, [e]), delay);
+                        timer = Ext.defer(handler, delay, scope || me, [e]);
                     },
                     mouseenter: function() {
                         clearTimeout(timer);
@@ -24170,7 +24146,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             var me = this;
 
             if (me.dom) {
-                if ((me.dom.nodeName === 'a') && (!me.dom.href)) {
+                if ((me.dom.nodeName === 'A') && (!me.dom.href)) {
                     return true;
                 }
                 return !focusRe.test(me.dom.nodeName);
@@ -24328,8 +24304,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         
         scrollChildIntoView: function(child, hscroll) {
-            scrollFly = scrollFly || new Ext.dom.Fly();
-            scrollFly.attach(Ext.getDom(child)).scrollIntoView(this, hscroll);
+            
+            Ext.fly(child).scrollIntoView(this, hscroll);
         },
 
         
@@ -24387,7 +24363,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
             return me;
         },
-
+        
         
         
         
@@ -24495,7 +24471,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             id  = Ext.id();
             html += '<span id="' + id + '" role="presentation"></span>';
 
-            interval = setInterval(function() {
+            interval = Ext.interval(function() {
                 var hd,
                     match,
                     attrs,
@@ -25197,6 +25173,12 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
                 me.removeCls([XMASKED, XMASKEDRELATIVE]);
             }
+            
+            me.restoreChildrenTabbableState();
+            
+            if (me.dom !== DOC.body) {
+                me.restoreTabbableState();
+            }
         },
 
         
@@ -25268,6 +25250,219 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             me.addCls(Element.unselectableCls);
 
             return me;
+        },
+        
+        privates: {
+            
+            isTabbable: function() {
+                var me = this,
+                    dom = me.dom,
+                    tag = dom.nodeName,
+                    editable = dom.isContentEditable,
+                    hasIdx, idx;
+            
+                
+                
+                
+                
+                if (dom.hasAttribute('disabled') && (Ext.isIE8 || !editable)) {
+                    return false;
+                }
+            
+                
+                if (!me.isVisible(true)) {
+                    return false;
+                }
+            
+                hasIdx = dom.hasAttribute('tabindex');
+                idx    = hasIdx && dom.getAttribute('tabindex') - 0;
+            
+                if (tag === 'A') {
+                    
+                    if (dom.href) {
+                        return hasIdx && idx < 0 ? false : true;
+                    }
+                
+                    
+                    
+                    else {
+                        if (editable) {
+                            return !hasIdx || (hasIdx && idx >= 0) ? true : false;
+                        }
+                        else {
+                            return hasIdx && idx >= 0 ? true : false;
+                        }
+                    }
+                }
+            
+                
+                
+                
+                else if (editable || tabbableRe.test(tag) || (Ext.isIE8 && tag === 'OBJECT')) {
+                    return hasIdx && idx < 0 ? false : true;
+                }
+
+                
+                
+                else {
+                    if (hasIdx && idx >= 0) {
+                        return true;
+                    }
+                }
+            
+                return false;
+            },
+            
+            
+            selectTabbableElements: function(asDom, selector,  limit, backward) {
+                var selection, nodes, node, el, i, len, to, step;
+            
+                asDom = asDom != undefined ? asDom : true;
+            
+                nodes = this.dom.querySelectorAll(selector || tabbableSelector);
+                len   = nodes.length;
+            
+                if (!len) {
+                    return nodes;
+                }
+            
+                if (backward) {
+                    i    = len - 1;
+                    to   = 0;
+                    step = -1;
+                }
+                else {
+                    i    = 0;
+                    to   = len - 1;
+                    step = 1;
+                }
+            
+                selection = [];
+            
+                
+                
+                
+                for (;; i += step) {
+                    if ((step > 0 && i > to) || (step < 0 && i < to)) {
+                        break;
+                    }
+                
+                    node = nodes[i];
+                    el   = asDom ? Ext.fly(node) : Ext.get(node);
+                
+                    if (el.isTabbable()) {
+                        selection.push(asDom ? node : el);
+                    }
+                
+                    if (selection.length >= limit) {
+                        return selection;
+                    }
+                }
+            
+                return selection;
+            },
+        
+            
+            selectFirstTabbableElement: function(asDom, selector) {
+                var els = this.selectTabbableElements(asDom, selector, 1, false);
+            
+                return els[0];
+            },
+        
+            
+            selectLastTabbableElement: function(asDom, selector) {
+                var els = this.selectTabbableElements(asDom, selector, 1, true);
+            
+                return els[0];
+            },
+        
+            
+            saveTabbableState: function(attribute) {
+                var dom = this.dom;
+            
+                
+                if (dom.hasAttribute(tabbableSavedFlagAttribute)) {
+                    return;
+                }
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                
+                
+                if (dom.hasAttribute('tabindex')) {
+                    dom.setAttribute(attribute, dom.getAttribute('tabindex'));
+                }
+            
+                
+                else {
+                    dom.setAttribute(attribute, 'none');
+                }
+            
+                
+                
+                dom.setAttribute('tabindex', -1);
+                dom.setAttribute(tabbableSavedFlagAttribute, true);
+            
+                return this;
+            },
+        
+            
+            restoreTabbableState: function(attribute) {
+                var dom = this.dom,
+                    idx;
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                if (!dom.hasAttribute(tabbableSavedFlagAttribute) ||
+                    !dom.hasAttribute(attribute)) {
+                    return;
+                }
+            
+                idx = dom.getAttribute(attribute);
+            
+                
+                if (idx === 'none') {
+                    dom.removeAttribute('tabindex');
+                }
+                else {
+                    dom.setAttribute('tabindex', idx);
+                }
+            
+                dom.removeAttribute(attribute);
+                dom.removeAttribute(tabbableSavedFlagAttribute);
+            
+                return this;
+            },
+        
+            
+            saveChildrenTabbableState: function(attribute) {
+                var children, child, i, len;
+                if (this.dom) {
+                    children = this.selectTabbableElements();
+
+                    for (i = 0, len = children.length; i < len; i++) {
+                        child = Ext.fly(children[i]);
+                        child.saveTabbableState(attribute);
+                    }
+                }
+                return this;
+            },
+        
+            
+            restoreChildrenTabbableState: function(attribute) {
+                var children, child, i, len;
+                
+                attribute = attribute || tabbableSavedAttribute;
+            
+                children = this.dom.querySelectorAll('[' + attribute + ']');
+            
+                for (i = 0, len = children.length; i < len; i++) {
+                    child = Ext.fly(children[i]);
+                    child.restoreTabbableState(attribute);
+                }
+            
+                return this;
+            }
         },
 
         deprecated: {
@@ -25418,8 +25613,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
     proto._init(Element);
     delete proto._init;
-    
-    Element.on = Element.addListener;
 
     
     if (Ext.os.is.iOS || Ext.os.is.Android) {
@@ -26151,6 +26344,10 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         if (Ext.isIE10) {
             bodyCls.push(Ext.baseCSSPrefix + 'ie10');
         }
+        
+        if (Ext.isIE11) {
+            bodyCls.push(Ext.baseCSSPrefix + 'ie11');
+        }
 
         if (Ext.isGecko) {
             bodyCls.push(Ext.baseCSSPrefix + 'gecko');
@@ -26242,6 +26439,350 @@ Ext.define('Ext.overrides.GlobalEvents', {
     }
 });
 
+Ext.define('Ext.overrides.event.Event', {
+    override: 'Ext.event.Event',
+
+    
+    mousedownEvents: {
+        mousedown: 1,
+        pointerdown: 1,
+        touchstart: 1
+    },
+
+    
+    injectEvent: (function () {
+        var API,
+            dispatchers = {}, 
+            crazyIEButtons;
+
+        
+
+        
+        
+
+        if (!Ext.isIE9m && document.createEvent) { 
+            API = {
+                createHtmlEvent: function (doc, type, bubbles, cancelable) {
+                    var event = doc.createEvent('HTMLEvents');
+
+                    event.initEvent(type, bubbles, cancelable);
+                    return event;
+                },
+
+                createMouseEvent: function (doc, type, bubbles, cancelable, detail,
+                                            clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+                                            button, relatedTarget) {
+                    var event = doc.createEvent('MouseEvents'),
+                        view = doc.defaultView || window;
+
+                    if (event.initMouseEvent) {
+                        event.initMouseEvent(type, bubbles, cancelable, view, detail,
+                                    clientX, clientY, clientX, clientY, ctrlKey, altKey,
+                                    shiftKey, metaKey, button, relatedTarget);
+                    } else { 
+                        event = doc.createEvent('UIEvents');
+                        event.initEvent(type, bubbles, cancelable);
+                        event.view = view;
+                        event.detail = detail;
+                        event.screenX = clientX;
+                        event.screenY = clientY;
+                        event.clientX = clientX;
+                        event.clientY = clientY;
+                        event.ctrlKey = ctrlKey;
+                        event.altKey = altKey;
+                        event.metaKey = metaKey;
+                        event.shiftKey = shiftKey;
+                        event.button = button;
+                        event.relatedTarget = relatedTarget;
+                    }
+
+                    return event;
+                },
+
+                createUIEvent: function (doc, type, bubbles, cancelable, detail) {
+                    var event = doc.createEvent('UIEvents'),
+                        view = doc.defaultView || window;
+
+                    event.initUIEvent(type, bubbles, cancelable, view, detail);
+                    return event;
+                },
+
+                fireEvent: function (target, type, event) {
+                    target.dispatchEvent(event);
+                }
+            };
+        } else if (document.createEventObject) { 
+            crazyIEButtons = { 0: 1, 1: 4, 2: 2 };
+
+            API = {
+                createHtmlEvent: function (doc, type, bubbles, cancelable) {
+                    var event = doc.createEventObject();
+                    event.bubbles = bubbles;
+                    event.cancelable = cancelable;
+                    return event;
+                },
+
+                createMouseEvent: function (doc, type, bubbles, cancelable, detail,
+                                            clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
+                                            button, relatedTarget) {
+                    var event = doc.createEventObject();
+                    event.bubbles = bubbles;
+                    event.cancelable = cancelable;
+                    event.detail = detail;
+                    event.screenX = clientX;
+                    event.screenY = clientY;
+                    event.clientX = clientX;
+                    event.clientY = clientY;
+                    event.ctrlKey = ctrlKey;
+                    event.altKey = altKey;
+                    event.shiftKey = shiftKey;
+                    event.metaKey = metaKey;
+                    event.button = crazyIEButtons[button] || button;
+                    event.relatedTarget = relatedTarget; 
+                    return event;
+                },
+
+                createUIEvent: function (doc, type, bubbles, cancelable, detail) {
+                    var event = doc.createEventObject();
+                    event.bubbles = bubbles;
+                    event.cancelable = cancelable;
+                    return event;
+                },
+
+                fireEvent: function (target, type, event) {
+                    target.fireEvent('on' + type, event);
+                }
+            };
+        }
+
+        
+        
+
+        Ext.Object.each({
+                load:   [false, false],
+                unload: [false, false],
+                select: [true, false],
+                change: [true, false],
+                submit: [true, true],
+                reset:  [true, false],
+                resize: [true, false],
+                scroll: [true, false]
+            },
+            function (name, value) {
+                var bubbles = value[0], cancelable = value[1];
+                dispatchers[name] = function (targetEl, srcEvent) {
+                    var e = API.createHtmlEvent(name, bubbles, cancelable);
+                    API.fireEvent(targetEl, name, e);
+                };
+            });
+
+        
+        
+
+        function createMouseEventDispatcher (type, detail) {
+            var cancelable = (type != 'mousemove');
+            return function (targetEl, srcEvent) {
+                var xy = srcEvent.getXY(),
+                    e = API.createMouseEvent(targetEl.ownerDocument, type, true, cancelable,
+                                detail, xy[0], xy[1], srcEvent.ctrlKey, srcEvent.altKey,
+                                srcEvent.shiftKey, srcEvent.metaKey, srcEvent.button,
+                                srcEvent.relatedTarget);
+                API.fireEvent(targetEl, type, e);
+            };
+        }
+
+        Ext.each(['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mousemove', 'mouseout'],
+            function (eventName) {
+                dispatchers[eventName] = createMouseEventDispatcher(eventName, 1);
+            });
+
+        
+        
+
+        Ext.Object.each({
+                focusin:  [true, false],
+                focusout: [true, false],
+                activate: [true, true],
+                focus:    [false, false],
+                blur:     [false, false]
+            },
+            function (name, value) {
+                var bubbles = value[0], cancelable = value[1];
+                dispatchers[name] = function (targetEl, srcEvent) {
+                    var e = API.createUIEvent(targetEl.ownerDocument, name, bubbles, cancelable, 1);
+                    API.fireEvent(targetEl, name, e);
+                };
+            });
+
+        
+        if (!API) {
+            
+
+            dispatchers = {}; 
+
+            API = {};
+        }
+
+        function cannotInject (target, srcEvent) {
+            
+        }
+
+        return function (target) {
+            var me = this,
+                dispatcher = dispatchers[me.type] || cannotInject,
+                t = target ? (target.dom || target) : me.getTarget();
+
+            dispatcher(t, me);
+        };
+    }()), 
+
+    preventDefault: function() {
+        var me = this,
+            event = me.browserEvent;
+
+
+        
+        
+        
+        if (typeof event.type !== 'unknown') {
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                
+                event.returnValue = false;
+                
+                
+                if (event.ctrlKey || event.keyCode > 111 && event.keyCode < 124) {
+                    event.keyCode = -1;
+                }
+            }
+        }
+
+        return me;
+    },
+
+    stopPropagation: function() {
+        var me = this,
+            event = me.browserEvent;
+
+        
+        
+        
+        if (typeof event.type !== 'unknown') {
+            if (me.mousedownEvents[me.type]) {
+                
+                
+                Ext.GlobalEvents.fireMouseDown(me);
+            }
+            me.callParent();
+        }
+        return me;
+    },
+
+    deprecated: {
+        '5.0': {
+            methods: {
+                
+                clone: function() {
+                    return new this.self(this.browserEvent, this);
+                }
+            }
+        }
+    }
+}, function() {
+    var Event = this,
+        btnMap,
+        onKeyDown = function(e) {
+            if (e.keyCode === 9) {
+                Event.forwardTab = !e.shiftKey;
+            }
+        },
+        onKeyUp = function(e) {
+            if (e.keyCode === 9) {
+                delete Event.forwardTab;
+            }
+        };
+
+    if (Ext.isIE9m) {
+        btnMap = {
+            1: 0,
+            4: 1,
+            2: 2
+        };
+
+        Event.override({
+            statics: {
+                
+                enableIEAsync: function(browserEvent) {
+                    var name,
+                        fakeEvent = {};
+
+                    for (name in browserEvent) {
+                        fakeEvent[name] = browserEvent[name];
+                    }
+
+                    return fakeEvent;
+                }
+            },
+
+            constructor: function(event, info, touchesMap, identifiers) {
+                var me = this;
+                me.callParent([event, info, touchesMap, identifiers]);
+                me.button = btnMap[event.button];
+
+                
+                
+                
+                me.toElement = event.toElement;
+                me.fromElement = event.fromElement;
+            },
+
+            mouseLeaveRe: /(mouseout|mouseleave)/,
+            mouseEnterRe: /(mouseover|mouseenter)/,
+
+            
+            enableIEAsync: function(browserEvent) {
+                this.browserEvent = this.self.enableIEAsync(browserEvent);
+            },
+
+            getRelatedTarget: function(selector, maxDepth, returnEl) {
+                var me = this,
+                    type, target;
+
+                if (!me.relatedTarget) {
+                    type = me.type;
+                    if (me.mouseLeaveRe.test(type)) {
+                        target = me.toElement;
+                    } else if (me.mouseEnterRe.test(type)) {
+                        target = me.fromElement;
+                    }
+                    if (target) {
+                        me.relatedTarget = me.self.resolveTextNode(target);
+                    }
+                }
+
+                return me.callParent([selector, maxDepth, returnEl]);
+            }
+        });
+
+        
+        
+        
+        document.attachEvent('onkeydown', onKeyDown);
+        document.attachEvent('onkeyup',   onKeyUp);
+        
+        window.attachEvent('onunload', function() {
+            document.detachEvent('onkeydown', onKeyDown);
+            document.detachEvent('onkeyup',   onKeyUp);
+        });
+    }
+    else
+    if (document.addEventListener) {
+        document.addEventListener('keydown', onKeyDown, true);
+        document.addEventListener('keyup',   onKeyUp,   true);
+    }
+});
+
 Ext.define('Ext.overrides.event.publisher.Dom', {
     override: 'Ext.event.publisher.Dom'
 
@@ -26253,6 +26794,7 @@ Ext.define('Ext.overrides.event.publisher.Dom', {
         DomPublisher.override({
             initHandlers: function() {
                 var me = this,
+                    docBody = document.body,
                     superOnDelegatedEvent, superOnDirectEvent;
 
                 me.callParent();
@@ -26265,6 +26807,14 @@ Ext.define('Ext.overrides.event.publisher.Dom', {
 
                 me.onDelegatedEvent = function(e) {
                     e.target = e.srcElement || window;
+                    
+                    if (e.type === 'focusin') {
+                        e.relatedTarget = e.fromElement === docBody ? null : e.fromElement;
+                    }
+                    else if (e.type === 'focusout') {
+                        e.relatedTarget = e.toElement === docBody ? null : e.toElement;
+                    }
+                    
                     superOnDelegatedEvent.call(me, e);
                 };
 
@@ -26363,6 +26913,7 @@ Ext.require([
     'Ext.event.gesture.*',
     'Ext.event.publisher.Dom',
     'Ext.event.publisher.Gesture',
+    'Ext.event.publisher.Focus',
     'Ext.event.Dispatcher'
 ]);
 
@@ -26382,7 +26933,8 @@ Ext.onReady(function() {
                 rotate: new Ext.event.gesture.Rotate(),
                 edgeSwipe: new Ext.event.gesture.EdgeSwipe()
             }
-        })
+        }),
+        focus: new Ext.event.publisher.Focus()
         
         
         
@@ -26407,746 +26959,10 @@ Ext.apply(Ext, {
     BLANK_IMAGE_URL: 'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
 });
 
-
-Ext.define('Ext.util.Format', function () {
-    var me; 
-
-    return {
-        requires: [
-            'Ext.Error',
-            'Ext.Number',
-            'Ext.String',
-            'Ext.Date'
-        ],
-
-        singleton: true,
-
-        
-        defaultDateFormat: 'm/d/Y',
-
-        
-        
-        thousandSeparator: ',',
-        
-
-        
-        
-        decimalSeparator: '.',
-        
-
-        
-        
-        currencyPrecision: 2,
-        
-
-         
-        
-        currencySign: '$',
-        
-
-        
-        percentSign: '%',
-
-        
-        
-        currencyAtEnd: false,
-        
-
-        stripTagsRe: /<\/?[^>]+>/gi,
-        stripScriptsRe: /(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)/ig,
-        nl2brRe: /\r?\n/g,
-        hashRe: /#+$/,
-        allHashes: /^#+$/,
-
-        
-        formatPattern: /[\d,\.#]+/,
-
-        
-        formatCleanRe: /[^\d\.#]/g,
-
-        
-        
-        I18NFormatCleanRe: null,
-
-        
-        formatFns: {},
-
-        constructor: function () {
-            me = this; 
-        },
-
-        
-        undef : function(value) {
-            return value !== undefined ? value : "";
-        },
-
-        
-        defaultValue : function(value, defaultValue) {
-            return value !== undefined && value !== '' ? value : defaultValue;
-        },
-
-        
-        substr : 'ab'.substr(-1) != 'b'
-        ? function (value, start, length) {
-            var str = String(value);
-            return (start < 0)
-                ? str.substr(Math.max(str.length + start, 0), length)
-                : str.substr(start, length);
-        }
-        : function(value, start, length) {
-            return String(value).substr(start, length);
-        },
-
-        
-        lowercase : function(value) {
-            return String(value).toLowerCase();
-        },
-
-        
-        uppercase : function(value) {
-            return String(value).toUpperCase();
-        },
-
-        
-        usMoney : function(v) {
-            return me.currency(v, '$', 2);
-        },
-
-        
-        currency: function(v, currencySign, decimals, end) {
-            var negativeSign = '',
-                format = ",0",
-                i = 0;
-            v = v - 0;
-            if (v < 0) {
-                v = -v;
-                negativeSign = '-';
-            }
-            decimals = Ext.isDefined(decimals) ? decimals : me.currencyPrecision;
-            format += (decimals > 0 ? '.' : '');
-            for (; i < decimals; i++) {
-                format += '0';
-            }
-            v = me.number(v, format);
-            if ((end || me.currencyAtEnd) === true) {
-                return Ext.String.format("{0}{1}{2}", negativeSign, v, currencySign || me.currencySign);
-            } else {
-                return Ext.String.format("{0}{1}{2}", negativeSign, currencySign || me.currencySign, v);
-            }
-        },
-
-        
-        date: function(v, format) {
-            if (!v) {
-                return "";
-            }
-            if (!Ext.isDate(v)) {
-                v = new Date(Date.parse(v));
-            }
-            return Ext.Date.dateFormat(v, format || Ext.Date.defaultFormat);
-        },
-        
-
-        
-        dateRenderer : function(format) {
-            return function(v) {
-                return me.date(v, format);
-            };
-        },
-
-        
-        hex: function (value, digits) {
-            var s = parseInt(value || 0, 10).toString(16);
-            if (digits) {
-                if (digits < 0) {
-                    digits = -digits;
-                    if (s.length > digits) {
-                        s = s.substring(s.length - digits);
-                    }
-                }
-                while (s.length < digits) {
-                    s = '0' + s;
-                }
-            }
-            return s;
-        },
-
-        
-        or: function (value, orValue) {
-            return value || orValue;
-        },
-
-        
-        pick: function (value, firstValue, secondValue) {
-            if (Ext.isNumber(value)) {
-                var ret = arguments[value + 1];
-                if (ret) {
-                    return ret;
-                }
-            }
-            return value ? secondValue : firstValue;
-        },
-
-        
-        stripTags : function(v) {
-            return !v ? v : String(v).replace(me.stripTagsRe, "");
-        },
-
-        
-        stripScripts : function(v) {
-            return !v ? v : String(v).replace(me.stripScriptsRe, "");
-        },
-
-        
-        fileSize : (function(){
-            var byteLimit = 1024,
-                kbLimit = 1048576,
-                mbLimit = 1073741824;
-                
-            return function(size) {
-                var out;
-                if (size < byteLimit) {
-                    if (size === 1) {
-                        out = '1 byte';    
-                    } else {
-                        out = size + ' bytes';
-                    }
-                } else if (size < kbLimit) {
-                    out = (Math.round(((size*10) / byteLimit))/10) + ' KB';
-                } else if (size < mbLimit) {
-                    out = (Math.round(((size*10) / kbLimit))/10) + ' MB';
-                } else {
-                    out = (Math.round(((size*10) / mbLimit))/10) + ' GB';
-                }
-                return out;
-            };
-        })(),
-
-        
-        math : (function(){
-            var fns = {};
-
-            return function(v, a){
-                if (!fns[a]) {
-                    fns[a] = Ext.functionFactory('v', 'return v ' + a + ';');
-                }
-                return fns[a](v);
-            };
-        }()),
-
-        
-        round : function(value, precision) {
-            var result = Number(value);
-            if (typeof precision === 'number') {
-                precision = Math.pow(10, precision);
-                result = Math.round(value * precision) / precision;
-            } else if (precision === undefined) {
-                result = Math.round(result);
-            }
-            return result;
-        },
-
-        
-        number : function(v, formatString) {
-            if (!formatString) {
-                return v;
-            }
-            if (isNaN(v)) {
-                return '';
-            }
-            
-            var formatFn = me.formatFns[formatString];
-
-            
-            
-            if (!formatFn) {
-
-                var originalFormatString = formatString,
-                    comma = me.thousandSeparator,
-                    decimalSeparator = me.decimalSeparator,
-                    precision = 0,
-                    trimPart = '',
-                    hasComma,
-                    splitFormat,
-                    extraChars,
-                    trimTrailingZeroes,
-                    code, len;
-
-                
-                
-                
-                
-                if (formatString.substr(formatString.length - 2) === '/i') {
-                    
-                    
-                    if (!me.I18NFormatCleanRe || me.lastDecimalSeparator !== decimalSeparator) {
-                        me.I18NFormatCleanRe = new RegExp('[^\\d\\' + decimalSeparator + ']','g');
-                        me.lastDecimalSeparator = decimalSeparator;
-                    }
-                    formatString = formatString.substr(0, formatString.length - 2);
-                    hasComma = formatString.indexOf(comma) !== -1;
-                    splitFormat = formatString.replace(me.I18NFormatCleanRe, '').split(decimalSeparator);
-                } else {
-                    hasComma = formatString.indexOf(',') !== -1;
-                    splitFormat = formatString.replace(me.formatCleanRe, '').split('.');
-                }
-                extraChars = formatString.replace(me.formatPattern, '');
-
-                if (splitFormat.length > 2) {
-                    Ext.Error.raise({
-                        sourceClass: "Ext.util.Format",
-                        sourceMethod: "number",
-                        value: v,
-                        formatString: formatString,
-                        msg: "Invalid number format, should have no more than 1 decimal"
-                    });
-                } else if (splitFormat.length === 2) {
-                    precision = splitFormat[1].length;
-
-                    
-                    trimTrailingZeroes = splitFormat[1].match(me.hashRe);
-                    if (trimTrailingZeroes) {
-                        len = trimTrailingZeroes[0].length;
-                        
-                        trimPart = 'trailingZeroes=new RegExp(Ext.String.escapeRegex(utilFormat.decimalSeparator) + "*0{0,' + len + '}$")';
-                    }
-                }
-                
-                
-                code = [
-                    'var utilFormat=Ext.util.Format,extNumber=Ext.Number,neg,absVal,fnum,parts' +
-                        (hasComma ? ',thousandSeparator,thousands=[],j,n,i' : '') +
-                        (extraChars  ? ',formatString="' + formatString + '",formatPattern=/[\\d,\\.#]+/' : '') +
-                        ',trailingZeroes;' +
-                    'return function(v){' +
-                    'if(typeof v!=="number"&&isNaN(v=extNumber.from(v,NaN)))return"";' +
-                    'neg=v<0;',
-                    'absVal=Math.abs(v);',
-                    'fnum=Ext.Number.toFixed(absVal, ' + precision + ');',
-                    trimPart, ';'
-                ];
-
-                if (hasComma) {
-                    
-                    
-                    
-                    if (precision) {
-                        code[code.length] = 'parts=fnum.split(".");';
-                        code[code.length] = 'fnum=parts[0];';
-                    }
-                    code[code.length] =
-                        'if(absVal>=1000) {';
-                            code[code.length] = 'thousandSeparator=utilFormat.thousandSeparator;' +
-                            'thousands.length=0;' +
-                            'j=fnum.length;' +
-                            'n=fnum.length%3||3;' +
-                            'for(i=0;i<j;i+=n){' +
-                                'if(i!==0){' +
-                                    'n=3;' +
-                                '}' +
-                                'thousands[thousands.length]=fnum.substr(i,n);' +
-                            '}' +
-                            'fnum=thousands.join(thousandSeparator);' + 
-                        '}';
-                    if (precision) {
-                        code[code.length] = 'fnum += utilFormat.decimalSeparator+parts[1];';
-                    }
-                    
-                } else if (precision) {
-                    
-                    code[code.length] = 'if(utilFormat.decimalSeparator!=="."){' +
-                        'parts=fnum.split(".");' +
-                        'fnum=parts[0]+utilFormat.decimalSeparator+parts[1];' +
-                    '}';
-                }
-
-                if (trimTrailingZeroes) {
-                    code[code.length] = 'fnum=fnum.replace(trailingZeroes,"");';
-                }
-
-                
-                code[code.length] = 'if(neg&&fnum!=="' + (precision ? '0.' + Ext.String.repeat('0', precision) : '0') + '")fnum="-"+fnum;';
-
-                code[code.length] = 'return ';
-
-                
-                if (extraChars) {
-                    code[code.length] = 'formatString.replace(formatPattern, fnum);';
-                } else {
-                    code[code.length] = 'fnum;';
-                }
-                code[code.length] = '};';
-
-                formatFn = me.formatFns[originalFormatString] = Ext.functionFactory('Ext', code.join(''))(Ext);
-            }
-            return formatFn(v);
-        },
-
-        
-        numberRenderer : function(format) {
-            return function(v) {
-                return me.number(v, format);
-            };
-        },
-
-        
-        percent: function (value, formatString) {
-            return me.number(value * 100, formatString || '0') + me.percentSign;
-        },
-
-        
-        attributes: function(attributes) {
-            if (typeof attributes === 'object') {
-                var result = [],
-                    name;
-
-                for (name in attributes) {
-                    if (attributes.hasOwnProperty(name)) {
-                        result.push(name, '="', name === 'style' ? 
-                                Ext.DomHelper.generateStyles(attributes[name], null, true) :
-                                Ext.htmlEncode(attributes[name]), '" ');
-                    }
-                }
-                attributes = result.join('');
-            }
-            return attributes || '';
-        },
-
-        
-        plural : function(v, s, p) {
-            return v +' ' + (v === 1 ? s : (p ? p : s+'s'));
-        },
-
-        
-        nl2br : function(v) {
-            return Ext.isEmpty(v) ? '' : v.replace(me.nl2brRe, '<br/>');
-        },
-
-        
-        capitalize: Ext.String.capitalize,
-
-        
-        uncapitalize: Ext.String.uncapitalize,
-
-        
-        ellipsis: Ext.String.ellipsis,
-
-        
-        escape: Ext.String.escape,
-
-        
-        escapeRegex : Ext.String.escapeRegex,
-
-        
-        format: Ext.String.format,
-
-        
-        htmlDecode: Ext.String.htmlDecode,
-
-        
-        htmlEncode: Ext.String.htmlEncode,
-
-        
-        leftPad: Ext.String.leftPad,
-
-        
-        toggle: Ext.String.toggle,
-
-        
-        trim : Ext.String.trim,
-
-        
-        parseBox : function(box) {
-            box = box || 0;
-
-            if (typeof box === 'number') {
-                return {
-                    top   : box,
-                    right : box,
-                    bottom: box,
-                    left  : box
-                };
-             }
-
-            var parts  = box.split(' '),
-                ln = parts.length;
-
-            if (ln === 1) {
-                parts[1] = parts[2] = parts[3] = parts[0];
-            }
-            else if (ln === 2) {
-                parts[2] = parts[0];
-                parts[3] = parts[1];
-            }
-            else if (ln === 3) {
-                parts[3] = parts[1];
-            }
-
-            return {
-                top   :parseInt(parts[0], 10) || 0,
-                right :parseInt(parts[1], 10) || 0,
-                bottom:parseInt(parts[2], 10) || 0,
-                left  :parseInt(parts[3], 10) || 0
-            };
-        }
-    };
-});
-
-
-Ext.define('Ext.Template', {
-    requires: [
-        
-        'Ext.util.Format'
-    ],
-
-    inheritableStatics: {
-        
-        from: function(el, config) {
-            el = Ext.getDom(el);
-            return new this(el.value || el.innerHTML, config || '');
-        }
-    },
-
-    
-    
-    
-    useEval: Ext.isGecko,
-
-    
-
-    
-    constructor: function(html) {
-        var me = this,
-            args = arguments,
-            buffer = [],
-            i,
-            length = args.length,
-            value;
-
-        me.initialConfig = {};
-        
-        
-        
-        
-        if (length === 1 && Ext.isArray(html)) {
-            args = html;
-            length = args.length;
-        }
-
-        if (length > 1) {
-            for (i = 0; i < length; i++) {
-                value = args[i];
-                if (typeof value == 'object') {
-                    Ext.apply(me.initialConfig, value);
-                    Ext.apply(me, value);
-                } else {
-                    buffer.push(value);
-                }
-            }
-        } else {
-            buffer.push(html);
-        }
-
-        
-        me.html = buffer.join('');
-    },
-
-    
-    isTemplate: true,
-
-    
-
-    
-    disableFormats: false,
-
-    
-    tokenRe: /\{(?:(?:(\d+)|([a-z_][\w\-]*))(?::([a-z_\.]+)(?:\(([^\)]*?)?\))?)?)\}/gi,
-
-    
-    apply: function(values) {
-        var me = this;
-
-        if (me.compiled) {
-            if (!me.fn) {
-                me.compile();
-            }
-            return me.fn(values).join('');
-        }
-
-        return me.evaluate(values);
-    },
-
-    
-    
-    evaluate: function(values) {
-        var me = this,
-            useFormat = !me.disableFormats,
-            fm = Ext.util.Format,
-            tpl = me;
-
-        function fn(match, index, name, formatFn, args) {
-            
-            
-            if (name == null || name == '') {
-                name = index;
-            }
-            if (formatFn && useFormat) {
-                if (args) {
-                    args = [values[name]].concat(Ext.functionFactory('return ['+ args +'];')());
-                } else {
-                    args = [values[name]];
-                }
-
-                
-                if (formatFn.substr(0, 5) === "this.") {
-                    return tpl[formatFn.substr(5)].apply(tpl, args);
-                }
-                
-                else if (fm[formatFn]) {
-                    return fm[formatFn].apply(fm, args);
-                }
-                
-                else {
-                    return match;
-                }
-            }
-            else {
-                return values[name] !== undefined ? values[name] : "";
-            }
-        }
-
-        return me.html.replace(me.tokenRe, fn);
-    },
-
-    
-    applyOut: function(values, out) {
-        var me = this;
-
-        if (me.compiled) {
-            if (!me.fn) {
-                me.compile();
-            }
-            out.push.apply(out, me.fn(values));
-        } else {
-            out.push(me.apply(values));
-        }
-
-        return out;
-    },
-
-    
-    applyTemplate: function () {
-        return this.apply.apply(this, arguments);
-    },
-
-    
-    set: function(html, compile) {
-        var me = this;
-        me.html = html;
-        me.compiled = !!compile;
-        me.fn = null;
-        return me;
-    },
-
-    compileARe: /\\/g,
-    compileBRe: /(\r\n|\n)/g,
-    compileCRe: /'/g,
-
-    
-    compile: function() {
-        var me = this,
-            code;
-
-        code = me.html.replace(me.compileARe, '\\\\').replace(me.compileBRe, '\\n').
-                       replace(me.compileCRe, "\\'").replace(me.tokenRe, me.regexReplaceFn.bind(me));
-        code = (this.disableFormats !== true ? 'var fm=Ext.util.Format;' : '') +
-                (me.useEval ? '$=' : 'return') +
-                " function(v){return ['" + code + "'];};";
-
-        me.fn  = me.useEval ? me.evalCompiled(code) : (new Function('Ext', code))(Ext);
-        me.compiled = true;
-        return me;
-    },
-
-    
-    evalCompiled: function($) {
-
-        
-        
-        
-        
-        eval($);
-        return $;
-    },
-
-    regexReplaceFn: function (match, index, name, formatFn, args) {
-        
-        
-        
-        if (index == null || index == '') {
-            index = '"' + name + '"';
-        }
-        
-        
-        else if (this.stringFormat) {
-            index = parseInt(index) + 1;
-        }
-        if (formatFn && this.disableFormats !== true) {
-            args = args ? ',' + args: "";
-
-            
-            if (formatFn.substr(0, 5) === "this.") {
-                formatFn = formatFn + '(';
-            }
-            
-            else if (Ext.util.Format[formatFn]) {
-                formatFn = "fm." + formatFn + '(';
-            }
-            
-            else {
-                return match;
-            }
-            return "'," + formatFn + "v[" + index + "]" + args + "),'";
-        }
-        else {
-            return "',v[" + index + "] == undefined ? '' : v[" + index + "],'";
-        }
-    },
-
-    
-    insertFirst: function(el, values, returnElement) {
-        return this.doInsert('afterBegin', el, values, returnElement);
-    },
-
-    
-    insertBefore: function(el, values, returnElement) {
-        return this.doInsert('beforeBegin', el, values, returnElement);
-    },
-
-    
-    insertAfter: function(el, values, returnElement) {
-        return this.doInsert('afterEnd', el, values, returnElement);
-    },
-
-    
-    append: function(el, values, returnElement) {
-        return this.doInsert('beforeEnd', el, values, returnElement);
-    },
-
-    doInsert: function(where, el, values, returnElement) {
-        var newNode = Ext.DomHelper.insertHtml(where, Ext.getDom(el), this.apply(values));
-        return returnElement ? Ext.get(newNode) : newNode;
-    },
-
-    
-    overwrite: function(el, values, returnElement) {
-        var newNode = Ext.DomHelper.overwrite(Ext.getDom(el), this.apply(values));
-        return returnElement ? Ext.get(newNode) : newNode;
-    }
-});
-
 Ext.define('Ext.overrides.Widget', {
     override: 'Ext.Widget',
+
+    requires: ['Ext.Component'],
 
     $configStrict: false,
 
@@ -27290,7 +27106,106 @@ Ext.define('Ext.overrides.Widget', {
         
         prototype.addElementReferenceOnDemand = prototype.addElementReference;
     }
+
+    this.borrow(Ext.Component, ['up']);
 });
+
+Ext.define('Ext.overrides.dom.Helper', (function() {
+    var tableRe = /^(?:table|thead|tbody|tr|td)$/i,
+        tableElRe = /td|tr|tbody|thead/i,
+        ts = '<table>',
+        te = '</table>',
+        tbs = ts+'<tbody>',
+        tbe = '</tbody>'+te,
+        trs = tbs + '<tr>',
+        tre = '</tr>'+tbe;
+
+    return {
+        override: 'Ext.dom.Helper',
+
+        ieInsertHtml: function(where, el, html) {
+            var frag = null;
+
+            
+            if (Ext.isIE9m && tableRe.test(el.tagName)) {
+                frag = this.insertIntoTable(el.tagName.toLowerCase(), where, el, html);
+            }
+            return frag;
+        },
+
+        ieOverwrite: function(el, html) {
+            
+            
+            if (Ext.isIE9m && tableRe.test(el.tagName)) {
+                
+                while (el.firstChild) {
+                    el.removeChild(el.firstChild);
+                }
+                if (html) {
+                    return this.insertHtml('afterbegin', el, html);
+                }
+            } 
+        },
+
+        ieTable: function(depth, openingTags, htmlContent, closingTags){
+            var i = -1,
+                el = this.detachedDiv,
+                ns, nx;
+
+            el.innerHTML = [openingTags, htmlContent, closingTags].join('');
+
+            while (++i < depth) {
+                el = el.firstChild;
+            }
+            
+            ns = el.nextSibling;
+
+            if (ns) {
+                ns = el;
+                el = document.createDocumentFragment();
+                
+                while (ns) {
+                     nx = ns.nextSibling;
+                     el.appendChild(ns);
+                     ns = nx;
+                }
+            }
+            return el;
+        },
+
+        
+        insertIntoTable: function(tag, where, destinationEl, html) {
+            var node,
+                before,
+                bb = where === 'beforebegin',
+                ab = where === 'afterbegin',
+                be = where === 'beforeend',
+                ae = where === 'afterend';
+
+            if (tag === 'td' && (ab || be) || !tableElRe.test(tag) && (bb || ae)) {
+                return null;
+            }
+            before = bb ? destinationEl :
+                     ae ? destinationEl.nextSibling :
+                     ab ? destinationEl.firstChild : null;
+
+            if (bb || ae) {
+                destinationEl = destinationEl.parentNode;
+            }
+
+            if (tag === 'td' || (tag === 'tr' && (be || ab))) {
+                node = this.ieTable(4, trs, html, tre);
+            } else if (((tag === 'tbody' || tag === 'thead') && (be || ab)) ||
+                    (tag === 'tr' && (bb || ae))) {
+                node = this.ieTable(3, tbs, html, tbe);
+            } else {
+                node = this.ieTable(2, ts, html, te);
+            }
+            destinationEl.insertBefore(node, before);
+            return node;
+        }
+    };
+})());
 
 
 

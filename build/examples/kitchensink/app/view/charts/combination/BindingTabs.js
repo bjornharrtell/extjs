@@ -36,14 +36,20 @@ Ext.define('KitchenSink.view.charts.combination.BindingTabs', {
         layout: 'fit',
         items: {
             xtype: 'cartesian',
-            //animation: false,
+            animation: false,
             bind: '{priceData}',
             insetPadding: 40,
             innerPadding: {
                 left: 40,
                 right: 40
             },
-            interactions: 'itemhighlight',
+            interactions: [
+                'itemhighlight',
+                {
+                    type: 'panzoom',
+                    zoomOnPanGesture: true
+                }
+            ],
             axes: [{
                 type: 'numeric',
                 fields: 'price',
@@ -92,10 +98,13 @@ Ext.define('KitchenSink.view.charts.combination.BindingTabs', {
         layout: 'fit',
         items: {
             xtype: 'cartesian',
-            //animation: false,
+            interactions: {
+                type: 'panzoom',
+                zoomOnPanGesture: true
+            },
+            animation: false,
             bind: '{priceData}',
             insetPadding: 40,
-            interactions: 'itemhighlight',
             axes: [{
                 type: 'numeric',
                 position: 'left',
@@ -149,8 +158,7 @@ Ext.define('KitchenSink.view.charts.combination.BindingTabs', {
                 grid: true,
                 minimum: 0,
                 maximum: 30,
-                majorTickSteps: 4,
-                title: 'Price'
+                majorTickSteps: 4
             }, {
                 type: 'category',
                 position: 'angular',

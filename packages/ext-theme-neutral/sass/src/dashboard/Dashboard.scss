@@ -8,6 +8,7 @@
 
 .#{$prefix}dashboard-column-first {
     padding-left: $ext-dashboard-column-padding;
+    clear : left;
 }
 
 .#{$prefix}dashboard-column-last {

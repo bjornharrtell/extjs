@@ -26,6 +26,14 @@ describe("Ext.data.reader.Json", function() {
         Ext.data.Model.schema.clear(true);
     });
     
+    it('should set a reference to the raw data in the .raw property on the record', function () {
+        var o = {
+            inter: 1
+        };
+
+        expect(reader.readRecords([o]).getRecords()[0].raw).toBe(o);
+    });
+
     describe("preserveRawData", function() {
         it("should not use the raw data object for the model if set to true", function() {
             reader.setPreserveRawData(true);
@@ -681,6 +689,226 @@ describe("Ext.data.reader.Json", function() {
                     }], rawOptions).getRecords()[0];
                     expect(result.field).toBeUndefined();
                 });
+
+                it("should read dotted properties inside a bracketed block", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["foo.bar.baz"]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'foo.bar.baz': 'x'
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read [arrayIndex].property", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '[2].foo'
+                    }]);
+
+                    var result = reader.readRecords([
+                        [1, 2, {
+                            foo: 'x'
+                        }]
+                    ], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read [arrayIndex]['property']", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '[2]["complex-name"]'
+                    }]);
+
+                    var result = reader.readRecords([
+                        [1, 2, {
+                            'complex-name': 'x'
+                        }]
+                    ], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read [arrayIndex][arrayIndex]", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '[2][1]'
+                    }]);
+
+                    var result = reader.readRecords([
+                        [1, 2, [3, 4, 5, 6]]
+                    ], rawOptions).getRecords()[0];
+                    expect(result.field).toBe(4);
+                });
+
+                it("should read property.property", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: 'foo.bar'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        foo: {
+                            bar: 'x'
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read property['property']", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: 'foo["complex-name"]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        foo: {
+                            'complex-name': 'x'
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read property[arrayIndex]", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: 'foo[2]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        foo: [1, 2, 3, 4]
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe(3);
+                });
+
+                it("should read ['property'].property", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["complex-name"].foo'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'complex-name': {
+                            foo: 'x'
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read ['property']['property']", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["complex-name"]["other-prop"]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'complex-name': {
+                            'other-prop': 'x'
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should read ['property'][arrayIndex]", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["complex-name"][1]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'complex-name': [1, 2, 3, 4]
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe(2);
+                });
+
+                it("should read property['property'][arrayIndex]", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: 'foo["complex-name"][2]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        foo: {
+                            'complex-name': [1, 2, 3, 4]
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe(3);
+                });
+
+                it("should handle property[arrayIndex]['property']", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: 'foo[1]["complex-name"]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        foo: [1, {
+                            'complex-name': 'x'
+                        }]
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should handle ['property'].property[arrayIndex]", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["complex-name"].foo[1]'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'complex-name': {
+                            foo: [1, 2, 3]
+                        }
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe(2);
+                });
+
+                it("should handle ['property'][arrayIndex].property", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '["complex-name"][1].foo'
+                    }]);
+
+                    var result = reader.readRecords([{
+                        'complex-name': [1, {
+                            foo: 'x'
+                        }]
+                    }], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should handle [arrayIndex].property['property']", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '[1].foo["complex-name"]'
+                    }]);
+
+                    var result = reader.readRecords([
+                        [1, {
+                            foo: {
+                                'complex-name': 'x'
+                            }
+                        }]
+                    ], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
+
+                it("should handle [arrayIndex]['property'].property", function() {
+                    createReader([{
+                        name: 'field',
+                        mapping: '[1]["complex-name"].foo'
+                    }]);
+
+                    var result = reader.readRecords([
+                        [1, {
+                            'complex-name': {
+                                foo: 'x'
+                            }
+                        }]
+                    ], rawOptions).getRecords()[0];
+                    expect(result.field).toBe('x');
+                });
             });
         });
     });
@@ -983,7 +1211,7 @@ describe("Ext.data.reader.Json", function() {
     });
 
     describe("loading nested data", function() {
-        var data = {
+        var nestedLoadData = {
             "users": [
                 {
                     "id": 123,
@@ -1061,6 +1289,8 @@ describe("Ext.data.reader.Json", function() {
                     }
                 }
             });
+            
+            spyOn(Ext.log, 'warn');
 
             Ext.define('spec.Address', {
                 extend: 'Ext.data.Model',
@@ -1124,7 +1354,7 @@ describe("Ext.data.reader.Json", function() {
         it("should not parse includes if implicitIncludes is set to false", function() {
             reader = createReader({implicitIncludes: false});
 
-            var resultSet = reader.read(data),
+            var resultSet = reader.read(Ext.clone(nestedLoadData)),
                 user      = resultSet.getRecords()[0],
                 orders    = user.orders();
 
@@ -1136,7 +1366,7 @@ describe("Ext.data.reader.Json", function() {
 
             beforeEach(function() {
                 reader     = createReader();
-                resultSet  = reader.read(data);
+                resultSet  = reader.read(Ext.clone(nestedLoadData));
                 user       = resultSet.getRecords()[0];
                 addresses  = user.addresses();
                 orders     = user.orders();
@@ -1259,6 +1489,11 @@ describe("Ext.data.reader.Json", function() {
             });
 
             describe("if there is invalid JSON", function() {
+                beforeEach(function() {
+                    spyOn(Ext, 'log');
+                    spyOn(Ext.Logger, 'warn');
+                });
+                
                 it("should not be successful", function() {
                     expect(doRead(badResponse).getSuccess()).toBe(false);
                 });

@@ -4,7 +4,7 @@
       "32f685a8af28baafcc7999862d0bd1f25df0e48b": "eJx1U02P0zAQvedXzPoEFW66CwfUTXopiwAhgbTlwNF1po13HdvY0zYR4r9jOwXSBXxI5HnzPqyxq6s3n9abr5/voKVOr4rqivMCANbWDV7tW4Jn8jncLK5vePy8nMM9GtkKeG/kvOA8Es68FkWzSkyoSJHG1V1P8OEeNi12CO+ENxhCVY7Y2NchiWhLjuO3gzrWbG0NoSG+GRwykOOuZoQ9lcnmFqK1D0j1l81b/pqtilHonBk+WtGA0Bp8EvTYgFbmMYAwDQTplaOQ+1LuTExwbNY1CzRoDC0iMaBof3aVITBoPe5qhr3onMZ5LpVngVF1yngQRzFWGQQva7a1lgJ54eYPga2qcgR/Rc++o1ha85Nq9kg8nV0ogx6+/8bS6oTfK7OE64Xrby+QSKR2Ca8WfyHOBkXKRlY8qSB1xEvcHtHvtD0t4aiC2uoJ/KP4k6znQSuJnlPMgPTivwjMnoS2TkhFQ0z9T+VyBmjCwSNsbTNAYzGAsZRzaeGAWgRvD6aJ85Q23iMfwO5g50UXK04Y1OVJmcae4NSigRRGmT3MymnE3MeTw0XykZjrT1JvhXzcZ98lxPGZ4ISP13F6hDzB8jzCqpw8gaQXZ51/Cclv5CfT2f4m"
     },
     "package.json.tpl.merge": {
-      "12322b2f0769f491000df8ec0e012dd2d78a7eaf": "eJx1zrEKwjAQgOG9TxE6S9HV2VFcFBdxONJrDW1y8XIRSum7m2pTJzMd/3cHGQuVXunAYrlX5ei79pTmqdx8QQa/wiXNK2hGEOLZwJEbLMWQLURrgYfZzg9iUTksXqOA6bE+YNBsvBhy8+6RXKvqX1PUKA+6gxbz5Qs5LNu7altt19+Q9SDXP9oQW5BPzqknDX0qwhGXxPiMhjGkersXU/EGNatRVA\u003d\u003d"
+      "9c7e7135be031f8d06045d338200cbf4a4222f88": "eJx1kD9PwzAQxfd+CitiREmYkJgZgaUIBuhwjS+pW9tn/AcRRfnuxMYxylBP997vfH7naceWU2lQWD2wajKX4WWp5+r2D/jRFPC61AV0FsGTjQw06VFRcCtzQSmwY2T7E1nPViNzjh6ERP6IrrPCeEE69j6RHhj/9xj1zEB3gQHXm99oXe6+q9u6LWlIGfBvV2hPVoFPdokoRYcx/ZR08s5u0R9FxzNtVOpa3jnFUTefoW3vjzlgzYWdGwfONfgDykhsuuA8qfq8fstminDvgg/on0GLHl0M523ATeNc1CFVc85OwZvgr2U4BiH5uqakDmSenS2LX0FYTLsedvMvLXaLQg\u003d\u003d"
     },
     "config.rb.tpl.merge": {
       "33f446bd02c3fd24eb27891582eff6a2e789796b": "eJxLLi2KT8ksUrBVcMvMSdUDMvMSc1M14uPdPH1c4+M1ufJLSwpKS+KLSypzUoGqrPJSi0tSU7gALskTcA\u003d\u003d"
@@ -30,88 +30,88 @@
       "source": "theme.html.tpl.merge",
       "version": "32f685a8af28baafcc7999862d0bd1f25df0e48b",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     "package.json": {
       "source": "package.json.tpl.merge",
-      "version": "12322b2f0769f491000df8ec0e012dd2d78a7eaf",
+      "version": "9c7e7135be031f8d06045d338200cbf4a4222f88",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     "sass/config.rb": {
       "source": "config.rb.tpl.merge",
       "version": "33f446bd02c3fd24eb27891582eff6a2e789796b",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     "sass/etc/all.scss": {
       "source": "all.scss.merge",
       "version": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     "sass/example/custom.js": {
       "source": "custom.js.merge",
       "version": "199e99bbd15c3c0415569425cb21e77c95e9042a",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     ".sencha/package/build.properties": {
       "source": "build.properties.merge",
       "version": "8b81315dbe73ce9c08478f4c1d2df84f456efcf5",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     ".sencha/package/sencha.cfg": {
       "source": "sencha.cfg.tpl.merge",
       "version": "6d1982cce48163a98dc46012d1d0cdfa209fbda6",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     },
     ".sencha/package/testing.properties": {
       "source": "testing.properties.merge",
       "version": "e65f969c42eb4f355c850fc58fea852582f20db8",
       "parameters": {
-        "pkgType": "theme",
-        "touchRelPath": "../../../touch",
-        "senchadir": ".sencha",
+        "extRelPath": "../..",
         "pkgName": "ext-theme-aria",
-        "extRelPath": "../.."
+        "pkgType": "theme",
+        "senchadir": ".sencha",
+        "touchRelPath": "../../../touch"
       }
     }
   }

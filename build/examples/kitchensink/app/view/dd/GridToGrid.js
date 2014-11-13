@@ -68,6 +68,7 @@ Ext.define('KitchenSink.view.dd.GridToGrid', {
                 viewConfig: {
                 plugins: {
                     ptype: 'gridviewdragdrop',
+                    containerScroll: true,
                     dragGroup: group1,
                     dropGroup: group2
                 },
@@ -98,6 +99,7 @@ Ext.define('KitchenSink.view.dd.GridToGrid', {
             viewConfig: {
                 plugins: {
                     ptype: 'gridviewdragdrop',
+                    containerScroll: true,
                     dragGroup: group2,
                     dropGroup: group1
                 },

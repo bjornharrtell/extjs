@@ -118,8 +118,27 @@
     <target name="-after-subpkgs"/>
     <target name="-subpkgs">
         <x-process-sub-packages>
-            <x-sub-build dir="@{pkg-dir}"
-                         inherit-version="${build.subpkgs.inherit.version}"/>
+            <local name="sub.name"/>
+            <basename file="@{dir}"
+                      property="sub.name"/>
+            <if>
+                <x-is-true value="${build.subpkgs.inherit.version}"/>
+                <then>
+                    <x-sencha-command dir="@{pkg-dir}" inheritall="false">
+                        <property name="compiler.ref.id" value="compiler-${sub.name}"/>
+                        <property name="build.version" value="${build.version}"/>
+                        package
+                        build
+                    </x-sencha-command>
+                </then>
+                <else>
+                    <x-sencha-command dir="@{pkg-dir}" inheritall="false">
+                        <property name="compiler.ref.id" value="compiler-${sub.name}"/>
+                        package
+                        build
+                    </x-sencha-command>
+                </else>
+            </if>
         </x-process-sub-packages>
     </target>
 

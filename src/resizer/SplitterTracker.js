@@ -10,7 +10,8 @@ Ext.define('Ext.resizer.SplitterTracker', {
     overlayCls: Ext.baseCSSPrefix + 'resizable-overlay',
 
     createDragOverlay: function () {
-        var overlay;
+        var overlay,
+            El = Ext.dom.Element;
 
         overlay = this.overlay =  Ext.getBody().createChild({
             role: 'presentation',
@@ -19,7 +20,7 @@ Ext.define('Ext.resizer.SplitterTracker', {
         });
 
         overlay.unselectable();
-        overlay.setSize(Ext.dom.Element.getDocumentWidth(), Ext.dom.Element.getDocumentHeight());
+        overlay.setSize(El.getDocumentWidth(), El.getDocumentHeight());
         overlay.show();
     },
 
@@ -47,7 +48,7 @@ Ext.define('Ext.resizer.SplitterTracker', {
             return false;
         }
 
-        if (collapseEl && target === me.getSplitter().collapseEl.dom) {
+        if (collapseEl && target === collapseEl.dom) {
             return false;
         }
 

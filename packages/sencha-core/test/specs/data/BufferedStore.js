@@ -1,44 +1,52 @@
 describe('Ext.data.BufferedStore', function() {
-    var bufferedStore,
-        wasCalled = false;
+    var bufferedStore;
 
-    Ext.ux.ajax.SimManager.init({
-        delay: 10, 
-        defaultSimlet: null
-    }).register({
-        '/data/Store/reload': {
-            data: (function () {
-                var i = 0,
-                    recs = [];
+    function getData(start, limit) {
+        var end = start + limit,
+            recs = [],
+            i;
 
-                for (; i < 5000; i++) {
-                    recs.push({
-                        id: i,
-                        title: 'Title' + i
-                    });
-                }
+        for (i = start; i < end; ++i) {
+            recs.push({
+                id: i,
+                title: 'Title' + i
+            });
+        }
+        return recs;
+    }
 
-                return recs;
-            }()),
-            stype: 'json'
-        }   
-    });
+    function satisfyRequests(total) {
+        var requests = Ext.Ajax.mockGetAllRequests(),
+            request, params, data;
+
+        while (requests.length) {
+            request = requests[0];
+
+            params = request.options.params;
+            data = getData(params.start, params.limit);
+
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.encode({
+                    total: total || 5000,
+                    data: data
+                })
+            });
+
+            requests = Ext.Ajax.mockGetAllRequests()
+        }
+    }
 
     function createStore(cfg) {
         bufferedStore = new Ext.data.BufferedStore(Ext.apply({
-            id: 'store',
-            model: 'Foo',
+            model: 'spec.ForumThread',
             pageSize: 100,
             proxy: {
                 type: 'ajax',
-                url: '/data/Store/reload',
+                url: 'fakeUrl',
                 reader: {
-                    type: 'json'
-                }
-            },
-            listeners: {
-                prefetch: function (store, records, successful, operation) {
-                    wasCalled = true;
+                    type: 'json',
+                    rootProperty: 'data'
                 }
             }
         }, cfg));
@@ -61,241 +69,142 @@ describe('Ext.data.BufferedStore', function() {
             ],
             idProperty: 'threadid'
         });
-        Ext.define('Foo', {
-            extend: 'Ext.data.Model',
-            fields: ['id', 'title']
-        });
+
         MockAjaxManager.addMethods();
     });
     
     afterEach(function(){
         MockAjaxManager.removeMethods();
-        if (bufferedStore) {
-            bufferedStore.destroy();
-            bufferedStore = null;
-        }
+        bufferedStore.destroy();
+        bufferedStore = null;
         Ext.data.Model.schema.clear();
         Ext.undefine('spec.ForumThread');
-        Ext.undefine('Foo');
-        wasCalled = false;
     });
     
     it('should be able to start from any page', function() {
-        createStore({
-            model: 'spec.ForumThread',
-            pageSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            }
-        });
+        createStore();
         bufferedStore.loadPage(10);
 
-        waitsFor(function() {
-            // Wait until all queued page load requests have returned
-            // Will load a range *around* the requested page to allow for scrolling.
-            return Ext.Object.getKeys(bufferedStore.pageRequests).length === 0;
-        });
-        runs(function() {
-            expect(bufferedStore.currentPage).toBe(10);
-            var page10 = bufferedStore.getRange(900, 999);
-            expect(page10.length).toBe(100);
+        satisfyRequests();
 
-            // Page 10 contains records 900 to 999.
-            expect(page10[0].get('title')).toEqual('Title900');
-            expect(page10[99].get('title')).toEqual('Title999');
-        });
+        expect(bufferedStore.currentPage).toBe(10);
+        var page10 = bufferedStore.getRange(900, 999);
+        expect(page10.length).toBe(100);
+
+        // Page 10 contains records 900 to 999.
+        expect(page10[0].get('title')).toBe('Title900');
+        expect(page10[99].get('title')).toBe('Title999');
     });
 
     it('should be able to find records in a buffered store', function() {
-        createStore({
-            model: 'spec.ForumThread',
-            pageSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            },
-            autoLoad: true
-        });
+        createStore();
+        bufferedStore.load();
 
-        waitsFor(function() {
-            return bufferedStore.getCount();
-        });
-        runs(function() {
-            expect(bufferedStore.findBy(function(rec) {
-                return rec.get('title') === 'Title10';
-            })).toEqual(10);
+        satisfyRequests();
 
-            expect(bufferedStore.findExact('title', 'Title10')).toEqual(10);
+        expect(bufferedStore.findBy(function(rec) {
+            return rec.get('title') === 'Title10';
+        })).toBe(10);
 
-            expect(bufferedStore.find('title', 'title10')).toEqual(10);
-        });
+        expect(bufferedStore.findExact('title', 'Title10')).toBe(10);
+
+        expect(bufferedStore.find('title', 'title10')).toBe(10);
     });
 
     it("should clear the data when calling sort with parameters when remote sorting", function() {
-        bufferedStore = new Ext.data.BufferedStore({
-            model: 'spec.ForumThread',
-            pageSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            }
-        });
+        createStore();
         bufferedStore.load();
-        waitsFor(function() {
-            return bufferedStore.getCount();
-        });
-        runs(function() {
-            bufferedStore.sort();
-            expect(bufferedStore.getCount()).toBe(0);
-            waitsFor(function() {
-                return bufferedStore.getCount();
-            });
-            runs(function() {
-                expect(bufferedStore.getCount()).toBe(100);
-            });
-        });
+
+        satisfyRequests();
+
+        bufferedStore.sort();
+        expect(bufferedStore.data.getCount()).toBe(0);
+        satisfyRequests();
+        expect(bufferedStore.data.getCount()).toBe(300);
     });
 
     it('should load the store when filtered', function() {
-         var loaded = false;
+        var spy = jasmine.createSpy();
 
         createStore({
-            model: 'spec.ForumThread',
-            pageSize: 5,
-            viewSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            },
-            autoLoad: false,
             listeners: {
-                load: function() {
-                    loaded = true;
-                }
+                load: spy
             }
         });
 
         // Filter mutation shuold trigger a load
         bufferedStore.filter('title', 'panel');
-
-        waitsFor(function() {
-            return loaded;
-        });
+        satisfyRequests();
+        expect(spy).toHaveBeenCalled();
    });
 
     it('should load the store when sorted', function() {
-         var loaded = false;
+         var spy = jasmine.createSpy();
 
         createStore({
-            model: 'spec.ForumThread',
-            pageSize: 5,
-            viewSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            },
-            autoLoad: false,
             listeners: {
-                load: function() {
-                    loaded = true;
-                }
+                load: spy
             }
         });
 
         // Sorter mutation shuold trigger a load
         bufferedStore.sort('title', 'ASC');
-
-        waitsFor(function() {
-            return loaded;
-        });
+        satisfyRequests();
+        expect(spy).toHaveBeenCalled();
    });
+
+    it("should update the sorters when sorting by an existing key", function() {
+        createStore({
+            sorters: [{
+                property: 'title'
+            }]
+        });
+
+        bufferedStore.sort('title', 'DESC');
+        var sorter = bufferedStore.getSorters().getAt(0);
+        expect(sorter.getProperty()).toBe('title');
+        expect(sorter.getDirection()).toBe('DESC');
+    });
 
     // Test for https://sencha.jira.com/browse/EXTJSIV-10338
     // purgePageCount ensured that the viewSize could never be satisfied
     // by small pages because they would keep being pruned.
     it('should load the requested range when the pageSize is small', function() {
-        var loaded = false;
-
+        var spy = jasmine.createSpy();
         createStore({
-            model: 'spec.ForumThread',
             pageSize: 5,
-            viewSize: 100,
-            proxy: {
-                type: 'ajax',
-                url: '/data/Store/reload',
-                reader: {
-                    rootProperty: 'topics',
-                    totalProperty: 'totalCount'
-                }
-            },
-            autoLoad: true,
             listeners: {
-                load: function() {
-                    loaded = true;
-                }
+                load: spy
             }
         });
 
-        waitsFor(function() {
-            return loaded;
-        });
+        bufferedStore.load();
+
+        satisfyRequests();
+        expect(spy).toHaveBeenCalled();
     });
 
     describe('load', function () {
         it("should pass the records loaded, the operation & success to the callback", function() {
-            var arg1, arg2, arg3;
-            bufferedStore = new Ext.data.BufferedStore({
-                model: 'spec.ForumThread',
-                pageSize: 100,
-                proxy: {
-                    type: 'ajax',
-                    url: 'url',
-                    reader: {
-                        type: 'json'
-                    }
-                }
-            });
+            var spy = jasmine.createSpy(),
+                args;
+
+            createStore();
 
             bufferedStore.load({
                 // Called after first prefetch and first page has been added.
-                callback: function (a, b, c) {
-                    arg1 = a;
-                    arg2 = b;
-                    arg3 = c;
-                }
+                callback: spy
             });
-            Ext.Ajax.mockComplete({
-                status: 200,
-                responseText: Ext.JSON.encode([{}])
-            });
-            expect(Ext.isArray(arg1)).toBe(true);
-            expect(arg1[0].isModel).toBe(true);
+            satisfyRequests();
 
-            expect(arg2.action).toBe('read');
-            expect(arg2.$className).toBe('Ext.data.operation.Read');
+            args = spy.mostRecentCall.args;
+            expect(Ext.isArray(args[0])).toBe(true);
+            expect(args[0][0].isModel).toBe(true);
 
-            expect(arg3).toBe(true);
+            expect(args[1].getAction()).toBe('read');
+            expect(args[1].$className).toBe('Ext.data.operation.Read');
+
+            expect(args[2]).toBe(true);
 
         });
 
@@ -305,23 +214,18 @@ describe('Ext.data.BufferedStore', function() {
             it('should not exceed 100 records', function () {
                 createStore();
 
+                var spy = jasmine.createSpy();
                 bufferedStore.load({
                     // Called after first prefetch and first page has been added.
-                    callback: function (records) {
-                        wasCalled = true;
-                        endIndex = records.length - 1;
-                    }
+                    callback: spy
                 });
 
-                waitsFor(function () {
-                    return wasCalled;
-                });
+                satisfyRequests();
 
-                runs(function () {
-                    expect(bufferedStore.getAt(0).index).toBe(0);
-                    expect(bufferedStore.getAt(99).index).toBe(99);
-                    expect(endIndex).toBe(99);
-                });
+                expect(spy).toHaveBeenCalled();
+                expect(bufferedStore.getAt(0).index).toBe(0);
+                expect(bufferedStore.getAt(99).index).toBe(99);
+                expect(spy.mostRecentCall.args[0].length).toBe(100);
             });
 
             it('should not exceed 50 records', function () {
@@ -329,61 +233,38 @@ describe('Ext.data.BufferedStore', function() {
                     pageSize: 50
                 });
 
+                var spy = jasmine.createSpy();
                 bufferedStore.load({
                     // Called after first prefetch and first page has been added.
-                    callback: function (records, startIdx, endIdx, options) {
-                        wasCalled = true;
-                        endIndex = records.length - 1;
-                    }
+                    callback: spy
                 });
 
-                waitsFor(function () {
-                    return wasCalled;
-                });
+                satisfyRequests(50);
+                expect(spy).toHaveBeenCalled();
 
-                runs(function () {
-                    expect(bufferedStore.getAt(0).index).toBe(0);
-                    expect(bufferedStore.getAt(49).index).toBe(49);
-                    expect(endIndex).toBe(49);
-                });
+                expect(bufferedStore.getAt(0).index).toBe(0);
+                expect(bufferedStore.getAt(49).index).toBe(49);
+                expect(spy.mostRecentCall.args[0].length).toBe(50);
             });
         });
     });
 
     describe('reload', function () {
         it('should not increase the number of pages when reloading', function () {
-            var firstCallLn;
+            createStore();
+            bufferedStore.load();
 
-            createStore({
-                autoLoad: true
-            });
+            satisfyRequests();
 
-            waitsFor(function () {
-                return wasCalled;
-            });
+            bufferedStore.reload();
+            satisfyRequests();
 
-            runs(function () {
-                wasCalled = false;
-                bufferedStore.reload();
-            });
+            var count = bufferedStore.getData().getCount();
 
-            waitsFor(function () {
-                return wasCalled;
-            });
+            bufferedStore.reload();
+            satisfyRequests();
 
-            runs(function () {
-                firstCallLn = bufferedStore.data.length;
-                wasCalled = false;
-                bufferedStore.reload();
-            });
-
-            waitsFor(function () {
-                return wasCalled;
-            });
-
-            runs(function () {
-                expect(bufferedStore.data.length).toBe(firstCallLn);
-            });
+            expect(bufferedStore.getData().getCount()).toBe(count);
         });
     });
 });

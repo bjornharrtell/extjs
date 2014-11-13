@@ -221,10 +221,6 @@ Ext.define('Ext.tree.View', {
         return this.callParent(arguments);
     },
 
-    onClear: function() {
-        this.store.removeAll();
-    },
-
     setRootNode: function(node, preventSetOnStore) {
         if (!preventSetOnStore) {
             this.store.setNode(node);
@@ -382,6 +378,11 @@ Ext.define('Ext.tree.View', {
         if (me.viewReady) {
             empty = me.store.getCount() === 0;
 
+            // If buffered rendering is being used, call the parent class.
+            if (me.bufferedRenderer) {
+                return me.callParent(arguments);
+            }
+
             // Nothing left, just refresh the view.
             if (empty) {
                 me.refresh();
@@ -465,7 +466,6 @@ Ext.define('Ext.tree.View', {
         animWrap = me.getAnimWrap(parent, false);
 
         if (!animWrap) {
-            me.refreshSelection();
             parent.isExpandingOrCollapsing = false;
             me.fireEvent('afteritemexpand', parent, index, node);
             me.refreshSize();
@@ -506,7 +506,6 @@ Ext.define('Ext.tree.View', {
                 }
             },
             callback: function() {
-                me.refreshSelection();
                 parent.isExpandingOrCollapsing = false;
                 me.fireEvent('afteritemexpand', parent, index, node);
             }
@@ -525,7 +524,7 @@ Ext.define('Ext.tree.View', {
                 // Only process if the collapsing node is in the UI.
                 // A node may be collapsed as part of a recursive ancestor collapse, and if it
                 // has already been removed from the UI by virtue of an ancestor being collapsed, we should not do anything.
-                if (Ext.Array.contains(parent.joined, me.store)) {
+                if (parent.isVisible()) {
                     animWrap = me.getAnimWrap(parent);
                     if (!animWrap) {
                         animWrap = me.animWraps[parent.internalId] = me.createAnimWrap(parent, index);
@@ -560,13 +559,12 @@ Ext.define('Ext.tree.View', {
         // If the collapsed node is already removed from the UI
         // by virtue of being a descendant of a collapsed node, then
         // we have nothing to do here.
-        if (!me.all.getCount() || !Ext.Array.contains(parent.joined, me.store)) {
+        if (!me.all.getCount() || !parent.isVisible()) {
             return;
         }
 
         // Not animating, all items will have been added, so updateLayout and resume layouts
         if (!animWrap) {
-            me.refreshSelection();
             parent.isExpandingOrCollapsing = false;
             me.fireEvent('afteritemcollapse', parent, index, node);
             me.refreshSize();
@@ -599,7 +597,6 @@ Ext.define('Ext.tree.View', {
                 }
             },
             callback: function() {
-                me.refreshSelection();
                 parent.isExpandingOrCollapsing = false;
                 me.fireEvent('afteritemcollapse', parent, index, node);
 
@@ -743,11 +740,26 @@ Ext.define('Ext.tree.View', {
         return result;
     },
 
+    onBindStore: function(store, initial, propName, oldStore) {
+        var oldRoot = oldStore && oldStore.getRootNode(),
+            newRoot = store && store.getRootNode();
+
+        this.callParent(arguments);
+
+        // The root implicitly changes when reconfigured with a new store.
+        // The store's own rootChange event when it initially sets its own rootNode
+        // will not have reached us because it was not ourt store during its initialization.
+        if (newRoot !== oldRoot) {
+            this.onRootChange(newRoot, oldRoot);
+        }
+    },
+
     onRootChange: function(newRoot, oldRoot) {
         var me = this;
 
-        if (me.rootListeners) {
+        if (oldRoot) {
             me.rootListeners.destroy();
+            me.rootListeners = null;
         }
         
         if (newRoot) {
@@ -756,6 +768,7 @@ Ext.define('Ext.tree.View', {
                 expand: me.onExpand,
                 beforecollapse: me.onBeforeCollapse,
                 collapse: me.onCollapse,
+                destroyable: true,
                 scope: me
             });
         }

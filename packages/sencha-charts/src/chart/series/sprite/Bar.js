@@ -56,15 +56,20 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             labelOverflowPadding = attr.labelOverflowPadding,
             labelDisplay = labelTpl.attr.display,
             labelOrientation = labelTpl.attr.orientation,
-            labelY, halfWidth, labelBox,
-            changes;
+            labelY, halfWidth, labelBBox,
+            changes, hasPendingChanges;
 
-        labelBox = me.getMarkerBBox('labels', labelId, true);
-        labelCfg.text = text;
-        if (!labelBox) {
-            me.putMarker('labels', labelCfg, labelId);
-            labelBox = me.getMarkerBBox('labels', labelId, true);
-        }
+        // The coordinates below (data point converted to surface coordinates)
+        // are just for the renderer to give it a notion of where the label will be positioned.
+        // The actual position of the label will be different
+        // (unless the renderer returns x/y coordinates in the changes object)
+        // and depend on several things including the size of the text,
+        // which has to be measured after the renderer call,
+        // since text can be modified by the renderer.
+        labelCfg.x = surfaceMatrix.x(dataX, dataY);
+        labelCfg.y = surfaceMatrix.y(dataX, dataY);
+
+        // Set defaults
         if (!attr.flipXY) {
             labelCfg.rotationRads = -Math.PI * 0.5;
         } else {
@@ -72,12 +77,40 @@ Ext.define('Ext.chart.series.sprite.Bar', {
         }
         labelCfg.calloutVertical = !attr.flipXY;
 
+        // Check if we have a specific orientation specified, if so, set
+        // the appropriate values.
         switch (labelOrientation) {
-            case 'horizontal': labelCfg.rotationRads = 0;              break;
-            case   'vertical': labelCfg.rotationRads = -Math.PI * 0.5; break;
+            case 'horizontal': 
+                labelCfg.rotationRads = 0;              
+                labelCfg.calloutVertical = false;
+                break;
+            case 'vertical': 
+                labelCfg.rotationRads = -Math.PI * 0.5; 
+                labelCfg.calloutVertical = true;
+                break;
         }
 
-        halfWidth = (labelBox.width / 2 + labelOverflowPadding);
+        labelCfg.text = text;
+
+        if (labelTpl.attr.renderer) {
+            changes = labelTpl.attr.renderer.call(this, text, label, labelCfg, {store: this.getStore()}, labelId);
+            if (typeof changes === 'string') {
+                labelCfg.text = changes;
+            } else if (typeof changes === 'object') {
+                if ('text' in changes) {
+                    labelCfg.text = changes.text;
+                }
+                hasPendingChanges = true;
+            }
+        }
+
+        labelBBox = me.getMarkerBBox('labels', labelId, true);
+        if (!labelBBox) {
+            me.putMarker('labels', labelCfg, labelId);
+            labelBBox = me.getMarkerBBox('labels', labelId, true);
+        }
+
+        halfWidth = (labelBBox.width / 2 + labelOverflowPadding);
         if (dataStartY > dataY) {
             halfWidth = -halfWidth;
         }
@@ -106,13 +139,8 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             labelCfg.callout = 0;
         }
 
-        if (labelTpl.attr.renderer) {
-            changes = labelTpl.attr.renderer.call(this, text, label, labelCfg, {store: this.getStore()}, labelId);
-            if (typeof changes === 'string') {
-                labelCfg.text = changes;
-            } else {
-                Ext.apply(labelCfg, changes);
-            }
+        if (hasPendingChanges) {
+            Ext.apply(labelCfg, changes);
         }
 
         me.putMarker('labels', labelCfg, labelId);
@@ -158,14 +186,14 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             maxBarWidth = (xx < 0 ? -1 : 1) * xx - attr.minGapWidth,
             minBarWidth = ( Math.min(maxBarWidth, attr.maxBarWidth) - inGroupGapWidth * (groupCount - 1) ) / groupCount,
             barWidth = surface.roundPixel( Math.max(attr.minBarWidth, minBarWidth) ),
-            surfaceMatrix = this.surfaceMatrix,
+            surfaceMatrix = me.surfaceMatrix,
             left, right, bottom, top, i, center,
             halfLineWidth = 0.5 * attr.lineWidth,
             min = Math.min(clip[0], clip[2]),
             max = Math.max(clip[0], clip[2]),
             start = Math.max(0, Math.floor(min)),
             end = Math.min(dataX.length - 1, Math.ceil(max)),
-            drawMarkers = dataText && this.getBoundMarker('labels'),
+            drawMarkers = dataText && me.getBoundMarker('labels'),
             yLow, yHi;
 
         for (i = start; i <= end; i++) {

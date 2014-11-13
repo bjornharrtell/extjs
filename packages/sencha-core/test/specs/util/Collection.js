@@ -618,6 +618,129 @@ describe("Ext.util.Collection", function() {
 
                 expect(collection.items[0]).toBe(item4);
             });
+
+            describe("with a source", function() {
+                var child, newItem;
+
+                beforeEach(function() {
+                    fill();
+                    child = new Ext.util.Collection();
+                    child.setSource(collection);
+
+                    newItem = {
+                        id: 100,
+                        name: 'Foo'
+                    };
+                });
+
+                afterEach(function() {
+                    child.destroy();
+                    newItem = child = null;
+                });
+
+                describe("inserting into the source", function() {
+                    it("should have the correct position when inserting at the start", function() {
+                        collection.insert(0, newItem);
+                        expect(child.getAt(0)).toBe(newItem);
+                    });
+
+                    it("should have the correct position when inserting into the middle", function() {
+                        collection.insert(4, newItem);
+                        expect(child.getAt(4)).toBe(newItem);
+                    });
+
+                    it("should have the correct position when inserting at the end", function() {
+                        collection.insert(100, newItem);
+                        expect(collection.getAt(9)).toBe(newItem);
+                    });
+
+                    describe("with source sorted", function() {
+                        it("should take the sorted position from the source", function() {
+                            collection.getSorters().add(function(item1, item2) {
+                                var n1 = item1.name,
+                                    n2 = item2.name;
+
+                                if (n1 === n2) {
+                                    return 0;
+                                }
+                                return n1 < n2 ? -1 : 1;
+                            });
+                            newItem.name = 'a';
+                            collection.insert(100, newItem);
+                            expect(child.getAt(0)).toBe(newItem);
+                        });
+                    });
+
+                    describe("with the child filtered", function() {
+                        it("hould have the correct position when inserting at the start", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name === 'third' || item.name === 'seventh' || item.name === 'Foo';
+                            });
+                            collection.insert(0, newItem);
+                            expect(child.getAt(0)).toBe(newItem);
+                        });
+
+                        it("should have the correct position when inserting into the middle", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name === 'third' || item.name === 'seventh' || item.name === 'Foo';
+                            });
+                            collection.insert(5, newItem);
+                            expect(child.getAt(1)).toBe(newItem);
+                        });
+
+                        it("should have the correct position when inserting at the end", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name === 'third' || item.name === 'seventh' || item.name === 'Foo';
+                            });
+                            collection.insert(100, newItem);
+                            expect(child.getAt(2)).toBe(newItem);
+                        });
+
+                        it("should have the correct position when the nearest item in the child is the first item in the source", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name === 'first' || item.name === 'seventh' || item.name === 'Foo';
+                            });
+                            collection.insert(3, newItem);
+                            expect(child.getAt(1)).toBe(newItem);
+                        });
+
+                        it("should have the correct position when there is no nearest item in the source", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name === 'seventh' || item.name === 'Foo';
+                            });
+                            collection.insert(3, newItem);
+                            expect(child.getAt(0)).toBe(newItem);
+                        });
+                    });
+                });
+
+                describe("inserting into the child", function() {
+                    it("should have the correct position when inserting at the start", function() {
+                        child.insert(0, newItem);
+                        expect(collection.getAt(0)).toBe(newItem);
+                    });
+
+                    it("should have the correct position when inserting into the middle", function() {
+                        child.insert(4, newItem);
+                        expect(collection.getAt(4)).toBe(newItem);
+                    });
+
+                    it("should have the correct position when inserting at the end", function() {
+                        child.insert(100, newItem);
+                        expect(collection.getAt(9)).toBe(newItem);
+                    });
+
+                    describe("when filtered", function() {
+                        it("should adjust the position for the source collection", function() {
+                            child.getFilters().add(function(item) {
+                                return item.name !== 'first' && item.name !== 'second';
+                            });
+                            child.insert(0, newItem);
+                            expect(collection.indexOf(newItem)).toBe(2);
+                        });
+                    });
+                });
+            });
         });
 
         describe("replacing items", function() {
@@ -2753,7 +2876,7 @@ describe("Ext.util.Collection", function() {
             expect(collection.byUid.get(item10.uid)).toBe(item10);
         });
 
-        it('should upgade items on itemChanged', function () {
+        it('should update items on itemChanged', function () {
             expect(collection.length).toBe(11);
 
             expect(collection.byUid.get(item0.uid)).toBe(item0);
@@ -3252,6 +3375,7 @@ describe("Ext.util.Collection", function() {
                 beginupdate: 0,
                 endupdate: 0,
                 itemchange: 0,
+                filtereditemchange: 0,
                 refresh: 0,
                 remove: 0,
                 sort: 0,
@@ -3580,6 +3704,16 @@ describe("Ext.util.Collection", function() {
                 expect(collection.items).toEqual([Don, Phil, Evan, Kevin, Nige]);
             });
 
+            it("should return the correct index when asking for an index during the remove", function() {
+                collection.on('remove', function() {
+                    collection.indexOf(Phil);
+                });
+
+                Don.name = 'ZZZ';
+                collection.itemChanged(Don);
+                expect(collection.indexOf(Don)).toBe(4);
+            });
+
         }); // sorted / unfiltered
 
         describe('unsorted and filtered', function () {
@@ -3607,7 +3741,7 @@ describe("Ext.util.Collection", function() {
                 expect(collection.items[0]).toBe(Nige);
 
                 expect(eventNames.join(',')).
-                    toBe('beginupdate,beforeitemchange,remove,itemchange,endupdate');
+                    toBe('beginupdate,beforeitemchange,remove,filtereditemchange,endupdate');
 
                 var beforeitemchange = eventArgs[1][1],
                     itemchange = eventArgs[3][1];
@@ -3655,6 +3789,13 @@ describe("Ext.util.Collection", function() {
                 expect(beforeitemchange.oldKey).toBe(undefined);
                 expect(beforeitemchange.wasFiltered).toBe(true);
             });
+
+            it("should pass along the modified fields", function() {
+                var spy = jasmine.createSpy();
+                collection.on('beforeitemchange', spy);
+                collection.itemChanged(Evan, ['foo', 'bar']);
+                expect(spy.mostRecentCall.args[1].modified).toEqual(['foo', 'bar']);
+            });
         }); // unsorted / filtered
 
         describe('sorted and filtered', function () {
@@ -3683,7 +3824,7 @@ describe("Ext.util.Collection", function() {
                 //expect(collection.items[1]).toBe(Don);
 
                 expect(eventNames.join(',')).
-                    toBe('beginupdate,beforeitemchange,remove,itemchange,endupdate');
+                    toBe('beginupdate,beforeitemchange,remove,filtereditemchange,endupdate');
 
                 var beforeitemchange = eventArgs[1][1],
                     itemchange = eventArgs[3][1];

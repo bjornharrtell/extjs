@@ -349,7 +349,7 @@ Ext.define('Ext.button.Button', {
 
     /**
      * @cfg {Boolean} preventDefault
-     * True to prevent the default action when the {@link #clickEvent} is processed.
+     * `true` to prevent the default action when the {@link #clickEvent} is processed.
      */
     preventDefault: true,
 
@@ -418,7 +418,8 @@ Ext.define('Ext.button.Button', {
      * The value of this button.  Only applicable when used as an item of a {@link
      * Ext.button.Segmented Segmented Button}.
      */
-
+    
+    focusable: true,
     ariaRole: 'button',
 
     defaultBindProperty: 'text',
@@ -430,10 +431,9 @@ Ext.define('Ext.button.Button', {
     publishes: {
         pressed:1
     },
-
+    
     // private
     menuClickBuffer: 250,
-    focusCls: 'focus',
     _btnWrapCls: Ext.baseCSSPrefix + 'btn-wrap',
     _btnCls: Ext.baseCSSPrefix + 'btn-button',
     _baseIconCls: Ext.baseCSSPrefix + 'btn-icon-el',
@@ -461,7 +461,7 @@ Ext.define('Ext.button.Button', {
                     'class="{btnCls} {btnCls}-{ui} {textCls} {noTextCls} {hasIconCls} ' +
                     '{iconAlignCls} {textAlignCls} {btnElAutoHeightCls}{childElCls}">' +
                 '<tpl if="iconBeforeText">{[values.$comp.renderIcon(values)]}</tpl>' +
-                '<span id="{id}-btnInnerEl" data-ref="btnInnerEl" role="presentation" unselectable="on" ' +
+                '<span id="{id}-btnInnerEl" data-ref="btnInnerEl" unselectable="on" ' +
                     'class="{innerCls} {innerCls}-{ui}{childElCls}">{text}</span>' +
                 '<tpl if="!iconBeforeText">{[values.$comp.renderIcon(values)]}</tpl>' +
             '</span>' +
@@ -469,12 +469,10 @@ Ext.define('Ext.button.Button', {
         '{[values.$comp.getAfterMarkup ? values.$comp.getAfterMarkup(values) : ""]}' +
         // if "closable" (tab) add a close element icon
         '<tpl if="closable">' +
-            '<span id="{id}-closeEl" data-ref="closeEl" role="presentation"' +
-                ' class="{baseCls}-close-btn"' +
+            '<span id="{id}-closeEl" data-ref="closeEl" class="{baseCls}-close-btn">' +
                 '<tpl if="closeText">' +
-                    ' title="{closeText}" aria-label="{closeText}"' +
+                    ' {closeText}' +
                 '</tpl>' +
-                '>' +
             '</span>' +
         '</tpl>',
 
@@ -677,12 +675,12 @@ Ext.define('Ext.button.Button', {
         }
         //</feature>
 
-        me.callParent(arguments);
+        me.callParent();
 
         if (me.menu) {
             // Flag that we'll have a splitCls
             me.split = true;
-            me.setMenu(me.menu, /*destroyMenu*/false);
+            me.setMenu(me.menu, /*destroyMenu*/false, true);
         }
 
         // Accept url as a synonym for href
@@ -691,7 +689,8 @@ Ext.define('Ext.button.Button', {
         }
 
         // preventDefault defaults to false for links
-        if (me.href && !me.hasOwnProperty('preventDefault')) {
+        me.configuredWithPreventDefault = me.hasOwnProperty('preventDefault');
+        if (me.href && !me.configuredWithPreventDefault) {
             me.preventDefault = false;
         }
 
@@ -717,9 +716,11 @@ Ext.define('Ext.button.Button', {
             }
             if (href) {
                 // https://sencha.jira.com/browse/EXTJS-11964
-                // Disabled links are clickable on iPad. Seems if you catch the border, the touchstart is not caught.
-                // So since there's no "hover" indication to lose, disabling on iOS is done by using href=null
-                config.href = (me.disabled && Ext.os.is.ios) ? null : href;
+                // Disabled links are clickable on iPad, and right clickable on desktop browsers.
+                // The only way to completely disable navigation is removing the href
+                if (!me.disabled) {
+                    config.href = href;
+                }
                 if (hrefTarget) {
                     config.target = hrefTarget;
                 }
@@ -756,25 +757,27 @@ Ext.define('Ext.button.Button', {
      * @param {Ext.menu.Menu/String/Object/null} menu Accepts a menu component, a menu id or a menu config.
      * @param {Boolean} destroyMenu By default, will destroy the previous set menu and remove it from the menu manager. Pass `false` to prevent the destroy.
      */
-    setMenu: function (menu, destroyMenu) {
+    setMenu: function (menu, destroyMenu, /* private */ initial) {
         var me = this,
             oldMenu = me.menu;
 
-        if (oldMenu && destroyMenu !== false && me.destroyMenu) {
-            oldMenu.destroy();
-        }
-
-        if (oldMenu) {
-            delete oldMenu.ownerButton;
+        if (oldMenu && !initial) {
+            if (destroyMenu !== false && me.destroyMenu) {
+                oldMenu.destroy();
+            }
+            oldMenu.ownerCmp = null;
         }
 
         if (menu) {
             // Retrieve menu by id or instantiate instance if needed.
-            menu = Ext.menu.Manager.get(menu);
-
-            // Use ownerButton as the upward link. Menus *must have no ownerCt* - they are global floaters.
-            // Upward navigation is done using the up() method.
-            menu.ownerButton = me;
+            menu = Ext.menu.Manager.get(menu, {
+                // Use ownerCmp as the upward link. Menus *must have no ownerCt* - they are global floaters.
+                // Upward navigation is done using the up() method.
+                ownerCmp: me
+            });
+            // We need to forcibly set this here because we could be passed an existing menu, which means
+            // the config above won't get applied during creation.
+            menu.ownerCmp = me;
 
             me.mon(menu, {
                 scope: me,
@@ -958,10 +961,20 @@ Ext.define('Ext.button.Button', {
 
         me.href = href;
 
-        // https://sencha.jira.com/browse/EXTJS-11964
-        // Disabled links are clickable on iPad. Seems if you catch the border, the touchstart is not caught.
-        // So since there's no "hover" indication to lose, disabling on iOS is done by using href=null
-        me.el.dom.href = (me.disabled && Ext.os.is.ios) ? null : me.getHref();
+        if (!me.configuredWithPreventDefault) {
+            me.preventDefault = !href;
+        }
+
+        if (me.rendered) {
+            // https://sencha.jira.com/browse/EXTJS-11964
+            // Disabled links are clickable on iPad, and right clickable on desktop browsers.
+            // The only way to completely disable navigation is removing the href
+            if (!href || me.disabled) {
+                me.el.dom.removeAttribute('href');
+            } else {
+                me.el.dom.href = me.getHref();
+            }
+        }
     },
 
     /**
@@ -1005,9 +1018,13 @@ Ext.define('Ext.button.Button', {
         me.params = params;
 
         // https://sencha.jira.com/browse/EXTJS-11964
-        // Disabled links are clickable on iPad. Seems if you catch the border, the touchstart is not caught.
-        // So since there's no "hover" indication to lose, disabling on iOS is done by using href=null
-        me.el.dom.href = (me.disabled && Ext.os.is.ios) ? null : me.getHref();
+        // Disabled links are clickable on iPad, and right clickable on desktop browsers.
+        // The only way to completely disable navigation is removing the href
+        if (me.disabled) {
+            me.el.dom.removeAttribute('href');
+        } else {
+            me.el.dom.href = me.getHref();
+        }
     },
 
     getSplitCls: function() {
@@ -1566,12 +1583,12 @@ Ext.define('Ext.button.Button', {
 
         me.removeCls(me._disabledCls);
         if (me.rendered) {
-            me.el.dom.setAttribute('tabIndex', me.tabIndex);
+            me.el.dom.setAttribute('tabindex', me.tabIndex);
 
             // https://sencha.jira.com/browse/EXTJS-11964
-            // Disabled links are clickable on iPad. Seems if you catch the border, the touchstart is not caught.
-            // So since there's no "hover" indication to lose, disabling on iOS is done by using href=null
-            if (Ext.os.is.ios && me.href) {
+            // Disabled links are clickable on iPad, and right clickable on desktop browsers.
+            // The only way to completely disable navigation is removing the href
+            if (me.href) {
                 me.el.dom.href = me.href;
             }
         }
@@ -1587,13 +1604,13 @@ Ext.define('Ext.button.Button', {
         me.addCls(me._disabledCls);
         me.removeCls(me.overCls);
         if (me.rendered) {
-            me.el.dom.removeAttribute('tabIndex');
+            me.el.dom.removeAttribute('tabindex');
 
             // https://sencha.jira.com/browse/EXTJS-11964
-            // Disabled links are clickable on iPad. Seems if you catch the border, the touchstart is not caught.
-            // So since there's no "hover" indication to lose, disabling on iOS is done by using href=null
-            if (Ext.os.is.ios && me.href) {
-                me.el.dom.href = null;
+            // Disabled links are clickable on iPad, and right clickable on desktop browsers.
+            // The only way to completely disable navigation is clearing the href
+            if (me.href) {
+                me.el.dom.removeAttribute('href');
             }
         }
 

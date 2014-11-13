@@ -674,11 +674,7 @@ Ext.define('Ext.data.field.Field', {
     /**
      * @cfg {Object[]} validators
      * An array of {@link Ext.data.validator.Validator validators} for this field. These
-     * `validators` will only be passed a field value to validate. If this config is set
-     * by a deriving class it will replace any override of `validate` that may also be
-     * provided by that class. This is because when this config is specified by a derived
-     * class a custom `validate` method is generated to invoke them. That generated method
-     * will `callParent` to include any inherited `validate` behavior.
+     * `validators` will only be passed a field value to validate.
      */
 
     /**
@@ -744,87 +740,27 @@ Ext.define('Ext.data.field.Field', {
     identifier: false,
 
     onClassExtended: function (cls, data) {
-        var Field = this,
-            prototype = Field.prototype,
-            prefixLength = prototype.aliasPrefix.length,
-            validators = data.validators,
-            aliases = data.alias,
-            sortType = data.sortType,
-            i;
-
-        if (aliases) {
-            if (Ext.isString(aliases)) {
-                Field.register(aliases.substring(prefixLength), cls);
-            } else {
-                for (i = aliases.length; i--; ) {
-                    Field.register(aliases[i].substring(prefixLength), cls);
-                }
-            }
-        }
+        var sortType = data.sortType,
+            proto = cls.prototype,
+            superValidators = proto.validators,
+            validators = data.validators;
 
         if (sortType && Ext.isString(sortType)) {
-            cls.prototype.sortType = Ext.data.SortTypes[sortType];
+            proto.sortType = Ext.data.SortTypes[sortType];
         }
 
         if (validators) {
-            delete data.validators;
-            data.validate = Field.compileValidators(validators);
-        }
-    },
-    
-    statics: {
-        all: {},
-
-        compileValidators: function (validators) {
-            if (!(validators instanceof Array)) {
+            // Force validators to be an array
+            if (!Ext.isArray(validators)) {
                 validators = [validators];
             }
+            delete data.validators;
 
-            var length = validators.length,
-                i;
-
-            for (i = 0; i < length; ++i) {
-                validators[i] = Ext.Factory.dataValidator(validators[i]);
+            // Need to join them
+            if (superValidators) {
+                validators = superValidators.concat(validators);
             }
-
-            // This function conforms to the validate method on this class.
-            return function (value, separator, errors) {
-                var me = this,
-                    ret = '',
-                    result, validator;
-
-                for (i = -1; i < length; ++i) {
-                    if (i < 0) {
-                        result = me.callParent([ value, separator, errors ]);
-                    } else {
-                        validator = validators[i];
-                        result = validator.validate(value); // we have no record to pass
-                    }
-
-                    if (result !== true) {
-                        result = result || me.defaultInvalidMessage;
-                        if (errors) {
-                            errors.add(me.name, result);
-                            ret = ret || result;
-                        } else if (separator) {
-                            if (ret) {
-                                ret += separator;
-                            }
-                            ret += result;
-                        } else {
-                            ret = result;
-                            break;
-                        }
-                    }
-                }
-
-                return result || true;
-            };
-        },
-
-        register: function (name, cls) {
-            var all = this.all;
-            all[name.toUpperCase()] = all[name] = cls.prototype;
+            proto.validators = validators;
         }
     },
 
@@ -835,7 +771,7 @@ Ext.define('Ext.data.field.Field', {
         var me = this,
             calculateRe = me.calculateRe,
             calculate, calculated, defaultValue, sortType,
-            depends, map, match, dataProp, str, fld;
+            depends, map, match, dataProp, str, fld, validators;
 
         // NOTE: In bigger apps we create *lots* of these fellows so we really need to be
         // very lean here.
@@ -844,6 +780,11 @@ Ext.define('Ext.data.field.Field', {
             if (Ext.isString(config)) {
                 me.name = config;
             } else {
+                validators = config.validators;
+                if (validators) {
+                    delete config.validators;
+                    me.instanceValidators = validators;
+                }
                 Ext.apply(me, config);
             }
         }
@@ -902,12 +843,6 @@ Ext.define('Ext.data.field.Field', {
             me.sortType = Ext.data.SortTypes[sortType];
         }
 
-        if (me.validators) {
-            Ext.override(me, {
-                validate: Ext.data.field.Field.compileValidators(me.validators)
-            });
-        }
-
         if (depends && typeof depends === 'string') {
             me.depends = [depends];
         }
@@ -915,6 +850,39 @@ Ext.define('Ext.data.field.Field', {
         me.cloneDefaultValue = defaultValue !== undefined &&
                                (Ext.isDate(defaultValue) || Ext.isArray(defaultValue) ||
                                 Ext.isObject(defaultValue));
+    },
+
+    setModelValidators: function(modelValidators) {
+        this._validators = null;
+        this.modelValidators = modelValidators;
+    },
+
+    compileValidators: function() {
+        var me = this;
+        me._validators = [];
+        me.constructValidators(me.validators);
+        me.constructValidators(me.modelValidators);
+        me.constructValidators(me.instanceValidators);
+    },
+
+    constructValidators: function (validators) {
+        if (validators) {
+            if (!(validators instanceof Array)) {
+                validators = [validators];
+            }
+
+            var length = validators.length,
+                all = this._validators,
+                i, item;
+
+            for (i = 0; i < length; ++i) {
+                item = validators[i];
+                if (item.fn) {
+                    item = item.fn;
+                }
+                all.push(Ext.Factory.dataValidator(item));
+            }
+        }
     },
 
     collate: function (value1, value2) {
@@ -1040,7 +1008,40 @@ Ext.define('Ext.data.field.Field', {
      * @template
      * @since 5.0.0
      */
-    validate: Ext.returnTrue,
+    validate: function(value, separator, errors) {
+        var me = this,
+            ret = '',
+            result, validator, validators, length;
+
+        if (!me._validators) {
+            me.compileValidators();
+        }
+
+        validators = me._validators;
+
+        for (i = 0, length = validators.length; i < length; ++i) {
+            validator = validators[i];
+            result = validator.validate(value); // we have no record to pass
+
+            if (result !== true) {
+                result = result || me.defaultInvalidMessage;
+                if (errors) {
+                    errors.add(me.name, result);
+                    ret = ret || result;
+                } else if (separator) {
+                    if (ret) {
+                        ret += separator;
+                    }
+                    ret += result;
+                } else {
+                    ret = result;
+                    break;
+                }
+            }
+        }
+
+        return ret || true;
+    },
 
     doCalculate: function (v, rec) {
         return rec ? this.calculate(rec.data) : v;
@@ -1142,7 +1143,4 @@ Ext.define('Ext.data.field.Field', {
     getType: function() {
         return 'auto';
     }
-},
-function () {
-    this.register(this.prototype.type, this);
 });

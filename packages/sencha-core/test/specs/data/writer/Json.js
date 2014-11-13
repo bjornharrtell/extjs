@@ -179,6 +179,7 @@ describe("Ext.data.writer.Json", function(){
         
         beforeEach(function(){
             Ext.data.Model.schema.clear();
+            Ext.undefine('spec.Article');
             Article = Ext.define('spec.Article', {
                 extend: 'Ext.data.Model',
                 fields: [

@@ -180,28 +180,40 @@ $grid-row-cell-selected-background-color: #ccc !default;
 $grid-row-cell-selected-border-color: top($grid-row-cell-border-color) !default;
 
 /**
+ * @var {number}
+ * The border-width of the focused cell
+ */
+$grid-row-cell-focus-border-width: 1px !default;
+
+/**
  * @var {color}
- * The border-color of the focused row
+ * The border-color of the focused cell
  */
 $grid-row-cell-focus-border-color: #808080 !default;
 
 /**
  * @var {string}
- * The border-style of the focused row
+ * The border-style of the focused cell
  */
 $grid-row-cell-focus-border-style: dotted !default;
 
 /**
+ * @var {number}
+ * The spacing between grid cell border and inner focus border
+ */
+$grid-row-cell-focus-border-inset: 0px !default;
+
+/**
  * @var {color}
- * The text color of the focused row
+ * The text color of the focused cell
  */
 $grid-row-cell-focus-color: $grid-row-cell-color !default;
 
 /**
  * @var {color}
- * The background-color of the focused row
+ * The background-color of the focused cell
  */
-$grid-row-cell-focus-background-color: $grid-row-cell-background-color !default;
+$grid-row-cell-focus-background-color: 'none' !default;
 
 /**
  * @var {boolean}

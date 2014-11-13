@@ -97,6 +97,29 @@ Ext.define('Ext.data.schema.Role', {
         return records;
     },
 
+    /**
+     * Check whether a record belongs to any stores when it is added to the session.
+     * 
+     * @param {Ext.data.Session} session The session
+     * @param {Ext.data.Model} record The model being added to the session
+     * @private
+     */
+    checkMembership: Ext.emptyFn,
+
+    /**
+     * Adopt the associated items when a record is adopted.
+     * @param {Ext.data.Model} record The record being adopted.
+     * @param {Ext.data.Session} session The session being adopted into
+     * 
+     * @private
+     */
+    adoptAssociated: function(record, session) {
+        var other = this.getAssociatedItem(record);
+        if (other) {
+            session.adopt(other);
+        }
+    },
+
     createAssociationStore: function (session, from, records, isComplete) {
         var me = this,
             association = me.association,
@@ -157,12 +180,13 @@ Ext.define('Ext.data.schema.Role', {
         if (foreignKeyName || (isMany && session)) {
             store.on({
                 add: 'onAddToMany',
+                load: 'onLoadMany',
                 remove: 'onRemoveFromMany',
                 clear: 'onRemoveFromMany',
                 scope: me
             });
             if (records) {
-                me.onAddToMany(store, store.getData().items, true);
+                me.onLoadMany(store, store.getData().items, true);
             }
         }
 
@@ -260,6 +284,8 @@ Ext.define('Ext.data.schema.Role', {
         var key = this.isMany ? this.getStoreName() : this.role;
         return rec[key] || null;
     },
+
+    onDrop: Ext.emptyFn,
 
     getReaderRoot: function() {
         var me = this;
@@ -455,11 +481,11 @@ Ext.define('Ext.data.schema.Role', {
 
         if (rightRecord && rightRecord.isEntity) {
             if (ret !== rightRecord) {
-                leftRecord[propertyName] = rightRecord;
-
                 if (foreignKey) {
                     leftRecord.set(foreignKey, rightRecord.getId());
                 }
+                
+                leftRecord[propertyName] = rightRecord;
 
                 if (inverseSetter) {
                     // Because the rightRecord has a reference back to the leftRecord
@@ -485,7 +511,10 @@ Ext.define('Ext.data.schema.Role', {
             if (modified && ret && ret.isEntity && !ret.isEqual(ret.getId(), rightRecord)) {
                 // If we just modified the FK value and it no longer matches the id of the
                 // record we had cached (ret), remove references from *both* sides:
-                ret[inverse.role] = leftRecord[propertyName] = undefined;
+                leftRecord[propertyName] = undefined;
+                if (!inverse.isMany) {
+                    ret[inverse.role] = undefined;
+                }
             }
         }
 

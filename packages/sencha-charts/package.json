@@ -7,13 +7,39 @@
     "version": "1.0.0",
     "compatVersion": "1.0.0",
     "format": "1",
+    "slicer": {
+        "js": [
+            {
+                "path": "${package.dir}/sass/example/custom.js",
+                "isWidgetManifest": true
+            }
+        ]
+    },
+    "output": {
+        "base": "${package.dir}/build/${build.id}",
+        "js": "..",
+        "sass":""
+    },
+
     "local": true,
     "requires": ["sencha-core"],
     "classpath": "${package.dir}/src,${package.dir}/src-${framework.name}",
-    "framework": "ext",
+    "overrides": "${package.dir}/overrides,${package.dir}/overrides-${framework.name}",
     "js": [
-        {
-            "path": "src/draw/engine/excanvas.js"
+    ],
+
+    "builds": {
+        "neptune": {
+            "framework": "ext",
+            "theme": "ext-theme-neptune"
+        },
+        "crisp": {
+            "framework": "ext",
+            "theme": "ext-theme-crisp"
+        },
+        "classic": {
+            "framework": "ext",
+            "theme": "ext-theme-classic"
         }
-    ]
+    }
 }

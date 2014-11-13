@@ -1,6 +1,8 @@
 Ext.define('Ext.overrides.Widget', {
     override: 'Ext.Widget',
 
+    requires: ['Ext.Component'],
+
     $configStrict: false,
 
     isComponent: true,
@@ -157,4 +159,6 @@ Ext.define('Ext.overrides.Widget', {
         // node on demand, so we just fall back to adding all references up front.
         prototype.addElementReferenceOnDemand = prototype.addElementReference;
     }
+
+    this.borrow(Ext.Component, ['up']);
 });

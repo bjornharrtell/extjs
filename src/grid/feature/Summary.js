@@ -211,13 +211,13 @@ Ext.define('Ext.grid.feature.Summary', {
         var columns = view.headerCt.getVisibleGridColumns(),
             summaryRecord = this.summaryRecord,
             colCount = columns.length, i, column,
-            dataIndex, summaryValue, Model, modelData;
+            dataIndex, summaryValue, modelData;
         
         if (!summaryRecord) {
-            Model = view.store.getModel();
-            modelData = {};
-            modelData[Model.idProperty] = view.id + '-summary-record';
-            summaryRecord = this.summaryRecord = new Model(modelData);
+            modelData = {
+                id: view.id + '-summary-record'
+            };
+            summaryRecord = this.summaryRecord = new Ext.data.Model(modelData);
         }
 
         // Set the summary field values
@@ -227,7 +227,7 @@ Ext.define('Ext.grid.feature.Summary', {
 
             // In summary records, if there's no dataIndex, then the value in regular rows must come from a renderer.
             // We set the data value in using the column ID.
-            dataIndex = column.dataIndex || column.id;
+            dataIndex = column.dataIndex || column.getItemId();
 
             // We need to capture this value because it could get overwritten when setting on the model if there
             // is a convert() method on the model.
@@ -235,7 +235,7 @@ Ext.define('Ext.grid.feature.Summary', {
             summaryRecord.set(dataIndex, summaryValue);
 
             // Capture the columnId:value for the summaryRenderer in the summaryData object.
-            this.setSummaryData(summaryRecord, column.id, summaryValue);
+            this.setSummaryData(summaryRecord, column.getItemId(), summaryValue);
         }
 
         summaryRecord.endEdit(true);
@@ -251,7 +251,7 @@ Ext.define('Ext.grid.feature.Summary', {
             view = me.view,
             record = me.createSummaryRecord(view),
             newRowDom = view.createRowElement(record, -1).firstChild.firstChild,
-            oldRowDom, partner,
+            oldRowDom,
             p;
 
         if (!view.rendered) {

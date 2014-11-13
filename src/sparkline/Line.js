@@ -2,6 +2,8 @@
  * @class Ext.sparkline.Line
  *
  * Plots a line graph based upon the input {@link #values} array.
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Line', {
     extend: 'Ext.sparkline.Base',

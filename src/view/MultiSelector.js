@@ -53,7 +53,7 @@ Ext.define('Ext.view.MultiSelector', {
      * "X" looking glyph.
      * @since 5.0.0
      */
-    removeRowText: '&#10006',
+    removeRowText: '\u2716',
 
     /**
      * @cfg {String} removeRowTip
@@ -135,6 +135,7 @@ Ext.define('Ext.view.MultiSelector', {
         return {
             width: 22,
             menuDisabled: true,
+            tdCls: Ext.baseCSSPrefix + 'multiselector-remove',
             processEvent: me.processRowEvent.bind(me),
             renderer: me.renderRemoveRow,
             updater: Ext.emptyFn,
@@ -147,7 +148,7 @@ Ext.define('Ext.view.MultiSelector', {
             return;
         }
 
-        if (Ext.fly(e.getTarget()).hasCls(Ext.baseCSSPrefix + 'multiselector-remove')) {
+        if (Ext.fly(cell).hasCls(Ext.baseCSSPrefix + 'multiselector-remove')) {
             this.store.remove(record);
             if (this.searchPopup) {
                 this.searchPopup.deselectRecords(record);
@@ -156,9 +157,8 @@ Ext.define('Ext.view.MultiSelector', {
     },
 
     renderRemoveRow: function () {
-        return '<span class="'+ Ext.baseCSSPrefix + 'multiselector-remove" ' +
-               'data-qtip="'+ this.removeRowTip + '" role="button">' +
-               this.removeRowText + '</span>';
+        return '<span data-qtip="'+ this.removeRowTip + '" role="button">' +
+            this.removeRowText + '</span>';
     },
 
     beforeDestroy: function() {

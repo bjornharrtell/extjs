@@ -661,7 +661,20 @@ Ext.define('Ext.layout.container.Auto', {
                 style.display = old;
             }    
         }
-        
+
+        if (Ext.isSafari) {
+            // EXTJS-12041: Safari needs a reflow of the outerCt to measure content width
+            // correctly in some cases.  The circumstances which make this happen are
+            // very difficult to isolate, so we have to resort to always triggering a
+            // reflow before measuring. We switch between table-cell and table in hopes
+            // of minimizing the impact of the reflow on surrounding elements
+            dom = this.outerCt.dom;
+            style = dom.style;
+            style.display = 'table-cell';
+            dom.offsetWidth;
+            dom.style.display = '';
+        }
+
         // contentWidth includes padding, but not border, framing or margins
         contentWidth = this.outerCt.getWidth();
         target = ownerContext.target;

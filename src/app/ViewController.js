@@ -229,33 +229,56 @@ Ext.define('Ext.app.ViewController', {
     getView: function() {
         return this.view;
     },
-
-    lookupReferenceHolder: function() {
-        var view = this.view;
-        return view && view.lookupReferenceHolder();
-    },
     
     /**
      * Get a reference to a component set with the {@link Ext.Component#reference}
      * configuration.
      * @param {String} key The key for the reference
+     * 
      * @return {Ext.Component} The component, `null` if the reference doesn't exist.
+     *
+     * @since 5.0.0
      */
     lookupReference: function (key) {
         var view = this.view;
         return view && view.lookupReference(key);
     },
 
+    /**
+     * Get a {@link Ext.data.Session} attached to the view for this controller.
+     * See {@link Ext.Component#lookupSession}.
+     * 
+     * @return {Ext.data.Session} The session. `null` if no session is found.
+     *
+     * @since 5.0.0
+     */
     getSession: function () {
         var view = this.view;
         return view && view.lookupSession();
     },
 
+    /**
+     * Get a {@link Ext.app.ViewModel} attached to the view for this controller.
+     * See {@link Ext.Component#lookupViewModel}.
+     * 
+     * @return {Ext.app.ViewModel} The ViewModel. `null` if no ViewModel is found.
+     *
+     * @since 5.0.0
+     */
     getViewModel: function () {
         var view = this.view;
         return view && view.lookupViewModel();
     },
 
+    /**
+     * Get a {@link Ext.data.Store} attached to the {@link #getViewModel ViewModel} attached to
+     * this controller. See {@link Ext.app.ViewModel#getStore}.
+     * @param {String} name The name of the store.
+     * @return {Ext.data.Store} The store. `null` if no store is found, or there is no 
+     * {@link Ext.app.ViewModel} attached to the view for this controller.
+     *
+     * @since 5.0.0
+     */
     getStore: function(name) {
         var viewModel = this.getViewModel();
         return viewModel ? viewModel.getStore(name) : null;

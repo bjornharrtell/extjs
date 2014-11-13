@@ -6,6 +6,8 @@ Ext.define('Ext.aria.panel.Tool', {
         'Ext.util.KeyMap'
     ],
     
+    tabIndex: 0,
+    
     destroy: function() {
         if (this.keyMap) {
             this.keyMap.destroy();
@@ -33,9 +35,5 @@ Ext.define('Ext.aria.panel.Tool', {
         }
 
         return attrs;
-    },
-    
-    ariaGetFocusCls: function() {
-        return this.ariaFocusCls;
     }
 });

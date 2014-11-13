@@ -191,6 +191,13 @@ describe("Ext.ClassManager", function() {
                 }
             });
         });
+        
+        afterEach(function() {
+            Ext.undefine('I.am.the.MixinClass1');
+            Ext.undefine('I.am.the.MixinClass2');
+            Ext.undefine('I.am.the.ParentClass');
+            Ext.undefine('I.am.the.SubClass');
+        });
 
         it("should create the namespace", function() {
             expect(I).toBeDefined();
@@ -367,6 +374,10 @@ describe("Ext.ClassManager", function() {
             });
         });
 
+        afterEach(function() {
+            Ext.undefine('Test.stuff.Person');
+            Ext.undefine('Test.stuff.Developer');
+        });
 
         it("should create the instance by full class name", function() {
             var me = Ext.create('Test.stuff.Person', 'Jacky', 24, 'male');
@@ -402,6 +413,9 @@ describe("Ext.ClassManager", function() {
     });
 
     describe("post-processors", function() {
+        afterEach(function() {
+            Ext.undefine('Something.Cool');
+        });
 
         xdescribe("uses", function() {
             //expect(Something.Cool).toBeDefined();

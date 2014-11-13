@@ -271,4 +271,3 @@ Ext.define("Ext.locale.no_NN.window.MessageBox", {
 Ext.define("Ext.locale.no_NN.Component", {	
     override: "Ext.Component"
 });
-

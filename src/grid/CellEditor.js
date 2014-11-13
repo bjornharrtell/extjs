@@ -28,7 +28,7 @@ Ext.define('Ext.grid.CellEditor', {
             view,
             viewListeners;
 
-        if (grid != oldGrid) {
+        if (grid !== oldGrid) {
             viewListeners = {
                 beforerefresh: me.beforeViewRefresh,
                 refresh: me.onViewRefresh,
@@ -62,6 +62,11 @@ Ext.define('Ext.grid.CellEditor', {
 
         if (dom) {
             if (me.editing && !(me.field.column && me.field.column.sorting)) {
+
+                // Clear the Panel's containsFocus flag prior to removing it from the DOM
+                // This will prevent the Panels onFocusLeave from processing the resulting blurring.
+                me.grid.containsFocus = false;
+
                 // Set the Editor.allowBlur setting so that it does not process the upcoming field blur event and terminate the edit
                 me.wasAllowBlur = me.allowBlur;
                 me.allowBlur = false;
@@ -86,6 +91,11 @@ Ext.define('Ext.grid.CellEditor', {
             if (me.editing && !sorting) {
                 me.allowBlur = me.wasAllowBlur;
                 me.renderTo.appendChild(dom);
+                
+                // The removal will have blurred, so avoid the processing in onFocusEnter by restoring the previous
+                // containsFocus setting
+                me.grid.containsFocus = true;
+
                 me.field.focus();
             } else if (!sorting) {
                 Ext.getDetachedBody().dom.appendChild(dom);
@@ -174,7 +184,7 @@ Ext.define('Ext.grid.CellEditor', {
 
         // listen for the "unstoppable" mousedown event so we can be sure to blur and hide
         // the editor if the document is clicked, even if another handler stops the event
-        Ext.on('mousedown', this.onDocMouseDown, this);
+        Ext.on('mousedown', me.onDocMouseDown, me);
     },
     
     /**

@@ -67,7 +67,7 @@ Ext.define('Ext.chart.label.Label', {
          * @cfg {Object} fx Animation configuration.
          */
         fx: {
-            customDuration: {
+            customDurations: {
                 callout: 200
             }
         },
@@ -99,12 +99,17 @@ Ext.define('Ext.chart.label.Label', {
 
     render: function (surface, ctx) {
         var me = this,
-            attr = me.attr;
+            attr = me.attr,
+            calloutColor = attr.calloutColor;
+
         ctx.save();
         ctx.globalAlpha *= attr.callout;
         if (ctx.globalAlpha > 0 && attr.calloutHasLine) {
-            ctx.strokeStyle = attr.calloutColor;
-            ctx.fillStyle = attr.calloutColor;
+            if (calloutColor && calloutColor.isGradient) {
+                calloutColor = calloutColor.getStops()[0].color;
+            }
+            ctx.strokeStyle = calloutColor;
+            ctx.fillStyle = calloutColor;
             ctx.lineWidth = attr.calloutWidth;
             ctx.beginPath();
             ctx.moveTo(me.attr.calloutStartX, me.attr.calloutStartY);

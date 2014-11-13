@@ -7,15 +7,6 @@ Ext.define('Ticket.view.login.LoginController', {
     
     loginText: 'Logging in...',
 
-    constructor: function () {
-        this.callParent(arguments);
-
-        this.loginManager = new Ticket.LoginManager({
-            session: this.session,
-            model: 'User'
-        });
-    },
-
     onSpecialKey: function(field, e) {
         if (e.getKey() === e.ENTER) {
             this.doLogin();
@@ -31,6 +22,13 @@ Ext.define('Ticket.view.login.LoginController', {
         
         if (form.isValid()) {
             Ext.getBody().mask(this.loginText);
+
+            if (!this.loginManager) {
+                this.loginManager = new Ticket.LoginManager({
+                    session: this.getView().getSession(),
+                    model: 'User'
+                });
+            }
 
             this.loginManager.login({
                 data: form.getValues(),

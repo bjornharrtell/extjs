@@ -535,6 +535,11 @@
 
         /**
          * @private
+         * 
+         * Object containing version information for all packages utilized by your 
+         * application. 
+         * 
+         * For a public getter, please see `Ext.getVersion()`.
          */
         versions: {},
 

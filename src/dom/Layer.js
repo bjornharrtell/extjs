@@ -320,18 +320,6 @@ Ext.define('Ext.dom.Layer', {
     },
 
     // @private
-    beforeFx: function() {
-        this.beforeAction();
-        return this.callParent(arguments);
-    },
-
-    // @private
-    afterFx: function() {
-        this.callParent(arguments);
-        this.sync(this.isVisible());
-    },
-
-    // @private
     beforeAction: function() {
         if (!this.updating && this.shadow) {
             this.shadow.hide();
@@ -345,11 +333,6 @@ Ext.define('Ext.dom.Layer', {
     },
 
     setTop: function(top) {
-        this.callParent(arguments);
-        return this.sync();
-    },
-
-    setLeftTop: function(left, top) {
         this.callParent(arguments);
         return this.sync();
     },
@@ -482,23 +465,30 @@ Ext.define('Ext.dom.Layer', {
 
     deprecated: {
         '4.2': {
-            // overridden Element method
-            setBounds: function(x, y, width, height, animate, duration, callback, easing) {
-                var me = this;
-                
-                // Callback will restore shadow state and call the passed callback
-                callback = me.createCB(callback);
+            methods: {
+                // overridden Element method
+                setBounds: function(x, y, width, height, animate, duration, callback, easing) {
+                    var me = this;
 
-                me.beforeAction();
-                if (!animate) {
-                    Ext.Layer.superclass.setXY.call(me, [x, y]);
-                    Ext.Layer.superclass.setSize.call(me, width, height);
-                    callback();
-                } else {
-                    me.callParent([x, y, width, height, animate, duration, callback, easing]);
+                    // Callback will restore shadow state and call the passed callback
+                    callback = me.createCB(callback);
+
+                    me.beforeAction();
+                    if (!animate) {
+                        Ext.Layer.superclass.setXY.call(me, [x, y]);
+                        Ext.Layer.superclass.setSize.call(me, width, height);
+                        callback();
+                    } else {
+                        me.callParent([x, y, width, height, animate, duration, callback, easing]);
+                    }
+                    return me;
+                },
+
+                setLeftTop: function(left, top) {
+                    this.callParent(arguments);
+                    return this.sync();
                 }
-                return me;
-            } 
+            }
         }
     }
 });

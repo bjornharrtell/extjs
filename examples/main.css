@@ -57,6 +57,13 @@ a {
     margin-top: -27px;
 }
 
+#ext-logo {
+    background-image: url(../welcome/img/ext-cube.png);
+    width: 200px;
+    height : 86px;
+    line-height: 86px;
+}
+
 #title-text {
     right: 20px;
     font-weight: 400;
@@ -82,20 +89,9 @@ a {
 }
 
 #header-title {
-    width: 300px;
+    width: 370px;
     font-size: 36px;
     color: #1c5a7d;
-}
-
-#header-title-divider {
-    width: 2px;
-    border-right: 1px solid #848484;
-    border-left: 1px solid #c0c0c0;
-    margin: 0 16px 0 8px
-}
-
-#header-title-text {
-    font-size: 24px;
 }
 
 .header-link {

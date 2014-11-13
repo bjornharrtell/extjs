@@ -3,7 +3,8 @@ Ext.define('Aria.view.Wizard', {
     alias: 'widget.mysimplewizard',
     
     requires: [
-        'Ext.layout.container.Card'
+        'Ext.layout.container.Card',
+        'Ext.layout.container.Form'
     ],
     
     title: 'Wizard',

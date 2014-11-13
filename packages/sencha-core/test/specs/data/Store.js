@@ -2,29 +2,19 @@ describe("Ext.data.Store", function() {
     function customSort(v) {
         return v * -1;
     }
-    
+
+    function spyOnEvent(object, eventName, fn) {
+        var obj = {
+            fn: fn || Ext.emptyFn
+        },
+        spy = spyOn(obj, "fn");
+        object.addListener(eventName, obj.fn);
+        return spy;
+    }
+
     var fakeScope = {},
         abeRec, aaronRec, edRec, tommyRec, 
-        abeRaw, aaronRaw, edRaw, tommyRaw,
-        store,
-        User = Ext.define(null, {
-            extend: 'Ext.data.Model',
-            idProperty: 'email',
-
-            fields: [
-                {name: 'name',      type: 'string'},
-                {name: 'email',     type: 'string'},
-                {name: 'evilness',  type: 'int'},
-                {name: 'group',     type: 'string'},
-                {name: 'old',       type: 'boolean'},
-                {name: 'valid',     type: 'string'},
-                {
-                    name: 'age',
-                    type: 'int',
-                    sortType: customSort
-                }
-            ]
-        });
+        store, User;
         
     function addStoreData() {
         store.add(edRaw, abeRaw, aaronRaw, tommyRaw);
@@ -69,6 +59,28 @@ describe("Ext.data.Store", function() {
     
     beforeEach(function() {
         MockAjaxManager.addMethods();
+        User = Ext.define('spec.User', {
+            extend: 'Ext.data.Model',
+            idProperty: 'email',
+
+            fields: [
+                {name: 'name',      type: 'string'},
+                {name: 'email',     type: 'string'},
+                {name: 'evilness',  type: 'int'},
+                {name: 'group',     type: 'string'},
+                {name: 'old',       type: 'boolean'},
+                {name: 'valid',     type: 'string'},
+                {
+                    name: 'age',
+                    type: 'int',
+                    sortType: customSort
+                }, {
+                    name: 'validField',
+                    validators: 'presence'
+                }
+            ]
+        });
+
         edRaw    = {name: 'Ed Spencer',   email: 'ed@sencha.com',    evilness: 100, group: 'code',  old: false, age: 25, valid: 'yes'};
         abeRaw   = {name: 'Abe Elias',    email: 'abe@sencha.com',   evilness: 70,  group: 'admin', old: false, age: 20, valid: 'yes'};
         aaronRaw = {name: 'Aaron Conran', email: 'aaron@sencha.com', evilness: 5,   group: 'admin', old: true,  age: 26, valid: 'yes'};
@@ -77,9 +89,11 @@ describe("Ext.data.Store", function() {
     
     afterEach(function() {
         MockAjaxManager.removeMethods();
+        Ext.undefine('spec.User');
         Ext.data.Model.schema.clear();
         store.destroy();
         store = null;
+        edRaw = edRec = abeRaw = abeRec = aaronRaw = aaronRec = tommyRaw = tommyRec = null;
     });
     
     describe("initializing", function() {
@@ -338,6 +352,9 @@ describe("Ext.data.Store", function() {
             });
 
             it('should create a BufferedStore if given type:buffered', function () {
+                // Silence console warning about store created with no model
+                spyOn(Ext.log, 'warn');
+                
                 store = Ext.Factory.store({
                     type: 'buffered'
                 });
@@ -1043,6 +1060,41 @@ describe("Ext.data.Store", function() {
                     expect(store.insert(0, [])).toEqual([]);
                 });
             });
+
+            describe("when filtered", function() {
+                beforeEach(function() {
+                    addStoreData();
+                });
+
+                it("should insert at the correct position", function() {
+                    store.filter('group', 'code');
+                    var rec = store.insert(0, {
+                        email: 'foo@sencha.com',
+                        group: 'code'
+                    })[0];
+                    expect(store.getAt(0)).toBe(rec);
+                });
+
+                it("should retain the relative position when filters are cleared", function() {
+                    store.filter('group', 'code');
+                    var rec = store.insert(1, {
+                        email: 'foo@sencha.com',
+                        group: 'code'
+                    })[0];
+                    store.getFilters().removeAll();
+                    expect(store.indexOf(rec)).toBe(3);
+                });
+
+                it("should have the correct position when inserted but filtered out", function() {
+                    store.filter('group', 'code');
+                    var rec = store.insert(0, {
+                        email: 'foo@sencha.com',
+                        group: 'admin'
+                    })[0];
+                    store.getFilters().removeAll();
+                    expect(store.indexOf(rec)).toBe(0);
+                });
+            });
             
             describe("events", function() {
                 var spy, rec1, rec2;
@@ -1364,9 +1416,34 @@ describe("Ext.data.Store", function() {
             });
             
             it("should do nothing if the store is empty", function() {
+                store.destroy();
                 createStore();
                 store.removeAll();
                 expect(store.getCount()).toBe(0);
+            });
+
+            describe("when filtered", function() {
+                it("should only remove items in the active collection", function() {
+                    store.filter('group', 'code');
+                    store.removeAll();
+                    expect(store.getCount()).toBe(0);
+                    store.getFilters().removeAll();
+                    expect(store.getCount()).toBe(2);
+                    expect(store.getAt(0)).toBe(abeRec);
+                    expect(store.getAt(1)).toBe(aaronRec);
+                });
+            });
+
+            it("should return the removed records", function() {
+                createStore();
+                var records = store.getRange();
+                expect(store.removeAll()).toEqual(records);
+            });
+
+            it("should return an empty array if the store is empty", function() {
+                createStore();
+                store.removeAll();
+                expect(store.removeAll()).toEqual([]);
             });
             
             describe("events", function() {
@@ -1822,7 +1899,7 @@ describe("Ext.data.Store", function() {
                 
                 beforeEach(function() {
                     proxySpy = spyOn(store.getProxy(), 'read').andReturn();
-                    collectionSortSpy = spyOn(store.getData(), 'sortItems');
+                    collectionSortSpy = spyOn(store.getData(), 'sortItems').andCallThrough();
                 });
                 
                 describe("sorters", function() {
@@ -1834,11 +1911,35 @@ describe("Ext.data.Store", function() {
                     }
                     
                     it("should pass along sorters if remoteSort: true", function() {
+                        var beforeSortSpy = spyOnEvent(store, 'beforesort'),
+                            sorters;
+
                         store.setRemoteSort(true);
                         store.getSorters().add(makeSorter('email', 'ASC'));
+
+                        // Mutating the sorters of a remoteSort ProxyStore triggers a load of sorted data
+                        expect(beforeSortSpy.callCount).toBe(1);
+
+                        // beforesort event passes Sorters as an array
+                        expect(beforeSortSpy.calls[0].args[1]).toEqual(store.getSorters().getRange());
+
                         store.getSorters().add(makeSorter('evilness', 'DESC'));
+
+                        // Mutating the sorters of a remoteSort ProxyStore triggers a load of sorted data
+                        expect(beforeSortSpy.callCount).toBe(2);
+
+                        // beforesort event passes Sorters as an array
+                        expect(beforeSortSpy.calls[1].args[1]).toEqual(store.getSorters().getRange());
+
                         store.load();
-                        var sorters = getOperation().getSorters();
+
+                        // The beforesort event should be fired on load.
+                        expect(beforeSortSpy.callCount).toBe(3);
+
+                        // beforesort event passes Sorters as an array
+                        expect(beforeSortSpy.calls[2].args[1]).toEqual(store.getSorters().getRange());
+
+                        sorters = getOperation().getSorters();
                         expect(sorters[0].getProperty()).toBe('email');
                         expect(sorters[0].getDirection()).toBe('ASC');
                     
@@ -1859,9 +1960,25 @@ describe("Ext.data.Store", function() {
                     });
                 
                     it("should not pass sorters if remoteSort: false", function() {
+                        var beforeSortSpy = spyOnEvent(store, 'beforesort');
+
                         store.setRemoteSort(false);
                         store.getSorters().add(makeSorter('email', 'ASC'));
+
+                        // Mutating the Sorters Collection causes a sort if remoteSort is false
+                        expect(beforeSortSpy.callCount).toBe(1);
+
+                        // beforesort event passes Sorters as an array
+                        expect(beforeSortSpy.calls[0].args[1]).toEqual(store.getSorters().getRange());
+
                         store.getSorters().add(makeSorter('evilness', 'DESC'));
+
+                        // Mutating the Sorters Collection causes a sort if remoteSort is false
+                        expect(beforeSortSpy.callCount).toBe(2);
+
+                        // beforesort event passes Sorters as an array
+                        expect(beforeSortSpy.calls[1].args[1]).toEqual(store.getSorters().getRange());
+
                         store.load();
                         expect(getOperation().getSorters()).toBeUndefined();
 
@@ -2662,6 +2779,10 @@ describe("Ext.data.Store", function() {
 
             it("should not throw an error when the store has no model", function() {
                 store.destroy();
+                
+                // Silence console warning
+                spyOn(Ext.log, 'warn');
+                
                 store = new Ext.data.Store();
                 expect(function() {
                     store.sort('something', 'ASC');
@@ -4726,10 +4847,15 @@ describe("Ext.data.Store", function() {
         
         describe("via set", function() {
             describe("a single value", function() {
-                it("should fire the update event", function() {
+                it("should fire the update event but not the datachanged event", function() {
+                    var datachangedSpy = spyOnEvent(store, 'datachanged');
+
                     store.on('update', spy);
                     store.first().set('name', 'Ned Spencer');
                     expect(spy).toHaveBeenCalled();
+
+                    // datachanged is only for record additions/removals
+                    expect(datachangedSpy).not.toHaveBeenCalled();
                 });
                 
                 it("should pass the store, model, type & modified field", function() {
@@ -4747,13 +4873,18 @@ describe("Ext.data.Store", function() {
             });
             
             describe("multiple values", function() {
-                it("should fire update once", function() {
+                it("should fire update once but not the datachanged event", function() {
+                    var datachangedSpy = spyOnEvent(store, 'datachanged');
+
                     store.on('update', spy);
                     store.first().set({
                         name: 'Ned Spencer',
                         evilness: 9000
                     });
-                    expect(spy).toHaveBeenCalled();
+                    expect(spy.callCount).toBe(1);
+
+                    // datachanged is only for record additions/removals
+                    expect(datachangedSpy).not.toHaveBeenCalled();
                 });
                 
                 it("should pass the store, model, type & modified fields", function() {
@@ -4806,11 +4937,13 @@ describe("Ext.data.Store", function() {
                         expect(store.indexOf(edRec)).toBe(-1);
                     });
                     
-                    it("should not fire the update event", function() {
+                    it("should still fire the update event", function() {
                         store.on('update', spy);
                         store.filter('group', 'code');
                         edRec.set('group', 'admin');
-                        expect(spy).not.toHaveBeenCalled();
+
+                        // Data events still apply even when nodes are filtered from visibility
+                        expect(spy).toHaveBeenCalled();
                     });
                 });
                 
@@ -4851,13 +4984,13 @@ describe("Ext.data.Store", function() {
                 // Modified will be null, since we pass nothing to commit
                 expect(args[3]).toBeNull();
             });
-            
-            it("should not fire the update event if the record is filtered out", function() {
+
+            it("should still fire the update event if the record is filtered out", function() {
                 edRec.set('name', 'Foo');
                 store.on('update', spy);
                 store.filter('name', 'Aaron');
                 edRec.commit();
-                expect(spy).not.toHaveBeenCalled();
+                expect(spy).toHaveBeenCalled();
             });
         });
         
@@ -4880,12 +5013,12 @@ describe("Ext.data.Store", function() {
                 expect(args[3]).toBeNull();
             });
             
-            it("should not fire the update event if the record is filtered out", function() {
+            it("should still fire the update event if the record is filtered out", function() {
                 edRec.set('name', 'Foo');
                 store.on('update', spy);
                 store.filter('name', 'Aaron');
                 edRec.reject();
-                expect(spy).not.toHaveBeenCalled();
+                expect(spy).toHaveBeenCalled();
             });
         });
         
@@ -4903,6 +5036,150 @@ describe("Ext.data.Store", function() {
             });
         });
     });
+
+    describe("commitChanges", function() {
+        beforeEach(function() {
+            createStore();
+            addStoreData();
+        });
+
+        describe("committing records", function() {
+            it("should commit valid phantoms", function() {
+                var phantom = store.add({
+                    validField: 'Foo'
+                })[0];
+                spyOn(phantom, 'commit');
+                store.commitChanges();
+                expect(phantom.commit).toHaveBeenCalled();
+            });
+
+            it("should not commit invalid phantoms", function() {
+                var phantom = store.add({
+                    validField: null
+                })[0];
+                spyOn(phantom, 'commit');
+                store.commitChanges();
+                expect(phantom.commit).not.toHaveBeenCalled();
+            });
+
+            it("should commit valid dirty non-phantoms", function() {
+                edRec.set('validField', 'Foo');
+                spyOn(edRec, 'commit');
+                store.commitChanges();
+                expect(edRec.commit).toHaveBeenCalled();
+            });
+
+            it("should not commit invalid dirty non-phantoms", function() {
+                edRec.set('validField', null);
+                spyOn(edRec, 'commit');
+                store.commitChanges();
+                expect(edRec.commit).not.toHaveBeenCalled();
+            });
+
+            it("should not commit non-dirty records", function() {
+                edRec.set('validField', 'foo');
+                edRec.commit();
+                spyOn(edRec, 'commit');
+                store.commitChanges();
+                expect(edRec.commit).not.toHaveBeenCalled();
+
+            });
+        });
+        
+        describe("removed collection", function() {
+            it("should clear the removed collection", function() {
+                store.remove(abeRec);
+                store.remove(aaronRec);
+                expect(store.getCount()).toBe(2);
+                expect(store.removed.length).toBe(2);
+                store.commitChanges();
+                expect(store.removed.length).toBe(0);
+                expect(store.getCount()).toBe(2);
+            });
+        });
+    });
+
+    describe("rejectChanges", function() {
+        beforeEach(function() {
+            createStore();
+            addStoreData();
+        });
+
+        describe("rejecting records", function() {
+            it("should reject dirty records", function() {
+                edRec.set('name', 'Foo');
+                var spy = spyOn(edRec, 'reject');
+                store.rejectChanges();
+                expect(spy).toHaveBeenCalled();
+            });
+
+            it("should reject phantom records", function() {
+                var phantom = store.add({
+                    name: 'X'
+                })[0];
+                var spy = spyOn(phantom, 'reject');
+                store.rejectChanges();
+                expect(spy).toHaveBeenCalled();
+            });
+
+            it("should reject phantom + dirty records", function() {
+                var phantom = store.add({
+                    name: 'X'
+                })[0];
+                phantom.set('name', 'Y');
+                var spy = spyOn(phantom, 'reject');
+                store.rejectChanges();
+                expect(spy).toHaveBeenCalled();
+            });
+
+            it("should not reject non-phantom non-dirty records", function() {
+                var edSpy = spyOn(edRec, 'reject'),
+                    abeSpy = spyOn(abeRec, 'reject'),
+                    aaronSpy = spyOn(aaronRec, 'reject'),
+                    tommySpy = spyOn(tommyRec, 'reject');
+
+                store.rejectChanges();
+                expect(edSpy).not.toHaveBeenCalled();
+                expect(abeSpy).not.toHaveBeenCalled();
+                expect(aaronSpy).not.toHaveBeenCalled();
+                expect(tommySpy).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("removing phantoms", function() {
+            it("should remove phantoms", function() {
+                var phantom1 = store.insert(2, {
+                    name: 'X'
+                })[0];
+
+                var phantom2 = store.add({
+                    name: 'Y'
+                })[0];
+
+                expect(store.getCount()).toBe(6);
+                store.rejectChanges();
+                expect(store.getCount()).toBe(4);
+                expect(store.indexOf(phantom1)).toBe(-1);
+                expect(store.indexOf(phantom2)).toBe(-1);
+            });
+        });
+
+        describe("re-adding removed records", function() {
+            it("should re-insert removed records", function() {
+                store.remove(abeRec);
+                expect(store.getCount()).toBe(3);
+                store.rejectChanges();
+                expect(store.getAt(1)).toBe(abeRec);
+            });
+
+            it("should clear the removed queue", function() {
+                store.remove(abeRec);
+                expect(store.removed.length).toBe(1);
+                store.rejectChanges();
+                expect(store.removed.length).toBe(0);
+            });
+        });
+    }); 
     
     describe("metachange event", function () {
         var wasCalled = false,
@@ -5035,21 +5312,144 @@ describe("Ext.data.Store", function() {
         });
     });
 
+    describe("joining/unjoining the the store", function() {
+        function expectJoined(rec) {
+            var joined = rec.joined || [];
+            expect(joined.indexOf(store)).not.toBe(-1);
+        }
+
+        function expectNotJoined(rec) {
+            var joined = rec.joined || [];
+            expect(joined.indexOf(store)).toBe(-1);
+        }
+
+        describe("loading", function () {
+            it("should join when loaded as part of the constructor", function() {
+                createStore({
+                    data: [abeRaw]
+                });    
+                expectJoined(store.getAt(0));
+            });
+
+            it("should join when loading records", function() {
+                createStore();
+                store.loadData([edRaw, tommyRaw]);
+                expectJoined(store.getAt(0));
+                expectJoined(store.getAt(1));
+            });
+
+            it("should unjoin existing records when loading a new data set", function() {
+                createStore();
+                store.loadData([edRaw, tommyRaw]);
+                edRec = store.getAt(0);
+                tommyRec = store.getAt(1);
+                store.loadData([abeRaw, aaronRaw]);
+                expectNotJoined(edRec);
+                expectNotJoined(tommyRec);
+            });
+        });
+
+        describe("adding", function() {
+            beforeEach(function() {
+                createStore();
+            });
+
+            it("should join when adding model data", function() {
+                edRec = store.add(edRaw)[0];
+                expectJoined(edRec);
+            });
+
+            it("should join when adding a model instance", function() {
+                edRec = makeUser(edRaw);
+                store.add(edRec);
+                expectJoined(edRec);
+            });
+
+            it("should join inserting adding model data", function() {
+                edRec = store.insert(0, edRaw)[0];
+                expectJoined(edRec);
+            });
+
+            it("should join when inserting a model instance", function() {
+                edRec = makeUser(edRaw);
+                store.insert(0, edRec);
+                expectJoined(edRec);
+            });
+
+            it("should join even when filtered out", function() {
+                store.filter('group', 'admin');
+                edRec = store.add(edRaw)[0];
+                expectJoined(edRec);
+            });
+        });
+
+        describe("removing", function() {
+            beforeEach(function() {
+                createStore();
+                addStoreData();
+            });
+
+            it("should unjoin when removing a record", function() {
+                store.removeAt(0);
+                expectNotJoined(edRec);
+            });
+
+            it("should unjoin when calling removeAll", function() {
+                store.removeAll();
+                expectNotJoined(edRec);
+                expectNotJoined(abeRec);
+                expectNotJoined(aaronRec);
+                expectNotJoined(tommyRec);
+            });
+        });
+
+        describe("destroying", function() {
+            beforeEach(function() {
+                createStore();
+                addStoreData();
+            });
+
+            it("should unjoin all records", function() {
+                store.destroy();
+                expectNotJoined(edRec);
+                expectNotJoined(abeRec);
+                expectNotJoined(aaronRec);
+                expectNotJoined(tommyRec);
+            });
+
+            it("should unjoin all records even when filtered", function() {
+                store.filter('group', 'code');
+                store.destroy();
+                expectNotJoined(edRec);
+                expectNotJoined(abeRec);
+                expectNotJoined(aaronRec);
+                expectNotJoined(tommyRec);
+            });
+        });
+    });
+
     describe("with a session", function() {
         var session;
 
-        afterEach(function () {
-            if (session) {
-                session.destroy();
-                session = null;
-            }
+        beforeEach(function() {
+            session = new Ext.data.Session();
         });
+
+        afterEach(function () {
+            session.destroy();
+            session = null;
+        });
+
+        function createSessionStore(cfg) {
+            cfg = Ext.apply({
+                session: session
+            }, cfg);
+            createStore(cfg);
+        }
 
         describe("loading data", function() {
             it("should pass the session record creator when using load", function() {
-                session = new Ext.data.Session();
-                createStore({
-                    session: session,
+                createSessionStore({
                     proxy: {
                         type: 'ajax'
                     }
@@ -5060,9 +5460,7 @@ describe("Ext.data.Store", function() {
             });
             
             it("should pass the record creator when using loadRawData", function() {
-                session = new Ext.data.Session();
-                createStore({
-                    session: session,
+                createSessionStore({
                     proxy: {
                         type: 'ajax'
                     }
@@ -5072,7 +5470,133 @@ describe("Ext.data.Store", function() {
                 expect(spy.mostRecentCall.args[1].recordCreator).toBe(session.recordCreator);
             });
         });
+
+        describe("for records", function() {
+            function expectSession(rec) {
+                expect(rec.session).toBe(session);
+            }
+
+            describe("loading", function () {
+                it("should set the session when loaded as part of the constructor", function() {
+                    createSessionStore({
+                        data: [abeRaw]
+                    });    
+                    expectSession(store.getAt(0));
+                });
+
+                it("should set the session when loading records", function() {
+                    createSessionStore();
+                    store.loadData([edRaw, tommyRaw]);
+                    expectSession(store.getAt(0));
+                    expectSession(store.getAt(1));
+                });
+
+                it("should not clear the session when loading a new data set", function() {
+                    createSessionStore();
+                    store.loadData([edRaw, tommyRaw]);
+                    edRec = store.getAt(0);
+                    tommyRec = store.getAt(1);
+                    store.loadData([abeRaw, aaronRaw]);
+                    expectSession(edRec);
+                    expectSession(tommyRec);
+                });
+            });
+
+            describe("adding", function() {
+                beforeEach(function() {
+                    createSessionStore();
+                });
+
+                it("should set the session when adding model data", function() {
+                    edRec = store.add(edRaw)[0];
+                    expectSession(edRec);
+                });
+
+                it("should set the session when adding a model instance", function() {
+                    edRec = makeUser(edRaw);
+                    store.add(edRec);
+                    expectSession(edRec);
+                });
+
+                it("should set the session inserting adding model data", function() {
+                    edRec = store.insert(0, edRaw)[0];
+                    expectSession(edRec);
+                });
+
+                it("should set the session when inserting a model instance", function() {
+                    edRec = makeUser(edRaw);
+                    store.insert(0, edRec);
+                    expectSession(edRec);
+                });
+
+                it("should set the session even when filtered out", function() {
+                    store.filter('group', 'admin');
+                    edRec = store.add(edRaw)[0];
+                    expectSession(edRec);
+                });
+            });
+
+            describe("removing", function() {
+                beforeEach(function() {
+                    createSessionStore();
+                    addStoreData();
+                });
+
+                it("should not clear the session when removing a record", function() {
+                    store.removeAt(0);
+                    expectSession(edRec);
+                });
+
+                it("should not clear the session when calling removeAll", function() {
+                    store.removeAll();
+                    expectSession(edRec);
+                    expectSession(abeRec);
+                    expectSession(aaronRec);
+                    expectSession(tommyRec);
+                });
+            });
+
+            describe("destroying", function() {
+                beforeEach(function() {
+                    createSessionStore();
+                    addStoreData();
+                });
+
+                it("should not clear the session on any records", function() {
+                    store.destroy();
+                    expectSession(edRec);
+                    expectSession(abeRec);
+                    expectSession(aaronRec);
+                    expectSession(tommyRec);
+                });
+            });
+        });
     }); 
+
+    describe("destroying", function() {
+        it("should cancel a pending autoLoad", function() {
+            createStore({
+                autoLoad: true
+            });
+            spyOn(store, 'load').andReturn();
+            store.destroy();
+            waits(50);
+            runs(function() {
+                expect(store.load).not.toHaveBeenCalled();
+            });
+        });
+
+        it("should not fire a remove or clear event", function() {
+            createStore();
+            addStoreData();
+
+            var spy = jasmine.createSpy();
+            store.on('remove', spy);
+            store.on('clear', spy);
+            store.destroy();
+            expect(spy).not.toHaveBeenCalled();
+        });
+    });
 
     /*
      * edRaw    = {name: 'Ed Spencer',   email: 'ed@sencha.com',    evilness: 100, group: 'code',  old: false, age: 25, valid: 'yes'};

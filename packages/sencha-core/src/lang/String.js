@@ -11,7 +11,6 @@ Ext.String = (function() {
 // @require Ext.lang.Array
     var trimRegex     = /^[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000]+|[\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,
         escapeRe      = /('|\\)/g,
-        formatRe      = /\{\d+\}/,
         escapeRegexRe = /([-.*+?\^${}()|\[\]\/\\])/g,
         basicTrimRe   = /^\s+|\s+$/g,
         whitespaceRe  = /\s+/,
@@ -33,26 +32,7 @@ Ext.String = (function() {
 
             return other.length <= s.length; 
         },
-        // Flags for the template compile process.
-        // stringFormat means that token 0 consumes argument 1 etc.
-        // So that String.format does not have to slice the argument list.
-        formatTplConfig = {useFormat: false, compiled: true, stringFormat: true},
-        formatFns = {},
-        generateFormatFn = function(format) {
-            // Generate a function which substitutes value tokens
-            if (formatRe.test(format)) {
-                format = new Ext.Template(format, formatTplConfig);
-                return function() {
-                    return format.apply(arguments);
-                };
-            }
-            // No value tokens
-            else {
-                return function() {
-                    return format;
-                };
-            }
-        },
+        
         ExtString;
 
     return ExtString = {
@@ -423,24 +403,6 @@ Ext.String = (function() {
                 result = character + result;
             }
             return result;
-        },
-
-        /**
-         * Allows you to define a tokenized string and pass an arbitrary number of arguments to replace the tokens.  Each
-         * token must be unique, and must increment in the format {0}, {1}, etc.  Example usage:
-         *
-         *     var cls = 'my-class',
-         *         text = 'Some text';
-         *     var s = Ext.String.format('<div class="{0}">{1}</div>', cls, text);
-         *     // s now contains the string: '<div class="my-class">Some text</div>'
-         *
-         * @param {String} string The tokenized string to be formatted.
-         * @param {Mixed...} values The values to replace tokens `{0}`, `{1}`, etc in order.
-         * @return {String} The formatted string.
-         */
-        format: function(format) {
-            var formatFn = formatFns[format] || (formatFns[format] = generateFormatFn(format));
-            return formatFn.apply(this, arguments);
         },
 
         /**

@@ -54,16 +54,15 @@ Ext.define('KitchenSink.view.grid.Paging', {
 
         Ext.apply(this, {
             store: store,
+            plugins: [{
+                ptype: 'preview',
+                bodyField: 'excerpt',
+                expanded: pluginExpanded,
+                pluginId: 'preview'
+            }],
             viewConfig: {
-                id: 'gv',
                 trackOver: false,
-                stripeRows: false,
-                plugins: [{
-                    ptype: 'preview',
-                    bodyField: 'excerpt',
-                    expanded: pluginExpanded,
-                    pluginId: 'preview'
-                }]
+                stripeRows: false
             },
             // grid columns
             columns:[{
@@ -109,8 +108,7 @@ Ext.define('KitchenSink.view.grid.Paging', {
                     pressed: pluginExpanded,
                     enableToggle: true,
                     toggleHandler: function(btn, pressed) {
-                        var preview = Ext.getCmp('gv').getPlugin('preview');
-                        preview.toggleExpanded(pressed);
+                        btn.up('grid').getPlugin('preview').toggleExpanded(pressed);
                         btn.setText(pressed ? 'Hide Preview' : 'Show Preview');
                     }
                 }]

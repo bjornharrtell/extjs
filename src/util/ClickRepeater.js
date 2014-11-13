@@ -210,12 +210,12 @@ Ext.define('Ext.util.ClickRepeater', {
     },
 
     // @private
-    handleMouseReturn : function(){
+    handleMouseReturn : function(e){
         this.el.un("mouseover", this.handleMouseReturn, this);
         if(this.pressedCls){
             this.el.addCls(this.pressedCls);
         }
-        this.click();
+        this.click(e);
     },
 
     // @private

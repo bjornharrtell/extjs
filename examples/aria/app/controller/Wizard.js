@@ -28,7 +28,7 @@ Ext.define('Aria.controller.Wizard', {
         if (item) {
             layout.setActiveItem(item);
             
-            child = item.ariaFirstChild();
+            child = item.down(':focusable');
             
             if (child) {
                 child.focus();

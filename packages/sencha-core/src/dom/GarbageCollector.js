@@ -79,6 +79,6 @@ Ext.define('Ext.dom.GarbageCollector', {
             me.collect();
         }
 
-        me.timerId = setInterval(me.collect, me.interval);
+        me.timerId = Ext.interval(me.collect, me.interval);
     }
 });

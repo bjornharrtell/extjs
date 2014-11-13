@@ -36,7 +36,6 @@ Ext.define('KitchenSink.view.tab.PlainTabs', {
     }],
 
     listeners: {
-        scope: 'controller',
         tabchange: 'onTabChange'
     }
 });

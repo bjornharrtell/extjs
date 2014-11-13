@@ -3,6 +3,8 @@
  * Generates a box plot graph from the provided {@link #values} array.
  *
  * See <a href="http://en.wikipedia.org/wiki/Box_plot">Wikipedia Box Plots</a>
+ *
+ * See {@link Ext.sparkline.Base the base class} for a simple example.
  */
 Ext.define('Ext.sparkline.Box', {
     extend: 'Ext.sparkline.Base',

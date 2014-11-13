@@ -145,11 +145,10 @@ Ext.define('Ext.layout.container.Column', {
 
             if (!itemContext.widthModel.calculated) {
                 itemWidth = itemContext.getProp('width');
-                if (typeof itemWidth != 'number') {
+                if (typeof itemWidth !== 'number') {
                     itemContext.block(me, 'width');
                     blocked = true;
                 }
-
                 contentWidth += itemWidth + itemMarginWidth;
             }
         }
@@ -159,6 +158,7 @@ Ext.define('Ext.layout.container.Column', {
 
             for (i = 0; i < len; ++i) {
                 itemContext = items[i];
+
                 if (itemContext.widthModel.calculated) {
                     itemMarginWidth = itemContext.marginInfo.width; // always set by above loop
                     itemWidth = itemContext.target.columnWidth;

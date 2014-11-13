@@ -171,6 +171,16 @@ Ext.define('Ext.event.Event', {
             touchend: 1,
             touchcancel: 1
         },
+        
+        // private
+        focusEvents: {
+            focus: 1,
+            blur: 1,
+            focusin: 1,
+            focusout: 1,
+            focusenter: 1,
+            focusleave: 1
+        },
 
         // msPointerTypes in IE10 are numbers, in the w3c spec they are strings.
         // this map allows us to normalize the pointerType for an event
@@ -218,6 +228,10 @@ Ext.define('Ext.event.Event', {
         me.altKey = event.altKey;
         me.charCode = event.charCode;
         me.keyCode = event.keyCode;
+        
+        if (self.forwardTab !== undefined && self.focusEvents[type]) {
+            me.forwardTab = self.forwardTab;
+        }
 
         if (self.mouseEvents[type]) {
             pointerType = 'mouse';
@@ -400,11 +414,32 @@ Ext.define('Ext.event.Event', {
      * @return {Number[]} The xy values like [x, y]
      */
     getXY: function() {
-        if (!this.xy) {
-            this.xy = [this.pageX, this.pageY];
+        var me = this,
+            xy = me.xy;
+
+        if (!xy) {
+            xy = me.xy = [me.pageX, me.pageY];
+            //<feature legacyBrowser>
+            var x = xy[0],
+                browserEvent, doc, docEl, body;
+
+            // pageX/pageY not available (undefined, not null), use clientX/clientY instead
+            if (!x && x !== 0) {
+                browserEvent = me.browserEvent;
+                doc = document;
+                docEl = doc.documentElement;
+                body = doc.body;
+                xy[0] = browserEvent.clientX +
+                    (docEl && docEl.scrollLeft || body && body.scrollLeft || 0) -
+                    (docEl && docEl.clientLeft || body && body.clientLeft || 0);
+                xy[1] = browserEvent.clientY +
+                    (docEl && docEl.scrollTop  || body && body.scrollTop  || 0) -
+                    (docEl && docEl.clientTop  || body && body.clientTop  || 0);
+            }
+            //</feature>
         }
 
-        return this.xy;
+        return xy;
     },
 
     /**
@@ -582,19 +617,11 @@ Ext.define('Ext.event.Event', {
      * @return {Boolean}
      */
     within: function(el, related, allowEl){
-        if(el){
-            var t = related ? this.getRelatedTarget() : this.getTarget(),
-                result;
-
-            if (t) {
-                result = Ext.fly(el).contains(t);
-                if (!result && allowEl) {
-                    result = (t === Ext.getDom(el));
-                }
-                return result;
-            }
+        if (el) {
+            var t = related ? this.getRelatedTarget() : this.getTarget();
         }
-        return false;
+
+        return t ? Ext.fly(el).contains(t) || !!(allowEl && t === Ext.getDom(el)) : false;
     },
 
     deprecated: {
@@ -618,7 +645,8 @@ Ext.define('Ext.event.Event', {
         }
     }
 }, function(Event) {
-    var constants = {
+    var prototype = Event.prototype,
+        constants = {
         /** Key constant @type Number */
         BACKSPACE: 8,
         /** Key constant @type Number */
@@ -845,5 +873,12 @@ Ext.define('Ext.event.Event', {
     };
 
     Ext.apply(Event, constants);
-    Ext.apply(Event.prototype, constants);
+    Ext.apply(prototype, constants);
+
+    /**
+     * @private
+     * Returns the X and Y coordinates of this event without regard to any RTL
+     * direction settings.
+     */
+    prototype.getTrueXY = prototype.getXY;
 });

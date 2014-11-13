@@ -1,7 +1,7 @@
 /**
  * This type of association is similar to {@link Ext.data.schema.ManyToOne many-to-one},
- * except that the `{@Ext.data.field.Field#cfg-reference reference}` field also has set
- * `{@Ext.data.field.Field#cfg-unique unique}` to `true`.
+ * except that the {@link Ext.data.field.Field#cfg-reference reference} field also has set
+ * {@link Ext.data.field.Field#cfg-unique unique} to `true`.
  *
  * While this type of association helps handle both sides of the association properly, it
  * is problematic to enforce the uniqueness aspect. If the database were to enforce this
@@ -23,6 +23,10 @@ Ext.define('Ext.data.schema.OneToOne', {
 
     Left: Ext.define(null, {
         extend: 'Ext.data.schema.Role',
+
+        onDrop: function(rightRecord, session) {
+            rightRecord[this.role] = null;
+        },
 
         createGetter: function() {
             var me = this;
@@ -57,7 +61,7 @@ Ext.define('Ext.data.schema.OneToOne', {
                 // but to get it we must ask the session
             }
 
-            return ret;
+            return ret || null;
         },
 
         doSet: function (rightRecord, leftRecord) {
@@ -83,14 +87,18 @@ Ext.define('Ext.data.schema.OneToOne', {
             return ret;
         },
 
-        read: function(record, node, fromReader, readOptions) {
+        read: function(rightRecord, node, fromReader, readOptions) {
             var me = this,
-                result = me.callParent([ record, node, fromReader, readOptions ]),
-                other = result.getRecords()[0];
+                result = me.callParent([ rightRecord, node, fromReader, readOptions ]),
+                leftRecord = result.getRecords()[0],
+                name = me.role;
 
-            if (other) {
-                record[me.role] = other;
-                other[me.inverse.role] = record;
+            if (leftRecord) {
+                leftRecord[me.inverse.role] = rightRecord;
+
+                rightRecord[name] = leftRecord;
+                // Inline associations should *not* arrive on the "data" object:
+                delete rightRecord.data[name];
             }
         }
     }),
@@ -121,20 +129,82 @@ Ext.define('Ext.data.schema.OneToOne', {
             };
         },
 
+        onDrop: function(leftRecord, session) {
+            var me = this,
+                field = me.association.field,
+                rightRecord, id;
+
+            if (me.inverse.owner) {
+                if (session) {
+                    id = leftRecord.get(field.name);
+                    if (id || id === 0) {
+                        rightRecord = session.getEntry(me.cls, id).record;
+                        if (rightRecord) {
+                            rightRecord.drop();
+                        }
+                    }
+                } else {
+                    rightRecord = me.getAssociatedItem(leftRecord);
+                    if (rightRecord) {
+                        rightRecord.drop();
+                    }
+                }
+            }
+             
+            if (field) {
+                leftRecord.set(field.name, null);
+            }
+            leftRecord[me.role] = null;
+        },
+
         onValueChange: function(leftRecord, session, newValue) {
+            // Important to get the record before changing the key.
+            var me = this,
+                rightRecord = me.getAssociatedItem(leftRecord);
+
             leftRecord.changingKey = true;
-            this.doSetFK(leftRecord, newValue);
+            me.doSetFK(leftRecord, newValue);
+            if (me.inverse.owner && rightRecord) {
+                me.association.schema.queueKeyCheck(rightRecord, me);
+            }
             leftRecord.changingKey = false;
         },
-        
-        read: function(record, node, fromReader, readOptions) {
-            var me = this,
-                result = me.callParent([ record, node, fromReader, readOptions ]),
-                other = result.getRecords()[0];
 
-            if (other) {
-                record[me.role] = other;
-                other[me.inverse.role] = record;
+        checkKeyForDrop: function(rightRecord) {
+            var leftRecord = this.inverse.getAssociatedItem(rightRecord);
+            if (!leftRecord) {
+                // Not reassigned to another parent
+                rightRecord.drop();
+            }
+        },
+        
+        read: function(leftRecord, node, fromReader, readOptions) {
+            var me = this,
+                result = me.callParent([ leftRecord, node, fromReader, readOptions ]),
+                rightRecord = result.getRecords()[0],
+                name = me.role,
+                field = this.association.field,
+                session = leftRecord.session,
+                oldId;
+
+            if (rightRecord) {
+                rightRecord[me.inverse.role] = leftRecord;
+
+                leftRecord[name] = rightRecord;
+                // Inline associations should *not* arrive on the "data" object:
+                delete leftRecord.data[name];
+
+                // We want to poke the inferred key onto record if it exists, but we don't
+                // want to mess with the dirty or modified state of the record.
+                if (field) {
+                    oldId = leftRecord.data[field.name];
+                    if (oldId !== rightRecord.id) {
+                        leftRecord.data[field.name] = rightRecord.id;
+                        if (session) {
+                            session.updateReference(leftRecord, field, rightRecord.id, oldId);
+                        }
+                    }
+                }
             }
         }
     })

@@ -5,7 +5,7 @@
  * Line charts allow to visualize the evolution of a value over time, or the ratio between
  * any two values.
  */
-Ext.define('KitchenSink.view.charts.touch.Renderer', {
+Ext.define('KitchenSink.view.charts.line.Renderer', {
     extend: 'Ext.panel.Panel',
     xtype: 'line-renderer',
 
@@ -78,7 +78,7 @@ Ext.define('KitchenSink.view.charts.touch.Renderer', {
                             break;
                         case 'line':
                             changes.strokeStyle = (isUp ? 'cornflowerblue' : 'tomato');
-                            changes.fillStyle = (isUp ? 'aliceblue' : 'lightgray');
+                            changes.fillStyle = (isUp ? 'aliceblue' : 'rgba(211, 211, 211, 1.0)');
                             break;
                     }
                     return changes;

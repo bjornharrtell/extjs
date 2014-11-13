@@ -2,83 +2,88 @@
  * The Crosshair interaction allows the user to get precise values for a specific point on the chart.
  * The values are obtained by single-touch dragging on the chart.
  *
- *     @example preview
- *     var lineChart = Ext.create('Ext.chart.CartesianChart', {
- *         innerPadding: 20,
- *         interactions: [{
- *             type: 'crosshair',
- *             axes: {
- *                 left: {
- *                     label: {
- *                         fillStyle: 'white'
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'cartesian',
+ *             innerPadding: 20,
+ *             interactions: {
+ *                 type: 'crosshair',
+ *                 axes: {
+ *                     left: {
+ *                         label: {
+ *                             fillStyle: 'white'
+ *                         },
+ *                         rect: {
+ *                             fillStyle: 'brown',
+ *                             radius: 6
+ *                         }
  *                     },
- *                     rect: {
- *                         fillStyle: 'brown',
- *                         radius: 6
+ *                     bottom: {
+ *                         label: {
+ *                             fontSize: '14px',
+ *                             fontWeight: 'bold'
+ *                         }
  *                     }
  *                 },
- *                 bottom: {
- *                     label: {
- *                         fontSize: '14px',
- *                         fontWeight: 'bold'
+ *                 lines: {
+ *                     horizontal: {
+ *                         strokeStyle: 'brown',
+ *                         lineWidth: 2,
+ *                         lineDash: [20, 2, 2, 2, 2, 2, 2, 2]
  *                     }
  *                 }
  *             },
- *             lines: {
- *                 horizontal: {
- *                     strokeStyle: 'brown',
- *                     lineWidth: 2,
- *                     lineDash: [20, 2, 2, 2, 2, 2, 2, 2]
+ *             store: {
+ *                 fields: ['name', 'data'],
+ *                 data: [
+ *                     {name: 'apple', data: 300},
+ *                     {name: 'orange', data: 900},
+ *                     {name: 'banana', data: 800},
+ *                     {name: 'pear', data: 400},
+ *                     {name: 'grape', data: 500}
+ *                 ]
+ *             },
+ *             axes: [{
+ *                 type: 'numeric',
+ *                 position: 'left',
+ *                 fields: ['data'],
+ *                 title: {
+ *                     text: 'Value',
+ *                     fontSize: 15
+ *                 },
+ *                 grid: true,
+ *                 label: {
+ *                     rotationRads: -Math.PI / 4
+ *                 }
+ *             }, {
+ *                 type: 'category',
+ *                 position: 'bottom',
+ *                 fields: ['name'],
+ *                 title: {
+ *                     text: 'Category',
+ *                     fontSize: 15
+ *                 }
+ *             }],
+ *             series: {
+ *                 type: 'line',
+ *                 style: {
+ *                     strokeStyle: 'black'
+ *                 },
+ *                 xField: 'name',
+ *                 yField: 'data',
+ *                 marker: {
+ *                     type: 'circle',
+ *                     radius: 5,
+ *                     fillStyle: 'lightblue'
  *                 }
  *             }
- *         }],
- *         store: {
- *             fields: ['name', 'data'],
- *             data: [
- *                 {name: 'apple', data: 300},
- *                 {name: 'orange', data: 900},
- *                 {name: 'banana', data: 800},
- *                 {name: 'pear', data: 400},
- *                 {name: 'grape', data: 500}
- *             ]
- *         },
- *         axes: [{
- *             type: 'numeric',
- *             position: 'left',
- *             fields: ['data'],
- *             title: {
- *                 text: 'Value',
- *                 fontSize: 15
- *             },
- *             grid: true,
- *             label: {
- *                 rotationRads: -Math.PI / 4
- *             }
- *         }, {
- *             type: 'category',
- *             position: 'bottom',
- *             fields: ['name'],
- *             title: {
- *                 text: 'Category',
- *                 fontSize: 15
- *             }
- *         }],
- *         series: [{
- *             type: 'line',
- *             style: {
- *                 strokeStyle: 'black'
- *             },
- *             xField: 'name',
- *             yField: 'data',
- *             marker: {
- *                 type: 'circle',
- *                 radius: 5,
- *                 fillStyle: 'lightblue'
- *             }
- *         }]
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(lineChart);
  */
 
 Ext.define('Ext.chart.interactions.Crosshair', {
@@ -201,6 +206,7 @@ Ext.define('Ext.chart.interactions.Crosshair', {
     onGestureStart: function (e) {
         var me = this,
             chart = me.getChart(),
+            axesTheme = chart.getTheme().getAxis(), axisTheme,
             surface = chart.getSurface('overlay'),
             rect = chart.getInnerRect(),
             chartWidth = rect[2],
@@ -211,9 +217,10 @@ Ext.define('Ext.chart.interactions.Crosshair', {
             axes = chart.getAxes(),
             axesConfig = me.getAxes(),
             linesConfig = me.getLines(),
-            axis, axisSurface, axisRect, axisWidth, axisHeight, axisPosition,
-            axisLabel, axisLabelConfig, crosshairLabelConfig, labelPadding,
+            axis, axisSurface, axisRect, axisWidth, axisHeight, axisPosition, axisAlignment,
+            axisLabel, axisLabelConfig, crosshairLabelConfig, tickPadding,
             axisSprite, attr, axisThickness, lineWidth, halfLineWidth,
+            title, titleBBox, titlePadding,
             i;
 
         if (x > 0 && x < chartWidth && y > 0 && y < chartHeight) {
@@ -239,33 +246,41 @@ Ext.define('Ext.chart.interactions.Crosshair', {
                 axisWidth = axisRect[2];
                 axisHeight = axisRect[3];
                 axisPosition = axis.getPosition();
+                axisAlignment = axis.getAlignment();
+                title = axis.getTitle(),
+                titleBBox = title && title.attr.text !== '' && title.getBBox(),
                 attr = axisSprite.attr;
                 axisThickness = axisSprite.thickness;
                 lineWidth = attr.axisLine ? attr.lineWidth : 0;
                 halfLineWidth = lineWidth / 2;
-                labelPadding = Math.max(attr.majorTickSize, attr.minorTickSize) + lineWidth;
+                tickPadding = Math.max(attr.majorTickSize, attr.minorTickSize) + lineWidth;
 
                 axisLabel = me.axesLabels[axisPosition] = axisSurface.add({type: 'composite'});
 
                 axisLabel.labelRect = axisLabel.add(Ext.apply({
                     type: 'rect',
                     fillStyle: 'white',
-                    x: axisPosition === 'right' ? lineWidth : axisSurface.roundPixel(axisWidth - axisThickness - labelPadding) - halfLineWidth,
-                    y: axisPosition === 'bottom' ? lineWidth : axisSurface.roundPixel(axisHeight - axisThickness - labelPadding) - lineWidth,
-                    width: axisPosition === 'left' ? axisThickness - halfLineWidth + labelPadding : axisThickness + labelPadding,
-                    height: axisPosition === 'top' ? axisThickness + labelPadding : axisThickness + labelPadding
+                    x: axisPosition === 'right' ? lineWidth : 0,
+                    y: axisPosition === 'bottom' ? lineWidth : 0,
+                    width: axisWidth - lineWidth - (axisAlignment === 'vertical' && titleBBox ? titleBBox.width : 0),
+                    height: axisHeight - lineWidth - (axisAlignment === 'horizontal' && titleBBox ? titleBBox.height : 0),
+                    translationX: axisPosition === 'left' && titleBBox ? titleBBox.width : 0,
+                    translationY: axisPosition === 'top' && titleBBox ? titleBBox.height : 0
                 }, axesConfig.rect || axesConfig[axisPosition].rect));
 
-                axisLabelConfig = Ext.apply({}, axis.config.label, axis.labelDefaults);
+                axisTheme = Ext.merge({}, axesTheme.defaults, axesTheme[axisPosition]);
+                axisLabelConfig = Ext.apply({}, axis.config.label, axisTheme.label);
                 crosshairLabelConfig = axesConfig.label || axesConfig[axisPosition].label;
                 axisLabel.labelText = axisLabel.add(Ext.apply(axisLabelConfig, crosshairLabelConfig, {
                     type: 'text',
                     x: (function () {
                         switch (axisPosition) {
                             case 'left':
-                                return axisWidth - labelPadding - halfLineWidth - axisThickness / 2;
+                                titlePadding = titleBBox ? titleBBox.x + titleBBox.width : 0;
+                                return titlePadding + (axisWidth - titlePadding - tickPadding) / 2 - halfLineWidth;
                             case 'right':
-                                return axisThickness / 2 + labelPadding - halfLineWidth;
+                                titlePadding = titleBBox ? axisWidth - titleBBox.x : 0;
+                                return tickPadding + (axisWidth - tickPadding - titlePadding) / 2 + halfLineWidth;
                             default:
                                 return 0;
                         }
@@ -273,9 +288,11 @@ Ext.define('Ext.chart.interactions.Crosshair', {
                     y: (function () {
                         switch (axisPosition) {
                             case 'top':
-                                return axisHeight - labelPadding - halfLineWidth - axisThickness / 2;
+                                titlePadding = titleBBox ? titleBBox.y + titleBBox.height: 0;
+                                return titlePadding + (axisHeight - titlePadding - tickPadding) / 2 - halfLineWidth;
                             case 'bottom':
-                                return axisThickness / 2 + labelPadding;
+                                titlePadding = titleBBox ? axisHeight - titleBBox.y : 0;
+                                return tickPadding + (axisHeight - tickPadding - titlePadding) / 2 + halfLineWidth;
                             default:
                                 return 0;
                         }

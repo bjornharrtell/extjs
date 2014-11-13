@@ -75,9 +75,7 @@ Ext.define('Ext.menu.KeyNav', {
     },
 
     isWhitelisted: function(item) {
-        var mgr = Ext['FocusManager'];
-        
-        return mgr && mgr.isWhitelisted(item);
+        return !!item.needArrowKeys;
     },
 
     left: function(e) {

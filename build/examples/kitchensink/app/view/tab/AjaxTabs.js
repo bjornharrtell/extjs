@@ -23,8 +23,7 @@ Ext.define('KitchenSink.view.tab.AjaxTabs', {
     },
 
     listeners: {
-        tabchange: 'onTabChange',
-        scope: 'controller'
+        tabchange: 'onTabChange'
     },
 
     items: [{

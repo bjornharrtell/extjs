@@ -9,8 +9,7 @@ Ext.define('Ext.dashboard.Dashboard', {
     xtype: 'dashboard',
 
     requires: [
-        'Ext.layout.container.SplitColumn',
-
+        'Ext.layout.container.Dashboard',
         'Ext.dashboard.DropZone',
         'Ext.dashboard.Column',
         'Ext.dashboard.Part'
@@ -22,25 +21,15 @@ Ext.define('Ext.dashboard.Dashboard', {
 
     bodyCls: Ext.baseCSSPrefix + 'dashboard-body',
 
-    firstColumnCls: Ext.baseCSSPrefix + 'dashboard-column-first',
-
-    lastColumnCls: Ext.baseCSSPrefix + 'dashboard-column-last',
-
     defaultType: 'dashboard-column',
 
     autoScroll: true,
 
     layout: null,
 
-    stateful: true,
+    stateful: false,
 
     idSeed: 1,
-
-    /**
-     * @cfg {Object} maxColumns
-     * The maximum number of visible columns.
-     */
-    maxColumns: 4,
 
     config: {
         /**
@@ -48,6 +37,14 @@ Ext.define('Ext.dashboard.Dashboard', {
          * An object keyed by `id` for the parts that can be created for this `Dashboard`.
          */
         parts: null
+    },
+
+    renderConfig: {
+        /**
+         * @cfg {Object} maxColumns
+         * The maximum number of visible columns.
+         */
+        maxColumns: 4
     },
 
     /**
@@ -75,9 +72,7 @@ Ext.define('Ext.dashboard.Dashboard', {
 
         if (!me.layout) {
             me.layout = {
-                type: 'split-column',
-                firstColumnCls: me.firstColumnCls,
-                lastColumnCls: me.lastColumnCls
+                type: 'dashboard'
             };
         }
 
@@ -112,17 +107,16 @@ Ext.define('Ext.dashboard.Dashboard', {
     /** @private */
     getPart: function (type) {
         var parts = this.getParts();
-
         return parts.getByKey(type);
     },
 
-    addNew: function (type) {
+    addNew: function (type, columnIndex, beforeAfter) {
         var me = this,
             part = me.getPart(type);
 
         part.displayForm(null, null, function (config) {
             config.type = type;
-            me.addView(config);
+            me.addView(config, columnIndex, beforeAfter);
         });
     },
 
@@ -135,6 +129,13 @@ Ext.define('Ext.dashboard.Dashboard', {
             columnWidths = me.columnWidths,
             column;
 
+        if (!count) {
+            // if the layout is empty, assert a full initially
+            column = me.add(0, me.createColumn({columnWidth : 1}));
+            count = 1;
+            columnWidths = me.columnWidths = [];
+        }
+
         if (index >= count) {
             index = count - 1;
             beforeAfter = 1; // after
@@ -142,7 +143,9 @@ Ext.define('Ext.dashboard.Dashboard', {
 
         if (!beforeAfter) {
             column = items.getAt(index);
-            return column.add(view);
+            if (column) {
+                return column.add(view);
+            }
         }
 
         if (beforeAfter > 0) {
@@ -152,25 +155,28 @@ Ext.define('Ext.dashboard.Dashboard', {
 
         column = me.createColumn();
         if (columnWidths) {
-            column.columnWidth = columnWidths[index];
+            column.columnWidth = columnWidths[index] || (columnWidths[index] = 1);
         }
+
         if (!column.items) {
             column.items = [];
         }
 
         column.items.push(view);
         column = me.add(index, column);
-        items = column.items;
 
-        return items.getAt(items.getCount() - 1);
+        return column.items.first();
     },
 
     createColumn: function (config) {
+        var cycle = this.cycleLayout;
         return Ext.apply({
             items : [],
             bubbleEvents : ['add','remove','move', 'resize'],
             listeners: {
                 remove: this.onRemoveItem,
+                expand  : cycle,
+                collapse : cycle,
                 scope: this
             }
         }, config);
@@ -186,6 +192,8 @@ Ext.define('Ext.dashboard.Dashboard', {
             view.id = me.id + '_' + type + (me.idSeed++);
         }
 
+        view.bubbleEvents = Ext.Array.from(view.bubbleEvents).concat(['expand', 'collapse']);
+        view.stateful = me.stateful;
         return view;
     },
 
@@ -194,9 +202,17 @@ Ext.define('Ext.dashboard.Dashboard', {
         this.dd = new Ext.dashboard.DropZone(this, this.dropConfig);
     },
 
+    /**
+     * Readjust column/splitter heights for collapsing child panels
+     * @private
+     */
+    cycleLayout : function() {
+         this.updateLayout();
+    },
+
     beforeDestroy : function() {
         if (this.dd) {
-            this.dd.unreg();
+            Ext.destroy(this.dd);
         }
         this.callParent();
     },
@@ -206,20 +222,23 @@ Ext.define('Ext.dashboard.Dashboard', {
 
     applyState: function (state) {
         delete state.items;
-
-        this.callParent([state]);
+        var me = this;
+        me.callParent([state]);
 
         var columnWidths = state.columnWidths,
-            items = this.items.items,
+            items = me.items.items,
             length = items.length,
             i, n;
 
         // Splitters have not been inserted so the length is sans-splitter
         if (columnWidths) {
             n = columnWidths.length;
+            me.columnWidths = [];
 
             for (i = 0; i < length; ++i) {
-                items[i].columnWidth = (i < n) ? columnWidths[i] : (1 / length);
+                me.columnWidths.push(
+                    items[i].columnWidth = (i < n) ? columnWidths[i] : (1 / length)
+                );
             }
         }
     },
@@ -241,6 +260,7 @@ Ext.define('Ext.dashboard.Dashboard', {
         state.columnWidths = columnWidths;
         state.idSeed = me.idSeed;
         state.items = me.serializeItems();
+        me.columnWidths = columnWidths;
 
         return state;
     },
@@ -267,8 +287,8 @@ Ext.define('Ext.dashboard.Dashboard', {
             length = serialized.length,
             columns = [],
             columnWidths = me.columnWidths,
-            maxColumns = me.maxColumns,
-            column, columnIndex, i, item, partConfig;
+            maxColumns = me.getMaxColumns(),
+            column, columnIndex, columnWidth, i, item, partConfig;
 
         for (i = 0; i < length; ++i) {
             partConfig = serialized[i];
@@ -278,8 +298,9 @@ Ext.define('Ext.dashboard.Dashboard', {
             if (!(column = columns[columnIndex])) {
                 columns[columnIndex] = column = me.createColumn();
 
-                if (columnWidths) {
-                    column.columnWidth = columnWidths[columnIndex];
+                columnWidth = columnWidths && columnWidths[columnIndex];
+                if (columnWidth) {
+                    column.columnWidth = columnWidth;
                 }
             }
 
@@ -336,7 +357,7 @@ Ext.define('Ext.dashboard.Dashboard', {
     onRemoveItem: function (column, item) {
         // Removing items from a Dashboard is a persistent action, so we must remove the
         // state data for it or leak it.
-        if (!item.isMoving) {
+        if (item.stateful && !item.isMoving) {
             Ext.state.Manager.clear(item.getStateId());
         }
     }

@@ -32,13 +32,13 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
             xtype: 'cartesian',
             height: 500,
             store: {type: 'plot'},
-            theme: 'Sky',
             padding: 10,
             insetPadding: 0,
             id: 'plot-chart',
             background: 'white',
             interactions: {
-                type: 'panzoom'
+                type: 'panzoom',
+                zoomOnPanGesture: true
             },
             // <example>
             // TODO: must be able to control how series are displayed
@@ -81,7 +81,6 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
                     titleMargin: 20,
                     title: {
                         text: 'f(x)',
-                        fontSize: 16,
                         fillStyle: 'rgb(255, 0, 136)'
                     },
                     minimum: -4,
@@ -111,7 +110,6 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
                     },
                     title: {
                         text: 'x',
-                        fontSize: 16,
                         fillStyle: 'rgb(255, 0, 136)'
                     },
                     floating: {

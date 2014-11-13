@@ -83,7 +83,7 @@ Ext.define('KitchenSink.view.charts.gauge.Basic', {
                         text: 'Basic',
                         x: 30,
                         y: 30,
-                        font: '18px'
+                        fontSize: 17
                     },
                     series: {
                         type: 'gauge',

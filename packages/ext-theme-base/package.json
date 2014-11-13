@@ -7,6 +7,26 @@
     "version": "5.0.0",
     "compatVersion": "5.0.0",
     "format": "1",
+    "slicer": {
+        "js": [
+            {
+                "path": "${package.dir}/sass/example/render.js"
+            },
+            {
+                "path": "${package.dir}/sass/example/shortcuts.js"
+            },
+            {
+                "path": "${package.dir}/sass/example/manifest.js",
+                "isWidgetManifest": true
+            }
+        ],
+        "css": [
+            {
+                "path": "${package.dir}/sass/example/slicer.css"
+            }
+        ]
+    },
+    "output": "${package.dir}/build",
     "local": true,
     "requires": []
 }

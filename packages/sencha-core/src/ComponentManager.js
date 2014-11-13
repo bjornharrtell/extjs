@@ -67,28 +67,31 @@ Ext.define('Ext.ComponentManager', {
     },
 
     register: function(component) {
-        var all = this.all,
-            key = component.getId();
+        var me = this,
+            all = me.all,
+            key = component.getId(),
+            onAvailableCallbacks = me.onAvailableCallbacks;
 
         //<debug>
         if (key === undefined) {
-            Ext.Error.raise('Key is undefined. Please ensure the item has a key before registering the item.');
+            Ext.Error.raise('Component id is undefined. Please ensure the component has an id.');
         }
         if (key in all) {
-            Ext.Error.raise('Registering duplicate id "' + key + '" with this manager');
+            Ext.Error.raise('Registering duplicate component id "' + key + '"');
         }
         //</debug>
 
         all[key] = component;
 
         if (component.reference) {
-            this.references[key] = component;
+            me.references[key] = component;
         }
 
-        this.count++;
+        ++me.count;
 
-        if ((this.onAvailableCallbacks[key] || []).length) {
-            this.notifyAvailable(component);
+        onAvailableCallbacks = onAvailableCallbacks && onAvailableCallbacks[key];
+        if (onAvailableCallbacks && onAvailableCallbacks.length) {
+            me.notifyAvailable(component);
         }
     },
 

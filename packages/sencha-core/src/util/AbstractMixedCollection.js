@@ -952,17 +952,17 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * {@link Ext.util.Filter Filter} for an example of using Filter objects (preferred). Alternatively,
      * MixedCollection can be easily filtered by property like this:</p>
      *
-     *    //create a simple store with a few people defined
-     *    var people = new Ext.util.MixedCollection();
-     *    people.addAll([
-     *        {id: 1, age: 25, name: 'Ed'},
-     *        {id: 2, age: 24, name: 'Tommy'},
-     *        {id: 3, age: 24, name: 'Arne'},
-     *        {id: 4, age: 26, name: 'Aaron'}
-     *    ]);
+     *     //create a simple store with a few people defined
+     *     var people = new Ext.util.MixedCollection();
+     *     people.addAll([
+     *         {id: 1, age: 25, name: 'Ed'},
+     *         {id: 2, age: 24, name: 'Tommy'},
+     *         {id: 3, age: 24, name: 'Arne'},
+     *         {id: 4, age: 26, name: 'Aaron'}
+     *     ]);
      *    
-     *    //a new MixedCollection containing only the items where age == 24
-     *    var middleAged = people.filter('age', 24);
+     *     //a new MixedCollection containing only the items where age == 24
+     *     var middleAged = people.filter('age', 24);
      *
      * @param {Ext.util.Filter[]/String} property A property on your objects, or an array of {@link Ext.util.Filter Filter} objects
      * @param {String/RegExp} value Either string that the property values

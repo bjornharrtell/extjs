@@ -82,6 +82,8 @@ describe("Ext.dom.Element", function() {
             
             afterEach(function() {
                 if (element) {
+                    // Prevent console warnings
+                    spyOn(Ext.Logger, 'warn');
                     element.destroy();
                     element = null;
                 }
@@ -740,6 +742,8 @@ describe("Ext.dom.Element", function() {
         });
 
         afterEach(function() {
+            // Prevent console warnings
+            spyOn(Ext.Logger, 'warn');
             element.destroy();
             if (element2) {
                 element2.destroy();
@@ -863,12 +867,11 @@ describe("Ext.dom.Element", function() {
                 });
             });
 
-            it("should wrap a documentFragment", function() {
+            it("should not wrap a documentFragment", function() {
                 var dom = document.createDocumentFragment(),
                     el = Ext.get(dom);
 
-                expect(el instanceof Ext.dom.Element).toBe(true);
-                expect(el.dom).toBe(dom);
+                expect(el).toBe(null);
             });
 
             it("should wrap the window object", function() {
@@ -1091,5 +1094,53 @@ describe("Ext.dom.Element", function() {
         it("should return false when an Ext.Element instance is passed to Ext.isTextNode", function() {
            expect(Ext.isTextNode(Ext.getBody())).toBe(false);
         });
+    });
+
+    describe("Ext.isGarbage", function() {
+        it("should return false if the element is the window", function() {
+            expect(Ext.isGarbage(window)).toBe(false);
+        });
+
+        it("should return false if the element is the document", function() {
+            expect(Ext.isGarbage(document)).toBe(false);
+        });
+
+        it("should return false if the element is the documentElement", function() {
+            expect(Ext.isGarbage(document.documentElement)).toBe(false);
+        });
+
+        it("should return false if the element is in the DOM", function() {
+            var el = Ext.getBody().createChild();
+            expect(Ext.isGarbage(el.dom)).toBe(false);
+            el.destroy();
+        });
+
+        it("should return true if the element is not in the DOM", function() {
+            expect(Ext.isGarbage(document.createElement('div'))).toBe(true);
+        });
+
+        it("should return false if the element is in the detached body", function() {
+            var el = Ext.getDetachedBody().createChild();
+            expect(Ext.isGarbage(el.dom)).toBe(false);
+            el.destroy();
+        });
+
+        it("should return false if the element is in the dom and the cache contains an element with the same id", function() {
+            // EXTJS-13702
+            var el = Ext.getBody().createChild({
+                id: 'foo'
+            });
+
+            document.body.removeChild(el.dom);
+
+            el = Ext.getBody().createChild({
+                id: 'foo'
+            });
+
+            expect(Ext.isGarbage(el.dom)).toBe(false);
+
+            el.destroy();
+        });
+
     });
 }, "/src/dom/Element.js");

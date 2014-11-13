@@ -26,6 +26,7 @@ Ext.define('KitchenSink.view.form.MultiColumn', {
     title: 'Multi Column Form',
     frame: true,
     resizable: true,
+    minHeight: 200,
 
     layout: 'column',
     
@@ -59,6 +60,7 @@ Ext.define('KitchenSink.view.form.MultiColumn', {
     
     initComponent: function() {
         this.width = this.themeInfo.width;
+        this.minWidth = this.themeInfo.width;
         this.callParent();
     }
 });

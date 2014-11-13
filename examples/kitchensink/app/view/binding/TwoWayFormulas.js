@@ -64,12 +64,13 @@ Ext.define('KitchenSink.view.binding.TwoWayFormulas', {
         }, {
             xtype: 'slider',
             width: 80,
-            publishOnComplete: true,
+            publishOnComplete: false,
             margin: '0 0 0 8',
             bind: '{age}'
         }]
     }, {
         xtype: 'datefield',
+        format: 'm/d/Y',
         fieldLabel: 'Birth Date',
         bind: '{birthDate}',
         maxValue: new Date()

@@ -1,20 +1,72 @@
-@function min($value1, $value2) {
-    @if $value1 > $value2 {
-        @return $value2;
+@function min($value1, $value2: 0) {
+    @if type-of($value1) == list {
+        $min: nth($value1, 1);
+
+        @if is-null($max) {
+            $max: 0;
+        }
+
+        @each $item in $value1 {
+            @if is-null($item) {
+                $item: 0;
+            }
+            @if ($item < $min) {
+                $min: $item;
+            }
+        }
+
+        @return $min;
+    } @else {
+        @if is-null($value1) {
+            $value1: 0;
+        }
+        @if is-null($value2) {
+            $value2: 0;
+        }
+        @if $value1 > $value2 {
+            @return $value2;
+        }
+        @else if $value2 > $value1 {
+            @return $value1;
+        }
     }
-    @else if $value2 > $value1 {
-        @return $value1;
-    }
+
     @return $value1;
 }
 
-@function max($value1, $value2) {
-    @if $value1 > $value2 {
-        @return $value1;
+@function max($value1, $value2: 0) {
+    @if type-of($value1) == list {
+        $max: nth($value1, 1);
+
+        @if is-null($max) {
+            $max: 0;
+        }
+
+        @each $item in $value1 {
+            @if is-null($item) {
+                $item: 0;
+            }
+            @if ($item > $max) {
+                $max: $item;
+            }
+        }
+
+        @return $max;
+    } @else {
+        @if is-null($value1) {
+            $value1: 0;
+        }
+        @if is-null($value2) {
+            $value2: 0;
+        }
+        @if $value1 > $value2 {
+            @return $value1;
+        }
+        @else if $value2 > $value1 {
+            @return $value2;
+        }
     }
-    @else if $value2 > $value1 {
-        @return $value2;
-    }
+
     @return $value1;
 }
 
@@ -86,4 +138,11 @@
         $new-x: $x;
     }
     @return $new-x parsebox($pos, 2);
+}
+
+@function nopx ($value) {
+    @if $value == 0 {
+        @return 0;
+    }
+    @return $value / 1px;
 }

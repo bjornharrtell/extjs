@@ -185,12 +185,13 @@ Ext.define('Ext.dd.DragTracker', {
      */
     initEl: function(el) {
         var me = this,
-            el =  me.el = Ext.get(el),
             delegate = me.delegate;
 
+        me.el = el = Ext.get(el);
+
         // The delegate option may also be an element on which to listen
-        if (delegate) {
-            me.handle = delegate.isElement ? delegate : el.selectNode(delegate, false);
+        if (delegate && delegate.isElement) {
+            me.handle = delegate;
         }
 
         // If delegate specified an actual element to listen on, we do not use the delegate listener option

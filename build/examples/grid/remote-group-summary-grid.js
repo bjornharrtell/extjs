@@ -65,7 +65,8 @@ Ext.onReady(function(){
             ftype: 'groupingsummary',
             groupHeaderTpl: '{name}',
             hideGroupedHeader: true,
-            enableGroupingMenu: false
+            enableGroupingMenu: false,
+            remoteRoot: 'summaryData'
         }],
         columns: [{
             text: 'Task',

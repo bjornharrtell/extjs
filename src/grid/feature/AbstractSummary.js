@@ -61,15 +61,24 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
      * @param {Boolean} visible True to show the summary row
      */
     toggleSummaryRow: function(visible) {
-        this.showSummaryRow = arguments.length === 1 ? !!visible : !this.showSummaryRow;
+        var me = this,
+            prev = me.showSummaryRow;
+
+        visible = arguments.length === 1 ? !!visible : !me.showSummaryRow;
+        me.showSummaryRow = visible;
+        if (visible && visible !== prev) {
+            // If being shown, something may have changed while not visible, so
+            // force the summary records to recalculate
+            me.updateNext = true;
+        }
     },
 
     createRenderer: function (column, record) {
         var me = this,
             ownerGroup = record.ownerGroup,
             summaryData = ownerGroup ? me.summaryData[ownerGroup] : me.summaryData,
-            // Use the column.id for columns without a dataIndex. The populateRecord method does the same.
-            dataIndex = column.dataIndex || column.id;
+            // Use the column.getItemId() for columns without a dataIndex. The populateRecord method does the same.
+            dataIndex = column.dataIndex || column.getItemId();
 
         return function () {
              return column.summaryRenderer ?
@@ -181,6 +190,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             groupField = me.getGroupField(),
             data = {},
             lockingPartner = me.lockingPartner,
+            updateNext = me.updateNext,
             i, group, record,
             root, summaryRows, hasRemote,
             convertedSummaryRow, remoteData, groupInfo;
@@ -216,7 +226,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
             group = groups[i];
             groupInfo = me.getGroupInfo(group);
             // Something has changed or it doesn't exist, populate it
-            if (hasRemote || store.updating || groupInfo.lastGeneration !== group.generation) {
+            if (updateNext || hasRemote || store.updating || groupInfo.lastGeneration !== group.generation) {
                 record = me.populateRecord(group, groupInfo, remoteData);
 
                 // Clear the dirty state of the group if this is the only Summary, or this is the right hand (normal grid's) summary
@@ -229,7 +239,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
 
             data[group.getGroupKey()] = record;
         }
-
+        me.updateNext = false;
         return data;
     },
 
@@ -279,7 +289,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         for (i = 0; i < len; ++i) {
             column = columns[i];
             // Use the column id if there's no mapping, could be a calculated field
-            fieldName = column.dataIndex || column.id;
+            fieldName = column.dataIndex || column.getItemId();
 
             // We need to capture the summary value because it could get overwritten when
             // setting on the model if there is a convert() method on the model.
@@ -288,11 +298,11 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
                 record.set(fieldName, summaryValue);
             } else {
                 // For remote groupings, just get the value from the model.
-                summaryValue = record.get(dataIndex);
+                summaryValue = record.get(column.dataIndex);
             }
 
             // Capture the columnId:value for the summaryRenderer in the summaryData object.
-            me.setSummaryData(record, column.id, summaryValue, groupName);
+            me.setSummaryData(record, column.getItemId(), summaryValue, groupName);
         }
 
         // Poke on the owner group for easy lookup in this.createRenderer().
@@ -307,25 +317,22 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     getGroupInfo: function(group) {
         var groupInfo = this.groupInfo,
             key = group.getGroupKey(),
-            item = groupInfo[key],
-            Model;
+            item = groupInfo[key];
         
         if (!item) {
-            Model = this.view.getStore().getModel();
             item = groupInfo[key] = {
                 lastGeneration: null,
-                aggregateRecord: new Model()
+                aggregateRecord: new Ext.data.Model()
             };
         }
         return item;
     },
 
     getAggregateRecord: function(group, forceNew) {
-        var me = this,
-            rec;
+        var rec;
 
         if (forceNew === true || group.dirty || !group.aggregateRecord) {
-            rec = new (me.view.store.getModel())();
+            rec = new Ext.data.Model();
             group.aggregateRecord = rec;
             rec.isNonData = rec.isSummary = true;
         }

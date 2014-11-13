@@ -12,7 +12,7 @@ Ext.define('Ext.layout.container.ColumnSplitter', {
 
     synthetic  : true,
 
-    cls : 'x-splitter-vertical',
+    cls : Ext.baseCSSPrefix + 'splitter-vertical',
 
     orientation: 'vertical',
 

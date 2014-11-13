@@ -40,6 +40,7 @@ Ext.define('Ext.mixin.Bindable', {
             lazy: true
         },
 
+        // @cmd-auto-dependency { aliasPrefix: 'controller.' }
         /**
          * @cfg {String/Object/Ext.app.ViewController} controller
          * A string alias, a configuration object or an instance of a `ViewController` for
@@ -68,7 +69,6 @@ Ext.define('Ext.mixin.Bindable', {
          *         controller: ctrl
          *     });
          *
-         * @cmd-auto-dependency { aliasPrefix: 'controller.' }
          */
         controller: null,
 
@@ -173,6 +173,7 @@ Ext.define('Ext.mixin.Bindable', {
          */
         reference: null,
 
+        // @cmd-auto-dependency { directRef: 'Ext.data.Session' }
         /**
          * @cfg {Boolean/Object/Ext.data.Session} [session=null]
          * If provided this creates a new `Session` instance for this component. If this
@@ -202,7 +203,6 @@ Ext.define('Ext.mixin.Bindable', {
          *          }]
          *      });
          *
-         * @cmd-auto-dependency { directRef: 'Ext.data.Session' }
          */
         session: {
             $value: null,
@@ -228,6 +228,7 @@ Ext.define('Ext.mixin.Bindable', {
             }
         },
 
+        // @cmd-auto-dependency { aliasPrefix: 'viewmodel.' }
         /**
          * @cfg {String/Object/Ext.app.ViewModel} viewModel
          * The `ViewModel` is a data provider for this component and its children. The
@@ -243,7 +244,6 @@ Ext.define('Ext.mixin.Bindable', {
          * component's associated `{@link Ext.data.Session Data Session}`. This is
          * determined by calling `getInheritedSession`.
          *
-         * @cmd-auto-dependency { aliasPrefix: 'viewmodel.' }
          */
         viewModel: {
             $value: null,
@@ -290,12 +290,17 @@ Ext.define('Ext.mixin.Bindable', {
             // Don't instantiate the view model here, we only need to know that
             // it exists
             viewModel = me.getConfig('viewModel', true),
-            session = me.getConfig('session', true);
+            session = me.getConfig('session', true),
+            defaultListenerScope = me.getDefaultListenerScope();
 
         if (controller) {
-            inheritedState.defaultListenerScope = controller;
-        } else if (me.defaultListenerScope || me._defaultListenerScope) {
+            inheritedState.controller = controller;
+        }
+
+        if (defaultListenerScope) {
             inheritedState.defaultListenerScope = me;
+        } else if (controller) {
+            inheritedState.defaultListenerScope = controller;
         }
 
         if (viewModel) {
@@ -321,6 +326,20 @@ Ext.define('Ext.mixin.Bindable', {
             me.referenceKey = (inheritedState.referencePath || '') + reference;
             me.viewModelKey = (inheritedState.viewModelPath || '') + reference;
         }
+    },
+
+    /**
+     * Gets the controller that controls this view. May be a controller that belongs
+     * to a view higher in the hierarchy.
+     * 
+     * @param {Boolean} [skipThis=false] `true` to not consider the controller directly attached
+     * to this view (if it exists).
+     * @return {Ext.app.ViewController} The controller. `null` if no controller is found.
+     *
+     * @since 5.0.1
+     */
+    lookupController: function(skipThis) {
+        return this.getInheritedConfig('controller', skipThis) || null;
     },
 
     /**
@@ -371,7 +390,7 @@ Ext.define('Ext.mixin.Bindable', {
     /**
      * Publish this components state to the `ViewModel`. If no arguments are given (or if
      * this is the first call), the entire state is published. This state is determined by
-     * the `publishedConfigs` property.
+     * the `publishes` property.
      *
      * This method is called only by component authors.
      *
@@ -531,8 +550,10 @@ Ext.define('Ext.mixin.Bindable', {
         },
 
         applyController: function (controller) {
-            controller = Ext.Factory.controller(controller);
-            controller.setView(this);
+            if (controller) {
+                controller = Ext.Factory.controller(controller);
+                controller.setView(this);
+            }
             return controller;
         },
 
@@ -670,7 +691,6 @@ Ext.define('Ext.mixin.Bindable', {
                 if (updater) {
                     updater.call(me, newValue, oldValue);
                 }
-
                 me.publishState(cfg.name, newValue);
             };
         },

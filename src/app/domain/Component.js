@@ -32,20 +32,19 @@ Ext.define('Ext.app.domain.Component', {
     },
     
     dispatch: function(target, ev, args) {
-        var refHolder = target.lookupReferenceHolder(false), // don't skip target
-            domain;
+        var controller = target.lookupController(false), // don't skip target
+            domain, view;
            
          
-        while (refHolder) {
-            if (refHolder.isViewController) {
-                domain = refHolder.compDomain;
-                if (domain) {
-                    if (domain.dispatch(target, ev, args) === false) {
-                        return false;
-                    }
+        while (controller) {
+            domain = controller.compDomain;
+            if (domain) {
+                if (domain.dispatch(target, ev, args) === false) {
+                    return false;
                 }
             }
-            refHolder = refHolder.lookupReferenceHolder();
+            view = controller.getView();
+            controller = view ? view.lookupController(true) : null;
         }
         return this.callParent(arguments);    
     },

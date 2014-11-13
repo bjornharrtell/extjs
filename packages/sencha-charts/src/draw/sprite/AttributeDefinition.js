@@ -38,7 +38,22 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         },
 
         /**
-         * @cfg {Object} dirty Defines what other attributes need to be updated when an attribute is changed.
+         * @cfg {Object} dirty Defines what updaters have to be called when an attribute is changed.
+         * For example, the config below indicates that the 'size' updater
+         * of a {@link Ext.draw.sprite.Square square} sprite has to be called
+         * when the 'size' attribute changes.
+         *
+         *     dirtyTriggers: {
+         *         size: 'size'   // Use comma-separated values here if multiple updaters have to be called.
+         *     }                  // Note that the order is _not_ guaranteed.
+         *
+         * If any of the updaters to be called (triggered by the {@link Ext.draw.sprite.Sprite#setAttributes call)
+         * set attributes themselves and those attributes have dirty triggers defined for them,
+         * then their updaters will be called after all current updaters finish execution.
+         *
+         * The updater functions themselves are defined in the {@link #updaters} config,
+         * aside from the 'canvas' updater, which doesn't have to be defined and acts as a flag,
+         * indicating that this attribute should be applied to a Canvas context (or whatever emulates it).
          */
         dirtyTriggers: {
 
@@ -46,6 +61,25 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
 
         /**
          * @cfg {Object} updaters Defines the postprocessing used by the attribute.
+         * Inside the updater function 'this' refers to the sprite that the attributes belong to.
+         * In case of an instancing sprite 'this' will refer to the instancing template.
+         * The two parameters passed to the updater function are the attributes themselves
+         * and the dirty flags (changed attributes) that triggered this updater call.
+         *
+         * The example below shows how the 'size' updater changes other attributes
+         * of a {@link Ext.draw.sprite.Square square} sprite sprite when its 'size' attribute changes.
+         *
+         *     updaters: {
+         *         size: function (attr) {
+         *             var size = attr.size;
+         *             this.setAttributes({   // Changes to these attributes will trigger the 'path' updater.
+         *                 x: attr.x - size,
+         *                 y: attr.y - size,
+         *                 height: 2 * size,
+         *                 width: 2 * size
+         *             });
+         *         }
+         *     }
          */
         updaters: {
 

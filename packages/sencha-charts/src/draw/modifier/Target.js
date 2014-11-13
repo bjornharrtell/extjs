@@ -2,8 +2,12 @@
  * @class Ext.draw.modifier.Target
  * @extends Ext.draw.modifier.Modifier
  *
- * This is the destination modifier that has to be put at
+ * This is the destination (top) modifier that has to be put at
  * the top of the modifier stack.
+ *
+ * The Target modifier figures out which updaters have to be called
+ * for the changed set of attributes and makes the sprite and its instances (if any)
+ * call them.
  *
  */
 Ext.define('Ext.draw.modifier.Target', {
@@ -21,7 +25,6 @@ Ext.define('Ext.draw.modifier.Target', {
         if (this._previous) {
             this._previous.prepareAttributes(attr);
         }
-        // TODO: Investigate the performance hit for introducing an id
         attr.attributeId = 'attribute-' + Ext.draw.modifier.Target.uniqueId++;
         if (!attr.hasOwnProperty('canvasAttributes')) {
             attr.bbox = {
@@ -29,7 +32,14 @@ Ext.define('Ext.draw.modifier.Target', {
                 transform: {dirty: true}
             };
             attr.dirty = true;
+            // Maps updaters that have to be called to the attributes that triggered the update.
+            // It is basically a reversed dirtyTriggers map (see Ext.draw.sprite.AttributeDefinition),
+            // but only for those attributes that have changed.
+            // dirtyFlags updaters are called by the sprite.updateDirtyFlags method.
             attr.dirtyFlags = {};
+            // Holds the attributes (dirty flags) that triggered the canvas update.
+            // Canvas attributes are applied directly to a canvas context
+            // by the sprite.useAttributes method.
             attr.canvasAttributes = {};
             attr.matrix = new Ext.draw.Matrix();
             attr.inverseMatrix = new Ext.draw.Matrix();
@@ -46,9 +56,11 @@ Ext.define('Ext.draw.modifier.Target', {
         Ext.apply(attr, changes);
         var sprite = this._sprite,
             dirtyTriggers = sprite.self.def._dirtyTriggers,
-            name, dirtyFlags = attr.dirtyFlags, flags, any = false,
+            name, dirtyFlags = attr.dirtyFlags, flags, any,
             triggers, trigger, i, ln, canvasNames;
 
+        // TODO: Potential for optimization here?
+        // TODO: Do we really need to build the dirtyFlags map every time?
         for (name in changes) {
             if ((triggers = dirtyTriggers[name])) {
                 i = 0;
@@ -80,7 +92,8 @@ Ext.define('Ext.draw.modifier.Target', {
             }
         }
 
-        // Spreading dirty flags to children
+        // If the attributes of an instancing sprite template are being modified here,
+        // then spread the dirty flags to the instances (children).
         if (attr.hasOwnProperty('children')) {
             for (i = 0, ln = attr.children.length; i < ln; i++) {
                 Ext.apply(attr.children[i].dirtyFlags, dirtyFlags);

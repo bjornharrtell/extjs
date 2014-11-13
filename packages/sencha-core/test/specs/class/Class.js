@@ -616,6 +616,7 @@ describe("Ext.Class", function() {
                 });
             
                 it("should throw an exception when asking for a config name that does not exist", function() {
+                    spyOn(Ext, 'log');
                     o = new cls();
                     expect(function() {
                         o.getConfig('fake');
@@ -675,23 +676,52 @@ describe("Ext.Class", function() {
                     expect(o.getBar()).toBe(8);
                 });
                 
-                it("should ignore non-config properties", function() {
+                it("should ignore non-config properties with no setter", function() {
+                    // Silence console error
+                    spyOn(Ext.log, 'error');
+                    
                     o = new cls();
-                    expect(function() {
-                        o.setConfig({
-                            foo: 3,
-                            baz: 100
-                        });
-                    }).not.toThrow();    
+
+                    o.setConfig({
+                        foo: 3,
+                        baz: 100
+                    });
+
+                    expect(o.getFoo()).toBe(3);
+                    expect(o.baz).toBeUndefined();
                 });
-                
-                it("should throw an exception when setting a config name that does not exist", function() {
+
+                it("should call the setter for a non-config property if one exists and $configStrict is false", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        constructor: defaultInitConfig,
+                        setBaz: jasmine.createSpy()
+                    });
+
                     o = new cls();
-                    expect(function() {
-                        o.setConfig('baz', 100);
-                    }).toThrow();    
+
+                    o.setConfig({
+                        baz: 100
+                    });
+
+                    expect(o.setBaz).toHaveBeenCalledWith(100);
                 });
-                
+
+                it("should set non-config properties on the instance when the strict option is false and $configStrict is false", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        constructor: defaultInitConfig
+                    });
+
+                    o = new cls();
+
+                    o.setConfig('baz', 100, {
+                        strict: false
+                    });
+
+                    expect(o.baz).toBe(100);
+                });
+
                 it("should be able to handle undefined/null configs", function() {
                     o = new cls();
                     expect(function() {
@@ -1378,6 +1408,8 @@ describe("Ext.Class", function() {
                                 foo: 1
                             }
                         });
+                        
+                        spyOn(Ext, 'log');
                         
                         expect(function() {
                             Ext.define(null, {
@@ -2390,6 +2422,8 @@ describe("Ext.Class", function() {
         var Base;
 
         beforeEach(function () {
+            // This is to silence console log errors
+            spyOn(Ext, 'log');
             Base = Ext.define(null, {
                 bar: function () {},
 

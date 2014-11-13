@@ -12,6 +12,14 @@ Ext.define('Ext.rtl.form.field.FileButton', {
             size: 1,
             role: 'button'
         });
-        me.fileInputEl.on('change', me.fireChange, me);
+
+        // We place focus and blur listeners on fileInputEl to activate Button's
+        // focus and blur style treatment
+        me.fileInputEl.on({
+            scope: me,
+            change: me.fireChange,
+            focus: me.onFocus,
+            blur: me.onBlur
+        });
     }
 });

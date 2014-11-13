@@ -1,5 +1,5 @@
 Ext.define('PageAnalyzer.models.ComponentTreeNode', {
-    extend: 'Ext.data.Model',
+    extend: 'Ext.data.TreeModel',
     fields: [
         { name: 'text', type: 'string' },
         { name: 'compId', type: 'string' },

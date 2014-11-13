@@ -197,6 +197,8 @@ Ext.define('Ext.data.AbstractStore', {
          *     Ext.data.Model.REJECT
          *     Ext.data.Model.COMMIT
          * @param {String[]} modifiedFieldNames Array of field names changed during edit.
+         * @param {Object} details An object describing the change. See the
+         * {@link Ext.util.Collection#event-itemchanged itemchanged event} of the store's backing collection
          * @since 1.1.0
          */
 
@@ -209,8 +211,9 @@ Ext.define('Ext.data.AbstractStore', {
 
         /**
          * @event datachanged
-         * Fires whenever the records in the Store have changed in some way - this could include adding or removing
-         * records, or updating the data in existing records
+         * Fires whenever records are added to or removed from the Store.
+         *
+         * To hook into modifications of records in this Store use the {@link #update} event.
          * @param {Ext.data.Store} this The data store
          * @since 1.1.0
          */
@@ -234,6 +237,26 @@ Ext.define('Ext.data.AbstractStore', {
          * Fires when the {@link #endUpdate} method is called. Automatic synchronization as configured
          * by the {@link Ext.data.ProxyStore#autoSync autoSync} flag is deferred until the {@link #endUpdate} method is called, so multiple
          * mutations can be coalesced into one synchronization operation.
+         */
+
+        /**
+         * @event beforesort
+         * Fires before a store is sorted.
+         *
+         * For {@link #remoteSort remotely sorted} stores, this will be just before the load operation triggered by changing the
+         * store's sorters.
+         *
+         * For locally sorted stores, this will be just before the data items in the store's backing collection are sorted.
+         */
+
+        /**
+         * @event sort
+         * Fires after a store is sorted.
+         *
+         * For {@link #remoteSort remotely sorted} stores, this will be upon the success of a load operation triggered by
+         * changing the store's sorters.
+         *
+         * For locally sorted stores, this will be just after the data items in the store's backing collection are sorted.
          */
         me.isInitializing = true;
         me.mixins.observable.constructor.call(me, config);
@@ -414,7 +437,7 @@ Ext.define('Ext.data.AbstractStore', {
      * This method is affected by filtering.
      *
      * @param {Number} start The starting index. Defaults to zero.
-     * @param {Number} end The ending index. Defaults to the last record. The end index is **not** included.
+     * @param {Number} end The ending index. Defaults to the last record. The end index **is included**.
      * @return {Ext.data.Model[]} An array of records.
      */
     getRange: function(start, end, /* private - use by BufferedRenderer. It may be using a BufferedStore */ options) {
@@ -497,22 +520,32 @@ Ext.define('Ext.data.AbstractStore', {
     },
 
     updateRemoteSort: function (remote) {
-        var sorters = this.getSorters(); // ensure applySorters is called
+        var me = this,
+            sorters = me.getSorters(), // ensure applySorters is called
+            data = me.getData();
 
+        // If remoteSort is set, we react to the endUpdate of the sorters Collection by reloading.
+        // If remoteSort is set, we do not need to listen for the data Collection's beforesort event.
         if (remote) {
-            sorters.on('endupdate', this.onSorterEndUpdate, this);
-        } else {
-            sorters.un('endupdate', this.onSorterEndUpdate, this);
+            sorters.on('endupdate', me.onSorterEndUpdate, me);
+            data.un('beforesort', me.onBeforeCollectionSort, me);
+        }
+        // If local sorting, we do not need to react to the endUpdate of the sorters Collection.
+        // If local sorting, we listen for the data Collection's beforesort event to fire our beforesort event.
+        else {
+            sorters.un('endupdate', me.onSorterEndUpdate, me);
+            data.on('beforesort', me.onBeforeCollectionSort, me);
         }
     },
 
     updateRemoteFilter: function (remote) {
-        var filters = this.getFilters(); // ensure applyFilters is called
+        var me = this,
+            filters = me.getFilters(); // ensure applyFilters is called
 
         if (remote) {
-            filters.on('endupdate', this.onFilterEndUpdate, this);
+            filters.on('endupdate', me.onFilterEndUpdate, me);
         } else {
-            filters.un('endupdate', this.onFilterEndUpdate, this);
+            filters.un('endupdate', me.onFilterEndUpdate, me);
         }
     },
 
@@ -762,15 +795,12 @@ Ext.define('Ext.data.AbstractStore', {
     
     destroy: function() {
         var me = this;
-        if (me.isDestroyed) {
-            return;
-        }
-        me.isDestroyed = true;
         me.clearListeners();
         if (me.getStoreId()) {
             Ext.data.StoreManager.unregister(me);
         }
         me.onDestroy();
+        me.callParent();
     },
     
     /**
@@ -823,6 +853,12 @@ Ext.define('Ext.data.AbstractStore', {
         }
     },
 
+    // This is attached to the data Collection's beforesort event only if not remoteSort
+    // If remoteSort, the event is fired before the reload call in Ext.data.ProxyStore#load.
+    onBeforeCollectionSort: function(store, sorters) {
+        this.fireEvent('beforesort', this, sorters.getRange());
+    },
+
     onSorterEndUpdate: function() {
         var me = this,
             sorters = me.getSorters().getRange();
@@ -841,9 +877,8 @@ Ext.define('Ext.data.AbstractStore', {
                 me.fireEvent('refresh', me);
                 me.fireEvent('sort', me, sorters);
             }
-        }
-        // Sort event must fire when sorters collection is updated to empty.
-        else {
+        } else {
+            // Sort event must fire when sorters collection is updated to empty.
             me.fireEvent('sort', me, sorters);
         }
     },
@@ -895,7 +930,7 @@ Ext.define('Ext.data.AbstractStore', {
      * Groups data inside the store.
      * @param {String/Object} grouper Either a string name of one of the fields in this Store's
      * configured {@link Ext.data.Model Model}, or an object, or a {@link Ext.util.Grouper grouper} configuration object.
-     * @param {String} The overall direction to group the data by. Defaults to the value of {@link #groupDir}.
+     * @param {String} [direction] The overall direction to group the data by. Defaults to the value of {@link #groupDir}.
      */
     group: function(grouper, direction, /* private */ initial) {
         var me = this,

@@ -192,6 +192,10 @@ Ext.define('Ext.form.field.Radio', {
     inputType: 'radio',
     ariaRole: 'radio',
     
+    // Radios are naturally focusable but they need to participate in RadioGroups
+    // which are focusable containers; we set tabIndex to >= 0 here to make that work
+    tabIndex: 0,
+    
     formId: null,
 
     /**
@@ -226,7 +230,7 @@ Ext.define('Ext.form.field.Radio', {
      */
     setValue: function(value) {
         var me = this,
-            active;
+            container, active;
 
         if (Ext.isBoolean(value)) {
             me.callParent(arguments);

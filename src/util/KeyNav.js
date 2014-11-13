@@ -20,7 +20,7 @@
  *             this.save();
  *         },
  *         
- *         // Binding may be a function specifiying fn, scope and defaultAction
+ *         // Binding may be a function specifiying fn, scope and defaultEventAction
  *         esc: {
  *             fn: this.onEsc,
  *             defaultEventAction: false
@@ -43,6 +43,11 @@ Ext.define('Ext.util.KeyNav', {
     alternateClassName: 'Ext.KeyNav',
 
     requires: ['Ext.util.KeyMap'],
+
+    /**
+     * @property {Ext.event.Event} lastKeyEvent
+     * The last key event that this KeyMap handled.
+     */
 
     statics: {
         keyOptions: {
@@ -94,9 +99,10 @@ Ext.define('Ext.util.KeyNav', {
             keymapCfg = {
                 target: config.target,
                 ignoreInputFields: config.ignoreInputFields,
-                eventName: me.getKeyEvent('forceKeyDown' in config ? config.forceKeyDown : me.forceKeyDown, config.eventName)
+                eventName: me.getKeyEvent('forceKeyDown' in config ? config.forceKeyDown : me.forceKeyDown, config.eventName),
+                capture: config.capture
             },
-            map, keyCodes, defaultScope, keyName, binding;
+            map;
 
         if (me.map) {
             me.map.destroy();
@@ -116,20 +122,34 @@ Ext.define('Ext.util.KeyNav', {
             map = me.map = new Ext.util.KeyMap(keymapCfg);
             me.destroyKeyMap = true;
         }
-        keyCodes = Ext.util.KeyNav.keyOptions;
-        defaultScope = config.scope || me;
 
-        for (keyName in config) {
-            binding = config[keyName];
+        this.addBindings(config);
+
+        map.disable();
+        if (!config.disabled) {
+            map.enable();
+        }
+    },
+
+    addBindings: function(bindings) {
+        var me = this,
+            keyName,
+            binding,
+            map = me.map,
+            keyCodes = Ext.util.KeyNav.keyOptions,
+            defaultScope = bindings.scope || me;
+
+        for (keyName in bindings) {
+            binding = bindings[keyName];
             // There is a property named after a key name.
-            // It may be a function or an binding spec containing handler, scope and defaultAction configs
+            // It may be a function or an binding spec containing handler, scope and defaultEventAction configs
             // Allow {A: { ctrl: true, handler: onCtrlA }}
             // Allow {45: doInsert} to use key codes directly
             if (binding && (keyName.length === 1 || (keyName = keyCodes[keyName]) || (!isNaN(keyName = parseInt(keyName, 10))))) {
                 if (typeof binding === 'function') {
                     binding = {
                         handler: binding,
-                        defaultEventAction: (config.defaultEventAction !== undefined) ? config.defaultEventAction : me.defaultEventAction
+                        defaultEventAction: (bindings.defaultEventAction !== undefined) ? bindings.defaultEventAction : me.defaultEventAction
                     };
                 }
                 map.addBinding({
@@ -137,15 +157,10 @@ Ext.define('Ext.util.KeyNav', {
                     ctrl: binding.ctrl,
                     shift: binding.shift,
                     alt: binding.alt,
-                    handler: Ext.Function.bind(me.handleEvent, binding.scope||defaultScope, binding.handler||binding.fn, true),
+                    handler: Ext.Function.bind(me.handleEvent, binding.scope||defaultScope, [binding.handler||binding.fn, me], true),
                     defaultEventAction: (binding.defaultEventAction !== undefined) ? binding.defaultEventAction : me.defaultEventAction
                 });
             }
-        }
-
-        map.disable();
-        if (!config.disabled) {
-            map.enable();
         }
     },
 
@@ -154,9 +169,11 @@ Ext.define('Ext.util.KeyNav', {
      * @private
      * @param {Number} keyCode
      * @param {Ext.event.Event} event
-     * @param {Object} options Contains the handler to call
+     * @param {Function} handler The function to call
+     * @param {Ext.util.KeyNav} handler The owning KeyNav
      */
-    handleEvent: function(keyCode, event, handler){
+    handleEvent: function(keyCode, event, handler, keyNav) {
+        keyNav.lastKeyEvent = event;
         return handler.call(this, event);
     },
 

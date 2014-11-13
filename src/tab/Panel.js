@@ -118,7 +118,7 @@
  *         }]
  *     });
  *
- *     setTimeout(function(){
+ *     Ext.defer(function(){
  *         tabs.child('#home').tab.hide();
  *         var users = tabs.child('#users');
  *         users.tab.show();
@@ -640,6 +640,10 @@ Ext.define('Ext.tab.Panel', {
             tabBar = me.getTabBar(),
             defaultConfig = {
                 xtype: 'tab',
+                title: item.title,
+                icon: item.icon,
+                iconCls: item.iconCls,
+                glyph: item.glyph,
                 ui: tabBar.ui,
                 card: item,
                 disabled: item.disabled,
@@ -667,6 +671,7 @@ Ext.define('Ext.tab.Panel', {
             beforeshow: me.onItemBeforeShow,
             iconchange: me.onItemIconChange,
             iconclschange: me.onItemIconClsChange,
+            glyphchange: me.onItemGlyphChange,
             titlechange: me.onItemTitleChange
         });
 
@@ -720,6 +725,14 @@ Ext.define('Ext.tab.Panel', {
 
     /**
      * @private
+     * Update the tab icon when panel glyph has been set or changed.
+     */
+    onItemGlyphChange: function(item, newGlyph) {
+        item.tab.setGlyph(newGlyph);
+    },
+
+    /**
+     * @private
      * Update the tab icon when panel icon has been set or changed.
      */
     onItemIconChange: function(item, newIcon) {
@@ -753,9 +766,13 @@ Ext.define('Ext.tab.Panel', {
             scope : me,
             enable: me.onItemEnable,
             disable: me.onItemDisable,
-            beforeshow: me.onItemBeforeShow
+            beforeshow: me.onItemBeforeShow,
+            iconchange: me.onItemIconChange,
+            iconclschange: me.onItemIconClsChange,
+            glyphchange: me.onItemGlyphChange,
+            titlechange: me.onItemTitleChange
         });
-        if (!me.destroying && item.tab.ownerCt === me.tabBar) {
+        if (item.tab && !me.destroying && item.tab.ownerCt === me.tabBar) {
             me.tabBar.remove(item.tab);
         }
     },
@@ -779,14 +796,16 @@ Ext.define('Ext.tab.Panel', {
 
             // Ask the TabBar which tab to activate next.
             // Set the active child panel using the index of that tab
-            else if ((toActivate = me.tabBar.items.indexOf(me.tabBar.findNextActivatable(item.tab))) !== -1) {
+            else if (item.tab && (toActivate = me.tabBar.items.indexOf(me.tabBar.findNextActivatable(item.tab))) !== -1) {
                 me.setActiveTab(toActivate);
             }
             this.callParent(arguments);
 
-            // Remove the two references
-            delete item.tab.card;
-            delete item.tab;
+            if (item.tab) {
+                // Remove the two references
+                delete item.tab.card;
+                delete item.tab;
+            }
         }
     }
 });

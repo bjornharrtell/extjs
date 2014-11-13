@@ -63,16 +63,7 @@ Ext.onReady(function() {
     
         onProxyPrefetch: function(operation) {
             this.callParent(arguments);
-            logPanel.log('Prefetch returned ' + operation.start + '-' + (operation.start + operation.limit));
-        }
-    });
-
-    Ext.define('CacheInfo', {
-        override: 'Ext.util.LruCache',
-    
-        prune: function(){
-            this.callParent(arguments);
-            logPanel.log('Page cache contains pages ' + this.getKeys().join(',') + '<br>&#160;&#160;&#160;&#160;' + this.getCount() + ' records in cache');
+            logPanel.log('Prefetch returned ' + operation.getStart() + '-' + (operation.getStart() + operation.getLimit()));
         }
     });
 
@@ -99,7 +90,9 @@ Ext.onReady(function() {
 
     function createStore (numFields, buffered, groupSize) {
         var fields = [],
-            i, storeConfig;
+            i, storeConfig,
+            result,
+            pageCache;
 
         for (i = 0; i < numFields; ++i) {
             fields.push('field' + i);
@@ -125,7 +118,17 @@ Ext.onReady(function() {
             storeConfig.remoteGroup = buffered;
             storeConfig.groupField = 'field0';
         }
-        return Ext.create(buffered ? 'Ext.data.BufferedStore' : 'Ext.data.Store', storeConfig);
+        result = Ext.create(buffered ? 'Ext.data.BufferedStore' : 'Ext.data.Store', storeConfig);
+        pageCache = result.getData();
+
+        // Inject logging into the LruCache
+        if (pageCache instanceof Ext.util.LruCache) {
+            pageCache.prune = Ext.Function.createSequence(pageCache.prune, function() {
+                logPanel.log('Page cache contains pages ' + this.getKeys().join(',') + '<br>&#160;&#160;&#160;&#160;' + this.getCount() + ' records in cache');
+            });
+        }
+
+        return result;
     }
 
     function createGrid(extraCfg) {
@@ -184,7 +187,7 @@ Ext.onReady(function() {
         region: 'center',
         autoScroll: true,
         log: function(m) {
-            if (!this.disabled) {
+            if (this.rendered && !this.disabled) {
                 logPanel.body.createChild({
                     html: m
                 });
@@ -307,19 +310,19 @@ Ext.onReady(function() {
             xtype: 'numberfield',
             fieldLabel: makeLabel('Ext.data', 'Store', 'trailingBufferZone'),
             itemId: 'storeTrailingBufferZone',
-            value: Ext.data.Store.prototype.trailingBufferZone,
+            value: Ext.data.BufferedStore.getConfigurator().values.trailingBufferZone,
             disabled: true
         }, {
             xtype: 'numberfield',
             fieldLabel: makeLabel('Ext.data', 'Store', 'leadingBufferZone'),
             itemId: 'storeLeadingBufferZone',
-            value: Ext.data.Store.prototype.leadingBufferZone,
+            value: Ext.data.BufferedStore.getConfigurator().values.leadingBufferZone,
             disabled: true
         }, {
             xtype: 'numberfield',
             fieldLabel: makeLabel('Ext.data', 'Store', 'purgePageCount'),
             itemId: 'purgePageCount',
-            value: Ext.data.Store.prototype.purgePageCount,
+            value: Ext.data.BufferedStore.getConfigurator().values.purgePageCount,
             minValue: 0,
             disabled: true
         }, {

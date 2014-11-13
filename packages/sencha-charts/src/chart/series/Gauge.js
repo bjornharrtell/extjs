@@ -4,19 +4,23 @@
  * 
  * Creates a Gauge Chart.
  *
- *     @example preview
- *     var chart = new Ext.chart.PolarChart({
- *         series: [{
- *             type: 'gauge',
- *             minimum: 100,
- *             maximum: 800,
- *             value: 400,
- *             donut: 30,
- *             colors: ["#115fa6", "lightgrey"]
- *         }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'polar',
+ *             series: {
+ *                 type: 'gauge',
+ *                 minimum: 100,
+ *                 maximum: 800,
+ *                 value: 400,
+ *                 donut: 30
+ *             }
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(chart);
  */
 Ext.define('Ext.chart.series.Gauge', {
     alias: 'series.gauge',
@@ -174,14 +178,6 @@ Ext.define('Ext.chart.series.Gauge', {
          * @cfg {Boolean} wholeDisk Indicates whether to show the whole disk or only the marked part.
          */
         wholeDisk: false
-    },
-
-    getXRange: function () {
-        return [this.dataRange[0], this.dataRange[2]];
-    },
-
-    getYRange: function () {
-        return [this.dataRange[1], this.dataRange[3]];
     },
 
     coordinateX: function () {
@@ -389,7 +385,7 @@ Ext.define('Ext.chart.series.Gauge', {
             type: this.seriesType,
             renderer: this.getRenderer(),
             fx: {
-                customDuration: {
+                customDurations: {
                     translationX: 0,
                     translationY: 0,
                     rotationCenterX: 0,
@@ -462,7 +458,7 @@ Ext.define('Ext.chart.series.Gauge', {
 
         // Return cached sprites
         var chart = me.getChart(),
-            animation = chart.getAnimation(),
+            animation = me.getAnimation() || chart && chart.getAnimation(),
             sprites = me.sprites,
             spriteIndex = 0,
             sprite, sectors, attr, rendererData,

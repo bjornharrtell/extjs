@@ -26,7 +26,8 @@ Ext.define('KitchenSink.view.navigation.Tree', {
     }],
 
     initComponent: function() {
-        var me = this;
+        var me = this,
+            lastFilterValue;
 
         me.columns = [{
             xtype: 'treecolumn',
@@ -84,9 +85,13 @@ Ext.define('KitchenSink.view.navigation.Tree', {
                             fn: function(field, event, eOpts) {
                                 var value = field.getValue();
 
-                                field.getTrigger('clear')[(value.length > 0) ? 'show' : 'hide']();
-
-                                this.filterStore(value);
+                                // Only filter if they actually changed the field value.
+                                // Otherwise the view refreshes and scrolls to top.
+                                if (value && value !== lastFilterValue) {
+                                    field.getTrigger('clear')[(value.length > 0) ? 'show' : 'hide']();
+                                    me.filterStore(value);
+                                    lastFilterValue = value;
+                                }
                             },
                             buffer: 300
                         },

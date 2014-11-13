@@ -9,6 +9,34 @@ describe("Ext.data.Model", function() {
         Ext.ClassManager.enableNamespaceParseCache = true; 
         Ext.data.Model.schema.clear(true);
     });
+
+    describe('use of raw Model class', function() {
+        it("should be able to use Ext.data.Model directly on a store", function() {
+            var data = [
+                { forename: 'Nige', surname: 'White' },
+                { forename: 'Don', surname: 'Griffin' },
+                { forename: 'Phil', surname: 'Guerrant' },
+                { forename: 'Kevin', surname: 'Krohe' },
+                { forename: 'Evan', surname: 'Trimboli' }
+            ];
+
+            var store = new Ext.data.Store({
+                model: Ext.data.Model,
+                data: data
+            });
+
+            // The raw data object should be inported directly as the records' data objects
+            expect(store.getAt(0).data).toEqual(data[0]);
+            expect(store.getAt(1).data).toEqual(data[1]);
+            expect(store.getAt(2).data).toEqual(data[2]);
+            expect(store.getAt(3).data).toEqual(data[3]);
+            expect(store.getAt(4).data).toEqual(data[4]);
+
+            // Set functionality should work
+            store.getAt(0).set('forename', 'Nigel');
+            expect(store.getAt(0).get('forename')).toBe('Nigel');
+        });
+    });
     
     describe("getField/getFields", function() {
         var A;
@@ -21,8 +49,8 @@ describe("Ext.data.Model", function() {
         });
         
         afterEach(function() {
-            A = null;
             Ext.undefine('spec.A');
+            A = null;
         });
         
         describe("getFields", function() {
@@ -60,11 +88,11 @@ describe("Ext.data.Model", function() {
         var A, B;
         
         afterEach(function() {
-            A = B = null;
             Ext.undefine('specModel');
             Ext.undefine('spec.A');
             Ext.undefine('spec.B');
             Ext.undefine('spec.model.sub.C');
+            A = B = null;
         });
 
         describe('entityName', function () {
@@ -98,6 +126,12 @@ describe("Ext.data.Model", function() {
         });
 
         describe("fields", function() {
+            afterEach(function() {
+                Ext.undefine('spec.A');
+                Ext.undefine('spec.B');
+                A = B = null;
+            });
+            
             function defineA(fields, cfg) {
                 cfg = Ext.apply({
                     extend: Ext.data.Model,
@@ -111,6 +145,9 @@ describe("Ext.data.Model", function() {
                     extend: A,  
                     fields: fields
                 }, cfg);
+                
+                // This will warn about redefining field 'id'
+                spyOn(Ext.log, 'warn');
                 
                 B = Ext.define('spec.B', cfg);
             }
@@ -381,17 +418,19 @@ describe("Ext.data.Model", function() {
                 A = Ext.define('spec.A', cfg);
             }
             
-            it("should ask the API to construct a proxy by default", function() {
+            it("should ask the schema to construct a proxy by default", function() {
                 defineA();
-                var schema = A.schema;
-                spyOn(schema, 'constructProxy').andCallThrough();
-                A.getProxy();
-                expect(schema.constructProxy).toHaveBeenCalled();
+                var schema = A.schema,
+                    schemaConfig = schema.constructProxy(A),
+                    proxy = A.getProxy();
+
+                expect(proxy.alias).toEqual(['proxy.' + schemaConfig.type]);
+                expect(proxy.getUrl()).toBe(schemaConfig.url);
             });
             
             it("should create a proxy type string", function() {
-                defineA('ajax');
-                expect(A.getProxy() instanceof Ext.data.proxy.Ajax).toBe(true);
+                defineA('jsonp');
+                expect(A.getProxy() instanceof Ext.data.proxy.JsonP).toBe(true);
             });
             
             it("should create a proxy from a config", function() {
@@ -400,6 +439,24 @@ describe("Ext.data.Model", function() {
                     url: '/foo'
                 });
                 expect(A.getProxy().getUrl()).toBe('/foo');
+            });
+
+            it("should infer the reader type from the proxy", function() {
+                Ext.define('spec.CustomReader', {
+                    extend: 'Ext.data.reader.Json',
+                    alias: 'reader.custom'
+                });
+
+                Ext.define('spec.CustomProxy', {
+                    extend: 'Ext.data.proxy.Ajax',
+                    alias: 'proxy.custom',
+                    reader: 'custom'
+                });
+
+                defineA('custom');
+                expect(A.getProxy().getReader().$className).toBe('spec.CustomReader');
+                Ext.undefine('spec.CustomReader');
+                Ext.undefine('spec.CustomProxy');
             });
             
             it("should use a passed instance", function() {
@@ -636,174 +693,415 @@ describe("Ext.data.Model", function() {
         });
         
         describe("validators", function() {
-            function defineA(validators, fields, cfg) {
-                cfg = Ext.apply({
-                    extend: Ext.data.Model,
-                    fields: fields || ['id', 'name', 'rank', 'email'],
-                    validators: validators
-                }, cfg);
-                A = Ext.define('spec.A', cfg);
+            function validate(cls, fieldName, value) {
+                var field = cls.getField(fieldName);
+                return field.validate(value, '|');
             }
-            
-            describe("array style", function() {
-                it("should accept an array of validators", function() {
-                    defineA([{
-                        field: 'name',
-                        type: 'presence'
-                    }]);         
-                    var name = A.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
+
+            function expectError(cls, fieldName, value, expected) {
+                var msg = validate(cls, fieldName, value);
+                if (msg === true) {
+                    msg = [];
+                } else {
+                    msg = msg.split('|');
+                }
+                expect(msg).toEqual(expected);
+            }
+
+            var presenceMsg = 'Must be present',
+                formatMsg = 'Is in the wrong format',
+                emailMsg = 'Is not a valid email address';
+
+            describe("on the field", function() {
+                function defineA(validatorCfg, fields, cfg) {
+                    cfg = Ext.apply({
+                        extend: Ext.data.Model,
+                        fields: fields || [{
+                            name: 'name',
+                            validators: validatorCfg
+                        }]
+                    }, cfg);
+                    A = Ext.define('spec.A', cfg);
+                }
+
+                it("should accept a validator string name", function() {
+                    defineA('presence');
+                    expectError(A, 'name', null, [presenceMsg]);
                 });
-                
-                it("should accept multiple validators for a single field", function() {
-                    defineA([{
-                        field: 'name',
-                        type: 'presence'
-                    }, {
-                        field: 'name',
+
+                it("should accept an object configuration", function() {
+                    defineA({
                         type: 'format',
                         matcher: /foo/
-                    }]);         
-                    var name = A.validators.name;
-                    expect(name.length).toBe(2);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(name[1] instanceof Ext.data.validator.Format);
+                    });
+                    expectError(A, 'name', null, [formatMsg]);
                 });
-                
-                it("should be able to pass validators for multiple fields", function() {
+
+                it("should accept a function", function() {
+                    defineA(function() {
+                        return 'Fail';
+                    });
+                    expectError(A, 'name', null, ['Fail']);
+                });
+
+                it("should accept an array of strings", function() {
+                    defineA(['presence', 'email']);
+                    expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                });
+
+                it("should accept an array of configs", function() {
                     defineA([{
-                        field: 'name',
                         type: 'presence'
                     }, {
-                        field: 'email',
-                        type: 'email'
-                    }]);         
-                    var name = A.validators.name,
-                        email = A.validators.email;
-                        
-                    expect(name.length).toBe(1);
-                    expect(email.length).toBe(1);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(email[0] instanceof Ext.data.validator.Email);
-                });
-                
-                it("should accept a function validator", function() {
-                    var fn = function() {};
-                    defineA([{
-                        field: 'name',
-                        fn: fn
+                        type: 'format',
+                        matcher: /foo/
                     }]);
-                    
-                    var name = A.validators.name[0];
-                    expect(name.isValidator).toBe(true);
-                    expect(name.validate).toBe(fn);
+                    expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                });
+
+                it("should accept an array of functions", function() {
+                    defineA([function() {
+                        return 'Fail1';
+                    }, function() {
+                        return 'Fail2';
+                    }]);
+                    expectError(A, 'name', null, ['Fail1', 'Fail2']);
+                });
+
+                it("should be able to define multiple fields", function() {
+                    defineA(null, [{
+                        name: 'name',
+                        validators: 'presence'
+                    }, {
+                        name: 'email',
+                        validators: 'email'
+                    }]);
+                    expectError(A, 'name', null, [presenceMsg]);
+                    expectError(A, 'email', null, [emailMsg]);
                 });
             });
             
-            describe("object style", function() {
-                it("should accept a string", function() {
-                    defineA({
-                        name: 'presence'
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                });  
-                
-                it("should accept a function", function() {
-                    var fn = function() {};
-                    defineA({
-                        name: fn
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0].validate).toBe(fn);
-                });
-                
-                it("should accept config object", function() {
-                    defineA({
-                        name: {
-                            type: 'format',
-                            matcher: /foo/
-                        }
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0] instanceof Ext.data.validator.Format);
-                }); 
-                
-                it("should accept an array of strings", function() {
-                    defineA({
-                        name: ['presence', 'email']
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(2);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(name[0] instanceof Ext.data.validator.Email);
-                });
-                
-                it("should accept an array of functions", function() {
-                    var fn1 = function(){},
-                        fn2 = function(){};
-                        
-                    defineA({
-                        name: [fn1, fn2]
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(2);
-                    expect(name[0].validate).toBe(fn1);
-                    expect(name[1].validate).toBe(fn2);
-                });
-                
-                it("should accept an array of objects", function() {
-                    defineA({
-                        name: [{
+            describe("on the model", function() {
+                function defineA(validators, fields, cfg) {
+                    cfg = Ext.apply({
+                        extend: Ext.data.Model,
+                        fields: fields || ['id', 'name', 'rank', 'email'],
+                        validators: validators
+                    }, cfg);
+                    A = Ext.define('spec.A', cfg);
+                }
+
+                describe("array style", function() {
+                    it("should accept an array of validators", function() {
+                        defineA([{
+                            field: 'name',
                             type: 'presence'
-                        }, {
-                            type: 'length',
-                            min: 3
-                        }]
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(2);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(name[0] instanceof Ext.data.validator.Length);
-                });
-                
-                
-                it("should accept a mixed array", function() {
-                    var fn = function(){};
-                    defineA({
-                        name: ['presence', {
-                            type: 'length',
-                            min: 3
-                        }, fn]
-                    });
-                    var name = A.validators.name;
-                    expect(name.length).toBe(3);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(name[1] instanceof Ext.data.validator.Length);
-                    expect(name[2].validate).toBe(fn);
-                });
-                
-                it("should be able to declare multiple fields at once", function() {
-                    defineA({
-                        name: 'presence',
-                        email: 'email'
+                        }]);     
+                        expectError(A, 'name', null, [presenceMsg]);
                     });
                     
-                    var name = A.validators.name,
-                        email = A.validators.email;
+                    it("should accept multiple validators for a single field", function() {
+                        defineA([{
+                            field: 'name',
+                            type: 'presence'
+                        }, {
+                            field: 'name',
+                            type: 'format',
+                            matcher: /foo/
+                        }]);
+                        expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                    });
+                    
+                    it("should be able to pass validators for multiple fields", function() {
+                        defineA([{
+                            field: 'name',
+                            type: 'presence'
+                        }, {
+                            field: 'email',
+                            type: 'email'
+                        }]);         
                         
-                    expect(name.length).toBe(1);
-                    expect(email.length).toBe(1);
-                    expect(name[0] instanceof Ext.data.validator.Presence);
-                    expect(email[0] instanceof Ext.data.validator.Email);
+                        expectError(A, 'name', null, [presenceMsg]);
+                        expectError(A, 'email', null, [emailMsg]);
+                    });
+                    
+                    it("should accept a function validator", function() {
+                        var fn = function() {
+                            return 'Failed';
+                        };
+
+                        defineA([{
+                            field: 'name',
+                            fn: fn
+                        }]);
+
+                        expectError(A, 'name', null, ['Failed']);
+                    });
+                });
+                
+                describe("object style", function() {
+                    it("should accept a string", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        expectError(A, 'name', null, [presenceMsg]);
+                    });  
+                    
+                    it("should accept a function", function() {
+                        var fn = function() {
+                            return 'Failed';
+                        };
+                        defineA({
+                            name: fn
+                        });
+                        expectError(A, 'name', null, ['Failed']);
+                    });
+                    
+                    it("should accept config object", function() {
+                        defineA({
+                            name: {
+                                type: 'format',
+                                matcher: /foo/
+                            }
+                        });
+                        expectError(A, 'name', null, [formatMsg]);
+                    }); 
+                    
+                    it("should accept an array of strings", function() {
+                        defineA({
+                            name: ['presence', 'email']
+                        });
+                        expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                    });
+                    
+                    it("should accept an array of functions", function() {
+                        var fn1 = function(){
+                            return 'Fail1';
+                        },
+                            fn2 = function(){
+                                return 'Fail2'
+                            };
+                            
+                        defineA({
+                            name: [fn1, fn2]
+                        });
+                        expectError(A, 'name', null, ['Fail1', 'Fail2']);
+                    });
+                    
+                    it("should accept an array of objects", function() {
+                        defineA({
+                            name: [{
+                                type: 'format',
+                                matcher: /foo/
+                            }, {
+                                type: 'length',
+                                min: 3
+                            }]
+                        });
+                        expectError(A, 'name', 'x', [formatMsg, 'Length must be at least 3']);
+                    });
+                    
+                    
+                    it("should accept a mixed array", function() {
+                        var fn = function(){
+                            return 'Fail';
+                        };
+
+                        defineA({
+                            name: ['email', {
+                                type: 'length',
+                                min: 3
+                            }, fn]
+                        });
+                        expectError(A, 'name', 'x', [emailMsg, 'Length must be at least 3', 'Fail']);
+                    });
+                    
+                    it("should be able to declare multiple fields at once", function() {
+                        defineA({
+                            name: 'presence',
+                            email: 'email'
+                        });
+                        
+                        expectError(A, 'name', null, [presenceMsg]);
+                        expectError(A, 'email', null, [emailMsg]);
+                    });
+                });
+            });
+
+            describe("on both the field and model", function() {
+                function defineA(validators, fields, cfg) {
+                    cfg = Ext.apply({
+                        extend: Ext.data.Model,
+                        fields: fields,
+                        validators: validators
+                    }, cfg);
+                    A = Ext.define('spec.A', cfg);
+                }
+
+                describe("model array style", function() {
+                    it("should merge with a string", function() {
+                        defineA([{
+                            field: 'name',
+                            type: 'presence'
+                        }], [{
+                            name: 'name',
+                            validators: 'email'
+                        }]);
+                        expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                    });
+
+                    it("should merge with an object", function() {
+                        defineA([{
+                            field: 'name',
+                            type: 'presence'
+                        }], [{
+                            name: 'name',
+                            validators: {
+                                type: 'format',
+                                matcher: /foo/
+                            }
+                        }]);
+                        expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                    });
+
+                    it("should merge with an array", function() {
+                        defineA([{
+                            field: 'name',
+                            type: 'presence'
+                        }], [{
+                            name: 'name',
+                            validators: ['email', function() {
+                                return 'Fail';
+                            }]
+                        }]);
+                        expectError(A, 'name', null, [presenceMsg, emailMsg, 'Fail']);
+                    });
+                });
+
+                describe("model object style", function() {
+                    describe("model object with string", function() {
+                        it("should merge with a string", function() {
+                            defineA({
+                                name: 'presence'
+                            }, [{
+                                name: 'name',
+                                validators: 'email'
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+
+                        it("should merge with an object", function() {
+                            defineA({
+                                name: 'presence'
+                            }, [{
+                                name: 'name',
+                                validators: {
+                                    type: 'format',
+                                    matcher: /foo/
+                                }
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                        });
+
+                        it("should merge with an array", function() {
+                            defineA({
+                                name: 'presence'
+                            }, [{
+                                name: 'name',
+                                validators: ['email']
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+                    });
+
+                    describe("model object with object", function() {
+                        it("should merge with a string", function() {
+                            defineA({
+                                name: {
+                                    type: 'presence'
+                                }
+                            }, [{
+                                name: 'name',
+                                validators: 'email'
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+
+                        it("should merge with an object", function() {
+                            defineA({
+                                name: {
+                                    type: 'presence'
+                                }
+                            }, [{
+                                name: 'name',
+                                validators: {
+                                    type: 'format',
+                                    matcher: /foo/
+                                }
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                        });
+
+                        it("should merge with an array", function() {
+                            defineA({
+                                name: {
+                                    type: 'presence'
+                                }
+                            }, [{
+                                name: 'name',
+                                validators: ['email']
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+                    });
+
+                    describe("model object with array", function() {
+                        it("should merge with a string", function() {
+                            defineA({
+                                name: ['presence']
+                            }, [{
+                                name: 'name',
+                                validators: 'email'
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+
+                        it("should merge with an object", function() {
+                            defineA({
+                                name: ['presence']
+                            }, [{
+                                name: 'name',
+                                validators: {
+                                    type: 'format',
+                                    matcher: /foo/
+                                }
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, formatMsg]);
+                        });
+
+                        it("should merge with an array", function() {
+                            defineA({
+                                name: ['presence']
+                            }, [{
+                                name: 'name',
+                                validators: ['email']
+                            }]);
+                            expectError(A, 'name', null, [presenceMsg, emailMsg]);
+                        });
+                    });
                 });
             });
             
             describe("subclassing", function() {
+                function defineA(validators, fields, cfg) {
+                    cfg = Ext.apply({
+                        extend: Ext.data.Model,
+                        fields: fields || ['name', 'email'],
+                        validators: validators
+                    }, cfg);
+                    A = Ext.define('spec.A', cfg);
+                }
+
                 function defineB(validators, fields, cfg) {
                     cfg = Ext.apply({
                         extend: A,  
@@ -813,149 +1111,245 @@ describe("Ext.data.Model", function() {
                     
                     B = Ext.define('spec.B', cfg);
                 }
-                
-                it("should aggregate different types", function() {
-                    defineA({
-                        email: 'presence'
-                    });  
-                    defineB({
-                        email: 'email'
+
+                describe("not redefining the field", function() {
+                    it("should use the field validator", function() {
+                        defineA(null, [{
+                            name: 'name',
+                            validators: 'presence'
+                        }]);
+                        defineB();
+                        expectError(B, 'name', null, [presenceMsg]);
                     });
-                    
-                    var email = B.validators.email;
-                    expect(email.length).toBe(2);
-                    expect(email[0] instanceof Ext.data.validator.Presence);
-                    expect(email[1] instanceof Ext.data.validator.Email);
+
+                    it("should use the superclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        defineB();
+                        expectError(B, 'name', null, [presenceMsg]);
+                    });
+
+                    it("should use the subclass model validator", function() {
+                        defineA();
+                        defineB({
+                            name: 'presence'
+                        });
+                        expectError(B, 'name', null, [presenceMsg]);
+                    });
+
+                    it("should combine a field validator & a superclass model validator", function() {
+                        defineA({
+                            name: 'email'
+                        }, [{
+                            name: 'name',
+                            validators: 'presence'
+                        }]);
+                        defineB();
+                        expectError(B, 'name', null, [emailMsg, presenceMsg]);
+                    });
+
+                    it("should combine a field validator & a subclass model validator", function() {
+                        defineA(null, [{
+                            name: 'name',
+                            validators: 'presence'
+                        }]);
+                        defineB({
+                            name: 'email'
+                        });
+                        expectError(B, 'name', null, [emailMsg, presenceMsg]);
+                    });
+
+                    it("should combine a superclass model validator & subclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        defineB({
+                            name: 'email'
+                        });
+                        expectError(B, 'name', null, [presenceMsg, emailMsg]);
+                    });
+
+                    it("should combine a field validator, superclass model validator & subclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        }, [{
+                            name: 'name',
+                            validators: {
+                                type: 'format',
+                                matcher: /foo/
+                            }
+                        }]);
+
+                        defineB({
+                            name: 'email'
+                        });
+
+                        expectError(B, 'name', null, [presenceMsg, emailMsg, formatMsg]);
+                    });
+
+                    describe("not modifying the superclass", function() {
+                        it("should not push subclass validators onto the superclass", function() {
+                            defineA();
+                            defineB({
+                                name: 'presence'
+                            });
+                            expectError(A, 'name', null, []);
+                            expectError(B, 'name', null, [presenceMsg]);
+                        });
+
+                        it("should retain superclass validators", function() {
+                            defineA({
+                                name: 'presence'
+                            });
+                            defineB({
+                                name: 'email'
+                            });
+                            expectError(A, 'name', null, [presenceMsg]);
+                            expectError(B, 'name', null, [presenceMsg, emailMsg]);
+                        });
+                    });
                 });
-                
-                it("should not append a string type that already exists", function() {
-                    defineA({
-                        email: 'email'
-                    });  
-                    defineB({
-                        email: 'email'
-                    });
-                    var email = B.validators.email;
-                    expect(email.length).toBe(1);
-                    expect(email[0] instanceof Ext.data.validator.Email);
-                });
-                
-                it("should always append functions", function() {
-                    var fn1 = function() {},
-                        fn2 = function() {};
-                        
-                    defineA({
-                        name: fn1
-                    });  
-                    defineB({
-                        name: fn2
-                    });  
-                    
-                    var name = B.validators.name;
-                    expect(name.length).toBe(2);
-                    expect(name[0].validate).toBe(fn1);
-                    expect(name[1].validate).toBe(fn2);
-                });
-                
-                it("should merge object types", function() {
-                    defineA({
-                        name: {
-                            type: 'length',
-                            min: 3
-                        }
+
+                describe("redefining the field", function() {
+                    beforeEach(function() {
+                        spyOn(Ext.log, 'warn');
                     });
                     
-                    defineB({
-                        name: {
-                            type: 'length',
-                            max: 10
-                        }
+                    it("should not inherit a field validator", function() {
+                        defineA(null, [{
+                            name: 'name',
+                            validators: 'presence'
+                        }]);
+                        defineB(null, ['name']);
+                        expectError(B, 'name', null, []);
                     });
-                    
-                    var name = B.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0].getMin()).toBe(3);
-                    expect(name[0].getMax()).toBe(10);
-                });
-                
-                it("should overwrite options", function() {
-                    defineA({
-                        name: {
-                            type: 'format',
-                            matcher: /foo/
-                        }
+
+                    it("should overwrite a field validator", function() {
+                        defineA(null, [{
+                            name: 'name',
+                            validators: 'presence'
+                        }]);
+                        defineB(null, [{
+                            name: 'name',
+                            validators: 'email'
+                        }]);
+                        expectError(B, 'name', null, [emailMsg]);
                     });
-                    
-                    defineB({
-                        name: {
-                            type: 'format',
-                            matcher: /bar/
-                        }
+
+                    it("should inherit a superclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        defineB(['name']);
+                        expectError(B, 'name', null, [presenceMsg]);
                     });
-                    
-                    var name = B.validators.name;
-                    expect(name.length).toBe(1);
-                    expect(name[0].getMatcher().source).toBe('bar');
-                });
-                
-                it("should not modify the superclass collection", function() {
-                    defineA({
-                        name: 'presence'
+
+                    it("should use a subclass model validator", function() {
+                        defineA();
+                        defineB({
+                            name: 'presence'
+                        }, ['name']);
+                        expectError(B, 'name', null, [presenceMsg]);
                     });
-                    
-                    defineB({
-                        name: {
-                            type: 'format',
-                            matcher: /foo/
-                        },
-                        email: 'email'
-                    });    
-                    
-                    var validators = A.validators;
-                    expect(validators.name.length).toBe(1);
-                    expect(validators.email).toBeUndefined();
-                });
-                
-                it("should not modify superclass validator instances", function() {
-                    defineA({
-                        name: {
-                            type: 'length',
-                            min: 2
-                        }
+
+                    it("should combine a field validator & a superclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        defineB(null, [{
+                            name: 'name',
+                            validators: 'email'
+                        }]);
+                        expectError(B, 'name', null, [presenceMsg, emailMsg]);
                     });
-                    
-                    defineB({
-                        name: {
-                            type: 'length',
-                            min: 2,
-                            max: 7
-                        }
+
+                    it("should combine a field validator & a subclass model validator", function() {
+                        defineA();
+                        defineB({
+                            name: 'presence'
+                        }, [{
+                            name: 'name',
+                            validators: 'email'
+                        }]);
+                        expectError(B, 'name', null, [presenceMsg, emailMsg]);
                     });
-                    
-                    var validator = A.validators.name[0];
-                    expect(validator.getMax()).toBeUndefined();
-                    B.validators.name[0].setMax(10);
-                    expect(validator.getMax()).toBeUndefined();
-                });
-                
-                it("should not modify subclass validator instances", function() {
-                    defineA({
-                        name: {
-                            type: 'length',
-                            min: 2
-                        }
+
+                    it("should combine a superclass model validator & a subclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+                        defineB({
+                            name: 'email'
+                        }, ['name']);
+                        expectError(B, 'name', null, [presenceMsg, emailMsg]);
                     });
-                    
-                    defineB({
-                        name: {
-                            type: 'length',
-                            min: 2,
-                            max: 7
-                        }
+
+                    it("should combine a field validator, superclass model validator & subclass model validator", function() {
+                        defineA({
+                            name: 'presence'
+                        });
+
+                        defineB({
+                            name: 'email'
+                        }, [{
+                            name: 'name',
+                            validators: {
+                                type: 'format',
+                                matcher: /foo/
+                            }
+                        }]);
+
+                        expectError(B, 'name', null, [presenceMsg, emailMsg, formatMsg]);
                     });
-                    
-                    var validator = A.validators.name[0].setMax(10);
-                    expect(B.validators.name[0].getMax()).toBe(7);
+
+                    describe("not modifying the superclass", function() {
+                        it("should not add a subclass field validator to the parent", function() {
+                            defineA();
+                            defineB(null, [{
+                                name: 'name',
+                                validators: 'presence'
+                            }]);
+
+                            expectError(A, 'name', null, []);
+                            expectError(B, 'name', null, [presenceMsg]);
+                        });
+
+                        it("should not modify the superclass when overwriting a field validator", function() {
+                            defineA(null, [{
+                                name: 'name',
+                                validators: 'presence'
+                            }]);
+                            defineB(null, [{
+                                name: 'name',
+                                validators: 'email'
+                            }]);
+
+                            expectError(A, 'name', null, [presenceMsg]);
+                            expectError(B, 'name', null, [emailMsg]);
+                        });
+
+                        it("should not push subclass validators into the superclass", function() {
+                            defineA();
+                            defineB({
+                                name: 'presence'
+                            }, ['name']);
+
+                            expectError(A, 'name', null, []);
+                            expectError(B, 'name', null, [presenceMsg]);
+                        });
+
+                        it("should retain superclass validators", function() {
+                            defineA({
+                                name: 'presence'
+                            });
+                            defineB({
+                                name: 'email'
+                            }, ['name']);
+                            expectError(A, 'name', null, [presenceMsg]);
+                            expectError(B, 'name', null, [presenceMsg, emailMsg]);
+                        });
+                    });
                 });
             });
         });
@@ -1330,6 +1724,17 @@ describe("Ext.data.Model", function() {
                     expect(rec.session).toBe(session);
                     expect(session.getRecord('A', 12)).toBe(rec);
                     session.destroy();
+                });
+
+                it("should set a custom idProperty", function() {
+                    var CustomId = Ext.define('spec.CustomId', {
+                        extend: 'Ext.data.Model',
+                        idProperty: 'foo'
+                    });
+                    
+                    rec = CustomId.load(1);
+                    expect(rec.get('foo')).toBe(1);
+                    Ext.undefine('spec.CustomId');
                 });
             });
 
@@ -2629,6 +3034,7 @@ describe("Ext.data.Model", function() {
             };
             
             afterEach(function() {
+                Ext.undefine('spec.A');
                 A = null;
             });
             
@@ -3081,6 +3487,7 @@ describe("Ext.data.Model", function() {
         });
         
         afterEach(function() {
+            Ext.undefine('spec.Person');
             Person = o = null;
         });
         
@@ -3697,6 +4104,20 @@ describe("Ext.data.Model", function() {
                 expect(o.getPrevious('name')).toBe('Name2');
                 expect(o.getPrevious('rank')).toBe(2);
             });
+
+            it("should retain the phantom state", function() {
+                o = new Person();
+                o.set('name', 'Foo');
+                o.reject();
+                expect(o.phantom).toBe(true);
+
+                o = new Person({
+                    id: 1
+                });
+                o.set('name', 'Foo');
+                o.reject();
+                expect(o.phantom).toBe(false);
+            });
             
             describe("after reject", function() {
                 it("should be called", function() {
@@ -3770,7 +4191,8 @@ describe("Ext.data.Model", function() {
             }
             
             describe("basic many to one", function() {
-                var User, Post;
+                var Comment, User, Post;
+
                 beforeEach(function() {
                     User = Ext.define('spec.User', {
                         extend: 'Ext.data.Model',
@@ -3784,12 +4206,21 @@ describe("Ext.data.Model", function() {
                             reference: 'User'
                         }]
                     });
+
+                    Comment = Ext.define('spec.Comment', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'content', {
+                            name: 'postId',
+                            reference: 'Post'
+                        }]
+                    });
                 });
                 
                 afterEach(function() {
                     Ext.undefine('spec.User');
                     Ext.undefine('spec.Post');
-                    User = Post = null;
+                    Ext.undefine('spec.Comment');
+                    Comment = User = Post = null;
                 });
                 
                 
@@ -3840,7 +4271,7 @@ describe("Ext.data.Model", function() {
                         expect(rec.getAssociatedData().user.posts).toBeUndefined();
                     });
                 });
-                
+
                 describe("the many", function() {
                     it("should not include the key if the store does not exist", function() {
                         rec = read(User, {
@@ -3849,7 +4280,7 @@ describe("Ext.data.Model", function() {
                         var data = rec.getAssociatedData();
                         expect(data).toEqual({});
                     });
-                    
+
                     it("should not trigger the item to load", function() {
                         rec = read(User, {
                             id: 1
@@ -3859,7 +4290,7 @@ describe("Ext.data.Model", function() {
                         var data = rec.getAssociatedData();
                         expect(data).toEqual({});
                     });
-                    
+
                     it("should include the key if the store exists but is empty", function() {
                         rec = read(User, {
                             id: 1,
@@ -3870,7 +4301,7 @@ describe("Ext.data.Model", function() {
                             posts: []
                         });
                     });
-                    
+
                     it("should include the many records", function() {
                         rec = read(User, {
                             id: 17,
@@ -3906,7 +4337,7 @@ describe("Ext.data.Model", function() {
                             }]
                         });
                     });
-                    
+
                     it("should not include the one on each many", function() {
                         rec = read(User, {
                             id: 17,
@@ -3976,8 +4407,417 @@ describe("Ext.data.Model", function() {
                             }
                         });
                     });
-                });
-            });
+                });  // the many
+
+                describe("deeply nested", function() {
+                    var nestedData = {
+                        id: 17,
+                        posts: [{
+                            id: 1,
+                            content: 'PostA',
+                            userId: 17,
+                            comments: [{
+                                id: 42,
+                                content: 'This is wrong!'
+                            },{
+                                id: 427,
+                                content: 'No, you are wrong!'
+                            }]
+                        }, {
+                            id: 2,
+                            content: 'PostB',
+                            comments: [{
+                                id: 420,
+                                content: 'This is wrong too!'
+                            },{
+                                id: 4270,
+                                content: 'No, you are wrong again!'
+                            },{
+                                id: 4271,
+                                content: 'Yeah, you are wrong again!'
+                            }]
+                        }]
+                    };
+
+                    beforeEach(function () {
+                        // reader / records will claim the data and mutate it, so we need
+                        // to clone it for them:
+                        rec = read(User, Ext.clone(nestedData));
+                    });
+
+                    it('should not include associations in data object', function () {
+                        expect(rec.data).toEqual({
+                            id: 17
+                        });
+                    });
+
+                    it("should include the first level of child records", function() {
+                        var posts = rec.posts();
+                        expect(posts.getCount()).toBe(nestedData.posts.length);
+                    });
+
+                    it('should produce all levels in getData(true)', function () {
+                        var data = rec.getData(true);
+
+                        expect(data).toEqual({
+                            id: 17,
+                            posts: [{
+                                id: 1,
+                                content: 'PostA',
+                                userId: 17,
+                                comments: [{
+                                    id: 42,
+                                    content: 'This is wrong!',
+                                    postId: 1
+                                },{
+                                    id: 427,
+                                    content: 'No, you are wrong!',
+                                    postId: 1
+                                }]
+                            }, {
+                                id: 2,
+                                content: 'PostB',
+                                userId: 17,
+                                comments: [{
+                                    id: 420,
+                                    content: 'This is wrong too!',
+                                    postId: 2
+                                },{
+                                    id: 4270,
+                                    content: 'No, you are wrong again!',
+                                    postId: 2
+                                },{
+                                    id: 4271,
+                                    content: 'Yeah, you are wrong again!',
+                                    postId: 2
+                                }]
+                            }]
+                        });
+                    });
+
+                    //----
+
+                    it("should have PostA first", function() {
+                        var posts = rec.posts();
+                        expect(posts.getAt(0).data).toEqual({
+                            id: 1,
+                            content: 'PostA',
+                            userId: 17
+                        });
+                    });
+
+                    it('should return the proper data for PostA.getData(true)', function () {
+                        var post = rec.posts().getAt(0);
+                        var data = post.getData(true);
+
+                        // This is interesting because we are starting in the middle
+                        // with PostA so we will climb up to the user and back down to
+                        // the posts. Our recursion check should mean PostA is only
+                        // reproduced shallowly but PostB will be deep.
+                        expect(data).toEqual({
+                            id: 1,
+                            content: 'PostA',
+                            userId: 17,
+                            user: {
+                                id: 17,
+                                posts: [{
+                                    id: 1,
+                                    content: 'PostA',
+                                    userId: 17
+                                    // this recursion should be skipped
+                                }, {
+                                    id: 2,
+                                    content: 'PostB',
+                                    userId: 17,
+                                    comments: [{
+                                        id: 420,
+                                        content: 'This is wrong too!',
+                                        postId: 2
+                                    },{
+                                        id: 4270,
+                                        content: 'No, you are wrong again!',
+                                        postId: 2
+                                    },{
+                                        id: 4271,
+                                        content: 'Yeah, you are wrong again!',
+                                        postId: 2
+                                    }]
+                                }]
+                            },
+                            comments: [{
+                                id: 42,
+                                content: 'This is wrong!',
+                                postId: 1,
+                                post: {
+                                    id: 1,
+                                    content: 'PostA',
+                                    userId: 17,
+                                    user: {
+                                        id: 17,
+                                        posts: [{
+                                            id: 1,
+                                            content: 'PostA',
+                                            userId: 17
+                                            // this recursion should be skipped
+                                        }, {
+                                            id: 2,
+                                            content: 'PostB',
+                                            userId: 17,
+                                            comments: [{
+                                                id: 420,
+                                                content: 'This is wrong too!',
+                                                postId: 2
+                                            },{
+                                                id: 4270,
+                                                content: 'No, you are wrong again!',
+                                                postId: 2
+                                            },{
+                                                id: 4271,
+                                                content: 'Yeah, you are wrong again!',
+                                                postId: 2
+                                            }]
+                                        }]
+                                    }
+                                }
+                            },{
+                                id: 427,
+                                content: 'No, you are wrong!',
+                                postId: 1,
+                                post: {
+                                    id: 1,
+                                        content: 'PostA',
+                                        userId: 17,
+                                        user: {
+                                        id: 17,
+                                            posts: [{
+                                            id: 1,
+                                            content: 'PostA',
+                                            userId: 17
+                                            // this recursion should be skipped
+                                        }, {
+                                            id: 2,
+                                            content: 'PostB',
+                                            userId: 17,
+                                            comments: [{
+                                                id: 420,
+                                                content: 'This is wrong too!',
+                                                postId: 2
+                                            },{
+                                                id: 4270,
+                                                content: 'No, you are wrong again!',
+                                                postId: 2
+                                            },{
+                                                id: 4271,
+                                                content: 'Yeah, you are wrong again!',
+                                                postId: 2
+                                            }]
+                                        }]
+                                    }
+                                }
+                            }]
+                        });
+                    });
+
+                    it('should return the proper data for PostA.comments[0].getData(true)', function () {
+                        var post = rec.posts().getAt(0);
+                        var comment = post.comments().getAt(0);
+                        var data = comment.getData(true);
+
+                        // We are starting at the Comment, climbing to its Post and then
+                        // its User. We also descend from the Post to its comments and
+                        // from the User to its posts, but the recursion checks should
+                        // prevent infinite expansion.
+                        expect(data).toEqual({
+                            id: 42,
+                            content: "This is wrong!",
+                            postId: 1,
+                            post: {
+                                id: 1,
+                                content: "PostA",
+                                userId: 17,
+                                user: {
+                                    id: 17,
+                                    posts: [{
+                                        id: 1,
+                                        content: "PostA",
+                                        userId: 17
+                                    },{
+                                        id: 2,
+                                        content: "PostB",
+                                        userId: 17,
+                                        comments: [{
+                                            id: 420,
+                                            content: "This is wrong too!",
+                                            postId: 2
+                                        },{
+                                            id: 4270,
+                                            content: "No, you are wrong again!",
+                                            postId: 2
+                                        },{
+                                            id: 4271,
+                                            content: "Yeah, you are wrong again!",
+                                            postId: 2
+                                        }]
+                                    }]
+                                },
+                                comments: [{
+                                    id: 42,
+                                    content: "This is wrong!",
+                                    postId: 1
+                                    // back to where we started, so only shallow
+                                }, {
+                                    id: 427,
+                                    content: "No, you are wrong!",
+                                    postId: 1,
+                                    post: {
+                                        id: 1,
+                                        content: "PostA",
+                                        userId: 17,
+                                        user: {
+                                            id: 17,
+                                            posts: [{
+                                                id: 1,
+                                                content: "PostA",
+                                                userId: 17
+                                            },{
+                                                id: 2,
+                                                content: "PostB",
+                                                userId: 17,
+                                                comments: [{
+                                                    id: 420,
+                                                    content: "This is wrong too!",
+                                                    postId: 2
+                                                },{
+                                                    id: 4270,
+                                                    content: "No, you are wrong again!",
+                                                    postId: 2
+                                                },{
+                                                    id: 4271,
+                                                    content: "Yeah, you are wrong again!",
+                                                    postId: 2
+                                                }]
+                                            }]
+                                        }
+                                    }
+                                }]
+                            }
+                        });
+                    });
+
+                    it('should link PostA to the proper user', function () {
+                        var post = rec.posts().getAt(0);
+                        expect(post.getUser()).toBe(rec);
+                    });
+
+                    it('should load comments for PostA', function () {
+                        var post = rec.posts().getAt(0);
+                        var comments = post.comments();
+                        expect(comments.getCount()).toBe(nestedData.posts[0].comments.length);
+                    });
+
+                    it('should load proper first comment for PostA', function () {
+                        var post = rec.posts().getAt(0);
+                        var comments = post.comments();
+                        expect(comments.getAt(0).data).toEqual({
+                            id: 42,
+                            content: 'This is wrong!',
+                            postId: 1 // filled in by loading
+                        });
+                    });
+
+                    it('should load proper second comment for PostA', function () {
+                        var post = rec.posts().getAt(0);
+                        var comments = post.comments();
+                        expect(comments.getAt(1).data).toEqual({
+                            id: 427,
+                            content: 'No, you are wrong!',
+                            postId: 1 // filled in by loading
+                        });
+                    });
+
+                    it('should link the first comment for PostA to its Post', function () {
+                        var post = rec.posts().getAt(0);
+                        var comments = post.comments();
+                        expect(comments.getAt(0).getPost()).toBe(post);
+                    });
+
+                    it('should link the second comment for PostA to its Post', function () {
+                        var post = rec.posts().getAt(0);
+                        var comments = post.comments();
+                        expect(comments.getAt(1).getPost()).toBe(post);
+                    });
+
+                    //-----
+
+                    it("should have PostB second", function() {
+                        var posts = rec.posts();
+                        expect(posts.getAt(1).data).toEqual({
+                            id: 2,
+                            content: 'PostB',
+                            userId: 17
+                        });
+                    });
+
+                    it('should link PostA to the proper user', function () {
+                        var post = rec.posts().getAt(0);
+                        expect(post.getUser()).toBe(rec);
+                    });
+
+
+                    it('should load comments for PostB', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getCount()).toBe(nestedData.posts[1].comments.length);
+                    });
+                    it('should load proper first comment for PostB', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(0).data).toEqual({
+                            id: 420,
+                            content: 'This is wrong too!',
+                            postId: 2 // filled in by loading
+                        });
+                    });
+
+                    it('should load proper second comment for PostB', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(1).data).toEqual({
+                            id: 4270,
+                            content: 'No, you are wrong again!',
+                            postId: 2 // filled in by loading
+                        });
+                    });
+
+                    it('should load proper third comment for PostB', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(2).data).toEqual({
+                            id: 4271,
+                            content: 'Yeah, you are wrong again!',
+                            postId: 2 // filled in by loading
+                        });
+                    });
+
+                    it('should link the first comment for PostB to its Post', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(0).getPost()).toBe(post);
+                    });
+
+                    it('should link the second comment for PostB to its Post', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(1).getPost()).toBe(post);
+                    });
+
+                    it('should link the third comment for PostA to its Post', function () {
+                        var post = rec.posts().getAt(1);
+                        var comments = post.comments();
+                        expect(comments.getAt(2).getPost()).toBe(post);
+                    });
+                });  // deeply nested
+            }); // basic many to one
             
             describe("basic one to one", function() {
                 var Person, Passport;
@@ -4030,8 +4870,17 @@ describe("Ext.data.Model", function() {
                                 expires: '2000-01-01'
                             }
                         });
-                        var data = rec.getAssociatedData();
+
+                        // Inline associations should *not* arrive on the "data" object:
+                        expect(rec.data.passport).toBeUndefined();
+
+                        var passport = rec.getPassport();
+                        expect(passport.getPerson()).toBe(rec);
+
+                        var data = rec.getData(true);
                         expect(data).toEqual({
+                            id: 1,
+                            passportId: 22,
                             passport: {
                                 id: 22,
                                 expires: '2000-01-01'
@@ -4215,13 +5064,29 @@ describe("Ext.data.Model", function() {
                             }]
                         });
 
+                        // Inline associations should *not* arrive on the "data" object:
+                        expect(rec.data.groups).toBeUndefined();
+
                         var groups = rec.groups(),
                             groupAUsers = groups.first().users(),
                             groupBUsers = groups.last().users();
 
+                        // This presents the opportunity to infinitely recurse.
+                        groupAUsers.add(rec);
+                        groupBUsers.add(rec);
+
+                        // Since each Group has its users association loaded, we need to
+                        // enumerate the members (the top-level User), but that User
+                        // must be processed "shallow" and only provide its fields.
+
                         groups = rec.getAssociatedData().groups;
-                        expect(groups[0].users).toBeUndefined();
-                        expect(groups[1].users).toBeUndefined();
+                        expect(groups[0].users.length).toBe(1);
+                        expect(groups[0].users[0].id).toBe(rec.id);
+                        expect(groups[0].users[0].groups).toBeUndefined();
+
+                        expect(groups[1].users.length).toBe(1);
+                        expect(groups[1].users[0].id).toBe(rec.id);
+                        expect(groups[1].users[0].groups).toBeUndefined();
                     });
 
                     it("should include other associations on the children", function() {
@@ -4248,6 +5113,7 @@ describe("Ext.data.Model", function() {
                             groups: [{
                                 id: 1,
                                 name: 'GroupA',
+                                profileId: 22,
                                 profile: {
                                     id: 22,
                                     content: 'Foo'
@@ -4255,6 +5121,7 @@ describe("Ext.data.Model", function() {
                             }, {
                                 id: 2,
                                 name: 'GroupB',
+                                profileId: 33,
                                 profile: {
                                     id: 33,
                                     content: 'Bar'
@@ -4336,13 +5203,30 @@ describe("Ext.data.Model", function() {
                             }]
                         });
 
+                        // Inline associations should *not* arrive on the "data" object:
+                        expect(rec.data.users).toBeUndefined();
+
                         var users = rec.users(),
                             userAGroups = users.first().groups(),
                             userBGroups = users.last().groups();
 
+                        // This presents the opportunity to infinitely recurse.
+                        userAGroups.add(rec);
+                        userBGroups.add(rec);
+
                         users = rec.getAssociatedData().users;
-                        expect(users[0].groups).toBeUndefined();
-                        expect(users[1].groups).toBeUndefined();
+
+                        // Since each User has its groups association loaded, we need to
+                        // enumerate the members (the top-level Group), but that Group
+                        // must be processed "shallow" and only provide its fields.
+
+                        expect(users[0].groups.length).toBe(1);
+                        expect(users[0].groups[0].id).toBe(rec.id);
+                        expect(users[0].groups[0].users).toBeUndefined();
+
+                        expect(users[1].groups.length).toBe(1);
+                        expect(users[1].groups[0].id).toBe(rec.id);
+                        expect(users[1].groups[0].users).toBeUndefined();
                     });
 
                     it("should include other associations on the children", function() {
@@ -4369,6 +5253,7 @@ describe("Ext.data.Model", function() {
                             users: [{
                                 id: 1,
                                 name: 'UserA',
+                                profileId: 22,
                                 profile: {
                                     id: 22,
                                     content: 'Foo'
@@ -4376,6 +5261,7 @@ describe("Ext.data.Model", function() {
                             }, {
                                 id: 2,
                                 name: 'UserB',
+                                profileId: 33,
                                 profile: {
                                     id: 33,
                                     content: 'Bar'
@@ -4820,238 +5706,120 @@ describe("Ext.data.Model", function() {
             A = o = null;
             Ext.undefine('spec.A');
         });
-        
-        describe("calling field validate/validators", function() {
-            it("should call the field validate method if it exists and pass the value", function() {
+
+        var presenceMsg = 'Must be present',
+            formatMsg = 'Is in the wrong format',
+            emailMsg = 'Is not a valid email address';
+
+        describe("validate", function() {
+            it("should call the validate method for each field and pass the current value", function() {
                 defineA();
-
-                var field = A.getFields()[1];
-                var value;
-                field.validate = function (v) {
-                    value = v;
-                    return true;
-                };
-
                 o = new A({
-                    name: 'Foo'
+                    id: 100,
+                    name: 'Foo',
+                    rank: 1234
                 });
+
+                var idSpy = spyOn(o.getField('id'), 'validate'),
+                    nameSpy = spyOn(o.getField('name'), 'validate'),
+                    rankSpy = spyOn(o.getField('rank'), 'validate');
+
                 o.validate();
+                expect(idSpy.mostRecentCall.args[0]).toBe(100);
+                expect(nameSpy.mostRecentCall.args[0]).toBe('Foo');
+                expect(rankSpy.mostRecentCall.args[0]).toBe(1234);
+            });
 
-                expect(value).toBe('Foo');
-            });
-        
-            it("should call a validator for a field, passing the value & record", function() {
-                defineA({
-                    name: 'presence'
-                });
-                var v = A.validators.name[0];
-                spyOn(v, 'validate');
-                var o = new A({
-                    name: 'Bar'
-                });
-                o.validate();
-                expect(v.validate).toHaveBeenCalledWith('Bar', o);
-            });
-        
-            it("should check all validators for a field", function() {
-                defineA({
-                    name: ['presence', 'email']
-                });
-
-                var o = new A({
-                    //name: 'Bar'
-                });
-
-                var Val = Ext.data.validator.Validator.all,
-                    errors = o.validate(),
-                    nameErrors = errors.getByField('name');
-
-                expect(nameErrors[0].message).toBe(Val.presence.config.message);
-                expect(nameErrors[1].message).toBe(Val.email.config.message);
-            });
-            
-            it("should call field.validate & a validator at the same time", function() {
-                defineA({
-                    name: 'presence'
-                });
-                
-                var field = A.getFields()[1];
-                var value;
-                field.validate = function (v) {
-                    value = v;
-                    return true;
-                };
-
-                var v = A.validators.name[0];
-                spyOn(v, 'validate');
-                
-                o = new A({
-                    name: 'Foo'
-                });
-                o.validate(); 
-                expect(value).toBe('Foo');
-                expect(v.validate).toHaveBeenCalledWith('Foo', o);
-            });
-            
-            it("should call validate for each validator", function() {
-                defineA({
-                    id: 'presence',
-                    name: 'presence'
-                });
-    
-                var v1 = A.validators.id[0],
-                    v2 = A.validators.name[0];
-                    
-                spyOn(v1, 'validate');
-                spyOn(v2, 'validate');
-                
-                var o = new A({
-                    id: 7,
-                    name: 'Bar'
-                });
-                o.validate();
-                expect(v1.validate).toHaveBeenCalledWith(7, o);
-                expect(v2.validate).toHaveBeenCalledWith('Bar', o);
-            });
-        });
-        
-        describe("return types from validators", function() {
-            var result;
-            
-            describe("field.validate", function() {
-                it("should not add a message if true is returned", function() {
-                    defineA();
-                    var field = A.getFields()[1]; 
-                    field.validate = function() {};
-                    spyOn(field, 'validate').andReturn(true);
-                
-                    o = new A({
-                        name: 'Foo'
-                    });
-                    result = o.validate(); 
-                    expect(result.get('name')).toBeUndefined();
-                }); 
-                
-                it("should add a message if a message is returned", function() {
-                    defineA();
-                    var field = A.getFields()[1]; 
-                    field.validate = function() {};
-                    spyOn(field, 'validate').andReturn('Failed');
-                
-                    o = new A({
-                        name: 'Foo'
-                    });
-                    result = o.validate(); 
-                    expect(result.get('name').getMessage()).toBe('Failed');
-                });
-                
-                it("should add an empty error if false is returned", function() {
-                    defineA();
-                    var field = A.getFields()[1]; 
-                    field.validate = function() {};
-                    spyOn(field, 'validate').andReturn(false);
-                
-                    o = new A({
-                        name: 'Foo'
-                    });
-                    result = o.validate(); 
-                    expect(result.get('name').getMessage()).toBeUndefined();
-                });
-            });
-            
-            describe("validator", function() {
-                it("should not add a message if true is returned", function() {
+            describe("when valid", function() {
+                beforeEach(function() {
                     defineA({
                         name: 'presence'
                     });
-                    var v = A.validators.name[0];
-                    spyOn(v, 'validate').andReturn(true);
-                
                     o = new A({
-                        name: 'Foo'
+                        name: 'x'
                     });
-                    result = o.validate(); 
-                    expect(result.get('name')).toBeUndefined();
-                }); 
-                
-                it("should add a message if a message is returned", function() {
+                });
+
+                it("should return an ErrorCollection", function() {
+                    var errors = o.validate();
+                    expect(errors instanceof Ext.data.ErrorCollection).toBe(true);
+                });
+
+                it("should have no items in the error collection", function() {
+                    var errors = o.validate();
+                    expect(errors.getCount()).toBe(0);
+                    expect(errors.isValid()).toBe(true);
+                });
+            });
+
+            describe("when not valid", function() {
+                it("should return an ErrorCollection", function() {
                     defineA({
                         name: 'presence'
                     });
-                    var v = A.validators.name[0];
-                    spyOn(v, 'validate').andReturn('Failed');
-                
+                    o = new A();
+                    var errors = o.validate();
+                    expect(errors instanceof Ext.data.ErrorCollection).toBe(true);
+                });
+
+                it("should put an error for each invalid field", function() {
+                    defineA(null, [{
+                        name: 'name',
+                        validators: 'presence'
+                    }, {
+                        name: 'rank',
+                        validators: {
+                            type: 'format',
+                            matcher: /\d+/
+                        }
+                    }, {
+                        name: 'email',
+                        validators: 'email'
+                    }]);
+
                     o = new A({
-                        name: 'Foo'
+                        name: 'X'
                     });
-                    result = o.validate(); 
-                    expect(result.get('name').getMessage()).toBe('Failed');
+
+                    var errors = o.validate(),
+                        rank = errors.get('rank'),
+                        email = errors.get('email');
+
+                    expect(errors.getCount()).toBe(2);
+                    expect(errors.isValid()).toBe(false);
+
+                    expect(rank.field).toBe('rank');
+                    expect(rank.message).toBe(formatMsg);
+
+                    expect(email.field).toBe('email');
+                    expect(email.message).toBe(emailMsg);
                 });
-                
-                it("should add an empty error if false is returned", function() {
-                    defineA({
-                        name: 'presence'
-                    });
-                    var v = A.validators.name[0];
-                    spyOn(v, 'validate').andReturn(false);
-                
-                    o = new A({
-                        name: 'Foo'
-                    });
-                    result = o.validate(); 
-                    expect(result.get('name').getMessage()).toBeUndefined();
+
+                it("should return multiple errors for a field", function() {
+                    defineA(null, [{
+                        name: 'name',
+                        validators: ['presence', 'email']
+                    }])
+
+                    o = new A();
+
+                    var errors = o.validate(),
+                        name = errors.get('name');
+
+                    expect(errors.getCount()).toBe(1);
+                    expect(errors.isValid()).toBe(false);
+
+                    expect(name[0].field).toBe('name');
+                    expect(name[0].message).toBe(presenceMsg);
+
+                    expect(name[1].field).toBe('name');
+                    expect(name[1].message).toBe(emailMsg);
                 });
-                
-                it("should return an array of errors if there are more than 1", function() {
-                    defineA({
-                        name: ['presence', 'email']
-                    });
-                    var v1 = A.validators.name[0],
-                        v2 = A.validators.name[1];
-                        
-                    spyOn(v1, 'validate').andReturn('Fail1');
-                    spyOn(v2, 'validate').andReturn('Fail2');
-                
-                    o = new A({
-                        name: 'Foo'
-                    });
-                    result = o.validate(); 
-                    expect(result.get('name')[0].getMessage()).toBe('Fail1');
-                    expect(result.get('name')[1].getMessage()).toBe('Fail2');
-                });
-            });
-            
-            it("should allow field.validate & validator to push errors at the same time", function() {
-                defineA({
-                    name: 'presence'
-                });
- 
-                var field = A.getFields()[1]; 
-                field.validate = function() {};
-                spyOn(field, 'validate').andReturn('Fail1');
-                
-                var v = A.validators.name[0];
-                spyOn(v, 'validate').andReturn('Fail2');
-            
-                o = new A({
-                    name: 'Foo'
-                });
-                result = o.validate(); 
-                expect(result.get('name')[0].getMessage()).toBe('Fail1');
-                    expect(result.get('name')[1].getMessage()).toBe('Fail2');
-            });
-            
-            it("should return an Ext.data.ErrorCollection object", function() {
-                defineA();
-                
-                o = new A();
-                
-                expect(o.validate() instanceof Ext.data.ErrorCollection).toBe(true);
-            });
+            })
         });
         
         describe("isValid", function() {
-            it("should return true if the model is valid", function() {
+            it("should return true if all fields in the model are valid", function() {
                 defineA({
                     name: 'presence'
                 });
@@ -5061,8 +5829,21 @@ describe("Ext.data.Model", function() {
                 });
                 expect(o.isValid()).toBe(true);
             });
+
+            it("should return false if only some fields are valid", function() {
+                defineA({
+                    name: 'presence',
+                    rank: 'presence'
+                });
+
+                var o = new A({
+                    name: 'foo',
+                    rank: null
+                });
+                expect(o.isValid()).toBe(false);
+            });
             
-            it("should return false if the model is not valid", function() {
+            it("should return false if all fields in the model are not valid", function() {
                 defineA({
                     name: 'presence'
                 });
@@ -5222,6 +6003,7 @@ describe("Ext.data.Model", function() {
             };
 
         beforeEach(function() {
+            spyOn(Ext.log, 'warn');
             User = Ext.define(null, {
                 extend: Ext.data.Model,
 
@@ -5543,6 +6325,135 @@ describe("Ext.data.Model", function() {
                     other = user.clone();
                     expect(other.session).toBeNull();
                 });
+            });
+        });
+    });
+
+    describe("drop", function() {
+        var A;
+
+        beforeEach(function() {
+            A = Ext.define('spec.A', {
+                extend: 'Ext.data.Model',
+                fields: ['id', 'name']
+            })
+        });
+
+        afterEach(function() {
+            Ext.undefine('spec.A');
+            A = null;
+        });
+
+        it("should mark the record as dropped", function() {
+            var rec = new A({
+                id: 1
+            });
+
+            rec.drop();
+            expect(rec.dropped).toBe(true);
+        });
+
+        it("should not erase the record if it is not a phantom", function() {
+            var rec = new A({
+                id: 1
+            });
+
+            rec.drop();
+            expect(rec.dropped).toBe(true);
+            expect(rec.erased).toBe(false);
+        });
+
+        it("should erase the record if it is a phantom", function() {
+            var rec = new A();
+            rec.drop();
+            expect(rec.dropped).toBe(true);
+            expect(rec.erased).toBe(true);
+        })
+
+        it("should call afterDrop", function() {
+            var rec = new A({
+                id: 1
+            });
+            spyOn(rec, 'callJoined');
+            rec.drop();
+            expect(rec.callJoined).toHaveBeenCalled();
+            expect(rec.callJoined.mostRecentCall.args[0]).toBe('afterDrop');
+        });
+
+        describe("associations", function() {
+            // The specifics of this are tested in the associations themselves.
+            // Here we just want to test the cascade flag works correctly.
+            
+            var order, address, orderItems, orderItem;
+            beforeEach(function() {
+                Ext.define('spec.Order', {
+                    extend: 'Ext.data.Model',
+                    fields: ['id', 'date', {
+                        name: 'addressId',
+                        unique: true,
+                        reference: {
+                            child: 'Address'
+                        }
+                    }]
+                });
+
+                Ext.define('spec.Address', {
+                    extend: 'Ext.data.Model',
+                    fields: ['id', 'city']
+                });
+
+                Ext.define('spec.OrderItem', {
+                    extend: 'Ext.data.Model',
+                    fields: ['id', 'price', 'qty', {
+                        name: 'orderId',
+                        reference: {
+                            parent: 'Order'
+                        }
+                    }]
+                });
+
+                order = new spec.Order({
+                    id: 1
+                });
+
+                address = new spec.Address({
+                    id: 201
+                });
+                order.setAddress(address);
+
+                orderItems = order.orderItems();
+                orderItem = orderItems.add({
+                    id: 101,
+                    orderId: 1
+                })[0];
+            });
+
+            afterEach(function() {
+                Ext.undefine('spec.Order');
+                Ext.undefine('spec.Address');
+                Ext.undefine('spec.OrderItem');
+                order = address = orderItems = orderItem = null;
+            });
+
+            it("should cascade by default", function() {
+                order.drop();
+                Ext.data.Model.schema.processKeyChecks(true);
+                expect(address.dropped).toBe(true);
+                expect(orderItem.dropped).toBe(true);
+            });
+
+            it("should cascade with cascade: true", function() {
+                order.drop(true);
+                Ext.data.Model.schema.processKeyChecks(true);
+                expect(address.dropped).toBe(true);
+                expect(orderItem.dropped).toBe(true);
+            });
+
+            it("should not cascade with cascade: false", function() {
+                order.drop(false);
+                Ext.data.Model.schema.processKeyChecks(true);
+                expect(address.dropped).toBe(false);
+                expect(orderItem.dropped).toBe(false);
             });
         });
     });

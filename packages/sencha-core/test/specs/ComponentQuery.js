@@ -307,6 +307,11 @@ describe("Ext.ComponentQuery", function() {
     });
     
     describe("simple query by xtype prefixed with dot", function() {
+        beforeEach(function() {
+            // Silence console warnings
+            spyOn(Ext.log, 'warn');
+        });
+        
         it("should select all six items of type G", function() {
             result = cq.query('.G', root);
             expect(result.length).toEqual(6);

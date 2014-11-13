@@ -29,7 +29,6 @@ Ext.define('Ext.toolbar.Spacer', {
     alias: 'widget.tbspacer',
     alternateClassName: 'Ext.Toolbar.Spacer',
     baseCls: Ext.baseCSSPrefix + 'toolbar-spacer',
-    focusable: false,
     
     ariaRole: 'presentation'
 });

@@ -84,3 +84,10 @@ pre.code{
     margin-left: 17px;
     margin-bottom: 4px;
 }
+
+body > p > a:focus,
+body > a:focus
+{
+    background-color: pink;
+}
+

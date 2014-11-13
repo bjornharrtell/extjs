@@ -71,6 +71,8 @@ Ext.define('Ext.form.FieldSet', {
     },
     alias: 'widget.fieldset',
     uses: ['Ext.form.field.Checkbox', 'Ext.panel.Tool', 'Ext.layout.container.Anchor', 'Ext.layout.component.FieldSet'],
+    
+    focusable: true,
 
     /**
      * @cfg {String} title

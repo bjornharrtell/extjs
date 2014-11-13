@@ -59,20 +59,7 @@ Ext.define('Ticket.view.dashboard.Dashboard', {
                 layout: 'fit',
                 items: {
                     xtype: 'polar',
-                    //bind: '{ticketStatusSummary}',
-                    store: {
-                        fields: ['id', 'g1', 'name'],
-                        data: [
-                            { id: 1, g1: 2, name: 'Item-1' },
-                            { id: 2, g1: 1, name: 'Item-2' },
-                            { id: 3, g1: 3, name: 'Item-3' },
-                            { id: 4, g1: 5, name: 'Item-4' },
-                            { id: 5, g1: 8, name: 'Item-5' }
-                        ]
-                    },
-                    //colors: ["#115fa6", "#94ae0a", "#a61120", "#ff8809", "#ffd13e", "#a61187", "#24ad9a", "#7c7474", "#a66111"],
-                    theme: "Category1",
-                    background: 'white',
+                    bind: '{ticketStatusSummary}',
                     interactions: 'rotatePie3d',
                     animate: {
                         duration: 500,
@@ -81,7 +68,7 @@ Ext.define('Ticket.view.dashboard.Dashboard', {
                     series: [
                         {
                             type: 'pie3d',
-                            field: 'g1',
+                            field: 'total',
                             donut: 30,
                             distortion: 0.6,
                             style: {
@@ -99,10 +86,7 @@ Ext.define('Ticket.view.dashboard.Dashboard', {
                 layout: 'fit',
                 items: {
                     xtype: 'cartesian',
-                    store: 'ext-empty-store', //TODO remove this
-                    bind: {
-                        store: '{ticketOpenSummary}'
-                    },
+                    bind: '{ticketOpenSummary}',
                     axes: [{
                         type: 'numeric',
                         position: 'left',

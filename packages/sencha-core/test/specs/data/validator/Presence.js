@@ -2,8 +2,8 @@ describe("Ext.data.validator.Presence", function() {
     
     var v;
     
-    function validate(value) {
-        v = new Ext.data.validator.Presence();
+    function validate(value, cfg) {
+        v = new Ext.data.validator.Presence(cfg);
         return v.validate(value);
     }
     
@@ -19,11 +19,19 @@ describe("Ext.data.validator.Presence", function() {
         it("should not validate if the value is null", function() {
             expect(validate(null)).toBe(v.getMessage());
         });
+
+        describe("with allowEmpty: false", function() {
+            it("should not validate if passed an empty string", function() {
+                expect(validate('')).toBe(v.getMessage());
+            });
+        });
     });
     
     describe("valid values", function() {
-        it("should validate if passed an empty string", function() {
-            expect(validate('')).toBe(true);
+        describe("with allowEmpty: true", function() {
+            it("should validate if passed an empty string", function() {
+                expect(validate('', {allowEmpty: true})).toBe(true);
+            });
         });
         
         it("should validate if passed false", function() {

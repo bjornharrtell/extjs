@@ -41,7 +41,7 @@ Ext.define('Ext.slider.Widget', {
         publishOnComplete: true,
 
         /**
-         * @cfg {Object} twoWayBindProperties
+         * @cfg {Object} twoWayBindable
          * This object is a map of config property names holding a `true` if changes to
          * that config should written back to its binding. Most commonly this is used to
          * indicate that the `value` config should be monitored and changes written back
@@ -168,6 +168,13 @@ Ext.define('Ext.slider.Widget', {
             delta;
 
         if (!me.disabled && e.button === 0) {
+            // Stop any selection caused by mousedown + mousemove
+            Ext.getDoc().on({
+                scope: me,
+                capture: true,
+                selectstart: me.stopSelect
+            });
+
             thumb = e.getTarget('.' + me.thumbCls, null, true);
 
             if (thumb) {
@@ -300,8 +307,20 @@ Ext.define('Ext.slider.Widget', {
     },
 
     onMouseUp: function(e, thumb) {
-        this.doMouseMove(e, thumb, true);
-        delete this.animateOnSetValue; // expose "undefined" on prototype
+        var me = this;
+        
+        me.doMouseMove(e, thumb, true);
+        Ext.getDoc().un({
+            scope: me,
+            capture: true,
+            selectstart: me.stopSelect
+        });
+        delete me.animateOnSetValue; // expose "undefined" on prototype
+    },
+
+    stopSelect : function(e) {
+        e.stopEvent();
+        return false;
     },
 
     /**

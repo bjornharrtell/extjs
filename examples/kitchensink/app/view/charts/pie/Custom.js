@@ -49,7 +49,7 @@ Ext.define('KitchenSink.view.charts.pie.Custom', {
             sprites: [{
                 type: 'text',
                 text: 'Pie Charts - Custom Slice Sizing',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -57,15 +57,13 @@ Ext.define('KitchenSink.view.charts.pie.Custom', {
             }, {
                 type: 'text',
                 text: 'Data: IDC Predictions - 2017',
-                font: '10px Helvetica',
                 x: 12,
                 y: 425
             }, {
                 type: 'text',
                 text: 'Source: Internet',
-                font: '10px Helvetica',
                 x: 12,
-                y: 435
+                y: 440
             }],
             series: [{
                 type: 'pie',

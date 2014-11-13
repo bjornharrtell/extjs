@@ -56,6 +56,8 @@ Ext.define('Ext.panel.Tool', {
      * `true` in this class to identify an object as an instantiated Tool, or subclass thereof.
      */
     isTool: true,
+    
+    focusable: true,
 
     baseCls: Ext.baseCSSPrefix + 'tool',
     disabledCls: Ext.baseCSSPrefix + 'tool-disabled',

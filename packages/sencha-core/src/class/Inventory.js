@@ -86,7 +86,7 @@ Ext.Inventory.prototype = {
     },
 
     getAlternatesByName: function (name) {
-        return this.nameToAliases[name] || null;
+        return this.nameToAlternates[name] || null;
     },
 
     /**

@@ -16,38 +16,53 @@ Ext.define('KitchenSink.view.binding.ChildSessionForm', {
     //</example>
 
     bind: {
-        title: 'Edit {theCustomer.name}'
+        title: '{title}'
     },
     layout: 'fit',
     modal: true,
-    width: 400,
-    height: 350,
+    width: 500,
+    height: 430,
     closable: true,
 
     items: {
         xtype: 'form',
+        reference: 'form',
         bodyPadding: 10,
         border: false,
+        // use the Model's validations for displaying form errors
+        modelValidation: true,
+        layout: {
+            type: 'vbox',
+            align: 'stretch'
+        },
         items: [{
             xtype: 'textfield',
             fieldLabel: 'Name',
             reference: 'name',
+            msgTarget: 'side',
             bind: '{theCustomer.name}'
         }, {
             xtype: 'textfield',
             fieldLabel: 'Phone',
             reference: 'phone',
+            msgTarget: 'side',
             bind: '{theCustomer.phone}'
         }, {
             xtype: 'grid',
+            flex: 1,
             reference: 'orders',
             margin: '10 0 0 0',
             title: 'Orders',
             bind: '{theCustomer.orders}',
+            tbar: [{
+                text: 'Add Order',
+                handler: 'onAddOrderClick'
+            }],
             columns: [{
                 text: 'Id',
                 dataIndex: 'id',
-                width: 30
+                width: 50,
+                renderer: 'renderOrderId'
             }, {
                 xtype: 'datecolumn',
                 text: 'Date',
@@ -64,7 +79,7 @@ Ext.define('KitchenSink.view.binding.ChildSessionForm', {
                 widget: {
                     xtype: 'button',
                     text: 'Remove',
-                    handler: 'onRemoveClick'
+                    handler: 'onRemoveOrderClick'
                 }
             }]
         }]

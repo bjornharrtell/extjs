@@ -55,37 +55,35 @@ Ext.define('Aria.view.Grid', {
         me.items = [{
             xtype:'panel',
             title:'Basic Grid',
-            bodyPadding:12,
-            layout:{
-                type:'vbox',
-                defaultMargins:{top:0, bottom:12, left:0, right:0}
-            },
-            items:[{
-                xtype: 'fieldcontainer',
-                layout: 'hbox',
-                items: [{
-                    xtype: 'checkbox',
-                    boxLabel: 'Editable',
-                    listeners:{
-                        'change':function (checkbox, newvalue, oldvalue) {
-                            var grid = me.down('grid');
-                            var panel = checkbox.up('panel');
+            width: 650,
+            height: 300,
+            layout: 'fit',
+            
+            tbar: [{
+                xtype: 'checkbox',
+                boxLabel: 'Editable',
+                listeners:{
+                    'change':function (checkbox, newvalue, oldvalue) {
+                        var grid = me.down('grid');
+                        var panel = checkbox.up('panel');
 
-                            if (newvalue !== me.isEditable) {
-                                me.isEditable = newvalue;
-                                panel.remove(grid, true);
-                                panel.insert(1, me.createGrid(me.curModel, me.isEditable, me.store));
-                            }
+                        if (newvalue !== me.isEditable) {
+                            me.isEditable = newvalue;
+                            panel.remove(grid, true);
+                            panel.insert(1, me.createGrid(me.curModel, me.isEditable, me.store));
                         }
                     }
-
-                }]
-            },
-
-            me.createGrid(me.curModel, me.isEditable, me.store),
-            {
+                }
+            }],
+            
+            items: [
+                me.createGrid(me.curModel, me.isEditable, me.store)
+            ],
+            
+            buttonAlign: 'left',
+            buttons: [{
                 xtype: 'button',
-                text: 'Reset    ',
+                text: 'Reset',
                 handler: function () {
                     me.store.loadData(me.storeData);
                 }
@@ -111,13 +109,11 @@ Ext.define('Aria.view.Grid', {
         }
         return Ext.widget('grid', {
             store:store,
-            width: 520,
-            height: 200,
-            autoScroll: true,
             columns:[
                 {
                     text: 'Company',
                     dataIndex: 'company',
+                    sortable: true,
                     editor: {
                         xtype: 'textfield',
                         allowBlank: false
@@ -132,32 +128,33 @@ Ext.define('Aria.view.Grid', {
                     }
                     //sortable:false,
                     //menuDisabled:true
-                },
-                {
-                    text: 'Last',
-                    dataIndex: 'last',
-                    xtype: 'numbercolumn',
-                    format: '0.00'
-                },
-                {
-                    text: 'Change',
-                    dataIndex: 'change',
-                    xtype: 'numbercolumn',
-                    format: '0.00',
-                    editor: {
-                        xtype: 'numberfield'
-                    }
-                },
-                {
-                    text: 'Last Updated',
-                    dataIndex: 'updated',
-                    format: 'Y-m-d',
-                    xtype: 'datecolumn',
-                    editor: {
-                        xtype: 'datefield'
-                    }
-                },
-                {
+                }, {
+                    text: 'Stock Price',
+                    columns: [{
+                        text: 'Price',
+                        dataIndex: 'last',
+                        xtype: 'numbercolumn',
+                        formatter: 'usMoney'
+                    },
+                    {
+                        text: 'Change',
+                        dataIndex: 'change',
+                        xtype: 'numbercolumn',
+                        format: '0.00',
+                        editor: {
+                            xtype: 'numberfield'
+                        }
+                    },
+                    {
+                        text: 'Last Updated',
+                        dataIndex: 'updated',
+                        format: 'Y-m-d',
+                        xtype: 'datecolumn',
+                        editor: {
+                            xtype: 'datefield'
+                        }
+                    }]
+                }, {
                     xtype: 'actioncolumn',
                     iconCls: 'sell-col',
                     tooltip: 'Sell stock',
@@ -194,7 +191,7 @@ Ext.define('Aria.view.Grid', {
             ],
             selType: selType,
             selModel: {
-                mode: 'MULTI'
+                mode: 'SINGLE'
             },
             plugins: plugins,
             header: false,

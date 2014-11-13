@@ -9,11 +9,36 @@
     }
 }
 
-@function nopx ($value) {
-    @if $value == 0 {
-        @return 0;
+@function frame-size($border-width, $inner-border-width, $border-radius) {
+    // We use the border-radius of the two corners on each edge to determine the "edge's
+    // border-radius". For IE, the framing elements need to be as large as the larger of
+    // the border-radius and the border-width on each edge. These values are passed on to
+    // JavaScript using an encoded background-image url and the equivalent operations are
+    // handled by Renderable.js.
+    $frame-top:    max(top($border-width) +    top($inner-border-width),    max(top($border-radius),    right($border-radius)));
+    $frame-right:  max(right($border-width) +  right($inner-border-width),  max(right($border-radius),  bottom($border-radius)));
+    $frame-bottom: max(bottom($border-width) + bottom($inner-border-width), max(bottom($border-radius), left($border-radius)));
+    $frame-left:   max(left($border-width) +   left($inner-border-width),   max(left($border-radius),   top($border-radius)));
+
+    $frame-max: max($frame-top $frame-right $frame-bottom $frame-left);
+
+    // Slices produced by the slicer are always equally sized so that
+    // they can be sprited.  This means that all sides that have frames
+    // must be the same size
+    @if $frame-top != 0 {
+        $frame-top: $frame-max;
     }
-    @return $value / 1px;
+    @if $frame-right != 0 {
+        $frame-right: $frame-max;
+    }
+    @if $frame-bottom != 0 {
+        $frame-bottom: $frame-max;
+    }
+    @if $frame-left != 0 {
+        $frame-left: $frame-max;
+    }
+
+    @return $frame-top $frame-right $frame-bottom $frame-left
 }
 
 @mixin x-frame(
@@ -28,12 +53,18 @@
     $background-direction: top,
     $include-frame-rtl: false,
     $background-stretch: null,
-    $ignore-frame-padding: false
+    $ignore-frame-padding: false,
+    $inner-border-width: 0
 ) {
     $cls-ui: $cls;
     $cls-ui: null;
     @if $ui != null {
         $cls-ui: $cls + '-' + $ui;
+    }
+
+    @if is-null($inner-border-width) {
+        // default inner border width to 0 if the caller passed null or 'none' (e.g. buttons do this)
+        $inner-border-width: 0;
     }
 
     $vertical: false;
@@ -68,17 +99,15 @@
         $stretch: slicer-background-stretch($cls-ui, $background-stretch);
     }
 
-    // We use the border-radius of the two corners on each edge to determine the "edge's
-    // border-radius". For IE, the framing elements need to be as large as the larger of
-    // the border-radius and the border-width on each edge. These values are passed on to
-    // JavaScript using an encoded background-image url and the equivalent operations are
-    // handled by Renderable.js.
-    //
-    $frame-top:    max(top($border-width),    max(top($border-radius),    right($border-radius)));
-    $frame-right:  max(right($border-width),  max(right($border-radius),  bottom($border-radius)));
-    $frame-bottom: max(bottom($border-width), max(bottom($border-radius), left($border-radius)));
-    $frame-left:   max(left($border-width),   max(left($border-radius),   top($border-radius)));
-    $frame-max:    max(max($frame-top, $frame-bottom), max($frame-left, $frame-right));
+    $frame-size: frame-size($border-width, $inner-border-width, $border-radius);
+    $frame-top: nth($frame-size, 1);
+    $frame-right: nth($frame-size, 2);
+    $frame-bottom: nth($frame-size, 3);
+    $frame-left: nth($frame-size, 4);
+
+    $frame-max: max($frame-size);
+
+    $frame: slicer-frame($cls-ui, $frame-size);
 
     $padding-top: 0;
     $padding-right: 0;
@@ -142,10 +171,10 @@
     }
 
     $framing-info: $framing-info + '-' +
-           nopx(top($border-radius)) + '-' +
-           nopx(right($border-radius)) + '-' +
-           nopx(bottom($border-radius)) + '-' +
-           nopx(left($border-radius)) + '-' +
+           nopx($frame-top) + '-' +
+           nopx($frame-right) + '-' +
+           nopx($frame-bottom) + '-' +
+           nopx($frame-left) + '-' +
            nopx(top($border-width)) + '-' +
            nopx(right($border-width)) + '-' +
            nopx(bottom($border-width)) + '-' +
@@ -153,7 +182,7 @@
            if($ignore-frame-padding, $frame-info-padding-top, nopx($padding-top)) + '-' +
            if($ignore-frame-padding, $frame-info-padding-right, nopx($padding-right)) + '-' +
            if($ignore-frame-padding, $frame-info-padding-bottom, nopx($padding-bottom)) + '-' +
-           if($ignore-frame-padding, $frame-info-padding-left, nopx($padding-left)) + '-';
+           if($ignore-frame-padding, $frame-info-padding-left, nopx($padding-left));
 
     .#{$prefix}#{$cls-ui} {
         @if length($border-radius) == 2 {
@@ -229,27 +258,6 @@
         }
     }
 
-    @if $include-slicer-gradient and not is-null($background-gradient) {
-        .#{$prefix}nlg {
-            .#{$prefix}#{$cls-ui} {
-                background-image: slicer-background-image($cls-ui, '#{$cls}/#{$cls-ui}-bg');
-
-                @if $vertical {
-                    background-position: $background-stretch-position 0;
-                } @else {
-                    background-position: 0 $background-stretch-position;
-                }
-            }
-
-            @if $include-frame-rtl {
-                .#{$prefix}rtl.#{$prefix}#{$cls-ui} {
-                    background-image: slicer-background-image-rtl($cls-ui, '#{$cls}/#{$cls-ui}-bg-rtl');
-                    background-position: rtl-background-position($background-stretch-position 0);
-                }
-            }
-        }
-    }
-
     @if $include-slicer-border-radius {
         .#{$prefix}nbr {
             // This rule must be in x-nbr to avoid matching on CSS3 browsers.
@@ -265,6 +273,8 @@
                 @if not is-null($background-gradient) {
                     background-image: none;
                 }
+                // it is helpful to suppress box-shadow when debugging nocss3 mode in modern browsers
+                box-shadow: none !important;
             }
         }
 

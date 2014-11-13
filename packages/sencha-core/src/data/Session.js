@@ -25,8 +25,6 @@
  * The `update` and `getChanges` methods both operate on object that contains a summary
  * of records and associations and different CRUD operations.
  *
- * TODO
- *
  * ## Saving
  *
  * There are two basic ways to save the contents of a Session: `getChanges` and
@@ -37,39 +35,8 @@
  * class, there is the `getSaveBatch` method. That method returns an `Ext.data.Batch`
  * object populated with the necessary `create`, `update` and `destory` operations to
  * save all of the changes in the Session.
- *
- * # Binding
- *
- * Most forms of data binding start with a `{@link Ext.app.ViewModel}` rather than a
- * session, but the session does provide binding for records and associations. These
- * forms of binding consist of an object with a `reference` and `id` property.
- *
- * ## Record Binding
- *
- * When a record of a particular `Ext.data.Model` derived type is desired, it can be bound
- * like so (we'll simplify this using links next):
- *
- *      viewModel.bind({
- *              reference: 'User',
- *              id: 42
- *          },
- *          function (user) {
- *              // called when the User with id=42 is loaded
- *          });
- *
- * ## Association Binding
- *
- * Similarly we can request an association by adding the `association` property.
- *
- *      viewModel.bind({
- *              reference: 'User',
- *              id: 42,
- *              association: 'groups'
- *          },
- *          function (groups) {
- *              // called when the "groups" for User id=42 are loaded
- *              // this will be an Ext.data.Store
- *          });
+ * 
+ * @since 5.0.0
  */
 Ext.define('Ext.data.Session', {
     requires: [
@@ -94,6 +61,16 @@ Ext.define('Ext.data.Session', {
          * The parent session for this session.
          */
         parent: null,
+
+        /**
+         * @cfg {Boolean} autoDestroy
+         * `true` to automatically destroy this session when a component it is attached
+         * to is destroyed. This should be set to false if the session is intended to be
+         * used across multiple root level components.
+         *
+         * @since 5.0.1
+         */
+        autoDestroy: true,
 
         crudProperties: {
             create: 'C',
@@ -198,18 +175,24 @@ Ext.define('Ext.data.Session', {
      * @param {Ext.data.Model} record The record to adopt.
      */
     adopt: function(record) {
+        var me = this,
+            associations = record.associations,
+            roleName;
+
         //<debug>
-        this.checkModelType(record.self);
-        if (record.session && record.session !== this) {
+        me.checkModelType(record.self);
+        if (record.session && record.session !== me) {
             Ext.Error.raise('Record already belongs to an existing session');
         }
-        if (record.phantom) {
-            Ext.Error.raise('Phantom records cannot be adopted, use the createRecord method');
-        }
         //</debug>
-        if (record.session !== this) {
-            record.session = this;
-            this.add(record);
+        if (record.session !== me) {
+            record.session = me;
+            me.add(record);
+            if (associations) {
+                for (roleName in associations) {
+                    associations[roleName].adoptAssociated(record, me);
+                }
+            }
         }
     },
 
@@ -232,7 +215,8 @@ Ext.define('Ext.data.Session', {
             parent = this.getParent(),
             id;
 
-        if (parent) {
+        // If we have no data, we're creating a phantom
+        if (data && parent) {
             id = Model.getIdFromData(data);
             if (parent.peekRecord(Model, id)) {
                 Ext.Error.raise('A parent session already contains an entry for ' + Model.entityName + ': ' + id);
@@ -467,6 +451,9 @@ Ext.define('Ext.data.Session', {
             entityName, entityType, entityInfo, i,
             operation, item, associations, key, role, associationData;
 
+        // Force the schema to process any pending drops
+        me.getSchema().processKeyChecks(true);
+
         // Do a first pass to setup all the entities first
         for (entityName in data) {
             entityType = schema.getEntity(entityName);
@@ -520,9 +507,8 @@ Ext.define('Ext.data.Session', {
         add: function (record) {
             var me = this,
                 id = record.id,
-                matrices = me.matrices,
                 entry = me.getEntry(record.self, id),
-                associations, roleName, role;
+                associations, roleName;
 
             //<debug>
             if (entry.record) {
@@ -535,13 +521,18 @@ Ext.define('Ext.data.Session', {
             me.registerReferences(record);
             associations = record.associations;
             for (roleName in associations) {
-                role = associations[roleName];
-                association = role.association;
-                matrix = matrices[association.name];
-                if (association.isManyToMany && matrix) {
-                    role.checkMembership(me, record, matrix);
-                }
+                associations[roleName].checkMembership(me, record);
             }
+        },
+
+        /**
+         * Template method, will be called by Model after a record is dropped.
+         * @param {Ext.data.Model} record The record.
+         *
+         * @private
+         */
+        afterErase: function(record) {
+            this.evict(record);
         },
 
         /**
@@ -622,6 +613,22 @@ Ext.define('Ext.data.Session', {
         },
 
         /**
+         * Remove a record and any references from the session.
+         * @param {Ext.data.Model} record The record
+         *
+         * @private
+         */
+        evict: function(record) {
+            var entityName = record.entityName,
+                entry;
+
+            entry = this.data[entityName];
+
+            if (entry) {
+            }
+        },
+
+        /**
          * Transforms a list of ids into a list of records for a particular type.
          * @param {Ext.Class} entityType The entity type.
          * @param {Object[]} ids The ids to transform.
@@ -657,6 +664,11 @@ Ext.define('Ext.data.Session', {
          * @private
          */
         getEntry: function(type, id) {
+            if (type.isModel) {
+                id = type.getId();    
+                type = type.self;
+            }
+
             var entityType = type.$isClass ? type : this.getSchema().getEntity(type),
                 entityName = entityType.entityName,
                 data = this.data,
@@ -668,33 +680,69 @@ Ext.define('Ext.data.Session', {
             return entry;
         },
 
+        getRefs: function(record, role, includeParent) {
+            var entry = this.getEntry(record),
+                refs = entry && entry.refs && entry.refs[role.role],
+                parent = includeParent && this.getParent(),
+                parentRefs, id, rec;
+
+            if (parent) {
+                parentRefs = parent.getRefs(record, role);
+                if (parentRefs) {
+                    for (id in parentRefs) {
+                        rec = parentRefs[id];
+                        if ((!refs || !refs[id])) {
+                            // We don't know about this record but the parent does. We need to
+                            // pull it down so it may be edited as part of the collection
+                            this.getRecord(rec.self, rec.id);
+                        }
+                    }
+                    // Recalculate our refs after we pull down all the required records
+                    refs = entry && entry.refs && entry.refs[role.role];
+                }
+            }
+
+            return refs || null;
+        },
+
         getIdentifier: function (entityType) {
-            var cache = this.identifierCache,
-                identifier = entityType.identifier,
-                key = identifier.id || entityType.entityName,
+            var parent = this.getParent(),
+                cache, identifier, key, ret;
+
+            if (parent) {
+                ret = parent.getIdentifier(entityType);
+            } else {
+                cache = this.identifierCache;
+                identifier = entityType.identifier;
+                key = identifier.id || entityType.entityName;
                 ret = cache[key];
 
-            if (!ret) {
-                if (identifier.clone) {
-                    ret = identifier.clone({
-                        cache: cache
-                    });
-                } else {
-                    ret = identifier;
-                }
+                if (!ret) {
+                    if (identifier.clone) {
+                        ret = identifier.clone({
+                            cache: cache
+                        });
+                    } else {
+                        ret = identifier;
+                    }
 
-                cache[key] = ret;
+                    cache[key] = ret;
+                }
             }
 
             return ret;
         },
 
-        getMatrix: function (matrix) {
+        getMatrix: function (matrix, preventCreate) {
             var name = matrix.isManyToMany ? matrix.name : matrix,
-                matrices = this.matrices;
+                matrices = this.matrices,
+                ret;
 
-            return matrices[name] ||
-                   (matrices[name] = new Ext.data.matrix.Matrix(this, matrix));
+            ret = matrices[name];
+            if (!ret && !preventCreate) {
+                ret = matrices[name] = new Ext.data.matrix.Matrix(this, matrix);
+            }
+            return ret || null;
         },
 
         getMatrixSlice: function (role, id) {
@@ -988,6 +1036,9 @@ Ext.define('Ext.data.Session', {
                 data = me.data,
                 matrices = me.matrices,
                 all, assoc, id, id2, matrix, members, name, record, slice, slices, state;
+
+            // Force the schema to process any pending drops
+            me.getSchema().processKeyChecks(true);
 
             for (name in data) {
                 all = data[name];  // all entities of type "name"

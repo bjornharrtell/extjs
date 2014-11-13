@@ -16,9 +16,11 @@ Ext.define('Ext.aria.Img', {
     onRender: function() {
         var me = this;
         
+        //<debugger>
         if (!me.alt) {
             Ext.log.warn('For ARIA compliance, IMG elements SHOULD have an alt attribute');
         }
+        //</debugger>
         
         me.callParent();
     }

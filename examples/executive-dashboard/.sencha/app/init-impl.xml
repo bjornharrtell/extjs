@@ -71,6 +71,7 @@
             <file path="${app.config.dir}/build.properties" required="false"/>
             <!-- Pick up the defaults by framework/environment followed by general: -->
             <file path="${app.config.dir}/${framework.name}.properties" required="true"/>
+            <file path="${app.config.dir}/${app.packager}.defaults.properties" required="false"/>
             <file path="${app.config.dir}/${build.environment}.defaults.properties" required="true"/>
             <file path="${app.config.dir}/defaults.properties" required="true"/>
         </x-load-properties>
@@ -159,6 +160,22 @@
              </property>
         -->
         <property name="build.page.options" value=""/>
+
+
+        <dirname property="build.out.page.dir" file="${build.out.page.path}"/>
+        <dirname property="build.out.js.dir" file="${build.out.js.path}"/>
+        <dirname property="build.out.framework.dir" file="${build.out.framework.path}"/>
+        <dirname property="build.out.css.dir" file="${build.out.css.path}"/>
+        <dirname property="build.out.microloader.dir" file="${build.out.microloader.path}"/>
+        <dirname property="build.out.manifest.dir" file="${build.out.manifest.path}"/>
+        <dirname property="build.out.metadata.dir" file="${build.out.metadata.path}"/>
+
+        <dirname property="build.bootstrap.page.dir" file="${build.bootstrap.page.path}"/>
+        <dirname property="build.bootstrap.css.dir" file="${build.bootstrap.css.path}"/>
+        <dirname property="build.bootstrap.microloader.dir" file="${build.bootstrap.microloader.path}"/>
+        <dirname property="build.bootstrap.manifest.dir" file="${build.bootstrap.manifest.path}"/>
+        <dirname property="build.bootstrap.metadata.dir" file="${build.bootstrap.metadata.path}"/>
+
     </target>
     <target name="-after-init-defaults"/>
 
@@ -211,6 +228,7 @@
                 -keepTempDir=${build.compile.temp.dir.keep}
                 -options=${build.options}
                 load-app
+                    -splitFramework=${enable.split.mode}
                     -frameworkFile=${build.framework.name}
                     -jsBundleFile=${build.classes.name}
                     -cssBundleFile=${internal.app.css.rel}

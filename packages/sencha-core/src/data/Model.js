@@ -408,23 +408,8 @@ Ext.define('Ext.data.Model', {
     /**
      * @property {String} entityName
      * The short name of this entity class. This name is derived from the `namespace` of
-     * the associated `schema` and this class name. By default, this name is the leaf name
-     * of the class, or if the full class name contains `".model."`, the `entityName` will
-     * default to the tail of the class name following that segment. For this class:
-     * 
-     *      Ext.define('MyApp.model.Foo', {
-     *          extend: 'Ext.data.Model',
-     *          ...
-     *      });
-     *
-     *      // entityName == 'Foo'
-     *
-     *      Ext.define('MyApp.model.sub.Bar', {
-     *          extend: 'Ext.data.Model',
-     *          ...
-     *      });
-     *
-     *      // entityName == 'sub.Bar'
+     * the associated `schema` and this class name. By default, a class is not given a
+     * shortened name.
      *
      * All entities in a given `schema` must have a unique `entityName`.
      * 
@@ -680,6 +665,7 @@ Ext.define('Ext.data.Model', {
      */
     previousValues: undefined, // Not "null" so getPrevious returns undefined first time
 
+    // @cmd-auto-dependency { aliasPrefix : "proxy.", defaultPropertyName : "defaultProxyType"}
     /**
      * @cfg {String/Object/Ext.data.proxy.Proxy} proxy
      * The {@link Ext.data.proxy.Proxy proxy} to use for this class.
@@ -1149,9 +1135,11 @@ Ext.define('Ext.data.Model', {
         var me = this,
             modified = me.modified;
 
+        me.rejecting = true;
         if (modified) {
             me.set(modified, me._rejectOptions);
         }
+        delete me.rejecting;
 
         me.clearState();
 
@@ -1179,7 +1167,10 @@ Ext.define('Ext.data.Model', {
 
         me.clearState();
 
-        me.phantom = false;
+        if (!me.rejecting) {
+            me.phantom = false;
+        }
+
         if (me.dropped) {
             me.erased = erased = true;
         }
@@ -1211,9 +1202,26 @@ Ext.define('Ext.data.Model', {
      * @since 5.0.0
      */
     drop: function (cascade) {
-        //TODO - implement cascade
-        this.dropped = true;
-        this.callJoined('afterDrop');
+        var me = this,
+            associations = me.associations,
+            session = me.session,
+            phantom = me.phantom,
+            roleName;
+
+        if (me.erased || me.dropped) {
+            return;
+        }
+        
+        me.dropped = true;
+        if (associations && cascade !== false) {
+            for (roleName in associations) {
+                associations[roleName].onDrop(me, session);
+            }
+        }
+        me.callJoined('afterDrop');
+        if (me.phantom) {
+            me.setErased();
+        }
     },
 
     /**
@@ -1252,11 +1260,14 @@ Ext.define('Ext.data.Model', {
     unjoin: function (item) {
         var me = this,
             joined = me.joined,
-            len = joined.length,
+            
+            // TreeModels are never joined to their TreeStore.
+            // But unjoin is called by the base class's onCollectionRemove, so joined may be undefined.
+            len = joined && joined.length,
             store = me.store,
             i;
 
-        if (joined.length === 1 && joined[0] === item) {
+        if (len === 1 && joined[0] === item) {
             joined.length = 0;
         } else if (len) {
             Ext.Array.remove(joined, item);
@@ -1264,11 +1275,13 @@ Ext.define('Ext.data.Model', {
 
         if (store === item) {
             store = null;
-            for (i = 0, len = joined.length; i < len; ++i) {
-                item = joined[i];
-                if (item.isStore) {
-                    store = item;
-                    break;
+            if (joined) {
+                for (i = 0, len = joined.length; i < len; ++i) {
+                    item = joined[i];
+                    if (item.isStore) {
+                        store = item;
+                        break;
+                    }
                 }
             }
             me.store = store;
@@ -1389,6 +1402,18 @@ Ext.define('Ext.data.Model', {
     },
 
     /**
+     * Returns a url-suitable string for this model instance. By default this just returns the name of the Model class
+     * followed by the instance ID - for example an instance of MyApp.model.User with ID 123 will return 'user/123'.
+     * @return {String} The url string for this model instance.
+     */
+    toUrl: function() {
+        var pieces = this.$className.split('.'),
+            name   = pieces[pieces.length - 1].toLowerCase();
+
+        return name + '/' + this.getId();
+    },
+
+    /**
      * Destroys the model using the configured proxy.
      * @param {Object} options Options to pass to the proxy. Config object for {@link Ext.data.operation.Operation}.
      * @return {Ext.data.operation.Operation} The operation
@@ -1465,7 +1490,7 @@ Ext.define('Ext.data.Model', {
     getAssociatedData: function (result) {
         var me = this,
             associations = me.associations,
-            i, item, items, itemData, length, record, role, roleName;
+            deep, i, item, items, itemData, length, record, role, roleName;
 
         result = result || {};
 
@@ -1491,8 +1516,9 @@ Ext.define('Ext.data.Model', {
                     // values and misrepresent the content). Instead we tell getData to
                     // only get the fields vs descend further.
                     record = items[i];
+                    deep = !record.$gathering;
                     record.$gathering = 1;
-                    itemData.push(record.getData(!record.$gathering));
+                    itemData.push(record.getData(deep));
                     delete record.$gathering;
                 }
 
@@ -1926,7 +1952,7 @@ Ext.define('Ext.data.Model', {
 
         getIdFromData: function(data) {
             var T = this,
-                idField = T.idField;
+                idField = T.idField,
                 id = idField.calculated ? (new T(data)).id : data[idField.name];
 
             return id;
@@ -1976,6 +2002,11 @@ Ext.define('Ext.data.Model', {
                 proxy = me.proxyConfig;
 
                 if (!proxy || !proxy.isProxy) {
+                    if (typeof proxy === 'string') {
+                        proxy = {
+                            type: proxy
+                        };
+                    }
                     // We have nothing or a config for the proxy. Get some defaults from
                     // the Schema and smash anything we've provided over the top.
                     defaults = me.schema.constructProxy(me);
@@ -2074,9 +2105,12 @@ Ext.define('Ext.data.Model', {
          * @inheritable
          */
         load: function(id, options, session) {
-            var rec = new this({
-                id: id
-            }, session);
+            var data = {},
+                rec;
+
+            data[this.prototype.idProperty] = id;
+            rec = new this(data, session);
+
             rec.load(options);
             return rec;
         }
@@ -2244,11 +2278,7 @@ Ext.define('Ext.data.Model', {
                 args.unshift(me);
             } else {
                 args = [me];
-            }
-
-            if (session && (fn = session[funcName])) {
-                fn.apply(session, args);
-            }
+            } 
 
             if (joined) {
                 for (i = 0, len = joined.length; i < len; ++i) {
@@ -2257,6 +2287,11 @@ Ext.define('Ext.data.Model', {
                         fn.apply(item, args);
                     }
                 }
+            }
+
+            fn = session && session[funcName];
+            if (fn) {
+                fn.apply(session, args);
             }
         },
         
@@ -2498,12 +2533,6 @@ Ext.define('Ext.data.Model', {
 
                 // Merge in any fields from this class:
                 if (fieldDefs) {
-                    //<debug>
-                    var superFieldNames;
-                    if (superFields) {
-                         superFieldNames = Ext.Array.toMap(superFields, 'name');
-                    }
-                    //</debug>
                     delete data.fields;
                     for (i = 0, length = fieldDefs.length; i < length; ++i) {
                         field = fieldDefs[i];
@@ -2518,7 +2547,10 @@ Ext.define('Ext.data.Model', {
                         field = Field.create(fieldDefs[i]);
                         name = field.name;
                         //<debug>
-                        if (superFields && name in superFieldNames) {
+                        var superField = cls.getField(name);
+                        // We can use getField here because it's not been pushed into the map yet, if a field
+                        // is returned then it's pushed in by the superclass.
+                        if (superField && !superField.generated && cls.$className) {
                             Ext.log.warn('Redefining field "' + name + '" in ' + cls.$className);
                         }
                         //</debug>
@@ -2549,6 +2581,9 @@ Ext.define('Ext.data.Model', {
                     fieldsMap[idProperty] = idField;
                     idField.definedBy = cls;
                     idField.ordinal = ordinal;
+                    //<debug>
+                    idField.generated = true;
+                    //</debug>
                 }
 
                 idField.allowNull = idField.critical = idField.identifier = true;
@@ -2558,6 +2593,73 @@ Ext.define('Ext.data.Model', {
 
                 // NOTE: Be aware that the one fellow that manipulates these after this
                 // point is Ext.data.NodeInterface.
+            },
+
+            initValidators: function(data, cls, proto) {
+                var superValidators = proto.validators,
+                    validators, field, copy, validatorDefs,
+                    i, length, fieldValidator, name, validator, item;
+
+                if (superValidators) {
+                    validators = {};
+                    for (field in superValidators) {
+                        validators[field] = Ext.Array.clone(superValidators[field]);
+                    }
+                }
+
+                validatorDefs = data.validators || data.validations;
+                //<debug>
+                if (data.validations) {
+                    delete data.validations;
+                    Ext.log.warn((cls.$className || 'Ext.data.Model' ) +
+                          ': validations has been deprecated. Please use validators instead.');
+                }
+                //</debug>
+                if (validatorDefs) {
+                    delete data.validators;
+
+                    validators = validators || {};
+
+                    // Support older array syntax
+                    if (Ext.isArray(validatorDefs)) {
+                        copy = {};
+                        for (i = 0, length = validatorDefs.length; i < length; ++i) {
+                            item = validatorDefs[i];
+                            name = item.field;
+                            if (!copy[name]) {
+                                copy[name] = [];
+                            }
+                            // Check for function form
+                            item = item.fn || item;
+                            copy[name].push(item);
+                        }
+                        validatorDefs = copy;
+                    }
+
+                    for (name in validatorDefs) {
+                        fieldValidator = validatorDefs[name];
+                        if (!Ext.isArray(fieldValidator)) {
+                            fieldValidator = [fieldValidator];
+                        }
+
+                        validator = validators[name];
+                        if (validators[name]) {
+                            // Declared in super
+                            Ext.Array.push(validator, fieldValidator);
+                        } else {
+                            validators[name] = fieldValidator;
+                        }
+                    }
+                }
+                if (validators) {
+                    for (name in validators) {
+                        field = cls.getField(name);
+                        if (field) {
+                            field.setModelValidators(validators[name]);
+                        }
+                    }
+                }
+                cls.validators = proto.validators = validators;
             },
 
             initAssociations: function (schema, data, cls) {
@@ -2699,109 +2801,6 @@ Ext.define('Ext.data.Model', {
                 return null;
             },
 
-            initValidators: function(data, cls, proto) {
-                var Validator = Ext.data.validator.Validator,
-                    superValidators = proto.validators,
-                    validators, field, copy, validatorDefs,
-                    i, length, existing, validator, fieldValidator, name,
-                    item, type;
-
-                if (superValidators) {
-                    validators = {};
-                    for (field in superValidators) {
-                        if (superValidators.hasOwnProperty(field)) {
-                            // copy the array so we don't modify the superclass.
-                            fieldValidator = superValidators[field];
-                            copy = [];
-                            for (i = 0, length = fieldValidator.length; i < length; ++i) {
-                                copy[i] = fieldValidator[i].clone();
-                            }
-                            validators[field] = copy;
-                        }
-                    }
-                }
-
-                validatorDefs = data.validators || data.validations;
-                //<debug>
-                if (data.validations) {
-                    delete data.validations;
-                    Ext.log.warn((cls.$className || 'Ext.data.Model' ) +
-                          ': validations has been deprecated. Please use validators instead.');
-                }
-                //</debug>
-                if (validatorDefs) {
-                    delete data.validators;
-
-                    validators = validators || {};
-
-                    // Support older array syntax
-                    if (Ext.isArray(validatorDefs)) {
-                        copy = {};
-                        for (i = 0, length = validatorDefs.length; i < length; ++i) {
-                            item = validatorDefs[i];
-                            name = item.field;
-                            if (!copy[name]) {
-                                copy[name] = [];
-                            }
-                            // Check for function form
-                            item = item.fn || item;
-                            copy[name].push(item);
-                        }
-                        validatorDefs = copy;
-                    }
-
-                    for (name in validatorDefs) {
-                        if (validatorDefs.hasOwnProperty(name)) {
-                            item = validatorDefs[name];
-                            if (!Ext.isArray(item)) {
-                                item = [item];
-                            }
-                            for (i = 0, length = item.length; i < length; ++i) {
-                                validator = item[i];
-                                type = typeof validator;
-                                if (type === 'function') {
-                                    // If we have a function we have no way of "matching" it,
-                                    // so always go ahead and add it
-                                    validator = new Validator(validator);
-                                } else {
-                                    if (superValidators) {
-                                        existing = this.findValidator(validators, name, validator);
-                                    }
-                                    if (type === 'string') {
-                                        // If we have a string and an existing validator, then
-                                        // we do nothing, since we can't "improve" upon it
-                                        if (!existing) {
-                                            validator = Validator.create({
-                                                type: validator
-                                            });
-                                        } else {
-                                            validator = null;
-                                        }
-                                    } else {
-                                        // If we have an existing one, then "merge" them
-                                        // together
-                                        if (!existing) {
-                                            validator = Validator.create(validator);
-                                        } else {
-                                            existing.setConfig(validator);
-                                            validator = null;
-                                        }
-                                    }
-                                }
-                                if (validator) {
-                                    fieldValidator = validators[name];
-                                    if (!fieldValidator) {
-                                        fieldValidator = validators[name] = [];
-                                    }
-                                    fieldValidator.push(validator);
-                                }
-                            }
-                        }
-                    }
-                }
-                cls.validators = proto.validators = validators;
-            },
-
             /**
              * This method produces the `initializeFn` for this class. If there are no fields
              * requiring {@link Ext.data.field.Field#cfg-convert conversion} and no fields requiring
@@ -2931,6 +2930,12 @@ function () {
     Model.proxyConfig = proto.proxy;
     delete proto.proxy;
 
+    // Base Model class may be used. It needs an empty fields array.
+    Model.fields = [];
+
+    // Base Model class may be used. It needs an empty fieldsMap hash.
+    Model.fieldsMap = proto.fieldsMap = {};
+
     Model.schema = proto.schema = Schema.get(proto.schema);
     proto.idField = new Ext.data.field.Field(proto.idProperty);
     Model.identifier = new Ext.data.identifier.Sequential();
@@ -2987,6 +2992,7 @@ function () {
         
         Model.initIdentifier(data, cls, proto);
         Model.initFields(data, cls, proto);
+        Model.initValidators(data, cls, proto);
 
         // This is a compat hack to allow "rec.fields.items" to work as it used to when
         // fields was a MixedCollection
@@ -2997,12 +3003,10 @@ function () {
             Model.initAssociations(schema, data, cls);
         }
 
-        Model.initValidators(data, cls, proto);
-
         proxy = data.proxy;
         if (proxy) {
             delete data.proxy;
-        } else {
+        } else if (superCls !== Model) {
             proxy = superCls.proxyConfig || superCls.proxy;
         }
 

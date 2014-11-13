@@ -87,15 +87,15 @@ Ext.define('KitchenSink.view.charts.other.LiveUpdates', {
             }, {
                 type: 'text',
                 text: 'Data: Browser Stats 2012 - Internet Explorer',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
                 y: 380
             }, {
                 type: 'text',
                 text: 'Source: http://www.w3schools.com/',
-                font: '10px Helvetica',
+                fontSize: 10,
                 x: 12,
-                y: 390
+                y: 395
             }],
             axes: [{
                 type: 'Numeric',

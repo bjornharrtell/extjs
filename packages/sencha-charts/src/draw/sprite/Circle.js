@@ -4,18 +4,23 @@
  *
  * A sprite that represents a circle.
  *
- *     @example preview miniphone
- *     new Ext.draw.Container({
- *       fullscreen: true,
- *       items: [{
- *         type: 'circle',
- *         cx: 100,
- *         cy: 100,
- *         r: 25,
- *         fillStyle: 'blue'
- *       }]
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'draw',
+ *             sprites: [{
+ *                  type: 'circle',
+ *                  cx: 100,
+ *                  cy: 100,
+ *                  r: 25,
+ *                  fillStyle: 'blue'
+ *              }]
+ *         }
  *     });
- *
  */
 Ext.define("Ext.draw.sprite.Circle", {
     extend: "Ext.draw.sprite.Path",
@@ -49,7 +54,7 @@ Ext.define("Ext.draw.sprite.Circle", {
             defaults: {
                 cx: 0,
                 cy: 0,
-                r: 0
+                r: 4
             },
             dirtyTriggers: {
                 cx: 'path',

@@ -226,12 +226,6 @@ Ext.define('Ext.layout.container.Container', {
         target = me.getRenderTarget();
         items = me.getLayoutItems();
 
-        //<debug>
-        if (me.targetCls && !me.getTarget().hasCls(me.targetCls)) {
-            Ext.log.warn('targetCls is missing. This may mean that getTargetEl() is being overridden but not applyTargetCls(). ' + me.owner.id);
-        }
-        //</debug>
-
         me.finishRenderItems(target, items);
     },
 
@@ -240,6 +234,12 @@ Ext.define('Ext.layout.container.Container', {
      * Called for every layout in the layout context after all the layouts have been finally flushed
      */
     notifyOwner: function() {
+        //<debug>
+        if (!this._hasTargetWarning && this.targetCls && !this.getTarget().hasCls(this.targetCls)) {
+            this._hasTargetWarning = true;
+            Ext.log.warn('targetCls is missing. This may mean that getTargetEl() is being overridden but not applyTargetCls(). ' + this.owner.id);
+        }
+        //</debug>
         this.owner.afterLayout(this);
     },
 
@@ -515,7 +515,7 @@ Ext.define('Ext.layout.container.Container', {
             toIndex;
         
         if (item === before) {
-            return;
+            return item;
         }
 
         if (prevOwner) {
@@ -528,7 +528,7 @@ Ext.define('Ext.layout.container.Container', {
             toIndex = items.length;
         }
         
-        owner.insert(toIndex, item);
+        return owner.insert(toIndex, item);
     },
 
     setupRenderTpl: function (renderTpl) {

@@ -47,7 +47,7 @@ Ext.define('Ext.util.Cookies', {
     get : function(name) {
         var parts = document.cookie.split('; '),
             len = parts.length,
-            item, i;
+            item, i, ret;
 
         // In modern browsers, a cookie with an empty string will be stored:
         // MyName=
@@ -57,7 +57,8 @@ Ext.define('Ext.util.Cookies', {
         for (i = 0; i < len; ++i) {
             item = parts[i].split('=');
             if (item[0] === name) {
-                return item[1] || '';
+                ret = item[1];
+                return ret ? unescape(ret) : '';
             }
         }
         return null;
@@ -75,18 +76,5 @@ Ext.define('Ext.util.Cookies', {
             path = path || '/';
             document.cookie = name + '=' + '; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=' + path;
         }
-    },
-    
-    /**
-     * @private
-     */
-    getCookieVal : function(offset){
-        var cookie = document.cookie,
-            endstr = cookie.indexOf(";", offset);
-
-        if (endstr == -1) {
-            endstr = cookie.length;
-        }
-        return unescape(cookie.substring(offset, endstr));
     }
 });

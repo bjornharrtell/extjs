@@ -372,7 +372,7 @@ Ext.define('Ext.LoadMask', {
     },
 
     getOwner: function() {
-        return this.ownerCt || this.floatParent;
+        return this.ownerCt || this.ownerCmp || this.floatParent;
     },
 
     getMaskTarget: function() {
@@ -420,26 +420,45 @@ Ext.define('Ext.LoadMask', {
     },
 
     hide: function() {
+        var me = this;
+        
         // Element support to be deprecated
-        if (this.isElement) {
-            this.ownerCt.unmask();
-            this.fireEvent('hide', this);
+        if (me.isElement) {
+            me.ownerCt.unmask();
+            me.fireEvent('hide', this);
+            
             return;
         }
-        delete this.showNext;
-        this.maskEl.setDisplayed(false);
-        return this.callParent(arguments);
+        else {
+            me.ownerCt.enableTabbing();
+        }
+        
+        delete me.showNext;
+        
+        me.maskEl.setDisplayed(false);
+        me.ownerCt.setMasked(false);
+        
+        return me.callParent(arguments);
     },
 
     show: function() {
+        var me = this;
+        
         // Element support to be deprecated
-        if (this.isElement) {
-            this.ownerCt.mask(this.useMsg ? this.msg : '', this.msgCls);
-            this.fireEvent('show', this);
+        if (me.isElement) {
+            me.ownerCt.mask(this.useMsg ? this.msg : '', this.msgCls);
+            me.fireEvent('show', this);
+            
             return;
         }
-        this.maskEl.setDisplayed(true);
-        return this.callParent(arguments);
+        else {
+            me.ownerCt.disableTabbing();
+        }
+        
+        me.maskEl.setDisplayed(true);
+        me.ownerCt.setMasked(true);
+        
+        return me.callParent(arguments);
     },
 
     afterShow: function() {
@@ -466,6 +485,14 @@ Ext.define('Ext.LoadMask', {
     onLoad : function() {
         this.loading = false;
         this.hide();
+    },
+
+    beforeDestroy: function() {
+        // We don't have a real ownerCt, so clear it out here to prevent
+        // spurious warnings when we are destroyed
+        this.ownerCt = null;
+        this.bindStore(null);
+        this.callParent();
     },
 
     onDestroy: function() {

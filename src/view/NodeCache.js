@@ -7,8 +7,10 @@
  * @class Ext.view.NodeCache
  */
 Ext.define('Ext.view.NodeCache', {
+    requires: [
+        'Ext.dom.CompositeElementLite'
+    ],
     statics: {
-        importElementMethods: Ext.dom.CompositeElementLite.importElementMethods,
         range: document.createRange && document.createRange()
     },
 
@@ -24,7 +26,7 @@ Ext.define('Ext.view.NodeCache', {
     */
     clear: function(removeDom) {
         var me = this,
-            elements = this.elements,
+            elements = me.elements,
             i, el,
             range = me.statics().range;
 
@@ -118,7 +120,7 @@ Ext.define('Ext.view.NodeCache', {
                 fn.apply(element, args);
             }
         }
-        return this;
+        return me;
     },
 
     item: function(index, asDom) {
@@ -430,5 +432,5 @@ Ext.define('Ext.view.NodeCache', {
         return result;
     }
 }, function() {
-    this.importElementMethods();
+    Ext.dom.CompositeElementLite.importElementMethods.call(this);
 });

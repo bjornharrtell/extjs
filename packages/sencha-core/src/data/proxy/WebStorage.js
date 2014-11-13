@@ -108,6 +108,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
             success = true,
             Model = me.getModel(),
             validCount = 0,
+            recordCreator = operation.getRecordCreator(),
             filters, sorters, limit, filterLen, valid, record, ids, length, data, id, i, j;
 
         operation.setStarted();
@@ -122,7 +123,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
             if (id) {
                 data = me.getRecord(id);
                 if (data !== null) {
-                    record = new Model(data);
+                    record = recordCreator ? recordCreator(data, Model) : new Model(data);
                 }
 
                 if (record) {
@@ -140,7 +141,9 @@ Ext.define('Ext.data.proxy.WebStorage', {
                 // applying filters or limit.  These are Model instances instead of raw
                 // data objects so that the sorter and filter Fn can use the Model API
                 for (i = 0; i < length; i++) {
-                    allRecords.push(new Model(me.getRecord(ids[i])));
+                    data = me.getRecord(ids[i]);
+                    record = recordCreator ? recordCreator(data, Model) : new Model(data);
+                    allRecords.push(record);
                 }
 
                 if (sorters) {

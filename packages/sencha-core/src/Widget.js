@@ -114,6 +114,10 @@ Ext.define('Ext.Widget', {
         reference: 'element'
     },
 
+    listenerOptionsRegex: /^(?:scope|order|delegate|single|delay|buffer|args|prepend|destroyable|element)$/,
+
+    observableType: 'component',
+
     eventedConfig: {
         /**
          * @cfg {Number/String} width
@@ -308,6 +312,40 @@ Ext.define('Ext.Widget', {
         me.callParent();
 
         Ext.ComponentManager.unregister(me);
+    },
+
+    //@private
+    doAddListener: function(name, fn, scope, options, order) {
+        if (options && 'element' in options) {
+            //<debug error>
+            if (this.referenceList.indexOf(options.element) === -1) {
+                Ext.Logger.error("Adding event listener with an invalid element reference of '" + options.element +
+                    "' for this component. Available values are: '" + this.referenceList.join("', '") + "'", this);
+            }
+            //</debug>
+
+            // The default scope is this component
+            return this[options.element].doAddListener(name, fn, scope || this, options, order);
+        }
+
+        return this.callParent([name, fn, scope, options, order]);
+    },
+
+    //@private
+    doRemoveListener: function(name, fn, scope, options, order) {
+        if (options && 'element' in options) {
+            //<debug error>
+            if (this.referenceList.indexOf(options.element) === -1) {
+                Ext.Logger.error("Removing event listener with an invalid element reference of '" + options.element +
+                    "' for this component. Available values are: '" + this.referenceList.join('", "') + "'", this);
+            }
+            //</debug>
+
+            // The default scope is this component
+            this[options.element].doRemoveListener(name, fn, scope || this, options, order);
+        }
+
+        return this.callParent([name, fn, scope, options, order]);
     },
 
     doSetWidth: function(width) {
@@ -551,6 +589,11 @@ Ext.define('Ext.Widget', {
     isXType: function(xtype, shallow) {
         return shallow ? (Ext.Array.indexOf(this.xtypes, xtype) !== -1) :
                 !!this.xtypesMap[xtype];
+    },
+
+    resolveListenerScope: function(defaultType) {
+        // break the tie between Observable and Inheritable resolveListenerScope
+        return this.mixins.inheritable.resolveListenerScope.call(this, defaultType);
     },
 
     /**

@@ -7,41 +7,41 @@
  * As with all other series, the Pie Series must be appended in the *series* Chart array configuration. See the Chart
  * documentation for more information. A typical configuration object for the pie series could be:
  *
- *     @example preview
- *     var chart = new Ext.chart.PolarChart({
- *         animation: true,
- *         interactions: ['rotate'],
- *         colors: ['#115fa6', '#94ae0a', '#a61120', '#ff8809', '#ffd13e'],
- *         store: {
- *           fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
- *           data: [
- *               {name: 'metric one',   data1: 10, data2: 12, data3: 14, data4: 8,  data5: 13},
- *               {name: 'metric two',   data1: 7,  data2: 8,  data3: 16, data4: 10, data5: 3},
- *               {name: 'metric three', data1: 5,  data2: 2,  data3: 14, data4: 12, data5: 7},
- *               {name: 'metric four',  data1: 2,  data2: 14, data3: 6,  data4: 1,  data5: 23},
- *               {name: 'metric five',  data1: 27, data2: 38, data3: 36, data4: 13, data5: 33}
- *           ]
- *         },
- *         series: [{
- *             type: 'pie',
- *             label: {
- *                 field: 'name',
- *                 display: 'rotate'
+ *     @example
+ *     Ext.create('Ext.Container', {
+ *         renderTo: Ext.getBody(),
+ *         width: 600,
+ *         height: 400,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'polar',
+ *             interactions: 'rotate',
+ *             store: {
+ *               fields: ['name', 'data1', 'data2', 'data3', 'data4', 'data5'],
+ *               data: [
+ *                   {name: 'metric one',   data1: 10, data2: 12, data3: 14, data4: 8,  data5: 13},
+ *                   {name: 'metric two',   data1: 7,  data2: 8,  data3: 16, data4: 10, data5: 3},
+ *                   {name: 'metric three', data1: 5,  data2: 2,  data3: 14, data4: 12, data5: 7},
+ *                   {name: 'metric four',  data1: 2,  data2: 14, data3: 6,  data4: 1,  data5: 23},
+ *                   {name: 'metric five',  data1: 27, data2: 38, data3: 36, data4: 13, data5: 33}
+ *               ]
  *             },
- *             xField: 'data3',
- *             donut: 30
- *         }]
+ *             series: {
+ *                 type: 'pie',
+ *                 label: {
+ *                     field: 'name',
+ *                     display: 'rotate'
+ *                 },
+ *                 xField: 'data3',
+ *                 donut: 30
+ *             }
+ *         }
  *     });
- *     Ext.Viewport.setLayout('fit');
- *     Ext.Viewport.add(chart);
  *
  * In this configuration we set `pie` as the type for the series, set an object with specific style properties for highlighting options
  * (triggered when hovering elements). We also set true to `showInLegend` so all the pie slices can be represented by a legend item.
  * We set `data1` as the value of the field to determine the angle span for each pie slice. We also set a label configuration object
  * where we set the field name of the store field to be rendered as text for the label. The labels will also be displayed rotated.
-TODO: `contrast` is not supported. Should be in the series.label config.
-TODO: We set `contrast` to `true` to flip the color of the label if it is to similar to the background color. Finally, we set the font family
-TODO: and size through the `font` parameter.
  *
  */
 Ext.define('Ext.chart.series.Pie', {
@@ -102,7 +102,7 @@ Ext.define('Ext.chart.series.Pie', {
         hidden: [],
 
         /**
-         * @cfg {Number} Allows adjustment of the radius by a spefic perfentage.
+         * @cfg {Number} Allows adjustment of the radius by a specific percentage.
          */
         radiusFactor: 100,
 
@@ -127,8 +127,18 @@ Ext.define('Ext.chart.series.Pie', {
         return this.getXField();
     },
 
-    applyRadius : function (radius) {
-        return radius * this.getRadiusFactor() * 0.01;
+    applyLabel: function (newLabel, oldLabel) {
+        if (Ext.isObject(newLabel) && !Ext.isString(newLabel.orientation)) {
+            // Override default label orientation from '' to 'vertical'.
+            Ext.apply(newLabel = Ext.Object.chain(newLabel), {orientation: 'vertical'});
+        }
+        if (!oldLabel) {
+            oldLabel = new Ext.chart.Markers({zIndex: 10});
+            oldLabel.setTemplate(new Ext.chart.label.Label(newLabel));
+        } else {
+            oldLabel.getTemplate().setAttributes(newLabel);
+        }
+        return oldLabel;
     },
 
     updateLabelData: function () {
@@ -218,8 +228,8 @@ Ext.define('Ext.chart.series.Pie', {
 
     updateRadius: function (radius) {
         this.setStyle({
-            startRho: radius * this.getDonut() * 0.01, // Percentage
-            endRho: radius
+            startRho: radius * this.getDonut() * 0.01,
+            endRho: radius * this.getRadiusFactor() * 0.01
         });
         this.doUpdateStyles();
     },
@@ -232,7 +242,7 @@ Ext.define('Ext.chart.series.Pie', {
             style, length, startRho, endRho;
         length = lengthField && Math.abs(Number(items[i].get(lengthField))) || 0;
         startRho = radius * me.getDonut() * 0.01;
-        endRho = radius;
+        endRho = radius * me.getRadiusFactor() * 0.01;
         style = this.callParent([i]);
         style.startRho = startRho;
         style.endRho = me.maxLength ? (startRho + (endRho - startRho) * length / me.maxLength) : endRho;
@@ -242,8 +252,8 @@ Ext.define('Ext.chart.series.Pie', {
     updateDonut: function (donut) {
         var radius = this.getRadius();
         this.setStyle({
-            startRho: radius * donut * 0.01, // Percentage
-            endRho: radius
+            startRho: radius * donut * 0.01,
+            endRho: radius * this.getRadiusFactor() * 0.01
         });
         this.doUpdateStyles();
     },
@@ -299,7 +309,7 @@ Ext.define('Ext.chart.series.Pie', {
                     labelTpl.setAttributes({
                         labelOverflowPadding: me.getLabelOverflowPadding()
                     });
-                    labelTpl.fx.setCustomDuration({'callout': 200});
+                    labelTpl.fx.setCustomDurations({'callout': 200});
                     sprite.bindMarker('labels', label);
                 }
                 sprite.setAttributes(me.getStyleByIndex(i));
@@ -397,8 +407,7 @@ Ext.define('Ext.chart.series.Pie', {
                 records = store.getData().items,
                 direction = Math.atan2(originalY, originalX) - me.getRotation(),
                 radius = Math.sqrt(originalX * originalX + originalY * originalY),
-                endRadius = me.getRadius(),
-                startRadius = donut / 100 * endRadius,
+                startRadius = me.getRadius() * donut * 0.01,
                 hidden = me.getHidden(),
                 i, ln, attr;
 
@@ -424,20 +433,26 @@ Ext.define('Ext.chart.series.Pie', {
     },
 
     provideLegendInfo: function (target) {
-        var store = this.getStore();
+        var me = this,
+            store = me.getStore();
         if (store) {
             var items = store.getData().items,
-                labelField = this.getLabel().getTemplate().getField(),
-                field = this.getField(),
-                hidden = this.getHidden(),
-                style;
-            for (var i = 0; i < items.length; i++) {
-                style = this.getStyleByIndex(i);
+                labelField = me.getLabel().getTemplate().getField(),
+                field = me.getField(),
+                hidden = me.getHidden(),
+                i, style, fill;
+
+            for (i = 0; i < items.length; i++) {
+                style = me.getStyleByIndex(i);
+                fill = style.fillStyle;
+                if (Ext.isObject(fill)) {
+                    fill = fill.stops && fill.stops[0].color;
+                }
                 target.push({
                     name: labelField ? String(items[i].get(labelField))  : field + ' ' + i,
-                    mark: style.fillStyle || style.strokeStyle || 'black',
+                    mark: fill || style.strokeStyle || 'black',
                     disabled: hidden[i],
-                    series: this.getId(),
+                    series: me.getId(),
                     index: i
                 });
             }
@@ -445,3 +460,10 @@ Ext.define('Ext.chart.series.Pie', {
     }
 });
 
+/*
+    Moved TODO comments to bottom:
+    TODO: `contrast` is not supported. Should be in the series.label config.
+    TODO: We set `contrast` to `true` to flip the color of the label if it is to similar 
+    to the background color. Finally, we set the font family
+    TODO: and size through the `font` parameter.    
+*/

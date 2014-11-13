@@ -65,12 +65,7 @@ Ext.define('Ext.chart.series.sprite.Scatter', {
             labelX, labelY,
             labelOverflowPadding = attr.labelOverflowPadding,
             flipXY = attr.flipXY,
-            left = flipXY ? rect[1] : rect[0],
-            top = flipXY ? rect[0] : rect[1],
-            width = flipXY ? rect[3] : rect[2],
-            height = flipXY ? rect[2] : rect[3],
-            halfWidth, halfHeight,
-            labelBox,
+            halfHeight, labelBox,
             changes;
 
         labelCfg.text = text;
@@ -87,9 +82,7 @@ Ext.define('Ext.chart.series.sprite.Scatter', {
             labelCfg.rotationRads = 0;
         }
 
-        halfWidth = labelBox.width / 2;
         halfHeight = labelBox.height / 2;
-
         labelX = dataX;
 
         switch (labelTpl.attr.display) {
@@ -103,18 +96,6 @@ Ext.define('Ext.chart.series.sprite.Scatter', {
                 break;
             default: // 'over'
                 labelY = dataY + halfHeight + labelOverflowPadding;
-        }
-
-        if (labelX <= left + halfWidth) {
-            labelX = left + halfWidth;
-        } else if (labelX >= width - halfWidth) {
-            labelX = width - halfWidth;
-        }
-
-        if (labelY <= top + halfHeight) {
-            labelY = top + halfHeight;
-        } else if (labelY >= height - halfHeight) {
-            labelY = height - halfHeight;
         }
 
         labelCfg.x = surfaceMatrix.x(labelX, labelY);

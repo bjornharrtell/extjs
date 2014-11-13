@@ -79,6 +79,19 @@ Ext.define('Ext.app.bind.Binding', {
     },
 
     /**
+     * Bind to a model field for validation
+     * @param {Function/String} callback The function to call or the name of the function on the scope
+     * @param {Object} scope The scope for the callback
+     * @return {Ext.app.bind.Binding} The binding, if available
+     *
+     * @private
+     */
+    bindValidationField: function(callback, scope) {
+        var stub = this.stub;
+        return stub && stub.bindValidationField(callback, scope);
+    },
+
+    /**
      * Returns the diagnostic name for this binding.
      * @return {String}
      * @since 5.0.0

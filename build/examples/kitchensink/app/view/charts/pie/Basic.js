@@ -25,7 +25,7 @@ Ext.define('KitchenSink.view.charts.pie.Basic', {
     initComponent: function() {
         var me = this;
 
-        this.myDataStore = Ext.create('Ext.data.JsonStore', {
+        me.myDataStore = Ext.create('Ext.data.JsonStore', {
             fields: ['os', 'data1' ],
             data: [
                 { os: 'Android', data1: 68.3 },
@@ -50,9 +50,10 @@ Ext.define('KitchenSink.view.charts.pie.Basic', {
 
         me.items = [{
             xtype: 'polar',
+            theme: 'default-gradients',
             width: '100%',
             height: 500,
-            store: this.myDataStore,
+            store: me.myDataStore,
             insetPadding: 50,
             innerPadding: 20,
             legend: {
@@ -62,7 +63,7 @@ Ext.define('KitchenSink.view.charts.pie.Basic', {
             sprites: [{
                 type: 'text',
                 text: 'Pie Charts - Basic',
-                font: '22px Helvetica',
+                fontSize: 22,
                 width: 100,
                 height: 30,
                 x: 40, // the sprite x position
@@ -70,22 +71,19 @@ Ext.define('KitchenSink.view.charts.pie.Basic', {
             }, {
                 type: 'text',
                 text: 'Data: IDC Predictions - 2017',
-                font: '10px Helvetica',
                 x: 12,
                 y: 425
             }, {
                 type: 'text',
                 text: 'Source: Internet',
-                font: '10px Helvetica',
                 x: 12,
-                y: 435
+                y: 440
             }],
             series: [{
                 type: 'pie',
                 angleField: 'data1',
                 label: {
                     field: 'os',
-                    display: 'outside',
                     calloutLine: {
                         length: 60,
                         width: 3

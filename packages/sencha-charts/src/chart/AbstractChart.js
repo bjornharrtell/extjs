@@ -40,21 +40,15 @@ Ext.define('Ext.chart.AbstractChart', {
     extend: 'Ext.draw.Container',
 
     requires: [
-        'Ext.chart.theme.Base',
-        'Ext.chart.theme.Theme',
+        'Ext.chart.theme.Default',
         'Ext.chart.series.Series',
         'Ext.chart.interactions.Abstract',
         'Ext.chart.axis.Axis',
         'Ext.data.StoreManager',
         'Ext.chart.Legend',
-        'Ext.data.Store',
-        'Ext.chart.overrides.AbstractChart'
+        'Ext.data.Store'
     ],
     
-    mixins: {
-        themeManager: 'Ext.chart.theme.Theme'
-    },
-
     defaultBindProperty: 'store',
 
     /**
@@ -246,16 +240,10 @@ Ext.define('Ext.chart.AbstractChart', {
      */
 
     /**
-     * @property version Current Version of Touch Charts
+     * @property version Current version of Sencha Charts.
      * @type {String}
      */
     version: '2.5.0',
-
-    /**
-     * @property {Object} themeAttrs The visual attributes of the current theme, e.g. axisLabelTop, seriesThemes...
-     * @type {Object}
-     */
-    themeAttrs: null,
 
     delegationRegex: /^item([a-z]+)$/i,
 
@@ -271,13 +259,16 @@ Ext.define('Ext.chart.AbstractChart', {
         store: 'ext-empty-store',
 
         /**
-         * @cfg {String} theme
-         * The name of the theme to be used. A theme defines the colors and other visual displays of tick marks
-         * on axis, text, title text, line colors, marker colors and styles, etc... Possible theme values are 'Base', 'Green',
-         * 'Sky', 'Red', 'Purple', 'Blue', 'Yellow' and also six category themes 'Category1' to 'Category6'. The default theme
-         * is 'Base'.
+         * @cfg {String} [theme="default"]
+         * The name of the theme to be used. A theme defines the colors and styles
+         * used by the series, axes, markers and other chart components.
+         * Please see the documentation for the {@link Ext.chart.theme.Base} class for more information.
+         * Possible theme values are:
+         *   - 'green', 'sky', 'red', 'purple', 'blue', 'yellow'
+         *   - 'category1' to 'category6'
+         *   - and the above theme names with the '-gradients' suffix, e.g. 'green-gradients'
          */
-        theme: 'Base',
+        theme: 'default',
 
         /**
          * @cfg {Object} style
@@ -385,7 +376,7 @@ Ext.define('Ext.chart.AbstractChart', {
          *         ]
          *     }
          */
-        background: 'white',
+        background: null,
 
         /**
          * @cfg {Array} interactions
@@ -527,7 +518,7 @@ Ext.define('Ext.chart.AbstractChart', {
         }
     },
 
-    suspendLayout: function () {
+    suspendChartLayout: function () {
         this.layoutSuspended++;
         if (this.layoutSuspended === 1) {
             if (this.scheduledLayoutId) {
@@ -539,7 +530,7 @@ Ext.define('Ext.chart.AbstractChart', {
         }
     },
 
-    resumeLayout: function () {
+    resumeChartLayout: function () {
         this.layoutSuspended--;
         if (this.layoutSuspended === 0) {
             if (this.layoutInSuspension) {
@@ -588,21 +579,20 @@ Ext.define('Ext.chart.AbstractChart', {
     },
 
     constructor: function (config) {
-        var me = this,
-            chartSurface;
+        var me = this;
 
         me.itemListeners = {};
         me.surfaceMap = {};
 
         me.isInitializing = true;
+        me.suspendChartLayout();
         me.callParent(arguments);
         delete me.isInitializing;
 
-        me.suspendLayout();
         me.getSurface('main');
         me.getSurface('chart').setFlipRtlText(me.getInherited().rtl);
         me.getSurface('overlay').waitFor(me.getSurface('series'));
-        me.resumeLayout();
+        me.resumeChartLayout();
     },
 
     applySprites: function (sprites) {
@@ -753,61 +743,61 @@ Ext.define('Ext.chart.AbstractChart', {
 
     applyAxes: function (newAxes, oldAxes) {
         this.resizing++;
-        try {
-            this.getStore();
-            if (!oldAxes) {
-                oldAxes = [];
-                oldAxes.map = {};
-            }
-            var result = [], i, ln, axis, oldAxis, oldMap = oldAxes.map;
-            result.map = {};
-            newAxes = Ext.Array.from(newAxes, true);
-            for (i = 0, ln = newAxes.length; i < ln; i++) {
-                axis = Ext.Object.chain(newAxes[i]);
-                if (!axis) {
-                    continue;
-                }
-                if (axis.linkedTo) {
-                    Ext.Array.each(newAxes, function (item) {
-                        if (item.id === axis.linkedTo) {
-                            axis = Ext.merge({}, item, axis);
-                            if (axis.id === item.id) {
-                                delete axis.id;
-                            }
-                            return false;
-                        }
-                    });
-                }
-                if (this.getInherited().rtl) {
-                    axis.position = {left: 'right', right: 'left'}[axis.position] || axis.position;
-                }
-                axis = Ext.factory(axis, null, oldAxis = oldMap[axis.getId && axis.getId() || axis.id], 'axis');
-                if (axis) {
-                    axis.setChart(this);
-                    result.push(axis);
-                    result.map[axis.getId()] = axis;
-                    if (!oldAxis) {
-                        axis.on('animationstart', 'onAnimationStart', this);
-                        axis.on('animationend', 'onAnimationEnd', this);
-                    }
-                }
+
+        this.getStore();
+        if (!oldAxes) {
+            oldAxes = [];
+            oldAxes.map = {};
+        }
+        var result = [], i, ln, axis, oldAxis, linkedTo, id,
+            positions = {left: 'right', right: 'left'},
+            oldMap = oldAxes.map;
+        result.map = {};
+        newAxes = Ext.Array.from(newAxes, true);
+        for (i = 0, ln = newAxes.length; i < ln; i++) {
+            axis = Ext.Object.chain(newAxes[i]);
+            if (!axis) {
+                continue;
             }
 
-            for (i in oldMap) {
-                if (!result.map[i]) {
-                    oldMap[i].destroy();
+            linkedTo = axis.linkedTo;
+            id = axis.id;
+            if (Ext.isNumber(linkedTo)) {
+                axis = Ext.merge({}, newAxes[linkedTo], axis);
+            } else if (Ext.isString(linkedTo)) {
+                Ext.Array.each(newAxes, function (item) {
+                    if (item.id === axis.linkedTo) {
+                        axis = Ext.merge({}, item, axis);
+                        return false;
+                    }
+                });
+            }
+            axis.id = id;
+
+            if (this.getInherited().rtl) {
+                axis.position = positions[axis.position] || axis.position;
+            }
+            axis = Ext.factory(axis, null, oldAxis = oldMap[axis.getId && axis.getId() || axis.id], 'axis');
+            if (axis) {
+                axis.setChart(this);
+                result.push(axis);
+                result.map[axis.getId()] = axis;
+                if (!oldAxis) {
+                    axis.on('animationstart', 'onAnimationStart', this);
+                    axis.on('animationend', 'onAnimationEnd', this);
                 }
             }
-            return result;
-        } catch (e) { // catch is required in IE8 (try/finally not supported)
-            //<debug>
-            Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
         }
-        finally {
-            this.resizing--;
+
+        for (i in oldMap) {
+            if (!result.map[i]) {
+                oldMap[i].destroy();
+            }
         }
+
+        this.resizing--;
+
+        return result;
     },
 
     updateAxes: function (newAxes) {
@@ -845,11 +835,12 @@ Ext.define('Ext.chart.AbstractChart', {
 
     getColors: function () {
         var me = this,
-            configColors = me.config.colors;
+            configColors = me.config.colors,
+            theme = me.getTheme();
         if (Ext.isArray(configColors) && configColors.length > 0) {
             configColors = me.applyColors(configColors);
         }
-        return configColors || (me.themeAttrs && me.themeAttrs.colors);
+        return configColors || (theme && theme.getColors());
     },
 
     applyColors: function (newColors) {
@@ -865,11 +856,13 @@ Ext.define('Ext.chart.AbstractChart', {
 
     updateColors: function (newColors) {
         var me = this,
-            colors = newColors || (me.themeAttrs && me.themeAttrs.colors),
-            colorIndex = 0, colorCount = colors.length, i,
+            theme = me.getTheme(),
+            colors = newColors || (theme && theme.getColors()),
+            colorCount = colors.length,
+            colorIndex = 0,
             series = me.getSeries(),
             seriesCount = series && series.length,
-            seriesItem, seriesColors, seriesColorCount;
+            i, seriesItem, seriesColors, seriesColorCount;
 
         if (colorCount) {
             for (i = 0; i < seriesCount; i++) {
@@ -883,135 +876,178 @@ Ext.define('Ext.chart.AbstractChart', {
         me.refreshLegendStore();
     },
 
-    updateTheme: function (newTheme, oldTheme) {
+    applyTheme: function (theme) {
+        if (theme && theme.isTheme) {
+            return theme;
+        }
+        return Ext.Factory.chartTheme(theme);
+    },
+
+    updateTheme: function (theme) {
         var me = this,
+            axes = me.getAxes(),
             series = me.getSeries(),
-            seriesCount = series.length, i, len,
-            seriesItem, seriesTheme, theme, background, style, colors, colorCount,
-            styleConfig = me.config.style,
-            styleObject = {},
+            colors = me.getColors(),
+            seriesItem, seriesTheme,
             colorIndex = 0,
             markerIndex = 0,
-            markerCount;
+            markerCount,
+            colorCount,
+            i;
 
-        theme = me.themeAttrs = me.initTheme(newTheme || this.defaultTheme);
-        if (Ext.isEmpty(theme) || Ext.Object.isEmpty(theme)) {
-            return;
+        me.updateChartTheme(theme);
+
+        for (i = 0; i < axes.length; i++) {
+            axes[i].updateTheme(theme);
         }
 
-        // chart theme
-        background = me.config.background || theme.background;
-        me.setBackground(background);
+        for (i = 0; i < series.length; i++) {
+            series[i].updateTheme(theme);
 
-        if (typeof styleConfig == 'string') {
-            styleConfig = Ext.util.Format.trim(styleConfig).split(/\s*(?::|;)\s*/);
-            for (i = 0, len = styleConfig.length; i < len;) {
-                styleObject[Ext.Element.normalize(styleConfig[i++])] = styleConfig[i++];
-            }
-            styleConfig = styleObject;
-        }
-
-        style = Ext.applyIf(Ext.Object.chain(styleConfig || {}), theme.chartTitle);
-        me.setStyle(style);
-
-        colors = me.getColors();
-        me.updateColors(colors);
-
-        // series theme
-        for (i = 0; i < seriesCount; i++) {
             seriesItem = series[i];
             seriesTheme = {};
 
-            seriesTheme.style = Ext.apply({}, theme.series);
-            seriesTheme.label = Ext.apply({}, theme.label);
-            seriesTheme.marker = Ext.apply({}, theme.marker);
-
-            if (theme.seriesThemes) {
+            if (theme.getSeriesThemes) {
                 colorCount = seriesItem.themeColorCount();
-                seriesTheme.subStyle = me.circularCopyObject(theme.seriesThemes, colorIndex, colorCount);
+                seriesTheme.subStyle = me.circularCopyObject(theme.getSeriesThemes(), colorIndex, colorCount);
                 colorIndex += colorCount;
             } else {
                 seriesTheme.subStyle = {};
             }
 
-            if (theme.markerThemes) {
+            if (theme.getMarkerThemes) {
                 markerCount = seriesItem.themeMarkerCount();
-                seriesTheme.markerSubStyle = me.circularCopyObject(theme.markerThemes, markerIndex, markerCount);
+                seriesTheme.markerSubStyle = me.circularCopyObject(theme.getMarkerThemes(), markerIndex, markerCount);
                 markerIndex += markerCount;
             } else {
                 seriesTheme.markerSubStyle = {};
             }
         }
-        me.refreshLegendStore();
+
+        me.updateSpriteTheme(theme);
+
+        me.updateColors(colors);
+    },
+
+    updateChartTheme: function (theme) {
+        var me = this,
+            chartTheme = theme.getChart(),
+            initialConfig = me.getInitialConfig(),
+            defaultConfig = me.defaultConfig,
+            configs = me.getConfigurator().configs,
+            genericChartTheme = chartTheme.defaults,
+            specificChartTheme = chartTheme[me.xtype],
+            key, value, isObjValue, initialValue, cfg;
+
+        chartTheme = Ext.merge({}, genericChartTheme, specificChartTheme);
+        for (key in chartTheme) {
+            value = chartTheme[key];
+            cfg = configs[key];
+            if (value !== null && value !== undefined && cfg) {
+                initialValue = initialConfig[key];
+                isObjValue = Ext.isObject(value);
+                if (initialValue === defaultConfig[key] || isObjValue) {
+                    if (isObjValue) {
+                        value = Ext.merge({}, value, initialValue);
+                    }
+                    me[cfg.names.set](value);
+                }
+            }
+        }
+    },
+
+    updateSpriteTheme: function (theme) {
+        var me = this,
+            chartSurface = me.getSurface('chart'),
+            sprites = chartSurface.getItems(),
+            styles = theme.getSprites(),
+            sprite, style,
+            key, attr,
+            isText,
+            i, ln;
+
+        for (i = 0, ln = sprites.length; i < ln; i++) {
+            sprite = sprites[i];
+            style = styles[sprite.type];
+            if (style) {
+                attr = {};
+                isText = sprite.type === 'text';
+                for (key in style) {
+                    if (!(key in sprite.config)) {
+                        // Setting individual font attributes will take over the 'font' shorthand
+                        // attribute, but this behavior is undesireable for theming.
+                        if (!(isText && key.indexOf('font') === 0 && sprite.config.font)) {
+                            attr[key] = style[key];
+                        }
+                    }
+                }
+                sprite.setAttributes(attr);
+            }
+        }
     },
 
     applySeries: function (newSeries, oldSeries) {
-        this.resizing++;
-        try {
-            this.getAxes();
-            if (!oldSeries) {
-                oldSeries = [];
-                oldSeries.map = {};
+        var me = this,
+            result = [],
+            oldMap, oldSeriesItem,
+            i, ln, series;
+
+        me.resizing++;
+
+        me.getAxes();
+        if (!oldSeries) {
+            oldSeries = [];
+            oldMap = oldSeries.map = {};
+        }
+        result.map = {};
+        newSeries = Ext.Array.from(newSeries, true);
+        for (i = 0, ln = newSeries.length; i < ln; i++) {
+            series = newSeries[i];
+            if (!series) {
+                continue;
             }
-            var me = this,
-                result = [],
-                i, ln, series, oldMap = oldSeries.map, oldSeriesItem;
-            result.map = {};
-            newSeries = Ext.Array.from(newSeries, true);
-            for (i = 0, ln = newSeries.length; i < ln; i++) {
-                series = newSeries[i];
-                if (!series) {
-                    continue;
-                }
-                oldSeriesItem = oldSeries.map[series.getId && series.getId() || series.id];
-                if (series instanceof Ext.chart.series.Series) {
-                    if (oldSeriesItem !== series) {
-                        // Replacing
-                        if (oldSeriesItem) {
-                            oldSeriesItem.destroy();
-                        }
-                        me.addItemListenersToSeries(series);
-                    }
-                    series.setChart(this);
-                } else if (Ext.isObject(series)) {
+            oldSeriesItem = oldSeries.map[series.getId && series.getId() || series.id];
+            if (series instanceof Ext.chart.series.Series) {
+                if (oldSeriesItem !== series) {
+                    // Replacing
                     if (oldSeriesItem) {
-                        // Update
-                        oldSeriesItem.setConfig(series);
-                        series = oldSeriesItem;
-                    } else {
-                        // Create a series.
-                        if (Ext.isString(series)) {
-                            series = Ext.create(series.xclass || ('series.' + series), {chart: this});
-                        } else {
-                            series.chart = this;
-                            series = Ext.create(series.xclass || ('series.' + series.type), series);
-                        }
-                        series.on('animationstart', 'onAnimationStart', this);
-                        series.on('animationend', 'onAnimationEnd', this);
-                        me.addItemListenersToSeries(series);
+                        oldSeriesItem.destroy();
                     }
+                    me.addItemListenersToSeries(series);
                 }
-
-                result.push(series);
-                result.map[series.getId()] = series;
+                series.setChart(me);
+            } else if (Ext.isObject(series)) {
+                if (oldSeriesItem) {
+                    // Update
+                    oldSeriesItem.setConfig(series);
+                    series = oldSeriesItem;
+                } else {
+                    // Create a series.
+                    if (Ext.isString(series)) {
+                        series = Ext.create(series.xclass || ('series.' + series), {chart: me});
+                    } else {
+                        series.chart = me;
+                        series = Ext.create(series.xclass || ('series.' + series.type), series);
+                    }
+                    series.on('animationstart', 'onAnimationStart', me);
+                    series.on('animationend', 'onAnimationEnd', me);
+                    me.addItemListenersToSeries(series);
+                }
             }
 
-            for (i in oldMap) {
-                if (!result.map[oldMap[i].getId()]) {
-                    oldMap[i].destroy();
-                }
+            result.push(series);
+            result.map[series.getId()] = series;
+        }
+
+        for (i in oldMap) {
+            if (!result.map[oldMap[i].getId()]) {
+                oldMap[i].destroy();
             }
-            return result;
         }
-        catch (e) { // catch is required in IE8 (try/finally not supported)
-            //<debug>
-            Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
-        }
-        finally {
-            this.resizing--;
-        }
+
+        me.resizing--;
+
+        return result;
     },
 
     applyLegend: function (newLegend, oldLegend) {
@@ -1045,21 +1081,12 @@ Ext.define('Ext.chart.AbstractChart', {
 
     updateSeries: function (newSeries, oldSeries) {
         this.resizing++;
-        try {
-            // this.updateTheme(this.getTheme());
-            this.fireEvent('serieschange', this, newSeries, oldSeries);
-            this.refreshLegendStore();
-            this.scheduleLayout();
-        }
-        catch (e) { // catch is required in IE8 (try/finally not supported)
-            //<debug>
-            Ext.log.error(this.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
-        }
-        finally {
-            this.resizing--;
-        }
+
+        this.fireEvent('serieschange', this, newSeries, oldSeries);
+        this.refreshLegendStore();
+        this.scheduleLayout();
+
+        this.resizing--;
     },
 
     applyInteractions: function (interactions, oldInteractions) {
@@ -1100,21 +1127,25 @@ Ext.define('Ext.chart.AbstractChart', {
     updateStore: function (newStore, oldStore) {
         var me = this;
         if (oldStore) {
-            oldStore.un('refresh', 'onRefresh', me, null, 'after');
+            oldStore.unAfter({
+                datachanged: 'onDataChanged',
+                update: 'onDataChanged',
+                scope: me
+            });
             if (oldStore.autoDestroy) {
                 oldStore.destroy();
             }
         }
         if (newStore) {
             newStore.onAfter({
-                refresh: 'onRefresh',
-                update: 'onRefresh',
+                datachanged: 'onDataChanged',
+                update: 'onDataChanged',
                 scope: me
             });
         }
 
         me.fireEvent('storechange', newStore, oldStore);
-        me.onRefresh();
+        me.onDataChanged();
     },
 
     /**
@@ -1131,6 +1162,7 @@ Ext.define('Ext.chart.AbstractChart', {
             background = me.getBackground();
 
         me.hasFirstLayout = true;
+        me.fireEvent('layout');
         me.cancelLayout();
         me.getSurface('background').setRect(chartRect);
         me.getSurface('chart').setRect(chartRect);
@@ -1154,20 +1186,20 @@ Ext.define('Ext.chart.AbstractChart', {
      */
     getItemForPoint: function (x, y) {
         var me = this,
-            i = 0,
             items = me.getSeries(),
             l = items.length,
+            // If we haven't drawn yet, don't attempt to find any items.
+            i = me.hasFirstLayout ? l - 1 : -1,
             series, item;
 
-        // If we haven't drawn yet, don't attempt to find any items
-        if (me.hasFirstLayout) {
-            for (; i < l; i++) {
-                series = items[i];
-                item = series.getItemForPoint(x, y);
-                if (item) {
-                    return item;
-                }
+        // Iterate from the end so that the series that are drawn later get hit tested first.
+        while (i >= 0) {
+            series = items[i];
+            item = series.getItemForPoint(x, y);
+            if (item) {
+                return item;
             }
+            i--;
         }
 
         return null;
@@ -1245,23 +1277,34 @@ Ext.define('Ext.chart.AbstractChart', {
     /**
      * @private
      */
-    onRefresh: function () {
-        if (this.isInitializing) {
+    onDataChanged: function () {
+        var me = this;
+        if (me.isInitializing) {
             return;
         }
-        var rect = this.getMainRect(),
-            store = this.getStore(),
-            series = this.getSeries(),
-            axes = this.getAxes(),
+        var rect = me.getMainRect(),
+            store = me.getStore(),
+            series = me.getSeries(),
+            axes = me.getAxes(),
+            colors = me.getColors(),
             i, ln;
 
-        if (!store || !axes || !series || !rect) {
+        if (!store || !axes || !series) {
+            return;
+        }
+        if (!rect) { // The chart hasn't been rendered yet.
+            me.on({
+                redraw: me.onDataChanged,
+                scope: me,
+                single: true
+            });
             return;
         }
         for (i = 0, ln = series.length; i < ln; i++) {
             series[i].processData();
         }
-        this.redraw();
+        me.updateColors(colors);
+        me.redraw();
     },
 
     /**
@@ -1292,6 +1335,7 @@ Ext.define('Ext.chart.AbstractChart', {
         }
         if (newHighlightItem) {
             newHighlightItem.series.setAttributesForItem(newHighlightItem, {highlighted: true});
+            this.fireEvent('itemhighlight', newHighlightItem);
         }
     },
 

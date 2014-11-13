@@ -151,7 +151,7 @@ Ext.define('ChartsKitchenSink.view.charts.combination.Dashboard', {
             ]
         });
 
-        var radarChart = Ext.create('Ext.chart.PolarChart', {
+        var radarChart = Ext.create('Ext.chart.Chart', {
             margin: '0 0 0 0',
 //            insetPadding: 0,
             flex: 1,
@@ -259,7 +259,7 @@ Ext.define('ChartsKitchenSink.view.charts.combination.Dashboard', {
     });
 
     //create a bar series to be at the top of the panel.
-    var barChart = Ext.create('Ext.chart.CartesianChart', {
+    var barChart = Ext.create('Ext.chart.Chart', {
         height: 200,
         margin: '0 0 3 0',
         cls: 'x-panel-body-default',

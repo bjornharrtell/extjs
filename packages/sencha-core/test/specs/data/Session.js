@@ -119,13 +119,6 @@ describe("Ext.data.Session", function() {
             });
 
             describe("invalid conditions", function() {
-                it("should not allow phantom records", function() {
-                    rec = new User();
-                    expect(function() {
-                        session.adopt(rec);
-                    }).toThrow();
-                });
-
                 it("should not allow a record attached to another session", function() {
                     var other = new Ext.data.Session(),
                         rec = getAndComplete('User', 1, other);
@@ -158,6 +151,242 @@ describe("Ext.data.Session", function() {
                             id: 1
                         }));
                     }).toThrow();
+                });
+            });
+
+            describe("associations", function() {
+                describe("many to one", function() {
+                    var user;
+
+                    beforeEach(function() {
+                        Ext.define('spec.Post', {
+                            extend: 'Ext.data.Model',
+                            fields: ['content', {
+                                name: 'userId',
+                                reference: 'User'
+                            }]
+                        });
+                    });
+
+                    afterEach(function() {
+                        Ext.undefine('spec.Post');
+                        user = null;
+                    });
+
+                    function makeUser(id) {
+                        user = new spec.User({
+                            id: id
+                        });
+                    }
+
+                    describe("the many", function() {
+                        it("should not attempt to load the owner", function() {
+                            var post = new spec.Post({
+                                id: 101,
+                                userId: 1
+                            });
+
+                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            session.adopt(post);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should also adopt the owner", function() {
+                            var post = new spec.Post({
+                                id: 101,
+                                userId: 1
+                            });
+
+                            makeUser(1);
+                            post.setUser(user);
+                            session.adopt(post);
+                            expect(user.session).toBe(session);
+                        });
+                    });
+
+                    describe("the one", function() {
+                        it("should not load the store", function() {
+                            makeUser(1);
+                            user.posts();
+                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            session.adopt(user);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should set the session onto the store", function() {
+                            makeUser(1);
+                            var posts = user.posts();
+                            session.adopt(user);
+                            expect(posts.getSession()).toBe(session);
+                        });
+
+                        it("should adopt existing children", function() {
+                            makeUser(1);
+                            var posts = user.posts();
+                            posts.add({id: 101}, {id: 102}, {id: 103});
+                            session.adopt(user);
+                            expect(posts.getAt(0).session).toBe(session);
+                            expect(posts.getAt(1).session).toBe(session);
+                            expect(posts.getAt(2).session).toBe(session);
+                        });
+
+                        it("should adopt any newly loaded items after adopting", function() {
+                            makeUser(1);
+                            var posts = user.posts();
+                            session.adopt(user);
+                            posts.load();
+                            completeRequest([{id: 101, userId: 1}, {id: 102, userId: 1}, {id: 103, userId: 1}]);
+                            expect(posts.getAt(0).session).toBe(session);
+                            expect(posts.getAt(1).session).toBe(session);
+                            expect(posts.getAt(2).session).toBe(session);
+                        });
+                    });
+                });
+
+                describe("one to one", function() {
+                    beforeEach(function() {
+                        Ext.define('spec.Address', {
+                            extend: 'Ext.data.Model',
+                            fields: ['city']
+                        });
+                    });
+
+                    afterEach(function() {
+                        Ext.undefine('spec.Address');
+                    });
+
+                    describe("the key holder", function() {
+                        it("should not attempt to load the non key holder", function() {
+                            var user = new spec.User({
+                                id: 1,
+                                addressId: 101
+                            });
+                            var spy = spyOn(spec.Address.getProxy(), 'read');
+                            session.adopt(user);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should adopt the non key holder", function() {
+                            var address = new spec.Address({
+                                id: 101
+                            });
+
+                            var user = new spec.User({
+                                id: 1
+                            });
+
+                            user.setAddress(address);
+                            session.adopt(user);
+                            expect(address.session).toBe(session);
+                        });
+                    });
+
+                    describe("the non key holder", function() {
+                        it("should not attempt to load the key holder", function() {
+                            var address = new spec.Address({
+                                id: 101
+                            });
+                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            session.adopt(address);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should also adopt the key holder", function() {
+                            var address = new spec.Address({
+                                id: 101
+                            });
+
+                            var user = new spec.User({
+                                id: 1
+                            });
+                            address.setUser(user);
+
+                            session.adopt(address);
+                            expect(user.session).toBe(session);
+                        });
+                    });
+                });
+
+                describe("nested", function() {
+                    beforeEach(function() {
+                        Ext.define('spec.Order', {
+                            extend: 'Ext.data.Model',
+                            fields: [{
+                                name: 'userId',
+                                reference: 'User'
+                            }, {
+                                name: 'addressId',
+                                reference: 'Address',
+                                unique: true
+                            }]
+                        });
+
+                        Ext.define('spec.OrderItem', {
+                            extend: 'Ext.data.Model',
+                            fields: [{
+                                name: 'orderId',
+                                reference: 'Order'
+                            }]
+                        });
+
+                        Ext.define('spec.Address', {
+                            extend: 'Ext.data.Model',
+                            fields: ['city']
+                        });
+                    });
+
+                    afterEach(function() {
+                        Ext.undefine('spec.Address');
+                        Ext.undefine('spec.OrderItem');
+                        Ext.undefine('spec.Order');
+                    });
+
+                    it("should adopt data deeply", function() {
+                        var user = User.load(1);
+                        completeRequest({
+                            id: 1,
+                            orders: [{
+                                id: 101,
+                                userId: 1,
+                                address: {
+                                    id: 201
+                                },
+                                orderItems: [{
+                                    id: 301,
+                                    orderId: 101
+                                }, {
+                                    id: 302,
+                                    orderId: 101
+                                }]
+                            }, {
+                                id: 102,
+                                userId: 1,
+                                address: {
+                                    id: 202
+                                },
+                                orderItems: [{
+                                    id: 303,
+                                    orderId: 102
+                                }, {
+                                    id: 304,
+                                    orderId: 102
+                                }]
+                            }]
+                        });
+                        session.adopt(user);
+
+                        var order = user.orders().getAt(0);
+                        expect(order.session).toBe(session);
+                        expect(order.getAddress().session).toBe(session);
+                        expect(order.orderItems().getAt(0).session).toBe(session);
+                        expect(order.orderItems().getAt(1).session).toBe(session);
+
+                        order = user.orders().getAt(1);
+                        expect(order.session).toBe(session);
+                        expect(order.getAddress().session).toBe(session);
+                        expect(order.orderItems().getAt(0).session).toBe(session);
+                        expect(order.orderItems().getAt(1).session).toBe(session);
+                    });
                 });
             });
         });
@@ -217,6 +446,14 @@ describe("Ext.data.Session", function() {
                 });
             });
 
+            it("should be able to create a phantom with no data", function() {
+                var rec;
+                expect(function() {
+                    rec = session.createRecord('User');
+                }).not.toThrow();
+                expect(rec.phantom).toBe(true);
+            });
+
             describe("with a parent", function() {
                 beforeEach(function() {
                     session.setParent(parent);
@@ -234,6 +471,14 @@ describe("Ext.data.Session", function() {
                             id: 1
                         });
                     }).toThrow();
+                });
+
+                it("should be able to create a phantom with no data", function() {
+                    var rec;
+                    expect(function() {
+                        rec = session.createRecord('User');
+                    }).not.toThrow();
+                    expect(rec.phantom).toBe(true);
                 });
             });
         });
@@ -844,6 +1089,11 @@ describe("Ext.data.Session", function() {
                     name: 'addressId',
                     reference: 'Address',
                     unique: true
+                }, {
+                    name: 'serializeField',
+                    serialize: function(v) {
+                        return v.toString();
+                    }
                 }],
                 manyToMany: '#Group'
             });
@@ -874,6 +1124,22 @@ describe("Ext.data.Session", function() {
             Ext.undefine('spec.Group');
             Ext.data.Model.schema.clear(true);
             User = null;
+        });
+
+        describe("serialization options", function() {
+            it("should serialize field data", function() {
+                var user = session.createRecord('User', {
+                    serializeField: 1000
+                });
+                expect(session.getChanges()).toEqual({
+                    User: {
+                        C: [{
+                            id: user.getId(),
+                            serializeField: '1000'
+                        }]
+                    }
+                });
+            });
         });
 
         describe("basic operations", function() {
@@ -1046,6 +1312,76 @@ describe("Ext.data.Session", function() {
         });
 
         describe("associations", function() {
+            describe("pending drops", function() {
+                beforeEach(function() {
+                    Ext.define('spec.Order', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'date', {
+                            name: 'addressId',
+                            unique: true,
+                            reference: {
+                                child: 'Address'
+                            }
+                        }]
+                    });
+                    Ext.define('spec.OrderItem', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'price', 'qty', {
+                            name: 'orderId',
+                            reference: {
+                                parent: 'Order'
+                            }
+                        }]
+                    });
+                });
+
+                afterEach(function() {
+                    Ext.undefine('spec.Order');
+                    Ext.undefine('spec.OrderItem');
+                });
+
+                it("should resolve any pending drops", function() {
+                    var order = getAndComplete('Order', 1, session, {
+                        addressId: 101
+                    });
+
+                    var address = order.getAddress();
+                    getAndComplete('Address', 101);
+
+                    var orderItems = order.orderItems();
+
+                    orderItems.load();
+                    completeRequest([{
+                        id: 201,
+                        orderId: 1
+                    }, {
+                        id: 202,
+                        orderId: 1
+                    }]);
+                    
+                    var orderItem = orderItems.getAt(0);
+
+                    order.setAddress(null);
+                    orderItems.removeAt(0);
+
+                    expect(address.dropped).toBe(false);
+                    expect(orderItem.dropped).toBe(false);
+                    expect(session.getChanges()).toEqual({
+                        Address: {
+                            D: [101]
+                        },
+                        Order: {
+                            U: [{
+                                id: 1,
+                                addressId: null
+                            }]
+                        },
+                        OrderItem: {
+                            D: [201]
+                        }
+                    });
+                });
+            });
             describe("one to one", function() {
                 var user, address;
                 beforeEach(function() {
@@ -1426,7 +1762,7 @@ describe("Ext.data.Session", function() {
             });
 
             describe("create", function() {
-                    it("should add the record to the session", function() {
+                it("should add the record to the session", function() {
                     session.update(wrapBlock('C', [{
                         id: 17
                     }]));
@@ -1647,6 +1983,80 @@ describe("Ext.data.Session", function() {
                     Post = Group = null;
                     Ext.undefine('spec.Post');
                     Ext.undefine('spec.Group');
+                });
+
+                describe("pending drops", function() {
+                    beforeEach(function() {
+                        Ext.define('spec.Order', {
+                            extend: 'Ext.data.Model',
+                            fields: ['id', 'date', {
+                                name: 'addressId',
+                                unique: true,
+                                reference: {
+                                    child: 'Address'
+                                }
+                            }]
+                        });
+
+                        Ext.define('spec.Address', {
+                            extend: 'Ext.data.Model',
+                            fields: ['id', 'city']
+                        });
+
+                        Ext.define('spec.OrderItem', {
+                            extend: 'Ext.data.Model',
+                            fields: ['id', 'price', 'qty', {
+                                name: 'orderId',
+                                reference: {
+                                    parent: 'Order'
+                                }
+                            }]
+                        });
+                    });
+
+                    afterEach(function() {
+                        Ext.undefine('spec.Order');
+                        Ext.undefine('spec.Address');
+                        Ext.undefine('spec.OrderItem');
+                    });
+
+                    it("should resolve any pending", function() {
+                        var order = getAndComplete('Order', 1, session, {
+                            addressId: 101
+                        });
+
+                        var address = order.getAddress();
+                        getAndComplete('Address', 101);
+
+                        var orderItems = order.orderItems();
+
+                        orderItems.load();
+                        completeRequest([{
+                            id: 201,
+                            orderId: 1
+                        }, {
+                            id: 202,
+                            orderId: 1
+                        }]);
+                        
+                        var orderItem = orderItems.getAt(0);
+
+                        order.setAddress(null);
+                        orderItems.removeAt(0);
+
+                        expect(address.dropped).toBe(false);
+                        expect(orderItem.dropped).toBe(false);
+                        session.update({
+                            Order: {
+                                U: [{
+                                    id: 1,
+                                    date: new Date()
+                                }]
+                            }
+                        });
+                        expect(address.dropped).toBe(true);
+                        expect(orderItem.dropped).toBe(true);
+                    });
                 });
 
                 describe("many to one", function() {
@@ -2249,7 +2659,7 @@ describe("Ext.data.Session", function() {
                                         }
                                     });
                                     expect(groups.getCount()).toBe(1);
-                                    expect(groups.first()).toBe(session.peekRecord('Group', 101));
+                                    expect(groups.getAt(0)).toBe(session.peekRecord('Group', 101));
                                 });
 
                                 it("should include local store adds", function() {
@@ -2637,6 +3047,92 @@ describe("Ext.data.Session", function() {
 
             });
         });
+
+        describe("id generation", function() {
+            it("should generate ids in sequence from parent to child", function() {
+                parent = new Ext.data.Session();
+                expect(parent.createRecord('User', {}).id).toBe('User-1');
+                expect(parent.createRecord('User', {}).id).toBe('User-2');
+
+                session = parent.spawn();
+
+                expect(session.createRecord('User', {}).id).toBe('User-3');
+                expect(session.createRecord('User', {}).id).toBe('User-4');
+
+                session.save();
+
+                expect(parent.createRecord('User', {}).id).toBe('User-5');
+                expect(parent.createRecord('User', {}).id).toBe('User-6');
+            });
+
+            it("should generate in sequence when sharing multiple children", function() {
+                parent = new Ext.data.Session();
+
+                var child1 = parent.spawn(),
+                    child2 = parent.spawn(),
+                    child3 = parent.spawn();
+
+                expect(child1.createRecord('User', {}).id).toBe('User-1');
+                expect(child2.createRecord('User', {}).id).toBe('User-2');
+                expect(child3.createRecord('User', {}).id).toBe('User-3');
+
+                expect(child1.createRecord('User', {}).id).toBe('User-4');
+                expect(child2.createRecord('User', {}).id).toBe('User-5');
+                expect(child3.createRecord('User', {}).id).toBe('User-6');
+
+                expect(child1.createRecord('User', {}).id).toBe('User-7');
+
+                expect(child1.createRecord('User', {}).id).toBe('User-8');
+                expect(child2.createRecord('User', {}).id).toBe('User-9');
+                expect(child3.createRecord('User', {}).id).toBe('User-10');
+
+                Ext.destroy(child1, child2, child3);
+            });
+        });
+
+        describe("record copying with associations", function() {
+            beforeEach(function() {
+                Ext.define('spec.Post', {
+                    extend: 'Ext.data.Model',
+                    fields: [{
+                        name: 'userId',
+                        reference: 'User'
+                    }]
+                });
+            });
+
+            afterEach(function() {
+                Ext.undefine('spec.Post');
+            });
+
+            it("should copy any phantom records used in associations, when needed", function() {
+                parent = new Ext.data.Session();
+                getAndComplete('User', 1, parent);
+                var post = parent.createRecord('Post', {
+                    userId: 1
+                });
+
+                session = parent.spawn();
+
+                var posts = session.getRecord('User', 1).posts();
+                expect(posts.getAt(0).id).toBe(post.id);
+                expect(posts.getAt(0)).not.toBe(post);
+            });
+
+            it("should copy any records added to the association, when needed", function() {
+                parent = new Ext.data.Session();
+                getAndComplete('User', 1, parent);
+                var post = getAndComplete('Post', 101, parent, {
+                    userId: 1
+                });
+
+                session = parent.spawn();
+
+                var posts = session.getRecord('User', 1).posts();
+                expect(posts.getAt(0).id).toBe(101);
+                expect(posts.getAt(0)).not.toBe(post);
+            });
+        });
     });
 
     describe("updating from child to parent sessions", function() {
@@ -2645,7 +3141,12 @@ describe("Ext.data.Session", function() {
             Ext.data.Model.schema.setNamespace('spec');
             Ext.define('spec.User', {
                 extend: 'Ext.data.Model',
-                fields: ['id', 'name', 'age']
+                fields: ['id', 'name', 'age', {
+                    name: 'serializeField',
+                    serialize: function(v) {
+                        return v.toString();
+                    }
+                }]
             });
 
             session = new Ext.data.Session();
@@ -2663,6 +3164,17 @@ describe("Ext.data.Session", function() {
             expect(child.getChangesForParent()).toBeNull();
             child.save();
             expect(session.getChanges()).toBeNull();
+        });
+
+        it("should not attempt to serialize values when pushing up to a parent", function() {
+            child = session.spawn();
+            rec = child.createRecord('User', {
+                serializeField: 1000
+            });
+            var spy = spyOn(rec.getField('serializeField'), 'serialize');
+            child.save();
+            expect(spy).not.toHaveBeenCalled();
+            expect(session.getRecord('User', rec.id).get('serializeField')).toBe(1000);
         });
 
         describe("create", function() {
@@ -2743,6 +3255,87 @@ describe("Ext.data.Session", function() {
         });
 
         describe("associations", function() {
+            describe("pending drops", function() {
+                beforeEach(function() {
+                    Ext.define('spec.Order', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'date', {
+                            name: 'addressId',
+                            unique: true,
+                            reference: {
+                                child: 'Address'
+                            }
+                        }]
+                    });
+
+                    Ext.define('spec.Address', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'city']
+                    });
+
+                    Ext.define('spec.OrderItem', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'price', 'qty', {
+                            name: 'orderId',
+                            reference: {
+                                parent: 'Order'
+                            }
+                        }]
+                    });
+                });
+
+                afterEach(function() {
+                    Ext.undefine('spec.Order');
+                    Ext.undefine('spec.Address');
+                    Ext.undefine('spec.OrderItem');
+                });
+
+                it("should resolve any pending drops", function() {
+                    var child = session.spawn();
+
+                    var order = getAndComplete('Order', 1, child, {
+                        addressId: 101
+                    });
+
+                    var address = order.getAddress();
+                    getAndComplete('Address', 101, child);
+
+                    var orderItems = order.orderItems();
+
+                    orderItems.load();
+                    completeRequest([{
+                        id: 201,
+                        orderId: 1
+                    }, {
+                        id: 202,
+                        orderId: 1
+                    }]);
+                    
+                    var orderItem = orderItems.getAt(0);
+
+                    order.setAddress(null);
+                    orderItems.removeAt(0);
+
+                    expect(address.dropped).toBe(false);
+                    expect(orderItem.dropped).toBe(false);
+                    child.save();
+                    expect(session.getChanges()).toEqual({
+                        Address: {
+                            D: [101]
+                        },
+                        Order: {
+                            U: [{
+                                id: 1,
+                                addressId: null
+                            }]
+                        },
+                        OrderItem: {
+                            D: [201]
+                        }
+                    });
+                });
+            });
+
             describe("many to one", function() {
                 beforeEach(function() {
                     Ext.define('spec.Post', {
@@ -2793,7 +3386,7 @@ describe("Ext.data.Session", function() {
                     });
 
                     it("should push up a drop", function() {
-                        posts.first().drop();
+                        posts.getAt(0).drop();
                         child.save();
 
                         expect(session.getChanges()).toEqual({
@@ -3208,7 +3801,7 @@ describe("Ext.data.Session", function() {
                     it("should not push up the owning record if it was loaded in the child", function() {
                         child = session.spawn();
                         var group = getAndComplete('Group', 1, child),
-                            user = session.createRecord('User');
+                            user = child.createRecord('User');
 
                         group.users().add(user);
                         child.save();

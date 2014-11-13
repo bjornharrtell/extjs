@@ -147,6 +147,11 @@ Ext.define('Ext.form.field.Time', {
     snapToIncrement: false,
 
     /**
+     * @inheritdoc
+     */
+    valuePublishEvent: ['select', 'blur'],
+
+    /**
      * @private
      * This is the date to use when generating time values in the absence of either minValue
      * or maxValue.  Using the current date causes DST issues on DST boundary dates, so this is an
@@ -283,9 +288,11 @@ Ext.define('Ext.form.field.Time', {
      * @return {String[]} All validation errors for this field
      */
     getErrors: function(value) {
+        value = arguments.length > 0 ? value : this.getRawValue();
+
         var me = this,
             format = Ext.String.format,
-            errors = me.callParent(arguments),
+            errors = me.callParent([value]),
             minValue = me.minValue,
             maxValue = me.maxValue,
             data = me.displayTplData,
@@ -401,6 +408,7 @@ Ext.define('Ext.form.field.Time', {
 
         me.listConfig = Ext.apply({
             xtype: 'timepicker',
+            pickerField: me,
             selModel: {
                 mode: me.multiSelect ? 'SIMPLE' : 'SINGLE'
             },

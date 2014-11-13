@@ -28,7 +28,7 @@ Ext.env.Browser = function (userAgent, publish) {
         engineVersion = '',
         majorVer = '',
         isWebView = false,
-        i, mode, name;
+        i, prefix, mode, name, maxIEVersion;
 
     /**
      * @property {String}
@@ -108,29 +108,24 @@ Ext.env.Browser = function (userAgent, publish) {
                 majorVer = 9;
             } else if (mode == 10 || (majorVer == 10 && mode != 7 && mode != 8 && mode != 9)) {
                 majorVer = 10;
+            } else if (mode == 11 || (majorVer == 11 && mode != 7 && mode != 8 && mode != 9 && mode != 10)) {
+                majorVer = 11;
             }
 
-            if (majorVer <= 7) {
-                Ext.isIE7m = true;
-            }
-            if (majorVer <= 8) {
-                Ext.isIE8m = true;
-            }
-            if (majorVer <= 9) {
-                Ext.isIE9m = true;
-            }
+            maxIEVersion = Math.max(majorVer, 11);
+            for (i = 7; i <= maxIEVersion; ++i) {
+                prefix = 'isIE' + i; 
+                if (majorVer <= i) {
+                    Ext[prefix + 'm'] = true;
+                }
 
-            if (majorVer >= 7) {
-                Ext.isIE7p = true;
-            }
-            if (majorVer >= 8) {
-                Ext.isIE8p = true;
-            }
-            if (majorVer >= 9) {
-                Ext.isIE9p = true;
-            }
-            if (majorVer >= 10) {
-                Ext.isIE10p = true;
+                if (majorVer === i) {
+                    Ext[prefix] = true;
+                }
+
+                if (majorVer >= i) {
+                    Ext[prefix + 'p'] = true;
+                }
             }
         }
 

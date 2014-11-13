@@ -9,8 +9,20 @@ describe('Ext.mixin.Responsive', function () {
                     orientation: 'landscape'
                 },
                 portrait: {
-                    height: 1024,
                     width: 768,
+                    height: 1024,
+                    orientation: 'portrait'
+                }
+            },
+            iphone: {
+                landscape: {
+                    width: 480,
+                    height: 320,
+                    orientation: 'landscape'
+                },
+                portrait: {
+                    width: 320,
+                    height: 480,
                     orientation: 'portrait'
                 }
             }
@@ -43,10 +55,26 @@ describe('Ext.mixin.Responsive', function () {
 
             config: {
                 title: 'Hello',
+                bar: null,
                 foo: null
             },
 
+            responsiveFormulas: {
+                small: 'width < 600',
+                medium: 'width >= 600 && width < 800',
+                large: 'width >= 800'
+            },
+
             responsiveConfig: {
+                small: {
+                    bar: 'S'
+                },
+                medium: {
+                    bar: 'M'
+                },
+                large: {
+                    bar: 'L'
+                },
                 landscape: {
                     title: 'Landscape'
                 },
@@ -76,7 +104,7 @@ describe('Ext.mixin.Responsive', function () {
     describe('initialization', function () {
         beforeEach(function () {
             env = environments.ipad.landscape;
-            Responsive.state = {
+            Responsive.context = {
                 platform: {
                     tablet: true
                 }
@@ -209,10 +237,45 @@ describe('Ext.mixin.Responsive', function () {
         });
     }); // initializing
 
+    describe('formulas', function () {
+        beforeEach(function () {
+            env = environments.ipad.landscape;
+            Responsive.context = {
+                platform: {
+                    tablet: true
+                }
+            }
+        });
+
+        it('should init on iPad Landscape using formulas from class', function () {
+            instance = new Cls();
+
+            var bar = instance.getBar();
+            expect(bar).toBe('L');
+        });
+
+        it('should init on iPad Portrait using formulas from class', function () {
+            env = environments.ipad.portrait;
+            instance = new Cls();
+
+            var bar = instance.getBar();
+            expect(bar).toBe('M');
+        });
+
+        it('should init on iPhone Portrait using formulas from class', function () {
+            env = environments.iphone.portrait;
+            instance = new Cls();
+
+            var bar = instance.getBar();
+            expect(bar).toBe('S');
+        });
+
+    }); // formulas
+
     describe('dynamic', function () {
         beforeEach(function () {
             env = environments.ipad.landscape;
-            Responsive.state = {
+            Responsive.context = {
                 platform: {
                     tablet: true
                 }
@@ -239,6 +302,19 @@ describe('Ext.mixin.Responsive', function () {
 
             foo = instance.getFoo();
             expect(foo).toBe('Tall');
+        });
+
+        it('should update formulas when responsive state changes', function () {
+            instance = new Cls();
+
+            var bar = instance.getBar();
+            expect(bar).toBe('L');
+
+            env = environments.ipad.portrait;
+            Responsive.notify();
+
+            bar = instance.getBar();
+            expect(bar).toBe('M');
         });
     });
 });

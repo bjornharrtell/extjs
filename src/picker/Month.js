@@ -13,6 +13,10 @@ Ext.define('Ext.picker.Month', {
     ],
     alias: 'widget.monthpicker',
     alternateClassName: 'Ext.MonthPicker',
+    
+    isMonthPicker: true,
+    
+    focusable: true,
 
     childEls: [
         'bodyEl', 'prevEl', 'nextEl', 'monthEl', 'yearEl'

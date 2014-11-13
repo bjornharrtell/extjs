@@ -76,11 +76,11 @@ Ext.define('Ext.chart.axis.segmenter.Numeric', {
             increment = step * scale,
             remainder = min % increment;
         if (remainder !== 0) {
-            range[0] = min - remainder - increment;
+            range[0] = min - remainder + (min < 0 ? -increment : 0);
         }
         remainder = max % increment;
         if (remainder !== 0) {
-            range[1] = max - remainder + increment;
+            range[1] = max - remainder + (max > 0 ? increment : 0);
         }
     }
 });

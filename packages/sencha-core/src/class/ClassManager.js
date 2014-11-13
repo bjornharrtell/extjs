@@ -1969,7 +1969,7 @@ var makeCtor = Ext.Class.makeCtor,
             paths = manifest.paths,
             aliases = {},
             alternates = {},
-            className, obj, name;
+            className, obj, name, path, baseUrl;
 
         if(paths) {
             // if the manifest paths were calculated as relative to the

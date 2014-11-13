@@ -4,20 +4,19 @@ Ext.define('Aria.view.Window', {
 
     height: 200,
     minHeight: 100,
-    minWidth: 200,
-    width: 300,
+    minWidth: 300,
+    width: 500,
     autoScroll: true,
     title: 'ARIA Window',
     closable: true,
     constrain: true,
+    defaultFocus: 'textfield',
     
-    layout: 'anchor',
-    defaults: {
-        anchor: '100%'
-    },
+    layout: 'fit',
     
     items: [{
         xtype: 'form',
+        layout: 'form',
         padding: '10px',
         ariaLabel: 'Enter your name',
         items: [{

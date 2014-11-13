@@ -6,6 +6,7 @@ describe("Ext.data.reader.Xml", function() {
         user,
         orders,
         ajaxResponse,
+        doc = document,
         parseXml = function parseXml(str) {
             if (window.ActiveXObject) {
                 var doc = new ActiveXObject('Microsoft.XMLDOM');
@@ -27,14 +28,19 @@ describe("Ext.data.reader.Xml", function() {
                 var docEl = (el ? el.ownerDocument || el : 0).documentElement;
                 return docEl ? docEl.nodeName !== "HTML" : false;
             },
-            selectNode : function(path, root){
+            selectNode: function(path, root){
                 return Ext.DomQuery.select(path, root, null, true)[0];
             },
             select: function(path, root, type, single) {
                 if (typeof root == 'string') {
                     return [];
                 }
-                return single ? [ root.querySelector(path) ] : Ext.Array.toArray(root.querySelectorAll(path));
+
+                if (doc.querySelectorAll && !DQ.isXml(root)) {
+                    return single ? [ root.querySelector(path) ] : Ext.Array.toArray(root.querySelectorAll(path));
+                } else {
+                    return DQ.jsSelect.call(this, path, root, type);
+                }
             }
         }; 
     });
@@ -43,6 +49,25 @@ describe("Ext.data.reader.Xml", function() {
         Ext.DomQuery = DQ;
     });
     
+    it('should set a reference to the raw data in the .raw property on the record', function () {
+        Ext.define('spec.DogXmlTest', {
+            extend: 'Ext.data.Model',
+            fields: ['name']
+        });
+            
+        var xml = getXml('<dog><name>Utley</name></dog><dog><name>Molly</name></dog>');
+
+        reader = new Ext.data.reader.Xml({
+            model: 'spec.DogXmlTest',
+            record: 'dog'
+        });
+
+        expect(reader.readRecords(xml).getRecords()[0].raw).toBe(xml.firstChild.firstChild);
+
+        Ext.data.Model.schema.clear();
+        Ext.undefine('spec.DogXmlTest');
+    });
+
     describe("extractors", function(){
         /**
          * All the values read from the XML document should be strings or XML nodes.
@@ -640,6 +665,11 @@ describe("Ext.data.reader.Xml", function() {
             });
 
             describe("if there is invalid XML", function() {
+                beforeEach(function() {
+                    spyOn(Ext, 'log');
+                    spyOn(Ext.Logger, 'log');
+                });
+                
                 it("should not call readRecords", function() {
                     doRead(badResponse);
                     expect(reader.readRecords).not.toHaveBeenCalled();
