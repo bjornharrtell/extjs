@@ -1,29 +1,9 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This animation class is a mixin.
  *
  * Ext.util.Animate provides an API for the creation of animated transitions of properties and styles.
- * This class is used as a mixin and currently applied to {@link Ext.Element}, {@link Ext.CompositeElement},
- * {@link Ext.draw.Sprite}, {@link Ext.draw.CompositeSprite}, and {@link Ext.Component}.  Note that Components
+ * This class is used as a mixin and currently applied to {@link Ext.dom.Element}, {@link Ext.CompositeElement},
+ * {@link Ext.draw.sprite.Sprite}, {@link Ext.draw.sprite.Composite}, and {@link Ext.Component}.  Note that Components
  * have a limited subset of what attributes can be animated such as top, left, x, y, height, width, and
  * opacity (color, paddings, and margins can not be animated).
  *
@@ -218,9 +198,9 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *     }
  */
 Ext.define('Ext.util.Animate', {
+    mixinId: 'animate',
+
     requires: [
-        'Ext.Element', 
-        'Ext.CompositeElementLite',
         'Ext.fx.Manager', 
         'Ext.fx.Anim'
     ],
@@ -230,7 +210,7 @@ Ext.define('Ext.util.Animate', {
     /**
      * Performs custom animation on this object.
      *
-     * This method is applicable to both the {@link Ext.Component Component} class and the {@link Ext.draw.Sprite Sprite}
+     * This method is applicable to both the {@link Ext.Component Component} class and the {@link Ext.draw.sprite.Sprite Sprite}
      * class. It performs animated transitions of certain properties of this object over a specified timeline.
      *
      * ### Animating a {@link Ext.Component Component}
@@ -264,11 +244,11 @@ Ext.define('Ext.util.Animate', {
      *         },
      *         items: [{
      *             title: 'Left: 33%',
-     *             margins: '5 0 5 5',
+     *             margin: '5 0 5 5',
      *             flex: 1
      *         }, {
      *             title: 'Left: 66%',
-     *             margins: '5 5 5 5',
+     *             margin: '5 5 5 5',
      *             flex: 2
      *         }]
      *     });
@@ -318,12 +298,20 @@ Ext.define('Ext.util.Animate', {
             paused: true
         }, config);
     },
+    
+    // @private - get animation properties
+    getAnimationProps: function() {
+        var me = this,
+            layout = me.layout;
+        
+        return layout && layout.animate ? layout.animate : {};
+    },
 
     /**
      * Stops any running effects and clears this object's internal effects queue if it contains any additional effects
      * that haven't started yet.
      * @deprecated 4.0 Replaced by {@link #stopAnimation}
-     * @return {Ext.Element} The Element
+     * @return {Ext.dom.Element} The Element
      * @method
      */
     stopFx: Ext.Function.alias(Ext.util.Animate, 'stopAnimation'),
@@ -331,7 +319,7 @@ Ext.define('Ext.util.Animate', {
     /**
      * Stops any running effects and clears this object's internal effects queue if it contains any additional effects
      * that haven't started yet.
-     * @return {Ext.Element} The Element
+     * @return {Ext.dom.Element} The Element
      */
     stopAnimation: function() {
         Ext.fx.Manager.stopAnimation(this.id);
@@ -376,9 +364,4 @@ Ext.define('Ext.util.Animate', {
     getActiveAnimation: function() {
         return Ext.fx.Manager.getActiveAnimation(this.id);
     }
-}, function(){
-    // Apply Animate mixin manually until Element is defined in the proper 4.x way
-    Ext.applyIf(Ext.Element.prototype, this.prototype);
-    // We need to call this again so the animation methods get copied over to CE
-    Ext.CompositeElementLite.importElementMethods();
 });

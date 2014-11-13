@@ -102,7 +102,7 @@ $tab-font-family-disabled: $tab-font-family !default;
  * @var {string}
  * The font-weight of Tabs
  */
-$tab-font-weight: bold !default;
+$tab-font-weight: $font-weight-bold !default;
 
 /**
  * @var {string}
@@ -173,7 +173,7 @@ $tab-background-gradient-disabled: 'tab-disabled' !default;
 $tab-border-radius: 4px 4px 0 0 !default;
 
 /**
- * @var {number}
+ * @var {number/list}
  * The border-width of Tabs
  */
 $tab-border-width: 1px !default;
@@ -221,16 +221,10 @@ $tab-border-color-disabled: $tab-border-color !default;
 $tab-padding: 3px 9px !default;
 
 /**
- * @var {number/list}
- * The padding of the Tab's text element
+ * @var {number}
+ * The horizontal padding to add to the left and right of the Tab's text element
  */
 $tab-text-padding: 0 !default;
-
-/**
- * @var {number}
- * The line-height of Tabs
- */
-$tab-line-height: 13px !default;
 
 /**
  * @var {number/list}
@@ -313,6 +307,12 @@ $tab-icon-height: 16px !default;
 
 /**
  * @var {number}
+ * The line-height of Tabs
+ */
+$tab-line-height: $tab-icon-height !default;
+
+/**
+ * @var {number}
  * The space between the Tab icon and the Tab text
  */
 $tab-icon-spacing: 4px !default;
@@ -376,22 +376,6 @@ $tab-text-opacity-disabled: .3 !default;
  * opacity to apply to the tab's icon element when the tab is disabled
  */
 $tab-icon-opacity-disabled: .5 !default;
-
-/**
- * @var {string}
- * Experimental - Has issues with IE
- * The direction to rotate the contents of a left-aligned tab.  `right` to rotate
- * clockwise or `left` to rotate counterclockwise. Defaults to `left`.
- */
-$tab-left-rotate-direction: 'left';
-
-/**
- * @var {string}
- * Experimental - Has issues with IE
- * The direction to rotate the contents of a right-aligned tab.  `right` to rotate
- * clockwise or `left` to rotate counterclockwise. Defaults to `right`.
- */
-$tab-right-rotate-direction: 'right';
 
 /**
  * @var {boolean}

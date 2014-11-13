@@ -2,7 +2,7 @@
  * @class SimpleTasks.ux.StatusColumn
  * @extends Ext.grid.column.Column
  * <p>A Header subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.</p>
- * <p><b>Note. As of ExtJS 3.3 this no longer has to be configured as a plugin of the GridPanel.</b></p>
+ * <p><b>Note. As of Ext JS 3.3 this no longer has to be configured as a plugin of the GridPanel.</b></p>
  * <p>Example usage:</p>
  * <pre><code>
 // create the grid
@@ -32,19 +32,13 @@ Ext.define('SimpleTasks.ux.StatusColumn', {
 
     tdCls: Ext.baseCSSPrefix + 'grid-cell-statuscolumn',
     
-    constructor: function() {
-        this.addEvents(
-            /**
-             * @event checkchange
-             * Fires when the checked state of a row changes
-             * @param {SimpleTasks.ux.StatusColumn} this
-             * @param {Number} rowIndex The row index
-             * @param {Boolean} checked True if the box is checked
-             */
-            'checkchange'
-        );
-        this.callParent(arguments);
-    },
+    /**
+     * @event checkchange
+     * Fires when the checked state of a row changes
+     * @param {SimpleTasks.ux.StatusColumn} this
+     * @param {Number} rowIndex The row index
+     * @param {Boolean} checked True if the box is checked
+     */
 
     /**
      * @private

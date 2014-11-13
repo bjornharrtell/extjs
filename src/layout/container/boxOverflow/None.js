@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  * Base class for Box Layout overflow handlers. These specialized classes are invoked when a Box Layout
@@ -26,10 +6,26 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  */
 Ext.define('Ext.layout.container.boxOverflow.None', {
     alternateClassName: 'Ext.layout.boxOverflow.None',
+    alias: [
+        'box.overflow.none',
+        'box.overflow.None' // capitalized for 4.x compat
+    ],
+
+    mixins: [
+        'Ext.mixin.Factoryable'
+    ],
+
+    factoryConfig: {
+        defaultType: 'none'
+    },
+
+    isBoxOverflowHandler: true,
+
+    $configPrefixed: false,
+    $configStrict: false,
     
-    constructor: function(layout, config) {
-        this.layout = layout;
-        Ext.apply(this, config);
+    constructor: function(config) {
+        this.initConfig(config);
     },
 
     handleOverflow: Ext.emptyFn,
@@ -98,15 +94,17 @@ Ext.define('Ext.layout.container.boxOverflow.None', {
     getItem: function(item) {
         return this.layout.owner.getComponent(item);
     },
-    
+
     getOwnerType: function(owner){
         var type;
         if (owner.isToolbar) {
             type = 'toolbar';
         } else if (owner.isTabBar) {
-            type = 'tabbar';
+            type = 'tab-bar';
         } else if (owner.isMenu) {
             type = 'menu';
+        } else if (owner.isBreadcrumb) {
+            type = 'breadcrumb';
         } else {
             type = owner.getXType();
         }
@@ -118,5 +116,14 @@ Ext.define('Ext.layout.container.boxOverflow.None', {
     getSuffixConfig: Ext.emptyFn,
     getOverflowCls: function() {
         return '';
+    },
+
+    setVertical: function() {
+        var me = this,
+            layout = me.layout,
+            innerCt = layout.innerCt;
+
+        innerCt.removeCls(me.getOverflowCls(layout.oppositeDirection));
+        innerCt.addCls(me.getOverflowCls(layout.direction));
     }
 });

@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Provides input field management, validation, submission, and form loading services for the collection
  * of {@link Ext.form.field.Field Field} instances within a {@link Ext.container.Container}. It is recommended
@@ -86,8 +66,54 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 Ext.define('Ext.form.Basic', {
     extend: 'Ext.util.Observable',
     alternateClassName: 'Ext.form.BasicForm',
-    requires: ['Ext.util.MixedCollection', 'Ext.form.action.Load', 'Ext.form.action.Submit',
-               'Ext.window.MessageBox', 'Ext.data.Errors', 'Ext.util.DelayedTask'],
+
+    requires: [
+        'Ext.util.MixedCollection',
+        'Ext.form.action.Load',
+        'Ext.form.action.Submit',
+        'Ext.window.MessageBox',
+        'Ext.data.ErrorCollection',
+        'Ext.util.DelayedTask'
+    ],
+
+    // Not a public API config, this is useful when we're unit testing so we can
+    // turn off the delayed tasks so they fire immediately.
+    taskDelay: 10,
+
+    /**
+     * @event beforeaction
+     * Fires before any action is performed. Return false to cancel the action.
+     * @param {Ext.form.Basic} this
+     * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} to be performed
+     */
+
+    /**
+     * @event actionfailed
+     * Fires when an action fails.
+     * @param {Ext.form.Basic} this
+     * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} that failed
+     */
+
+    /**
+     * @event actioncomplete
+     * Fires when an action is completed.
+     * @param {Ext.form.Basic} this
+     * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} that completed
+     */
+
+    /**
+     * @event validitychange
+     * Fires when the validity of the entire form changes.
+     * @param {Ext.form.Basic} this
+     * @param {Boolean} valid `true` if the form is now valid, `false` if it is now invalid.
+     */
+
+    /**
+     * @event dirtychange
+     * Fires when the dirty state of the entire form changes.
+     * @param {Ext.form.Basic} this
+     * @param {Boolean} dirty `true` if the form is now dirty, `false` if it is no longer dirty.
+     */
 
     /**
      * Creates new form.
@@ -112,10 +138,11 @@ Ext.define('Ext.form.Basic', {
         // let us react to items being added/remove at different places in the hierarchy which may have an
         // impact on the dirty/valid state.
         me.monitor = new Ext.container.Monitor({
-            selector: '[isFormField]',
+            selector: '[isFormField]:not([excludeForm])',
             scope: me,
             addHandler: me.onFieldAdd,
-            removeHandler: me.onFieldRemove
+            removeHandler: me.onFieldRemove,
+            invalidateHandler: me.onMonitorInvalidate
         });
         me.monitor.bind(owner);
 
@@ -146,43 +173,6 @@ Ext.define('Ext.form.Basic', {
             me.errorReader = Ext.createByAlias('reader.' + reader.type, reader);
         }
 
-        me.addEvents(
-            /**
-             * @event beforeaction
-             * Fires before any action is performed. Return false to cancel the action.
-             * @param {Ext.form.Basic} this
-             * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} to be performed
-             */
-            'beforeaction',
-            /**
-             * @event actionfailed
-             * Fires when an action fails.
-             * @param {Ext.form.Basic} this
-             * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} that failed
-             */
-            'actionfailed',
-            /**
-             * @event actioncomplete
-             * Fires when an action is completed.
-             * @param {Ext.form.Basic} this
-             * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} that completed
-             */
-            'actioncomplete',
-            /**
-             * @event validitychange
-             * Fires when the validity of the entire form changes.
-             * @param {Ext.form.Basic} this
-             * @param {Boolean} valid `true` if the form is now valid, `false` if it is now invalid.
-             */
-            'validitychange',
-            /**
-             * @event dirtychange
-             * Fires when the dirty state of the entire form changes.
-             * @param {Ext.form.Basic} this
-             * @param {Boolean} dirty `true` if the form is now dirty, `false` if it is no longer dirty.
-             */
-            'dirtychange'
-        );
         me.callParent();
     },
 
@@ -299,7 +289,7 @@ Ext.define('Ext.form.Basic', {
 
     /**
      * @cfg {Boolean} trackResetOnLoad
-     * If set to true, {@link #reset}() resets to the last loaded or {@link #setValues}() data instead of
+     * If set to true, {@link #method-reset}() resets to the last loaded or {@link #method-setValues}() data instead of
      * when the form was first created.
      */
     trackResetOnLoad: false,
@@ -319,7 +309,7 @@ Ext.define('Ext.form.Basic', {
      */
 
     /**
-     * @cfg {String/HTMLElement/Ext.Element} waitMsgTarget
+     * @cfg {String/HTMLElement/Ext.dom.Element} waitMsgTarget
      * By default wait messages are displayed with Ext.MessageBox.wait. You can target a specific
      * element by passing it or its id or mask the form itself by passing in true.
      */
@@ -343,6 +333,7 @@ Ext.define('Ext.form.Basic', {
         me.clearListeners();
         me.checkValidityTask.cancel();
         me.checkDirtyTask.cancel();
+        me.isDestroyed = true;
     },
     
     onFieldAdd: function(field){
@@ -350,9 +341,7 @@ Ext.define('Ext.form.Basic', {
         
         me.mon(field, 'validitychange', me.checkValidityDelay, me);
         me.mon(field, 'dirtychange', me.checkDirtyDelay, me);
-        if (me.initialized) {
-            me.checkValidityDelay();
-        }
+        me.onMonitorInvalidate();
     },
     
     onFieldRemove: function(field){
@@ -360,8 +349,12 @@ Ext.define('Ext.form.Basic', {
         
         me.mun(field, 'validitychange', me.checkValidityDelay, me);
         me.mun(field, 'dirtychange', me.checkDirtyDelay, me);
-        if (me.initialized) {
-            me.checkValidityDelay();
+        me.onMonitorInvalidate();
+    },
+    
+    onMonitorInvalidate: function() {
+        if (this.initialized) {
+            this.checkValidityDelay();
         }
     },
     
@@ -428,7 +421,13 @@ Ext.define('Ext.form.Basic', {
      */
     checkValidity: function() {
         var me = this,
-            valid = !me.hasInvalidField();
+            valid;
+        
+        if (me.isDestroyed) {
+            return;
+        }
+            
+        valid = !me.hasInvalidField();
         if (valid !== me.wasValid) {
             me.onValidityChange(valid);
             me.fireEvent('validitychange', me, valid);
@@ -437,7 +436,12 @@ Ext.define('Ext.form.Basic', {
     },
     
     checkValidityDelay: function(){
-        this.checkValidityTask.delay(10);
+        var timer = this.taskDelay;
+        if (timer) {
+            this.checkValidityTask.delay(timer);
+        } else {
+            this.checkValidity();
+        }
     },
 
     /**
@@ -469,7 +473,11 @@ Ext.define('Ext.form.Basic', {
      *
      * Note that if this BasicForm was configured with {@link Ext.form.Basic#trackResetOnLoad
      * trackResetOnLoad} then the Fields' *original values* are updated when the values are
-     * loaded by {@link Ext.form.Basic#setValues setValues} or {@link #loadRecord}.
+     * loaded by {@link Ext.form.Basic#setValues setValues} or {@link #loadRecord}. This means
+     * that:
+     * 
+     * - {@link #trackResetOnLoad}: `false` -> Will return `true` after calling this method.
+     * - {@link #trackResetOnLoad}: `true` -> Will return `false` after calling this method.
      *
      * @return {Boolean}
      */
@@ -480,7 +488,12 @@ Ext.define('Ext.form.Basic', {
     },
     
     checkDirtyDelay: function(){
-        this.checkDirtyTask.delay(10);
+        var timer = this.taskDelay;
+        if (timer) {
+            this.checkDirtyTask.delay(timer);
+        } else {
+            this.checkDirty();
+        }
     },
 
     /**
@@ -489,7 +502,14 @@ Ext.define('Ext.form.Basic', {
      * when an individual field's `dirty` state changes.
      */
     checkDirty: function() {
-        var dirty = this.isDirty();
+        var me = this,
+            dirty;
+            
+        if (me.isDestroyed) {
+            return;
+        }
+            
+        dirty = this.isDirty();
         if (dirty !== this.wasDirty) {
             this.fireEvent('dirtychange', this, dirty);
             this.wasDirty = dirty;
@@ -504,11 +524,11 @@ Ext.define('Ext.form.Basic', {
      * but removed after the return data has been gathered.
      *
      * The server response is parsed by the browser to create the document for the IFRAME. If the server is using JSON
-     * to send the return object, then the [Content-Type][2] header must be set to "text/html" in order to tell the
-     * browser to insert the text unchanged into the document body.
+     * to send the return object, then the [Content-Type][2] header should be set to "text/plain" in order to tell the
+     * browser to insert the text unchanged into a '&lt;pre>' element in the document body from which it can be retrieved.
      *
-     * Characters which are significant to an HTML parser must be sent as HTML entities, so encode `"<"` as `"&lt;"`,
-     * `"&"` as `"&amp;"` etc.
+     * If the [Content-Type][2] header is sent as the default, "text/html", then characters which are significant to an HTML
+     * parser must be sent as HTML entities, so encode `"<"` as `"&lt;"`, `"&"` as `"&amp;"` etc.
      *
      * The response text is retrieved from the document, and a fake XMLHttpRequest object is created containing a
      * responseText property in order to conform to the requirements of event handlers and callbacks.
@@ -686,7 +706,7 @@ Ext.define('Ext.form.Basic', {
             return this;
         }
         
-        var fields = record.fields.items,
+        var fields = record.self.fields,
             values = this.getFieldValues(),
             obj = {},
             i = 0,
@@ -710,8 +730,9 @@ Ext.define('Ext.form.Basic', {
 
     /**
      * Loads an {@link Ext.data.Model} into this form by calling {@link #setValues} with the
-     * {@link Ext.data.Model#raw record data}.
-     * See also {@link #trackResetOnLoad}.
+     * {@link Ext.data.Model#getData record data}. The fields in the model are mapped to 
+     * fields in the form by matching either the {@link Ext.form.field.Base#name} or {@link Ext.Component#itemId}.  
+     * See also {@link #trackResetOnLoad}. 
      * @param {Ext.data.Model} record The record to load
      * @return {Ext.form.Basic} this
      */
@@ -819,9 +840,9 @@ Ext.define('Ext.form.Basic', {
      * {@link Ext.form.field.Field#getName name or hiddenName}).
      * @return {Ext.form.field.Field} The first matching field, or `null` if none was found.
      */
-    findField: function(id) {
-        return this.getFields().findBy(function(f) {
-            return f.id === id || f.getName() === id;
+    findField: function (id) {
+        return this.getFields().findBy(function (f) {
+            return f.id === id || f.name === id || f.dataIndex === id;
         });
     },
 
@@ -852,7 +873,7 @@ Ext.define('Ext.form.Basic', {
                 error = errors[e];
                 mark(error.id, error.msg);
             }
-        } else if (errors instanceof Ext.data.Errors) {
+        } else if (errors instanceof Ext.data.ErrorCollection) {
             eLen  = errors.items.length;
             for (e = 0; e < eLen; e++) {
                 error = errors.items[e];
@@ -891,7 +912,7 @@ Ext.define('Ext.form.Basic', {
      */
     setValues: function(values) {
         var me = this,
-            v, vLen, val, field;
+            v, vLen, val;
 
         function setVal(fieldId, val) {
             var field = me.findField(fieldId);
@@ -940,19 +961,17 @@ Ext.define('Ext.form.Basic', {
      * method is used.
      * @return {String/Object}
      */
-    getValues: function(asString, dirtyOnly, includeEmptyText, useDataValues) {
+    getValues: function(asString, dirtyOnly, includeEmptyText, useDataValues, isSubmitting) {
         var values  = {},
             fields  = this.getFields().items,
-            f,
             fLen    = fields.length,
             isArray = Ext.isArray,
-            field, data, val, bucket, name;
+            field, data, val, bucket, name, f;
 
         for (f = 0; f < fLen; f++) {
             field = fields[f];
-
             if (!dirtyOnly || field.isDirty()) {
-                data = field[useDataValues ? 'getModelData' : 'getSubmitData'](includeEmptyText);
+                data = field[useDataValues ? 'getModelData' : 'getSubmitData'](includeEmptyText, isSubmitting);
 
                 if (Ext.isObject(data)) {
                     for (name in data) {
@@ -963,20 +982,24 @@ Ext.define('Ext.form.Basic', {
                                 val = field.emptyText || '';
                             }
 
-                            if (values.hasOwnProperty(name)) {
-                                bucket = values[name];
+                            if (!field.isRadio) {
+                                if (values.hasOwnProperty(name)) {
+                                    bucket = values[name];
 
-                                if (!isArray(bucket)) {
-                                    bucket = values[name] = [bucket];
-                                }
+                                    if (!isArray(bucket)) {
+                                        bucket = values[name] = [bucket];
+                                    }
 
-                                if (isArray(val)) {
-                                    values[name] = bucket.concat(val);
+                                    if (isArray(val)) {
+                                        values[name] = bucket.concat(val);
+                                    } else {
+                                        bucket.push(val);
+                                    }
                                 } else {
-                                    bucket.push(val);
+                                    values[name] = val;
                                 }
                             } else {
-                                values[name] = val;
+                                values[name] = values[name] || val;
                             }
                         }
                     }

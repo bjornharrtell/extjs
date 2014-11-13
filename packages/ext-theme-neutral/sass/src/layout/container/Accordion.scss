@@ -3,7 +3,7 @@
     padding: $accordion-padding;
 }
 
-.#{$prefix}accordion-hd .#{$prefix}panel-header-text-container {
+.#{$prefix}accordion-hd .#{$prefix}panel-header-title {
     color: $accordion-header-color;
     font-weight: $accordion-header-font-weight;
     font-family: $accordion-header-font-family;
@@ -15,12 +15,20 @@
 
     .#{$prefix}accordion-hd {
         background: $accordion-header-background-color;
-        border-top-color: $panel-header-inner-border-color;
+        border-width: $accordion-header-border-width;
+        border-color: $accordion-header-border-color;
         padding: $accordion-header-padding;
     }
 
+    @if $accordion-header-over-background-color != $accordion-header-background-color {
+        .#{$prefix}accordion-hd-over {
+            background-color: $accordion-header-over-background-color;
+        }
+    }
+
     .#{$prefix}accordion-hd-sibling-expanded {
-        border-top-color: $panel-border-color;
+        border-top-color: bottom($accordion-header-border-color);
+        border-top-width: bottom($accordion-header-border-width);
     }
 
     .#{$prefix}accordion-hd-last-collapsed {

@@ -1,6 +1,6 @@
 // Tree tables must assume either full width of the View element, or, when necessary, must overflow
 // They must not shrink wrap the width and only be as wide as their widest node's content.
-.#{$prefix}autowidth-table .#{$prefix}grid-table {
+.#{$prefix}autowidth-table .#{$prefix}grid-item {
     table-layout: auto;
     width: auto !important;
 }
@@ -26,8 +26,4 @@
 
 .#{$prefix}tree-animator-wrap {
     overflow: hidden;
-}
-
-.#{$prefix}tree-node-text {
-    zoom: 1;
 }

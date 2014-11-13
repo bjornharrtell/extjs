@@ -1,7 +1,7 @@
 /**
  * Creates a visual theme for a ButtonGroup.
  *
- * @param {string} $ui-label
+ * @param {string} $ui
  * The name of the UI being created. Can not included spaces or special punctuation
  * (used in CSS class names).
  *
@@ -44,7 +44,7 @@
  * @member Ext.container.ButtonGroup
  */
 @mixin extjs-btn-group-ui(
-    $ui-label,
+    $ui: null,
 
     // background
     $ui-background-color: $btn-group-background-color,
@@ -63,12 +63,24 @@
     $ui-header-padding: $btn-group-header-padding,
 
     $ui-body-padding: $btn-group-padding,
-    $ui-tool-background-image: $btn-group-tool-background-image
+    $ui-tool-background-image: $btn-group-tool-background-image,
+
+    // deprecated - use $ui instead
+    $ui-label: null
 ){
+    @if $ui == null {
+        @if $ui-label != null {
+            @warn '$ui-label is deprecated.  Use $ui instead';
+            $ui: $ui-label;
+        } @else {
+            @warn "#{error('$ui is required')}";
+        }
+    }
+
     @if $ui-border-radius != 0 {
         @include x-frame(
             'btn-group',
-            $ui: '#{$ui-label}',
+            $ui: '#{$ui}',
 
             $border-radius: $ui-border-radius,
             $border-width: $ui-border-width,
@@ -77,7 +89,7 @@
         );
         @include x-frame(
             'btn-group',
-            $ui: '#{$ui-label}-notitle',
+            $ui: '#{$ui}-notitle',
 
             $border-radius: $ui-border-radius,
             $border-width: $ui-border-width,
@@ -86,7 +98,7 @@
         );
     }
 
-    .#{$prefix}btn-group-#{$ui-label} {
+    .#{$prefix}btn-group-#{$ui} {
         border-color: $ui-border-color;
         @include inner-border(
             $width: $btn-group-inner-border-width,
@@ -95,14 +107,14 @@
 
     }
 
-    .#{$prefix}btn-group-header-#{$ui-label} {
+    .#{$prefix}btn-group-header-#{$ui} {
         @if $btn-group-header-margin != 0 {
             margin: $btn-group-header-margin;
         }
         padding: $ui-header-padding;
         line-height: $ui-header-line-height;
         background: $ui-header-background-color;
-        @if $ui-border-radius != null {
+        @if not is-null($ui-border-radius) {
             @include border-top-radius($ui-border-radius);
         }
 
@@ -117,13 +129,13 @@
         }
     }
 
-    .#{$prefix}btn-group-header-text-container-#{$ui-label} {
+    .#{$prefix}btn-group-header-text-container-#{$ui} {
         font: $ui-header-font;
         line-height: $ui-header-line-height;
         color: $ui-header-color;
     }
 
-    .#{$prefix}btn-group-body-#{$ui-label} {
+    .#{$prefix}btn-group-body-#{$ui} {
         padding: $btn-group-padding;
         .#{$prefix}table-layout {
             border-spacing: $btn-group-border-spacing;
@@ -133,13 +145,13 @@
 
 @if $include-btn-group-default-ui {
     @include extjs-btn-group-ui(
-        $ui-label: 'default'
+        $ui: 'default'
     );
 }
 
 @if $include-btn-group-default-framed-ui {
     @include extjs-btn-group-ui(
-        $ui-label: 'default-framed',
+        $ui: 'default-framed',
         $ui-background-color: $btn-group-framed-background-color,
         $ui-border-radius: $btn-group-framed-border-radius,
         $ui-border-width: $btn-group-framed-border-width

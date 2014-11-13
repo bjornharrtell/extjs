@@ -2,7 +2,8 @@
 @mixin rotate-element(
     $angle, // angle of rotation (90, 180, or 270)
     $include-ie: $include-ie,
-    $background-color: null // bg color to use for ms chroma filter
+    $background-color: null, // bg color to use for ms chroma filter
+    $origin: null
 ) {
     $rotation-origin: null;
     $rotation: rotate(#{$angle}deg);
@@ -18,23 +19,29 @@
         $rotation-origin: 100% 0;
     }
 
+    @if not is-null($origin) {
+        $rotation-origin: $origin;
+    }
+
     -webkit-transform: $rotation; 
     -webkit-transform-origin: $rotation-origin;
     -moz-transform: $rotation;	
     -moz-transform-origin: $rotation-origin;
     -o-transform: $rotation;	
     -o-transform-origin: $rotation-origin;
+    -ms-transform: $rotation;
+    -ms-transform-origin: $rotation-origin;
     transform: $rotation;
     transform-origin: $rotation-origin;
 
     @if $include-ie {
-        // In IE9 and below we have to use a BasicImage filter to achieve 90 or 270 degree
+        // In IE8 we have to use a BasicImage filter to achieve 90 or 270 degree
         // rotation of the text container. Text rotated using this methodology does
         // not display using ClearType font unless the element has a background. To
         // work around this, we apply a background color to the text container element
         // and then use a Chroma filter to display all pixels of that color as transparent.
-        .#{$prefix}ie9m & {
-            @if $background-color != null {
+        .#{$prefix}ie8 & {
+            @if not is-null($background-color) {
                 background-color: $background-color;
                 filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=#{$ie-rotation}),
                         progid:DXImageTransform.Microsoft.Chroma(color=#{$background-color});

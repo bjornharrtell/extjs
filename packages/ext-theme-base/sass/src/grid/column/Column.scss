@@ -5,7 +5,6 @@
 }
 
 .#{$prefix}column-header-inner {
-    zoom: 1;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
@@ -14,12 +13,15 @@
 .#{$prefix}column-header-text {
     white-space: nowrap;
     background-repeat: no-repeat;
-    // in all version of IE except for 8 strict, left and right padding are
-    // automatically reversed on inline elements when the direction property
-    // is "rtl". triggering hasLayout corrects this bug in IE6/7/quirks, and
-    // display: inline-block is used for IE9/10
-    zoom: 1;
-    display: inline-block;
+}
+
+@if $include-ie and $include-rtl {
+    .#{$prefix}rtl.#{$prefix}column-header-text {
+        // in IE9, left and right padding are automatically reversed on inline elements when
+        // the direction property is "rtl". inline-block fixes it. We only apply this hack
+        // in rtl mode because inline-block breaks ellipsis.
+        display: inline-block;
+    }
 }
 
 .#{$prefix}column-header-trigger {

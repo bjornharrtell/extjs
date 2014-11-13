@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Controllers are the glue that binds an application together. All they really do is listen for events (usually from
  * views) and take some action. Here's how we might create a Controller to manage Users:
@@ -36,7 +16,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * your Viewport is created.
  *
  * The init function is a great place to set up how your controller interacts with the view, and is usually used in
- * conjunction with another Controller function - {@link Ext.app.Controller#control control}. The control function
+ * conjunction with another Controller function - {@link Ext.app.BaseController#method-control control}. The control function
  * makes it easy to listen to events on your view classes and take some action with a handler function. Let's update
  * our Users controller to tell us when the panel is rendered:
  *
@@ -56,7 +36,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *          }
  *      });
  *
- * We've updated the init function to use {@link Ext.app.Controller#control control method} to set up listeners on views
+ * We've updated the init function to use {@link Ext.app.BaseController#method-control control method} to set up listeners on views
  * in our application. The control method uses the ComponentQuery engine to quickly and easily get references to components
  * on the page. If you are not familiar with ComponentQuery yet, be sure to check out the
  * {@link Ext.ComponentQuery documentation}. In brief though, it allows us to pass a CSS-like selector that will find
@@ -72,11 +52,11 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * In Ext JS 4.2, we introduced the concept of event domains. In terms of MVC, an event domain
  * is one or more base classes that fire events to which a Controller wants to listen. Besides
  * Component event domain that encompass {@link Ext.Component}-descended Views, Controllers now
- * can listen to events from data Stores, Ext.Direct Providers, other Controllers, and Ext.globalEvents.
+ * can listen to events from data Stores, Ext.Direct Providers, other Controllers, and Ext.GlobalEvents.
  * This feature provides a way to communicate between parts of the whole application without the need
  * to bind controllers together tightly, and allows to develop and test application parts in isolation.
  *
- * See usage examples in {@link #listen} method documentation.
+ * See usage examples in {@link Ext.app.BaseController#method-listen listen} method documentation.
  *
  * ## Using refs
  *
@@ -164,27 +144,15 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * @docauthor Ed Spencer
  */
 Ext.define('Ext.app.Controller', {
+    extend: 'Ext.app.BaseController',
     requires: [
-        'Ext.app.EventBus',
-        'Ext.ModelManager',
+        'Ext.app.Util',
         'Ext.data.StoreManager',
         'Ext.ComponentManager',
-        'Ext.app.domain.Global',
         'Ext.app.domain.Component',
-        'Ext.app.domain.Store'
+        'Ext.app.domain.Store',
+        'Ext.app.route.Router'
     ],
-    
-    uses: [
-        'Ext.app.domain.Controller'
-    ],
-
-    mixins: {
-        observable: 'Ext.util.Observable'
-    },
-
-    /**
-     * @cfg {String} id The id of this controller. You can use this id when dispatching.
-     */
 
     statics: {
         strings: {
@@ -309,7 +277,7 @@ Ext.define('Ext.app.Controller', {
             //       called Books will not be underqualified)
             //
             else if (name.indexOf('.') > 0 && (Ext.ClassManager.isCreated(name) ||
-                     Ext.Loader.isAClassNameWithAKnownPrefix(name))) {
+                     this.hasRegisteredPrefix(name))) {
                 absoluteName = name;
             }
             else {
@@ -333,16 +301,16 @@ Ext.define('Ext.app.Controller', {
                 absoluteName: absoluteName,
                 shortName:    shortName
             };
+        },
+
+        hasRegisteredPrefix: function (className) {
+            var inventory = Ext.ClassManager,
+                prefix = inventory.getPrefix(className);
+
+            // It's a class if className is not equal to any known namespace
+            return prefix && prefix !== className;
         }
     },
-    
-    /**
-     * The {@link Ext.app.Application} for this controller.
-     *
-     * @property {Ext.app.Application}
-     * @readonly
-     */
-    application: null,
 
     /**
      * @cfg {String/String[]} models
@@ -426,32 +394,72 @@ Ext.define('Ext.app.Controller', {
      *      });
      */
 
-    /**
-     * @cfg {Object[]} refs
-     * Array of configs to build up references to views on page. For example:
-     *
-     *      Ext.define("MyApp.controller.Foo", {
-     *          extend: "Ext.app.Controller",
-     *          
-     *          refs: [{
-     *              ref: 'list',
-     *              selector: 'grid'
-     *          }],
-     *      });
-     *
-     * This will add method `getList` to the controller which will internally use
-     * Ext.ComponentQuery to reference the grid component on page.
-     *
-     * The following fields can be used in ref definition:
-     *
-     * - `ref` - name of the reference.
-     * - `selector` - Ext.ComponentQuery selector to access the component.
-     * - `autoCreate` - True to create the component automatically if not found on page.
-     * - `forceCreate` - Forces the creation of the component every time reference is accessed
-     *   (when `get<REFNAME>` is called).
-     * - `xtype` - Used to create component by its xtype with autoCreate or forceCreate. If
-     *   you don't provide xtype, an Ext.Component instance will be created.
-     */
+    config : {
+        /**
+         * @cfg {Ext.app.Application} application The {@link Ext.app.Application} for this controller accessible via the getApplication method.
+         * @accessor
+         * @readonly
+         */
+        application: null,
+        
+        /**
+         * @cfg {Object[]} refs
+         * @accessor
+         *
+         * You can specify refs with either an Object or an Array:
+         *
+         *      Ext.define('MyApp.controller.Foo', {
+         *          extend: 'Ext.app.Controller',
+         *
+         *          config: {
+         *              refs: {
+         *                  list: 'grid',
+         *                  user: {
+         *                      autoCreate: true,
+         *                      selector: 'form',
+         *                      xtype: 'form'
+         *                  }
+         *              }
+         *          }
+         *      });
+         *
+         * This will add the `getList` and `getUser` methods to the controller which will internally use
+         * Ext.ComponentQuery to reference the resolved component.
+         *
+         *      Ext.define('MyApp.controller.Foo', {
+         *          extend: 'Ext.app.Controller',
+         *
+         *          config : {
+         *              refs: [{
+         *                  ref: 'list',
+         *                  selector: 'grid'
+         *              }]
+         *          }
+         *      });
+         *
+         * This will add method `getList` to the controller which will internally use
+         * Ext.ComponentQuery to reference the grid component on page.
+         *
+         * The recommended way to use refs is within the config object but legacy means of specifying
+         * refs as a sibling of the config object is still supported.
+         *
+         * The following fields can be used in ref definition:
+         *
+         * - `ref` - name of the reference.
+         * - `selector` - Ext.ComponentQuery selector to access the component.
+         * - `autoCreate` - True to create the component automatically if not found on page.
+         * - `forceCreate` - Forces the creation of the component every time reference is accessed
+         *   (when `get<REFNAME>` is called).
+         * - `xtype` - Used to create component by its xtype with autoCreate or forceCreate. If
+         *   you don't provide xtype, an Ext.Component instance will be created.
+         */
+        refs: null,
+
+        active: true,
+
+        // private
+        moduleClassName: null
+    },
 
     onClassExtended: function(cls, data, hooks) {
         var onBeforeClassCreated = hooks.onBeforeCreated;
@@ -477,7 +485,7 @@ Ext.define('Ext.app.Controller', {
              * until after Application.onClassExtended kicks in, hence it is done in this hook.
              */
             className = Ext.getClassName(cls);
-            namespace = data.$namespace                 ||
+            namespace = data.$namespace || data.namespace ||
                         Ext.app.getNamespace(className) ||
                         ((match = ctrlRegex.exec(className)) && match[1]);
 
@@ -505,20 +513,87 @@ Ext.define('Ext.app.Controller', {
      *
      * @param {Object} [config] Configuration object.
      */
-    constructor: function (config) {
-        var me = this;
+    constructor: function(config) {
+        this.callParent(arguments);
+        this.initAutoGetters();
+    },
 
-        me.mixins.observable.constructor.call(me, config);
+    /**
+     * @private
+     * Takes either an object and transforms it into an array. The following are valid refs values:
+     *
+     *     refs: {
+     *         myComponent: 'container'
+     *     }
+     *
+     *     refs: {
+     *         myComponent: {
+     *             selector: 'container'
+     *         }
+     *     }
+     *
+     *     refs: [
+     *         {
+     *             ref: 'myComponent',
+     *             selector: 'container'
+     *         }
+     *     ]
+     *
+     * @param {Array|Object} refs The refs to normalize
+     * @param {Array} newRefs An array to place the normalized refs on to
+     * @returns {Array} The normalized array of refs
+     */
+    normalizeRefs: function(refs) {
+        var me = this,
+            newRefs = [];
 
-        if (me.refs) {
-            me.ref(me.refs);
+        if (refs) {
+            if (Ext.isObject(refs)) {
+                Ext.Object.each(refs, function(key, value) {
+                    if (Ext.isString(value)) {
+                        value = {
+                            selector : value
+                        };
+                    }
+
+                    value.ref = key;
+
+                    newRefs.push(value);
+                });
+            } else if (Ext.isArray(refs)) {
+                newRefs = Ext.Array.merge(newRefs, refs);
+            }
         }
 
-        me.eventbus = Ext.app.EventBus;
-        
-        me.initAutoGetters();
+        refs = me.refs;
+
+        if (refs) {
+            me.refs = null;
+
+            refs = me.normalizeRefs(refs);
+
+            if (refs) {
+                newRefs = Ext.Array.merge(newRefs, refs);
+            }
+        }
+
+        return newRefs;
     },
-    
+
+    applyRefs: function(refs) {
+        return this.normalizeRefs(Ext.clone(refs));
+    },
+
+    /**
+     * @param {Object} refs The refs to pass to the {@link #ref} method.
+     * @private
+     */
+    updateRefs: function(refs) {
+        if (refs) {
+            this.ref(refs);
+        }
+    },
+
     initAutoGetters: function() {
         var proto = this.self.prototype,
             prop, fn;
@@ -577,6 +652,34 @@ Ext.define('Ext.app.Controller', {
      * @template
      */
     onLaunch: Ext.emptyFn,
+    
+    /**
+     * Allow the controller to resume receiving events from the event bus.
+     * Routes will also be able to begin firing on this controller.
+     * Also see {@link #deactivate}.
+     */
+    activate: function() {
+        this.setActive(true);
+    },
+    
+    /**
+     * Prevent this controller from receiving events from the event bus.
+     * Routes will also not be triggered on inactive controllers unless
+     * the {@link Ext.app.route.Route#allowInactive} flag is set.
+     * Also see {@link #activate}.
+     */
+    deactivate: function() {
+        this.setActive(false);
+    },
+    
+    /**
+     * Checks if this controller is active. See {@link #activate} & 
+     * {@link #deactivate}.
+     * @return {Boolean} `true` if this controller is active.
+     */
+    isActive: function() {
+        return this.getActive();
+    },
 
     ref: function(refs) {
         var me = this,
@@ -645,186 +748,12 @@ Ext.define('Ext.app.Controller', {
     /**
      * Returns `true` if a {@link #refs reference} is registered.
      *
+     * @param {String} ref The name of the ref to check for.
      * @return {Boolean}
      */
     hasRef: function(ref) {
         var references = this.references;
         return references && Ext.Array.indexOf(references, ref.toLowerCase()) !== -1;
-    },
-
-    /**
-     * Adds listeners to components selected via {@link Ext.ComponentQuery}. Accepts an
-     * object containing component paths mapped to a hash of listener functions.
-     *
-     * In the following example the `updateUser` function is mapped to to the `click`
-     * event on a button component, which is a child of the `useredit` component.
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.control({
-     *                  'useredit button[action=save]': {
-     *                      click: this.updateUser
-     *                  }
-     *              });
-     *          },
-     *          
-     *          updateUser: function(button) {
-     *              console.log('clicked the Save button');
-     *          }
-     *      });
-     *
-     * Or alternatively one call `control` with two arguments:
-     *
-     *      this.control('useredit button[action=save]', {
-     *          click: this.updateUser
-     *      });
-     *
-     * See {@link Ext.ComponentQuery} for more information on component selectors.
-     *
-     * @param {String/Object} selectors If a String, the second argument is used as the
-     * listeners, otherwise an object of selectors -> listeners is assumed
-     * @param {Object} [listeners] Config for listeners.
-     */
-    control: function(selectors, listeners, controller) {
-        var me = this,
-            ctrl = controller,
-            obj;
-
-        if (Ext.isString(selectors)) {
-            obj = {};
-            obj[selectors] = listeners;
-        }
-        else {
-            obj = selectors;
-            ctrl = listeners;
-        }
-
-        me.eventbus.control(obj, ctrl || me);
-    },
-
-    /**
-     * Adds listeners to different event sources (also called "event domains"). The
-     * primary event domain is that of components, but there are also other event domains:
-     * {@link Ext.app.domain.Global Global} domain that intercepts events fired from
-     * {@link Ext#globalEvents} Observable instance, {@link Ext.app.domain.Controller Controller}
-     * domain can be used to listen to events fired by other Controllers,
-     * {@link Ext.app.domain.Store Store} domain gives access to Store events, and
-     * {@link Ext.app.domain.Direct Direct} domain can be used with Ext.Direct Providers
-     * to listen to their events.
-     * 
-     * To listen to "bar" events fired by a controller with id="foo":
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.listen({
-     *                  controller: {
-     *                      '#foo': {
-     *                         bar: this.onFooBar
-     *                      }
-     *                  }
-     *              });
-     *          },
-     *          ...
-     *      });
-     * 
-     * To listen to "bar" events fired by any controller, and "baz" events
-     * fired by Store with storeId="baz":
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.listen({
-     *                  controller: {
-     *                      '*': {
-     *                         bar: this.onAnyControllerBar
-     *                      }
-     *                  },
-     *                  store: {
-     *                      '#baz': {
-     *                          baz: this.onStoreBaz
-     *                      }
-     *                  }
-     *              });
-     *          },
-     *          ...
-     *      });
-     *
-     * To listen to "idle" events fired by {@link Ext#globalEvents} when other event
-     * processing is complete and Ext JS is about to return control to the browser:
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.listen({
-     *                  global: {               // Global events are always fired
-     *                      idle: this.onIdle   // from the same object, so there
-     *                  }                       // are no selectors
-     *              });
-     *          }
-     *      });
-     * 
-     * As this relates to components, the following example:
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.listen({
-     *                  component: {
-     *                      'useredit button[action=save]': {
-     *                         click: this.updateUser
-     *                      }
-     *                  }
-     *              });
-     *          },
-     *          ...
-     *      });
-     * 
-     * Is equivalent to:
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.control({
-     *                  'useredit button[action=save]': {
-     *                     click: this.updateUser
-     *                  }
-     *              });
-     *          },
-     *          ...
-     *      });
-     *
-     * Of course, these can all be combined in a single call and used instead of
-     * `control`, like so:
-     *
-     *      Ext.define('AM.controller.Users', {
-     *          init: function() {
-     *              this.listen({
-     *                  global: {
-     *                      idle: this.onIdle
-     *                  },
-     *                  controller: {
-     *                      '*': {
-     *                         foobar: this.onAnyFooBar
-     *                      },
-     *                      '#foo': {
-     *                         bar: this.onFooBar
-     *                      }
-     *                  },
-     *                  component: {
-     *                      'useredit button[action=save]': {
-     *                         click: this.updateUser
-     *                      }
-     *                  },
-     *                  store: {
-     *                      '#qux': {
-     *                          load: this.onQuxLoad
-     *                      }
-     *                  }
-     *              });
-     *          },
-     *          ...
-     *      });
-     *
-     * @param {Object} to Config object containing domains, selectors and listeners.
-     */
-    listen: function (to, controller) {
-        this.eventbus.listen(to, controller || this);
     },
 
     /**
@@ -839,11 +768,10 @@ Ext.define('Ext.app.Controller', {
      * @return {Ext.app.Controller} controller instance or undefined.
      */
     getController: function(id) {
-        var me = this,
-            app = me.application;
+        var app = this.application;
 
-        if (id === me.id) {
-            return me;
+        if (id === this.getId()) {
+            return this;
         }
 
         return app && app.getController(id);
@@ -860,7 +788,7 @@ Ext.define('Ext.app.Controller', {
     getStore: function(name) {
         var storeId, store;
 
-        storeId = (name.indexOf('@') == -1) ? name : name.split('@')[0];
+        storeId = (name.indexOf('@') === -1) ? name : name.split('@')[0];
         store   = Ext.StoreManager.get(storeId);
 
         if (!store) {
@@ -878,16 +806,19 @@ Ext.define('Ext.app.Controller', {
 
     /**
      * Returns a {@link Ext.data.Model Model} class with the given name.
-     * A shorthand for using {@link Ext.ModelManager#getModel}.
      *
      * @param {String} name
-     *
-     * @return {Ext.data.Model} a model class.
+     * @return {Ext.Class} A class ultimately derived from `Ext.data.Model`.
      */
     getModel: function(model) {
-        var name = Ext.app.Controller.getFullName(model, 'model', this.$namespace);
+        var name = Ext.app.Controller.getFullName(model, 'model', this.$namespace),
+            ret = Ext.ClassManager.get(name.absoluteName);
 
-        return name && Ext.ModelManager.getModel(name.absoluteName);
+        if (!ret) {
+            ret = Ext.data.schema.Schema.lookupEntity(model);
+        }
+
+        return ret;
     },
 
     /**
@@ -896,7 +827,7 @@ Ext.define('Ext.app.Controller', {
      *
      *     this.getView('Viewport').create();
      *
-     * @param {String} name
+     * @param {String} view
      *
      * @return {Ext.Base} a view class.
      */
@@ -906,12 +837,34 @@ Ext.define('Ext.app.Controller', {
         return name && Ext.ClassManager.get(name.absoluteName);
     },
 
-    /**
-     * Returns the base {@link Ext.app.Application} for this controller.
-     *
-     * @return {Ext.app.Application} the application
-     */
-    getApplication: function() {
-        return this.application;
+    ensureId: function() {
+        var id = this.getId();
+            
+        if (!id) {
+            this.setId(this.getModuleClassName(this.$className, 'controller'));
+        }    
+    },
+    
+    destroy: function(destroyRefs, /* private */ fromApp) {
+        var me = this,
+            app = me.application,
+            refCache, ref;
+
+        if (!fromApp && app) {
+            app.unregister(me);
+        }
+        
+        me.application = null;
+        
+        if (destroyRefs) {
+            // Possible destroy stores here too?
+            refCache = me.refCache;
+            for (ref in refCache) {
+                if (refCache.hasOwnProperty(ref)) {
+                    Ext.destroy(refCache[ref]);
+                }
+            }
+        }
+        me.callParent();
     }
 });

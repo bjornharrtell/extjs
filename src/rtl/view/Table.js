@@ -1,32 +1,11 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 Ext.define('Ext.rtl.view.Table', {
     override: 'Ext.view.Table',
 
     rtlCellTpl: [
-        '<td class="' + Ext.baseCSSPrefix + 'rtl {tdCls}" {tdAttr}>',
-            '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'rtl ' + Ext.baseCSSPrefix + 'grid-cell-inner {innerCls}"',
-                ' style="text-align:{[this.getAlign(values.align)]};<tpl if="style">{style}</tpl>">{value}</div>',
-        '</td>',
-        {
+        '<td class="' + Ext.baseCSSPrefix + 'rtl {tdCls}" {tdAttr} {[Ext.aria ? "id=\\"" + Ext.id() + "\\"" : ""]} style="width:{column.cellWidth}px;<tpl if="tdStyle">{tdStyle}</tpl>" {ariaCellAttr}>',
+            '<div {unselectableAttr} class="' + Ext.baseCSSPrefix + 'rtl ' + Ext.baseCSSPrefix + 'grid-cell-inner {innerCls}" ',
+        'style="text-align:{[this.getAlign(values.align)]};<tpl if="style">{style}</tpl>" {ariaCellInnerAttr}>{value}</div>',
+        '</td>', {
             priority: 0,
             rtlAlign: {
                 right: 'left',
@@ -43,12 +22,22 @@ Ext.define('Ext.rtl.view.Table', {
         var me = this;
 
         me.callParent();
-        if (me.getHierarchyState().rtl) {
+        if (me.getInherited().rtl) {
             me.addCellTpl(me.getTpl('rtlCellTpl'));
         }
     },
 
     getCellPaddingAfter: function(cell) {
-        return Ext.fly(cell).getPadding(this.getHierarchyState().rtl ? 'l' : 'r');
+        return Ext.fly(cell).getPadding(this.getInherited().rtl ? 'l' : 'r');
+    },
+
+    scrollElIntoView: function(el, hscroll, animate) {
+        var scrollManager = this.scrollManager;
+
+        if (scrollManager) {
+            scrollManager.scrollIntoView(el, hscroll, animate);
+        } else {
+            Ext.fly(el)[this.getInherited().rtl ? 'rtlScrollIntoView' : 'scrollIntoView'](this.el, hscroll, animate);
+        }
     }
 });

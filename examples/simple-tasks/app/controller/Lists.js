@@ -235,8 +235,8 @@ Ext.define('SimpleTasks.controller.Lists', {
             selModel = listTree.getSelectionModel(),
             tasksStore = me.getTasksStore(),
             listsStore = me.getListsStore(),
-            isLocal = this.getListsStore().getProxy().type === 'localstorage',
-            filters, tasks, store;
+            isLocal = SimpleTasks.Settings.useLocalStorage,
+            tasks;
 
         Ext.Msg.show({
             title: 'Delete List?',
@@ -244,24 +244,17 @@ Ext.define('SimpleTasks.controller.Lists', {
             buttons: Ext.Msg.YESNO,
             fn: function(response) {
                 if(response === 'yes') {
-                    // save the existing filters
-                    filters = tasksStore.filters.getRange(0, tasksStore.filters.getCount() - 1);
-                    // clear the filters in the tasks store, we need to do this because tasksStore.queryBy only queries based on the current filter,
-                    // but we need to query all lists in the store
-                    tasksStore.clearFilter();
                     // recursively remove any tasks from the store that are associated with the list being deleted or any of its children.
                     (function deleteTasks(list) {
                         tasks = tasksStore.queryBy(function(task, id) {
                             return task.get('list_id') === list.get('id');
                         });
-                        tasksStore.remove(tasks.getRange(0, tasks.getCount() - 1), !isLocal);
+                        tasksStore.remove(tasks.getRange(0, tasks.getCount()), !isLocal);
 
                         list.eachChild(function(child) {
                             deleteTasks(child);
                         });
                     })(list);
-                    // reapply the filters
-                    tasksStore.filter(filters);
 
                     // destroy the tree node on the server
                     list.parentNode.removeChild(list);
@@ -315,31 +308,17 @@ Ext.define('SimpleTasks.controller.Lists', {
             listIds = [],
             deleteListBtn = Ext.getCmp('delete-list-btn'),
             deleteFolderBtn = Ext.getCmp('delete-folder-btn'),
-            filters = tasksStore.filters.getRange(0, tasksStore.filters.getCount() - 1),
-            filterCount = filters.length,
             i = 0;
-
-        // first clear any existing filter
-        tasksStore.clearFilter();
 
         // build an array of all the list_id's in the hierarchy of the selected list
         list.cascadeBy(function(list) {
             listIds.push(list.get('id'));
         });
 
-        // remove any existing "list_id" filter from the filters array
-        for(; i < filterCount; i++) {
-            if(filters[i].property === 'list_id') {
-                filters.splice(i, 1);
-                filterCount --;
-            }
-        }
-
-        // add the new list_ids to the filters array
-        filters.push({ property: "list_id", value: new RegExp('^' + listIds.join('$|^') + '$') });
-
-        // apply the filters
-        tasksStore.filter(filters);
+        tasksStore.addFilter({
+            property: "list_id",
+            value: new RegExp('^' + listIds.join('$|^') + '$')
+        });
 
         // set the center panel's title to the name of the currently selected list
         this.getTaskGrid().setTitle(list.get('name'));
@@ -375,8 +354,6 @@ Ext.define('SimpleTasks.controller.Lists', {
         // save the task to the server
         task.save({
             success: function(task, operation) {
-                // refresh the filters on the task list
-                me.getTaskGrid().refreshFilters();
                 // refresh the lists view so the task counts will be updated.
                 me.getListTree().refreshView();
             },
@@ -404,7 +381,7 @@ Ext.define('SimpleTasks.controller.Lists', {
     reorderList: function(list, overList, position) {
         var listsStore = this.getListsStore();
 
-        if(listsStore.getProxy().type === 'localstorage') {
+        if(SimpleTasks.Settings.useLocalStorage) {
             listsStore.sync();
         } else {
             Ext.Ajax.request({
@@ -528,7 +505,7 @@ Ext.define('SimpleTasks.controller.Lists', {
                     listToSync = store.getNodeById(list.getId());
                     switch(operation.action) {
                         case 'create':
-                            node = store.getNodeById(list.parentNode.getId()) || store.getRootNode();
+                            node = store.getNodeById(list.parentNode.getId()) || store.getRoot();
                             node.appendChild(list.copy(list.getId()));
                             break;
                         case 'update':
@@ -557,7 +534,7 @@ Ext.define('SimpleTasks.controller.Lists', {
      * @param {Ext.EventObject} e
      */
     showActions: function(view, list, node, rowIndex, e) {
-        var icons = Ext.DomQuery.select('.x-action-col-icon', node);
+        var icons = Ext.fly(node).query('.x-action-col-icon');
         if(view.getRecord(node).get('id') > 0) {
             Ext.each(icons, function(icon){
                 Ext.get(icon).removeCls('x-hidden');
@@ -575,7 +552,7 @@ Ext.define('SimpleTasks.controller.Lists', {
      * @param {Ext.EventObject} e
      */
     hideActions: function(view, list, node, rowIndex, e) {
-        var icons = Ext.DomQuery.select('.x-action-col-icon', node);
+        var icons = Ext.fly(node).query('.x-action-col-icon');
         Ext.each(icons, function(icon){
             Ext.get(icon).addCls('x-hidden');
         });

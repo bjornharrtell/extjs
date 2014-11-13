@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A mechanism for displaying data using custom layout templates and formatting.
  *
@@ -72,22 +52,11 @@ Ext.define('Ext.view.View', {
     alternateClassName: 'Ext.DataView',
     alias: 'widget.dataview',
 
-    // private delay to buffer row highlighting/unhighlighting on mouse move.
-    // This is ignored if the public mouseOverOutBuffer remains a non-zero value
-    deferHighlight: Ext.isIE7m ? 100 : 0,
-
-    /**
-     * @cfg {Number} [mouseOverOutBuffer=20]
-     * The number of milliseconds to buffer mouseover and mouseout event handling on view items.
-     * 
-     * Configure this as `false` to process mouseover and mouseout events immediately.
-     */
-    mouseOverOutBuffer: 20,
-
     inputTagRe: /^textarea$|^input$/i,
 
     inheritableStatics: {
         EventMap: {
+            longpress: 'LongPress',
             mousedown: 'MouseDown',
             mouseup: 'MouseUp',
             click: 'Click',
@@ -99,412 +68,425 @@ Ext.define('Ext.view.View', {
             mouseleave: 'MouseLeave',
             keydown: 'KeyDown',
             focus: 'Focus'
+        },
+        TouchEventMap: {
+            touchstart: 'mousedown',
+            touchend: 'mouseup',
+            tap: 'click',
+            doubletap: 'dblclick'
         }
     },
 
-    initComponent: function() {
+    /**
+     * @event beforeitemmousedown
+     * Fires before the mousedown event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemmouseup
+     * Fires before the mouseup event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemmouseenter
+     * Fires before the mouseenter event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemmouseleave
+     * Fires before the mouseleave event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemclick
+     * Fires before the click event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemdblclick
+     * Fires before the dblclick event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemcontextmenu
+     * Fires before the contextmenu event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforeitemkeydown
+     * Fires before the keydown event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event itemmousedown
+     * Fires when there is a mouse down on an item
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemmouseup
+     * Fires when there is a mouse up on an item
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemmouseenter
+     * Fires when the mouse enters an item.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemmouseleave
+     * Fires when the mouse leaves an item.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemclick
+     * Fires when an item is clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemdblclick
+     * Fires when an item is double clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemcontextmenu
+     * Fires when an item is right clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event itemkeydown
+     * Fires when a key is pressed while an item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event beforecontainermousedown
+     * Fires before the mousedown event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainermouseup
+     * Fires before the mouseup event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainermouseover
+     * Fires before the mouseover event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainermouseout
+     * Fires before the mouseout event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainerclick
+     * Fires before the click event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainerdblclick
+     * Fires before the dblclick event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainercontextmenu
+     * Fires before the contextmenu event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event beforecontainerkeydown
+     * Fires before the keydown event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event containermousedown
+     * Fires when there is a mousedown on the container
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containermouseup
+     * Fires when there is a mouseup on the container
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containermouseover
+     * Fires when you move the mouse over the container.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containermouseout
+     * Fires when you move the mouse out of the container.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containerclick
+     * Fires when the container is clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containerdblclick
+     * Fires when the container is double clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containercontextmenu
+     * Fires when the container is right clicked.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object
+     */
+
+    /**
+     * @event containerkeydown
+     * Fires when a key is pressed while the container is focused, and no item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event selectionchange
+     * @inheritdoc Ext.selection.DataViewModel#selectionchange
+     */
+
+    /**
+     * @event beforeselect
+     * @inheritdoc Ext.selection.DataViewModel#beforeselect
+     */
+
+    /**
+     * @event beforedeselect
+     * @inheritdoc Ext.selection.DataViewModel#beforedeselect
+     */
+
+    /**
+     * @event select
+     * @inheritdoc Ext.selection.DataViewModel#select
+     */
+
+    /**
+     * @event deselect
+     * @inheritdoc Ext.selection.DataViewModel#deselect
+     */
+
+    /**
+     * @event focuschange
+     * @inheritdoc Ext.selection.DataViewModel#focuschange
+     */
+
+    /**
+     * @event highlightitem
+     * Fires when a node is highlighted using keyboard navigation, or mouseover.
+     * @param {Ext.view.View} view This View Component.
+     * @param {Ext.dom.Element} node The highlighted node.
+     */
+
+    /**
+     * @event unhighlightitem
+     * Fires when a node is unhighlighted using keyboard navigation, or mouseout.
+     * @param {Ext.view.View} view This View Component.
+     * @param {Ext.dom.Element} node The previously highlighted node.
+     */
+
+    afterRender: function() {
         var me = this;
-        me.callParent();
-        
-        // 
-        if (me.mouseOverOutBuffer) {
-            me.handleMouseOverOrOut = 
-                Ext.Function.createBuffered(me.handleMouseOverOrOut, me.mouseOverOutBuffer, me);
-            me.lastMouseOverOutEvent = new Ext.EventObjectImpl();
-        }
-        
-        // Not buffering mouse over/out handling - buffer item highlighting.
-        else if (me.deferHighlight){
-            me.setHighlightedItem =
-                Ext.Function.createBuffered(me.setHighlightedItem, me.deferHighlight, me);
-        }
-    },
-
-    addCmpEvents: function() {
-        this.addEvents(
-            /**
-             * @event beforeitemmousedown
-             * Fires before the mousedown event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemmousedown',
-            /**
-             * @event beforeitemmouseup
-             * Fires before the mouseup event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemmouseup',
-            /**
-             * @event beforeitemmouseenter
-             * Fires before the mouseenter event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemmouseenter',
-            /**
-             * @event beforeitemmouseleave
-             * Fires before the mouseleave event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemmouseleave',
-            /**
-             * @event beforeitemclick
-             * Fires before the click event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemclick',
-            /**
-             * @event beforeitemdblclick
-             * Fires before the dblclick event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemdblclick',
-            /**
-             * @event beforeitemcontextmenu
-             * Fires before the contextmenu event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforeitemcontextmenu',
-            /**
-             * @event beforeitemkeydown
-             * Fires before the keydown event on an item is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object. Use {@link Ext.EventObject#getKey getKey()} to retrieve the key that was pressed.
-             */
-            'beforeitemkeydown',
-            /**
-             * @event itemmousedown
-             * Fires when there is a mouse down on an item
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemmousedown',
-            /**
-             * @event itemmouseup
-             * Fires when there is a mouse up on an item
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemmouseup',
-            /**
-             * @event itemmouseenter
-             * Fires when the mouse enters an item.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemmouseenter',
-            /**
-             * @event itemmouseleave
-             * Fires when the mouse leaves an item.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemmouseleave',
-            /**
-             * @event itemclick
-             * Fires when an item is clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemclick',
-            /**
-             * @event itemdblclick
-             * Fires when an item is double clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemdblclick',
-            /**
-             * @event itemcontextmenu
-             * Fires when an item is right clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'itemcontextmenu',
-            /**
-             * @event itemkeydown
-             * Fires when a key is pressed while an item is currently selected.
-             * @param {Ext.view.View} this
-             * @param {Ext.data.Model} record The record that belongs to the item
-             * @param {HTMLElement} item The item's element
-             * @param {Number} index The item's index
-             * @param {Ext.EventObject} e The raw event object. Use {@link Ext.EventObject#getKey getKey()} to retrieve the key that was pressed.
-             */
-            'itemkeydown',
-            /**
-             * @event beforecontainermousedown
-             * Fires before the mousedown event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainermousedown',
-            /**
-             * @event beforecontainermouseup
-             * Fires before the mouseup event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainermouseup',
-            /**
-             * @event beforecontainermouseover
-             * Fires before the mouseover event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainermouseover',
-            /**
-             * @event beforecontainermouseout
-             * Fires before the mouseout event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainermouseout',
-            /**
-             * @event beforecontainerclick
-             * Fires before the click event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainerclick',
-            /**
-             * @event beforecontainerdblclick
-             * Fires before the dblclick event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainerdblclick',
-            /**
-             * @event beforecontainercontextmenu
-             * Fires before the contextmenu event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'beforecontainercontextmenu',
-            /**
-             * @event beforecontainerkeydown
-             * Fires before the keydown event on the container is processed. Returns false to cancel the default action.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object. Use {@link Ext.EventObject#getKey getKey()} to retrieve the key that was pressed.
-             */
-            'beforecontainerkeydown',
-            /**
-             * @event containermouseup
-             * Fires when there is a mouse up on the container
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containermouseup',
-            /**
-             * @event containermouseover
-             * Fires when you move the mouse over the container.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containermouseover',
-            /**
-             * @event containermouseout
-             * Fires when you move the mouse out of the container.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containermouseout',
-            /**
-             * @event containerclick
-             * Fires when the container is clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containerclick',
-            /**
-             * @event containerdblclick
-             * Fires when the container is double clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containerdblclick',
-            /**
-             * @event containercontextmenu
-             * Fires when the container is right clicked.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object
-             */
-            'containercontextmenu',
-            /**
-             * @event containerkeydown
-             * Fires when a key is pressed while the container is focused, and no item is currently selected.
-             * @param {Ext.view.View} this
-             * @param {Ext.EventObject} e The raw event object. Use {@link Ext.EventObject#getKey getKey()} to retrieve the key that was pressed.
-             */
-            'containerkeydown',
-
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#selectionchange
-             */
-            'selectionchange',
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#beforeselect
-             */
-            'beforeselect',
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#beforedeselect
-             */
-            'beforedeselect',
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#select
-             */
-            'select',
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#deselect
-             */
-            'deselect',
-            /**
-             * @event
-             * @inheritdoc Ext.selection.DataViewModel#focuschange
-             */
-            'focuschange',
-            
-            /**
-             * @event highlightitem
-             * Fires when a node is highlighted using keyboard navigation, or mouseover.
-             * @param {Ext.view.View} view This View Component.
-             * @param {Ext.Element} node The highlighted node.
-             */
-            'highlightitem',
-            
-            /**
-             * @event unhighlightitem
-             * Fires when a node is unhighlighted using keyboard navigation, or mouseout.
-             * @param {Ext.view.View} view This View Component.
-             * @param {Ext.Element} node The previously highlighted node.
-             */
-            'unhighlightitem'
-        );
-    },
-
-    getFocusEl: function() {
-        return this.getTargetEl();
-    },
-
-    // @private
-    afterRender: function(){
-        var me = this,
-            onMouseOverOut = me.mouseOverOutBuffer ? me.onMouseOverOut : me.handleMouseOverOrOut;
 
         me.callParent();
-        me.mon(me.getTargetEl(), {
+        me.mon(me.el, {
             scope: me,
-            /*
-             * We need to make copies of this since some of the events fired here will end up triggering
-             * a new event to be called and the shared event object will be mutated. In future we should
-             * investigate if there are any issues with creating a new event object for each event that
-             * is fired.
-             */
-            freezeEvent: true,
             click: me.handleEvent,
+            longpress: me.handleEvent,
             mousedown: me.handleEvent,
             mouseup: me.handleEvent,
             dblclick: me.handleEvent,
             contextmenu: me.handleEvent,
             keydown: me.handleEvent,
-            mouseover: onMouseOverOut,
-            mouseout:  onMouseOverOut
+            mouseover: me.handleMouseOver,
+            mouseout: me.handleMouseOut
         });
     },
 
-    onMouseOverOut: function(e) {
-        var me = this;
-
-        // Determining if we are entering or leaving view items is deferred until
-        // mouse move churn settles down.
-        me.lastMouseOverOutEvent.setEvent(e.browserEvent, true);
-        me.handleMouseOverOrOut(me.lastMouseOverOutEvent);
+    // Can be overridden by features or anything that needs to use a specific selector as a target.
+    getTargetSelector: function () {
+        return this.dataRowSelector || this.itemSelector;
     },
 
-    handleMouseOverOrOut: function(e) {
+    handleMouseOver: function(e) {
         var me = this,
-            isMouseout = e.type === 'mouseout',
-            method = isMouseout ? e.getRelatedTarget : e.getTarget,
-            nowOverItem = method.call(e, me.itemSelector) || method.call(e, me.dataRowSelector);
+        // this.getTargetSelector() can be used as a template method, e.g., in features.
+            itemSelector = me.getTargetSelector(),
+            item = e.getTarget(itemSelector);
 
-        // If the mouse event of whatever type tells use that we are no longer over the current mouseOverItem...
-        if (!me.mouseOverItem || nowOverItem !== me.mouseOverItem) {
-
-            // First fire mouseleave for the item we just left
-            if (me.mouseOverItem) {
-                e.item = me.mouseOverItem;
-                e.newType = 'mouseleave';
+        // If mouseover/out handling is buffered, view might have been destyroyed during buffer time.
+        if (!me.isDestroyed) {
+            if (item) {
+                if (me.mouseOverItem !== item && me.el.contains(item)) {
+                    me.mouseOverItem = e.item = item;
+                    e.newType = 'mouseenter';
+                    me.handleEvent(e);
+                }
+            } else {
+                // We're not over an item, so handle a container event.
                 me.handleEvent(e);
             }
+        }
+    },
 
-            // If we are over an item, fire the mouseenter
-            me.mouseOverItem = nowOverItem;
-            if (me.mouseOverItem) {
-                e.item = me.mouseOverItem;
-                e.newType = 'mouseenter';
-                me.handleEvent(e);
+    handleMouseOut: function (e) {
+        var itemSelector = this.getTargetSelector(),
+            item = e.getTarget(itemSelector),
+            computedRelatedTarget = e.getRelatedTarget(itemSelector),
+            sourceView;
+
+        // We can only exit early when mousing within the same row, but we can't simply do an equality check
+        // since it's valid for both item and computedRelatedTarget to be null!
+        if ((item === computedRelatedTarget) && !(item === null && computedRelatedTarget === null)) {
+            return;
+        }
+
+        // Note that a mouseout event can trigger either an item event or a container event.
+        // If mouseover/out handling is buffered, view might have been destroyed during buffer time.
+        if (!this.isDestroyed) {
+            // Yes, this is an assignment.
+            if (item && (sourceView = this.self.getBoundView(item))) {
+                e.item = item;
+                e.newType = 'mouseleave';
+                sourceView.handleEvent(e);
+                sourceView.mouseOverItem = null;
+            } else {
+                // We're not over an item, so handle a container event.
+                this.handleEvent(e);
             }
         }
     },
 
     handleEvent: function(e) {
         var me = this,
-            key = e.type == 'keydown' && e.getKey();
+            isKeydown = e.type === 'keydown',
+            key = isKeydown && e.getKey(),
+            sm;
+
+        if (!e.item) {
+            e.item = e.getTarget(me.itemSelector);
+        }
+
+        if (e.item) {
+            e.record = me.getRecord(e.item);
+        }
+        // For keydown events, try to get either the last focused item or the selected item.
+        // If we have not focused an item, we'll just fire a container keydown event.
+        else if (isKeydown) {
+            sm = me.getSelectionModel();
+            e.record = sm.lastFocused || sm.getLastSelected();
+            if (e.record) {
+                e.item = me.getNode(e.record);
+            }
+        }
 
         if (me.processUIEvent(e) !== false) {
             me.processSpecialEvent(e);
@@ -518,6 +500,7 @@ Ext.define('Ext.view.View', {
                 e.stopEvent();
             }
         }
+        e.item = e.record = e.newType = null;
     },
 
     // Private template method
@@ -534,39 +517,29 @@ Ext.define('Ext.view.View', {
         }
 
         var me = this,
-            item = e.getTarget(me.getItemSelector(), me.getTargetEl()),
-            map = this.statics().EventMap,
-            index, record,
+            item = e.item,
+            self = me.self,
+            map = self.EventMap,
+            touchMap = self.TouchEventMap,
+            index,
+            record = e.record,
             type = e.type,
-            newType = e.type,
-            sm;
+            newType = type;
 
         // If the event is a mouseover/mouseout event converted to a mouseenter/mouseleave,
-        // use that event type and ensure that the item is correct.
+        // use that event type.
         if (e.newType) {
             newType = e.newType;
-            item = e.item;
-        }
-
-        // For keydown events, try to get either the last focused item or the selected item.
-        // If we have not focused an item, we'll just fire a container keydown event.
-        if (!item && type == 'keydown') {
-            sm = me.getSelectionModel();
-            record = sm.lastFocused || sm.getLastSelected();
-            if (record) {
-                item = me.getNode(record, true);
-            }
         }
 
         if (item) {
-            if (!record) {
-                record = me.getRecord(item);
-            }
+            newType = touchMap[newType] || newType;
             index = me.indexInStore ? me.indexInStore(record) : me.indexOf(item);
 
             // It is possible for an event to arrive for which there is no record... this
             // can happen with dblclick where the clicks are on removal actions (think a
-            // grid w/"delete row" action column)
+            // grid w/"delete row" action column) or if the record was in a page that was
+            // pruned by a buffered store.
             if (!record || me.processItemEvent(record, item, index, e) === false) {
                 return false;
             }
@@ -582,6 +555,7 @@ Ext.define('Ext.view.View', {
             me.fireEvent('item' + newType, me, record, item, index, e);
         }
         else {
+            type = touchMap[type] || type;
             if (
                 (me.processContainerEvent(e) === false) ||
                 (me['onBeforeContainer' + map[type]](e) === false) ||
@@ -613,12 +587,14 @@ Ext.define('Ext.view.View', {
 
     // private, template methods
     onItemMouseDown: Ext.emptyFn,
+    onItemLongPress: Ext.emptyFn,
     onItemMouseUp: Ext.emptyFn,
     onItemFocus: Ext.emptyFn,
     onItemClick: Ext.emptyFn,
     onItemDblClick: Ext.emptyFn,
     onItemContextMenu: Ext.emptyFn,
     onItemKeyDown: Ext.emptyFn,
+    onBeforeItemLongPress: Ext.emptyFn,
     onBeforeItemMouseDown: Ext.emptyFn,
     onBeforeItemMouseUp: Ext.emptyFn,
     onBeforeItemFocus: Ext.emptyFn,
@@ -631,6 +607,7 @@ Ext.define('Ext.view.View', {
 
     // private, template methods
     onContainerMouseDown: Ext.emptyFn,
+    onContainerLongPress: Ext.emptyFn,
     onContainerMouseUp: Ext.emptyFn,
     onContainerMouseOver: Ext.emptyFn,
     onContainerMouseOut: Ext.emptyFn,
@@ -639,6 +616,7 @@ Ext.define('Ext.view.View', {
     onContainerContextMenu: Ext.emptyFn,
     onContainerKeyDown: Ext.emptyFn,
     onBeforeContainerMouseDown: Ext.emptyFn,
+    onBeforeContainerLongPress: Ext.emptyFn,
     onBeforeContainerMouseUp: Ext.emptyFn,
     onBeforeContainerMouseOver: Ext.emptyFn,
     onBeforeContainerMouseOut: Ext.emptyFn,
@@ -648,32 +626,42 @@ Ext.define('Ext.view.View', {
     onBeforeContainerKeyDown: Ext.emptyFn,
 
     // @private
+    
     setHighlightedItem: function(item){
         var me = this,
             highlighted = me.highlightedItem,
-            overItemCls = me.overItemCls,
-            beforeOverItemCls = me.beforeOverItemCls,
-            previous;
+            overItemCls = me.overItemCls;
 
-        if (highlighted != item){
+        if (highlighted !== item){
             if (highlighted) {
                 Ext.fly(highlighted).removeCls(overItemCls);
-                previous = highlighted.previousSibling;
-                if (beforeOverItemCls && previous) {
-                    Ext.fly(previous).removeCls(beforeOverItemCls);
+                //<feature legacyBrowser>
+                // Work around for an issue in IE8 where the focus/over/selected borders do not
+                // get updated where applied using adjacent sibling selectors.
+                if (Ext.isIE8) {
+                    me.repaintBorder(highlighted);
+                    me.repaintBorder(highlighted.nextSibling);
                 }
-                me.fireEvent('unhighlightitem', me, highlighted);
+                //</feature>
+                if (me.hasListeners.unhighlightitem) {
+                    me.fireEvent('unhighlightitem', me, highlighted);
+                }
             }
 
             me.highlightedItem = item;
 
             if (item) {
                 Ext.fly(item).addCls(me.overItemCls);
-                previous = item.previousSibling;
-                if (beforeOverItemCls && previous) {
-                    Ext.fly(previous).addCls(beforeOverItemCls);
+                //<feature legacyBrowser>
+                // Work around for an issue in IE8 where the focus/over/selected borders do not
+                // get updated where applied using adjacent sibling selectors.
+                if (Ext.isIE8) {
+                    me.repaintBorder(item.nextSibling);
                 }
-                me.fireEvent('highlightitem', me, item);
+                //</feature>
+                if (me.hasListeners.highlightitem) {
+                    me.fireEvent('highlightitem', me, item);
+                }
             }
         }
     },
@@ -694,18 +682,18 @@ Ext.define('Ext.view.View', {
     clearHighlight: function() {
         this.setHighlightedItem(undefined);
     },
-    
-    onUpdate: function(store, record){
+
+    handleUpdate: function(store, record){
         var me = this,
             node,
             newNode,
             highlighted;
-        
+
         if (me.viewReady) {
             node = me.getNode(record);
             newNode = me.callParent(arguments);
             highlighted = me.highlightedItem;
-            
+
             if (highlighted && highlighted === node) {
                 delete me.highlightedItem;
                 if (newNode) {
@@ -719,14 +707,14 @@ Ext.define('Ext.view.View', {
         this.clearHighlight();
         this.callParent(arguments);
     },
-    
+
     /**
      * Focuses a node in the view.
      * @param {Ext.data.Model} rec The record associated to the node that is to be focused.
      */
     focusNode: function(rec){
         var me          = this,
-            node        = me.getNode(rec, true),
+            node        = me.getNode(rec),
             el          = me.el,
             adjustmentY = 0,
             adjustmentX = 0,
@@ -758,7 +746,54 @@ Ext.define('Ext.view.View', {
             if (adjustmentX || adjustmentY) {
                 me.scrollBy(adjustmentX, adjustmentY, false);
             }
-            el.focus();
+
+            // Poke on a tabIndex to make the node focusable.
+            Ext.fly(node).set({
+                tabIndex: -1
+            });
+
+            node.focus();
+        }
+    },
+
+    bindStore: function (store, initial, propertyName) {
+        // There could be different data sources (store or dataSource), so figure that out here.
+        var dataSource = this[propertyName];
+
+        if (dataSource && dataSource.isFeatureStore) {
+            // Feature stores will call their own implementation of .bindStore().
+            //
+            // The passed 'store' function arg will be one of two types depending on the caller.
+            //    1. regular data store
+            //    2. grid feature store (data store is bound to it in featureStore.store).
+            if (store.isFeatureStore) {
+                // The store listeners need to be bound to the feature store.
+                this.bindStoreListeners(store);
+                // Pass in the regular data store.
+                dataSource.bindStore(dataSource.store);
+            } else {
+                dataSource.bindStore(store);
+            }
+        } else {
+            this.callParent(arguments);
+        }
+    },
+
+    privates: {
+        //<feature legacyBrowser>
+        // Work around for an issue in IE8 where the focus/over/selected borders do not
+        // get updated where applied using adjacent sibling selectors.
+        repaintBorder: function(rowIdx) {
+            var node = this.getNode(rowIdx);
+
+            if (node) {
+                node.className = node.className;
+            }
+        },
+        //</feature>
+
+        getFocusEl: function() {
+            return this.getTargetEl();
         }
     }
 });

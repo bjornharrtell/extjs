@@ -1,50 +1,62 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
- * @author Ed Spencer
- * TabBar is used internally by a {@link Ext.tab.Panel TabPanel} and typically should not need to be created manually.
- * The tab bar automatically removes the default title provided by {@link Ext.panel.Header}
+ * TabBar is used internally by a {@link Ext.tab.Panel TabPanel} and typically should not
+ * need to be created manually.
  */
 Ext.define('Ext.tab.Bar', {
-    extend: 'Ext.panel.Header',
-    alias: 'widget.tabbar',
+    extend: 'Ext.panel.Bar',
+    xtype: 'tabbar',
+
     baseCls: Ext.baseCSSPrefix + 'tab-bar',
 
     requires: [
         'Ext.tab.Tab',
-        'Ext.util.Point'
+        'Ext.util.Point',
+        'Ext.layout.component.Body'
     ],
+
+    componentLayout: 'body',
 
     /**
      * @property {Boolean} isTabBar
      * `true` in this class to identify an object as an instantiated Tab Bar, or subclass thereof.
      */
     isTabBar: true,
-    
+
+    config: {
+        /**
+         * @cfg {'default'/0/1/2} tabRotation
+         * The rotation of the tabs.  Can be one of the following values:
+         *
+         * - `null` - use the default rotation, depending on the dock position (see below)
+         * - `0` - no rotation
+         * - `1` - rotate 90deg clockwise
+         * - `2` - rotate 90deg counter-clockwise
+         *
+         * The default behavior of this config depends on the dock position:
+         *
+         * - `'top'` or `'bottom'` - `0`
+         * - `'right'` - `1`
+         * - `'left'` - `2`
+         */
+        tabRotation: 'default',
+
+        /**
+         * @cfg {Boolean} tabStretchMax
+         * `true` to stretch all tabs to the height of the tallest tab when the tabBar
+         * is docked horizontally, or the width of the widest tab when the tabBar is
+         * docked vertically.
+         */
+        tabStretchMax: true
+    },
+
     /**
      * @cfg {String} title @hide
      */
     
     /**
      * @cfg {String} iconCls @hide
+     *
+     * There are no default icon classes that come with Ext JS.
      */
 
     // @private
@@ -55,22 +67,23 @@ Ext.define('Ext.tab.Bar', {
      * True to not show the full background on the tabbar
      */
     plain: false,
+    
+    ariaRole: 'tablist',
 
     childEls: [
         'body', 'strip'
     ],
 
+    _stripCls: Ext.baseCSSPrefix + 'tab-bar-strip',
+    _baseBodyCls: Ext.baseCSSPrefix + 'tab-bar-body',
+
     // @private
-    renderTpl: [
-        '<div id="{id}-body" class="{baseCls}-body {bodyCls} {bodyTargetCls}{childElCls}<tpl if="ui"> {baseCls}-body-{ui}<tpl for="uiCls"> {parent.baseCls}-body-{parent.ui}-{.}</tpl></tpl>"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>',
-            '{%this.renderContainer(out,values)%}',
-        '</div>',
-        '<div id="{id}-strip" class="{baseCls}-strip {baseCls}-strip-{dock}{childElCls}',
-            '<tpl if="ui"> {baseCls}-strip-{ui}',
-                '<tpl for="uiCls"> {parent.baseCls}-strip-{parent.ui}-{.}</tpl>',
-            '</tpl>">',
-        '</div>'
-    ],
+    renderTpl:
+        '<div id="{id}-body" data-ref="body" role="presentation" class="{baseBodyCls} {baseBodyCls}-{ui} ' +
+            '{bodyCls} {bodyTargetCls}{childElCls}"<tpl if="bodyStyle"> style="{bodyStyle}"</tpl>>' +
+            '{%this.renderContainer(out,values)%}' +
+        '</div>' +
+        '<div id="{id}-strip" data-ref="strip" role="presentation" class="{stripCls} {stripCls}-{ui}{childElCls}"></div>',
 
     /**
      * @cfg {Number} minTabWidth
@@ -89,42 +102,105 @@ Ext.define('Ext.tab.Bar', {
         right: 'left'
     },
 
+    _layoutAlign: {
+        top: 'end',
+        right: 'begin',
+        bottom: 'begin',
+        left: 'end'
+    },
+
+    /**
+     * @event change
+     * Fired when the currently-active tab has changed
+     * @param {Ext.tab.Bar} tabBar The TabBar
+     * @param {Ext.tab.Tab} tab The new Tab
+     * @param {Ext.Component} card The card that was just shown in the TabPanel
+     */
+
     // @private
     initComponent: function() {
-        var me = this;
+        var me = this,
+            initialLayout = me.initialConfig.layout,
+            initialAlign = initialLayout && initialLayout.align,
+            initialOverflowHandler = initialLayout && initialLayout.overflowHandler,
+            layout;
 
         if (me.plain) {
             me.addCls(me.baseCls + '-plain');
         }
 
-        me.addClsWithUI(me.orientation);
+        me.callParent();
 
-        me.addEvents(
-            /**
-             * @event change
-             * Fired when the currently-active tab has changed
-             * @param {Ext.tab.Bar} tabBar The TabBar
-             * @param {Ext.tab.Tab} tab The new Tab
-             * @param {Ext.Component} card The card that was just shown in the TabPanel
-             */
-            'change'
-        );
+        me.setLayout({
+            align: initialAlign || (me.getTabStretchMax() ? 'stretchmax' :
+                    me._layoutAlign[me.dock]),
+            overflowHandler: initialOverflowHandler || 'scroller'
+        });
 
-        // Element onClick listener added by Header base class
-        me.callParent(arguments);
-        Ext.merge(me.layout, me.initialConfig.layout);
+        me.on({
+            click: me.onClick,
+            element: 'el',
+            scope: me
+        });
+    },
 
-        // TabBar must override the Header's align setting.
-        me.layout.align = (me.orientation == 'vertical') ? 'left' : 'top';
-        me.layout.overflowHandler = new Ext.layout.container.boxOverflow.Scroller(me.layout);
+    initRenderData: function() {
+        var me = this;
 
-        me.remove(me.titleCmp);
-        delete me.titleCmp;
-
-        Ext.apply(me.renderData, {
+        return Ext.apply(this.callParent(), {
             bodyCls: me.bodyCls,
+            baseBodyCls: me._baseBodyCls,
+            bodyTargetCls: me.bodyTargetCls,
+            stripCls: me._stripCls,
             dock: me.dock
         });
+    },
+
+    setDock: function(dock) {
+        var me = this,
+            items = me.items,
+            ownerCt = me.ownerCt,
+            i, ln;
+
+        items = items && items.items;
+
+        if (items) {
+            for (i = 0, ln = items.length; i < ln; i++) {
+                items[i].setTabPosition(dock);
+            }
+        }
+
+        if (me.rendered) {
+            // TODO: remove resetItemMargins once EXTJS-13359 is fixed
+            me.resetItemMargins();
+            if (ownerCt && ownerCt.isHeader) {
+                ownerCt.resetItemMargins();
+            }
+            me.needsScroll = true;
+        }
+        me.callParent([dock]);
+    },
+
+    updateTabRotation: function(tabRotation) {
+        var me = this,
+            items = me.items,
+            i, ln;
+
+        items = items && items.items;
+
+        if (items) {
+            for (i = 0, ln = items.length; i < ln; i++) {
+                items[i].setRotation(tabRotation);
+            }
+        }
+
+        if (me.rendered) {
+            // TODO: remove resetItemMargins once EXTJS-13359 is fixed
+            me.resetItemMargins();
+
+            me.needsScroll = true;
+            me.updateLayout();
+        }
     },
 
     onRender: function() {
@@ -132,23 +208,10 @@ Ext.define('Ext.tab.Bar', {
 
         me.callParent();
 
-        if (me.orientation === 'vertical' && (Ext.isIE8 || Ext.isIE9) && Ext.isStrict) {
+        if (Ext.isIE8 && me.vertical) {
             me.el.on({
                 mousemove: me.onMouseMove, 
                 scope: me
-            });
-        }
-    },
-
-    afterRender: function() {
-        var layout = this.layout;
-
-        this.callParent();
-        if (Ext.isIE9 && Ext.isStrict && this.orientation === 'vertical') {
-            // EXTJSIV-8765: focusing a vertically-oriented tab in IE9 strict can cause
-            // the innerCt to scroll if the tabs have bordering.  
-            layout.innerCt.on('scroll', function() {
-                layout.innerCt.dom.scrollLeft = 0;
             });
         }
     },
@@ -161,106 +224,68 @@ Ext.define('Ext.tab.Bar', {
     adjustTabPositions: function() {
         var items = this.items.items,
             i = items.length,
-            tab;
+            tab, lastBox, el, rotation;
 
         // When tabs are rotated vertically we don't have a reliable way to position
         // them using CSS in modern browsers.  This is because of the way transform-orign
         // works - it requires the width to be known, and the width is not known in css.
         // Consequently we have to make an adjustment to the tab's position in these browsers.
         // This is similar to what we do in Ext.panel.Header#adjustTitlePosition
-        if (!Ext.isIE9m) {
-            if (this.dock === 'right') {
-                // rotated 90 degrees around using the top left corner as the axis.
-                // tabs need to be shifted to the right by their width
-                while (i--) {
-                    tab = items[i];
-                    if (tab.isVisible()) {
-                        tab.el.setStyle('left', tab.lastBox.width + 'px');
-                    }
-                }
-            } else if (this.dock === 'left') {
-                // rotated 270 degrees around using the top left corner as the axis.
-                // tabs need to be shifted down by their height
-                while (i--) {
-                    tab = items[i];
-                    if (tab.isVisible()) {
-                        tab.el.setStyle('left', -tab.lastBox.height + 'px');
-                    }
+        if (!Ext.isIE8) {
+            while (i--) {
+                tab = items[i];
+                el = tab.el;
+                lastBox = tab.lastBox;
+                rotation = tab.getActualRotation();
+                if (rotation === 1 && tab.isVisible()) {
+                    // rotated 90 degrees using the top left corner as the axis.
+                    // tabs need to be shifted to the right by their width
+                    el.setStyle('left', (lastBox.x + lastBox.width) + 'px');
+                } else if (rotation === 2 && tab.isVisible()) {
+                    // rotated 270 degrees using the bottom right corner as the axis.
+                    // tabs need to be shifted down by their height
+                    el.setStyle('left', (lastBox.x - lastBox.height) + 'px');
                 }
             }
         }
     },
 
-    getLayout: function() {
-        var me = this;
-        me.layout.type = (me.orientation === 'horizontal') ? 'hbox' : 'vbox';
-        return me.callParent(arguments);
+    onAdded: function(container, pos, instanced) {
+        if (container.isHeader) {
+            this.addCls(container.baseCls + '-' + container.ui + '-tab-bar');
+        }
+        this.callParent([container, pos, instanced]);
     },
 
-    // @private
-    onAdd: function(tab) {
-        tab.position = this.dock;
-        this.callParent(arguments);
-    },
-    
     onRemove: function(tab) {
         var me = this;
-        
+
         if (tab === me.previousTab) {
             me.previousTab = null;
         }
         me.callParent(arguments);    
     },
 
-    afterComponentLayout : function(width) {
+    onRemoved: function(destroying) {
+        var ownerCt = this.ownerCt;
+
+        if (ownerCt.isHeader) {
+            this.removeCls(ownerCt.baseCls + '-' + ownerCt.ui + '-tab-bar');
+        }
+        this.callParent([destroying]);
+    },
+
+    afterComponentLayout: function(width) {
         var me = this,
-            needsScroll = me.needsScroll;
+            needsScroll = me.needsScroll,
+            overflowHandler = me.layout.overflowHandler;
         
         me.callParent(arguments);
             
-        if (needsScroll) {
-            me.layout.overflowHandler.scrollToItem(me.activeTab);
-        }    
+        if (overflowHandler && needsScroll && me.tooNarrow && overflowHandler.scrollToItem) {
+            overflowHandler.scrollToItem(me.activeTab);
+        }
         delete me.needsScroll;
-    },
-
-    // @private
-    onClick: function(e, target) {
-        var me = this,
-            tabPanel = me.tabPanel,
-            tabEl, tab, isCloseClick, tabInfo;
-
-        if (e.getTarget('.' + Ext.baseCSSPrefix + 'box-scroller')) {
-            return;
-        }
-
-        if (me.orientation === 'vertical' && (Ext.isIE8 || Ext.isIE9) && Ext.isStrict) {
-            tabInfo = me.getTabInfoFromPoint(e.getXY());
-            tab = tabInfo.tab;
-            isCloseClick = tabInfo.close;
-        } else {
-            // The target might not be a valid tab el.
-            tabEl = e.getTarget('.' + Ext.tab.Tab.prototype.baseCls);
-            tab = tabEl && Ext.getCmp(tabEl.id);
-            isCloseClick = tab && tab.closeEl && (target === tab.closeEl.dom);
-        }
-
-        if (isCloseClick) {
-            e.preventDefault();
-        }
-        if (tab && tab.isDisabled && !tab.isDisabled()) {
-            if (tab.closable && isCloseClick) {
-                tab.onCloseClick();
-            } else {
-                if (tabPanel) {
-                    // TabPanel will card setActiveTab of the TabBar
-                    tabPanel.setActiveTab(tab.card);
-                } else {
-                    me.setActiveTab(tab);
-                }
-                tab.focus();
-            }
-        }
     },
 
     // private
@@ -320,7 +345,12 @@ Ext.define('Ext.tab.Bar', {
             direction, tab;
 
         for (; i < length; i++) {
-            lastBox = tabs[i].lastBox;
+            tab = tabs[i];
+            lastBox = tab.lastBox;
+            if (!lastBox) {
+                // avoid looping hidden or not layed out tabs
+                continue;
+            }
             tabX = innerCtXY[0] + lastBox.x;
             tabY = innerCtXY[1] - innerCt.dom.scrollTop + lastBox.y;
             tabWidth = lastBox.width;
@@ -332,12 +362,8 @@ Ext.define('Ext.tab.Bar', {
                 tabX
             );
             if (tabRegion.contains(point)) {
-                tab = tabs[i];
                 closeEl = tab.closeEl;
                 if (closeEl) {
-                    closeXY = closeEl.getXY();
-                    closeWidth = closeEl.getWidth();
-                    closeHeight = closeEl.getHeight();
                     // Read the dom to determine if the contents of the tab are reversed
                     // (rotated 180 degrees).  If so, we can cache the result becuase
                     // it's safe to assume all tabs in the tabbar will be the same
@@ -350,14 +376,13 @@ Ext.define('Ext.tab.Bar', {
 
                     direction = isTabReversed ? this._reverseDockNames[me.dock] : me.dock;
 
-                    if (direction === 'right') {
-                        closeX = tabX + tabWidth - ((closeXY[1] - tabY) + closeEl.getHeight()); 
-                        closeY = tabY + (closeXY[0] - tabX); 
-                    } else {
-                        closeX = tabX + (closeXY[1] - tabY);
-                        closeY = tabY + tabX + tabHeight - closeXY[0] - closeEl.getWidth();
-                    }
-                        
+                    closeWidth = closeEl.getWidth();
+                    closeHeight = closeEl.getHeight();
+                    closeXY = me.getCloseXY(closeEl, tabX, tabY, tabWidth, tabHeight,
+                        closeWidth, closeHeight, direction);
+                    closeX = closeXY[0];
+                    closeY = closeXY[1];
+
                     closeRegion = new Ext.util.Region(
                         closeY,
                         closeX + closeWidth,
@@ -370,11 +395,27 @@ Ext.define('Ext.tab.Bar', {
                 break;
             }
         }
-            
+
         return {
             tab: tab,
             close: close
         };
+    },
+
+    // @private
+    getCloseXY: function(closeEl, tabX, tabY, tabWidth, tabHeight, closeWidth, closeHeight, direction) {
+        var closeXY = closeEl.getXY(),
+            closeX, closeY;
+
+        if (direction === 'right') {
+            closeX = tabX + tabWidth - ((closeXY[1] - tabY) + closeHeight); 
+            closeY = tabY + (closeXY[0] - tabX); 
+        } else {
+            closeX = tabX + (closeXY[1] - tabY);
+            closeY = tabY + tabX + tabHeight - closeXY[0] - closeWidth;
+        }
+
+        return [closeX, closeY];
     },
 
     /**
@@ -480,6 +521,55 @@ Ext.define('Ext.tab.Bar', {
                 me.fireEvent('change', me, tab, tab.card);
                 // Ensure that after the currently in progress layout, the active tab is scrolled into view
                 me.updateLayout();
+            }
+        }
+    },
+
+    privates: {
+        applyTargetCls: function(targetCls) {
+            this.bodyTargetCls = targetCls;
+        },
+
+        getTargetEl: function() {
+            return this.body || this.frameBody || this.el;
+        },
+
+        onClick: function(e, target) {
+            var me = this,
+                tabPanel = me.tabPanel,
+                tabEl, tab, isCloseClick, tabInfo;
+
+            if (e.getTarget('.' + Ext.baseCSSPrefix + 'box-scroller')) {
+                return;
+            }
+
+            if (Ext.isIE8 && me.vertical) {
+                tabInfo = me.getTabInfoFromPoint(e.getXY());
+                tab = tabInfo.tab;
+                isCloseClick = tabInfo.close;
+            } else {
+                // The target might not be a valid tab el.
+                tabEl = e.getTarget('.' + Ext.tab.Tab.prototype.baseCls);
+                tab = tabEl && Ext.getCmp(tabEl.id);
+                isCloseClick = tab && tab.closeEl && (target === tab.closeEl.dom);
+            }
+
+            if (isCloseClick) {
+                e.preventDefault();
+            }
+            if (tab && tab.isDisabled && !tab.isDisabled()) {
+                if (tab.closable && isCloseClick) {
+                    tab.onCloseClick();
+                } else {
+                    if (tabPanel) {
+                        // TabPanel will card setActiveTab of the TabBar
+                        tabPanel.setActiveTab(tab.card);
+                    } else {
+                        me.setActiveTab(tab);
+                    }
+                }
+
+                tab.afterClick(isCloseClick);
             }
         }
     }

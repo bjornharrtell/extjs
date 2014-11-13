@@ -25,6 +25,13 @@
     @return parsebox($position, 2);
 }
 
+@function before($position) {
+    @return parsebox($position, 1);
+}
+@function after($position) {
+    @return parsebox($position, 2);
+}
+
 @function top($box) {
     @return parsebox($box, 1);
 }
@@ -69,7 +76,7 @@
 }
 
 @function rtl-background-position($pos) {
-    $x: top($pos);
+    $x: parsebox($pos, 1);
     $new-x: null;
     @if $x == right or $x == 100% {
         $new-x: 0;
@@ -78,5 +85,5 @@
     } @else {
         $new-x: $x;
     }
-    @return $new-x right($pos);
+    @return $new-x parsebox($pos, 2);
 }

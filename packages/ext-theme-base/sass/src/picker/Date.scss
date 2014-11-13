@@ -1,5 +1,16 @@
 .#{$prefix}datepicker {
     position: relative;
+
+    .#{$prefix}monthpicker {
+        left: 0;
+        top: 0;
+        display: block;
+    }
+
+    .#{$prefix}monthpicker-months,
+    .#{$prefix}monthpicker-years {
+        height: 100%;
+    }
 }
 
 .#{$prefix}datepicker-inner {
@@ -14,7 +25,6 @@
 
 .#{$prefix}datepicker-header {
     position: relative;
-    zoom: 1;
 }
 
 .#{$prefix}datepicker-arrow {
@@ -29,24 +39,20 @@
 
 .#{$prefix}datepicker-date {
     display: block;
-    zoom: 1;
     text-decoration: none;
 }
 
 .#{$prefix}monthpicker {
-    position: absolute;
-    left: 0;
-    top: 0;
+    display: table;
 }
-
 .#{$prefix}monthpicker-body {
     height: 100%;
+    position: relative; // so that monthpicker buttons can be absolutely positioned inside
 }
 
 .#{$prefix}monthpicker-months,
 .#{$prefix}monthpicker-years {
     float: left;
-    height: 100%;
 }
 
 .#{$prefix}monthpicker-item {
@@ -70,13 +76,10 @@
 }
 
 .#{$prefix}monthpicker-buttons {
+    width: 100%;
+}
+
+.#{$prefix}datepicker .#{$prefix}monthpicker-buttons {
     position: absolute;
     bottom: 0;
-    width: 100%;
-
-    @if $include-ie {
-        .#{$prefix}strict .#{$prefix}ie6 & {
-            bottom: -1px;
-        }
-    }
 }

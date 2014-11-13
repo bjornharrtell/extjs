@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A Column definition class which renders boolean data fields.  See the {@link Ext.grid.column.Column#xtype xtype}
  * config option of {@link Ext.grid.column.Column} for more details.
@@ -32,28 +12,28 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *        data:{'items':[
  *            { 'framework': "Ext JS 4",     'rocks': true  },
  *            { 'framework': "Sencha Touch", 'rocks': true  },
- *            { 'framework': "Ext GWT",      'rocks': true  }, 
- *            { 'framework': "Other Guys",   'rocks': false } 
+ *            { 'framework': "Ext GWT",      'rocks': true  },
+ *            { 'framework': "Other Guys",   'rocks': false }
  *        ]},
  *        proxy: {
  *            type: 'memory',
  *            reader: {
  *                type: 'json',
- *                root: 'items'
+ *                rootProperty: 'items'
  *            }
  *        }
  *     });
- *     
+ *
  *     Ext.create('Ext.grid.Panel', {
  *         title: 'Boolean Column Demo',
  *         store: Ext.data.StoreManager.lookup('sampleStore'),
  *         columns: [
  *             { text: 'Framework',  dataIndex: 'framework', flex: 1 },
  *             {
- *                 xtype: 'booleancolumn', 
+ *                 xtype: 'booleancolumn',
  *                 text: 'Rocks',
  *                 trueText: 'Yes',
- *                 falseText: 'No', 
+ *                 falseText: 'No',
  *                 dataIndex: 'rocks'
  *             }
  *         ],
@@ -89,24 +69,32 @@ Ext.define('Ext.grid.column.Boolean', {
      */
     undefinedText: '&#160;',
 
+    defaultFilterType: 'boolean',
+
     /**
      * @cfg {Object} renderer
      * @hide
      */
-    
+
     /**
      * @cfg {Object} scope
      * @hide
      */
 
+    producesHTML: false,
+
     defaultRenderer: function(value){
         if (value === undefined) {
             return this.undefinedText;
         }
-        
+
         if (!value || value === 'false') {
             return this.falseText;
         }
         return this.trueText;
+    },
+
+    updater: function(cell, value) {
+        cell.firstChild.firstChild.data = Ext.grid.column.Boolean.prototype.defaultRenderer.call(this, value);
     }
 });

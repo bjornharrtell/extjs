@@ -19,18 +19,12 @@ Ext.define('SimpleTasks.ux.ReminderColumn', {
 
     tdCls: Ext.baseCSSPrefix + 'grid-cell-remindercolumn',
 
-    constructor: function() {
-        this.addEvents(
-            /**
-             * @event select
-             * Fires when a reminder time is selected from the dropdown menu
-             * @param {Ext.data.Model} record    The underlying record of the row that was clicked to show the reminder menu
-             * @param {String|Number} value      The value that was selected
-             */
-            'select'
-        );
-        this.callParent(arguments);
-    },
+    /**
+     * @event select
+     * Fires when a reminder time is selected from the dropdown menu
+     * @param {Ext.data.Model} record    The underlying record of the row that was clicked to show the reminder menu
+     * @param {String|Number} value      The value that was selected
+     */
 
     /**
      * initializes the dropdown menu

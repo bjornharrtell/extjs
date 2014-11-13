@@ -13,16 +13,6 @@
     height: $horizontal-slider-thumb-height;
 }
 
-@if $include-ext-form-field-base {
-    .#{$prefix}ie6,
-    .#{$prefix}ie7,
-    .#{$prefix}quirks .#{$prefix}ie {
-        .#{$prefix}form-item .#{$prefix}slider-horz {
-            margin-top: round(($form-field-height - $horizontal-slider-thumb-height) / 2);
-        }
-    }
-}
-
 .#{$prefix}slider-horz .#{$prefix}slider-thumb {
     width: $horizontal-slider-thumb-width;
     height: $horizontal-slider-thumb-height;
@@ -57,9 +47,21 @@
 }
 
 /* Vertical styles */
+.#{$prefix}slider-ct-vert {
+    height: 100%;
+}
+
 .#{$prefix}slider-vert {
     padding-top: $vertical-slider-end-cap-height;
     background: no-repeat (-$vertical-slider-thumb-width * 2) 0;
+    height: 100%;
+
+    > .#{$prefix}slider-end {
+        height: 100%;
+        > .#{$prefix}slider-inner {
+            height: 100%;
+        }
+    }
 }
 
 .#{$prefix}slider-vert .#{$prefix}slider-end {
@@ -97,4 +99,10 @@
 .#{$prefix}slider-vert .#{$prefix}slider-end,
 .#{$prefix}slider-vert .#{$prefix}slider-inner {
     background-image: theme-background-image('slider/slider-v-bg', 'png');
+}
+
+.#{$prefix}slider-default-cell > .#{$prefix}grid-cell-inner,
+.#{$prefix}sliderwidget-default-cell > .#{$prefix}grid-cell-inner {
+    padding-top:   floor(($grid-row-height - $horizontal-slider-thumb-height) / 2);
+    padding-bottom: ceil(($grid-row-height - $horizontal-slider-thumb-height) / 2);
 }

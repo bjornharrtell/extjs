@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @override Ext.rtl.layout.component.Dock
  * This override adds RTL support to Ext.layout.component.Dock.
@@ -38,7 +18,7 @@ Ext.define('Ext.rtl.layout.component.Dock', {
         // !important border-width rules, e.g.:
         // .x-docked-left { border-right-width: 0 !important; }
         return 'docked-' +
-            (this.owner.getHierarchyState().rtl ? this.rtlPositions[dock] : dock);
+            (this.owner.getInherited().rtl ? this.rtlPositions[dock] : dock);
     },
 
     // Neptune + RTL :)
@@ -50,7 +30,7 @@ Ext.define('Ext.rtl.layout.component.Dock', {
             me.initBorderTables();
         }
 
-        return me.owner.getHierarchyState().rtl ? me.noBorderClassTableRtl
+        return me.owner.getInherited().rtl ? me.noBorderClassTableRtl
                                                 : me.noBorderClassTableLtr;
     },
 
@@ -62,7 +42,7 @@ Ext.define('Ext.rtl.layout.component.Dock', {
             me.setupBorderTable(table, table.rtl = []);
         }
 
-        return me.owner.getHierarchyState().rtl ? table.rtl : table;
+        return me.owner.getInherited().rtl ? table.rtl : table;
     },
 
     initBorderTables: function () {

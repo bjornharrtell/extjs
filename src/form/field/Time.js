@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Provides a time input field with a time dropdown and automatic time validation.
  *
@@ -64,7 +44,7 @@ Ext.define('Ext.form.field.Time', {
 
     /**
      * @cfg {String} [triggerCls='x-form-time-trigger']
-     * An additional CSS class used to style the trigger button. The trigger will always get the {@link #triggerBaseCls}
+     * An additional CSS class used to style the trigger button. The trigger will always get the {@link Ext.form.trigger.Trigger#baseCls}
      * by default and triggerCls will be **appended** if specified.
      */
     triggerCls: Ext.baseCSSPrefix + 'form-time-trigger',
@@ -136,8 +116,13 @@ Ext.define('Ext.form.field.Time', {
     //</locale>
 
     /**
-     * @cfg {Number} increment
+     * @cfg {Number} [increment=15]
      * The number of minutes between each time value in the list.
+     *
+     * Note that this only affects the *list of suggested times.*
+     *
+     * To enforce that only times on the list are valid, use {@link #snapToIncrement}. That will coerce
+     * any typed values to the nearest increment point upon blur.
      */
     increment: 15,
 
@@ -152,10 +137,12 @@ Ext.define('Ext.form.field.Time', {
      * Whether the Tab key should select the currently highlighted item.
      */
     selectOnTab: true,
-    
+
     /**
      * @cfg {Boolean} [snapToIncrement=false]
      * Specify as `true` to enforce that only values on the {@link #increment} boundary are accepted.
+     *
+     * Typed values will be coerced to the nearest {@link #increment} point on blur.
      */
     snapToIncrement: false,
 
@@ -166,6 +153,7 @@ Ext.define('Ext.form.field.Time', {
      * arbitrary "safe" date that can be any date aside from DST boundary dates.
      */
     initDate: '1/1/2008',
+    initDateParts: [2008, 0, 1],
     initDateFormat: 'j/n/Y',
     
     ignoreSelection: 0,
@@ -180,37 +168,49 @@ Ext.define('Ext.form.field.Time', {
         var me = this,
             min = me.minValue,
             max = me.maxValue;
+        
         if (min) {
             me.setMinValue(min);
         }
         if (max) {
             me.setMaxValue(max);
         }
+        // Forcibly create the picker, since we need the store it creates
+        me.store = me.getPicker().store;
+        
         me.displayTpl = new Ext.XTemplate(
             '<tpl for=".">' +
                 '{[typeof values === "string" ? values : this.formatDate(values["' + me.displayField + '"])]}' +
                 '<tpl if="xindex < xcount">' + me.delimiter + '</tpl>' +
             '</tpl>', {
-            formatDate: Ext.Function.bind(me.formatDate, me)
+            formatDate: me.formatDate.bind(me)
         });
-        this.callParent();
+        me.callParent();
     },
 
     /**
      * @private
      */
-    transformOriginalValue: function(value) {
-        if (Ext.isString(value)) {
-            return this.rawToValue(value);
+    isEqual: function (v1, v2) {
+        var fromArray = Ext.Array.from,
+            isEqual = Ext.Date.isEqual,
+            i, len;
+
+        v1 = fromArray(v1);
+        v2 = fromArray(v2);
+        len = v1.length;
+
+        if (len !== v2.length) {
+            return false;
         }
-        return value;
-    },
 
-    /**
-     * @private
-     */
-    isEqual: function(v1, v2) {
-        return Ext.Date.isEqual(v1, v2);
+        for (i = 0; i < len; i++) {
+            if (!isEqual(v2[i], v1[i])) {
+                return false;
+            }
+        }
+
+        return true;
     },
 
     /**
@@ -254,7 +254,7 @@ Ext.define('Ext.form.field.Time', {
             d = value;
         }
         if (d) {
-            val = Ext.Date.clearTime(new Date(me.initDate));
+            val = me.getInitDate();
             val.setHours(d.getHours(), d.getMinutes(), d.getSeconds(), d.getMilliseconds());
         }
         // Invalid min/maxValue config should result in a null so that defaulting takes over
@@ -263,9 +263,11 @@ Ext.define('Ext.form.field.Time', {
         }
         me[isMin ? 'minValue' : 'maxValue'] = val;
     },
+    
+    getInitDate: function (hours, minutes, seconds) {
+        var parts = this.initDateParts;
 
-    rawToValue: function(rawValue) {
-        return this.parseDate(rawValue) || rawValue || null;
+        return new Date(parts[0], parts[1], parts[2], hours || 0, minutes || 0, seconds || 0, 0);    
     },
 
     valueToRaw: function(value) {
@@ -286,33 +288,47 @@ Ext.define('Ext.form.field.Time', {
             errors = me.callParent(arguments),
             minValue = me.minValue,
             maxValue = me.maxValue,
-            date;
+            data = me.displayTplData,
+            raw = me.getRawValue(),
+            i, len, date, item;
 
-        value = me.formatDate(value || me.processRawValue(me.getRawValue()));
+        if (data && data.length > 0) {
+            for (i = 0, len = data.length; i < len; i++ ){
+                item = data[i];
+                item = item.date || item.disp;
+                date = me.parseDate(item);
+                if (!date) {
+                    errors.push(format(me.invalidText, item, Ext.Date.unescapeFormat(me.format)));
+                    continue;
+                }
 
-        if (value === null || value.length < 1) { // if it's blank and textfield didn't flag it then it's valid
-             return errors;
-        }
+                if (minValue && date < minValue) {
+                    errors.push(format(me.minText, me.formatDate(minValue)));
+                }
 
-        date = me.parseDate(value);
-        if (!date) {
-            errors.push(format(me.invalidText, value, Ext.Date.unescapeFormat(me.format)));
-            return errors;
-        }
-
-        if (minValue && date < minValue) {
-            errors.push(format(me.minText, me.formatDate(minValue)));
-        }
-
-        if (maxValue && date > maxValue) {
-            errors.push(format(me.maxText, me.formatDate(maxValue)));
+                if (maxValue && date > maxValue) {
+                    errors.push(format(me.maxText, me.formatDate(maxValue)));
+                }
+            }
+        } else if (raw.length && !me.parseDate(raw)) {
+            // If we don't have any data & a rawValue, it means an invalid time was entered.
+            errors.push(format(me.invalidText, raw, Ext.Date.unescapeFormat(me.format)));
         }
 
         return errors;
     },
 
-    formatDate: function() {
-        return Ext.form.field.Date.prototype.formatDate.apply(this, arguments);
+    formatDate: function(items) {
+        var formatted = [],
+            i, len;
+
+        items = Ext.Array.from(items);
+
+        for (i = 0, len = items.length; i < len; i++) {
+            formatted.push(Ext.form.field.Date.prototype.formatDate.call(this, items[i]));
+        }
+
+        return formatted.join(this.delimiter);
     },
 
     /**
@@ -386,7 +402,7 @@ Ext.define('Ext.form.field.Time', {
         me.listConfig = Ext.apply({
             xtype: 'timepicker',
             selModel: {
-                mode: 'SINGLE'
+                mode: me.multiSelect ? 'SIMPLE' : 'SINGLE'
             },
             cls: undefined,
             minValue: me.minValue,
@@ -396,7 +412,6 @@ Ext.define('Ext.form.field.Time', {
             maxHeight: me.pickerMaxHeight
         }, me.listConfig);
         picker = me.callParent();
-        me.bindStore(picker.store);
         return picker;
     },
     
@@ -405,31 +420,12 @@ Ext.define('Ext.form.field.Time', {
         var me = this,
             selected = picker.getSelectionModel().getSelection();
 
-        if (selected.length > 0) {
-            selected = selected[0];
-            if (selected && Ext.Date.isEqual(record.get('date'), selected.get('date'))) {
-                me.collapse();
-            }
-        }
-    },
-
-    /**
-     * @private
-     * Handles a time being selected from the Time picker.
-     */
-    onListSelectionChange: function(list, recordArray) {
-        if (recordArray.length) {
-            var me = this,
-                val = recordArray[0].get('date');
-
-            if (!me.ignoreSelection) {
-                me.skipSync = true;
-                me.setValue(val);
-                me.skipSync = false;
-                me.fireEvent('select', me, val);
-                me.picker.clearHighlight();
-                me.collapse();
-                me.inputEl.focus();
+        if (!me.multiSelect && selected.length) {
+            if (selected.length > 0) {
+                selected = selected[0];
+                if (selected && Ext.Date.isEqual(record.get('date'), selected.get('date'))) {
+                    me.collapse();
+                }
             }
         }
     },
@@ -441,12 +437,13 @@ Ext.define('Ext.form.field.Time', {
     syncSelection: function() {
         var me = this,
             picker = me.picker,
-            toSelect,
+            isEqual = Ext.Date.isEqual,
+            toSelect = [],
             selModel,
-            value,
+            value, values, i, len, item,
             data, d, dLen, rec;
             
-        if (picker && !me.skipSync) {
+        if (picker) {
             picker.clearHighlight();
             value = me.getValue();
             selModel = picker.getSelectionModel();
@@ -454,21 +451,31 @@ Ext.define('Ext.form.field.Time', {
             me.ignoreSelection++;
             if (value === null) {
                 selModel.deselectAll();
-            } else if (Ext.isDate(value)) {
-                // find value, select it
+            } else {
+                values = Ext.Array.from(value);
                 data = picker.store.data.items;
                 dLen = data.length;
 
-                for (d = 0; d < dLen; d++) {
-                    rec = data[d];
+                for (i = 0, len = values.length; i < len; i++) {
+                    item = values[i];
+                    if (Ext.isDate(item)) {
+                        // find value, select it
+                        for (d = 0; d < dLen; d++) {
+                            rec = data[d];
 
-                    if (Ext.Date.isEqual(rec.get('date'), value)) {
-                       toSelect = rec;
-                       break;
-                   }
+                            if (isEqual(rec.get('date'), item)) {
+                               toSelect.push(rec);
+                               if (!me.multiSelect) {
+                                   break;
+                               }
+                           }
+                        }
+
+                        if (toSelect.length) {
+                            selModel.select(toSelect);
+                        }
+                    }
                 }
-
-                selModel.select(toSelect);
             }
             me.ignoreSelection--;
         }
@@ -481,20 +488,53 @@ Ext.define('Ext.form.field.Time', {
         me.callParent(arguments);
 
         // Only set the raw value if the current value is valid and is not falsy
-        if (me.wasValid && val) {
-            me.setRawValue(me.formatDate(val));
+        if (me.validateValue(val)) {
+            me.setValue(val);
         }
     },
 
-    setValue: function() {
-
-        // Store MUST be created for parent setValue to function
-        this.getPicker();
-
-        return this.callParent(arguments);
+    /**
+     * Finds the record by searching values in the {@link #valueField}.
+     * @param {Object/String} value The value to match the field against.
+     * @return {Ext.data.Model} The matched record or false.
+     */
+    findRecordByValue: function (value) {
+        if (typeof value === 'string') {
+            value = this.parseDate(value);
+        }
+        return this.callParent([value]);
     },
 
-    getValue: function() {
-        return this.parseDate(this.callParent(arguments));
+    rawToValue: function (item) {
+        var me = this,
+            items, values, i, len;
+
+        if (me.multiSelect) {
+            values = [];
+            items = Ext.Array.from(item);
+
+            for (i = 0, len = items.length; i < len; i++) {
+                values.push(me.parseDate(items[i]));
+            }
+
+            return values;
+        }
+
+        return me.parseDate(item);
+    },
+
+    setValue: function (v) {
+        // Store MUST be created for parent setValue to function.
+        this.getPicker();
+
+        if (Ext.isDate(v)) {
+            v = this.getInitDate(v.getHours(), v.getMinutes(), v.getSeconds());
+        }
+
+        return this.callParent([v]);
+    },
+
+    getValue: function () {
+        return this.rawToValue(this.callParent(arguments));
     }
 });

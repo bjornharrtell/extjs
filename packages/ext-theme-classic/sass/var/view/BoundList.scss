@@ -1,3 +1,6 @@
+/** @class Ext.view.BoundList */
+//
+
 $boundlist-border-color: adjust-color($base-color, $hue: 0.58deg, $saturation: 25.146%, $lightness: -6.471%) !default;
 $boundlist-item-over-border-color: adjust-color($base-color, $hue: 6.952deg, $saturation: 5.848%, $lightness: -6.471%) !default;
 $boundlist-item-selected-border-color: darken($boundlist-item-over-border-color, 5) !default;

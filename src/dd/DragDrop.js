@@ -1,24 +1,4 @@
 /*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
-/*
  * This is a derivative of the similarly named class in the YUI Library.
  * The original license:
  * Copyright (c) 2006, Yahoo! Inc. All rights reserved.
@@ -333,6 +313,8 @@ Ext.define('Ext.dd.DragDrop', {
      */
     hasOuterHandles: false,
 
+    triggerEvent: 'mousedown',
+
     /**
      * Code that executes immediately before the startDrag event
      * @private
@@ -484,7 +466,7 @@ Ext.define('Ext.dd.DragDrop', {
      *         this.constrainTo("parent-id");
      *     };
      *
-     * Or you can initalize it using the {@link Ext.Element} object:
+     * Or you can initalize it using the {@link Ext.dom.Element} object:
      *
      *     Ext.get("dragDiv1").initDDProxy("proxytest", {dragElId: "existingProxyDiv"}, {
      *         startDrag : function(){
@@ -492,43 +474,44 @@ Ext.define('Ext.dd.DragDrop', {
      *         }
      *     });
      *
-     * @param {String/HTMLElement/Ext.Element} constrainTo The element or element ID to constrain to.
+     * @param {String/HTMLElement/Ext.dom.Element} constrainTo The element or element ID to constrain to.
      * @param {Object/Number} pad (optional) Pad provides a way to specify "padding" of the constraints,
      * and can be either a number for symmetrical padding (4 would be equal to `{left:4, right:4, top:4, bottom:4}`) or
      * an object containing the sides to pad. For example: `{right:10, bottom:10}`
      * @param {Boolean} inContent (optional) Constrain the draggable in the content box of the element (inside padding and borders)
      */
     constrainTo : function(constrainTo, pad, inContent){
-        if(Ext.isNumber(pad)){
+        if (Ext.isNumber(pad)) {
             pad = {left: pad, right:pad, top:pad, bottom:pad};
         }
         pad = pad || this.defaultPadding;
-        var b = Ext.get(this.getEl()).getBox(),
-            ce = Ext.get(constrainTo),
-            s = ce.getScroll(),
+        var ddBox = Ext.get(this.getEl()).getBox(),
+            constrainEl = Ext.get(constrainTo),
+            s = constrainEl.getScroll(),
             c,
-            cd = ce.dom,
+            constrainDom = constrainEl.dom,
             xy,
             topSpace,
             leftSpace;
-        if(cd == document.body){
-            c = { x: s.left, y: s.top, width: Ext.Element.getViewWidth(), height: Ext.Element.getViewHeight()};
-        }else{
-            xy = ce.getXY();
-            c = {x : xy[0], y: xy[1], width: cd.clientWidth, height: cd.clientHeight};
+
+        if (constrainDom == document.body) {
+            c = { x: s.left, y: s.top, width: Ext.Element.getViewportWidth(), height: Ext.Element.getViewportHeight()};
+        } else {
+            xy = constrainEl.getXY();
+            c = {x : xy[0], y: xy[1], width: constrainDom.clientWidth, height: constrainDom.clientHeight};
         }
 
-        topSpace = b.y - c.y;
-        leftSpace = b.x - c.x;
+        topSpace = ddBox.y - c.y;
+        leftSpace = ddBox.x - c.x;
 
         this.resetConstraints();
         this.setXConstraint(leftSpace - (pad.left||0), // left
-                c.width - leftSpace - b.width - (pad.right||0), //right
-        this.xTickSize
+            c.width - leftSpace - ddBox.width - (pad.right||0), //right
+            this.xTickSize
         );
         this.setYConstraint(topSpace - (pad.top||0), //top
-                c.height - topSpace - b.height - (pad.bottom||0), //bottom
-        this.yTickSize
+            c.height - topSpace - ddBox.height - (pad.bottom||0), //bottom
+            this.yTickSize
         );
     },
 
@@ -562,9 +545,12 @@ Ext.define('Ext.dd.DragDrop', {
      * @param {Object} config configuration attributes
      */
     init: function(id, sGroup, config) {
-        this.initTarget(id, sGroup, config);
-        Ext.EventManager.on(this.id, "mousedown", this.handleMouseDown, this);
-        // Ext.EventManager.on(this.id, "selectstart", Event.preventDefault);
+        var me = this;
+
+        me.el = me.el || Ext.get(id); // subclass may have already set "el"
+
+        me.initTarget(id, sGroup, config);
+        Ext.get(me.id).on(me.triggerEvent, me.handleMouseDown, me);
     },
 
     /**
@@ -627,9 +613,8 @@ Ext.define('Ext.dd.DragDrop', {
         this.isTarget          = (this.config.isTarget !== false);
         this.maintainOffset    = (this.config.maintainOffset);
         this.primaryButtonOnly = (this.config.primaryButtonOnly !== false);
-
     },
-
+    
     /**
      * Executed when the linked element is available
      * @private
@@ -639,7 +624,7 @@ Ext.define('Ext.dd.DragDrop', {
         this.resetConstraints();
         this.onAvailable();
     },
-
+    
     /**
      * Configures the padding for the target zone in px.  Effectively expands
      * (or reduces) the virtual object size for targeting calculations.
@@ -678,7 +663,7 @@ Ext.define('Ext.dd.DragDrop', {
         dx = diffX || 0;
         dy = diffY || 0;
 
-        p = Ext.Element.getXY( el );
+        p = Ext.fly(el).getXY();
 
         this.initPageX = p[0] - dx;
         this.initPageY = p[1] - dy;
@@ -696,7 +681,7 @@ Ext.define('Ext.dd.DragDrop', {
      * @private
      */
     setStartPosition: function(pos) {
-        var p = pos || Ext.Element.getXY( this.getEl() );
+        var p = pos || Ext.fly(this.getEl()).getXY();
         this.deltaSetXY = null;
 
         this.startPageX = p[0];
@@ -762,7 +747,7 @@ Ext.define('Ext.dd.DragDrop', {
         if (typeof id !== "string") {
             id = Ext.id(id);
         }
-        Ext.EventManager.on(id, "mousedown", this.handleMouseDown, this);
+        Ext.get(id).on(this.triggerEvent, this.handleMouseDown, this);
         this.setHandleElId(id);
 
         this.hasOuterHandles = true;
@@ -772,16 +757,25 @@ Ext.define('Ext.dd.DragDrop', {
      * Removes all drag and drop hooks for this element
      */
     unreg: function() {
-        Ext.EventManager.un(this.id, "mousedown", this.handleMouseDown, this);
-        this._domRef = null;
-        this.DDMInstance._remove(this);
+        var me = this,
+            el;
+        
+        if (me._domRef) {
+            el = Ext.fly(me.id);
+            if (el) {
+                el.un(me.triggerEvent, me.handleMouseDown, me);
+            }
+        }
+        me._domRef = null;
+        me.DDMInstance._remove(me, me.autoGroup);
     },
 
     /**
      * Destroy this DragDrop instance
      */
-    destroy : function(){
+    destroy: function() {
         this.unreg();
+        this.isDestroyed = true;
     },
 
     /**

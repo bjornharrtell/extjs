@@ -20,7 +20,7 @@
  * @param {list} [$ui-border-radius=$tab-border-radius]
  * The border-radius of Tabs
  *
- * @param {number} [$ui-border-width=$tab-border-width]
+ * @param {number/list} [$ui-border-width=$tab-border-width]
  * The border-width of Tabs
  *
  * @param {number/list} [$ui-margin=$tab-margin]
@@ -253,12 +253,11 @@
     
     $ui-border-bottom-color: $tabbar-strip-border-color
 ) {
-    $frame-border-width: $ui-border-width $ui-border-width 0 $ui-border-width;
     @include x-frame(
         $cls: 'tab',
         $ui: $ui + '-top',
         $border-radius: $ui-border-radius,
-        $border-width: $frame-border-width,
+        $border-width: $ui-border-width,
         $background-color: $ui-background-color,
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
@@ -270,138 +269,60 @@
         $cls: 'tab',
         $ui: $ui + '-bottom',
         $border-radius: rotate180($ui-border-radius),
-        $border-width: rotate180($frame-border-width),
+        $border-width: rotate180($ui-border-width),
         $background-color: $ui-background-color,
         $background-gradient: $ui-background-gradient,
         $background-direction: bottom,
-        $padding: $ui-padding,
+        $padding: rotate180($ui-padding),
         $table: true
     );
 
     @include x-frame(
         $cls: 'tab',
         $ui: $ui + '-left',
-        $border-radius: $ui-border-radius,
-        $border-width: $frame-border-width,
+        $border-radius: rotate270($ui-border-radius),
+        $border-width: rotate270($ui-border-width),
         $background-color: $ui-background-color,
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
         $padding: $ui-padding,
-        $table: true,
-        $img-ui: $ui + '-top'
+        $table: true
     );
 
     @include x-frame(
         $cls: 'tab',
         $ui: $ui + '-right',
-        $border-radius: $ui-border-radius,
-        $border-width: $frame-border-width,
+        $border-radius: rotate90($ui-border-radius),
+        $border-width: rotate90($ui-border-width),
         $background-color: $ui-background-color,
         $background-gradient: $ui-background-gradient,
         $background-direction: top,
         $padding: $ui-padding,
-        $table: true,
-        $img-ui: $ui + '-top'
+        $table: true
     );
 
     .#{$prefix}tab-#{$ui} {
         border-color: $ui-border-color;
+        @if not is-null($ui-cursor) {
+            cursor: $ui-cursor;
+        }
+    }
+
+    .#{$prefix}tab-#{$ui}-top {
         margin: $ui-margin;
-        @if $ui-cursor != null { cursor: $ui-cursor; }
 
-        .#{$prefix}tab-inner {
-            font-size: $ui-font-size;
-            font-weight: $ui-font-weight;
-            font-family: $ui-font-family;
-            color: $ui-color;
-            line-height: $ui-line-height;
-            @if $ui-text-padding != 0 {
-                padding: $ui-text-padding;
-            }
-        }
-        .#{$prefix}tab-icon-el {
-            width: $ui-icon-width;
-            height: $ui-icon-height;
-            line-height: $ui-icon-height;
-            background-position: $ui-icon-background-position;
-        }
-
-        .#{$prefix}tab-glyph {
-            font-size: $ui-icon-height;
-            color: $ui-glyph-color;
-            @if $ui-glyph-opacity != 1 {
-                // do not use the opacity mixin because we do not want IE's filter version of
-                // opacity to be included.  We emulate the opacity setting in IE8m by mixing
-                // the icon color into the background color. (see below)
-                opacity: $ui-glyph-opacity;
-            }
-            // In IE8 and below when a glyph contains partially transparent pixels, we 
-            // can't apply an opacity filter to the glyph element, because IE8m will render
-            //  the partially transparent pixels of the glyph as black. To work around this,
-            // we emulate the approximate color that the glyph would have if it had opacity
-            // applied by mixing the glyph color with the tab's background-color.
-            .#{$prefix}ie8m & {
-                color: mix($ui-glyph-color, $ui-background-color, $ui-glyph-opacity * 100);
+        @if $include-rtl {
+            &.#{$prefix}rtl {
+                margin: rtl($ui-margin);
             }
         }
 
-        @if $include-ie {
-            // EXTJSIV-8765: vertical tabs get shifted to the left when focused.  To work
-            // around this, we move the left padding to the tab-button el.
-            .#{$prefix}strict .#{$prefix}ie9 .#{$prefix}tab-bar-vertical & {
-                padding-left: 0;
-
-                .#{$prefix}tab-button {
-                    padding-left: left($ui-padding);
-                }
-
-                .#{$prefix}tab-icon-el {
-                    left: left($ui-padding);
-                }
-            }
-        }
-    }
-
-    .#{$prefix}tab-#{$ui}-icon {
-        .#{$prefix}tab-inner {
-            // even though there is no text we set a width and padding as buttons shrink-wrap around this element
-            width: $ui-icon-width;
-        }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui} {
-            margin: rtl($ui-margin);            
-        }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui} {
+        &.#{$prefix}tab-rotate-left {
             margin: rtl($ui-margin);
-        }
-    }
 
-    .#{$prefix}tab-#{$ui}-left {
-        margin: rtl($ui-margin);
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui}-left {
-            margin: $ui-margin;
-        }
-    }
-
-    .#{$prefix}tab-#{$ui}-top,
-    .#{$prefix}tab-#{$ui}-left,
-    .#{$prefix}tab-#{$ui}-right {
-        border-bottom: $ui-border-width solid $ui-border-bottom-color;
-
-        @if $ui-background-gradient != null {
-            @include background-gradient($ui-background-color, $ui-background-gradient, top);
-        
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-top, 'tab/tab-#{$ui}-top-bg');
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin: $ui-margin;
                 }
             }
         }
@@ -414,15 +335,50 @@
         }
     }
 
-    .#{$prefix}tab-#{$ui}-bottom {
-        border-top: $ui-border-width solid $ui-border-bottom-color;
+    .#{$prefix}tab-#{$ui}-right {
+        margin: rotate90($ui-margin);
 
-        @if $ui-background-gradient != null {
-            @include background-gradient($ui-background-color, $ui-background-gradient, bottom);
-        
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-bottom, 'tab/tab-#{$ui}-bottom-bg');
+        @if $include-rtl {
+            &.#{$prefix}rtl {
+                margin: rtl(rotate90($ui-margin));
+            }
+        }
+
+        &.#{$prefix}tab-rotate-right {
+            margin: flip-vertical(rotate90($ui-margin));
+
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin: rtl(flip-vertical(rotate90($ui-margin)));
+                }
+            }
+        }
+
+        @if $ui-inner-border-width != 0 {
+            @include inner-border(
+                // suppress the bottom and left inner border, since the bottom pixel is
+                // stretched by the slicer, and the left border connects to the tab strip
+                $width: top($ui-inner-border-width) right($ui-inner-border-width) 0 0,
+                $color: $ui-inner-border-color
+            );
+        }
+    }
+
+    .#{$prefix}tab-#{$ui}-bottom {
+        margin: flip-vertical($ui-margin);
+
+        @if $include-rtl {
+            &.#{$prefix}rtl {
+                margin: rtl(flip-vertical($ui-margin));
+            }
+        }
+
+        &.#{$prefix}tab-rotate-left {
+            margin: rotate180($ui-margin);
+
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin: rtl(rotate180($ui-margin));
                 }
             }
         }
@@ -436,53 +392,128 @@
     }
 
     .#{$prefix}tab-#{$ui}-left {
-        @include rotate-element($angle: 270);
+        margin: rtl(rotate90($ui-margin));
 
-        @if $tab-left-rotate-direction == 'right' {
-            .#{$prefix}tab-wrap {
-                @include rotate-element($angle: 180);
+        @if $include-rtl {
+            &.#{$prefix}rtl {
+                margin: rotate90($ui-margin);
             }
         }
-    }
 
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui}-left {
-            @include rotate-element($angle: 90);
-        }
-    }
+        &.#{$prefix}tab-rotate-right {
+            margin: rotate270($ui-margin);
 
-    .#{$prefix}tab-#{$ui}-right {
-        @include rotate-element($angle: 90);
-
-        @if $tab-right-rotate-direction == 'left' {
-            .#{$prefix}tab-wrap {
-                @include rotate-element($angle: 180);
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin: rtl(rotate270($ui-margin));
+                }
             }
         }
-    }
 
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui}-right {
-            @include rotate-element($angle: 270);
+        @if $ui-inner-border-width != 0 {
+            @include inner-border(
+                // suppress the bottom and right inner border, since the bottom pixel is
+                // stretched by the slicer, and the right border connects to the tab strip
+                $width: top($ui-inner-border-width) 0 0 left($ui-inner-border-width),
+                $color: $ui-inner-border-color
+            );
         }
     }
 
-    .#{$prefix}tab-#{$ui}-icon-text-left {
-        .#{$prefix}tab-inner {
-            padding-left: $ui-icon-width + $ui-icon-spacing + left($ui-text-padding);
+    .#{$prefix}tab-button-#{$ui} {
+        // this is a table cell, so height here is essentially min-height
+        height: max($ui-icon-height, $ui-line-height);
+    }
+
+    .#{$prefix}tab-inner-#{$ui} {
+        font: $ui-font-weight #{$ui-font-size}/#{$ui-line-height} $ui-font-family;
+        color: $ui-color;
+        @if $ui-text-padding != 0 {
+            padding: 0 $ui-text-padding;
+        }
+
+        // inner el requires max-width in order for ellipsis to work.
+        max-width: 100%;
+
+        .#{$prefix}tab-icon-right > &,
+        .#{$prefix}tab-icon-left > & {
+            // since calc is only supported in IE9+ ellipsis will not work in IE8 when
+            // there is a left or right icon present
+            max-width: calc(100% - #{$ui-icon-width});
         }
     }
 
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui}-icon-text-left {
-            .#{$prefix}tab-inner {
-                padding-left: 0;
-                padding-right: $ui-icon-width + $ui-icon-spacing + left($ui-text-padding);
+    .#{$prefix}tab-icon-el-#{$ui} {
+        height: $ui-icon-height;
+
+        .#{$prefix}tab-icon-left > &,
+        .#{$prefix}tab-icon-right > & {
+            width: $ui-icon-width;
+        }
+
+        .#{$prefix}tab-icon-top > &,
+        .#{$prefix}tab-icon-bottom > & {
+            min-width: $ui-icon-width;
+        }
+
+        line-height: $ui-icon-height;
+        background-position: $ui-icon-background-position;
+
+        &.#{$prefix}tab-glyph {
+            font-size: $ui-icon-height;
+            line-height: $ui-icon-height;
+            color: $ui-glyph-color;
+            @if $ui-glyph-opacity != 1 {
+                // do not use the opacity mixin because we do not want IE's filter version of
+                // opacity to be included.  We emulate the opacity setting in IE8m by mixing
+                // the icon color into the background color. (see below)
+                opacity: $ui-glyph-opacity;
+            }
+            // In IE8 and below when a glyph contains partially transparent pixels, we
+            // can't apply an opacity filter to the glyph element, because IE8m will render
+            //  the partially transparent pixels of the glyph as black. To work around this,
+            // we emulate the approximate color that the glyph would have if it had opacity
+            // applied by mixing the glyph color with the tab's background-color.
+            @if $include-ie and $ui-background-color != transparent {
+                .#{$prefix}ie8 & {
+                    color: mix($ui-glyph-color, $ui-background-color, $ui-glyph-opacity * 100);
+                }
             }
         }
+
+        // when the tab contains both icon and text, add $icon-spacing to the icon
+        .#{$prefix}tab-text.#{$prefix}tab-icon-left > & {
+            margin-right: max($ui-icon-spacing - $ui-text-padding, 0);
+
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin-right: 0;
+                    margin-left: max($ui-icon-spacing - $ui-text-padding, 0);
+                }
+            }
+        }
+
+        .#{$prefix}tab-text.#{$prefix}tab-icon-right > & {
+            margin-left: max($ui-icon-spacing - $ui-text-padding, 0);
+
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin-left: 0;
+                    margin-right: max($ui-icon-spacing - $ui-text-padding, 0);
+                }
+            }
+        }
+
+        .#{$prefix}tab-text.#{$prefix}tab-icon-top > & {
+            margin-bottom: $ui-icon-spacing;
+        }
+
+        .#{$prefix}tab-text.#{$prefix}tab-icon-bottom > & {
+            margin-top: $ui-icon-spacing;
+        }
     }
 
-    .#{$prefix}tab-#{$ui}-over {
+    .#{$prefix}tab-over.#{$prefix}tab-#{$ui} {
         @if $ui-border-color-over != $ui-border-color {
             border-color: $ui-border-color-over;
         }
@@ -491,7 +522,7 @@
             background-color: $ui-background-color-over;
         }
 
-        .#{$prefix}tab-inner {
+        .#{$prefix}tab-inner-#{$ui} {
             @if $ui-color-over != $ui-color {
                 color: $ui-color-over;
             }
@@ -513,42 +544,46 @@
             //  the partially transparent pixels of the glyph as black. To work around this,
             // we emulate the approximate color that the glyph would have if it had opacity
             // applied by mixing the glyph color with the tab's background-color.
-            .#{$prefix}ie8m & {
-                color: mix($ui-glyph-color-over, $ui-background-color-over, $ui-glyph-opacity * 100);
-            }
-        }
-    }
-
-    @if $ui-background-gradient-over != null {
-        .#{$prefix}tab-#{$ui}-top-over,
-        .#{$prefix}tab-#{$ui}-left-over,
-        .#{$prefix}tab-#{$ui}-right-over {
-            @include background-gradient($ui-background-color-over, $ui-background-gradient-over, top);
-        
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-top-over, 'tab/tab-#{$ui}-top-over-bg');
-                }
-            }
-        }
-        .#{$prefix}tab-#{$ui}-bottom-over {
-            @include background-gradient($ui-background-color-over, $ui-background-gradient-over, bottom);
-
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-bottom-over, 'tab/tab-#{$ui}-bottom-over-bg');
+            @if $ui-background-color != transparent {
+                .#{$prefix}ie8m & {
+                    color: mix($ui-glyph-color-over, $ui-background-color-over, $ui-glyph-opacity * 100);
                 }
             }
         }
     }
 
-    .#{$prefix}tab-#{$ui}-active {
+    @if not is-null($ui-background-gradient-over) {
+        .#{$prefix}tab-over {
+            &.#{$prefix}tab-#{$ui}-top,
+            &.#{$prefix}tab-#{$ui}-left,
+            &.#{$prefix}tab-#{$ui}-right {
+                @include background-gradient($ui-background-color-over, $ui-background-gradient-over, top);
+
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-over.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-over-bg');
+                    }
+                }
+            }
+            &.#{$prefix}tab-#{$ui}-bottom {
+                @include background-gradient($ui-background-color-over, $ui-background-gradient-over, bottom);
+
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-over.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-over-bg');
+                    }
+                }
+            }
+        }
+    }
+
+    .#{$prefix}tab-active.#{$prefix}tab-#{$ui} {
         @if $ui-border-color-active != $ui-border-color {
             border-color: $ui-border-color-active;
         }
         background-color: $ui-background-color-active;
 
-        .#{$prefix}tab-inner {
+        .#{$prefix}tab-inner-#{$ui} {
             @if $ui-color-active != $ui-color {
                 color: $ui-color-active;
             }
@@ -570,41 +605,43 @@
             //  the partially transparent pixels of the glyph as black. To work around this,
             // we emulate the approximate color that the glyph would have if it had opacity
             // applied by mixing the glyph color with the tab's background-color.
-            .#{$prefix}ie8m & {
-                color: mix($ui-glyph-color-active, $ui-background-color-active, $ui-glyph-opacity * 100);
-            }
-        }
-    }
-
-    .#{$prefix}tab-#{$ui}-top-active,
-    .#{$prefix}tab-#{$ui}-left-active,
-    .#{$prefix}tab-#{$ui}-right-active {
-        border-bottom: $ui-border-width solid $ui-background-color-active;
-        @if $ui-background-gradient-active != null {
-            @include background-gradient($ui-background-color-active, $ui-background-gradient-active, top);
-
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-top-active, 'tab/tab-#{$ui}-top-active-bg');
+            @if $ui-background-color != transparent {
+                .#{$prefix}ie8 & {
+                    color: mix($ui-glyph-color-active, $ui-background-color-active, $ui-glyph-opacity * 100);
                 }
             }
         }
     }
 
-    .#{$prefix}tab-#{$ui}-bottom-active {
-        border-top: $ui-border-width solid $ui-background-color-active;
-        @if $ui-background-gradient-active != null {
-            @include background-gradient($ui-background-color-active, $ui-background-gradient-active, bottom);
+    .#{$prefix}tab-active {
+        &.#{$prefix}tab-#{$ui}-top,
+        &.#{$prefix}tab-#{$ui}-left,
+        &.#{$prefix}tab-#{$ui}-right {
+            @if not is-null($ui-background-gradient-active) {
+                @include background-gradient($ui-background-color-active, $ui-background-gradient-active, top);
 
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-bottom-active, 'tab/tab-#{$ui}-bottom-active-bg');
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-active.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-active-bg');
+                    }
+                }
+            }
+        }
+
+        &.#{$prefix}tab-#{$ui}-bottom {
+            @if not is-null($ui-background-gradient-active) {
+                @include background-gradient($ui-background-color-active, $ui-background-gradient-active, bottom);
+
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-active.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-active-bg');
+                    }
                 }
             }
         }
     }
 
-    .#{$prefix}tab-#{$ui}-disabled {
+    .#{$prefix}tab-disabled.#{$prefix}tab-#{$ui} {
         @if $ui-border-color-disabled != $ui-border-color {
             border-color: $ui-border-color-disabled;
         }
@@ -613,11 +650,11 @@
             @include opacity($ui-opacity-disabled);
         }
 
-        @if $ui-cursor-disabled != null {
+        @if not is-null($ui-cursor-disabled) {
             cursor: $ui-cursor-disabled;
         }
 
-        .#{$prefix}tab-inner {
+        .#{$prefix}tab-inner-#{$ui} {
             @if $ui-color-disabled != $ui-color {
                 color: $ui-color-disabled;
             }
@@ -636,7 +673,7 @@
         }
         
         @if $ui-icon-opacity-disabled != 1 {
-            .#{$prefix}tab-icon-el {
+            .#{$prefix}tab-icon-el-#{$ui} {
                 @include opacity($ui-icon-opacity-disabled);
             }
         }
@@ -655,213 +692,106 @@
             //  the partially transparent pixels of the glyph as black. To work around this,
             // we emulate the approximate color that the glyph would have if it had opacity
             // applied by mixing the glyph color with the tab's background-color.
-            .#{$prefix}ie8m & {
-                color: mix($ui-glyph-color-disabled, $ui-background-color-disabled, $ui-glyph-opacity-disabled * 100);
+            @if $ui-background-color != transparent {
+                .#{$prefix}ie8 & {
+                    color: mix($ui-glyph-color-disabled, $ui-background-color-disabled, $ui-glyph-opacity-disabled * 100);
+                }
             }
         }
     }
 
     $disabled-border-color: $ui-border-color-disabled $ui-border-color-disabled $ui-border-bottom-color;
-    .#{$prefix}tab-#{$ui}-top-disabled,
-    .#{$prefix}tab-#{$ui}-left-disabled,
-    .#{$prefix}tab-#{$ui}-right-disabled {
-        border-color: $disabled-border-color;
-    }
 
-    .#{$prefix}tab-#{$ui}-bottom-disabled {
-        border-color: rotate180($disabled-border-color);
-    }
+    .#{$prefix}tab-disabled {
+        &.#{$prefix}tab-#{$ui}-top,
+        &.#{$prefix}tab-#{$ui}-left,
+        &.#{$prefix}tab-#{$ui}-right {
+            border-color: $disabled-border-color;
 
-    @if $ui-background-gradient-disabled != null {
-        .#{$prefix}tab-#{$ui}-top-disabled,
-        .#{$prefix}tab-#{$ui}-left-disabled,
-        .#{$prefix}tab-#{$ui}-right-disabled {
-            @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, top);
+            @if not is-null($ui-background-gradient-disabled) {
+                @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, top);
 
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-top-disabled, 'tab/tab-#{$ui}-top-disabled-bg');
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-disabled.#{$prefix}tab-#{$ui}-top', 'tab/tab-#{$ui}-top-disabled-bg');
+                    }
                 }
             }
         }
-        .#{$prefix}tab-#{$ui}-bottom-disabled {
-            @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, bottom);
 
-            @if not $supports-gradients or $compile-all {
-                .#{$prefix}nlg & {
-                    background-image: slicer-background-image(tab-#{$ui}-bottom-disabled, 'tab/tab-#{$ui}-bottom-disabled-bg');
+        &.#{$prefix}tab-#{$ui}-bottom {
+            border-color: rotate180($disabled-border-color);
+
+            @if not is-null($ui-background-gradient-disabled) {
+                @include background-gradient($ui-background-color-disabled, $ui-background-gradient-disabled, bottom);
+
+                @if $include-slicer-gradient {
+                    .#{$prefix}nlg & {
+                        background-image: slicer-background-image('tab-disabled.#{$prefix}tab-#{$ui}-bottom', 'tab/tab-#{$ui}-bottom-disabled-bg');
+                    }
                 }
             }
         }
     }
 
-    @if not $supports-border-radius or $compile-all {
+    @if $include-slicer-border-radius {
         .#{$prefix}nbr .#{$prefix}tab-#{$ui} {
             background-image: none;
         }
-        .#{$prefix}tab-#{$ui}-top-over,
-        .#{$prefix}tab-#{$ui}-left-over,
-        .#{$prefix}tab-#{$ui}-right-over {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-top-over, 'tab/tab-#{$ui}-top-over-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-top-over, 'tab/tab-#{$ui}-top-over-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-over;
-                @if $ui-background-gradient-over != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-top-over, 'tab/tab-#{$ui}-top-over-fbg');
+
+        $states:
+            (over $ui-background-color-over $ui-background-gradient-over)
+            (active $ui-background-color-active $ui-background-gradient-active)
+            (disabled $ui-background-color-disabled $ui-background-gradient-disabled);
+
+        @each $side in top right bottom left {
+            @each $item in $states {
+                $state: nth($item, 1);
+                $bgcolor: nth($item, 2);
+                $gradient: nth($item, 3);
+
+                .#{$prefix}tab-#{$state} {
+                    .#{$prefix}tab-#{$ui}-#{$side}-tl,
+                    .#{$prefix}tab-#{$ui}-#{$side}-bl,
+                    .#{$prefix}tab-#{$ui}-#{$side}-tr,
+                    .#{$prefix}tab-#{$ui}-#{$side}-br,
+                    .#{$prefix}tab-#{$ui}-#{$side}-tc,
+                    .#{$prefix}tab-#{$ui}-#{$side}-bc {
+                        background-image: slicer-corner-sprite('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-corners');
+                    }
+
+                    .#{$prefix}tab-#{$ui}-#{$side}-ml,
+                    .#{$prefix}tab-#{$ui}-#{$side}-mr {
+                        background-image: slicer-sides-sprite('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-sides');
+                    }
+
+                    .#{$prefix}tab-#{$ui}-#{$side}-mc {
+                        background-color: $bgcolor;
+                        @if not is-null($gradient) {
+                            background-repeat: repeat-x;
+                            background-image: slicer-frame-background-image('tab-#{$state}.#{$prefix}tab-#{$ui}-#{$side}', 'tab/tab-#{$ui}-#{$side}-#{$state}-fbg');
+                        }
+                    }
                 }
             }
         }
 
-        .#{$prefix}tab-#{$ui}-bottom-over {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-bottom-over, 'tab/tab-#{$ui}-bottom-over-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-bottom-over, 'tab/tab-#{$ui}-bottom-over-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-over;
-                @if $ui-background-gradient-over != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-bottom-over, 'tab/tab-#{$ui}-bottom-over-fbg');
-                }
-            }
-        }
-
-        .#{$prefix}tab-#{$ui}-top-active,
-        .#{$prefix}tab-#{$ui}-left-active,
-        .#{$prefix}tab-#{$ui}-right-active {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-top-active, 'tab/tab-#{$ui}-top-active-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-top-active, 'tab/tab-#{$ui}-top-active-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-active;
-                @if $ui-background-gradient-active != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-top-active, 'tab/tab-#{$ui}-top-active-fbg');
-                }
-            }
-        }
-
-        .#{$prefix}tab-#{$ui}-bottom-active {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-bottom-active, 'tab/tab-#{$ui}-bottom-active-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-bottom-active, 'tab/tab-#{$ui}-bottom-active-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-active;
-                @if $ui-background-gradient-active != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-bottom-active, 'tab/tab-#{$ui}-bottom-active-fbg');
-                }
-            }
-        }
-
-        .#{$prefix}tab-#{$ui}-top-disabled,
-        .#{$prefix}tab-#{$ui}-left-disabled,
-        .#{$prefix}tab-#{$ui}-right-disabled {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-top-disabled, 'tab/tab-#{$ui}-top-disabled-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-top-disabled, 'tab/tab-#{$ui}-top-disabled-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-disabled;
-                @if $ui-background-gradient-disabled != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-top-disabled, 'tab/tab-#{$ui}-top-disabled-fbg');
-                }
-            }
-        }
-
-        .#{$prefix}tab-#{$ui}-bottom-disabled {
-            .#{$prefix}frame-tl,
-            .#{$prefix}frame-bl,
-            .#{$prefix}frame-tr,
-            .#{$prefix}frame-br,
-            .#{$prefix}frame-tc,
-            .#{$prefix}frame-bc {
-                background-image: slicer-corner-sprite(tab-#{$ui}-bottom-disabled, 'tab/tab-#{$ui}-bottom-disabled-corners');
-            }
-            .#{$prefix}frame-ml,
-            .#{$prefix}frame-mr {
-                background-image: slicer-sides-sprite(tab-#{$ui}-bottom-disabled, 'tab/tab-#{$ui}-bottom-disabled-sides');
-            }
-            .#{$prefix}frame-mc {
-                background-color: $ui-background-color-disabled;
-                @if $ui-background-gradient-disabled != null {
-                    background-repeat: repeat-x;
-                    background-image: slicer-frame-background-image(tab-#{$ui}-bottom-disabled, 'tab/tab-#{$ui}-bottom-disabled-fbg');
-                }
-            }
-        }
-
-        @if $ui-border-width != 0 { 
-            .#{$prefix}nbr {
-                // frame.scss sets border:0 !important on the tab element in nbr mode.  We
-                // need an override  with !important to add the bottom-border back since
-                // tabs are special and need the bottom-border to hide the tab-strip's
-                // border when the tab is active.
-                // This needs to be wrapped in an x-nbr rule to be more specific than
-                // the rule that removes the border in x-frame
-                .#{$prefix}tab-#{$ui}-top, 
-                .#{$prefix}tab-#{$ui}-left, 
-                .#{$prefix}tab-#{$ui}-right { 
-                    border-bottom-width: $ui-border-width !important;
-                }
-                .#{$prefix}tab-#{$ui}-bottom {
-                    border-top-width: $ui-border-width !important;
-                }
-            }
+        .#{$prefix}tab-#{$ui}-tl,
+        .#{$prefix}tab-#{$ui}-bl,
+        .#{$prefix}tab-#{$ui}-tr,
+        .#{$prefix}tab-#{$ui}-br {
+            // hack to make IE8 render partially transparent pixels in corners of rotated tabs:
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF);
         }
     }
 
     .#{$prefix}tab-#{$ui} {
         .#{$prefix}tab-close-btn {
+            top: $ui-closable-icon-top;
+            right: $ui-closable-icon-right;
             width: $ui-closable-icon-width;
             height: $ui-closable-icon-height;
-            background-image: theme-background-image('tab/tab-#{$ui}-close');
+            background: theme-background-image('tab/tab-#{$ui}-close') 0 0;
             @if $tab-closable-icon-opacity != 1 {
                 @include opacity($tab-closable-icon-opacity);
             }
@@ -875,11 +805,41 @@
                 background-position: (-$tab-closable-icon-width) 0;
             }
         }
-    }
 
-    .#{$prefix}tab-#{$ui} .#{$prefix}tab-close-btn {
-        top: $ui-closable-icon-top;
-        right: $ui-closable-icon-right;
+        @if $tab-closable-icon-include-pressed-background-position {
+            .#{$prefix}tab-close-btn-pressed {
+                background-position: (-$ui-closable-icon-width * 2) 0;
+            }
+        }
+        
+        &.#{$prefix}tab-active {
+            .#{$prefix}tab-close-btn {
+                background-position: 0 (-$tab-closable-icon-height);
+            }
+    
+            @if $tab-closable-icon-include-hover-background-position {
+                .#{$prefix}tab-close-btn-over {
+                    background-position: (-$tab-closable-icon-width) (-$tab-closable-icon-height);
+                }
+            }
+
+            @if $tab-closable-icon-include-pressed-background-position {
+                .#{$prefix}tab-close-btn-pressed {
+                    background-position: (-$ui-closable-icon-width * 2) (-$ui-closable-icon-height);
+                }
+            }
+        }
+        
+        &.#{$prefix}tab-disabled {
+            .#{$prefix}tab-close-btn {
+                @if $tab-closable-icon-opacity-disabled != $tab-closable-icon-opacity or $tab-closable-icon-opacity-disabled != $tab-closable-icon-opacity-over {
+                    @include opacity($tab-closable-icon-opacity-disabled);
+                }
+                @if $tab-closable-icon-include-hover-background-position {
+                    background-position: 0 0;
+                }
+            }
+        }
     }
 
     @if $include-rtl {
@@ -889,100 +849,43 @@
         }
     }
 
-    @if $tab-left-rotate-direction == 'right' {
-        .#{$prefix}tab-#{$ui}-left .#{$prefix}tab-close-btn {
-            top: auto;
-            right: auto;
-            bottom: $ui-closable-icon-top;
-            left: $ui-closable-icon-right;
-        }
-
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-#{$ui}-left .#{$prefix}tab-close-btn {
-                left: auto;
-                right: $ui-closable-icon-right;
-            }
-        }
-    }
-
-    @if $tab-right-rotate-direction == 'left' {
-        .#{$prefix}tab-#{$ui}-right .#{$prefix}tab-close-btn {
-            top: auto;
-            right: auto;
-            bottom: $ui-closable-icon-top;
-            left: $ui-closable-icon-right;
-        }
-
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-#{$ui}-right .#{$prefix}tab-close-btn {
-                left: auto;
-                right: $ui-closable-icon-right;
-            }
-        }
-    }
-
-    .#{$prefix}tab-#{$ui}-disabled .#{$prefix}tab-close-btn {
-        @if $tab-closable-icon-opacity-disabled != $tab-closable-icon-opacity or $tab-closable-icon-opacity-disabled != $tab-closable-icon-opacity-over {
-            @include opacity($tab-closable-icon-opacity-disabled);
-        }
-        @if $tab-closable-icon-include-hover-background-position {
-            background-position: 0 0;
-        }
-    }
-
-    @if $tab-closable-icon-include-pressed-background-position {
-        .#{$prefix}tab-#{$ui}-pressed .#{$prefix}tab-close-btn {
-            background-position: (-$ui-closable-icon-width * 2) 0;
-        }
-    }
-
-    .#{$prefix}tab-#{$ui}-closable .#{$prefix}tab-wrap {
+    .#{$prefix}tab-closable.#{$prefix}tab-#{$ui} .#{$prefix}tab-button {
         padding-right: $ui-closable-icon-width + $ui-closable-icon-spacing;
     }
 
     @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-#{$ui}-closable .#{$prefix}tab-wrap {
+        .#{$prefix}rtl.#{$prefix}tab-closable.#{$prefix}tab-#{$ui} .#{$prefix}tab-button {
             padding-right: 0px;
             padding-left: $ui-closable-icon-width + $ui-closable-icon-spacing;
         }
     }
 
-    @if $include-ie {
-        .#{$prefix}ie9m {
-            @if $tab-left-rotate-direction == 'right' {
-                .#{$prefix}tab-#{$ui}-closable-left .#{$prefix}tab-icon-el {
-                    left: auto;
-                    right: 0;
-                }
-
-                @if $include-rtl {
-                    .#{$prefix}rtl.#{$prefix}tab-#{$ui}-closable-left .#{$prefix}tab-icon-el {
-                        right: auto;
-                        left: 0;
-                    }
-                }
-            }
-
-            @if $tab-right-rotate-direction == 'left' {
-                .#{$prefix}tab-#{$ui}-closable-right .#{$prefix}tab-icon-el {
-                    left: auto;
-                    right: 0;
-                }
-
-                @if $include-rtl {
-                    .#{$prefix}rtl.#{$prefix}tab-#{$ui}-closable-right .#{$prefix}tab-icon-el {
-                        right: auto;
-                        left: 0;
-                    }
-                }
-            }
-        }
-    }
-
-    @include x-slicer(tab-#{$ui}-top-over);
-    @include x-slicer(tab-#{$ui}-bottom-over);
-    @include x-slicer(tab-#{$ui}-top-active);
-    @include x-slicer(tab-#{$ui}-bottom-active);
-    @include x-slicer(tab-#{$ui}-top-disabled);
-    @include x-slicer(tab-#{$ui}-bottom-disabled);
+    $stretch: slicer-background-stretch(tab-#{$ui}-top, bottom);
+    $stretch: slicer-background-stretch(tab-#{$ui}-right, left);
+    $stretch: slicer-background-stretch(tab-#{$ui}-bottom, top);
+    $stretch: slicer-background-stretch(tab-#{$ui}-left, right);
+    $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-over.#{$prefix}tab-#{$ui}-left', right);
+    $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-active.#{$prefix}tab-#{$ui}-left', right);
+    $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-top', bottom);
+    $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-right', left);
+    $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-bottom', top);
+    $stretch: slicer-background-stretch('tab-disabled.#{$prefix}tab-#{$ui}-left', right);
+    @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-over.#{$prefix}tab-#{$ui}-left');
+    @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-active.#{$prefix}tab-#{$ui}-left');
+    @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-top');
+    @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-right');
+    @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-bottom');
+    @include x-slicer('tab-disabled.#{$prefix}tab-#{$ui}-left');
 }

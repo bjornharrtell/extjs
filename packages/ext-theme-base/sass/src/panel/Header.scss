@@ -1,19 +1,5 @@
-.#{$prefix}header-icon {
-    background-repeat: no-repeat;
-    background-position: 0 0;
-    vertical-align: middle;
-    text-align: center;
-}
-
-.#{$prefix}header-text-container {
-    overflow: hidden;
-    -o-text-overflow: ellipsis;
-    text-overflow: ellipsis;
-}
-
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}header-text-container {
-        -o-text-overflow: clip;
-        text-overflow: clip;
-    }
+// panel header changes overflow of it's box layout's innerCt to visible so that certain
+// items can negate the effect of the header's padding by using negative margins
+.#{$prefix}header > .#{$prefix}box-inner {
+    overflow: visible;
 }

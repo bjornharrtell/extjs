@@ -1,26 +1,4 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * This mixin provides a common interface for the logical behavior and state of form fields, including:
  *
  * - Getter and setter methods for field values
@@ -39,11 +17,23 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * is called during the component's initialization.
  */
 Ext.define('Ext.form.field.Field', {
+    mixinId: 'field',
+
     /**
      * @property {Boolean} isFormField
      * Flag denoting that this component is a Field. Always true.
      */
     isFormField : true,
+
+    config: {
+        /**
+         * @cfg {Boolean/String} validation
+         * This property, when a `String`, contributes its value to the error state of this
+         * instance as reported by `getErrors`. This property is implicitly bound when the
+         * `value` of this field is bound based on `{@link Ext.Component#modelValidation}`.
+         */
+        validation: null
+    },
 
     /**
      * @cfg {Object} value
@@ -90,37 +80,41 @@ Ext.define('Ext.form.field.Field', {
      * @private
      */
     suspendCheckChange: 0,
+    
+    /**
+     * @property {Boolean} dirty
+     * The dirty state of the field.
+     * @private
+     */
+    dirty: false,
+
+    /**
+     * @event change
+     * Fires when the value of a field is changed via the {@link #setValue} method.
+     * @param {Ext.form.field.Field} this
+     * @param {Object} newValue The new value
+     * @param {Object} oldValue The original value
+     */
+
+    /**
+     * @event validitychange
+     * Fires when a change in the field's validity is detected.
+     * @param {Ext.form.field.Field} this
+     * @param {Boolean} isValid Whether or not the field is now valid
+     */
+
+    /**
+     * @event dirtychange
+     * Fires when a change in the field's {@link #isDirty} state is detected.
+     * @param {Ext.form.field.Field} this
+     * @param {Boolean} isDirty Whether or not the field is now dirty
+     */
 
     /**
      * Initializes this Field mixin on the current instance. Components using this mixin should call this method during
      * their own initialization process.
      */
     initField: function() {
-        this.addEvents(
-            /**
-             * @event change
-             * Fires when the value of a field is changed via the {@link #setValue} method.
-             * @param {Ext.form.field.Field} this
-             * @param {Object} newValue The new value
-             * @param {Object} oldValue The original value
-             */
-            'change',
-            /**
-             * @event validitychange
-             * Fires when a change in the field's validity is detected.
-             * @param {Ext.form.field.Field} this
-             * @param {Boolean} isValid Whether or not the field is now valid
-             */
-            'validitychange',
-            /**
-             * @event dirtychange
-             * Fires when a change in the field's {@link #isDirty} state is detected.
-             * @param {Ext.form.field.Field} this
-             * @param {Boolean} isDirty Whether or not the field is now dirty
-             */
-            'dirtychange'
-        );
-
         this.initValue();
         
         //<debug>
@@ -146,28 +140,25 @@ Ext.define('Ext.form.field.Field', {
     initValue: function() {
         var me = this;
 
-        me.value = me.transformOriginalValue(me.value);
+        // Set the initial value - prevent validation on initial set
+        me.suspendCheckChange++;
+        me.setValue(me.value);
+        me.suspendCheckChange--;
+        
         /**
          * @property {Object} originalValue
          * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
          * form load operation if the form's {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} setting is `true`.
          */
-        me.originalValue = me.lastValue = me.value;
-
-        // Set the initial value - prevent validation on initial set
-        me.suspendCheckChange++;
-        me.setValue(me.value);
-        me.suspendCheckChange--;
+        me.originalValue = me.lastValue = me.getValue();
     },
-    
-    /**
-     * Allows for any necessary modifications before the original
-     * value is set
-     * @protected
-     * @param {Object} value The initial value
-     * @return {Object} The modified initial value
-     */
-    transformOriginalValue: Ext.identityFn,
+
+    // Fields can be editors, and some editors may not have a name property that maps
+    // to its data index, so it's necessary in these cases to look it up by its dataIndex
+    // property.  See EXTJSIV-11650.
+    getFieldIdentifier: function () {
+        return this.isEditorComponent ? this.dataIndex : this.name;
+    },
 
     /**
      * Returns the {@link Ext.form.field.Field#name name} attribute of the field. This is used as the parameter name
@@ -219,7 +210,7 @@ Ext.define('Ext.form.field.Field', {
      * @return {Boolean} True if the values are equal, false if inequal.
      */
     isEqualAsString: function(value1, value2){
-        return String(Ext.value(value1, '')) === String(Ext.value(value2, ''));
+        return String(Ext.valueFrom(value1, '')) === String(Ext.valueFrom(value2, ''));
     },
 
     /**
@@ -237,7 +228,7 @@ Ext.define('Ext.form.field.Field', {
     getSubmitData: function() {
         var me = this,
             data = null;
-        if (!me.disabled && me.submitValue && !me.isFileUpload()) {
+        if (!me.disabled && me.submitValue) {
             data = {};
             data[me.getName()] = '' + me.getValue();
         }
@@ -258,12 +249,15 @@ Ext.define('Ext.form.field.Field', {
      * strings if that particular name has multiple values. It can also return null if there are no parameters to be
      * submitted.
      */
-    getModelData: function() {
+    getModelData: function(includeEmptyText, /*private*/ isSubmitting) {
         var me = this,
             data = null;
-        if (!me.disabled && !me.isFileUpload()) {
+        
+        // Note that we need to check if this operation is being called from a Submit action because displayfields aren't
+        // to be submitted,  but they can call this to get their model data.
+        if (!me.disabled && (me.submitValue || !isSubmitting)) {
             data = {};
-            data[me.getName()] = me.getValue();
+            data[me.getFieldIdentifier()] = me.getValue();
         }
         return data;
     },
@@ -309,16 +303,28 @@ Ext.define('Ext.form.field.Field', {
      *    if it has changed.
      */
     checkChange: function() {
-        if (!this.suspendCheckChange) {
-            var me = this,
-                newVal = me.getValue(),
-                oldVal = me.lastValue;
-            if (!me.isEqual(newVal, oldVal) && !me.isDestroyed) {
+        var me = this,
+            newVal, oldVal;
+            
+        if (!me.suspendCheckChange) {
+            newVal = me.getValue();
+            oldVal = me.lastValue;
+                
+            if (!me.isDestroyed && me.didValueChange(newVal, oldVal)) {
                 me.lastValue = newVal;
                 me.fireEvent('change', me, newVal, oldVal);
                 me.onChange(newVal, oldVal);
             }
         }
+    },
+    
+    /**
+     * @private
+     * Checks if the value has changed. Allows subclasses to override for
+     * any more complex logic.
+     */
+    didValueChange: function(newVal, oldVal){
+        return !this.isEqual(newVal, oldVal);
     },
 
     /**
@@ -326,11 +332,21 @@ Ext.define('Ext.form.field.Field', {
      * Called when the field's value changes. Performs validation if the {@link #validateOnChange}
      * config is enabled, and invokes the dirty check.
      */
-    onChange: function(newVal, oldVal) {
-        if (this.validateOnChange) {
-            this.validate();
+    onChange: function (newVal) {
+        var me = this;
+
+        if (me.validateOnChange) {
+            me.validate();
         }
-        this.checkDirty();
+
+        me.checkDirty();
+        me.publishValue(newVal);
+    },
+
+    publishValue: function (value) {
+        if (this.rendered) {
+            this.publishState('value', value);
+        }
     },
 
     /**
@@ -355,7 +371,9 @@ Ext.define('Ext.form.field.Field', {
     checkDirty: function() {
         var me = this,
             isDirty = me.isDirty();
+        
         if (isDirty !== me.wasDirty) {
+            me.dirty = isDirty;
             me.fireEvent('dirtychange', me, isDirty);
             me.onDirtyChange(isDirty);
             me.wasDirty = isDirty;
@@ -377,8 +395,15 @@ Ext.define('Ext.form.field.Field', {
      * @param {Object} value The value to get errors for (defaults to the current field value)
      * @return {String[]} All error messages for this field; an empty Array if none.
      */
-    getErrors: function(value) {
-        return [];
+    getErrors: function (value) {
+        var errors = [],
+            validation = this.getValidation();
+
+        if (validation && validation !== true) {
+            errors.push(validation);
+        }
+
+        return errors;
     },
 
     /**
@@ -421,15 +446,17 @@ Ext.define('Ext.form.field.Field', {
      * prevent excessive firing of {@link #change} events. This is useful for instance if the field has sub-fields which
      * are being updated as a group; you don't want the container field to check its own changed state for each subfield
      * change.
-     * @param {Object} fn A function containing the transaction code
+     * @param {Function} fn The function to call with change checks suspended.
      */
     batchChanges: function(fn) {
         try {
             this.suspendCheckChange++;
             fn();
-        } catch(e){
-            throw e;
-        } finally {
+        }
+        catch (pseudo) {  //required with IE when using 'try'
+            throw pseudo;
+        }
+        finally {
             this.suspendCheckChange--;
         }
         this.checkChange();
@@ -478,6 +505,9 @@ Ext.define('Ext.form.field.Field', {
      * if the value does not _pass_ validation. So simply clearing a field's errors will not necessarily allow
      * submission of forms submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
      */
-    clearInvalid: Ext.emptyFn
+    clearInvalid: Ext.emptyFn,
 
+    updateValidation: function () {
+        this.validate();
+    }
 });

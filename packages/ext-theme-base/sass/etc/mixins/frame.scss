@@ -27,28 +27,30 @@
     $table: false,
     $background-direction: top,
     $include-frame-rtl: false,
-    // an optional ui to use for images
-    $img-ui: $ui,
-    $background-stretch: null
+    $background-stretch: null,
+    $ignore-frame-padding: false
 ) {
     $cls-ui: $cls;
-    $cls-img-ui: null;
+    $cls-ui: null;
     @if $ui != null {
         $cls-ui: $cls + '-' + $ui;
-        $cls-img-ui: $cls + '-' + $img-ui;
     }
 
     $vertical: false;
-    @if $background-gradient != null and ($background-direction == left or $background-direction == right) {
+    @if not is-null($background-gradient) and ($background-direction == left or $background-direction == right) {
         $vertical: true;
     }
 
     $background-stretch-position: null;
-    @if $background-stretch == null {
-        @if $vertical {
-            $background-stretch: left;
-        } @else {
+    @if is-null($background-stretch) {
+        @if $background-direction == top {
             $background-stretch: bottom;
+        } @else if $background-direction == right {
+            $background-stretch: left;
+        } @else if $background-direction == bottom {
+            $background-stretch: top;
+        } @else if $background-direction == left {
+            $background-stretch: right;
         }
     }
 
@@ -62,7 +64,7 @@
         $background-stretch-position: left;
     }
 
-    @if $background-gradient != null {
+    @if not is-null($background-gradient) {
         $stretch: slicer-background-stretch($cls-ui, $background-stretch);
     }
 
@@ -78,21 +80,40 @@
     $frame-left:   max(left($border-width),   max(left($border-radius),   top($border-radius)));
     $frame-max:    max(max($frame-top, $frame-bottom), max($frame-left, $frame-right));
 
+    $padding-top: 0;
+    $padding-right: 0;
+    $padding-bottom: 0;
+    $padding-left: 0;
+
+    $frame-info-padding-top: 0;
+    $frame-info-padding-right: 0;
+    $frame-info-padding-bottom: 0;
+    $frame-info-padding-left: 0;
+
     // For CSS3 browsers, if the border-radius is larger than the border-width, we need to
     // apply padding to inset the content. These values can never be 0 because frame-xxx
     // includes border-xxx in its max.
     //
-    $padding-top:    $frame-top    - top($border-width);
-    $padding-right:  $frame-right  - right($border-width);
-    $padding-bottom: $frame-bottom - bottom($border-width);
-    $padding-left:   $frame-left   - left($border-width);
+    @if not $ignore-frame-padding {
+        $padding-top:    $frame-top    - top($border-width);
+        $padding-right:  $frame-right  - right($border-width);
+        $padding-bottom: $frame-bottom - bottom($border-width);
+        $padding-left:   $frame-left   - left($border-width);
+    } @else {
+        // In nocss3 browsers we can never ignore frame padding, because the framing elements
+        // cannot be overlapped by the content.
+        $frame-info-padding-top:    $frame-top    - top($border-width);
+        $frame-info-padding-right:  $frame-right  - right($border-width);
+        $frame-info-padding-bottom: $frame-bottom - bottom($border-width);
+        $frame-info-padding-left:   $frame-left   - left($border-width);
+    }
 
     // If there is additional padding, this is understood to be a request to ensure that
     // the content is **at least** this far from the inside of the border. If the framing
     // requires more padding, that wins. This is the amount of padding you need in CSS3
     // browsers.
     //
-    @if $padding != null {
+    @if not is-null($padding) {
         $padding-top:    max($padding-top,    top($padding));
         $padding-right:  max($padding-right,  right($padding));
         $padding-bottom: max($padding-bottom, bottom($padding));
@@ -129,36 +150,34 @@
            nopx(right($border-width)) + '-' +
            nopx(bottom($border-width)) + '-' +
            nopx(left($border-width)) + '-' +
-           nopx($padding-top) + '-' +
-           nopx($padding-right) + '-' +
-           nopx($padding-bottom) + '-' +
-           nopx($padding-left);
+           if($ignore-frame-padding, $frame-info-padding-top, nopx($padding-top)) + '-' +
+           if($ignore-frame-padding, $frame-info-padding-right, nopx($padding-right)) + '-' +
+           if($ignore-frame-padding, $frame-info-padding-bottom, nopx($padding-bottom)) + '-' +
+           if($ignore-frame-padding, $frame-info-padding-left, nopx($padding-left)) + '-';
 
     .#{$prefix}#{$cls-ui} {
-        @if $supports-border-radius {
-            @if length($border-radius) == 2 {
-                @include border-top-left-radius(nth($border-radius, 1));
-                @include border-top-right-radius(nth($border-radius, 2));
-            } @else if length($border-radius) == 3 {
-                @include border-top-left-radius(nth($border-radius, 1));
-                @include border-top-right-radius(nth($border-radius, 2));
-                @include border-bottom-right-radius(nth($border-radius, 3));
-            } @else if length($border-radius) == 4 {
-                @include border-top-left-radius(nth($border-radius, 1));
-                @include border-top-right-radius(nth($border-radius, 2));
-                @include border-bottom-right-radius(nth($border-radius, 3));
-                @include border-bottom-left-radius(nth($border-radius, 4));
-            } @else {
-                @include border-radius($border-radius);
-            }
+        @if length($border-radius) == 2 {
+            @include border-top-left-radius(nth($border-radius, 1));
+            @include border-top-right-radius(nth($border-radius, 2));
+        } @else if length($border-radius) == 3 {
+            @include border-top-left-radius(nth($border-radius, 1));
+            @include border-top-right-radius(nth($border-radius, 2));
+            @include border-bottom-right-radius(nth($border-radius, 3));
+        } @else if length($border-radius) == 4 {
+            @include border-top-left-radius(nth($border-radius, 1));
+            @include border-top-right-radius(nth($border-radius, 2));
+            @include border-bottom-right-radius(nth($border-radius, 3));
+            @include border-bottom-left-radius(nth($border-radius, 4));
+        } @else {
+            @include border-radius($border-radius);
         }
 
         padding: $padding-top $padding-right $padding-bottom $padding-left;
         border-width: $border-width;
         border-style: solid;
 
-        @if $background-color != null {
-            @if $supports-gradients and $background-gradient != null {
+        @if not is-null($background-color) {
+            @if not is-null($background-gradient) {
                 @include background-gradient($background-color, $background-gradient, $background-direction);
             }
             @else {
@@ -185,10 +204,35 @@
         }
     }
 
-    @if not $supports-gradients or $compile-all {
+    @if $include-slicer-border-radius {
         .#{$prefix}#{$cls-ui}-mc {
-            @if $background-gradient != null {
-                background-image: slicer-frame-background-image($cls-ui, '#{$cls}/#{$cls-img-ui}-fbg');
+            @if not is-null($background-gradient) {
+                background-image: slicer-frame-background-image($cls-ui, '#{$cls}/#{$cls-ui}-fbg');
+
+                @if $vertical {
+                    background-position: $background-stretch-position 0;
+                    background-repeat: repeat-y;
+                } @else {
+                    background-position: 0 $background-stretch-position;
+                }
+            }
+            @if not is-null($background-color) {
+                background-color: $background-color;
+            }
+        }
+
+        @if $include-frame-rtl and not is-null($background-gradient) {
+            .#{$prefix}rtl.#{$prefix}#{$cls-ui}-mc {
+                background-image: slicer-frame-background-image-rtl($cls-ui, '#{$cls}/#{$cls-ui}-fbg-rtl');
+                background-position: rtl-background-position($background-stretch-position 0);
+            }
+        }
+    }
+
+    @if $include-slicer-gradient and not is-null($background-gradient) {
+        .#{$prefix}nlg {
+            .#{$prefix}#{$cls-ui} {
+                background-image: slicer-background-image($cls-ui, '#{$cls}/#{$cls-ui}-bg');
 
                 @if $vertical {
                     background-position: $background-stretch-position 0;
@@ -196,78 +240,49 @@
                     background-position: 0 $background-stretch-position;
                 }
             }
-            @if $background-color != null {
-                background-color: $background-color;
-            }
-        }
-        @if $include-frame-rtl and $background-gradient != null {
-            .#{$prefix}rtl.#{$prefix}#{$cls-ui}-mc {
-                background-image: slicer-frame-background-image-rtl($cls-ui, '#{$cls}/#{$cls-img-ui}-fbg-rtl');
-                background-position: rtl-background-position($background-stretch-position 0);
-            }
-        }
 
-        @if $background-gradient != null {
-            .#{$prefix}nlg {
-                .#{$prefix}#{$cls-ui} {
-                    background-image: slicer-background-image($cls-ui, '#{$cls}/#{$cls-img-ui}-bg');
-
-                    @if $vertical {
-                        background-position: $background-stretch-position 0;
-                    } @else {
-                        background-position: 0 $background-stretch-position;
-                    }
-                }
-
-                @if $include-frame-rtl {
-                    .#{$prefix}rtl.#{$prefix}#{$cls-ui} {
-                        background-image: slicer-background-image-rtl($cls-ui, '#{$cls}/#{$cls-img-ui}-bg-rtl');
-                        background-position: rtl-background-position($background-stretch-position 0);
-                    }
+            @if $include-frame-rtl {
+                .#{$prefix}rtl.#{$prefix}#{$cls-ui} {
+                    background-image: slicer-background-image-rtl($cls-ui, '#{$cls}/#{$cls-ui}-bg-rtl');
+                    background-position: rtl-background-position($background-stretch-position 0);
                 }
             }
         }
     }
 
-    @if not $supports-border-radius or $compile-all {
+    @if $include-slicer-border-radius {
         .#{$prefix}nbr {
             // This rule must be in x-nbr to avoid matching on CSS3 browsers.
             .#{$prefix}#{$cls-ui} {
                 padding: 0 !important;
                 border-width: 0 !important;
                 @include border-radius(0px);
-                @if $background-color != null {
-                    background-color: transparent;
+                @if not is-null($background-color) {
+                    background-color: transparent !important;
                 } @else {
                     background: #fff;
                 }
-                @if $background-gradient != null {
+                @if not is-null($background-gradient) {
                     background-image: none;
                 }
             }
         }
 
-        // This rule must be more specific than other x-nlg rules or else framing will
-        // not be applied to the element. This rule must also be in x-nbr to avoid
-        // matching on CSS3 browsers.
-        //
-        body.#{$prefix}nbr {
-            .#{$prefix}#{$cls-ui}-frameInfo {
-                // Pass along Div/Table, Horz/Vert, border-radius and border-width
-                // Here we're encoding the framing information in an arbitrary fashion so
-                // it can be parsed by the component and get information about the framing.
-                // Originally, this tried to embed the information using a background image
-                // pointing to about:blank#info however in IE with SSL, this would trigger
-                // the insecure content warning. We also tried encoding the info using a
-                // filter as follows (where framing-info is a string containg the encoded data):
-                // filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=false, src="ext-frame#{$framing-info}");
-                // However the filter property can only be read by IE, making it impossible
-                // to debug nocss3 mode in modern browsers. Font-family meets all the
-                // requirements for tunneling data to JavaScript. It can contain an
-                // arbitrary string value, which can be read in JS in any browser, and it
-                // does not trigger any network interactions.
-                font-family: #{$framing-info};
-            }
+        .#{$prefix}#{$cls-ui}-frameInfo {
+            // Pass along Div/Table, Horz/Vert, border-radius and border-width
+            // Here we're encoding the framing information in an arbitrary fashion so
+            // it can be parsed by the component and get information about the framing.
+            // Originally, this tried to embed the information using a background image
+            // pointing to about:blank#info however in IE with SSL, this would trigger
+            // the insecure content warning. We also tried encoding the info using a
+            // filter as follows (where framing-info is a string containing the encoded data):
+            // filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=false, src="ext-frame#{$framing-info}");
+            // However the filter property can only be read by IE, making it impossible
+            // to debug nocss3 mode in modern browsers. Font-family meets all the
+            // requirements for tunneling data to JavaScript. It can contain an
+            // arbitrary string value, which can be read in JS in any browser, and it
+            // does not trigger any network interactions.
+            font-family: #{$framing-info};
         }
 
         // These rules apply to elements that are not rendered on CSS3 browsers so we do
@@ -336,11 +351,19 @@
             }
 
             .#{$prefix}#{$cls-ui}-ml {
-                background-position: 0 $background-stretch-position;
+                @if $background-stretch-position == 'right' or $background-stretch-position == 'left' {
+                    background-position: $background-stretch-position 0;
+                } @else {
+                    background-position: 0 $background-stretch-position;
+                }
             }
 
             .#{$prefix}#{$cls-ui}-mr {
-                background-position: right $background-stretch-position;
+                @if $background-stretch-position == 'right' or $background-stretch-position == 'left' {
+                    background-position: $background-stretch-position 0;
+                } @else {
+                    background-position: right $background-stretch-position;
+                }
             }
 
             .#{$prefix}#{$cls-ui}-tc {
@@ -379,10 +402,8 @@
         .#{$prefix}#{$cls-ui}-bc,
         .#{$prefix}#{$cls-ui}-ml,
         .#{$prefix}#{$cls-ui}-mr {
-            zoom:1;
-
             @if $background-color != transparent {
-                background-image: slicer-corner-sprite($cls-ui, '#{$cls}/#{$cls-img-ui}-corners');
+                background-image: slicer-corner-sprite($cls-ui, '#{$cls}/#{$cls-ui}-corners');
             }
         }
 
@@ -395,7 +416,7 @@
                     &.#{$prefix}#{$cls-ui}-tr,
                     &.#{$prefix}#{$cls-ui}-mr,
                     &.#{$prefix}#{$cls-ui}-br {
-                        background-image: slicer-corner-sprite-rtl($cls-ui, '#{$cls}/#{$cls-img-ui}-corners-rtl');
+                        background-image: slicer-corner-sprite-rtl($cls-ui, '#{$cls}/#{$cls-ui}-corners-rtl');
                     }
                 }
             }
@@ -404,10 +425,8 @@
         @if $vertical == true {
             .#{$prefix}#{$cls-ui}-tc,
             .#{$prefix}#{$cls-ui}-bc {
-                zoom:1;
-
                 @if $background-color != transparent {
-                    background-image: slicer-sides-sprite($cls-ui, '#{$cls}/#{$cls-img-ui}-sides');
+                    background-image: slicer-sides-sprite($cls-ui, '#{$cls}/#{$cls-ui}-sides');
                     background-repeat: repeat-x;
                 }
             }
@@ -416,18 +435,16 @@
                 .#{$prefix}rtl {
                     &.#{$prefix}#{$cls-ui}-tc,
                     &.#{$prefix}#{$cls-ui}-bc {
-                        background-image: slicer-sides-sprite-rtl($cls-ui, '#{$cls}/#{$cls-img-ui}-sides-rtl');
+                        background-image: slicer-sides-sprite-rtl($cls-ui, '#{$cls}/#{$cls-ui}-sides-rtl');
                     }
                 }
             }
         } @else {
             .#{$prefix}#{$cls-ui}-ml,
             .#{$prefix}#{$cls-ui}-mr {
-                zoom:1;
-
                 @if $background-color != transparent {
-                    background-image: slicer-sides-sprite($cls-ui, '#{$cls}/#{$cls-img-ui}-sides');
-                    @if $background-gradient == null {
+                    background-image: slicer-sides-sprite($cls-ui, '#{$cls}/#{$cls-ui}-sides');
+                    @if is-null($background-gradient) {
                         background-repeat: repeat-y;
                     }
                 }
@@ -436,18 +453,6 @@
 
         .#{$prefix}#{$cls-ui}-mc {
             padding: $extra-padding-top $extra-padding-right $extra-padding-bottom $extra-padding-left;
-        }
-
-        @if $include-ie {
-            // framed components in ie7 strict mode suffer from an obscure bug that causes the tl and bl framing elements to
-            // be shrink-wrapped to the width of their contents.  This hack forces the elements' widths to fit to their parent
-            .#{$prefix}strict .#{$prefix}ie7 {
-                .#{$prefix}#{$cls-ui}-tl,
-                .#{$prefix}#{$cls-ui}-bl {
-                    position: relative;
-                    right: 0;
-                }
-            }
         }
     }
 

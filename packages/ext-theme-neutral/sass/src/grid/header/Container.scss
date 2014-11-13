@@ -5,7 +5,7 @@
     border-bottom-color: $grid-header-background-color;
 
     background-color: $grid-header-background-color;
-    @if ($supports-gradients or $compile-all) and $grid-header-background-gradient != null {
+    @if not is-null($grid-header-background-gradient) {
         @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
     }
 }
@@ -14,12 +14,13 @@
     .#{$prefix}accordion-item .#{$prefix}grid-header-ct {
         border-width: 0 0 $grid-header-border-width !important;
     }
-
-    // When hideHeaders: true, we need !important to override above rule
-    .#{$prefix}accordion-item .#{$prefix}grid-header-ct-hidden {
-        border: 0 !important;
-    }
 }
+
+// When hideHeaders: true, we need !important to override above rule
+.#{$prefix}grid-header-ct-hidden {
+    border: 0 !important;
+}
+
 
 // create the bottom border of the header container by adding a top border to the
 // grid body.  This is necessary because the header container is a docked item, and 
@@ -29,14 +30,14 @@
     border-top-color: $grid-header-border-color;
 }
 
-.#{$prefix}hmenu-sort-asc .#{$prefix}menu-item-icon {
+.#{$prefix}hmenu-sort-asc {
     background-image: theme-background-image('grid/hmenu-asc');
 }
 
-.#{$prefix}hmenu-sort-desc .#{$prefix}menu-item-icon {
+.#{$prefix}hmenu-sort-desc {
     background-image: theme-background-image('grid/hmenu-desc');
 }
 
-.#{$prefix}cols-icon .#{$prefix}menu-item-icon {
+.#{$prefix}cols-icon {
     background-image: theme-background-image('grid/columns');
 }

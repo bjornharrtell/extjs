@@ -1,5 +1,5 @@
 Ext.define('SimpleTasks.model.List', {
-    extend: 'Ext.data.Model',
+    extend: 'Ext.data.TreeModel',
     requires:[
         'Ext.data.proxy.LocalStorage',
         'Ext.data.proxy.Ajax'
@@ -8,10 +8,10 @@ Ext.define('SimpleTasks.model.List', {
         { name: 'id', type: 'int' },
         { name: 'name' },
         // if we are using local storage, we need to persist the index field so the ordering of tree nodes will be preserved
-        {name: 'index', type: 'int', defaultValue: null, persist: !!SimpleTasksSettings.useLocalStorage}
+        {name: 'index', type: 'int', defaultValue: null, persist: !!SimpleTasks.Settings.useLocalStorage}
     ],
 
-    proxy: SimpleTasksSettings.useLocalStorage ? {
+    proxy: SimpleTasks.Settings.useLocalStorage ? {
         type: 'localstorage',
         id: 'SimpleTasks-List'
     } : {

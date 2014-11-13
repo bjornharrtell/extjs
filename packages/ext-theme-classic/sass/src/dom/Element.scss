@@ -1,7 +1,6 @@
 //box wrap - Ext.get("foo").boxWrap();
 .#{$prefix}box-tl {
     background: transparent no-repeat 0 0;
-    zoom:1;
 }
 
 .#{$prefix}box-tc {
@@ -18,7 +17,6 @@
     background: transparent repeat-y 0;
     padding-left: 4px;
     overflow: hidden;
-    zoom:1;
 }
 
 .#{$prefix}box-mc {
@@ -28,7 +26,6 @@
 
 .#{$prefix}box-mc h3 {
     margin: 0 0 4px 0;
-    zoom:1;
 }
 
 .#{$prefix}box-mr {
@@ -39,7 +36,6 @@
 
 .#{$prefix}box-bl {
     background: transparent no-repeat 0 -16px;
-    zoom:1;
 }
 
 .#{$prefix}box-bc {

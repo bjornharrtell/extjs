@@ -13,12 +13,6 @@
     line-height: 0px;
 }
 
-@if $include-ie {
-    .#{$prefix}quirks .#{$prefix}ie .#{$prefix}toolbar .#{$prefix}toolbar-separator-horizontal {
-        width: 2px;
-    }
-}
-
 .#{$prefix}toolbar-scroller {
     padding-left: 0;
 }

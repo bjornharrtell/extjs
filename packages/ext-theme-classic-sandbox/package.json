@@ -4,8 +4,10 @@
     "creator": "Sencha",
     "summary": "Ext JS Classic Sandbox Theme",
     "detailedDescription": "The same visuals as the Classic Theme but in a CSS sandbox",
-    "version": "4.2.1",
-    "compatVersion": "4.2.0",
+    "version": "5.0.0",
+    "compatVersion": "5.0.0",
     "format": "1",
+    "local": true,
+    "requires": [],
     "extend": "ext-theme-classic"
 }

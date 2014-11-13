@@ -30,4 +30,16 @@ $messagebox-body-border-style: $window-body-border-style !default;
  * @var {list}
  * The background-position of the MessageBox icon
  */
-$messagebox-icon-background-position: top left !default;
+$messagebox-icon-background-position: left top !default;
+
+/**
+ * @var {number}
+ * The size of the MessageBox icon
+ */
+$messagebox-icon-size: 32px !default;
+
+/**
+ * @var {number}
+ * The amount of space between the MessageBox icon and the message text
+ */
+$messagebox-icon-spacing: 10px !default;

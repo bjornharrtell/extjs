@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Provides attractive and customizable tooltips for any element. The QuickTips
  * singleton is used to configure and manage tooltips globally for multiple elements
@@ -133,10 +113,17 @@ Ext.define('Ext.tip.QuickTipManager', {
                 Ext.onReady(function(){
                     Ext.tip.QuickTipManager.init(autoRender, config);
                 });
-                return;
+                return false;
             }
 
-            var tipConfig = Ext.apply({ disabled: me.disabled, id: 'ext-quicktips-tip' }, config),
+            var tipConfig = Ext.apply({
+                //<debug>
+                // tell the spec runner to ignore this element when checking if the dom is clean 
+                sticky: true,
+                //</debug>
+                disabled: me.disabled,
+                id: 'ext-quicktips-tip'
+            }, config),
                 className = tipConfig.className,
                 xtype = tipConfig.xtype;
 
@@ -257,7 +244,7 @@ Ext.define('Ext.tip.QuickTipManager', {
 
     /**
      * Removes any registered quick tip from the target element and destroys it.
-     * @param {String/HTMLElement/Ext.Element} el The element from which the quick tip
+     * @param {String/HTMLElement/Ext.dom.Element} el The element from which the quick tip
      * is to be removed or ID of the element.
      */
     unregister : function(){

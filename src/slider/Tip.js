@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Simple plugin for using an Ext.tip.Tip with a slider to show the slider value. In general this class is not created
  * directly, instead pass the {@link Ext.slider.Multi#useTips} and {@link Ext.slider.Multi#tipText} configuration
@@ -75,7 +55,7 @@ Ext.define('Ext.slider.Tip', {
     position: '',
     
     defaultVerticalPosition: 'left',
-    
+
     defaultHorizontalPosition: 'top',
 
     isSliderTip: true,
@@ -88,7 +68,7 @@ Ext.define('Ext.slider.Tip', {
         if (!me.position) {
             me.position = slider.vertical ? me.defaultVerticalPosition : me.defaultHorizontalPosition;
         }
-            
+
         switch (me.position) {
             case 'top':
                 offsets = [0, -10];
@@ -128,7 +108,7 @@ Ext.define('Ext.slider.Tip', {
      * Called whenever a dragstart or drag event is received on the associated Thumb.
      * Aligns the Tip with the Thumb's new position.
      * @param {Ext.slider.MultiSlider} slider The slider
-     * @param {Ext.EventObject} e The Event object
+     * @param {Ext.event.Event} e The Event object
      * @param {Ext.slider.Thumb} thumb The thumb that the Tip is attached to
      */
     onSlide : function(slider, e, thumb) {

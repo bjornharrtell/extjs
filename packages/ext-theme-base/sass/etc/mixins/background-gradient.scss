@@ -145,6 +145,39 @@
     ));
 }
 
+// Patch compass background-image mixin to fix EXTJSIV-9723.
+// This patch is only guaranteed to be compatible with the current Sencha Cmd-bundled
+// version of compass - 0.12.2
+// Remove this override when proper support for w3c style gradients is implemented in 
+// the compass framework.  For more info see:
+// https://github.com/chriseppstein/compass/issues/965#ref-pullrequest-10812518
+@mixin background-image(
+  $image-1,
+  $image-2: false,
+  $image-3: false,
+  $image-4: false,
+  $image-5: false,
+  $image-6: false,
+  $image-7: false,
+  $image-8: false,
+  $image-9: false,
+  $image-10: false
+) {
+  $images: compact($image-1, $image-2, $image-3, $image-4, $image-5, $image-6, $image-7, $image-8, $image-9, $image-10);
+  $add-pie-bg: prefixed(-pie,   $images) or -compass-list-size($images) > 1;
+
+  @if $experimental-support-for-svg          and prefixed(-svg,    $images) { background-image:    -svg($images); background-size: 100%; }
+  @if $support-for-original-webkit-gradients and prefixed(-owg,    $images) { background-image:    -owg($images); }
+  @if $experimental-support-for-webkit       and prefixed(-webkit, $images) { background-image: -webkit($images); }
+  @if $experimental-support-for-mozilla      and prefixed(-moz,    $images) { background-image:    -moz($images); }
+  @if $experimental-support-for-opera        and prefixed(-o,      $images) { background-image:      -o($images); }
+  @if $experimental-support-for-pie          and $add-pie-bg                { @warn "PIE does not support background-image. Use @include background(#{$images}) instead." }
+  // begin patch
+  background-image: -ms-#{$images};
+  // end patch
+                                                                              background-image:         $images ;
+}
+
 /**
  * Creates a background gradient.
  *
@@ -203,7 +236,7 @@
     background-image: none;
     background-color: $bg-color;
 
-    @if $base-gradient != null and $bg-color != transparent {
+    @if not is-null($base-gradient) and $bg-color != transparent {
         $gradient: null;
 
         //color_stops

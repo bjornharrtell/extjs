@@ -13,7 +13,7 @@ $tip-background-color: #fff !default;
  * The background-gradient of the Tip. Can be either the name of a predefined gradient or a
  * list of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
  */
-$tip-background-gradient: null !default;
+$tip-background-gradient: 'none' !default;
 
 /**
  * @var {color}
@@ -31,7 +31,7 @@ $tip-body-font-size: $font-size !default;
  * @var {string}
  * The font-weight of the Tip body
  */
-$tip-body-font-weight: normal !default;
+$tip-body-font-weight: $font-weight !default;
 
 /**
  * @var {number/list}
@@ -63,11 +63,14 @@ $tip-header-font-size: $tip-body-font-size !default;
  */
 $tip-header-font-weight: bold !default;
 
+// private - for 4.x compat
+$tip-header-body-padding: 3px 3px 0 3px !default;
+
 /**
  * @var {number/list}
  * The padding of the Tip header's body element
  */
-$tip-header-body-padding: 3px 3px 0 3px!default;  
+$tip-header-padding: $tip-header-body-padding !default;
 
 /**
  * @var {color}

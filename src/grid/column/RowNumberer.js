@@ -1,27 +1,7 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A special type of Grid {@link Ext.grid.column.Column} that provides automatic
  * row numbering.
- * 
+ *
  * Usage:
  *
  *     columns: [
@@ -43,7 +23,7 @@ Ext.define('Ext.grid.column.RowNumberer', {
      * @cfg {String} text
      * Any valid text or HTML fragment to display in the header cell for the row number column.
      */
-    text: "&#160",
+    text: "&#160;",
 
     /**
      * @cfg {Number} width
@@ -56,7 +36,7 @@ Ext.define('Ext.grid.column.RowNumberer', {
      * @hide
      */
     sortable: false,
-    
+
     /**
      * @cfg {Boolean} [draggable=false]
      * False to disable drag-drop reordering of this column.
@@ -71,14 +51,20 @@ Ext.define('Ext.grid.column.RowNumberer', {
 
     align: 'right',
 
-    constructor : function(config){
+    producesHTML: false,
+
+    constructor: function (config) {
         var me = this;
 
         // Copy the prototype's default width setting into an instance property to provide
-        // a default width which will not be overridden by AbstractContainer.applyDefaults use of Ext.applyIf
+        // a default width which will not be overridden by Container.applyDefaults use of Ext.applyIf
         me.width = me.width;
 
         me.callParent(arguments);
+
+        // Override any setting from the HeaderContainer's defaults
+        me.sortable = false;
+
         me.scope = me;
     },
 
@@ -93,21 +79,22 @@ Ext.define('Ext.grid.column.RowNumberer', {
     rowspan: undefined,
 
     // private
-    renderer: function(value, metaData, record, rowIdx, colIdx, store) {
+    defaultRenderer: function(value, metaData, record, rowIdx, colIdx, dataSource, view) {
         var rowspan = this.rowspan,
-            page = store.currentPage,
-            result = record.index;
-            
+            page = dataSource.currentPage,
+            result = view.store.indexOf(record);
+
         if (rowspan) {
             metaData.tdAttr = 'rowspan="' + rowspan + '"';
         }
 
-        if (result == null) {
-            result = rowIdx;
-            if (page > 1) {
-                result += (page - 1) * store.pageSize; 
-            }
+        if (page > 1) {
+            result += (page - 1) * dataSource.pageSize;
         }
         return result + 1;
+    },
+
+    updater: function(cell, value) {
+        cell.firstChild.innerHTML = Ext.grid.column.RowNumberer.prototype.defaultRenderer.call(this, value);
     }
 });

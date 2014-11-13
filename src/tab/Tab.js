@@ -1,27 +1,5 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
- * @author Ed Spencer
- * 
- * Represents a single Tab in a {@link Ext.tab.Panel TabPanel}. A Tab is simply a slightly customized {@link Ext.button.Button Button}, 
+ * Represents a single Tab in a {@link Ext.tab.Panel TabPanel}. A Tab is simply a slightly customized {@link Ext.button.Button Button},
  * styled to look like a tab. Tabs are optionally closable, and can also be disabled. 99% of the time you will not
  * need to create Tabs manually as the framework does so automatically when you use a {@link Ext.tab.Panel TabPanel}
  */
@@ -41,24 +19,33 @@ Ext.define('Ext.tab.Tab', {
 
     baseCls: Ext.baseCSSPrefix + 'tab',
     closeElOverCls: Ext.baseCSSPrefix + 'tab-close-btn-over',
+    closeElPressedCls: Ext.baseCSSPrefix + 'tab-close-btn-pressed',
 
-    /**
-     * @cfg {String} activeCls
-     * The CSS class to be applied to a Tab when it is active.
-     * Providing your own CSS for this class enables you to customize the active state.
-     */
-    activeCls: 'active',
+    config: {
+        /**
+         * @cfg {'default'/0/1/2} rotation
+         * The rotation of the tab.  Can be one of the following values:
+         *
+         * - `null` - use the default rotation, depending on the dock position of the tabbar
+         * - `0` - no rotation
+         * - `1` - rotate 90deg clockwise
+         * - `2` - rotate 90deg counter-clockwise
+         *
+         * The default behavior of this config depends on the dock position of the tabbar:
+         *
+         * - `'top'` or `'bottom'` - `0`
+         * - `'right'` - `1`
+         * - `'left'` - `2`
+         */
+        rotation: 'default',
 
-    /**
-     * @cfg {String} [disabledCls='x-tab-disabled']
-     * The CSS class to be applied to a Tab when it is disabled.
-     */
-
-    /**
-     * @cfg {String} closableCls
-     * The CSS class which is added to the tab when it is closable
-     */
-    closableCls: 'closable',
+        /**
+         * @cfg {'top'/'right'/'bottom'/'left'} tabPosition
+         * The tab's position.  Users should not typically need to set this, as it is
+         * configured automatically by the tab bar
+         */
+        tabPosition: 'top'
+    },
 
     /**
      * @cfg {Boolean} closable
@@ -92,49 +79,153 @@ Ext.define('Ext.tab.Tab', {
 
     scale: false,
 
-    position: 'top',
+    /**
+     * @event activate
+     * Fired when the tab is activated.
+     * @param {Ext.tab.Tab} this
+     */
+
+    /**
+     * @event deactivate
+     * Fired when the tab is deactivated.
+     * @param {Ext.tab.Tab} this
+     */
+
+    /**
+     * @event beforeclose
+     * Fires if the user clicks on the Tab's close button, but before the {@link #close} event is fired. Return
+     * false from any listener to stop the close event being fired
+     * @param {Ext.tab.Tab} tab The Tab object
+     */
+
+    /**
+     * @event close
+     * Fires to indicate that the tab is to be closed, usually because the user has clicked the close button.
+     * @param {Ext.tab.Tab} tab The Tab object
+     */
+
+    ariaRole: 'tab',
+
+    _btnWrapCls: Ext.baseCSSPrefix + 'tab-wrap',
+    _btnCls: Ext.baseCSSPrefix + 'tab-button',
+    _baseIconCls: Ext.baseCSSPrefix + 'tab-icon-el',
+    _glyphCls: Ext.baseCSSPrefix + 'tab-glyph',
+    _innerCls: Ext.baseCSSPrefix + 'tab-inner',
+    _textCls: Ext.baseCSSPrefix + 'tab-text',
+    _noTextCls: Ext.baseCSSPrefix + 'tab-no-text',
+    _hasIconCls: Ext.baseCSSPrefix + 'tab-icon',
+
+    _activeCls: Ext.baseCSSPrefix + 'tab-active',
+    _closableCls: Ext.baseCSSPrefix + 'tab-closable',
+    overCls: Ext.baseCSSPrefix + 'tab-over',
+    _pressedCls: Ext.baseCSSPrefix + 'tab-pressed',
+    _disabledCls: Ext.baseCSSPrefix + 'tab-disabled',
+
+    _rotateClasses: {
+        1: Ext.baseCSSPrefix + 'tab-rotate-right',
+        2: Ext.baseCSSPrefix + 'tab-rotate-left'
+    },
+
+    // a mapping of the "ui" positions.  When "rotation" is anything other than 0, a ui
+    // position other than the docked side must be used.
+    _positions: {
+        top: {
+            'default': 'top',
+            0: 'top',
+            1: 'left',
+            2: 'right'
+        },
+        right: {
+            'default': 'top',
+            0: 'right',
+            1: 'top',
+            2: 'bottom'
+        },
+        bottom: {
+            'default': 'bottom',
+            0: 'bottom',
+            1: 'right',
+            2: 'left'
+        },
+        left: {
+            'default': 'top',
+            0: 'left',
+            1: 'bottom',
+            2: 'top'
+        }
+    },
+
+    _defaultRotations: {
+        top: 0,
+        right: 1,
+        bottom: 0,
+        left: 2
+    },
 
     initComponent: function() {
         var me = this;
-
-        me.addEvents(
-            /**
-             * @event activate
-             * Fired when the tab is activated.
-             * @param {Ext.tab.Tab} this
-             */
-            'activate',
-
-            /**
-             * @event deactivate
-             * Fired when the tab is deactivated.
-             * @param {Ext.tab.Tab} this
-             */
-            'deactivate',
-
-            /**
-             * @event beforeclose
-             * Fires if the user clicks on the Tab's close button, but before the {@link #close} event is fired. Return
-             * false from any listener to stop the close event being fired
-             * @param {Ext.tab.Tab} tab The Tab object
-             */
-            'beforeclose',
-
-            /**
-             * @event close
-             * Fires to indicate that the tab is to be closed, usually because the user has clicked the close button.
-             * @param {Ext.tab.Tab} tab The Tab object
-             */
-            'close'
-        );
-
-        me.callParent(arguments);
 
         if (me.card) {
             me.setCard(me.card);
         }
 
-        me.overCls = ['over', me.position + '-over'];
+        me.callParent(arguments);
+    },
+
+    getActualRotation: function() {
+        var rotation = this.getRotation();
+
+        return (rotation !== 'default') ? rotation :
+            this._defaultRotations[this.getTabPosition()];
+    },
+
+    updateRotation: function() {
+        this.syncRotationAndPosition();
+    },
+
+    updateTabPosition: function() {
+        this.syncRotationAndPosition();
+    },
+
+    syncRotationAndPosition: function() {
+        var me = this,
+            positions = me._positions,
+            rotateClasses = me._rotateClasses,
+            position = me.getTabPosition(),
+            rotation = me.getActualRotation(),
+            oldRotateCls = me._rotateCls,
+            rotateCls = me._rotateCls = rotateClasses[rotation],
+            oldPositionCls = me._positionCls,
+            positionCls = me._positionCls = me._positions[position][rotation];
+
+        if (oldRotateCls !== rotateCls) {
+            if (oldRotateCls) {
+                me.removeCls(oldRotateCls)
+            }
+            if (rotateCls) {
+                me.addCls(rotateCls);
+            }
+        }
+        if (oldPositionCls !== positionCls) {
+            if (oldPositionCls) {
+                me.removeClsWithUI(oldPositionCls);
+            }
+            if (positionCls) {
+                me.addClsWithUI(positionCls);
+            }
+            if (me.rendered) {
+                me.updateFrame();
+            }
+        }
+
+        if (me.rendered) {
+            me.setElOrientation();
+        }
+    },
+
+    onAdded: function (container, pos, instanced) {
+        this.callParent([container, pos, instanced]);
+        this.syncRotationAndPosition();
     },
 
     getTemplateArgs: function() {
@@ -146,28 +237,19 @@ Ext.define('Ext.tab.Tab', {
 
         return result;
     },
-    
-    getFramingInfoCls: function(){
-        return this.baseCls + '-' + this.ui + '-' + this.position;
-    },
 
     beforeRender: function() {
         var me = this,
             tabBar = me.up('tabbar'),
             tabPanel = me.up('tabpanel');
-        
+
         me.callParent();
-        
-        me.addClsWithUI(me.position);
 
         if (me.active) {
-            me.addClsWithUI([me.activeCls, me.position + '-' + me.activeCls]);
+            me.addCls(me._activeCls);
         }
 
-        // Set all the state classNames, as they need to include the UI
-        // me.disabledCls = me.getClsWithUIs('disabled');
-
-        me.syncClosableUI();
+        me.syncClosableCls();
 
         // Propagate minTabWidth and maxTabWidth settings from the owning TabBar then TabPanel
         if (!me.minWidth) {
@@ -196,7 +278,14 @@ Ext.define('Ext.tab.Tab', {
 
         if (me.closable) {
             me.closeEl.addClsOnOver(me.closeElOverCls);
+            me.closeEl.addClsOnClick(me.closeElPressedCls);
         }
+        
+        me.initKeyNav();
+    },
+    
+    initKeyNav: function() {
+        var me = this;
 
         me.keyNav = new Ext.util.KeyNav(me.el, {
             enter: me.onEnterKey,
@@ -206,31 +295,35 @@ Ext.define('Ext.tab.Tab', {
     },
 
     setElOrientation: function() {
-        var position = this.position;
+        var me = this,
+            rotation = me.getActualRotation(),
+            el = me.el;
 
-        if (position === 'left' || position === 'right') {
-            this.el.setVertical(position === 'right' ? 90 : 270);
+        if (rotation) {
+            el.setVertical(rotation === 1 ? 90 : 270);
+        } else {
+            el.setHorizontal();
         }
     },
 
     // inherit docs
-    enable : function(silent) {
+    enable: function(silent) {
         var me = this;
 
         me.callParent(arguments);
 
-        me.removeClsWithUI(me.position + '-disabled');
+        me.removeCls(me._disabledCls);
 
         return me;
     },
 
     // inherit docs
-    disable : function(silent) {
+    disable: function(silent) {
         var me = this;
 
         me.callParent(arguments);
 
-        me.addClsWithUI(me.position + '-disabled');
+        me.addCls(me._disabledCls);
 
         return me;
     },
@@ -263,7 +356,7 @@ Ext.define('Ext.tab.Tab', {
                 me.card.closable = closable;
             }
 
-            me.syncClosableUI();
+            me.syncClosableCls();
 
             if (me.rendered) {
                 me.syncClosableElements();
@@ -286,30 +379,32 @@ Ext.define('Ext.tab.Tab', {
             if (!closeEl) {
                 closeEl = me.closeEl = me.btnWrap.insertSibling({
                     tag: 'a',
+                    role: 'presentation',
                     cls: me.baseCls + '-close-btn',
                     href: '#',
                     title: me.closeText
                 }, 'after');
             }
             closeEl.addClsOnOver(me.closeElOverCls);
+            closeEl.addClsOnClick(me.closeElPressedCls);
         } else if (closeEl) {
-            closeEl.remove();
+            closeEl.destroy();
             delete me.closeEl;
         }
     },
 
     /**
-     * This method ensures that the UI classes are added or removed based on 'closable'.
+     * This method ensures that the closable cls are added or removed based on 'closable'.
      * @private
      */
-    syncClosableUI: function () {
+    syncClosableCls: function () {
         var me = this,
-            classes = [me.closableCls, me.closableCls + '-' + me.position];
+            closableCls = me._closableCls;
 
         if (me.closable) {
-            me.addClsWithUI(classes);
+            me.addCls(closableCls);
         } else {
-            me.removeClsWithUI(classes);
+            me.removeCls(closableCls);
         }
     },
 
@@ -322,6 +417,12 @@ Ext.define('Ext.tab.Tab', {
         var me = this;
 
         me.card = card;
+        if (card.iconAlign) {
+            me.setIconAlign(card.iconAlign);
+        }
+        if (card.textAlign) {
+            me.setTextAlign(card.textAlign);
+        }
         me.setText(me.title || card.title);
         me.setIconCls(me.iconCls || card.iconCls);
         me.setIcon(me.icon || card.icon);
@@ -375,13 +476,20 @@ Ext.define('Ext.tab.Tab', {
             this.onCloseClick();
         }
     },
+    
+    // @private
+    afterClick: function(isCloseClick) {
+        if (!isCloseClick) {
+            this.focus();
+        }
+    },
 
     // @private
-    activate : function(supressEvent) {
+    activate: function(supressEvent) {
         var me = this;
 
         me.active = true;
-        me.addClsWithUI([me.activeCls, me.position + '-' + me.activeCls]);
+        me.addCls(me._activeCls);
 
         if (supressEvent !== true) {
             me.fireEvent('activate', me);
@@ -389,14 +497,25 @@ Ext.define('Ext.tab.Tab', {
     },
 
     // @private
-    deactivate : function(supressEvent) {
+    deactivate: function(supressEvent) {
         var me = this;
 
         me.active = false;
-        me.removeClsWithUI([me.activeCls, me.position + '-' + me.activeCls]);
+        me.removeCls(me._activeCls);
 
         if (supressEvent !== true) {
             me.fireEvent('deactivate', me);
+        }
+    },
+
+    privates: {
+        getFramingInfoCls: function(){
+            return this.baseCls + '-' + this.ui + '-' + this._positionCls;
+        },
+
+        wrapPrimaryEl: function(dom) {
+            // Tabs don't need the hacks in Ext.dom.ButtonElement
+            this.el = new Ext.dom.Element(dom);
         }
     }
 });

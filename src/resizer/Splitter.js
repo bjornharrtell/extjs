@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This class functions **between siblings of a {@link Ext.layout.container.VBox VBox} or {@link Ext.layout.container.HBox HBox}
  * layout** to resize both immediate siblings.
@@ -34,7 +14,7 @@ Ext.define('Ext.resizer.Splitter', {
     extend: 'Ext.Component',
     requires: ['Ext.XTemplate'],
     uses: ['Ext.resizer.SplitterTracker'],
-    alias: 'widget.splitter',
+    xtype: 'splitter',
 
     childEls: [
         'collapseEl'
@@ -42,11 +22,13 @@ Ext.define('Ext.resizer.Splitter', {
 
     renderTpl: [
         '<tpl if="collapsible===true">',
-            '<div id="{id}-collapseEl" class="', Ext.baseCSSPrefix, 'collapse-el ',
+            '<div id="{id}-collapseEl" data-ref="collapseEl" role="presentation" class="', Ext.baseCSSPrefix, 'collapse-el ',
                 Ext.baseCSSPrefix, 'layout-split-{collapseDir}{childElCls}">&#160;',
             '</div>',
         '</tpl>'
     ],
+
+    isSplitter: true,
 
     baseCls: Ext.baseCSSPrefix + 'splitter',
     collapsedClsInternal: Ext.baseCSSPrefix + 'splitter-collapsed',
@@ -55,11 +37,11 @@ Ext.define('Ext.resizer.Splitter', {
     canResize: true,
 
     /**
-     * @cfg {Boolean} collapsible
+     * @cfg {Boolean} [collapsible]
      * True to show a mini-collapse tool in the Splitter to toggle expand and collapse on the {@link #collapseTarget} Panel.
      * Defaults to the {@link Ext.panel.Panel#collapsible collapsible} setting of the Panel.
      */
-    collapsible: false,
+    collapsible: null,
 
     /**
      * @cfg {Boolean} performCollapse
@@ -119,6 +101,14 @@ Ext.define('Ext.resizer.Splitter', {
      * width for horizontal splitters.
      */
     size: 5,
+    
+    /**
+     * @cfg {Object} [tracker]
+     * Any configuration options to be passed to the underlying {@link Ext.resizer.SplitterTracker}.
+     */
+    tracker: null,
+    
+    ariaRole: 'separator',
 
     /**
      * Returns the config object (with an `xclass` property) for the splitter tracker. This
@@ -127,16 +117,17 @@ Ext.define('Ext.resizer.Splitter', {
      * @protected
      */
     getTrackerConfig: function () {
-        return {
+        return Ext.apply({
             xclass: 'Ext.resizer.SplitterTracker',
             el: this.el,
             splitter: this
-        };
+        }, this.tracker);
     },
 
     beforeRender: function() {
         var me = this,
-            target = me.getCollapseTarget();
+            target = me.getCollapseTarget(),
+            collapsible = me.collapsible;
 
         me.callParent();
 
@@ -149,7 +140,7 @@ Ext.define('Ext.resizer.Splitter', {
 
         Ext.applyIf(me.renderData, {
             collapseDir: me.getCollapseDirection(),
-            collapsible: me.collapsible || target.collapsible
+            collapsible: (collapsible !== null) ? collapsible : target.collapsible
         });
 
         me.protoEl.unselectable();
@@ -157,7 +148,8 @@ Ext.define('Ext.resizer.Splitter', {
 
     onRender: function() {
         var me = this,
-            collapseEl;
+            collapseEl,
+            cfg;
 
         me.callParent(arguments);
 

@@ -1,31 +1,11 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A subclass of Ext.dd.DragTracker which handles dragging any Component.
  *
  * This is configured with a Component to be made draggable, and a config object for the {@link Ext.dd.DragTracker}
  * class.
  *
- * A {@link #delegate} may be provided which may be either the element to use as the mousedown target or a {@link
- * Ext.DomQuery} selector to activate multiple mousedown targets.
+ * A {@link #delegate} may be provided which may be either the element to use as the mousedown target or a
+ * CSS selector to activate multiple mousedown targets.
  *
  * When the Component begins to be dragged, its `beginDrag` method will be called if implemented.
  *
@@ -40,8 +20,8 @@ Ext.define('Ext.util.ComponentDragger', {
      */
 
     /**
-     * @cfg {String/Ext.Element} delegate
-     * A {@link Ext.DomQuery DomQuery} selector which identifies child elements within the Component's encapsulating
+     * @cfg {String/Ext.dom.Element} delegate
+     * A CSS selector which identifies child elements within the Component's encapsulating
      * Element which are the drag handles. This limits dragging to only begin when the matching elements are
      * mousedowned.
      *

@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  */
@@ -35,44 +15,35 @@ Ext.define('Ext.selection.DataViewModel', {
      */
     enableKeyNav: true,
 
-    constructor: function(cfg){
-        this.addEvents(
-            /**
-             * @event beforedeselect
-             * Fired before a record is deselected. If any listener returns false, the
-             * deselection is cancelled.
-             * @param {Ext.selection.DataViewModel} this
-             * @param {Ext.data.Model} record The deselected record
-             */
-            'beforedeselect',
+    /**
+     * @event beforedeselect
+     * Fired before a record is deselected. If any listener returns false, the
+     * deselection is cancelled.
+     * @param {Ext.selection.DataViewModel} this
+     * @param {Ext.data.Model} record The deselected record
+     */
 
-            /**
-             * @event beforeselect
-             * Fired before a record is selected. If any listener returns false, the
-             * selection is cancelled.
-             * @param {Ext.selection.DataViewModel} this
-             * @param {Ext.data.Model} record The selected record
-             */
-            'beforeselect',
+    /**
+     * @event beforeselect
+     * Fired before a record is selected. If any listener returns false, the
+     * selection is cancelled.
+     * @param {Ext.selection.DataViewModel} this
+     * @param {Ext.data.Model} record The selected record
+     */
 
-            /**
-             * @event deselect
-             * Fired after a record is deselected
-             * @param {Ext.selection.DataViewModel} this
-             * @param  {Ext.data.Model} record The deselected record
-             */
-            'deselect',
+    /**
+     * @event deselect
+     * Fired after a record is deselected
+     * @param {Ext.selection.DataViewModel} this
+     * @param  {Ext.data.Model} record The deselected record
+     */
 
-            /**
-             * @event select
-             * Fired after a record is selected
-             * @param {Ext.selection.DataViewModel} this
-             * @param  {Ext.data.Model} record The selected record
-             */
-            'select'
-        );
-        this.callParent(arguments);
-    },
+    /**
+     * @event select
+     * Fired after a record is selected
+     * @param {Ext.selection.DataViewModel} this
+     * @param  {Ext.data.Model} record The selected record
+     */
 
     bindComponent: function(view) {
         var me = this,

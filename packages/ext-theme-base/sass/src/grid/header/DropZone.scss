@@ -1,5 +1,5 @@
-.col-move-top,
-.col-move-bottom {
+.#{$prefix}col-move-top,
+.#{$prefix}col-move-bottom {
     position: absolute;
     top: 0;
     line-height: 0;

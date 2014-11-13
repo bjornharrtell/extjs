@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * France (France) translation
  * By Thylia
@@ -163,7 +143,6 @@ Ext.define("Ext.locale.fr.form.field.Text", {
 
 Ext.define("Ext.locale.fr.form.field.Number", {
     override: "Ext.form.field.Number",
-    decimalSeparator: ",",
     decimalPrecision: 2,
     minText: "La valeur minimum de ce champ doit être de {0}",
     maxText: "La valeur maximum de ce champ doit être de {0}",
@@ -292,7 +271,7 @@ Ext.define("Ext.locale.fr.grid.header.Container", {
 });
 
 Ext.define("Ext.locale.fr.grid.GroupingFeature", {
-    override: "Ext.grid.GroupingFeature",
+    override: "Ext.grid.feature.Grouping",
     emptyGroupText: '(Aucun)',
     groupByText: 'Grouper par ce champ',
     showGroupsText: 'Afficher par groupes'

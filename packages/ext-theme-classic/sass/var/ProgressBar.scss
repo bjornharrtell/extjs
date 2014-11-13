@@ -1,3 +1,6 @@
+/** @class Ext.ProgressBar */
+//
+
 $progress-bar-base-color: $base-color !default;
 $progress-border-color: adjust-color($progress-bar-base-color, $hue: 0deg, $saturation: -3.08%, $lightness: -23.725%) !default;
 $progress-background-color: adjust-color($progress-bar-base-color, $hue: 0deg, $saturation: -11.37%, $lightness: 7.451%) !default;

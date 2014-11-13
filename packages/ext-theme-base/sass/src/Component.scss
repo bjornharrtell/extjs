@@ -1,5 +1,23 @@
 .#{$prefix}body {
     margin: 0;
+    @if $enable-font-smoothing {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+.#{$prefix}no-touch-scroll {
+    // prevents overflowing elements from being scrolled using touch input.  Needed
+    // in browsers that use native scrolling on touch-screen devices (e.g. IE10+ win8)
+    // Without this styling, gesture recognition inside overflowing containers is not
+    // possible.
+    touch-action: none;
+    -ms-touch-action: none; // IE10
+}
+
+@-ms-viewport {
+    // prevent scaling on windows8 tablets when using portrait orientation
+    width: device-width;
 }
 
 img {
@@ -14,8 +32,10 @@ img {
     -webkit-box-sizing:border-box;
 }
 
-.#{$prefix}rtl {
-    direction: rtl;
+@if $include-rtl {
+    .#{$prefix}rtl {
+        direction: rtl;
+    }
 }
 
 .#{$prefix}ltr {
@@ -30,18 +50,9 @@ img {
     display: table;
 }
 
-.#{$prefix}strict .#{$prefix}ie7 .#{$prefix}clear {
-    // In IE7 strict the clear element has to have both a height and width of 0, otherwise the height of its parent element gets
-    // increased by 1px.  We cannot simply add the zero height/width for all browsers, because in IE quirks the height
-    // of the clear element's parent element gets increased by 1px if the clear element has either height:0 or width:0.
-    height: 0;
-    width: 0;
-}
-
 .#{$prefix}layer {
     position: absolute !important;
     overflow: hidden;
-    zoom: 1;
 }
 
 // Support for Floating config fixed: true which creates a fixed Layer.
@@ -49,7 +60,6 @@ img {
 .#{$prefix}fixed-layer {
     position: fixed !important;
     overflow: hidden;
-    zoom: 1;
 }
 
 .#{$prefix}shim {
@@ -60,22 +70,16 @@ img {
     @include opacity(0);
 }
 
-.#{$prefix}hide-display {
+.#{$prefix}hidden-display {
     display: none !important;
 }
 
-.#{$prefix}hide-visibility {
+.#{$prefix}hidden-visibility {
     visibility: hidden !important;
 }
 
-@if $include-ie {
-    .#{$prefix}ie6 .#{$prefix}item-disabled {
-        filter: none;
-    }
-}
-
 .#{$prefix}hidden,
-.#{$prefix}hide-offsets {
+.#{$prefix}hidden-offsets {
     // to deal with inline elements that can't be position:absolute
     display: block !important;
     // ensure the browser disallows tabbing into this element
@@ -85,18 +89,10 @@ img {
     top: -10000px !important;
 }
 
-.#{$prefix}hide-nosize {
-    height: 0 !important;
-    width: 0 !important;
-}
-
 // A hide method which is still accessible to screen readers
-.#{$prefix}hide-clip {
+.#{$prefix}hidden-clip {
     position: absolute!important;
     clip: rect(0,0,0,0);
-
-    // IE6 and IE7 use space separators
-    clip: rect(0 0 0 0);
 }
 
 .#{$prefix}masked-relative {
@@ -110,7 +106,6 @@ img {
         display: none;
         position: absolute;
         overflow: hidden;
-        zoom: 1;
     }
 }
 
@@ -163,6 +158,17 @@ img {
     background-repeat: repeat-x;
 }
 
+// the corners of a table frame are given their width by applying padding.  Setting their
+// width property to 1px ensures that they can get no larger than the amount of padding
+// inside, even when the frame is stretched because the button has a width
+// (e.g. Button with width or minWidth configured has width:100% on the frame table)
+td.#{$prefix}frame-tl,
+td.#{$prefix}frame-tr,
+td.#{$prefix}frame-bl,
+td.#{$prefix}frame-br {
+    width: 1px;
+}
+
 .#{$prefix}frame-mc {
     background-repeat: repeat-x;
     overflow: hidden;
@@ -183,4 +189,21 @@ img {
 .#{$prefix}item-disabled,
 .#{$prefix}item-disabled * {
     cursor: default;
+}
+
+.#{$prefix}component,
+.#{$prefix}container {
+    // position relative so that things can be positioned inside of components/containers
+    // e.g. touch scroll indicators.
+    position: relative;
+}
+
+// TODO: remove outline from individual components that need it instead of resetting globally
+// *Really* TODO: use focus outline for its intended purpose: implementing ARIA. Instead of hacking focus outlines.
+.#{$prefix}webkit {
+    * {
+        &:focus {
+            outline:none;
+        }
+    }
 }

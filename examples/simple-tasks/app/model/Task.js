@@ -14,7 +14,7 @@ Ext.define('SimpleTasks.model.Task', {
         { name: 'note' }
     ],
 
-    proxy: SimpleTasksSettings.useLocalStorage ? {
+    proxy: SimpleTasks.Settings.useLocalStorage ? {
         type: 'localstorage',
         id: 'SimpleTasks-Task'
     } : {
@@ -27,7 +27,7 @@ Ext.define('SimpleTasks.model.Task', {
         },
         reader: {
             type: 'json',
-            root: 'tasks',
+            rootProperty: 'tasks',
             messageProperty: 'message'
         }
     }

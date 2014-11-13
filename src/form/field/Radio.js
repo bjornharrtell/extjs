@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @docauthor Robert Dougan <rob@sencha.com>
  *
@@ -204,12 +184,6 @@ Ext.define('Ext.form.field.Radio', {
     isRadio: true,
 
     /**
-     * @cfg {String} [focusCls='x-form-radio-focus']
-     * The CSS class to use when the radio field receives focus
-     */
-    focusCls: 'form-radio-focus',
-
-    /**
      * @cfg {String} uncheckedValue
      * @private
      */
@@ -232,7 +206,7 @@ Ext.define('Ext.form.field.Radio', {
     /**
      * @private Handle click on the radio button
      */
-    onBoxClick: function(e) {
+    onBoxClick: function() {
         var me = this;
         if (!me.disabled && !me.readOnly) {
             this.setValue(true);
@@ -250,14 +224,14 @@ Ext.define('Ext.form.field.Radio', {
      * @param {String/Boolean} value Checked value, or the value of the sibling radio button to check.
      * @return {Ext.form.field.Radio} this
      */
-    setValue: function(v) {
+    setValue: function(value) {
         var me = this,
             active;
 
-        if (Ext.isBoolean(v)) {
+        if (Ext.isBoolean(value)) {
             me.callParent(arguments);
         } else {
-            active = me.getManager().getWithValue(me.name, v, me.getFormId()).getAt(0);
+            active = me.getManager().getWithValue(me.name, value, me.getFormId()).getAt(0);
             if (active) {
                 active.setValue(true);
             }
@@ -274,7 +248,11 @@ Ext.define('Ext.form.field.Radio', {
     },
 
     getModelData: function() {
-        return this.getSubmitData();
+        var o = this.callParent(arguments);
+        if (o) {
+            o[this.getName()] = this.getSubmitValue();
+        }
+        return o;
     },
 
     // inherit docs

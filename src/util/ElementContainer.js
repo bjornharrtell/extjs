@@ -1,26 +1,6 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This mixin enables classes to declare relationships to child elements and provides the
- * mechanics for acquiring the {@link Ext.Element elements} and storing them on an object
+ * mechanics for acquiring the {@link Ext.dom.Element elements} and storing them on an object
  * instance as properties.
  *
  * This class is used by {@link Ext.Component components} and {@link Ext.layout.container.Container container layouts} to
@@ -36,47 +16,21 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *          ],
  *          
  *          renderTpl: [
- *              '<div id="{id}-bodyEl"></div>'
+ *              '<div id="{id}-bodyEl" data-ref="bodyEl"></div>'
  *          ],
  *          
  *          // ...
  *      });
  * 
- * The `childEls` array lists one or more relationships to child elements managed by the
- * component. The items in this array can be either of the following types:
- * 
- * - String: the id suffix and property name in one. For example, "bodyEl" in the above
- * example means a "bodyEl" property will be added to the instance with the result of
- * {@link Ext#get} given "componentId-bodyEl" where "componentId" is the component instance's
- * id.
- * - Object: with a `name` property that names the instance property for the element, and
- * one of the following additional properties:
- *      - `id`: The full id of the child element.
- *      - `itemId`: The suffix part of the id to which "componentId-" is prepended.
- *      - `select`: A selector that will be passed to {@link Ext#select}.
- *      - `selectNode`: A selector that will be passed to {@link Ext.DomQuery#selectNode}.
- * 
- * The example above could have used this instead to achieve the same result:
+ * The `{@link #childEls}` config lists one or more relationships to child elements managed
+ * by the component. The items in this array can be objects that more fully specify the
+ * child. For example, the above could have used this instead to achieve the same result:
  *
  *      childEls: [
  *          { name: 'bodyEl', itemId: 'bodyEl' }
  *      ]
  *
- * When using `select`, the property will be an instance of {@link Ext.CompositeElement}. In
- * all other cases, the property will be an {@link Ext.Element} or `null` if not found.
  *
- * Care should be taken when using `select` or `selectNode` to find child elements. The
- * following issues should be considered:
- * 
- * - Performance: using selectors can be slower than id lookup by a factor 10x or more.
- * - Over-selecting: selectors are applied after the DOM elements for all children have
- * been rendered, so selectors can match elements from child components (including nested
- * versions of the same component) accidentally.
- * 
- * This above issues are most important when using `select` since it returns multiple
- * elements.
- *
- * **IMPORTANT** 
  * Unlike a `renderTpl` where there is a single value for an instance, `childEls` are aggregated
  * up the class hierarchy so that they are effectively inherited. In other words, if a
  * class where to derive from `Ext.ux.SomeComponent` in the example above, it could also
@@ -91,222 +45,251 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *          ],
  *          
  *          renderTpl: [
- *              '<div id="{id}-bodyEl">'
- *                  '<div id="{id}-innerEl"></div>'
+ *              '<div id="{id}-bodyEl" data-ref="bodyEl">'
+ *                  '<div id="{id}-innerEl" data-ref="innerEl"></div>'
  *              '</div>'
  *          ],
  *          
  *          // ...
  *      });
- * 
+ *
+ * **IMPORTANT**
  * The `renderTpl` contains both child elements and unites them in the desired markup, but
- * the `childEls` only contains the new child element. The {@link #applyChildEls} method
- * takes care of looking up all `childEls` for an instance and considers `childEls`
- * properties on all the super classes and mixins.
+ * the `childEls` only contains the new child element. The `data-ref` attribute must be
+ * rendered on to child elements that do not use `select` or `selectNode` options. This
+ * is done for performance reasons on IE8 where element lookup (even by id) is not very
+ * efficient.
  * 
  * @private
  */
 Ext.define('Ext.util.ElementContainer', {
+    mixinId: 'elementCt',
 
-    childEls: [
-        // empty - this solves a couple problems:
-        //  1. It ensures that all classes have a childEls (avoid null ptr)
-        //  2. It prevents mixins from smashing on their own childEls (these are gathered
-        //      specifically)
-    ],
+    config: {
+        /**
+         * @cfg {Object/String[]/Object[]} childEls
+         * The canonical form of `childEls` is an object keyed by child's property name
+         * with values that are objects with the following properties.
+         *
+         * - `itemId` - The id to combine with the Component's id that is the id of the
+         *   child element.
+         * - `id` - The id of the child element.
+         * - `leaf` - Set to `true` to ignore content when scanning for childEls. This
+         *  should be set on things like the generated content for an `Ext.view.View`.
+         * - `select`: A selector that will be passed to {@link Ext.dom.Element#select}.
+         * - `selectNode`: A selector that will be passed to {@link Ext.dom.Element#method-selectNode}.
+         *
+         * For example:
+         *
+         *      childEls: {
+         *          button: true,
+         *          buttonText: 'text',
+         *          buttonImage: {
+         *              itemId: 'image'
+         *          }
+         *      }
+         *
+         * The above is translated into the following complete form:
+         *
+         *      childEls: {
+         *          button: {
+         *              name: 'button',
+         *              itemId: 'button'
+         *          },
+         *          buttonText: {
+         *              name: 'buttonText',
+         *              itemId: 'text'
+         *          },
+         *          buttonImage: {
+         *              name: 'buttonImage',
+         *              itemId: 'image'
+         *          }
+         *      }
+         *
+         * The above can be provided as an array like so:
+         *
+         *      childEls: [
+         *          'button',
+         *          { name: 'buttonText', itemId: 'text' },
+         *          { name: 'buttonImage', itemId: 'image' }
+         *      }
+         *
+         * For example, a Component which renders a title and body text:
+         *
+         *     @example
+         *     Ext.create('Ext.Component', {
+         *         renderTo: Ext.getBody(),
+         *         renderTpl: [
+         *             '<h1 id="{id}-title">{title}</h1>',
+         *             '<p>{msg}</p>',
+         *         ],
+         *         renderData: {
+         *             title: "Error",
+         *             msg: "Something went wrong"
+         *         },
+         *         childEls: ["title"],
+         *         listeners: {
+         *             afterrender: function(cmp){
+         *                 // After rendering the component will have a title property
+         *                 cmp.title.setStyle({color: "red"});
+         *             }
+         *         }
+         *     });
+         *
+         * When using `select`, the property will be an instance of {@link Ext.CompositeElement}.
+         * In all other cases, the property will be an {@link Ext.dom.Element} or `null`
+         * if not found.
+         *
+         * Care should be taken when using `select` or `selectNode` to find child elements.
+         * The following issues should be considered:
+         *
+         * - Performance: using selectors can be 10x slower than id lookup.
+         * - Over-selecting: selectors are applied after the DOM elements for all children
+         *   have been rendered, so selectors can match elements from child components
+         *   (including nested versions of the same component) accidentally.
+         *
+         * This above issues are most important when using `select` since it returns multiple
+         * elements.
+         */
+        childEls: {
+            $value: {},
+            cached: true,
+            lazy: true,
 
-    constructor: function () {
-        var me = this,
-            childEls;
+            merge: function (newValue, oldValue, target, mixinClass) {
+                var childEls = oldValue ? Ext.Object.chain(oldValue) : {},
+                    i, val;
 
-        // if we have configured childEls, we need to merge them with those from this
-        // class, its bases and the set of mixins...
-        if (me.hasOwnProperty('childEls')) {
-            childEls = me.childEls;
-            delete me.childEls;
+                // We'd use mergeSets except it assumes array elements are just names.
+                if (newValue instanceof Array) {
+                    for (i = newValue.length; i--; ) {
+                        val = newValue[i];
+                        if (!mixinClass || !(val in childEls)) {
+                            if (typeof val === 'string') {
+                                childEls[val] = { name: val, itemId: val };
+                            } else {
+                                childEls[val.name] = val;
+                            }
+                        }
+                    }
+                } else  if (newValue) {
+                    if (newValue.constructor === Object) {
+                        for (i in newValue) {
+                            if (!mixinClass || !(i in childEls)) {
+                                val = newValue[i];
+                                if (val === true) {
+                                    childEls[i] = { itemId: i };
+                                } else if (typeof val === 'string') {
+                                    childEls[i] = { itemId: val };
+                                } else {
+                                    childEls[i] = val;
+                                    if (!('itemId' in val)) {
+                                        val.itemId = i;
+                                    }
+                                }
+                                childEls[i].name = i;
+                            }
+                        }
+                    } else {
+                        if (!mixinClass || !(newValue in childEls)) {
+                            childEls[newValue] = { name: newValue, itemId: newValue };
+                        }
+                    }
+                }
 
-            me.addChildEls.apply(me, childEls);
+                return childEls;
+            }
         }
     },
 
     destroy: function () {
         var me = this,
             childEls = me.getChildEls(),
-            child, childName, i, k;
+            child, childName;
 
-        for (i = childEls.length; i--; ) {
-            childName = childEls[i];
-            if (typeof childName != 'string') {
-                childName = childName.name;
-            }
-
+        for (childName in childEls) {
             child = me[childName];
+
             if (child) {
-                me[childName] = null; // better than delete since that changes the "shape"
-                child.remove();
+                if (child.destroy) {
+                    child.destroy();
+                }
+                me[childName] = null;
             }
         }
     },
 
-    /**
-     * Adds each argument passed to this method to the {@link Ext.AbstractComponent#cfg-childEls childEls} array.
-     */
-    addChildEls: function () {
-        var me = this,
-            args = arguments;
+    privates: {
+        /**
+         * Called after the mixin is applied. We need to see if `childEls` were used by
+         * the `targetClass` and apply them to the config.
+         * @param {Ext.Class} targetClass
+         * @private
+         */
+        afterClassMixedIn: function (targetClass) {
+            // When we are mixed in the targetClass may already have specified childEls,
+            // so check the prototype for any...
+            var proto = targetClass.prototype,
+                childEls = proto.childEls;
 
-        if (me.hasOwnProperty('childEls')) {
-            me.childEls.push.apply(me.childEls, args);
-        } else {
-            me.childEls = me.getChildEls().concat(Array.prototype.slice.call(args));
-        }
-        
-        me.prune(me.childEls, false);
-    },
+            if (childEls) {
+                delete proto.childEls;
+                targetClass.getConfigurator().add({
+                    childEls: childEls
+                });
+            }
+        },
 
-    /**
-     * Sets references to elements inside the component. 
-     * @private
-     */
-    applyChildEls: function(el, id) {
-        var me = this,
-            childEls = me.getChildEls(),
-            baseId, childName, i, selector, value;
+        /**
+         * Sets references to elements inside the component.
+         * @private
+         */
+        attachChildEls: function (el, owner) {
+            var me = this,
+                childEls = me.getChildEls(),
+                comp = owner || me, // fyi - we are also used by layouts
+                baseId = comp.id + '-',
+                unframed = !comp.frame,
+                childName, elements, entry, k, selector, value, id;
 
-        baseId = (id || me.id) + '-';
-        for (i = childEls.length; i--; ) {
-            childName = childEls[i];
-
-            if (typeof childName == 'string') {
-                // We don't use Ext.get because that is 3x (or more) slower on IE6-8. Since
-                // we know the el's are children of our el we use getById instead:
-                value = el.getById(baseId + childName);
-            } else {
-                if ((selector = childName.select)) {
-                    value = Ext.select(selector, true, el.dom); // a CompositeElement
-                } else if ((selector = childName.selectNode)) {
-                    value = Ext.get(Ext.DomQuery.selectNode(selector, el.dom));
-                } else {
-                    // see above re:getById...
-                    value = el.getById(childName.id || (baseId + childName.itemId));
+            for (childName in childEls) {
+                // hasOwnProperty is a no-go here since we use prototype chains...
+                entry = childEls[childName];
+                if (unframed && entry.frame) {
+                    continue;
                 }
 
-                childName = childName.name;
-            }
-
-            me[childName] = value;
-        }
-    },
-
-    getChildEls: function () {
-        var me = this,
-            self;
-
-        // If an instance has its own childEls, that is the complete set:
-        if (me.hasOwnProperty('childEls')) {
-            return me.childEls;
-        }
-
-        // Typically, however, the childEls is a class-level concept, so check to see if
-        // we have cached the complete set on the class:
-        self = me.self;
-        return self.$childEls || me.getClassChildEls(self);
-    },
-
-    getClassChildEls: function (cls) {
-        var me = this,
-            result = cls.$childEls,
-            childEls, i, length, forked, mixin, mixins, name, parts, proto, supr, superMixins;
-
-        if (!result) {
-            // We put the various childEls arrays into parts in the order of superclass,
-            // new mixins and finally from cls. These parts can be null or undefined and
-            // we will skip them later.
-
-            supr = cls.superclass;
-            if (supr) {
-                supr = supr.self;
-                parts = [supr.$childEls || me.getClassChildEls(supr)]; // super+mixins
-                superMixins = supr.prototype.mixins || {};
-            } else {
-                parts = [];
-                superMixins = {};
-            }
-
-            proto = cls.prototype;
-            mixins = proto.mixins; // since we are a mixin, there will be at least us
-            for (name in mixins) {
-                if (mixins.hasOwnProperty(name) && !superMixins.hasOwnProperty(name)) {
-                    mixin = mixins[name].self;
-                    parts.push(mixin.$childEls || me.getClassChildEls(mixin));
-                }
-            }
-
-            parts.push(proto.hasOwnProperty('childEls') && proto.childEls);
-
-            for (i = 0, length = parts.length; i < length; ++i) {
-                childEls = parts[i];
-                if (childEls && childEls.length) {
-                    if (!result) {
-                        result = childEls;
+                selector = entry.select;
+                if (selector) {
+                    value = el.select(selector, true); // a CompositeElement
+                } else if (!(selector = entry.selectNode)) {
+                    if (!(id = entry.id)) {
+                        // With a normal childEl we want to rely on data-ref to populate
+                        // the cache and *not* use getById since that should never find
+                        // anything we don't already know about.
+                        id = baseId + entry.itemId;
+                        value = Ext.cache[id];// || el.getById(id);
                     } else {
-                        if (!forked) {
-                            forked = true;
-                            result = result.slice(0);
+                        // With a specified id we may not be so lucky, so check the cache
+                        // first but then fallback to getById.
+                        value = Ext.cache[id] || el.getById(id);
+                    }
+                } else {
+                    value = el.selectNode(selector, false);
+                }
+
+                if (value) {
+                    if (value.isElement) {
+                        value.component = comp;
+                    } else if (value.isComposite && !value.isLite) {
+                        elements = value.elements;
+                        for (k = elements.length; k--;) {
+                            elements[k].component = comp;
                         }
-                        result.push.apply(result, childEls);
                     }
                 }
-            }
 
-            cls.$childEls = result = (result ? me.prune(result, !forked) : []);
-        }
-
-        return result;
-    },
-
-    prune: function (childEls, shared) {
-        var index = childEls.length,
-            map = {},
-            name;
-
-        while (index--) {
-            name = childEls[index];
-            if (typeof name != 'string') {
-                name = name.name;
-            }
-
-            if (!map[name]) {
-                map[name] = 1;
-            } else {
-                if (shared) {
-                    shared = false;
-                    childEls = childEls.slice(0);
-                }
-                Ext.Array.erase(childEls, index, 1);
-            }
-        }
-
-        return childEls;
-    },
-
-    /**
-     * Removes items in the childEls array based on the return value of a supplied test
-     * function. The function is called with a entry in childEls and if the test function
-     * return true, that entry is removed. If false, that entry is kept.
-     *
-     * @param {Function} testFn The test function.
-     */
-    removeChildEls: function (testFn) {
-        var me = this,
-            old = me.getChildEls(),
-            keepers = (me.childEls = []),
-            n, i, cel;
-
-        for (i = 0, n = old.length; i < n; ++i) {
-            cel = old[i];
-            if (!testFn(cel)) {
-                keepers.push(cel);
+                me[childName] = value || null;
             }
         }
     }

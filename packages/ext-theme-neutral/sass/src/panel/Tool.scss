@@ -9,9 +9,7 @@
     background-image: theme-background-image($tool-background-image);
     margin: 0;
     @if $tool-opacity != 1 {
-        .#{$prefix}tool & {
-            @include opacity($tool-opacity);
-        }
+        @include opacity($tool-opacity);
     }
     @if $tool-opacity-over != 1 or $tool-opacity != 1 {
         .#{$prefix}tool-over & {

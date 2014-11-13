@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Component layout for Ext.form.FieldSet components
  * @private
@@ -80,8 +60,8 @@ Ext.define('Ext.layout.component.FieldSet', {
         // legend height or top border width) plus bottom border width
         return ownerContext.getProp('contentHeight') +
                ownerContext.getPaddingInfo().height +
-               // In IE8m and IEquirks the top padding is on the body el
-               ((Ext.isIEQuirks || Ext.isIE8m) ?
+               // In IE8m the top padding is on the body el
+               (Ext.isIE8 ?
                    ownerContext.bodyContext.getPaddingInfo().top : 0) +
                (legend ? legend.getHeight() : border.top) +
                border.bottom;

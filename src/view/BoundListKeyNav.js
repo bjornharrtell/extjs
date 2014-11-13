@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A specialized {@link Ext.util.KeyNav} implementation for navigating a {@link Ext.view.BoundList} using
  * the keyboard. The up, down, pageup, pagedown, home, and end keys move the active highlight
@@ -100,12 +80,19 @@ Ext.define('Ext.view.BoundListKeyNav', {
      * the configured SelectionModel.
      */
     selectHighlighted: function(e) {
-        var me = this,
-            boundList = me.boundList,
-            highlighted = boundList.highlightedItem,
-            selModel = boundList.getSelectionModel();
+        var boundList = this.boundList,
+            selModel = boundList.getSelectionModel(),
+            highlighted, highlightedRec;
+
+        highlighted = boundList.highlightedItem;
         if (highlighted) {
-            selModel.selectWithEvent(boundList.getRecord(highlighted), e);
+            highlightedRec = boundList.getRecord(highlighted);    
+
+            // Select if not already selected.
+            // If already selected, selecting with no CTRL flag will deselect the record.
+            if (e.getKey() === e.ENTER || !selModel.isSelected(highlightedRec)) {
+                selModel.selectWithEvent(highlightedRec, e);
+            }
         }
     }
 

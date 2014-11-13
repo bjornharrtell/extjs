@@ -1,27 +1,7 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A basic hidden field for storing hidden values in forms that need to be passed in the form submit.
  *
- * This creates an actual input element with type="submit" in the DOM. While its label is
+ * This creates an actual input element with type="hidden" in the DOM. While its label is
  * {@link #hideLabel not rendered} by default, it is still a real component and may be sized according
  * to its owner container's layout.
  *
@@ -31,6 +11,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *
  * Example:
  *
+ *     @example
  *     new Ext.form.Panel({
  *         title: 'My Form',
  *         items: [{
@@ -70,6 +51,8 @@ Ext.define('Ext.form.field.Hidden', {
     inputType : 'hidden',
     hideLabel: true,
     hidden: true,
+    
+    ariaRole: 'presentation',
     
     initComponent: function() {
         this.formItemCls += '-hidden';

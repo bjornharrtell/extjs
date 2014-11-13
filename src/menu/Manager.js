@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Provides a common registry of all menus on a page.
  * @singleton
@@ -76,7 +56,7 @@ Ext.define('Ext.menu.Manager', {
             active = me.active;
         active.remove(m);
         if (active.length < 1) {
-            Ext.getDoc().un('mousedown', me.onMouseDown, me);
+            Ext.un('mousedown', me.onMouseDown, me);
             me.attached = false;
         }
     },
@@ -89,7 +69,7 @@ Ext.define('Ext.menu.Manager', {
         me.lastShow = new Date();
         active.add(m);
         if (!attached) {
-            Ext.getDoc().on('mousedown', me.onMouseDown, me, {
+            Ext.on('mousedown', me.onMouseDown, me, {
                 // On IE we have issues with the menu stealing focus at certain points
                 // during the head, so give it a short buffer
                 buffer: Ext.isIE9m ? 10 : undefined
@@ -126,19 +106,26 @@ Ext.define('Ext.menu.Manager', {
     onMouseDown: function(e) {
         var me = this,
             active = me.active,
+            activeMenuCount = active.length,
             lastShow = me.lastShow,
-            doHide = true;
+            i;
 
-        if (Ext.Date.getElapsed(lastShow) > 50 && active.length > 0 && !e.getTarget(me.menuSelector)) {
+        if (Ext.Date.getElapsed(lastShow) > 50 && activeMenuCount) {
             // Because we use a buffer in IE, the target may have been removed from the
             // DOM by the time we get here, so the selector will never find the menu. In this
             // case, it's safer to not hide than menus than to do so
             if (Ext.isIE9m && !Ext.getDoc().contains(e.target)) {
-                doHide = false;
+                return;
             }
-            if (doHide) {
-                me.hideAll();
+            else {
+                // If any active menus are an ancestor of the target element, we don't hide
+                for (i = 0; i < activeMenuCount; i++) {
+                    if (active.items[i].owns(e.target)) {
+                        return;
+                    }
+                }
             }
+            me.hideAll();
         }
     },
 

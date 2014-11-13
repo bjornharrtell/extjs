@@ -15,9 +15,9 @@
         @if $include-ext-grid-column-action {
             .#{$prefix}form-action-col-field {
                 padding:
-                    max(ceil(($grid-editor-height - $grid-actioncolumn-icon-height) / 2), 0)
+                    max(ceil(($grid-cell-field-height - $grid-actioncolumn-icon-height) / 2), 0)
                     max($grid-actioncolumn-horizontal-padding - ceil($grid-row-editor-field-spacing / 2), 0)
-                    max(floor(($grid-editor-height - $grid-actioncolumn-icon-height) / 2), 0)
+                    max(floor(($grid-cell-field-height - $grid-actioncolumn-icon-height) / 2), 0)
                     max($grid-actioncolumn-horizontal-padding - floor($grid-row-editor-field-spacing / 2), 0);
             }
         }
@@ -27,10 +27,12 @@
         .#{$prefix}form-text {
             padding: $grid-row-editor-field-padding;
 
-            .#{$prefix}gecko & {
-                // firefox adds an additional px of horizontal space inside text inputs
-                padding-left: max((left($grid-row-editor-field-padding) - 1), 0);
-                padding-right: max((right($grid-row-editor-field-padding) - 1), 0);
+            @if $include-ff {
+                .#{$prefix}gecko & {
+                    // firefox adds an additional px of horizontal space inside text inputs
+                    padding-left: max((left($grid-row-editor-field-padding) - 1), 0);
+                    padding-right: max((right($grid-row-editor-field-padding) - 1), 0);
+                }
             }
         }
     }
@@ -71,7 +73,7 @@
         $grid-row-editor-border-width,
     $padding: $grid-row-editor-button-container-padding,
     $background-color: $grid-row-editor-background-color,
-    $background-gradient: null,
+    $background-gradient: 'none',
     $table: true
 );
 
@@ -89,21 +91,9 @@
         $grid-row-editor-border-width,
     $padding: flip-vertical($grid-row-editor-button-container-padding),
     $background-color: $grid-row-editor-background-color,
-    $background-gradient: null,
+    $background-gradient: 'none',
     $table: true
 );
-
-// change default to #{$ui} when RowEditor adds ui support
-.#{$prefix}grid-row-editor-buttons-default-bottom {
-    top: $grid-editor-height + vertical($grid-row-editor-padding) +
-        top($grid-row-editor-border-width);
-}
-
-// change default to #{$ui} when RowEditor adds ui support
-.#{$prefix}grid-row-editor-buttons-default-top {
-    bottom: $grid-editor-height + vertical($grid-row-editor-padding) +
-        bottom($grid-row-editor-border-width);
-}
 
 .#{$prefix}grid-row-editor-buttons {
     border-color: $grid-row-editor-border-color;

@@ -27,10 +27,22 @@ $datepicker-background-color: #fff !default;
 $datepicker-next-image: 'datepicker/arrow-right' !default;
 
 /**
+ * @var {list}
+ * The background-position of the DatePicker next arrow
+ */
+$datepicker-next-background-position: 0 0 !default;
+
+/**
  * @var {string}
  * The background-image of the DatePicker previous arrow
  */
 $datepicker-prev-image: 'datepicker/arrow-left' !default;
+
+/**
+ * @var {list}
+ * The background-position of the DatePicker previous arrow
+ */
+$datepicker-prev-background-position: 0 0 !default;
 
 /**
  * @var {number}
@@ -67,7 +79,7 @@ $datepicker-arrow-opacity-over: 1 !default;
  * The Date Picker header background gradient. Can be either the name of a predefined gradient
  * or a list of color stops. Used as the `$type` parameter for {@link Global_CSS#background-gradient}.
  */
-$datepicker-header-background-gradient: null !default;
+$datepicker-header-background-gradient: 'none' !default;
 
 /**
  * @var {number/list}
@@ -139,7 +151,7 @@ $datepicker-item-font-size: $font-size !default;
  * @var {string}
  * The font-weight of Date Picker items
  */
-$datepicker-item-font-weight: normal !default;
+$datepicker-item-font-weight: $font-weight !default;
 
 /**
  * @var {string}
@@ -183,7 +195,7 @@ $datepicker-column-header-font-weight: $datepicker-item-font-weight !default;
  * predefined gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  */
-$datepicker-column-header-background-gradient: null !default;
+$datepicker-column-header-background-gradient: 'none' !default;
 
 /**
  * @var {string}
@@ -249,7 +261,7 @@ $datepicker-item-selected-border-style: solid !default;
  * @var {string}
  * The font-weight of the selected item
  */
-$datepicker-item-selected-font-weight: bold !default;
+$datepicker-item-selected-font-weight: $font-weight-bold !default;
 
 /**
  * @var {color}
@@ -287,7 +299,7 @@ $datepicker-footer-background-color: $datepicker-column-header-background-color 
  * predefined gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  */
-$datepicker-footer-background-gradient: null !default;
+$datepicker-footer-background-gradient: 'none' !default;
 
 /**
  * @var {number/list}

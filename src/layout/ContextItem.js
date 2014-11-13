@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This class manages state information for a component or element during a layout.
  * 
@@ -65,12 +45,11 @@ Ext.define('Ext.layout.ContextItem', {
      */
     optOut: false,
 
-    ownerSizePolicy: null, // plaed here by AbstractComponent.getSizeModel
+    ownerSizePolicy: null, // plaed here by Component.getSizeModel
 
     boxChildren: null,
 
     boxParent: null,
-    isBorderBoxValue: null,
 
     children: [],
 
@@ -278,7 +257,7 @@ Ext.define('Ext.layout.ContextItem', {
 
             if (ownerCtContext) {
                 me.ownerCtContext = ownerCtContext;
-                me.isBoxParent = target.ownerLayout.isItemBoxParent(me);
+                me.isBoxParent = ownerLayout && ownerLayout.isItemBoxParent(me);
             } else {
                 me.isTopLevel = true; // this is used by initAnimation...
             }
@@ -318,10 +297,42 @@ Ext.define('Ext.layout.ContextItem', {
             me.heightModel = sizeModel.height;
 
             // if we are a container child (e.g., not a docked item), and this is a full
-            // init, that means our parent was invalidated, and therefore both our width
-            // and our height are included in remainingChildDimensions
+            // init, that means our parent was invalidated, and therefore we must initialize
+            // our remainingChildDimensions to ensure that containerChildrenSizeDone
+            // gets set properly once all dimensions have had their sizes determined.
+            // There are 3 possible scenarios here:
+            //
+            // 1. Layouts that both read and set sizes of their items (e.g. box).  These
+            // layouts must always add both dimensions to remainingChildDimensions.
+            //
+            // 2. Layouts that neither read nor set the size of their items (e.g.
+            // autocontainer, form).  These layouts will not create context items for their
+            // children, and so we will never end up here.
+            //
+            // 3. Layouts that may set the size of their items, but will never read them
+            // because they measure an outer containing element in the shrink-wrapping
+            // dimension(s) (e.g. anchor, column).  There are 2 possible outcomes:
+            //   a. The child item uses liquid CSS layout.  In this case, the only dimensions
+            //   that affect containerChildrenSizeDone are the dimensions that the owner
+            //   layout is responsible for calculating, and so these are the dimensions
+            //   that are added to remainingChildDimensions. Non-calculated dimensions will
+            //   never be published because the child's component layout does not run.
+            //
+            //   b. The child item does not use liquid CSS layout.  In this case, the
+            //   component layout will run like normal, and any non-calculated dimensions
+            //   will be published, therefore, we need to add both dimensions to
+            //   remainingChildDimensions
             if (ownerCtContext && !me.isComponentChild) {
-                ownerCtContext.remainingChildDimensions += 2;
+                if (ownerLayout.needsItemSize || !target.liquidLayout) {
+                    ownerCtContext.remainingChildDimensions += 2;
+                } else {
+                    if (me.widthModel.calculated) {
+                        ++ownerCtContext.remainingChildDimensions;
+                    }
+                    if (me.heightModel.calculated) {
+                        ++ownerCtContext.remainingChildDimensions;
+                    }
+                }
             }
         } else if (oldProps) {
             // these are almost always calculated by the ownerCt (we might need to track
@@ -416,13 +427,13 @@ Ext.define('Ext.layout.ContextItem', {
             ownerCtContext = me.ownerCtContext,
             comp = me.target,
             widthModel = me.widthModel,
-            hierarchyState = comp.getHierarchyState(),
+            inheritedState = comp.getInherited(),
             boxParent;
 
         if (widthModel.fixed) { // calculated or configured
-            hierarchyState.inShrinkWrapTable = false;
+            inheritedState.inShrinkWrapTable = false;
         } else {
-            delete hierarchyState.inShrinkWrapTable;
+            delete inheritedState.inShrinkWrapTable;
         }
 
         if (full) {
@@ -803,10 +814,8 @@ Ext.define('Ext.layout.ContextItem', {
         // Only animate if the Component has been previously layed out: first layout should not animate
         if (animateFrom) {
             target = me.target;
-            targetAnim = target.layout && target.layout.animate;
-            if (targetAnim) {
-                duration = Ext.isNumber(targetAnim) ? targetAnim : targetAnim.duration;
-            }
+            targetAnim = target.getAnimationProps();
+            duration = targetAnim.duration;
             animateProps = Ext.Object.getKeys(me.animatePolicy);
 
             // Create an animation block using the targetAnim configuration to provide defaults.
@@ -972,49 +981,19 @@ Ext.define('Ext.layout.ContextItem', {
                 ownerLayoutId = ownerLayout ? ownerLayout.id : null;
                 manageMargins = ownerLayout && ownerLayout.manageMargins;
 
-                // Option #1 for configuring margins on components is the "margin" config
-                // property. When supplied, this config is written to the DOM during the
-                // render process (see AbstractComponent#initStyles).
-                //
-                // Option #2 is available to some layouts (e.g., Box, Border, Fit) that
-                // handle margin calculations themselves. These layouts support a "margins"
-                // config property on their items and they have a "defaultMargins" config
-                // property. These margin values are added to the "natural" margins read
-                // from the DOM and 0's are written to the DOM after they are added.
-
-                // To avoid having to do all this on every layout, we cache the results on
-                // the component in the (private) "margin$" property. We identify the cache
-                // results as belonging to the appropriate ownerLayout in case items are
-                // moved around.
-
+                // TODO: stop caching margin$ on the component EXTJS-13359
                 info = comp.margin$;
                 if (info && info.ownerId !== ownerLayoutId) {
                     // got one but from the wrong owner
                     info = null;
-
-                    //  if (manageMargins) {
-                    //      TODO: clear inline margins (the 0's we wrote last time)???
-                    //  }
                 }
 
                 if (!info) { // if (no cache)
                     // CSS margins are only checked if there isn't a margin property on the component
                     info = me.parseMargins(comp, comp.margin) || me.checkCache('marginInfo');
 
-                    // Some layouts also support margins and defaultMargins, e.g. Fit, Border, Box
                     if (manageMargins) {
-                        margins = me.parseMargins(comp, comp.margins, ownerLayout.defaultMargins);
-
-                        if (margins) { // if (using 'margins' and/or 'defaultMargins')
-                            // margin and margins can both be present at the same time and must be combined
-                            info = {
-                                top:    info.top    + margins.top,
-                                right:  info.right  + margins.right,
-                                bottom: info.bottom + margins.bottom,
-                                left:   info.left   + margins.left
-                            };
-                        }
-
+                        // TODO: Stop zeroing out the margins EXTJS-13359
                         me.setProp('margin-top', 0);
                         me.setProp('margin-right', 0);
                         me.setProp('margin-bottom', 0);
@@ -1252,7 +1231,7 @@ Ext.define('Ext.layout.ContextItem', {
         }
     },
 
-    parseMargins: function (comp, margins, defaultMargins) {
+    parseMargins: function (comp, margins) {
         if (margins === true) {
             margins = 5;
         }
@@ -1262,12 +1241,8 @@ Ext.define('Ext.layout.ContextItem', {
 
         if (type == 'string' || type == 'number') {
             ret = comp.parseBox(margins);
-        } else if (margins || defaultMargins) {
+        } else if (margins) {
             ret = { top: 0, right: 0, bottom: 0, left: 0 }; // base defaults
-
-            if (defaultMargins) {
-                Ext.apply(ret, this.parseMargins(comp, defaultMargins)); // + layout defaults
-            }
 
             if (margins) {
                 margins = Ext.apply(ret, comp.parseBox(margins)); // + config
@@ -1474,7 +1449,7 @@ Ext.define('Ext.layout.ContextItem', {
     setProp: function (propName, value, dirty) {
         var me = this,
             valueType = typeof value,
-            borderBox, info;
+            info;
 
         if (valueType == 'undefined' || (valueType === 'number' && isNaN(value))) {
             return 0;
@@ -1498,17 +1473,6 @@ Ext.define('Ext.layout.ContextItem', {
                     me.dirty = {};
                 }
 
-                if (propName == 'width' || propName == 'height') {
-                    borderBox = me.isBorderBoxValue;
-                    if (borderBox === null) {
-                        me.isBorderBoxValue = borderBox = !!me.el.isBorderBox();
-                    }
-
-                    if (!borderBox) {
-                        me.borderInfo || me.getBorderInfo();
-                        me.paddingInfo || me.getPaddingInfo();
-                    }
-                }
                 me.dirty[propName] = value;
                 me.markDirty();
             }
@@ -1564,7 +1528,7 @@ Ext.define('Ext.layout.ContextItem', {
             frameBody = me.frameBodyContext;
             if (frameBody){
                 frameInfo = me.getFrameInfo();
-                frameBody.setHeight(height - frameInfo.height, dirty);
+                frameBody[me.el.vertical ? 'setWidth' : 'setHeight'](height - frameInfo.height, dirty);
             }
         }
 
@@ -1595,7 +1559,7 @@ Ext.define('Ext.layout.ContextItem', {
         } else {
             min = me.collapsedHorz ? 0 : (comp.minWidth || 0);
             width = Ext.Number.constrain(width, min, comp.maxWidth);
-            oldWidth = me.props.width
+            oldWidth = me.props.width;
             if (!me.setProp('width', width, dirty)) {
                 return NaN;
             }
@@ -1619,9 +1583,9 @@ Ext.define('Ext.layout.ContextItem', {
                 frameBody.setWidth(width - frameInfo.width, dirty);
             }
 
-            /*if (owner.frameMC) {
+            /*if (owner.frameBody) {
                 frameContext = ownerContext.frameContext ||
-                        (ownerContext.frameContext = ownerContext.getEl('frameMC'));
+                        (ownerContext.frameContext = ownerContext.getEl('frameBody'));
                 width += (frameContext.paddingInfo || frameContext.getPaddingInfo()).width;
             }*/
         }
@@ -1688,11 +1652,7 @@ Ext.define('Ext.layout.ContextItem', {
             numericValue,
             width = dirtyProps.width,
             height = dirtyProps.height,
-            isBorderBox = me.isBorderBoxValue,
             target = me.target,
-            max = Math.max,
-            paddingWidth = 0,
-            paddingHeight = 0,
             hasWidth, hasHeight, isAbsolute, scrollbarSize, style, targetEl;
 
         // Process non-style properties:
@@ -1732,56 +1692,24 @@ Ext.define('Ext.layout.ContextItem', {
             }
         }
 
-        // Support for the content-box box model...
-        if (!isBorderBox && (width > 0 || height > 0)) { // no need to subtract from 0
-            // The width and height values assume the border-box box model,
-            // so we must remove the padding & border to calculate the content-box.
-            //<debug>
-            if (!(me.borderInfo && me.paddingInfo)) {
-                throw Error("Needed to have gotten the borderInfo and paddingInfo when the width or height was setProp'd");
-            }
-            //</debug>
-            if(!me.frameBodyContext) {
-                // Padding needs to be removed only if the element is not framed.
-                paddingWidth = me.paddingInfo.width;
-                paddingHeight = me.paddingInfo.height;
-            }
-            if (width) {
-                width = max(parseInt(width, 10) - (me.borderInfo.width + paddingWidth), 0);
-                styles.width = width + 'px';
-                ++styleCount;
-            }
-            if (height) {
-                height = max(parseInt(height, 10) - (me.borderInfo.height + paddingHeight), 0);
-                styles.height = height + 'px';
-                ++styleCount;
-            }
-        }
-
-        // IE9 strict subtracts the scrollbar size from the element size when the element
+        // IE9 subtracts the scrollbar size from the element size when the element
         // is absolutely positioned and uses box-sizing: border-box. To workaround this
         // issue we have to add the the scrollbar size.
         // 
         // See http://social.msdn.microsoft.com/Forums/da-DK/iewebdevelopment/thread/47c5148f-a142-4a99-9542-5f230c78cb3b
         //
-        if (me.wrapsComponent && Ext.isIE9 && Ext.isStrict) {
+        if (me.wrapsComponent && Ext.isIE9) {
             // when we set a width and we have a vertical scrollbar (overflowY), we need
             // to add the scrollbar width... conversely for the height and overflowX
             if ((hasWidth = width !== undefined && me.hasOverflowY) ||
                 (hasHeight = height !== undefined && me.hasOverflowX)) {
-                // check that the component is absolute positioned and border-box:
+                // check that the component is absolute positioned.
                 isAbsolute = me.isAbsolute;
                 if (isAbsolute === undefined) {
                     isAbsolute = false;
                     targetEl = me.target.getTargetEl();
                     style = targetEl.getStyle('position');
-
-                    if (style == 'absolute') {
-                        style = targetEl.getStyle('box-sizing');
-                        isAbsolute = (style == 'border-box');
-                    }
-
-                    me.isAbsolute = isAbsolute; // cache it
+                    me.isAbsolute = (style === 'absolute'); // cache it
                 }
 
                 if (isAbsolute) {
@@ -1805,9 +1733,176 @@ Ext.define('Ext.layout.ContextItem', {
         if (styleCount) {
             el.setStyle(styles);
         }
-    }
-}, function () {
+    },
 
+    //-------------------------------------------------------------------------
+    // Diagnostics
+
+    debugHooks: {
+        $enabled: false, // Disable by default
+
+        addBlock: function (name, layout, propName) {
+            //Ext.log(this.id,'.',propName,' ',name,': ',this.context.getLayoutName(layout));
+            (layout.blockedBy || (layout.blockedBy = {}))[
+                this.id+'.'+propName+(name.substring(0,3)=='dom' ? ':dom' : '')] = 1;
+
+            return this.callParent(arguments);
+        },
+
+        addBoxChild: function (boxChildItem) {
+            var ret = this.callParent(arguments),
+                boxChildren = this.boxChildren,
+                boxParents;
+
+            if (boxChildren && boxChildren.length == 1) {
+                // the boxParent collection is created by the run override found in
+                // Ext.diag.layout.Context, but IE sometimes does not load that override, so
+                // we work around it for now
+                boxParents = this.context.boxParents ||
+                            (this.context.boxParents = new Ext.util.MixedCollection());
+                boxParents.add(this);
+            }
+
+            return ret;
+        },
+
+        addTrigger: function (propName, inDom) {
+            var layout = this.context.currentLayout,
+                triggers;
+
+            //Ext.log(this.id,'.',propName,' ',inDom ? ':dom' : '',' ',this.context.getLayoutName(layout));
+            this.callParent(arguments);
+
+            triggers = this.context.triggersByLayoutId;
+            (triggers[layout.id] || (triggers[layout.id] = {}))[
+                this.id+'.'+propName+(inDom ? ':dom' : '')] = {
+                    item: this,
+                    name: propName
+                };
+        },
+
+        checkAuthority: function (prop) {
+            var me = this,
+                model = me[prop + 'Model'], // not me.sizeModel[prop] since it is immutable
+                layout = me.context.currentLayout,
+                ok,
+                setBy;
+
+            if (layout == me.target.ownerLayout) {
+                // the ownerLayout is only allowed to set calculated dimensions
+                ok = model.calculated;
+            } else if (layout.isComponentLayout) {
+                // the component's componentLayout (normally) is only allowed to set auto or
+                // configured dimensions. The exception is when a component is run w/o its
+                // ownerLayout in the picture (isTopLevel), someone must publish the lastBox
+                // values and that lucky layout is the componentLayout (kinda had to be since
+                // the ownerLayout is not running)
+                ok = me.isTopLevel || model.auto || model.configured;
+            }
+
+            if (!ok) {
+                setBy = me.context.getLayoutName(layout);
+
+                Ext.log(setBy + ' cannot set ' + prop);
+            }
+        },
+
+        clearBlocks: function (name, propName) {
+            var collection = this[name],
+                blockedLayouts = collection && collection[propName],
+                key = this.id+'.'+propName+(name.substring(0,3)=='dom' ? ':dom' : ''),
+                layout, layoutId;
+
+            if (blockedLayouts) {
+                for (layoutId in blockedLayouts) {
+                    layout = blockedLayouts[layoutId];
+                    delete layout.blockedBy[key];
+                }
+            }
+            return this.callParent(arguments);
+        },
+
+        getEl: function (el) {
+            var child = this.callParent(arguments);
+            if (child && child !== this && child.parent !== this) {
+                Ext.Error.raise({
+                    msg: 'Got element from wrong component'
+                });
+            }
+            return child;
+        },
+
+        init: function () {
+            var me = this,
+                ret;
+
+            ret = me.callParent(arguments);
+
+            if (me.context.logOn.initItem) {
+                Ext.log(me.id, ' consumers: content=', me.consumersContentWidth,'/',me.consumersContentHeight,
+                    ', container=', me.consumersContainerWidth,'/',me.consumersContainerHeight,
+                    ', size=', me.consumersWidth,'/',me.consumersHeight);
+            }
+
+            return ret;
+        },
+
+        invalidate: function () {
+            if (this.wrapsComponent) {
+                if (this.context.logOn.invalidate) {
+                    Ext.log('invalidate: ', this.id);
+                }
+            } else {
+                Ext.Error.raise({
+                    msg: 'Cannot invalidate an element contextItem'
+                });
+            }
+            return this.callParent(arguments);
+        },
+
+        setProp: function (propName, value, dirty) {
+            var me = this,
+                layout = me.context.currentLayout,
+                setBy = me.context.getLayoutName(layout),
+                fullName = me.id + '.' + propName,
+                setByProps;
+
+            if (value !== null) {
+                setByProps = me.setBy || (me.setBy = {});
+                if (!setByProps[propName]) {
+                    setByProps[propName] = setBy;
+                } else if (setByProps[propName] != setBy) {
+                    Ext.log({level: 'warn'}, 'BAD! ', fullName, ' set by ', setByProps[propName], ' and ', setBy);
+                }
+            }
+
+            if (me.context.logOn.setProp) {
+                if (typeof value != 'undefined' && !isNaN(value) && me.props[propName] !== value) {
+                    Ext.log('set ', fullName, ' = ', value, ' (', dirty, ')');
+                }
+            }
+
+            return this.callParent(arguments);
+        },
+
+        setHeight: function (height, dirty, /* private */force) {
+            if (!force && this.wrapsComponent) {
+                this.checkAuthority('height');
+            }
+
+            return this.callParent(arguments);
+        },
+
+        setWidth: function (width, dirty, /* private */force) {
+            if (!force && this.wrapsComponent) {
+                this.checkAuthority('width');
+            }
+
+            return this.callParent(arguments);
+        }
+    } // End Diagnostics
+    //-------------------------------------------------------------------------
+}, function () {
     var px =    { dom: true, parseInt: true, suffix: 'px' },
         isDom = { dom: true },
         faux =  { dom: false };

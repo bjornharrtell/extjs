@@ -6,7 +6,7 @@
 .#{$prefix}column-header-checkbox .#{$prefix}column-header-text {
     height: $form-checkbox-size;
     width: $form-checkbox-size;
-    background-image: theme-background-image($form-checkbox-image);
+    background-image: theme-background-image($form-checkbox-background-image);
     // IE6, IE7, and all IE Quirks mode need line-height to be the same as checkbox height
     // or the header/row height will be too tall
     line-height: $form-checkbox-size;
@@ -28,7 +28,7 @@
 }
 
 .#{$prefix}grid-hd-checker-on .#{$prefix}column-header-text,
-.#{$prefix}grid-row-selected .#{$prefix}grid-row-checker,
-.#{$prefix}grid-row-checked .#{$prefix}grid-row-checker {
+.#{$prefix}grid-item-selected .#{$prefix}grid-row-checker,
+.#{$prefix}grid-item-selected .#{$prefix}grid-row-checker {
     background-position: 0 (-$form-checkbox-size);
 }

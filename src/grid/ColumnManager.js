@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  *
@@ -28,10 +8,10 @@ Ext.define('Ext.grid.ColumnManager', {
 
     columns: null,
 
-    constructor: function(headerCt, secondHeaderCt) {
+    constructor: function(visibleOnly, headerCt, secondHeaderCt) {
         //<debug>
-        if (!headerCt.isRootHeader) {
-            Ext.Error.raise('ColumnManager must be passed an instantiated HeaderContainer');
+        if (!headerCt.isRootHeader && !headerCt.isGroupHeader) {
+            Ext.Error.raise('ColumnManager must be passed an instantiated HeaderContainer or group header');
         }
         //</debug>
         this.headerCt = headerCt;
@@ -39,12 +19,13 @@ Ext.define('Ext.grid.ColumnManager', {
         // We are managing columns for a lockable grid...
         if (secondHeaderCt) {
             //<debug>
-            if (!headerCt.isRootHeader) {
-                Ext.Error.raise('ColumnManager must be passed an instantiated HeaderContainer');
+            if (!headerCt.isRootHeader && !headerCt.isGroupHeader) {
+                Ext.Error.raise('ColumnManager must be passed an instantiated HeaderContainer or group header');
             }
             //</debug>
             this.secondHeaderCt = secondHeaderCt;
         }
+        this.visibleOnly = !!visibleOnly;
     },
 
     getColumns: function() {
@@ -54,34 +35,119 @@ Ext.define('Ext.grid.ColumnManager', {
         return this.columns;
     },
 
+    hasVariableRowHeight: function() {
+        var me = this,
+            columns = me.getColumns(),
+            len = columns.length,
+            i;
+
+        if (me.variableRowHeight == null) {
+            me.variableRowHeight = false;
+            for (i = 0; !me.variableRowHeight && i < len; i++) {
+                me.variableRowHeight = !!columns[i].variableRowHeight;
+            }
+        }
+
+        return me.variableRowHeight;
+    },
+
     /**
-     * Returns the index of a leaf level header regardless of what the nesting
+     * If called from a root header, returns the index of a leaf level header regardless of what the nesting
      * structure is.
      *
-     * If a group header is passed, the index of the first leaf level heder within it is returned.
+     * If called from a group header, returns the index of a leaf level header relative to the group header.
+     *
+     * If a group header is passed, the index of the first leaf level header within it is returned.
      *
      * @param {Ext.grid.column.Column} header The header to find the index of
      * @return {Number} The index of the specified column header
      */
-    getHeaderIndex: function(header) {
-        // If we are being asked the index of a group header, find the first leaf header node, and return the index of that
+    getHeaderIndex: function (header) {
         if (header.isGroupHeader) {
-            header = header.down(':not([isGroupHeader])');
+            // Get the first header for the particular group header. The .getHeaderColumns API
+            // will sort out if it's to be just visible columns or all columns.
+            header = this.getHeaderColumns(header)[0];
         }
+
         return Ext.Array.indexOf(this.getColumns(), header);
     },
 
     /**
-     * Get a leaf level header by index regardless of what the nesting
+     * If called from a root header, gets a leaf level header by index regardless of what the nesting
      * structure is.
+     *
+     * If called from a group header, returns the index of a leaf level header relative to the group header.
+     *
      * @param {Number} index The column index for which to retrieve the column.
      * @return {Ext.grid.column.Column} The header. `null` if it doesn't exist.
      */
     getHeaderAtIndex: function(index) {
-        var columns = this.getColumns();
-        return columns.length ? columns[index] : null;
+        var columns = this.getColumns(),
+            col = columns[index];
+            
+        return col || null;
     },
     
+    getPreviousSibling: function(header){
+        var index = this.getHeaderIndex(header),
+            col = null;
+            
+        if (index > 0) {
+            col = this.getColumns()[index - 1];
+        }
+        return col;
+    },
+    
+    getNextSibling: function(header) {
+        var index = this.getHeaderIndex(header),
+            col;
+            
+        if (index !== -1) {
+            col = this.getColumns()[index + 1];
+        }
+        return col || null;
+    },
+    
+    /**
+     * Get the first column.
+     * @return {Ext.grid.column.Column} The header. `null` if it doesn't exist
+     */
+    getFirst: function() {
+        var columns = this.getColumns();
+        return columns.length > 0 ? columns[0] : null;
+    },
+    
+    /**
+     * Get the last column.
+     * @return {Ext.grid.column.Column} The header. `null` if it doesn't exist
+     */
+    getLast: function(){
+        var columns = this.getColumns(),
+            len = columns.length;
+            
+        return len > 0 ? columns[len - 1] : null;
+    },
+    
+    /**
+     * Get a leaf level header by data index regardless of what the nesting
+     * structure is.
+     * @param {String} dataIndex The data index
+     * @return {Ext.grid.column.Column} The header. `null` if it doesn't exist.
+     */
+    getHeaderByDataIndex: function (dataIndex) {
+        var columns = this.getColumns(),
+            len = columns.length,
+            i, header;
+            
+        for (i = 0; i < len; ++i) {
+            header = columns[i];
+            if (header.dataIndex === dataIndex) {
+                return header;
+            }
+        }
+        return null;
+    },
+
     /**
      * Get a leaf level header by index regardless of what the nesting
      * structure is.
@@ -105,6 +171,10 @@ Ext.define('Ext.grid.ColumnManager', {
     /**
      * When passed a column index, returns the closet *visible* column to that. If the column at the passed index is visible,
      * that is returned. If it is hidden, either the next visible, or the previous visible column is returned.
+     *
+     * If called from a group header, returns the visible index of a leaf level header relative to the group header with the
+     * same stipulations as outlined above.
+     *
      * @param {Number} index Position at which to find the closest visible column.
      */
     getVisibleHeaderClosestToIndex: function(index) {
@@ -116,19 +186,32 @@ Ext.define('Ext.grid.ColumnManager', {
     },
 
     cacheColumns: function() {
-        this.columns = this.headerCt.getVisibleGridColumns();
-        if (this.secondHeaderCt) {
-            Ext.Array.push(this.columns, this.secondHeaderCt.getVisibleGridColumns());
+        var columns = this.getHeaderColumns(this.headerCt),
+            second = this.secondHeaderCt;
+            
+        if (second) {
+            columns = columns.concat(this.getHeaderColumns(second));
         }
+        this.columns = columns;
+    },
+    
+    getHeaderColumns: function(header) {
+        var result = this.visibleOnly ? header.getVisibleGridColumns() : header.getGridColumns();
+        return Ext.Array.clone(result);
     },
 
     invalidate: function() {
-        this.columns = null;
+        var root = this.rootColumns;
+        this.columns = this.variableRowHeight = null;
 
         // If we are part of a lockable assembly, invalidate the root column manager
-        if (this.rootColumns) {
-            this.rootColumns.invalidate();
+        if (root) {
+            root.invalidate();
         }
+    },
+    
+    destroy: function(){
+        this.columns = this.rootColumns = null;
     }
 }, function() {
     this.createAlias('indexOf', 'getHeaderIndex');

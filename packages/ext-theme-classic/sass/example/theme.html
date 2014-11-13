@@ -10,20 +10,9 @@
     <!--
     Load all required links and scripts
     -->
-    <link rel="stylesheet" type="text/css" href="../resources/ext-theme-classic-all-rtl-debug.css" />
-    <script type="text/javascript" src="../../../../ext-all-debug.js"></script>
-    <script type="text/javascript" src="../ext-theme-classic.js"></script>
+    <link rel="stylesheet" type="text/css" href="example.css" />
+    <script type="text/javascript" src="bootstrap.js"></script>
 
-    <!--
-    Load the Slicer core scripts
-    -->
-    <script type="text/javascript" src="render.js"></script>
-
-    <!--
-    Load all manifests and shortcuts
-    -->
-    <script type="text/javascript" src="../../../ext-theme-base/sass/example/manifest.js"></script>
-    <script type="text/javascript" src="../../../ext-theme-base/sass/example/shortcuts.js"></script>
 
     <style>
         .widget-container {
@@ -36,6 +25,12 @@
         .x-slicer-target,
         .x-slicer-target * {
             opacity: 1;
+        }
+
+        /* ensure body does not overlap the rounded corners of framed panel/window when slicing */
+        .x-panel-body,
+        .x-window-body {
+            background: transparent;
         }
     </style>
 </head>

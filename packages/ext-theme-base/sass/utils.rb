@@ -84,6 +84,29 @@ module ExtJS
 
           return Sass::Script::Bool.new(result)
         end
+
+        # workaround for lack of @error directive in sass 3.1
+        def error(message)
+          raise Sass::SyntaxError, message.value
+        end
+
+        # This function is primarily to support compatibility when moving from sass 3.1 to 3.2
+        # because of the change in behavior of the null keyword when used with !default.
+        # in 3.1 variables defaulted to null are considered to have an assigned value
+        # and thus cannot be reassigned.  In 3.2 defaulting to null is the same as leaving
+        # the variable undeclared
+        def is_null(value)
+            n = false
+            begin
+                # in Sass 3.2 null values are an instance of Sass::Script::Null
+                # this throws an exception in Sass 3.1 because the Null class doesn't exist
+                n = (value.is_a? Sass::Script::Null) || (value.is_a? Sass::Script::String) && value.value == 'null' || value.value == 'none'
+            rescue NameError=>e
+                # Sass 3.1 processes null values as a string == "null"
+                n = (value.is_a? Sass::Script::String) && value.value == 'null' || value.value == 'none'
+            end
+            return Sass::Script::Bool.new(n)
+        end
       end
     end
   end

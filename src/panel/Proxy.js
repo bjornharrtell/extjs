@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A custom drag proxy implementation specific to {@link Ext.panel.Panel}s. This class
  * is primarily used internally for the Panel's drag drop implementation, and
@@ -67,7 +47,7 @@ Ext.define('Ext.panel.Proxy', {
 
     /**
      * Gets the proxy's element
-     * @return {Ext.Element} The proxy's element
+     * @return {Ext.dom.Element} The proxy's element
      */
     getEl: function(){
         return this.ghost.el;
@@ -84,7 +64,7 @@ Ext.define('Ext.panel.Proxy', {
     /**
      * Gets the proxy element. This is the element that represents where the
      * Panel was before we started the drag operation.
-     * @return {Ext.Element} The proxy's element
+     * @return {Ext.dom.Element} The proxy's element
      */
     getProxy: function(){
         return this.proxy;
@@ -98,7 +78,7 @@ Ext.define('Ext.panel.Proxy', {
         
         if (me.ghost) {
             if (me.proxy) {
-                me.proxy.remove();
+                me.proxy.destroy();
                 delete me.proxy;
             }
 
@@ -122,7 +102,10 @@ Ext.define('Ext.panel.Proxy', {
             if (me.insertProxy) {
                 // bc Panels aren't absolute positioned we need to take up the space
                 // of where the panel previously was
-                me.proxy = me.panel.el.insertSibling({cls: Ext.baseCSSPrefix + 'panel-dd-spacer'});
+                me.proxy = me.panel.el.insertSibling({
+                    role: 'presentation',
+                    cls: Ext.baseCSSPrefix + 'panel-dd-spacer'
+                });
                 me.proxy.setSize(panelSize);
             }
         }

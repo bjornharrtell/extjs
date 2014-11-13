@@ -9,12 +9,6 @@
 $tabbar-padding: 0 !default;
 
 /**
- * @var {number/list}
- * The padding of the {@link Ext.tab.Panel#plain plain} Tab Bar
- */
-$tabbar-plain-padding: $tabbar-padding !default;
-
-/**
  * @var {color}
  * The base color of the Tab Bar
  */
@@ -41,12 +35,6 @@ $tabbar-border-color: $panel-header-border-color !default;
 $tabbar-border-width: 1px 1px 0 !default;
 
 /**
- * @var {number/list}
- * The border-width of the {@link Ext.tab.Panel#plain plain} Tab Bar
- */
-$tabbar-plain-border-width: 0 !default;
-
-/**
  * @var {number}
  * The height of the Tab Bar strip
  */
@@ -71,16 +59,40 @@ $tabbar-strip-background-color: $tab-base-color-active !default;
 $tabbar-strip-border-width: 1px 0 0 !default;
 
 /**
- * @var {number/list}
- * The border-width of the {@link Ext.tab.Panel#plain plain} Tab Bar strip
- */
-$tabbar-strip-plain-border-width: 1px 1px 0 !default;
-
-/**
  * @var {number}
  * The width of the Tab Bar scrollers
  */
-$tabbar-scroller-width: 18px !default;
+$tabbar-scroller-width: 24px !default;
+
+/**
+ * @var {number}
+ * The height of the Tab Bar scrollers
+ */
+$tabbar-scroller-height: 24px !default;
+
+/**
+ * @var {number/list}
+ * The margin of "top" Tab Bar scroller buttons
+ */
+$tabbar-scroller-top-margin: 0 !default;
+
+/**
+ * @var {number/list}
+ * The margin of "right" Tab Bar scroller buttons
+ */
+$tabbar-scroller-right-margin: 0 !default;
+
+/**
+ * @var {number/list}
+ * The margin of "bottom" Tab Bar scroller buttons
+ */
+$tabbar-scroller-bottom-margin: 0 !default;
+
+/**
+ * @var {number/list}
+ * The margin of "left" Tab Bar scroller buttons
+ */
+$tabbar-scroller-left-margin: 0 !default;
 
 /**
  * @var {string}
@@ -98,31 +110,33 @@ $tabbar-scroller-cursor-disabled: default !default;
  * @var {number}
  * The opacity of Tab Bar scrollers
  */
-$tabbar-scroller-opacity: 1 !default;
+$tabbar-scroller-opacity: 0.5 !default;
 
 /**
  * @var {number}
  * The opacity of hovered Tab Bar scrollers
  */
-$tabbar-scroller-opacity-over: 1 !default;
+$tabbar-scroller-opacity-over: 0.6 !default;
 
 /**
  * @var {number}
  * The opacity of pressed Tab Bar scrollers
  */
-$tabbar-scroller-opacity-pressed: 1 !default;
+$tabbar-scroller-opacity-pressed: 0.7 !default;
 
 /**
  * @var {number}
  * The opacity of disabled Tab Bar scrollers
  */
-$tabbar-scroller-opacity-disabled: 1 !default;
+$tabbar-scroller-opacity-disabled: 0.25 !default;
+
 /**
  * @var {boolean}
- * true to change the x postition of the background image on hover to allow for a
- * horizonatlly alined background image sprite
+ * `true` to use classic-style scroller buttons.  When `true` scroller buttons are given their
+ * hover state by changing their background-position,  When `false` scroller buttons are
+ * given their hover state by applying opacity.
  */
-$tabbar-scroller-include-hover-background-position: true !default;
+$tabbar-classic-scrollers: false !default;
 
 /**
  * @var {boolean}

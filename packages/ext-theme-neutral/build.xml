@@ -6,6 +6,7 @@
     limit your changes to this file.
     -->
     <import file="${basedir}/.sencha/package/build-impl.xml"/>
+    <import file="${basedir}/.sencha/test/test-impl.xml"/>
 
     <!--
     The following targets can be provided to inject logic before and/or after key steps

@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A Column definition class which renders a numeric data field according to a {@link #format} string.
  *
@@ -37,7 +17,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *            { symbol: "sencha", price: 142.08, change: 8.85, volume: 5556351  }
  *        ]
  *     });
- *     
+ *
  *     Ext.create('Ext.grid.Panel', {
  *         title: 'Number Column Demo',
  *         store: Ext.data.StoreManager.lookup('sampleStore'),
@@ -55,8 +35,11 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
 Ext.define('Ext.grid.column.Number', {
     extend: 'Ext.grid.column.Column',
     alias: ['widget.numbercolumn'],
+
     requires: ['Ext.util.Format'],
     alternateClassName: 'Ext.grid.NumberColumn',
+
+    defaultFilterType: 'number',
 
     //<locale>
     /**
@@ -70,13 +53,19 @@ Ext.define('Ext.grid.column.Number', {
      * @cfg {Object} renderer
      * @hide
      */
-    
+
     /**
      * @cfg {Object} scope
      * @hide
      */
 
-    defaultRenderer: function(value){
+    producesHTML: false,
+
+    defaultRenderer: function(value) {
         return Ext.util.Format.number(value, this.format);
+    },
+
+    updater: function(cell, value) {
+        cell.firstChild.innerHTML = Ext.grid.column.Number.prototype.defaultRenderer.call(this, value);
     }
 });

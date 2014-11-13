@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This is the layout style of choice for creating structural layouts in a multi-column format where the width of each
  * column can be specified as a percentage or fixed width, but the height is allowed to vary based on the content. This
@@ -107,6 +87,12 @@ Ext.define('Ext.layout.container.Column', {
     createsInnerCt: true,
 
     manageOverflow: true,
+
+    // Column layout does not read the size of individual items in the shrink-wrapping
+    // dimension(s) because, as a subclass of autocontainer, it measures them as a whole
+    // using an outer element.  However, column layout may set the size of its items in
+    // non-shrink-wrapping dimension(s).
+    setsItemSize: true,
     
     isItemShrinkWrap: function(ownerContext){
         return true;
@@ -187,20 +173,5 @@ Ext.define('Ext.layout.container.Column', {
 
         // we registered all the values that block this calculation, so abort now if blocked...
         return !blocked;
-    },
-
-    setCtSizeIfNeeded: function(ownerContext, containerSize) {
-        var me = this,
-            padding = ownerContext.paddingContext.getPaddingInfo();
-
-        me.callParent(arguments);
-
-        // IE6/7/quirks lose right padding when using the shrink wrap template, so
-        // reduce the size of the outerCt by the amount of right padding.
-        if ((Ext.isIEQuirks || Ext.isIE7m) && me.isShrinkWrapTpl && padding.right) {
-            ownerContext.outerCtContext.setProp('width',
-                containerSize.width + padding.left);
-        }
     }
-
 });

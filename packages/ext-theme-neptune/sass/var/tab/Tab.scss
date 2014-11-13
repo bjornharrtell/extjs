@@ -1,3 +1,6 @@
+/** @class Ext.tab.Tab */
+//
+
 $tab-base-color: mix(#fff, $base-highlight-color, 10%) !default;
 $tab-base-color-over: mix(#fff, $base-highlight-color, 20%) !default;
 $tab-base-color-active: $base-light-color !default;
@@ -5,10 +8,10 @@ $tab-base-color-active: $base-light-color !default;
 $tab-color: #fff !default;
 $tab-color-active: $base-color !default;
 
-$tab-background-gradient: null !default;
-$tab-background-gradient-over: null !default;
-$tab-background-gradient-active: null !default;
-$tab-background-gradient-disabled: null !default;
+$tab-background-gradient: 'none' !default;
+$tab-background-gradient-over: 'none' !default;
+$tab-background-gradient-active: 'none' !default;
+$tab-background-gradient-disabled: 'none' !default;
 
 $tab-border-radius: 3px 3px 0 0 !default;
 $tab-border-width: 0 !default;
@@ -16,11 +19,7 @@ $tab-inner-border-width: 0 !default;
 
 $tab-padding: 8px 12px 7px !default;
 
-$tab-line-height: 16px !default;
 $tab-margin: 0 1px 0 0 !default;
-
-$tab-icon-width: 16px !default;
-$tab-icon-height: 16px !default;
 $tab-icon-spacing: 6px !default;
 
 $tab-text-opacity-disabled: .3 !default;

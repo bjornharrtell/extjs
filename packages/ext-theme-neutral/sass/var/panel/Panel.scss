@@ -2,9 +2,9 @@
  * @class Ext.panel.Panel
  */
 
-// TODO: setting this probably doesn't work well, since border-radius is typically
+// TODO: setting this probably does not work well, since border-radius is typically
 // reserved for framed-panels - should we remove this?
-$panel-border-radius: null !default;
+$panel-border-radius: 0 !default;
 
 /**
  * @var {number}
@@ -25,13 +25,16 @@ $panel-base-color: $base-color !default;
 $panel-border-color: $panel-base-color !default;
 
 /**
- * @var {$border-width-threshold}
- * The maximum width a Panel's border can be before resizer handles are embedded into the borders using negative absolute positions.
+ * @var {number}
+ * The maximum width a Panel's border can be before resizer handles are embedded
+ * into the borders using negative absolute positions.
  *
- * This defaults to 2, so that in the classic theme which uses 1 pixel borders, resize handles are in the content area
- * within the border as they always have been.
+ * This defaults to 2, so that in the classic theme which uses 1 pixel borders,
+ * resize handles are in the content area within the border as they always have
+ * been.
  *
- * In the Neptune theme, the handles are embedded into the 5 pixel wide borders of any framed panel.
+ * In the Neptune theme, the handles are embedded into the 5 pixel wide borders
+ * of any framed panel.
  */
 $border-width-threshold: 2 !default;
 
@@ -78,7 +81,13 @@ $panel-body-font-size: $font-size !default;
  * @var {string}
  * The default font-weight of the Panel body
  */
-$panel-body-font-weight: normal !default;
+$panel-body-font-weight: $font-weight !default;
+
+/**
+ * @var {string}
+ * The default font-family of the Panel body
+ */
+$panel-body-font-family: $font-family !default;
 
 /**
  * @var {number}
@@ -108,7 +117,7 @@ $panel-header-border-style: solid !default;
  * @var {number/list}
  * The padding of Panel Headers
  */
-$panel-header-padding: 4px 5px !default;
+$panel-header-padding: 5px !default;
 
 /**
  * @var {number}
@@ -126,7 +135,7 @@ $panel-header-line-height: 16px !default;
  * @var {string}
  * The font-weight of Panel Headers
  */
-$panel-header-font-weight: bold !default;
+$panel-header-font-weight: $font-weight-bold !default;
 
 /**
  * @var {string}
@@ -147,12 +156,18 @@ $panel-header-text-transform: none !default;
 $panel-header-text-padding: 0 !default;
 
 /**
+ * @var {number/list}
+ * The margin of the Panel Header's text element
+ */
+$panel-header-text-margin: 0 !default;
+
+/**
  * @var {string/list}
  * The background-gradient of the Panel Header. Can be either the name of a predefined
  * gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  */
-$panel-header-background-gradient: null !default;
+$panel-header-background-gradient: 'none' !default;
 
 /**
  * @var {color}
@@ -219,6 +234,14 @@ $panel-header-glyph-color: $panel-header-color !default;
  * The opacity of the Panel Header glyph icon
  */
 $panel-header-glyph-opacity: .5 !default;
+
+/**
+ * @var {boolean}
+ * True to adjust the padding of borderless panel headers so that their height is the same
+ * as the height of bordered panels.  This is helpful when borderless and bordered panels
+ * are used side-by-side, as it maintains a consistent vertical alignment.
+ */
+$panel-header-noborder-adjust: true !default;
 
 /**
  * @var {color}
@@ -361,3 +384,12 @@ $include-panel-default-ui: $include-default-uis !default;
  * True to include the "default-framed" panel UI
  */
 $include-panel-default-framed-ui: $include-default-uis !default;
+
+/**
+ * @var {boolean}
+ * True to ignore the frame padding.  By default, the frame mixin adds extra padding when
+ * border radius is larger than border width.  This is intended to prevent the content
+ * from colliding with the rounded corners of the frame.  Set this to true to prevent
+ * the panel frame from adding this extra padding.
+ */
+$panel-ignore-frame-padding: false !default;

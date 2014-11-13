@@ -16,12 +16,6 @@
     background-color: $colorpicker-item-background-color;
     cursor: $colorpicker-item-cursor;
     padding: $colorpicker-item-padding;
-    @if $include-content-box {
-        .#{$prefix}content-box & {
-            width: $colorpicker-item-width - horizontal($colorpicker-item-border-width) - horizontal($colorpicker-item-padding);
-            height: $colorpicker-item-height - vertical($colorpicker-item-border-width) - vertical($colorpicker-item-padding);
-        }
-    }
 }
 
 // include the element name since :hover causes performance issues in IE7 and 8 otherwise

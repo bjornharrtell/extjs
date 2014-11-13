@@ -155,7 +155,7 @@
                             "iconCls": "task",
                             "leaf": true
                         }, {
-                            "task": "Internet Exploder",
+                            "task": "Internet Explorer",
                             "duration": 3,
                             "user": "Darrell Meyer",
                             "iconCls": "task",

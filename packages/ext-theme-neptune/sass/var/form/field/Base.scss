@@ -1,7 +1,18 @@
-$form-field-height: 24px !default;
-$form-toolbar-field-height: $form-field-height !default;
+/** @class Ext.form.field.Base */
+//
+
 $form-field-padding: 4px 6px 3px !default;
-$form-field-border-color: #c0c0c0 #d9d9d9 #d9d9d9 !default;
+
+/**
+ * @var {number} $form-field-height
+ * Height for form fields.
+ */
+$form-field-height: 24px !default;
+
+// private
+$form-field-border-accent-color: mix(#fff, $neutral-medium-dark-color, 40%);
+
+$form-field-border-color: $neutral-medium-dark-color $form-field-border-accent-color $form-field-border-accent-color !default;
 $form-field-border-width: 1px !default;
 $form-field-invalid-border-color: $error-color !default;
 /**
@@ -13,5 +24,5 @@ $form-field-invalid-border-color: $error-color !default;
  * background images to match
  */
 $form-field-focus-border-color: mix(#fff, #157fcc, 15%) !default;
-$form-field-background-image: null !default;
-$form-field-invalid-background-image: null !default;
+$form-field-background-image: 'none' !default;
+$form-field-invalid-background-image: 'none' !default;

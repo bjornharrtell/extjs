@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Private utility class that manages the internal Shadow cache.
  * @private
@@ -39,8 +19,12 @@ Ext.define('Ext.ShadowPool', {
     pull: function() {
         var sh = this.shadows.shift();
         if (!sh) {
-            sh = Ext.get(Ext.DomHelper.insertHtml("beforeBegin", document.body.firstChild, this.markup));
+            sh = Ext.get(Ext.DomHelper.insertHtml("afterBegin", document.body, this.markup));
             sh.autoBoxAdjust = false;
+            //<debug>
+            // tell the spec runner to ignore this element when checking if the dom is clean 
+            sh.dom.setAttribute('data-sticky', true);
+            //</debug>
         }
         return sh;
     },
@@ -55,7 +39,7 @@ Ext.define('Ext.ShadowPool', {
             sLen    = shadows.length;
 
         for (s = 0; s < sLen; s++) {
-            shadows[s].remove();
+            shadows[s].destroy();
         }
 
         this.shadows = [];

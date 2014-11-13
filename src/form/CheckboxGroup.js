@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A {@link Ext.form.FieldContainer field container} which has a specialized layout for arranging
  * {@link Ext.form.field.Checkbox} controls into columns, and provides convenience
@@ -139,6 +119,8 @@ Ext.define('Ext.form.CheckboxGroup', {
     layout: 'checkboxgroup',
 
     componentCls: Ext.baseCSSPrefix + 'form-checkboxgroup',
+    
+    ariaRole: 'group',
 
     initComponent: function() {
         var me = this;
@@ -163,18 +145,18 @@ Ext.define('Ext.form.CheckboxGroup', {
 
     /**
      * When a checkbox is added to the group, monitor it for changes
-     * @param {Object} field
+     * @param {Object} field The field being added
      * @protected
      */
-    onAdd: function(item) {
+    onAdd: function(field) {
         var me = this,
             items,
             len, i;
 
-        if (item.isCheckbox) {
-            me.mon(item, 'change', me.checkChange, me);
-        } else if (item.isContainer) {
-            items = item.items.items;
+        if (field.isCheckbox) {
+            me.mon(field, 'change', me.checkChange, me);
+        } else if (field.isContainer) {
+            items = field.items.items;
             for (i = 0, len = items.length; i < len; i++) {
                 me.onAdd(items[i]);
             }

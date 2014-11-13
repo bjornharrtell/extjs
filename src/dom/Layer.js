@@ -1,36 +1,11 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
- * An extended {@link Ext.Element} object that supports a shadow and shim, constrain to viewport and
- * automatic maintaining of shadow/shim positions.
+ * An extended {@link Ext.dom.Element} object that supports a shadow, constrain to viewport
+ * and automatic maintaining of shadow position.
  */
 Ext.define('Ext.dom.Layer', {
     extend: 'Ext.Element',
     uses: ['Ext.Shadow'],
     alternateClassName: 'Ext.Layer',
-
-    /**
-     * @cfg {Boolean} [shim=true]
-     * False to disable the iframe shim in browsers which need one.
-     */
 
     /**
      * @cfg {String/Boolean} [shadow=false]
@@ -87,11 +62,6 @@ Ext.define('Ext.dom.Layer', {
      *   Hiding using `display` results in a Component having zero dimensions.
      */
 
-    // shims are shared among layer to keep from having 100 iframes
-    statics: {
-        shims: []
-    },
-    
     isLayer: true,
 
     localXYNames: {
@@ -112,39 +82,47 @@ Ext.define('Ext.dom.Layer', {
             cp = config.parentEl,
             pel = cp ? Ext.getDom(cp) : document.body,
             hm = config.hideMode,
-            cls = Ext.baseCSSPrefix + (config.fixed && !(Ext.isIE6 || Ext.isIEQuirks) ? 'fixed-layer' : 'layer');
-
-        // set an "el" property that references "this".  This allows
-        // Ext.util.Positionable methods to operate on this.el.dom since it
-        // gets mixed into both Element and Component
-        me.el = me;
+            cls = Ext.baseCSSPrefix + (config.fixed ? 'fixed-layer' : 'layer'),
+            dom, id, element;
 
         if (existingEl) {
-            me.dom = Ext.getDom(existingEl);
+            dom = Ext.getDom(existingEl);
+            if (!dom.parentNode) {
+                pel.appendChild(dom);
+            }
         }
-        if (!me.dom) {
-            me.dom = dh.append(pel, config.dh || {
+
+        if (!dom) {
+            dom = dh.append(pel, config.dh || {
                 tag: 'div',
                 cls: cls // primarily to give el 'position:absolute' or, if fixed, 'position:fixed'
             });
-        } else {
-            me.addCls(cls);
-            if (!me.dom.parentNode) {
-                pel.appendChild(me.dom);
+        }
+
+        if (config.id) {
+            dom.id = config.id;
+        }
+        id = dom.id;
+
+        if (id) {
+            element = Ext.cache[id];
+            if (element) {
+                // if we have an existing Ext.Element in the cache for this same dom
+                // element, delete it, so that it can be replaced by this layer instance
+                // when we callParent below.
+                delete Ext.cache[id];
+                element.dom = null;
             }
+        }
+        this.callParent([dom]);
+
+        if (existingEl) {
+            me.addCls(cls);
         }
         
         if (config.preventSync) {
             me.preventSync = true;
         }
-
-        if (config.id) {
-            me.id = me.dom.id = config.id;
-        } else {
-            me.id = Ext.id(me.dom);
-        }
-
-        Ext.Element.addToCache(me);
 
         if (config.cls) {
             me.addCls(config.cls);
@@ -156,9 +134,6 @@ Ext.define('Ext.dom.Layer', {
         // TODO: Have ExtJS's Element implement visibilityMode by using classes as in Mobile.
         if (hm) {
             me.setVisibilityMode(Ext.Element[hm.toUpperCase()]);
-            if (me.visibilityMode == Ext.Element.ASCLASS) {
-                me.visibilityCls = config.visibilityCls;
-            }
         } else if (config.useDisplay) {
             me.setVisibilityMode(Ext.Element.DISPLAY);
         } else {
@@ -176,49 +151,19 @@ Ext.define('Ext.dom.Layer', {
         } else {
             me.shadowOffset = 0;
         }
-        me.useShim = config.shim !== false && Ext.useShims;
+
+        // Keep the following only for cases where Ext.Layer would be instantiated
+        // directly.  We don't ever pass hidden in the config in the framework
+        // since this is handled by the Component lifecycle.
         if (config.hidden === true) {
             me.hide();
-        } else {
+        } else if (config.hidden === false) {
             me.show();
         }
     },
 
     getZIndex: function() {
-        return parseInt((this.getShim() || this).getStyle('z-index'), 10);
-    },
-
-    getShim: function() {
-        var me = this,
-            shim, pn;
-
-        if (!me.useShim) {
-            return null;
-        }
-        if (!me.shim) {
-            shim = me.self.shims.shift();
-            if (!shim) {
-                shim = me.createShim();
-                shim.enableDisplayMode('block');
-                shim.hide();
-            }
-            pn = me.dom.parentNode;
-            if (shim.dom.parentNode != pn) {
-                pn.insertBefore(shim.dom, me.dom);
-            }
-            me.shim = shim;
-        }
-        return me.shim;
-    },
-
-    hideShim: function() {
-        var me = this;
-        
-        if (me.shim) {
-            me.shim.setDisplayed(false);
-            me.self.shims.push(me.shim);
-            delete me.shim;
-        }
+        return parseInt(this.getStyle('z-index'), 10);
     },
 
     disableShadow: function() {
@@ -247,7 +192,7 @@ Ext.define('Ext.dom.Layer', {
 
     /**
      * @private
-     * Synchronize this Layer's associated elements, the shadow, and possibly the shim.
+     * Synchronize this Layer's associated elements and shadow.
      *
      * This code can execute repeatedly in milliseconds,
      * eg: dragging a Component configured liveDrag: true, or which has no ghost method
@@ -258,15 +203,13 @@ Ext.define('Ext.dom.Layer', {
     sync: function(doShow) {
         var me = this,
             shadow = me.shadow,
-            shadowPos, shimStyle, shadowSize,
-            shim, xy, x, y, w, h, shimIndex;
+            xy, x, y, w, h;
             
         if (me.preventSync) {
             return;
         }
 
-        if (!me.updating && me.isVisible() && (shadow || me.useShim)) {
-            shim = me.getShim();
+        if (!me.updating && me.isVisible() && shadow) {
             xy = me[me.localXYNames.get]();
             x = xy[0];
             y = xy[1];
@@ -279,48 +222,12 @@ Ext.define('Ext.dom.Layer', {
                 } else {
                     shadow.realign(x, y, w, h);
                 }
-                if (shim) {
-                    // TODO: Determine how the shims zIndex is above the layer zIndex at this point
-                    shimIndex = shim.getStyle('z-index');
-                    if (shimIndex > me.zindex) {
-                        me.shim.setStyle('z-index', me.zindex - 2);
-                    }
-                    shim.show();
-                    // fit the shim behind the shadow, so it is shimmed too
-                    if (shadow.isVisible()) {
-                        shadowPos = shadow.el.getXY();
-                        shimStyle = shim.dom.style;
-                        shadowSize = shadow.el.getSize();
-                        if (Ext.supports.CSS3BoxShadow) {
-                            shadowSize.height += 6;
-                            shadowSize.width += 4;
-                            shadowPos[0] -= 2;
-                            shadowPos[1] -= 4;
-                        }
-                        shimStyle.left = (shadowPos[0]) + 'px';
-                        shimStyle.top = (shadowPos[1]) + 'px';
-                        shimStyle.width = (shadowSize.width) + 'px';
-                        shimStyle.height = (shadowSize.height) + 'px';
-                    } else {
-                        shim.setSize(w, h);
-                        shim[me.localXYNames.set](x, y);
-                    }
-                }
-            } else if (shim) {
-                // TODO: Determine how the shims zIndex is above the layer zIndex at this point
-                shimIndex = shim.getStyle('z-index');
-                if (shimIndex > me.zindex) {
-                    me.shim.setStyle('z-index', me.zindex - 2);
-                }
-                shim.show();
-                shim.setSize(w, h);
-                shim[me.localXYNames.set](x, y);
             }
         }
         return me;
     },
 
-    remove: function() {
+    destroy: function() {
         this.hideUnders();
         this.callParent();
     },
@@ -341,14 +248,13 @@ Ext.define('Ext.dom.Layer', {
         if (this.shadow) {
             this.shadow.hide();
         }
-        this.hideShim();
     },
 
     // @private
     constrainXY: function() {
         if (this.constrain) {
-            var vw = Ext.Element.getViewWidth(),
-                vh = Ext.Element.getViewHeight(),
+            var vw = Ext.Element.getViewportWidth(),
+                vh = Ext.Element.getViewportHeight(),
                 s = Ext.getDoc().getScroll(),
                 xy = this.getXY(),
                 x = xy[0],
@@ -402,7 +308,7 @@ Ext.define('Ext.dom.Layer', {
             }
         };
 
-        // Hide shadow and shim if hiding
+        // Hide shadow if hiding
         if (!visible) {
             me.hideUnders(true);
         }
@@ -549,31 +455,10 @@ Ext.define('Ext.dom.Layer', {
         return me;
     },
 
-    // overridden Element method
-    setBounds: function(x, y, width, height, animate, duration, callback, easing) {
-        var me = this;
-        
-        // Callback will restore shadow state and call the passed callback
-        callback = me.createCB(callback);
-
-        me.beforeAction();
-        if (!animate) {
-            Ext.Layer.superclass.setXY.call(me, [x, y]);
-            Ext.Layer.superclass.setSize.call(me, width, height);
-            callback();
-        } else {
-            me.callParent([x, y, width, height, animate, duration, callback, easing]);
-        }
-        return me;
-    },
-
     /**
-     * Sets the z-index of this layer and adjusts any shadow and shim z-indexes. The layer
-     * z-index is automatically incremented depending upon the presence of a shim or a
-     * shadow in so that it always shows above those two associated elements.
-     *
-     * Any shim, will be assigned the passed z-index. A shadow will be assigned the next
-     * highet z-index, and the Layer's element will receive the highest  z-index.
+     * Sets the z-index of this layer and adjusts shadow z-index. The layer
+     * z-index is automatically incremented depending upon the presence of a
+     * shadow in so that it always shows above the shadow.
      *
      * @param {Number} zindex The new z-index to set
      * @return {Ext.Layer} The Layer
@@ -582,11 +467,8 @@ Ext.define('Ext.dom.Layer', {
         var me = this;
         
         me.zindex = zindex;
-        if (me.getShim()) {
-            me.shim.setStyle('z-index', zindex++);
-        }
         if (me.shadow) {
-            me.shadow.setZIndex(zindex++);
+            me.shadow.setZIndex(zindex);
         }
         return me.setStyle('z-index', zindex);
     },
@@ -595,6 +477,28 @@ Ext.define('Ext.dom.Layer', {
         var shadow = this.shadow;
         if (shadow) {
             shadow.setOpacity(opacity);
+        }
+    },
+
+    deprecated: {
+        '4.2': {
+            // overridden Element method
+            setBounds: function(x, y, width, height, animate, duration, callback, easing) {
+                var me = this;
+                
+                // Callback will restore shadow state and call the passed callback
+                callback = me.createCB(callback);
+
+                me.beforeAction();
+                if (!animate) {
+                    Ext.Layer.superclass.setXY.call(me, [x, y]);
+                    Ext.Layer.superclass.setSize.call(me, width, height);
+                    callback();
+                } else {
+                    me.callParent([x, y, width, height, animate, duration, callback, easing]);
+                }
+                return me;
+            } 
         }
     }
 });

@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Simple helper class for easily creating image components. This renders an image tag to
  * the DOM with the configured src.
@@ -35,7 +15,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *     changingImage.setSrc('http://www.sencha.com/img/20110215-feat-perf.png');
  *
  * By default, only an img element is rendered and that is this component's primary
- * {@link Ext.AbstractComponent#getEl element}. If the {@link Ext.AbstractComponent#autoEl} property
+ * {@link Ext.Component#getEl element}. If the {@link Ext.Component#autoEl} property
  * is other than 'img' (the default), the a child img element will be added to the primary
  * element. This can be used to create a wrapper element around the img.
  *
@@ -89,6 +69,10 @@ Ext.define('Ext.Img', {
      * the `@` symbol. For example '65@My Font Family'.
      */
 
+    ariaRole: 'img',
+    
+    maskOnDisable: false,
+
     initComponent: function() {
         if (this.glyph) {
             this.autoEl = 'div';
@@ -98,6 +82,7 @@ Ext.define('Ext.Img', {
 
     getElConfig: function() {
         var me = this,
+            autoEl = me.autoEl,
             config = me.callParent(),
             glyphFontFamily = Ext._glyphFontFamily,
             glyph = me.glyph,
@@ -105,7 +90,7 @@ Ext.define('Ext.Img', {
 
         // It is sometimes helpful (like in a panel header icon) to have the img wrapped
         // by a div. If our autoEl is not 'img' then we just add an img child to the el.
-        if (me.autoEl == 'img') {
+        if (autoEl === 'img' || (Ext.isObject(autoEl) && autoEl.tag === 'img')) {
             img = config;
         } else if (me.glyph) {
             if (typeof glyph === 'string') {
@@ -120,6 +105,7 @@ Ext.define('Ext.Img', {
         } else {
             config.cn = [img = {
                 tag: 'img',
+                role: me.ariaRole,
                 id: me.id + '-img'
             }];
         }
@@ -144,12 +130,19 @@ Ext.define('Ext.Img', {
 
     onRender: function () {
         var me = this,
+            autoEl = me.autoEl,
             el;
 
         me.callParent(arguments);
 
         el = me.el;
-        me.imgEl = (me.autoEl == 'img') ? el : el.getById(me.id + '-img');
+        
+        if (autoEl === 'img' || (Ext.isObject(autoEl) && autoEl.tag === 'img')) {
+            me.imgEl = el;
+        }
+        else {
+            me.imgEl = el.getById(me.id + '-img');
+        }
     },
 
     onDestroy: function () {

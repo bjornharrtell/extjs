@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This class provides a container DD instance that allows dropping on multiple child target nodes.
  *
@@ -25,8 +5,8 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * However a simpler way to allow a DropZone to manage any number of target elements is to configure the
  * DropZone with an implementation of {@link #getTargetFromEvent} which interrogates the passed
  * mouse event to see if it has taken place within an element, or class of elements. This is easily done
- * by using the event's {@link Ext.EventObject#getTarget getTarget} method to identify a node based on a
- * {@link Ext.DomQuery} selector.
+ * by using the event's {@link Ext.event.Event#getTarget getTarget} method to identify a node based on a
+ * CSS selector.
  *
  * Once the DropZone has detected through calling getTargetFromEvent, that the mouse is over
  * a drop target, that target is passed as the first parameter to {@link #onNodeEnter}, {@link #onNodeOver},

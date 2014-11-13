@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A custom HeaderContainer for the {@link Ext.grid.property.Grid}.
  * Generally it should not need to be used directly.
@@ -27,7 +7,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
     extend: 'Ext.grid.header.Container',
 
     alternateClassName: 'Ext.grid.PropertyColumnModel',
-    
+
     nameWidth: 115,
 
     // @private strings used for locale support
@@ -58,7 +38,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
      */
     constructor : function(grid, store) {
         var me = this;
-        
+
         me.grid = grid;
         me.store = store;
         me.callParent([{
@@ -70,15 +50,15 @@ Ext.define('Ext.grid.property.HeaderContainer', {
                 width: grid.nameColumnWidth || me.nameWidth,
                 sortable: grid.sortableColumns,
                 dataIndex: grid.nameField,
-                renderer: Ext.Function.bind(me.renderProp, me),
+                renderer: me.renderProp.bind(me),
                 itemId: grid.nameField,
-                menuDisabled :true,
+                menuDisabled: true,
                 tdCls: me.nameColumnCls,
                 innerCls: me.nameColumnInnerCls
             }, {
                 header: me.valueText,
-                renderer: Ext.Function.bind(me.renderCell, me),
-                getEditor: Ext.Function.bind(me.getCellEditor, me),
+                renderer: me.renderCell.bind(me),
+                getEditor: me.getCellEditor.bind(me),
                 sortable: grid.sortableColumns,
                 flex: 1,
                 fixed: true,
@@ -87,8 +67,11 @@ Ext.define('Ext.grid.property.HeaderContainer', {
                 menuDisabled: true
             }]
         }]);
+
+        // PropertyGrid needs to know which column is the editable "value" column.
+        me.grid.valueColumn = me.items.items[1];
     },
-    
+
     getCellEditor: function(record){
         return this.grid.getCellEditor(record, this);
     },

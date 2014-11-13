@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * ToolTip is a {@link Ext.tip.Tip} implementation that handles the common case of displaying a
  * tooltip when hovering over a certain element or elements on the page. It allows fine-grained
@@ -33,12 +13,11 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *
  * # Basic Example
  *
+ *     @example
  *     var tip = Ext.create('Ext.tip.ToolTip', {
  *         target: 'clearButton',
  *         html: 'Press this button to clear the form'
  *     });
- *
- * {@img Ext.tip.ToolTip/Ext.tip.ToolTip1.png Basic Ext.tip.ToolTip}
  *
  * # Delegation
  *
@@ -52,6 +31,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * of the ToolTip based on each delegate element; you can do this by implementing a custom
  * listener for the {@link #beforeshow} event. Example:
  *
+ *     @example
  *     var store = Ext.create('Ext.data.ArrayStore', {
  *         fields: ['company', 'price', 'change'],
  *         data: [
@@ -76,7 +56,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *         width: 400,
  *         renderTo: Ext.getBody()
  *     });
- *     
+ *
  *     var view = grid.getView();
  *     var tip = Ext.create('Ext.tip.ToolTip', {
  *         // The overall target element.
@@ -94,8 +74,6 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *             }
  *         }
  *     });
- *
- * {@img Ext.tip.ToolTip/Ext.tip.ToolTip2.png Ext.tip.ToolTip with delegation}
  *
  * # Alignment
  *
@@ -124,6 +102,7 @@ Ext.define('Ext.tip.ToolTip', {
     extend: 'Ext.tip.Tip',
     alias: 'widget.tooltip',
     alternateClassName: 'Ext.ToolTip',
+
     /**
      * @property {HTMLElement} triggerElement
      * When a ToolTip is configured with the `{@link #delegate}`
@@ -132,7 +111,7 @@ Ext.define('Ext.tip.ToolTip', {
      * the DOM element which triggered the show.
      */
     /**
-     * @cfg {HTMLElement/Ext.Element/String} target
+     * @cfg {HTMLElement/Ext.dom.Element/String} target
      * The target element or string id to monitor for mouseover events to trigger
      * showing this ToolTip.
      */
@@ -144,7 +123,7 @@ Ext.define('Ext.tip.ToolTip', {
      * a close tool button will be rendered into the tooltip header.
      */
     autoHide: true,
-    
+
     /**
      * @cfg {Number} showDelay
      * Delay in milliseconds before the tooltip displays after the mouse enters the target element.
@@ -194,12 +173,13 @@ Ext.define('Ext.tip.ToolTip', {
      * a vertical offset.
      */
     anchorOffset: 0,
+
     /**
      * @cfg {String} delegate
      *
-     * A {@link Ext.DomQuery DomQuery} selector which allows selection of individual elements within the
+     * A {@link Ext.DomQuery DomQuery} simple selector which allows selection of individual elements within the
      * `{@link #target}` element to trigger showing and hiding the ToolTip as the mouse moves within the
-     * target.
+     * target. See {@link Ext.dom.Query} for information about simple selectors.
      *
      * When specified, the child element of the target which caused a show event is placed into the
      * `{@link #triggerElement}` property before the ToolTip is shown.
@@ -212,7 +192,23 @@ Ext.define('Ext.tip.ToolTip', {
 
     // @private
     targetCounter: 0,
+
     quickShowInterval: 250,
+
+    /**
+     * @cfg {String} [hideAction="hide"]
+     * The method to use to hide the tooltip. Another useful method for this is `fadeOut`.
+     */
+    hideAction: 'hide',
+
+    /**
+     * @cfg {Number} [fadeOutDuration=1000]
+     * The number of milliseconds for the `fadeOut` animation. Only valid if `hideAction`
+     * is set to `fadeOut`.
+     */
+    fadeOutDuration: 1000,
+
+    ariaRole: 'tooltip',
 
     // @private
     initComponent: function() {
@@ -228,14 +224,21 @@ Ext.define('Ext.tip.ToolTip', {
         var me = this;
         me.callParent(arguments);
         me.anchorCls = Ext.baseCSSPrefix + 'tip-anchor-' + me.getAnchorPosition();
+        //<debug>
+        if (me.sticky) {
+            // tell the spec runner to ignore this element when checking if the dom is clean 
+            me.el.dom.setAttribute('data-sticky', true);
+        }
+        //</debug>
         me.anchorEl = me.el.createChild({
+            role: 'presentation',
             cls: Ext.baseCSSPrefix + 'tip-anchor ' + me.anchorCls
         });
     },
 
     /**
      * Binds this ToolTip to the specified element. The tooltip will be displayed when the mouse moves over the element.
-     * @param {String/HTMLElement/Ext.Element} t The Element, HtmlElement, or ID of an element to bind to
+     * @param {String/HTMLElement/Ext.dom.Element} t The Element, HTMLElement, or ID of an element to bind to
      */
     setTarget: function(target) {
         var me = this,
@@ -244,24 +247,33 @@ Ext.define('Ext.tip.ToolTip', {
 
         if (me.target) {
             tg = Ext.get(me.target);
-            me.mun(tg, 'mouseover', me.onTargetOver, me);
-            me.mun(tg, 'mouseout', me.onTargetOut, me);
-            me.mun(tg, 'mousemove', me.onMouseMove, me);
+            if (Ext.supports.Touch) {
+                me.mun(tg, 'tap', me.onTargetOver, me);
+            } else {
+                me.mun(tg, {
+                    mouseover: me.onTargetOver,
+                    mouseout: me.onTargetOut,
+                    mousemove: me.onMouseMove,
+                    scope: me
+                });
+            }
         }
 
         me.target = t;
         if (t) {
-
-            me.mon(t, {
-                // TODO - investigate why IE6/7 seem to fire recursive resize in e.getXY
-                // breaking QuickTip#onTargetOver (EXTJSIV-1608)
-                freezeEvent: true,
-
-                mouseover: me.onTargetOver,
-                mouseout: me.onTargetOut,
-                mousemove: me.onMouseMove,
-                scope: me
-            });
+            if (Ext.supports.Touch) {
+                me.mon(t, {
+                    tap: me.onTargetOver,
+                    scope: me
+                });
+            } else {
+                me.mon(t, {
+                    mouseover: me.onTargetOver,
+                    mouseout: me.onTargetOut,
+                    mousemove: me.onMouseMove,
+                    scope: me
+                });
+            }
         }
         if (me.anchor) {
             me.anchorTarget = me.target;
@@ -271,25 +283,30 @@ Ext.define('Ext.tip.ToolTip', {
     // @private
     onMouseMove: function(e) {
         var me = this,
-            t = me.delegate ? e.getTarget(me.delegate) : me.triggerElement = true,
+            t,
             xy;
-        if (t) {
-            me.targetXY = e.getXY();
-            if (t === me.triggerElement) {
-                if (!me.hidden && me.trackMouse) {
-                    xy = me.getTargetXY();
-                    if (me.constrainPosition) {
-                        xy = me.el.adjustForConstraints(xy, me.el.parent());
+
+        // If the event target is no longer in this tip's target (possibly due to rapidly churning content in target), ignore it.
+        if (!me.target || me.target.contains(e.target)) {
+            t = me.delegate ? e.getTarget(me.delegate) : me.triggerElement = true;
+            if (t) {
+                me.targetXY = e.getXY();
+                if (t === me.triggerElement) {
+                    if (!me.hidden && me.trackMouse) {
+                        xy = me.getTargetXY();
+                        if (me.constrainPosition) {
+                            xy = me.el.adjustForConstraints(xy, me.el.parent());
+                        }
+                        me.setPagePosition(xy);
                     }
-                    me.setPagePosition(xy);
+                } else {
+                    me.hide();
+                    me.lastActive = new Date(0);
+                    me.onTargetOver(e);
                 }
-            } else {
-                me.hide();
-                me.lastActive = new Date(0);
-                me.onTargetOver(e);
+            } else if ((!me.closable && me.isVisible()) && me.autoHide !== false) {
+                me.delayHide();
             }
-        } else if ((!me.closable && me.isVisible()) && me.autoHide !== false) {
-            me.hide();
         }
     },
 
@@ -305,8 +322,8 @@ Ext.define('Ext.tip.ToolTip', {
             me.targetCounter++;
             offsets = me.getOffsets();
             xy = (me.anchorToTarget && !me.trackMouse) ? me.getAlignToXY(me.anchorTarget, me.getAnchorAlign()) : me.targetXY;
-            dw = Ext.Element.getViewWidth() - 5;
-            dh = Ext.Element.getViewHeight() - 5;
+            dw = Ext.Element.getViewportWidth() - 5;
+            dh = Ext.Element.getViewportHeight() - 5;
             de = document.documentElement;
             bd = document.body;
             scrollX = (de.scrollLeft || bd.scrollLeft || 0) + 5;
@@ -378,6 +395,18 @@ Ext.define('Ext.tip.ToolTip', {
             offset[1] += me.mouseOffset[1];
         }
         return offset;
+    },
+
+    fadeOut: function () {
+        var me = this;
+
+        me.el.fadeOut({
+            duration: me.fadeOutDuration,
+            callback: function () {
+                me.hide();
+                me.el.setOpacity('');
+            }
+        });
     },
 
     // @private
@@ -485,26 +514,36 @@ Ext.define('Ext.tip.ToolTip', {
     },
 
     // @private
-    delayShow: function() {
-        var me = this;
+    delayShow: function (trackMouse) {
+        // When delaying, cache the XY coords of the mouse when this method was invoked, NOT when the deferred
+        // show is called because the mouse could then be in a completely different location. Only cache the
+        // coords when trackMouse is false.
+        //
+        // Note that the delayShow call could be coming from a caller which would internally be setting trackMouse
+        // (e.g., Ext.chart.Tip:showTip()). Because of this, the caller will pass along the original value for
+        // trackMouse (i.e., the value passed to the component constructor) to the delayShow method.
+        // See EXTJSIV-11292.
+        var me = this,
+            xy = me.el && (trackMouse === false || !me.trackMouse) && me.getTargetXY();
+
         if (me.hidden && !me.showTimer) {
             if (Ext.Date.getElapsed(me.lastActive) < me.quickShowInterval) {
                 me.show();
             } else {
-                me.showTimer = Ext.defer(me.showFromDelay, me.showDelay, me);
+                me.showTimer = Ext.defer(me.showFromDelay, me.showDelay, me, [xy]);
             }
         }
         else if (!me.hidden && me.autoHide !== false) {
-            me.show();
+            me.show(xy);
         }
     },
     
-    showFromDelay: function(){
+    showFromDelay: function (xy) {
         this.fromDelayShow = true;
-        this.show();
+        this.show(xy);
         delete this.fromDelayShow;
     },
-    
+
     onShowVeto: function(){
         this.callParent();
         delete this.triggerElement;
@@ -520,7 +559,7 @@ Ext.define('Ext.tip.ToolTip', {
             target = triggerEl === true ? me.target : triggerEl;
 
         // If disabled, moving within the current target, ignore the mouseout
-        // EventObject.within is the only correct way to determine this.
+        // e.within is the only correct way to determine this.
         if (me.disabled || !triggerEl || e.within(target, true)) {
             return;
         }
@@ -536,8 +575,9 @@ Ext.define('Ext.tip.ToolTip', {
     // @private
     delayHide: function() {
         var me = this;
+
         if (!me.hidden && !me.hideTimer) {
-            me.hideTimer = Ext.defer(me.hide, me.hideDelay, me);
+            me.hideTimer = Ext.defer(me[me.hideAction], me.hideDelay, me);
         }
     },
 
@@ -558,21 +598,20 @@ Ext.define('Ext.tip.ToolTip', {
     /**
      * Shows this tooltip at the current event target XY position.
      */
-    show: function() {
+    show: function (xy) {
         var me = this;
 
         // Show this Component first, so that sizing can be calculated
         // pre-show it off screen so that the el will have dimensions
         this.callParent();
         if (this.hidden === false) {
-            me.setPagePosition(-10000, -10000);
-
             if (me.anchor) {
                 me.anchor = me.origAnchor;
             }
-            
+
             if (!me.calledFromShowAt) {
-                me.showAt(me.getTargetXY());
+                // If the caller was this.showFromDelay(), the XY coords may have been cached.
+                me.showAt(xy || me.getTargetXY());
             }
 
             if (me.anchor) {

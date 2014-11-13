@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A display-only text field which is not validated and not submitted. This is useful for when you want to display a
  * value from a form's {@link Ext.form.Basic#load loaded data} but do not want to allow the user to edit or submit that
@@ -57,10 +37,13 @@ Ext.define('Ext.form.field.Display', {
     alias: 'widget.displayfield',
     requires: ['Ext.util.Format', 'Ext.XTemplate'],
     alternateClassName: ['Ext.form.DisplayField', 'Ext.form.Display'],
+    
+    ariaRole: 'textbox',
+    
     fieldSubTpl: [
-        '<div id="{id}" role="input" ',
+        '<div id="{id}" role="{role}" {inputAttrTpl}',
         '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>', 
-        ' class="{fieldCls}">{value}</div>',
+        ' class="{fieldCls} {fieldCls}-{ui}">{value}</div>',
         {
             compiled: true,
             disableFormats: true
@@ -110,17 +93,21 @@ Ext.define('Ext.form.field.Display', {
 
     submitValue: false,
     
+    valueToRaw: function(value) {
+        if (!value && value !== 0) {
+            return '';
+        } else {
+            return value;
+        }
+    },
+    
     isDirty: function(){
         return false;
     },
 
-    isValid: function() {
-        return true;
-    },
+    isValid: Ext.returnTrue,
 
-    validate: function() {
-        return true;
-    },
+    validate: Ext.returnTrue,
 
     getRawValue: function() {
         return this.rawValue;
@@ -129,7 +116,7 @@ Ext.define('Ext.form.field.Display', {
     setRawValue: function(value) {
         var me = this;
             
-        value = Ext.value(value, '');
+        value = Ext.valueFrom(value, '');
         me.rawValue = value;
         if (me.rendered) {
             me.inputEl.dom.innerHTML = me.getDisplayValue();

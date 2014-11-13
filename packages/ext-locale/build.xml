@@ -6,6 +6,7 @@
     limit your changes to this file.
     -->
     <import file="${basedir}/.sencha/package/build-impl.xml"/>
+    <import file="${basedir}/.sencha/test/test-impl.xml"/>
 
     <!--
     The following targets can be provided to inject logic before and/or after key steps
@@ -34,6 +35,8 @@
             <target name="-after-build"/>
     -->
 
+    <target name="build" depends="init,build-all"/>
+
     <target name="build-all" depends="init">
         
         <for param="build.locale.dir">
@@ -51,8 +54,13 @@
                      target="js"
                      useNativeBasedir="true"
                      inheritrefs="true">
-                    <property name="package.locale" value="${build.locale}"/>
+                    <property name="package.framework" value="ext"/>
                     <property name="cmd.dir" value="${cmd.dir}"/>
+                    <property name="compiler.ref.id" 
+                              value="${compiler.ref.id}-${build.locale}"/>
+                    <property name="package.locale" value="${build.locale}"/>
+                    <property name="build.name.prefix" value="${build.dir}/${package.name}-${build.locale}"/>
+                    <property name="build.name.css.prefix" value="${build.resources.dir}/${package.name}-${build.locale}"/>
                 </ant>
 
             </sequential>

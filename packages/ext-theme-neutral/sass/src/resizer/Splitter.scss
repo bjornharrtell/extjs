@@ -1,5 +1,8 @@
 .#{$prefix}collapse-el {
     cursor: $collapse-tool-cursor;
+    @if $collapse-tool-opacity != 1 {
+        @include opacity($collapse-tool-opacity);
+    }
 }
 
 .#{$prefix}layout-split-left,

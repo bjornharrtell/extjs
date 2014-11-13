@@ -6,10 +6,10 @@
     }
     font: $grid-column-header-font;
 
-    @if ($supports-gradients or $compile-all) and $grid-header-background-gradient != null {
+    @if not is-null($grid-header-background-gradient) {
         @include background-gradient($grid-header-background-color, $grid-header-background-gradient);
     }
-    @if $grid-header-background-gradient == null {
+    @if is-null($grid-header-background-gradient) {
         background-color: $grid-header-background-color;
     }
 }
@@ -36,16 +36,21 @@
     text-overflow: ellipsis;
 }
 
-@if $supports-gradients {
-    .#{$prefix}column-header-over,
-    .#{$prefix}column-header-sort-ASC,
-    .#{$prefix}column-header-sort-DESC {
-        @include background-gradient($grid-header-over-background-color, $grid-header-over-background-gradient);
-    }
+.#{$prefix}column-header-inner-empty {
+    // The default text for an empty column header is a space.  It can trigger an ellipsis
+    // if the column width is too small.  Ensure this does not happen by clipping overflow
+    // of empty colum headers.
+    text-overflow: clip;
 }
 
-@if not $supports-gradients or $compile-all  {
-    @if $grid-header-background-gradient != null {
+.#{$prefix}column-header-over,
+.#{$prefix}column-header-sort-ASC,
+.#{$prefix}column-header-sort-DESC {
+    @include background-gradient($grid-header-over-background-color, $grid-header-over-background-gradient);
+}
+
+@if $include-slicer-gradient {
+    @if not is-null($grid-header-background-gradient) {
         .#{$prefix}nlg {
             .#{$prefix}grid-header-ct,
             .#{$prefix}column-header {
@@ -55,7 +60,7 @@
         $stretch: slicer-background-stretch(column-header, bottom);
     }
 
-    @if $grid-header-over-background-gradient != null {
+    @if not is-null($grid-header-over-background-gradient) {
         .#{$prefix}nlg {
             .#{$prefix}column-header-over,
             .#{$prefix}column-header-sort-ASC,

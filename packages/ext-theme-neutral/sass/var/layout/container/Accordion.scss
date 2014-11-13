@@ -15,6 +15,12 @@ $accordion-header-color: #000 !default;
 $accordion-header-background-color: $base-color !default;
 
 /**
+ * @var {color}
+ * The background-color of Accordion headers when hovered
+ */
+$accordion-header-over-background-color: $accordion-header-background-color !default;
+
+/**
  * @var {number}
  * The size of {@link Ext.panel.Tool Tools} in Accordion headers
  */
@@ -28,6 +34,12 @@ $accordion-header-border-width: 1px 0 !default;
 
 /**
  * @var {number/list}
+ * The border-color of Accordion headers
+ */
+$accordion-header-border-color: $panel-header-border-color !default;
+
+/**
+ * @var {number/list}
  * The padding of Accordion headers
  */
 $accordion-header-padding: 4px 5px !default;
@@ -36,7 +48,7 @@ $accordion-header-padding: 4px 5px !default;
  * @var {string}
  * The font-weight of Accordion headers
  */
-$accordion-header-font-weight: normal !default;
+$accordion-header-font-weight: $font-weight !default;
 
 /**
  * @var {string}

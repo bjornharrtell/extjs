@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * This plugin provides drag and/or drop functionality for a TreeView.
  *
@@ -34,11 +14,11 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *
  *     The source TreeView from which the drag originated.
  *
- *   - ddel : HtmlElement
+ *   - ddel : HTMLElement
  *
  *     The drag proxy element which moves with the mouse
  *
- *   - item : HtmlElement
+ *   - item : HTMLElement
  *
  *     The TreeView node upon which the mousedown event was registered.
  *
@@ -59,7 +39,7 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *     }
  */
 Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
-    extend: 'Ext.AbstractPlugin',
+    extend: 'Ext.plugin.Abstract',
     alias: 'plugin.treeviewdragdrop',
 
     uses: [
@@ -180,7 +160,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
     appendOnly: false,
 
     /**
-     * @cfg {String} ddGroup
+     * @cfg {String} [ddGroup=TreeDD]
      * A named drag drop group to which this object belongs. If a group is specified, then both the DragZones and
      * DropZone used by this plugin will only interact with other drag drop objects in the same group.
      */
@@ -194,19 +174,19 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
     containerScroll: false,
 
     /**
-     * @cfg {String} dragGroup
-     * The ddGroup to which the DragZone will belong.
+     * @cfg {String} [dragGroup]
+     * The ddGroup to which the {@link #property-dragZone DragZone} will belong.
      *
      * This defines which other DropZones the DragZone will interact with. Drag/DropZones only interact with other
      * Drag/DropZones which are members of the same ddGroup.
      */
 
     /**
-     * @cfg {String} dropGroup
-     * The ddGroup to which the DropZone will belong.
+     * @cfg {String} [dropGroup]
+     * The ddGroup to which the {@link #property-dropZone DropZone} will belong.
      *
      * This defines which other DragZones the DropZone will interact with. Drag/DropZones only interact with other
-     * Drag/DropZones which are members of the same ddGroup.
+     * Drag/DropZones which are members of the same {@link #ddGroup}.
      */
 
     /**
@@ -215,7 +195,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      */
 
     /**
-     * @cfg {Number} expandDelay
+     * @cfg {Number} [expandDelay=1000]
      * The delay in milliseconds to wait before expanding a target tree node while dragging a droppable node over the
      * target.
      */
@@ -234,7 +214,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
     enableDrag: true,
 
     /**
-     * @cfg {String} nodeHighlightColor
+     * @cfg {String} [nodeHighlightColor=c3daf9]
      * The color to use when visually highlighting the dragged or dropped node (default value is light blue).
      * The color must be a 6 digit hex value, without a preceding '#'. See also {@link #nodeHighlightOnDrop} and
      * {@link #nodeHighlightOnRepair}.
@@ -255,13 +235,36 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * repaired from an unsuccessful drag/drop. Defaults to the value of `Ext.enableFx`.
      * See also {@link #nodeHighlightColor} and {@link #nodeHighlightOnDrop}.
      */
-    nodeHighlightOnRepair: Ext.enableFx,
-    
+
     /**
-     * @cfg {String} displayField
+     * @cfg {String} [displayField=text]
      * The name of the model field that is used to display the text for the nodes
      */
     displayField: 'text',
+
+    /**
+     * @cfg {Object} [dragZone]
+     * A config object to apply to the creation of the {@link #property-dragZone DragZone} which handles for drag start gestures.
+     *
+     * Template methods of the DragZone may be overridden using this config.
+     */
+
+    /**
+     * @cfg {Object} [dropZone]
+     * A config object to apply to the creation of the {@link #property-dropZone DropZone} which handles mouseover and drop gestures.
+     *
+     * Template methods of the DropZone may be overridden using this config.
+     */
+
+    /**
+     * @property {Ext.view.DragZone} dragZone
+     * An {@link Ext.view.DragZone DragZone} which handles mousedown and dragging of records from the grid.
+     */
+
+    /**
+     * @property {Ext.grid.ViewDropZone} dropZone
+     * An {@link Ext.grid.ViewDropZone DropZone} which handles mouseover and dropping records in any grid which shares the same {@link #dropGroup}.
+     */
 
     init : function(view) {
         view.on('render', this.onViewRender, this, {single: true});
@@ -269,7 +272,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
 
     /**
      * @private
-     * AbstractComponent calls destroy on all its plugins at destroy time.
+     * Component calls destroy on all its plugins at destroy time.
      */
     destroy: function() {
         Ext.destroy(this.dragZone, this.dropZone);
@@ -283,7 +286,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
             if (me.containerScroll) {
                 scrollEl = view.getEl();
             }
-            me.dragZone = new Ext.tree.ViewDragZone({
+            me.dragZone = new Ext.tree.ViewDragZone(Ext.apply({
                 view: view,
                 ddGroup: me.dragGroup || me.ddGroup,
                 dragText: me.dragText,
@@ -291,11 +294,11 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
                 repairHighlightColor: me.nodeHighlightColor,
                 repairHighlight: me.nodeHighlightOnRepair,
                 scrollEl: scrollEl
-            });
+            }, me.dragZone));
         }
 
         if (me.enableDrop) {
-            me.dropZone = new Ext.tree.ViewDropZone({
+            me.dropZone = new Ext.tree.ViewDropZone(Ext.apply({
                 view: view,
                 ddGroup: me.dropGroup || me.ddGroup,
                 allowContainerDrops: me.allowContainerDrops,
@@ -306,7 +309,7 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
                 dropHighlight: me.nodeHighlightOnDrop,
                 sortOnDrop: me.sortOnDrop,
                 containerScroll: me.containerScroll
-            });
+            }, me.dropZone));
         }
     }
 }, function(){

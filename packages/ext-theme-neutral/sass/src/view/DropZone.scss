@@ -24,13 +24,3 @@
         width: 16px;
     }
 }
-
-.#{$prefix}ie6 {
-    .#{$prefix}grid-drop-indicator-left {
-        background-image: theme-background-image('grid/dd-insert-arrow-right');
-    }
-
-    .#{$prefix}grid-drop-indicator-right {
-        background-image: theme-background-image('grid/dd-insert-arrow-left');
-    }
-}

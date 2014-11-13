@@ -1,32 +1,19 @@
-
-//@require @packageOverrides
-
-if (Ext.repoDevMode) {
-    document.write('<link rel="stylesheet" type="text/css" href="../build/KitchenSink/ext-theme-' +
-        Ext.themeName + '/resources/KitchenSink-all.css"/>');
-}
-
+/*
+ * This file is generated and updated by Sencha Cmd. You can edit this file as
+ * needed for your application, but these edits will have to be merged by
+ * Sencha Cmd when upgrading.
+ */
 Ext.application({
+    extend: 'KitchenSink.Application',
 
     name: 'KitchenSink',
 
-    requires: [
-        'KitchenSink.DummyText',
-        'KitchenSink.data.DataSets',
-        'Ext.state.CookieProvider',
-        'Ext.window.MessageBox',
-        'Ext.tip.QuickTipManager'
-    ],
+    autoCreateViewport: 'KitchenSink.view.main.Main'
+	
+    //-------------------------------------------------------------------------
+    // Most customizations should be made to KitchenSink.Application. If you need to
+    // customize this file, doing so below this section reduces the likelihood
+    // of merge conflicts when upgrading to new versions of Sencha Cmd.
+    //-------------------------------------------------------------------------
 
-    controllers: [
-        'Main'
-    ],
-
-    autoCreateViewport: true,
-
-    init: function() {
-        Ext.setGlyphFontFamily('Pictos');
-        Ext.tip.QuickTipManager.init();
-        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
-    }
 });

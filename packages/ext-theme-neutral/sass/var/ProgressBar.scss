@@ -44,7 +44,7 @@ $progress-bar-background-color: $base-color !default;
  * a predefined gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  */
-$progress-bar-background-gradient: null !default;
+$progress-bar-background-gradient: 'none' !default;
 
 /**
  * @var {color}
@@ -74,7 +74,13 @@ $progress-text-font-size: $font-size !default;
  * @var {string}
  * The font-weight of the ProgressBar's text
  */
-$progress-text-font-weight: bold !default;
+$progress-text-font-weight: $font-weight-bold !default;
+
+/**
+ * @var {string}
+ * The font-family of the ProgressBar's text
+ */
+$progress-text-font-family: $font-family !default;
 
 /**
  * @var {boolean}

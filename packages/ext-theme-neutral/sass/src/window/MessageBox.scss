@@ -26,6 +26,12 @@
     }
 }
 
+.#{$prefix}message-box-icon {
+    height: $messagebox-icon-size;
+    width: $messagebox-icon-size;
+    margin-right: $messagebox-icon-spacing;
+}
+
 .#{$prefix}message-box-info {
     background-image: theme-background-image('shared/icon-info');
 }

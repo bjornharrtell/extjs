@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A time picker which provides a list of times from which to choose. This is used by the Ext.form.field.Time
  * class to allow browsing and selection of valid times, but could also be used with other components.
@@ -104,12 +84,6 @@ Ext.define('Ext.picker.Time', {
 
         me.store = me.createStore();
 
-        // Add our min/max range filter, but do not apply it.
-        // The owning TimeField will filter it.
-        me.store.addFilter(me.rangeFilter = new Ext.util.Filter({
-            id: 'time-picker-filter'
-        }), false);
-
         // Updates the range filter's filterFn according to our configured min and max
         me.updateList();
 
@@ -155,13 +129,22 @@ Ext.define('Ext.picker.Time', {
     updateList: function() {
         var me = this,
             min = me.normalizeDate(me.minValue || me.absMin),
-            max = me.normalizeDate(me.maxValue || me.absMax);
-
-        me.rangeFilter.setFilterFn(function(record) {
-            var date = record.get('date');
-            return date >= min && date <= max;
+            max = me.normalizeDate(me.maxValue || me.absMax),
+            filters = me.getStore().getFilters(),
+            filter = me.rangeFilter;
+        
+        filters.beginUpdate();
+        if (filter) {
+            filters.remove(filter);
+        }
+        filter = me.rangeFilter = new Ext.util.Filter({
+            filterFn: function(record) {
+                var date = record.get('date');
+                return date >= min && date <= max;
+            }
         });
-        me.store.filter();
+        filters.add(filter);
+        filters.endUpdate();
     },
 
     /**
@@ -186,7 +169,8 @@ Ext.define('Ext.picker.Time', {
         }
 
         return new Ext.data.Store({
-            fields: ['disp', 'date'],
+            model: me.modelType,
+            autoDestroy: true,
             data: times
         });
     },
@@ -196,5 +180,9 @@ Ext.define('Ext.picker.Time', {
         // so this is here to prevent focus of the boundlist view. See EXTJSIV-7319.
         return false;
     }
-
+}, function() {
+    this.prototype.modelType = Ext.define(null, {
+        extend: 'Ext.data.Model',
+        fields: ['disp', 'date']
+    });
 });

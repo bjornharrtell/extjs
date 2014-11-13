@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  */
@@ -65,11 +45,16 @@ Ext.define('Ext.view.DragZone', {
     },
 
     init: function(id, sGroup, config) {
-        this.initTarget(id, sGroup, config);
-        this.view.mon(this.view, {
-            itemmousedown: this.onItemMouseDown,
-            scope: this
-        });
+        var me = this,
+            // TODO: does multi-input device IE handle this correctly?
+            triggerEvent = Ext.supports.touchScroll ? 'itemlongpress' : 'itemmousedown',
+            eventSpec = {
+                scope: me
+            };
+
+        eventSpec[triggerEvent] = me.onItemMouseDown;
+        me.initTarget(id, sGroup, config);
+        me.view.mon(me.view, eventSpec);
     },
 
     onValidDrop: function(target, e, id) {
@@ -90,8 +75,18 @@ Ext.define('Ext.view.DragZone', {
         }
     },
 
-    // private template method
-    isPreventDrag: function(e) {
+    /**
+     * @protected
+     * Template method called upon mousedown. May be overridden in subclasses, or configured
+     * into an instance.
+     *
+     * Return `true` to prevent drag start.
+     * @param {Ext.event.Event} e The mousedown event.
+     * @param {Ext.data.Model} record The record mousedowned upon.
+     * @param {HTMLElement} item The grid row mousedowned upon.
+     * @param {Number} index The row number mousedowned upon.
+     */
+    isPreventDrag: function(e, record, item, index) {
         return false;
     },
 
@@ -102,7 +97,7 @@ Ext.define('Ext.view.DragZone', {
         if (item) {
             return {
                 copy: view.copy || (view.allowCopy && e.ctrlKey),
-                event: new Ext.EventObjectImpl(e),
+                event: e,
                 view: view,
                 ddel: this.ddel,
                 item: item,
@@ -122,11 +117,11 @@ Ext.define('Ext.view.DragZone', {
         // Update the selection to match what would have been selected if the user had
         // done a full click on the target node rather than starting a drag from it
         if (!selectionModel.isSelected(record)) {
-            selectionModel.select(record, true);
+            selectionModel.selectWithEvent(record, me.DDMInstance.mousedownEvent);
         }
         data.records = selectionModel.getSelection();
 
-        me.ddel.update(me.getDragText());
+        me.ddel.setHtml(me.getDragText());
         me.proxy.update(me.ddel.dom);
         me.onStartDrag(x, y);
         return true;
@@ -134,7 +129,7 @@ Ext.define('Ext.view.DragZone', {
 
     getDragText: function() {
         var count = this.dragData.records.length;
-        return Ext.String.format(this.dragText, count, count == 1 ? '' : 's');
+        return Ext.String.format(this.dragText, count, count === 1 ? '' : 's');
     },
 
     getRepairXY : function(e, data){

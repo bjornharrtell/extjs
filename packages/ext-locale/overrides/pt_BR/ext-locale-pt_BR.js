@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Portuguese/Brazil Translation by Weber Souza
  * 08 April 2007
@@ -61,8 +41,8 @@ Ext.onReady(function() {
 
     if (Ext.util && Ext.util.Format) {
         Ext.apply(Ext.util.Format, {
-            thousandSeparator: ',',
-            decimalSeparator: '.',
+            thousandSeparator: '.',
+            decimalSeparator: ',',
             currencySign: 'R$',
             // Brazilian Real
             dateFormat: 'd/m/Y'
@@ -254,13 +234,24 @@ Ext.define("Ext.locale.pt_BR.form.field.HtmlEditor", {
     });
 });
 
-Ext.define("Ext.locale.pt_BR.grid.header.Container", {
-    override: "Ext.grid.header.Container",
-    sortAscText: "Ordem Ascendente",
-    sortDescText: "Ordem Descendente",
-    lockText: "Bloquear Coluna",
-    unlockText: "Desbloquear Coluna",
-    columnsText: "Colunas"
+Ext.define('Ext.locale.pt_BR.grid.header.Container', {
+    override: 'Ext.grid.header.Container',
+    sortAscText: 'Ordem Ascendente',
+    sortDescText: 'Ordem Descendente',
+    columnsText: 'Colunas'
+});
+
+Ext.define('Ext.locale.pt_BR.grid.locking.Lockable', {
+    override: 'Ext.grid.locking.Lockable',
+    lockText: 'Bloquear Coluna',
+    unlockText: 'Desbloquear Coluna'
+});
+
+Ext.define('Ext.locale.pt_BR.grid.feature.Grouping', {
+    override: 'Ext.grid.feature.Grouping',
+    emptyGroupText: '(Nenhum)',
+    groupByText: 'Agrupar por este campo',
+    showGroupsText: 'Mostrar agrupad'
 });
 
 Ext.define("Ext.locale.pt_BR.grid.PropertyColumnModel", {

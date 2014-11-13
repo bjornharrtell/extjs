@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @class Ext.util.Memento
  * This class manages a set of captured properties from an object. These captured properties
@@ -84,6 +64,8 @@ Ext.define('Ext.util.Memento', (function () {
          * @param {String/String[]} props The property or array of properties to capture.
          */
         constructor: function (target, props) {
+            this.data = {};
+
             if (target) {
                 this.target = target;
                 if (props) {
@@ -137,15 +119,17 @@ Ext.define('Ext.util.Memento', (function () {
                 data = me.data,
                 prop;
 
+            clear = clear !== false;
+
             for (prop in data) {
                 if (data.hasOwnProperty(prop)) {
                     restoreValue(t, prop, data[prop]);
+                    if (clear) {
+                        delete data[prop];
+                    }
                 }
             }
 
-            if (clear !== false) {
-                delete me.data;
-            }
         }
     };
 }()));

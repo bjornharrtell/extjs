@@ -8,17 +8,4 @@
     border: $form-field-border-width solid;
     border-color: $form-field-border-color;
     height: $form-field-height;
-
-    @if $include-content-box {
-        .#{$prefix}content-box & {
-            height: $form-field-content-height;
-        }
-
-        @if $include-ext-toolbar-toolbar and $form-toolbar-field-height != $form-field-height {
-            .#{$prefix}content-box .#{$prefix}field-toolbar & {
-                height: $form-toolbar-field-content-height;
-            }
-        }
-
-    }
 }

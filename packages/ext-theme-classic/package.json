@@ -4,8 +4,10 @@
     "creator": "Sencha",
     "summary": "Ext JS Classic Theme",
     "detailedDescription": "The Classic Theme is the tried and true theme for Ext JS",
-    "version": "4.2.1",
-    "compatVersion": "4.2.0",
+    "version": "5.0.0",
+    "compatVersion": "5.0.0",
     "format": "1",
+    "local": true,
+    "requires": [],
     "extend": "ext-theme-neutral"
 }

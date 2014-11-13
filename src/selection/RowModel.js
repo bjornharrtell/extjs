@@ -1,27 +1,38 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
+ * A selection model for {@link Ext.grid.Panel grid panels} which allows selection grid rows..
+ *
  * Implements row based navigation via keyboard.
  *
- * Must synchronize across grid sections.
+ *     @example
+ *     var store = Ext.create('Ext.data.Store', {
+ *         fields  : ['name', 'email', 'phone'],
+ *         data    : {
+ *             items : [
+ *                 { name : 'Lisa',  email : 'lisa@simpsons.com',  phone : '555-111-1224' },
+ *                 { name : 'Bart',  email : 'bart@simpsons.com',  phone : '555-222-1234' },
+ *                 { name : 'Homer', email : 'homer@simpsons.com', phone : '555-222-1244' },
+ *                 { name : 'Marge', email : 'marge@simpsons.com', phone : '555-222-1254' }
+ *             ]
+ *         },
+ *         proxy   : {
+ *             type   : 'memory',
+ *             reader : {
+ *                 type : 'json',
+ *                 root : 'items'
+ *             }
+ *         }
+ *     });
+ *     Ext.create('Ext.grid.Panel', {
+ *         title    : 'Simpsons',
+ *         store    : store,
+ *         width    : 400,
+ *         renderTo : Ext.getBody(),
+ *         columns  : [
+ *             { text : 'Name',  dataIndex : 'name'  },
+ *             { text : 'Email', dataIndex : 'email', flex : 1 },
+ *             { text : 'Phone', dataIndex : 'phone' }
+ *         ]
+ *     });
  */
 Ext.define('Ext.selection.RowModel', {
     extend: 'Ext.selection.Model',
@@ -45,51 +56,48 @@ Ext.define('Ext.selection.RowModel', {
     /**
      * @cfg {Boolean} [ignoreRightMouseSelection=false]
      * True to ignore selections that are made when using the right mouse button if there are
-     * records that are already selected. If no records are selected, selection will continue 
+     * records that are already selected. If no records are selected, selection will continue
      * as normal
      */
     ignoreRightMouseSelection: false,
 
+    /**
+     * @event beforedeselect
+     * Fired before a record is deselected. If any listener returns false, the
+     * deselection is cancelled.
+     * @param {Ext.selection.RowModel} this
+     * @param {Ext.data.Model} record The deselected record
+     * @param {Number} index The row index deselected
+     */
+
+    /**
+     * @event beforeselect
+     * Fired before a record is selected. If any listener returns false, the
+     * selection is cancelled.
+     * @param {Ext.selection.RowModel} this
+     * @param {Ext.data.Model} record The selected record
+     * @param {Number} index The row index selected
+     */
+
+    /**
+     * @event deselect
+     * Fired after a record is deselected
+     * @param {Ext.selection.RowModel} this
+     * @param {Ext.data.Model} record The deselected record
+     * @param {Number} index The row index deselected
+     */
+
+    /**
+     * @event select
+     * Fired after a record is selected
+     * @param {Ext.selection.RowModel} this
+     * @param {Ext.data.Model} record The selected record
+     * @param {Number} index The row index selected
+     */
+
+    isRowModel: true,
+
     constructor: function() {
-        this.addEvents(
-            /**
-             * @event beforedeselect
-             * Fired before a record is deselected. If any listener returns false, the
-             * deselection is cancelled.
-             * @param {Ext.selection.RowModel} this
-             * @param {Ext.data.Model} record The deselected record
-             * @param {Number} index The row index deselected
-             */
-            'beforedeselect',
-
-            /**
-             * @event beforeselect
-             * Fired before a record is selected. If any listener returns false, the
-             * selection is cancelled.
-             * @param {Ext.selection.RowModel} this
-             * @param {Ext.data.Model} record The selected record
-             * @param {Number} index The row index selected
-             */
-            'beforeselect',
-
-            /**
-             * @event deselect
-             * Fired after a record is deselected
-             * @param {Ext.selection.RowModel} this
-             * @param {Ext.data.Model} record The deselected record
-             * @param {Number} index The row index deselected
-             */
-            'deselect',
-
-            /**
-             * @event select
-             * Fired after a record is selected
-             * @param {Ext.selection.RowModel} this
-             * @param {Ext.data.Model} record The selected record
-             * @param {Number} index The row index selected
-             */
-            'select'
-        );
         this.views = [];
         this.callParent(arguments);
     },
@@ -98,8 +106,11 @@ Ext.define('Ext.selection.RowModel', {
         var me = this;
 
         view.on({
-            itemmousedown: me.onRowMouseDown,
-            itemclick: me.onRowClick,
+            // Because we used to select on mousedown, contextmenu (right click) used to also select.
+            // Now we use click, for backward compatibility, we need to select on contextmenu too.
+            // Apps may assume that contextmenu selects: https://sencha.jira.com/browse/EXTJSIV-11297
+            rowcontextmenu: me.onRowClick,
+            rowclick: me.onRowClick,
             scope: me
         });
 
@@ -142,6 +153,10 @@ Ext.define('Ext.selection.RowModel', {
             end: me.onKeyEnd,
             space: me.onKeySpace,
             enter: me.onKeyEnter,
+            A: {
+                ctrl: true,
+                handler: me.selectAll
+            },
             scope: me
         });
     },
@@ -150,7 +165,7 @@ Ext.define('Ext.selection.RowModel', {
         var me = this,
             view = me.view,
             index;
-        
+
         if (view && me.isSelected(record)) {
             index = view.indexOf(record);
             view.onRowSelect(index);
@@ -188,10 +203,11 @@ Ext.define('Ext.selection.RowModel', {
             // We have to ask the BufferedRenderer to navigate to the target.
             // And that may involve asynchronous I/O, so must postprocess in a callback.
             view.bufferedRenderer.scrollTo(me.store.getCount() - 1, false, function(newIdx, newRecord) {
-                me.afterKeyNavigate(e, newRecord)
+                me.afterKeyNavigate(e, newRecord);
             });
         } else {
-            me.afterKeyNavigate(e, view.getRecord(view.all.getCount() - 1))
+            // Walk forwards to the end record
+            me.afterKeyNavigate(e, view.walkRecs(e.record, view.dataSource.getCount() - 1 - view.dataSource.indexOf(e.record)));
         }
     },
 
@@ -205,10 +221,11 @@ Ext.define('Ext.selection.RowModel', {
             // We have to ask the BufferedRenderer to navigate to the target.
             // And that may involve asynchronous I/O, so must postprocess in a callback.
             view.bufferedRenderer.scrollTo(0, false, function(newIdx, newRecord) {
-                me.afterKeyNavigate(e, newRecord)
+                me.afterKeyNavigate(e, newRecord);
             });
         } else {
-            me.afterKeyNavigate(e, view.getRecord(0));
+            // Walk forwards to the first record
+            me.afterKeyNavigate(e, view.walkRecs(e.record, -view.dataSource.indexOf(e.record)));
         }
     },
 
@@ -226,7 +243,7 @@ Ext.define('Ext.selection.RowModel', {
             // And that may involve asynchronous I/O, so must postprocess in a callback.
             if (view.bufferedRenderer) {
                 newIdx = Math.max(e.recordIndex - rowsVisible, 0);
-                (me.lastKeyEvent || (me.lastKeyEvent = new Ext.EventObjectImpl())).setEvent(e.browserEvent);
+                me.lastKeyEvent = e;
                 view.bufferedRenderer.scrollTo(newIdx, false, me.afterBufferedScrollTo, me);
             } else {
                 newRecord = view.walkRecs(e.record, -rowsVisible);
@@ -249,7 +266,7 @@ Ext.define('Ext.selection.RowModel', {
             // And that may involve asynchronous I/O, so must postprocess in a callback.
             if (view.bufferedRenderer) {
                 newIdx = Math.min(e.recordIndex + rowsVisible, me.store.getCount() - 1);
-                (me.lastKeyEvent || (me.lastKeyEvent = new Ext.EventObjectImpl())).setEvent(e.browserEvent);
+                me.lastKeyEvent = e;
                 view.bufferedRenderer.scrollTo(newIdx, false, me.afterBufferedScrollTo, me);
             } else {
                 newRecord = view.walkRecs(e.record, rowsVisible);
@@ -260,7 +277,8 @@ Ext.define('Ext.selection.RowModel', {
 
     // Select/Deselect based on pressing Spacebar.
     onKeySpace: function(e) {
-        var record = this.lastFocused;
+        // KeyNav's processEvent stamps the record in.
+        var record = e.record || this.lastFocused;
 
         if (record) {
             this.afterKeyNavigate(e, record);
@@ -284,7 +302,9 @@ Ext.define('Ext.selection.RowModel', {
     // could be simply focusing a record for discontiguous
     // selection. Provides bounds checking.
     onKeyDown: function(e) {
-        var newRecord = this.views[0].walkRecs(e.record, 1);
+        // If we are in the middle of an animated node expand, jump to next sibling.
+        // The first child record is in a temp animation DIV and will be removed, so will blur.
+        var newRecord = e.record.isExpandingOrCollapsing ? null : this.views[0].walkRecs(e.record, 1);
 
         if (newRecord) {
             this.afterKeyNavigate(e, newRecord);
@@ -292,7 +312,7 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     afterBufferedScrollTo: function(newIdx, newRecord) {
-        this.afterKeyNavigate(this.lastKeyEvent, newRecord)
+        this.afterKeyNavigate(this.lastKeyEvent, newRecord);
     },
 
     scrollByDeltaX: function(delta) {
@@ -315,41 +335,23 @@ Ext.define('Ext.selection.RowModel', {
 
     // Select the record with the event included so that
     // we can take into account ctrlKey, shiftKey, etc
-    onRowMouseDown: function(view, record, item, index, e) {
+    onRowClick: function(view, record, row, index, e) {
         var me = this;
-        
+
         // Record index will be -1 if the clicked record is a metadata record and not selectable
         if (index !== -1) {
             if (!me.allowRightMouseSelection(e)) {
                 return;
             }
 
-            if (!me.isSelected(record)) {
-                me.mousedownAction = true;
-                me.processSelection(view, record, item, index, e);
-            } else {
-                me.mousedownAction = false;
+            // Don't process if it's a right-click over a previously selected record.
+            if (!(e.type === 'contextmenu' && this.isSelected(record))) {
+                me.processSelection(view, record, row, index, e);
             }
         }
     },
-    
-    // If the mousedown event is vetoed, we still want to treat it as though we've had
-    // a mousedown because we don't want to proceed on click. For example, the click on
-    // an action column vetoes the mousedown event so the click isn't processed.
-    onVetoUIEvent: function(type, view, cell, rowIndex, cellIndex, e, record){
-        if (type == 'mousedown') {
-            this.mousedownAction = !this.isSelected(record);
-        }
-    },
 
-    onRowClick: function(view, record, item, index, e) {
-        if (this.mousedownAction) {
-            this.mousedownAction = false;
-        } else {
-            this.processSelection(view, record, item, index, e);
-        }
-    },
-    
+    // May be overridden by a subclass to process a click in different ways
     processSelection: function(view, record, item, index, e) {
         this.selectWithEvent(record, e);
     },
@@ -358,7 +360,7 @@ Ext.define('Ext.selection.RowModel', {
      * Checks whether a selection should proceed based on the ignoreRightMouseSelection
      * option.
      * @private
-     * @param {Ext.EventObject} e The event
+     * @param {Ext.event.Event} e The event
      * @return {Boolean} False if the selection should not proceed
      */
     allowRightMouseSelection: function(e) {
@@ -377,22 +379,50 @@ Ext.define('Ext.selection.RowModel', {
             viewsLn = views.length,
             rowIdx  = views[0].indexOf(record),
             eventName = isSelected ? 'select' : 'deselect',
-            i = 0;
+            i, view;
 
         if ((suppressEvent || me.fireEvent('before' + eventName, me, record, rowIdx)) !== false &&
                 commitFn() !== false) {
 
-            for (; i < viewsLn; i++) {
+            for (i = 0; i < viewsLn; i++) {
+                view = views[i];
                 if (isSelected) {
-                    views[i].onRowSelect(rowIdx, suppressEvent);
+                    view.onRowSelect(rowIdx, suppressEvent);
                 } else {
-                    views[i].onRowDeselect(rowIdx, suppressEvent);
+                    view.onRowDeselect(rowIdx, suppressEvent);
                 }
+
+                me.publishSelection(isSelected ? record : null);
             }
 
             if (!suppressEvent) {
                 me.fireEvent(eventName, me, record, rowIdx);
             }
+        }
+    },
+
+    publishSelection: function(record) {
+        var me = this,
+            single = me.selectionMode === "SINGLE",
+            grid = me.views[0].ownerGrid,
+            publishes;
+
+        if (me.setupPublish || (single && grid.reference)) {
+            if (!me.setupPublish) {
+                me.setupPublish = true;
+                publishes = grid.getPublishes() || {};
+                publishes.selection = 1;
+                grid.setPublishes(publishes);
+            }
+            me.lastPublish = record;
+            grid.publishState('selection', record);
+        }
+    },
+
+    onPrune: function(rec) {
+        var me = this;
+        if (me.lastPublish === rec) {
+            me.publishSelection(null);
         }
     },
 
@@ -406,7 +436,7 @@ Ext.define('Ext.selection.RowModel', {
 
         if (oldFocused) {
             rowIdx = views[0].indexOf(oldFocused);
-            if (rowIdx != -1) {
+            if (rowIdx !== -1) {
                 for (; i < viewsLn; i++) {
                     views[i].onRowFocus(rowIdx, false, true);
                 }
@@ -415,7 +445,7 @@ Ext.define('Ext.selection.RowModel', {
 
         if (newFocused) {
             rowIdx = views[0].indexOf(newFocused);
-            if (rowIdx != -1) {
+            if (rowIdx !== -1) {
                 for (i = 0; i < viewsLn; i++) {
                     views[i].onRowFocus(rowIdx, true, supressFocus);
                 }
@@ -426,11 +456,12 @@ Ext.define('Ext.selection.RowModel', {
 
     onEditorTab: function(editingPlugin, e) {
         var me = this,
-            view = me.views[0],
+            view = editingPlugin.context.view,
             record = editingPlugin.getActiveRecord(),
             header = editingPlugin.getActiveColumn(),
             position = view.getPosition(record, header),
-            direction = e.shiftKey ? 'left' : 'right';
+            direction = e.shiftKey ? 'left' : 'right',
+            lastPos;
 
         // We want to continue looping while:
         // 1) We have a valid position
@@ -438,7 +469,14 @@ Ext.define('Ext.selection.RowModel', {
         // 3) There is an editor, but editing has been cancelled (veto event)
 
         do {
+            lastPos = position;
             position  = view.walkCells(position, direction, e, me.preventWrap);
+            if (lastPos && lastPos.isEqual(position)) {
+                // If we end up with the same result twice, it means that we weren't able to progress
+                // via walkCells, for example if the remaining records are non-record rows, so gracefully
+                // fall out here.
+                return;
+            }
         } while (position && (!position.columnHeader.getEditor(record) || !editingPlugin.startEditByPosition(position)));
     },
 
@@ -446,14 +484,17 @@ Ext.define('Ext.selection.RowModel', {
      * Returns position of the first selected cell in the selection in the format {row: row, column: column}
      */
     getCurrentPosition: function() {
-        var firstSelection = this.selected.items[0];
+        var firstSelection = this.selected.getAt(0);
         if (firstSelection) {
             return new Ext.grid.CellContext(this.view).setPosition(this.store.indexOf(firstSelection), 0);
         }
     },
 
-    selectByPosition: function(position) {
-        this.select(this.store.getAt(position.row));
+    selectByPosition: function (position, keepExisting) {
+        var context = new Ext.grid.CellContext(this.view);
+            
+        context.setPosition(position.row, position.column);
+        this.select(context.record, keepExisting);
     },
 
     /**
@@ -501,7 +542,11 @@ Ext.define('Ext.selection.RowModel', {
         return success;
     },
 
-    isRowSelected: function(record, index) {
+    isRowSelected: function(record) {
         return this.isSelected(record);
-    }
+    },
+
+    isCellSelected: function(view, record, columnHeader) {
+        return this.isSelected(record);
+    } 
 });

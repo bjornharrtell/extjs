@@ -11,16 +11,5 @@
         right: 0;
         left: auto;
     }
-
-    .#{$prefix}ie6,
-    .#{$prefix}quirks .#{$prefix}ie {
-        // ie6/ie quirks do not support child selectors and nesting of rtl/ltr components
-        // is not supported in these browsers so use descendant selector instead of
-        // child selector.
-        .#{$prefix}rtl .#{$prefix}box-item {
-            right: 0;
-            left: auto;
-        }
-    }
 }
 

@@ -1,6 +1,14 @@
 /**
  * Creates a visual theme for a Tab Bar
  *
+ * Note: When creating a tab bar UI with the extjs-tab-bar-ui mixin, 
+ * you will need to create a corresponding tab-ui of the same name.  
+ * This will ensure that the tabs render properly in your theme. 
+ * Not creating a matching tab theme may result in unpredictable 
+ * tab rendering.
+ *
+ * See `Ext.tab.Tab-css_mixin-extjs-tab-ui`
+ * 
  * @param {string} $ui
  * The name of the UI being created. Can not included spaces or special punctuation
  * (used in CSS class names).
@@ -10,9 +18,6 @@
  *
  * @param {number/list} [$ui-strip-border-width=$tabbar-strip-border-width]
  * The border-width of the Tab Bar strip
- *
- * @param {number/list} [$ui-strip-plain-border-width=$tabbar-strip-plain-border-width]
- * The border-width of the {@link Ext.tab.Panel#plain plain} Tab Bar strip
  *
  * @param {color} [$ui-strip-border-color=$tabbar-strip-border-color]
  * The border-color of the Tab Bar strip
@@ -40,6 +45,21 @@
  * @param {number} [$ui-scroller-width=$tabbar-scroller-width]
  * The width of the Tab Bar scrollers
  *
+ * @param {number} [$ui-scroller-height=$tabbar-scroller-height]
+ * The height of the Tab Bar scrollers
+ *
+ * @param {number/list} [$ui-scroller-top-margin=$tabbar-scroller-top-margin]
+ * The margin of "top" scroller buttons
+ *
+ * @param {number/list} [$ui-scroller-right-margin=$tabbar-scroller-right-margin]
+ * The margin of "right" scroller buttons
+ *
+ * @param {number/list} [$ui-scroller-bottom-margin=$tabbar-scroller-bottom-margin]
+ * The margin of "bottom" scroller buttons
+ *
+ * @param {number/list} [$ui-scroller-left-margin=$tabbar-scroller-left-margin]
+ * The margin of "left" scroller buttons
+ *
  * @param {string} [$ui-scroller-cursor=$tabbar-scroller-cursor]
  * The cursor of the Tab Bar scrollers
  *
@@ -58,10 +78,16 @@
  * @param {number} [$ui-scroller-opacity-disabled=$tabbar-scroller-opacity-disabled]
  * The opacity of disabled Tab Bar scrollers
  *
+ * @param {boolean} [$ui-classic-scrollers=$tabbar-classic-scrollers]
+ * `true` to use classic-style scroller buttons.  When `true` scroller buttons are given
+ * their hover state by changing their background-position,  When `false` scroller buttons
+ * are given their hover state by applying opacity.
+ *
  * @param {number} [$ui-tab-height]
- * The height of tabs that will be used in this tabbar UI. The tabbar body is given
- * a fixed height to leave room for the tabs, and so that the tabbar does not collapse
- * when it does not contain any tabs.
+ * The minimum height of tabs that will be used in this tabbar UI. The tabbar body is given
+ * a min-height so that it does not collapse when it does not contain any tabs, but it
+ * is allowed to expand to be larger than the default tab height if it contains a tab
+ * that's larger than the default height.
  *
  * @member Ext.tab.Bar
  */ 
@@ -70,7 +96,6 @@
     
     $ui-strip-height: $tabbar-strip-height,
     $ui-strip-border-width: $tabbar-strip-border-width,
-    $ui-strip-plain-border-width: $tabbar-strip-plain-border-width,
     $ui-strip-border-color: $tabbar-strip-border-color,
     $ui-strip-background-color: $tabbar-strip-background-color,
 
@@ -80,206 +105,241 @@
     $ui-background-color: $tabbar-base-color,
     $ui-background-gradient: $tabbar-background-gradient,
     $ui-scroller-width: $tabbar-scroller-width,
-
+    $ui-scroller-height: $tabbar-scroller-height,
+    $ui-scroller-top-margin: $tabbar-scroller-top-margin,
+    $ui-scroller-right-margin: $tabbar-scroller-right-margin,
+    $ui-scroller-bottom-margin: $tabbar-scroller-bottom-margin,
+    $ui-scroller-left-margin: $tabbar-scroller-left-margin,
     $ui-scroller-cursor: $tabbar-scroller-cursor,
     $ui-scroller-cursor-disabled: $tabbar-scroller-cursor-disabled,
     $ui-scroller-opacity: $tabbar-scroller-opacity,
     $ui-scroller-opacity-over: $tabbar-scroller-opacity-over,
     $ui-scroller-opacity-pressed: $tabbar-scroller-opacity-pressed,
     $ui-scroller-opacity-disabled: $tabbar-scroller-opacity-disabled,
-    $ui-tab-height: $tab-line-height + vertical($tab-text-padding) + 
-        vertical($tab-padding) + $tab-border-width
+    $ui-classic-scrollers: $tabbar-classic-scrollers,
+    $ui-tab-height:
+        if($tabbar-strip-height > 0, top($ui-strip-border-width), vertical($tab-border-width)) +
+        max($tab-icon-height, $tab-line-height) + vertical($tab-padding)
 ) {
-    // Tab Bar
+    $ui-strip-plain-border-width:
+        top($ui-strip-border-width)
+        max(right($ui-strip-border-width), left($ui-border-width))
+        bottom($ui-strip-border-width)
+        max(left($ui-strip-border-width), left($ui-border-width));
+
     .#{$prefix}tab-bar-#{$ui} {
+        background-color: $ui-background-color;
         @if $ui-border-width != 0 {
             border-style: solid;
             border-color: $ui-border-color;
         }
     }
-    .#{$prefix}tab-bar-#{$ui}-top {
-        padding: $ui-padding;
-        @if $ui-border-width != 0 {
+
+    @if $ui-border-width != 0 {
+        .#{$prefix}tab-bar-#{$ui}-top {
             border-width: $ui-border-width;
         }
-    }
-
-    .#{$prefix}tab-bar-#{$ui}-bottom {
-        padding: flip-vertical($ui-padding);
-        @if $ui-border-width != 0 {
+    
+        .#{$prefix}tab-bar-#{$ui}-bottom {
             border-width: flip-vertical($ui-border-width);
         }
-    }
-
-    .#{$prefix}tab-bar-#{$ui}-left {
-        padding: rotate270($ui-padding);
-        @if $ui-border-width != 0 {
+    
+        .#{$prefix}tab-bar-#{$ui}-left {
             border-width: rotate270($ui-border-width);
         }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-left {
-            padding: rtl(rotate270($ui-padding));
-            @if $ui-border-width != 0 {
+    
+        @if $include-rtl {
+            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-left {
                 border-width: rtl(rotate270($ui-border-width));
             }
         }
-    }
-
-    .#{$prefix}tab-bar-#{$ui}-right {
-        padding: rotate90($ui-padding);
-        @if $ui-border-width != 0 {
+    
+        .#{$prefix}tab-bar-#{$ui}-right {
             border-width: rotate90($ui-border-width);
         }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-right {
-            padding: rtl(rotate90($ui-padding));
-            @if $ui-border-width != 0 {
+    
+        @if $include-rtl {
+            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-right {
                 border-width: rtl(rotate90($ui-border-width));
             }
         }
     }
+    
+    .#{$prefix}tab-bar-body-#{$ui} {
+        .#{$prefix}tab-bar-#{$ui}-top > & {
+            padding: $ui-padding;
+        }
 
-    $ui-height: $ui-tab-height + $ui-strip-height + vertical($ui-padding) + vertical($ui-border-width);
-    $ui-content-height: $ui-tab-height + $ui-strip-height;
-    // horizontal tabbars need a fixed height so that they doesn't lose height when all tabs are closed
-    .#{$prefix}tab-bar-#{$ui}-horizontal {
-        height: $ui-height;
+        .#{$prefix}tab-bar-#{$ui}-bottom > & {
+            padding: flip-vertical($ui-padding);
+        }
 
-        @if $include-content-box {
-            .#{$prefix}content-box & {
-                height: $ui-content-height;
+        .#{$prefix}tab-bar-#{$ui}-left > & {
+            padding: rotate270($ui-padding);
+        }
+
+        @if $include-rtl {
+            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-left > & {
+                padding: rtl(rotate270($ui-padding));
             }
         }
+
+        .#{$prefix}tab-bar-#{$ui}-right > & {
+            padding: rotate90($ui-padding);
+        }
+
+        @if $include-rtl {
+            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-right > & {
+                padding: rtl(rotate90($ui-padding));
+            }
+        } 
     }
 
-    // vertical tabbars need a fixed width so that they doesn't expand to fill their container
-    // when rendered ouside of a tabpanel
-    .#{$prefix}tab-bar-#{$ui}-vertical {
-        width: $ui-height;
+    .#{$prefix}tab-bar-plain {
+        &.#{$prefix}tab-bar-#{$ui}-horizontal {
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            border-left-width: 0;
+            border-right-width: 0;
+        }
 
-        @if $include-content-box {
-            .#{$prefix}content-box & {
-                width: $ui-content-height;
-            }
+        &.#{$prefix}tab-bar-#{$ui}-vertical {
+            border-right-color: transparent;
+            border-left-color: transparent;
+            border-top-width: 0;
+            border-bottom-width: 0;
         }
     }
 
     $strip-size: max($ui-strip-height - vertical($ui-strip-border-width), 0);
-    .#{$prefix}tab-bar-body-#{$ui}-top {
-        padding-bottom: $strip-size;
-    }
 
-    .#{$prefix}tab-bar-body-#{$ui}-bottom {
-        padding-top: $strip-size;
-    }
+    @if $strip-size != 0 {
+        .#{$prefix}tab-bar-body-#{$ui} {
+            .#{$prefix}tab-bar-top > & {
+                padding-bottom: $strip-size;
+            }
 
-    .#{$prefix}tab-bar-body-#{$ui}-left {
-        padding-right: $strip-size;
-    }
+            .#{$prefix}tab-bar-bottom > & {
+                padding-top: $strip-size;
+            }
 
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-body-#{$ui}-left {
-            padding-right: 0;
-            padding-left: $strip-size;
+            .#{$prefix}tab-bar-left > & {
+                padding-right: $strip-size;
+
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        padding-right: 0;
+                        padding-left: $strip-size;
+                    }
+                }
+            }
+
+            .#{$prefix}tab-bar-right > & {
+                padding-left: $strip-size;
+
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        padding-left: 0;
+                        padding-right: $strip-size;
+                    }
+                }
+            }
         }
-    }
 
-    .#{$prefix}tab-bar-body-#{$ui}-right {
-        padding-left: $strip-size;
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-body-#{$ui}-right {
-            padding-left: 0;
-            padding-right: $strip-size;
+        .#{$prefix}tab-bar-strip-#{$ui} {
+            border-style: solid;
+            border-color: $ui-strip-border-color;
+            background-color: $ui-strip-background-color;
         }
-    }
 
-    .#{$prefix}tab-bar-strip-#{$ui} {
-        border-style: solid;
-        border-color: $ui-strip-border-color;
-        background-color: $ui-strip-background-color;
-    }
+        .#{$prefix}tab-bar-top {
+            > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: $ui-strip-border-width;
+                height: $ui-strip-height;
+            }
+            &.#{$prefix}tab-bar-plain > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: $ui-strip-plain-border-width;
+            }
+        }
 
-    @if $include-content-box {
-        .#{$prefix}tab-bar-strip-#{$ui}-horizontal {
-            .#{$prefix}content-box & {
-                height: $ui-strip-height - vertical($ui-strip-border-width);
+        .#{$prefix}tab-bar-bottom {
+            > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: flip-vertical($ui-strip-border-width);
+                height: $ui-strip-height;
+            }
+            &.#{$prefix}tab-bar-plain > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: flip-vertical($ui-strip-plain-border-width);
+            }
+        }
+
+        .#{$prefix}tab-bar-left {
+            > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: rotate270($ui-strip-border-width);
+                width: $ui-strip-height;
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        border-width: rtl(rotate270($ui-strip-border-width));
+                    }
+                }
+            }
+            &.#{$prefix}tab-bar-plain > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: rotate270($ui-strip-plain-border-width);
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        border-width: rtl(rotate270($ui-strip-plain-border-width));
+                    }
+                }
+            }
+        }
+
+        .#{$prefix}tab-bar-right {
+            > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: rotate90($ui-strip-border-width);
+                width: $ui-strip-height;
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        border-width: rtl(rotate90($ui-strip-border-width));
+                    }
+                }
+            }
+            &.#{$prefix}tab-bar-plain > .#{$prefix}tab-bar-strip-#{$ui} {
+                border-width: rotate90($ui-strip-plain-border-width);
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        border-width: rtl(rotate90($ui-strip-plain-border-width));
+                    }
+                }
             }
         }
     }
 
-    @if $include-content-box {
-        .#{$prefix}tab-bar-strip-#{$ui}-vertical {
-            .#{$prefix}content-box & {
-                width: $ui-strip-height - vertical($ui-strip-border-width);
-            }
+    // tabbars need a min-height/width so that horizontal tabbars don't lose height and
+    // vertical tabbars don't lose width when all tabs are closed.
+    $ui-body-height: $ui-tab-height + $ui-strip-height - top($ui-strip-border-width);
+
+    .#{$prefix}tab-bar-horizontal > .#{$prefix}tab-bar-body-#{$ui} {
+        min-height: $ui-body-height;
+
+        .#{$prefix}ie9m & {
+            // border-box model is busted in IE9m when min-height is used
+            min-height: $ui-body-height - $strip-size;
         }
     }
 
-    .#{$prefix}tab-bar-strip-#{$ui}-top {
-        border-width: $ui-strip-border-width;
-        height: $ui-strip-height;
-        .#{$prefix}tab-bar-plain & {
-            border-width: $ui-strip-plain-border-width;
+    .#{$prefix}tab-bar-vertical > .#{$prefix}tab-bar-body-#{$ui} {
+        min-width: $ui-body-height;
+
+        .#{$prefix}ie9m & {
+            // border-box model is busted in IE9m when min-width is used
+            min-width: $ui-body-height - $strip-size;
         }
     }
 
-    .#{$prefix}tab-bar-strip-#{$ui}-bottom {
-        border-width: flip-vertical($ui-strip-border-width);
-        height: $ui-strip-height;
-        .#{$prefix}tab-bar-plain & {
-            border-width: flip-vertical($ui-strip-plain-border-width);
-        }
-    }
-
-    .#{$prefix}tab-bar-strip-#{$ui}-left {
-        border-width: rotate270($ui-strip-border-width);
-        width: $ui-strip-height;
-        .#{$prefix}tab-bar-plain & {
-            border-width: rotate270($ui-strip-plain-border-width);
-        }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-strip-#{$ui}-left {
-            border-width: rtl(rotate270($ui-strip-border-width));
-            .#{$prefix}tab-bar-plain & {
-                border-width: rtl(rotate270($ui-strip-plain-border-width));
-            }
-        }
-    }
-
-    .#{$prefix}tab-bar-strip-#{$ui}-right {
-        border-width: rotate90($ui-strip-border-width);
-        width: $ui-strip-height;
-        .#{$prefix}tab-bar-plain & {
-            border-width: rotate90($ui-strip-plain-border-width);
-        }
-    }
-
-    @if $include-rtl {
-        .#{$prefix}rtl.#{$prefix}tab-bar-strip-#{$ui}-right {
-            border-width: rtl(rotate90($ui-strip-border-width));
-            .#{$prefix}tab-bar-plain & {
-                border-width: rtl(rotate90($ui-strip-plain-border-width));
-            }
-        }
-    }
-
-    .#{$prefix}tab-bar-#{$ui} {
-        background-color: $ui-background-color;
-    }
-
-    @if $ui-background-gradient != null {
+    @if not is-null($ui-background-gradient) {
         .#{$prefix}tab-bar-#{$ui}-top {
             @include background-gradient($ui-background-color, $ui-background-gradient, top);
 
-            @if not $supports-gradients or $compile-all {
+            @if $include-slicer-gradient {
                 .#{$prefix}nlg & {
                     background: slicer-background-image(tab-bar-#{$ui}-top, 'tab-bar/tab-bar-#{$ui}-top-bg');
                 }
@@ -289,7 +349,7 @@
         .#{$prefix}tab-bar-#{$ui}-bottom {
             @include background-gradient($ui-background-color, $ui-background-gradient, bottom);
 
-            @if not $supports-gradients or $compile-all {
+            @if $include-slicer-gradient {
                 .#{$prefix}nlg & {
                     background: slicer-background-image(tab-bar-#{$ui}-bottom, 'tab-bar/tab-bar-#{$ui}-bottom-bg') bottom 0;
                 }
@@ -299,7 +359,7 @@
         .#{$prefix}tab-bar-#{$ui}-left {
             @include background-gradient($ui-background-color, $ui-background-gradient, left);
 
-            @if not $supports-gradients or $compile-all {
+            @if $include-slicer-gradient {
                 .#{$prefix}nlg & {
                     background: slicer-background-image(tab-bar-#{$ui}-left, 'tab-bar/tab-bar-#{$ui}-left-bg');
                 }
@@ -309,7 +369,7 @@
         .#{$prefix}tab-bar-#{$ui}-right {
             @include background-gradient($ui-background-color, $ui-background-gradient, right);
 
-            @if not $supports-gradients or $compile-all {
+            @if $include-slicer-gradient {
                 .#{$prefix}nlg & {
                     background: slicer-background-image(tab-bar-#{$ui}-right, 'tab-bar/tab-bar-#{$ui}-right-bg') 0 right;
                 }
@@ -317,247 +377,165 @@
         }
     }
 
-    $needs-transparency-fix: (($ui-scroller-opacity != 1 or $ui-scroller-opacity-over != 1 or
-        $ui-scroller-opacity-pressed != 1) and $ui-background-gradient == null);
-    .#{$prefix}tab-bar-#{$ui} {
-        .#{$prefix}box-scroller {
-            cursor: $ui-scroller-cursor;
-            @if $ui-scroller-opacity != 1 {
-                @include opacity($ui-scroller-opacity);
-            }
-            @if $needs-transparency-fix {
-                // EXTJSIV-8846: partially transparent png images do not display correctly
-                // in winXP/IE8m when the image element has a transparent background.
-                // to fix this, we give the element the same background-color as the tabbar.
-                background-color: $ui-background-color;
-            }
-        }
-
-        @if $needs-transparency-fix {
-            // plain tabbars have transparent backgrounds, so we use a white bg to overcome
-            // the png transparency issues. See EXTJSIV-8846
-            .#{$prefix}box-scroller-plain .#{$prefix}box-scroller {
-                background-color: transparent;
-                .#{$prefix}ie8m & {
-                    background-color: #fff;
-                }
-            }
-        }
-
-        @if $ui-scroller-opacity-over != 1 {
-            .#{$prefix}box-scroller-hover {
-                @include opacity($ui-scroller-opacity-over);
-            }
-        }
-
-        @if $ui-scroller-opacity-pressed != 1 {
-            .#{$prefix}box-scroller-pressed {
-                @include opacity($ui-scroller-opacity-pressed);
-            }
-        }
-
-        $scroller-width: $ui-scroller-width;
-        $scroller-height: $ui-tab-height;
-
-        .#{$prefix}tabbar-scroll-left,
-        .#{$prefix}tabbar-scroll-right {
-            height: $scroller-height;
-            width: $scroller-width;
-        }
-
-        .#{$prefix}tabbar-scroll-top,
-        .#{$prefix}tabbar-scroll-bottom {
-            width: $scroller-height;
-            height: $scroller-width;
-        }
-        
+    @if $include-ext-layout-container-boxoverflow-scroller {
+        @include extjs-box-scroller-ui(
+            $ui: $ui,
+            $type: 'tab-bar',
+            $horizontal-width: $ui-scroller-width,
+            $horizontal-height: $ui-scroller-height,
+            $vertical-width: $ui-scroller-height,
+            $vertical-height: $ui-scroller-width,
+            $top-margin: $ui-scroller-top-margin,
+            $right-margin: $ui-scroller-right-margin,
+            $bottom-margin: $ui-scroller-bottom-margin,
+            $left-margin: $ui-scroller-left-margin,
+            $container-padding: $ui-padding,
+            $cursor: $ui-scroller-cursor,
+            $cursor-disabled: $ui-scroller-cursor-disabled,
+            $align: if($ui-classic-scrollers, stretch, middle),
+            $opacity: $ui-scroller-opacity,
+            $opacity-over: $ui-scroller-opacity-over,
+            $opacity-pressed: $ui-scroller-opacity-pressed,
+            $opacity-disabled: $ui-scroller-opacity-disabled,
+            $classic: $ui-classic-scrollers,
+            $include-background-images: $tabbar-scroller-symmetrical-icons
+        );
     }
 
-    .#{$prefix}box-scroller {
-        .#{$prefix}tab-bar-#{$ui}-bottom & {
-            margin-top: top($ui-strip-border-width);
-        }
+    @if $ui-classic-scrollers {
+        .#{$prefix}tab-bar-#{$ui}-right {
+            .#{$prefix}box-scroller-top {
+                background-position: right (-$ui-scroller-width);
 
-        .#{$prefix}tab-bar-#{$ui}-right & {
-            margin-left: top($ui-strip-border-width);
-        }
-        
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-right & {
-                margin-left: 0;
-                margin-right: top($ui-strip-border-width);
-            }
-        }
-    }
-
-    @if $tabbar-scroller-symmetrical-icons {
-        .#{$prefix}tab-bar-#{$ui} {
-            .#{$prefix}tabbar-scroll-left {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-left');
-            }
-
-            .#{$prefix}tabbar-scroll-right {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-right');
-            }
-
-            .#{$prefix}tabbar-scroll-top {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-top');
-            }
-
-            .#{$prefix}tabbar-scroll-bottom {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-bottom');
-            }
-        }
-
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui} {
-                .#{$prefix}tabbar-scroll-left {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-right');
-                }
-                .#{$prefix}tabbar-scroll-right {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-left');
-                }
-            }
-        }
-
-        @if $tabbar-scroller-include-plain-icon {
-            .#{$prefix}tab-bar-#{$ui} .#{$prefix}box-scroller-plain {
-                .#{$prefix}tabbar-scroll-left {
-                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-left');
-                }
-
-                .#{$prefix}tabbar-scroll-right {
-                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-right');
-                }
-
-                .#{$prefix}tabbar-scroll-top {
-                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-top');
-                }
-
-                .#{$prefix}tabbar-scroll-bottom {
-                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-bottom');
+                &.#{$prefix}box-scroller-hover {
+                    background-position: right 0;
                 }
             }
 
-            @if $include-rtl {
-                .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui} .#{$prefix}box-scroller-plain {
-                    .#{$prefix}tabbar-scroll-left {
-                        background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-right');
-                    }
+            .#{$prefix}box-scroller-bottom {
+                background-position: right 0;
 
-                    .#{$prefix}tabbar-scroll-right {
-                        background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-left');
-                    }
-                }
-            }
-        }
-    } @else {
-        .#{$prefix}tab-bar-#{$ui}-top {
-            .#{$prefix}tabbar-scroll-left {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-left-top');
-            }
-            .#{$prefix}tabbar-scroll-right {
-                background-image: theme-background-image('tab-bar/#{$ui}-scroll-right-top');
-            }
-        }
-
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-top {
-                .#{$prefix}tabbar-scroll-left {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-right-top');
-                }
-                .#{$prefix}tabbar-scroll-right {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-left-top');
+                &.#{$prefix}box-scroller-hover {
+                    background-position: right (-$ui-scroller-width);
                 }
             }
         }
 
         .#{$prefix}tab-bar-#{$ui}-bottom {
-            .#{$prefix}tabbar-scroll-left {
+            .#{$prefix}box-scroller-left {
+                background-position: -$ui-scroller-width bottom;
+
+                &.#{$prefix}box-scroller-hover {
+                    background-position: 0 bottom;
+                }
+            }
+
+            .#{$prefix}box-scroller-right {
+                background-position: 0 bottom;
+
+                &.#{$prefix}box-scroller-hover {
+                    background-position: -$ui-scroller-width bottom;
+                }
+            }
+        }
+    } @else {
+        $ui-scroller-top-left-offset: -(floor($ui-scroller-height / 2) + floor($ui-strip-height / 2));
+        $ui-scroller-bottom-right-offset: -(floor($ui-scroller-height / 2) - floor($ui-strip-height / 2));
+
+        .#{$prefix}box-scroller-tab-bar-#{$ui} {
+            .#{$prefix}tab-bar-#{$ui}-top & {
+                margin-top: $ui-scroller-top-left-offset;
+            }
+
+            .#{$prefix}tab-bar-#{$ui}-right & {
+                margin-left: $ui-scroller-bottom-right-offset;
+            }
+
+            .#{$prefix}tab-bar-#{$ui}-bottom & {
+                margin-top: $ui-scroller-bottom-right-offset;
+            }
+
+            .#{$prefix}tab-bar-#{$ui}-left & {
+                margin-left: $ui-scroller-top-left-offset;
+            }
+        }
+    }
+
+    @if (($ui-scroller-opacity != 1 or $ui-scroller-opacity-over != 1 or
+        $ui-scroller-opacity-pressed != 1) and is-null($ui-background-gradient)) {
+
+        .#{$prefix}box-scroller-tab-bar-#{$ui} {
+            // EXTJSIV-8846: partially transparent png images do not display correctly
+            // in winXP/IE8 when the image element has a transparent background.
+            // to fix this, we give the element the same background-color as the tabbar.
+            background-color: $ui-background-color;
+
+            .#{$prefix}ie8 .#{$prefix}box-scroller-plain {
+                // plain tabbars have transparent backgrounds, so we use a white bg to overcome
+                // the png transparency issues. See EXTJSIV-8846
+                background-color: #fff;
+            }
+        }
+    }
+
+    @if $tabbar-scroller-symmetrical-icons {
+        @if $tabbar-scroller-include-plain-icon {
+            .#{$prefix}box-scroller-plain.#{$prefix}box-scroller-tab-bar-#{$ui} {
+                &.#{$prefix}box-scroller-left {
+                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-left');
+                }
+
+                &.#{$prefix}box-scroller-right {
+                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-right');
+                }
+
+                &.#{$prefix}box-scroller-top {
+                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-top');
+                }
+
+                &.#{$prefix}box-scroller-bottom {
+                    background-image: theme-background-image('tab-bar/#{$ui}-plain-scroll-bottom');
+                }
+            }
+        }
+    } @else {
+        .#{$prefix}tab-bar-#{$ui}-top {
+            .#{$prefix}box-scroller-left {
+                background-image: theme-background-image('tab-bar/#{$ui}-scroll-left-top');
+            }
+            .#{$prefix}box-scroller-right {
+                background-image: theme-background-image('tab-bar/#{$ui}-scroll-right-top');
+            }
+        }
+
+        .#{$prefix}tab-bar-#{$ui}-bottom {
+            .#{$prefix}box-scroller-left {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-left-bottom');
             }
-            .#{$prefix}tabbar-scroll-right {
+            .#{$prefix}box-scroller-right {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-right-bottom');
             }
         }
 
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-bottom {
-                .#{$prefix}tabbar-scroll-left {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-right-bottom');
-                }
-                .#{$prefix}tabbar-scroll-right {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-left-bottom');
-                }
-            }
-        }
-
         .#{$prefix}tab-bar-#{$ui}-left {
-            .#{$prefix}tabbar-scroll-top {
+            .#{$prefix}box-scroller-top {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-top-left');
             }
-            .#{$prefix}tabbar-scroll-bottom {
+            .#{$prefix}box-scroller-bottom {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-bottom-left');
             }
         }
 
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-left {
-                .#{$prefix}tabbar-scroll-top {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-top-right');
-                }
-                .#{$prefix}tabbar-scroll-bottom {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-bottom-right');
-                }
-            }
-        }
-
         .#{$prefix}tab-bar-#{$ui}-right {
-            .#{$prefix}tabbar-scroll-top {
+            .#{$prefix}box-scroller-top {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-top-right');
             }
-            .#{$prefix}tabbar-scroll-bottom {
+            .#{$prefix}box-scroller-bottom {
                 background-image: theme-background-image('tab-bar/#{$ui}-scroll-bottom-right');
-            }
-        }
-
-        @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}tab-bar-#{$ui}-right {
-                .#{$prefix}tabbar-scroll-top {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-top-left');
-                }
-                .#{$prefix}tabbar-scroll-bottom {
-                    background-image: theme-background-image('tab-bar/#{$ui}-scroll-bottom-left');
-                }
             }
         }
     }
             
-    .#{$prefix}tab-bar-#{$ui} {
-        @if $tabbar-scroller-include-hover-background-position {
-            .#{$prefix}tabbar-scroll-left-hover,
-            .#{$prefix}tabbar-scroll-right-hover {
-                background-position: -$ui-scroller-width 0;
-            }
-
-            .#{$prefix}tabbar-scroll-top-hover,
-            .#{$prefix}tabbar-scroll-bottom-hover {
-                background-position: 0 (-$ui-scroller-width);
-            }
-        }
-
-        .#{$prefix}box-scroller-disabled {
-            @if $ui-scroller-opacity-disabled != 1 {
-                @include opacity($ui-scroller-opacity-disabled);
-            }
-            @if $ui-scroller-cursor-disabled != null {
-                cursor: $ui-scroller-cursor-disabled;
-            }
-        }
-    }
-
-    // TODO: change these calls to pass "none" as the stretch direction once
-    // SDKTOOLS-439 is implemented
     $stretch: slicer-background-stretch(tab-bar-#{$ui}-top, bottom);
     $stretch: slicer-background-stretch(tab-bar-#{$ui}-bottom, top);
     $stretch: slicer-background-stretch(tab-bar-#{$ui}-left, right);
@@ -743,9 +721,6 @@
  * @param {number/list} [$ui-strip-border-width=$tabbar-strip-border-width]
  * The border-width of the Tab Bar strip
  *
- * @param {number/list} [$ui-strip-plain-border-width=$tabbar-strip-plain-border-width]
- * The border-width of the {@link Ext.tab.Panel#plain plain} Tab Bar strip
- *
  * @param {color} [$ui-strip-border-color=$tabbar-strip-border-color]
  * The border-color of the Tab Bar strip
  *
@@ -868,7 +843,6 @@
 
     $ui-strip-height: $tabbar-strip-height,
     $ui-strip-border-width: $tabbar-strip-border-width,
-    $ui-strip-plain-border-width: $tabbar-strip-plain-border-width,
     $ui-strip-border-color: $tabbar-strip-border-color,
     $ui-strip-background-color: $tabbar-strip-background-color,
 
@@ -962,13 +936,28 @@
         );
     }
 
+    // When the tab border/background is the same color as the background color of the
+    // tabbar (crisp) darker corners show up when the tab is rotated vertically in IE8.
+    // Removing the background-image on the corners of the framing prevents this.
+    @if $include-slicer-border-radius and
+            ($ui-bar-background-color == $ui-tab-border-color) and
+            ($ui-tab-border-color == $ui-tab-background-color) {
+        .#{$prefix}tab-default-tl,
+        .#{$prefix}tab-default-tc,
+        .#{$prefix}tab-default-tr,
+        .#{$prefix}tab-default-bl,
+        .#{$prefix}tab-default-bc,
+        .#{$prefix}tab-default-br {
+            background-image: none;
+        }
+    }
+
     @if $include-tabbar-default-ui or $ui != 'default' {
         @include extjs-tab-bar-ui(
             $ui: $ui,
 
             $ui-strip-height: $ui-strip-height,
             $ui-strip-border-width: $ui-strip-border-width,
-            $ui-strip-plain-border-width: $ui-strip-plain-border-width,
             $ui-strip-border-color: $ui-strip-border-color,
             $ui-strip-background-color: $ui-strip-background-color,
 
@@ -985,8 +974,9 @@
             $ui-scroller-opacity-over: $ui-bar-scroller-opacity-over,
             $ui-scroller-opacity-pressed: $ui-bar-scroller-opacity-pressed,
             $ui-scroller-opacity-disabled: $ui-bar-scroller-opacity-disabled,
-            $ui-tab-height: $ui-tab-line-height + vertical($ui-tab-text-padding) + 
-                vertical($ui-tab-padding) + $ui-tab-border-width
+            $ui-tab-height:
+                if($ui-strip-height > 0, top($ui-strip-border-width), vertical($ui-tab-border-width)) +
+                max($ui-tab-icon-height, $ui-tab-line-height) + vertical($ui-tab-padding)
         );
     }
 }
@@ -995,10 +985,3 @@
     $ui: 'default'
 );
 
-.#{$prefix}tab-bar-plain {
-    border-width: $tabbar-plain-border-width;
-    padding: $tabbar-plain-padding;
-    height: $tab-line-height + vertical($tab-text-padding) + 
-        vertical($tab-padding) + $tab-border-width + 
-        $tabbar-strip-height + vertical($tabbar-plain-padding) + vertical($tabbar-plain-border-width);
-}

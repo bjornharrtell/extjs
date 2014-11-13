@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  */
@@ -32,8 +12,10 @@ Ext.define('Ext.tree.ViewDropZone', {
     allowParentInserts: false,
  
     /**
-     * @cfg {Boolean} allowContainerDrop
+     * @cfg {Boolean} allowContainerDrops
      * True if drops on the tree container (outside of a specific tree node) are allowed.
+     *
+     * These are treated as appends to the root node.
      */
     allowContainerDrops: false,
 
@@ -78,7 +60,7 @@ Ext.define('Ext.tree.ViewDropZone', {
     getPosition: function(e, node) {
         var view = this.view,
             record = view.getRecord(node),
-            y = e.getPageY(),
+            y = e.getY(),
             noAppend = record.isLeaf(),
             noBelow = false,
             region = Ext.fly(node).getRegion(),
@@ -139,7 +121,7 @@ Ext.define('Ext.tree.ViewDropZone', {
         if (position === 'append' && targetNode.get('allowDrop') === false) {
             return false;
         }
-        else if (position != 'append' && targetNode.parentNode.get('allowDrop') === false) {
+        else if (position !== 'append' && targetNode.parentNode.get('allowDrop') === false) {
             return false;
         }
 
@@ -160,7 +142,7 @@ Ext.define('Ext.tree.ViewDropZone', {
 
         // auto node expand check
         this.cancelExpand();
-        if (position == 'append' && !this.expandProcId && !Ext.Array.contains(data.records, targetNode) && !targetNode.isLeaf() && !targetNode.isExpanded()) {
+        if (position === 'append' && !this.expandProcId && !Ext.Array.contains(data.records, targetNode) && !targetNode.isLeaf() && !targetNode.isExpanded()) {
             this.queueExpand(targetNode);
         }
             
@@ -178,11 +160,11 @@ Ext.define('Ext.tree.ViewDropZone', {
              * call toFront, causing it to get a new z-index which can sometimes push the proxy behind it. We always 
              * want the proxy to be above, so calling show on the proxy will call toFront and bring it forward.
              */
-            if (position == 'before') {
+            if (position === 'before') {
                 returnCls = targetNode.isFirst() ? Ext.baseCSSPrefix + 'tree-drop-ok-above' : Ext.baseCSSPrefix + 'tree-drop-ok-between';
                 indicator.showAt(0, indicatorY);
                 dragZone.proxy.show();
-            } else if (position == 'after') {
+            } else if (position === 'after') {
                 returnCls = targetNode.isLast() ? Ext.baseCSSPrefix + 'tree-drop-ok-below' : Ext.baseCSSPrefix + 'tree-drop-ok-between';
                 indicatorY += Ext.fly(node).getHeight();
                 indicator.showAt(0, indicatorY);
@@ -207,7 +189,18 @@ Ext.define('Ext.tree.ViewDropZone', {
     },
 
     onContainerOver : function(dd, e, data) {
-        return e.getTarget('.' + this.indicatorCls) ? this.currentCls : this.dropNotAllowed;
+        return this.allowContainerDrops ? this.dropAllowed : e.getTarget('.' + this.indicatorCls) ? this.currentCls : this.dropNotAllowed;
+    },
+
+    // This will be called is allowContainerDrops is set.
+    // The target node is the root
+    onContainerDrop: function(dragZone, e, data) {
+        if (this.allowContainerDrops) {
+            this.valid = true;
+            this.currentPosition = 'append';
+            this.overRecord = this.view.store.getRoot();
+            this.onNodeDrop(this.overRecord, dragZone, e, data);
+        }
     },
     
     notifyOut: function() {
@@ -219,7 +212,7 @@ Ext.define('Ext.tree.ViewDropZone', {
         var me = this,
             targetView = me.view,
             parentNode = targetNode ? targetNode.parentNode : targetView.panel.getRootNode(),
-            Model = targetView.getStore().treeStore.model,
+            Model = targetView.store.getModel(),
             records, i, len, record,
             insertionMethod, argList,
             needTargetExpand,
@@ -232,10 +225,10 @@ Ext.define('Ext.tree.ViewDropZone', {
             for (i = 0, len = records.length; i < len; i++) {
                 record = records[i];
                 if (record.isNode) {
-                    data.records.push(record.copy(undefined, true));
+                    data.records.push(record.copy());
                 } else {
                     // If it's not a node, make a node copy
-                    data.records.push(new Model(record.data, record.getId()));
+                    data.records.push(new Model(Ext.apply({}, record.data)));
                 }
             }
         }
@@ -247,12 +240,12 @@ Ext.define('Ext.tree.ViewDropZone', {
         // Create an arg list array intended for the apply method of the
         // chosen node insertion method.
         // Ensure the target object for the method is referenced by 'targetNode'
-        if (position == 'before') {
+        if (position === 'before') {
             insertionMethod = parentNode.insertBefore;
             argList = [null, targetNode];
             targetNode = parentNode;
         }
-        else if (position == 'after') {
+        else if (position === 'after') {
             if (targetNode.nextSibling) {
                 insertionMethod = parentNode.insertBefore;
                 argList = [null, targetNode.nextSibling];
@@ -279,8 +272,6 @@ Ext.define('Ext.tree.ViewDropZone', {
             // Coalesce layouts caused by node removal, appending and sorting
             Ext.suspendLayouts();
 
-            targetView.getSelectionModel().clearSelections();
-
             // Insert the records into the target node
             for (i = 0, len = data.records.length; i < len; i++) {
                 record = data.records[i];
@@ -298,7 +289,7 @@ Ext.define('Ext.tree.ViewDropZone', {
 
             // If configured to sort on drop, do it according to the TreeStore's comparator
             if (me.sortOnDrop) {
-                targetNode.sort(targetNode.getOwnerTree().store.generateComparator());
+                targetNode.sort(targetNode.getOwnerTree().store.getSorters().sortFn);
             }
             
             Ext.resumeLayouts(true);

@@ -33,6 +33,24 @@ $boundlist-border-style: solid !default;
 $boundlist-item-height: 22px !default;
 
 /**
+ * @var {string}
+ * The font family of the BoundList items
+ */
+$boundlist-item-font-family: $font-family !default;
+
+/**
+ * @var {number}
+ * The font size of the BoundList items
+ */
+$boundlist-item-font-size: $font-size !default;
+
+/**
+ * @var {string}
+ * The font-weight of the BoundList items
+ */
+$boundlist-item-font-weight: normal !default;
+
+/**
  * @var {number/list}
  * The padding of BoundList items
  */

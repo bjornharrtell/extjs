@@ -4,7 +4,7 @@ $grid-header-trigger-border:
     $grid-header-border-color;
 
 .#{$prefix}column-header-trigger {
-    background-image: url(images/grid/hd-pop.png);
+    background: $grid-header-over-background-color theme-background-image("grid/hd-pop") no-repeat center center;
     border-left: $grid-header-trigger-border;
 }
 
@@ -16,20 +16,18 @@ $grid-header-trigger-border:
 }
 
 .#{$prefix}column-header-last {
-    border-right: 0;
+    border-right-width: 0;
     .#{$prefix}column-header-over .#{$prefix}column-header-trigger {
         border-right: $grid-header-trigger-border;
     }
 }
 
-.#{$prefix}column-header-last {
-    border-right: 0 none;
-}
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}column-header-last {
-        border-left: 0;
+        border-left-width: 0;
         .#{$prefix}column-header-over .#{$prefix}column-header-trigger {
             border-left: $grid-header-trigger-border;
         }
     }
+
 }

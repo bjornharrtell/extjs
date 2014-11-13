@@ -240,3 +240,30 @@ $window-wrap-border-width: 1px !default;
  * True to include the "default" window UI
  */
 $include-window-default-ui: $include-default-uis !default;
+
+/**
+ * @var {boolean}
+ * True to ignore the frame padding.  By default, the frame mixin adds extra padding when
+ * border radius is larger than border width.  This is intended to prevent the content
+ * from colliding with the rounded corners of the frame.  Set this to true to prevent
+ * the window frame from adding this extra padding.
+ */
+$window-ignore-frame-padding: false !default;
+
+/**
+ * @var {number}
+ * The default font-size of the Window body
+ */
+$window-body-font-size: $panel-body-font-size !default;
+
+/**
+ * @var {string}
+ * The default font-weight of the Window body
+ */
+$window-body-font-weight: $panel-body-font-weight !default;
+
+/**
+ * @var {string}
+ * The default font-family of the Window body
+ */
+$window-body-font-family: $panel-body-font-family !default;

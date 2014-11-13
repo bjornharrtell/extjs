@@ -5,6 +5,8 @@
 .#{$prefix}menu-item {
     white-space: nowrap;
     overflow: hidden;
+    border-color: transparent;
+    border-style: solid;
 }
 
 // "Foreign" Components (such as form fields) put inside a Menu get this class.
@@ -14,7 +16,7 @@
     .#{$prefix}field-label-cell {
         vertical-align: middle;
     }
-    @if $menu-component-margin != null {
+    @if not is-null($menu-component-margin) and $menu-component-margin != 0 {
         margin: $menu-component-margin;
     }
 }
@@ -31,20 +33,33 @@
 }
 
 .#{$prefix}menu-item-link {
+    // prevent gray background on tap in mobile webkit
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
     text-decoration: none;
     outline: 0;
-    zoom: 1;
+    // display:block is required to make the menu item stretch to fill its container so that
+    // when using href, the entire menu item is clickable.
+    // If we ever consider going back to inline or inline-block, please remember inline
+    // will not work because it allows multi line menu items wrap into the padding area
+    // (icon space) in Webkit
+    display: block;
+
 }
 
-@if $include-ie {
-    .#{$prefix}menu-item-text {
-        zoom: 1;
-    }
+.#{$prefix}menu-item-link-href {
+    -webkit-touch-callout: default;
+}
+
+.#{$prefix}menu-item-text {
+    display: inline-block;
 }
 
 .#{$prefix}menu-item-icon,
 .#{$prefix}menu-item-icon-right,
 .#{$prefix}menu-item-arrow {
+    font-size: 0;
     position: absolute;
     text-align: center;
+    background-repeat: no-repeat;
 }

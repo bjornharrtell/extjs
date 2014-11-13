@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @private
  */
@@ -25,7 +5,7 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
 
     /* Begin Definitions */
 
-    extend: 'Ext.layout.component.field.Field',
+    extend: 'Ext.layout.component.Auto',
 
     alias: 'layout.fieldcontainer',
 
@@ -42,7 +22,6 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
 
         // Tell Component.measureAutoDimensions to measure the DOM when containerChildrenSizeDone is true
         ownerContext.hasRawContent = true;
-        owner.bodyEl.setStyle('height', '');
         owner.containerEl.setStyle('height', '');
         ownerContext.containerElContext = ownerContext.getEl('containerEl');
     },
@@ -59,20 +38,36 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
         return ownerContext.hasDomProp('containerLayoutDone') ? this.callParent(arguments) : NaN;
     },
 
-    publishInnerWidth: function (ownerContext, width) {
-        var bodyContext = ownerContext.bodyCellContext,
-            innerWidth = bodyContext.el.getWidth();
-
-        bodyContext.setWidth(innerWidth, false);
-        ownerContext.containerElContext.setWidth(innerWidth, false);
-    },
-    
     publishInnerHeight: function (ownerContext, height) {
-        var bodyContext = ownerContext.bodyCellContext,
-            containerElContext = ownerContext.containerElContext;
-            
-        height -= this.measureLabelErrorHeight(ownerContext);
-        bodyContext.setHeight(height);
-        containerElContext.setHeight(height);
+        var owner = this.owner;
+
+        if (owner.labelAlign === 'top' && owner.hasVisibleLabel()) {
+            height -= owner.labelEl.getHeight();
+        }
+
+        if (owner.msgTarget === 'under' && owner.hasActiveError()) {
+            height -= owner.errorWrapEl.getHeight();
+        }
+
+        height -= owner.bodyEl.getPadding('tb');
+
+        ownerContext.containerElContext.setHeight(height, false);
+    },
+
+    publishInnerWidth: function (ownerContext, width) {
+        var owner = this.owner;
+
+        if (owner.labelAlign !== 'top' && owner.hasVisibleLabel()) {
+            width -= (owner.labelWidth + (owner.labelPad || 0));
+        }
+
+        if (owner.msgTarget === 'side' && owner.hasActiveError()) {
+            width -= owner.errorWrapEl.getWidth();
+        }
+
+        width -= owner.bodyEl.getPadding('lr');
+
+        ownerContext.containerElContext.setWidth(width, false);
     }
+
 });

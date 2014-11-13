@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A field with a pair of up/down spinner buttons. This class is not normally instantiated directly,
  * instead it is subclassed and the {@link #onSpinUp} and {@link #onSpinDown} methods are implemented
@@ -71,13 +51,24 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  * to prevent this, set `{@link #keyNavEnabled} = false`.
  */
 Ext.define('Ext.form.field.Spinner', {
-    extend: 'Ext.form.field.Trigger',
+    extend: 'Ext.form.field.Text',
     alias: 'widget.spinnerfield',
     alternateClassName: 'Ext.form.Spinner',
-    requires: ['Ext.util.KeyNav'],
+    requires: [
+        'Ext.form.trigger.Spinner',
+        'Ext.util.KeyNav'
+    ],
 
-    trigger1Cls: Ext.baseCSSPrefix + 'form-spinner-up',
-    trigger2Cls: Ext.baseCSSPrefix + 'form-spinner-down',
+    config: {
+        triggers: {
+            spinner: {
+                type: 'spinner',
+                upHandler: 'onSpinnerUpClick',
+                downHandler: 'onSpinnerDownClick',
+                scope: 'this'
+            }
+        }
+    },
 
     /**
      * @cfg {Boolean} spinUpEnabled
@@ -128,39 +119,36 @@ Ext.define('Ext.form.field.Spinner', {
      * {@link #keyNavEnabled} is true. Must be implemented by subclasses.
      */
     onSpinDown: Ext.emptyFn,
+    
+    ariaRole: 'spinbutton',
 
-    triggerTpl: '<td style="{triggerStyle}" class="{triggerCls}">' +
-                    '<div class="' + Ext.baseCSSPrefix + 'trigger-index-0 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-up {spinnerUpCls} {childElCls}" role="button"></div>' +
-                    '<div class="' + Ext.baseCSSPrefix + 'trigger-index-1 ' + Ext.baseCSSPrefix + 'form-trigger ' + Ext.baseCSSPrefix + 'form-spinner-down {spinnerDownCls} {childElCls}" role="button"></div>' +
-                '</td>' +
-            '</tr>',
+    /**
+     * @event spin
+     * Fires when the spinner is made to spin up or down.
+     * @param {Ext.form.field.Spinner} this
+     * @param {String} direction Either 'up' if spinning up, or 'down' if spinning down.
+     */
 
-    initComponent: function() {
-        this.callParent();
+    /**
+     * @event spinup
+     * Fires when the spinner is made to spin up.
+     * @param {Ext.form.field.Spinner} this
+     */
 
-        this.addEvents(
-            /**
-             * @event spin
-             * Fires when the spinner is made to spin up or down.
-             * @param {Ext.form.field.Spinner} this
-             * @param {String} direction Either 'up' if spinning up, or 'down' if spinning down.
-             */
-            'spin',
+    /**
+     * @event spindown
+     * Fires when the spinner is made to spin down.
+     * @param {Ext.form.field.Spinner} this
+     */
 
-            /**
-             * @event spinup
-             * Fires when the spinner is made to spin up.
-             * @param {Ext.form.field.Spinner} this
-             */
-            'spinup',
+    applyTriggers: function(triggers) {
+        var me = this,
+            spinnerTrigger = triggers.spinner;
 
-            /**
-             * @event spindown
-             * Fires when the spinner is made to spin down.
-             * @param {Ext.form.field.Spinner} this
-             */
-            'spindown'
-        );
+        spinnerTrigger.upEnabled = me.spinUpEnabled;
+        spinnerTrigger.downEnabled = me.spinDownEnabled;
+
+        return me.callParent([triggers]);
     },
 
     /**
@@ -169,23 +157,9 @@ Ext.define('Ext.form.field.Spinner', {
      */
     onRender: function() {
         var me = this,
-            triggers;
+            spinnerTrigger = me.getTrigger('spinner');
 
-        me.callParent(arguments);
-        triggers = me.triggerEl;
-        
-        /**
-         * @property {Ext.Element} spinUpEl
-         * The spinner up button element
-         */
-        me.spinUpEl = triggers.item(0);
-        /**
-         * @property {Ext.Element} spinDownEl
-         * The spinner down button element
-         */
-        me.spinDownEl = triggers.item(1);
-        
-        me.triggerCell = me.spinUpEl.parent(); 
+        me.callParent();
 
         // Init up/down arrow keys
         if (me.keyNavEnabled) {
@@ -200,55 +174,18 @@ Ext.define('Ext.form.field.Spinner', {
         if (me.mouseWheelEnabled) {
             me.mon(me.bodyEl, 'mousewheel', me.onMouseWheel, me);
         }
-    },
 
-    getSubTplMarkup: function(values) {
-        var me = this,
-            childElCls = values.childElCls, // either '' or ' x-foo'
-            field = Ext.form.field.Base.prototype.getSubTplMarkup.apply(me, arguments);
-
-        return '<table id="' + me.id + '-triggerWrap" class="' + Ext.baseCSSPrefix + 'form-trigger-wrap' + childElCls + '" cellpadding="0" cellspacing="0">' +
-            '<tbody>' +
-                '<tr><td id="' + me.id + '-inputCell" class="' + Ext.baseCSSPrefix + 'form-trigger-input-cell' + childElCls + '">' + field + '</td>' +
-                me.getTriggerMarkup() +
-            '</tbody></table>';
-    },
-
-    getTriggerMarkup: function() {
-        return this.getTpl('triggerTpl').apply(this.getTriggerData());
-    },
-    
-    getTriggerData: function(){
-        var me = this,
-            hideTrigger = (me.readOnly || me.hideTrigger);
-            
-        return {
-            triggerCls: Ext.baseCSSPrefix + 'trigger-cell',
-            triggerStyle: hideTrigger ? 'display:none' : '',
-            spinnerUpCls: !me.spinUpEnabled ? me.trigger1Cls + '-disabled': '',
-            spinnerDownCls: !me.spinDownEnabled ? me.trigger2Cls + '-disabled': ''
-        };
-    },
-
-    /**
-     * Get the total width of the spinner button area.
-     * @return {Number} The total spinner button width
-     */
-    getTriggerWidth: function() {
-        var me = this,
-            totalTriggerWidth = 0;
-
-        if (me.triggerWrap && !me.hideTrigger && !me.readOnly) {
-            totalTriggerWidth = me.triggerWidth;
-        }
-        return totalTriggerWidth;
+        // in v4 spinUpEl/spinDownEl were childEls, now they are children of the trigger.
+        // create references for compatibility
+        me.spinUpEl = spinnerTrigger.upEl;
+        me.spinDownEl = spinnerTrigger.downEl;
     },
 
     /**
      * @private
      * Handles the spinner up button clicks.
      */
-    onTrigger1Click: function() {
+    onSpinnerUpClick: function() {
         this.spinUp();
     },
 
@@ -256,14 +193,8 @@ Ext.define('Ext.form.field.Spinner', {
      * @private
      * Handles the spinner down button clicks.
      */
-    onTrigger2Click: function() {
+    onSpinnerDownClick: function() {
         this.spinDown();
-    },
-
-    // private
-    // Handle trigger mouse up gesture; refocuses the input element upon end of spin.
-    onTriggerWrapMouseup: function() {
-        this.inputEl.focus();
     },
 
     /**
@@ -303,7 +234,7 @@ Ext.define('Ext.form.field.Spinner', {
             wasEnabled = me.spinUpEnabled;
         me.spinUpEnabled = enabled;
         if (wasEnabled !== enabled && me.rendered) {
-            me.spinUpEl[enabled ? 'removeCls' : 'addCls'](me.trigger1Cls + '-disabled');
+            me.getTrigger('spinner').setUpEnabled(enabled);
         }
     },
 
@@ -316,7 +247,7 @@ Ext.define('Ext.form.field.Spinner', {
             wasEnabled = me.spinDownEnabled;
         me.spinDownEnabled = enabled;
         if (wasEnabled !== enabled && me.rendered) {
-            me.spinDownEl[enabled ? 'removeCls' : 'addCls'](me.trigger2Cls + '-disabled');
+            me.getTrigger('spinner').setDownEnabled(enabled);
         }
     },
 
@@ -339,7 +270,7 @@ Ext.define('Ext.form.field.Spinner', {
     },
 
     onDestroy: function() {
-        Ext.destroyMembers(this, 'spinnerKeyNav', 'spinUpEl', 'spinDownEl');
+        Ext.destroyMembers(this, 'spinnerKeyNav');
         this.callParent();
     }
 

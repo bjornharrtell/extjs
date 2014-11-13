@@ -1,29 +1,10 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A mixin to add floating capability to a Component.
  */
 Ext.define('Ext.util.Floating', {
+    mixinId: 'floating',
 
-    uses: ['Ext.Layer', 'Ext.window.Window'],
+    uses: ['Ext.Layer', 'Ext.ZIndexManager'],
 
     /**
      * @cfg {Boolean} focusOnToFront
@@ -44,7 +25,7 @@ Ext.define('Ext.util.Floating', {
      * @cfg {Boolean} constrain
      * True to constrain this Components within its containing element, false to allow it to fall outside of its containing
      * element. By default this Component will be rendered to `document.body`. To render and constrain this Component within
-     * another element specify {@link Ext.AbstractComponent#renderTo renderTo}.
+     * another element specify {@link Ext.Component#renderTo renderTo}.
      */
     constrain: false,
 
@@ -52,10 +33,6 @@ Ext.define('Ext.util.Floating', {
      * @cfg {Boolean} [fixed=false]
      * Configure as `true` to have this Component fixed at its `X, Y` coordinates in the browser viewport, immune
      * to scrolling the document.
-     * 
-     * *Only in browsers that support `position:fixed`*
-     * 
-     * *IE6 and IE7, 8 and 9 quirks do not support `position: fixed`*
      */
 
     /**
@@ -66,13 +43,9 @@ Ext.define('Ext.util.Floating', {
     constructor: function (dom) {
         var me = this;
 
-        // We do not support fixed on legacy browsers.
-        me.fixed = me.fixed && !(Ext.isIE6 || Ext.isIEQuirks);
-
         me.el = new Ext.dom.Layer(Ext.apply({
             preventSync  : true,
             hideMode     : me.hideMode,
-            hidden       : me.hidden,
             shadow       : (typeof me.shadow != 'undefined') ? me.shadow : 'sides',
             shadowOffset : me.shadowOffset,
             constrain    : false,
@@ -82,17 +55,19 @@ Ext.define('Ext.util.Floating', {
 
         // If modal, and focus navigation not being handled by the FocusManager,
         // catch tab navigation, and loop back in on tab off first or last item.
-        if (me.modal && !(Ext.FocusManager && Ext.FocusManager.enabled)) {
+        if (me.modal && !(Ext.enableFocusManager)) {
             me.mon(me.el, {
                 keydown: me.onKeyDown,
                 scope: me
             });
         }
 
-        // clickToRaise
+        // mousedown brings to front
+        // Use capture to see the event first before any contained DD instance stop the event.
         me.mon(me.el, {
             mousedown: me.onMouseDown,
-            scope: me
+            scope: me,
+            capture: true
         });
 
         // release config object (if it was one)
@@ -111,7 +86,7 @@ Ext.define('Ext.util.Floating', {
             syncHidden = this.syncHidden;
 
         if (!me.hasHierarchyEventListeners) {
-            me.mon(me.hierarchyEventSource, {
+            me.mon(Ext.GlobalEvents, {
                 hide: syncHidden,
                 collapse: syncHidden,
                 show: syncHidden,
@@ -168,30 +143,56 @@ Ext.define('Ext.util.Floating', {
         // These listen for the TAB key, and then test whether the event target === last focusable
         // or first focusable element, and forcibly to a circular navigation.
         // We cannot know the true first or last focusable element, so this problem still exists for IE6,7,8
-        if (e.getKey() == Ext.EventObject.TAB) {
+        if (e.getKey() === e.TAB) {
             shift = e.shiftKey;
-            focusables = me.el.query(':focusable');
-            first = focusables[0];
-            last = focusables[focusables.length - 1];
-            if (first && last && e.target === (shift ? first : last)) {
-                e.stopEvent();
-                (shift ? last : first).focus(false, true);
+            focusables = me.query(':focusable');
+            if (focusables.length) {
+                first = focusables[0];
+                last = focusables[focusables.length - 1];
+                if (!shift && last.hasFocus) {
+                    e.stopEvent();
+                    first.focus();
+                } else if (shift && first.hasFocus) {
+                    e.stopEvent();
+                    last.focus();
+                }
             }
         }
     },
 
     // @private
-    // Mousedown brings to front, and programatically grabs focus *unless the mousedown was on a focusable element*
+    // Mousedown brings to front, and programatically grabs focus
+    // *unless the mousedown was on a focusable element*
     onMouseDown: function (e) {
-        var focusTask = this.focusTask;
-        
-        if (this.floating &&
+        var me = this,
+            focusTask = me.focusTask,
+            preventFocus = false,
+            target, dom;
+
+        if (me.floating &&
             // get out of here if there is already a pending focus.  This usually means
             // that the handler for a mousedown on a child element set the focus on some
             // other component, and we so not want to steal it back. See EXTJSIV-9458
             (!focusTask || !focusTask.id)) {
-            // If what was mousedowned upon is going to claim focus anyway, pass preventFocus as true.
-            this.toFront(!!e.getTarget(':focusable'));
+
+            target = e.target;
+            dom = me.el.dom;
+            // loop the target's ancestors to see if we clicked on a focusable element
+            // or a descendant of a focusable element,  If so we don't want to focus
+            // this floating component. If we end up with no target, it probably means
+            // it's been removed from the DOM, so we should attempt to bring ourselves
+            // to front anyway
+            while (target && target !== dom) {
+                if (Ext.fly(target).isFocusable()) {
+                    preventFocus = true;
+                    break;
+                }
+                target = target.parentNode;
+            }
+            
+            // If what was mousedowned upon is going to claim focus anyway, pass
+            // preventFocus as true.
+            me.toFront(preventFocus);
         }
     },
 
@@ -276,7 +277,7 @@ Ext.define('Ext.util.Floating', {
      * rendered to.
      *
      * An alternative constraint may be passed.
-     * @param {String/HTMLElement/Ext.Element/Ext.util.Region} [constrainTo] The Element or {@link Ext.util.Region Region}
+     * @param {String/HTMLElement/Ext.dom.Element/Ext.util.Region} [constrainTo] The Element or {@link Ext.util.Region Region}
      * into which this Component is to be constrained. Defaults to the element into which this floating Component
      * was rendered.
      */
@@ -326,6 +327,9 @@ Ext.define('Ext.util.Floating', {
                 // If another floating Component is toFronted before the delay expires
                 // this will not receive focus.
                 me.focus(false, true);
+            }
+            if (me.hasListeners.tofront) {
+                me.fireEvent('tofront', me, me.el.getZIndex());
             }
         }
         
@@ -383,7 +387,7 @@ Ext.define('Ext.util.Floating', {
     center: function() {
         var me = this,
             xy;
-            
+
         if (me.isVisible()) {
             xy = me.getAlignToXY(me.container, 'c-c');
             me.setPagePosition(xy);
@@ -398,6 +402,10 @@ Ext.define('Ext.util.Floating', {
             this.center();    
         }
         delete this.needsCenter;
+
+        if (this.toFrontOnShow) {
+            this.toFront();
+        }
     },
 
     // @private
@@ -405,7 +413,7 @@ Ext.define('Ext.util.Floating', {
         var me = this,
             parent = me.floatParent,
             container = parent ? parent.getTargetEl() : me.container,
-            newBox = container.getViewSize(false),
+            newBox = container.getViewSize(),
             newPosition = parent || (container.dom !== document.body) ?
                 // If we are a contained floater, or rendered to a div, maximized position is (0,0)
                 [0, 0] :

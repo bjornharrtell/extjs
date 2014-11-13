@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * @class Ext.fx.target.Component
  * 
@@ -122,7 +102,7 @@ Ext.define('Ext.fx.target.Component', {
                     // Defer the final sizing & layout until we are outside of this frame.
                     // In case anything in the resulting layout calls animation.
                     // If it does, *this* frame will fire again... recursively
-                    Ext.globalEvents.on({
+                    Ext.GlobalEvents.on({
                         idle: Ext.Function.bind(o.target.setSize, o.target, [w, h]),
                         single: true
                     });

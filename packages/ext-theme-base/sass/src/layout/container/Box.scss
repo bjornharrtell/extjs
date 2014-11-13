@@ -1,6 +1,6 @@
 .#{$prefix}box-layout-ct {
     overflow: hidden;
-    zoom: 1;
+    position: relative;
 }
 
 .#{$prefix}box-target {
@@ -30,45 +30,40 @@
 
 .#{$prefix}box-inner {
     overflow:hidden;
-
-    zoom:1;
-
     position:relative;
     left:0;
     top:0;
 }
 
-.#{$prefix}horizontal-box-overflow-body {
-    float: left;
-}
-
 .#{$prefix}box-scroller {
-    position: relative;
+    position: absolute;
     background-repeat: no-repeat;
+    background-position: center;
+    line-height: 0;
+    font-size: 0;
 }
 
-.#{$prefix}box-scroller-left,
+.#{$prefix}box-scroller-top {
+    top: 0;
+}
+
 .#{$prefix}box-scroller-right {
-    float: left;
-    height: 100%;
-    z-index: 5;
+    right: 0;
 }
 
-.#{$prefix}box-scroller-top,
 .#{$prefix}box-scroller-bottom {
-    .#{$prefix}box-scroller {
-        line-height: 0;
-        font-size: 0;
-        background-position: center 0;
-    }
+    bottom: 0;
+}
+
+.#{$prefix}box-scroller-left {
+    left: 0;
+}
+
+.#{$prefix}box-menu-body-horizontal {
+    float: left;
 }
 
 .#{$prefix}box-menu-after {
-    float: right;
-}
-
-@if $include-rtl {
-    .#{$prefix}rtl.#{$prefix}box-menu-after {
-        float: left;
-    }
+    position: relative;
+    float: left;
 }

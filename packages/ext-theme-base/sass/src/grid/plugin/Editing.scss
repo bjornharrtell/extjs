@@ -1,7 +1,17 @@
+/*
+ * Rules for fields which are rendered to fit inside grid cells.
+ * This includes cell and row editor fields and fields in widget columns.
+ */
+
 @if $include-ext-form-field-checkbox {
     .#{$prefix}grid-editor .#{$prefix}form-cb-wrap {
         text-align: center;
-    }
+    }   
+
+    // Checkboxes are now absolutely positioned so reset the positioning (see EXTJSIV-10302).
+    .#{$prefix}grid-editor .#{$prefix}form-cb {
+        position: static;
+    }   
 }
 
 @if $include-ext-form-field-display {
@@ -20,4 +30,3 @@
         }
     }
 }
-

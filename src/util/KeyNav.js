@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * Provides a convenient wrapper for normalized keyboard navigation. KeyNav allows you to bind navigation keys to
  * function calls that will get called when the keys are pressed, providing an easy way to implement custom navigation
@@ -45,6 +25,17 @@ Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
  *             fn: this.onEsc,
  *             defaultEventAction: false
  *         },
+ *
+ *         // Binding may be keyed by a single character
+ *         A: {
+ *             ctrl: true,
+ *             fn: selectAll
+ *         },
+ *
+ *         // Binding may be keyed by a key code (45 = {@link Ext.event.Event#property-INSERT INSERT})
+ *         45: {
+ *             fn: doInsert
+ *         }
  *         scope : this
  *     });
  */
@@ -84,7 +75,7 @@ Ext.define('Ext.util.KeyNav', {
     /**
      * @private
      * Old constructor signature.
-     * @param {String/HTMLElement/Ext.Element} el The element or its ID to bind to
+     * @param {String/HTMLElement/Ext.dom.Element} el The element or its ID to bind to
      * @param {Object} config The config
      */
     legacyConstructor: function(el, config) {
@@ -128,24 +119,27 @@ Ext.define('Ext.util.KeyNav', {
         keyCodes = Ext.util.KeyNav.keyOptions;
         defaultScope = config.scope || me;
 
-        for (keyName in keyCodes) {
-            if (keyCodes.hasOwnProperty(keyName)) {
-
-                // There is a property named after a key name.
-                // It may be a function or an binding spec containing handler, scope and defaultAction configs
-                if (binding = config[keyName]) {
-                    if (typeof binding === 'function') {
-                        binding = {
-                            handler: binding,
-                            defaultEventAction: (config.defaultEventAction !== undefined) ? config.defaultEventAction : me.defaultEventAction
-                        };
-                    }
-                    map.addBinding({
-                        key: keyCodes[keyName],
-                        handler: Ext.Function.bind(me.handleEvent, binding.scope||defaultScope, binding.handler||binding.fn, true),
-                        defaultEventAction: (binding.defaultEventAction !== undefined) ? binding.defaultEventAction : me.defaultEventAction
-                    });
+        for (keyName in config) {
+            binding = config[keyName];
+            // There is a property named after a key name.
+            // It may be a function or an binding spec containing handler, scope and defaultAction configs
+            // Allow {A: { ctrl: true, handler: onCtrlA }}
+            // Allow {45: doInsert} to use key codes directly
+            if (binding && (keyName.length === 1 || (keyName = keyCodes[keyName]) || (!isNaN(keyName = parseInt(keyName, 10))))) {
+                if (typeof binding === 'function') {
+                    binding = {
+                        handler: binding,
+                        defaultEventAction: (config.defaultEventAction !== undefined) ? config.defaultEventAction : me.defaultEventAction
+                    };
                 }
+                map.addBinding({
+                    key: keyName,
+                    ctrl: binding.ctrl,
+                    shift: binding.shift,
+                    alt: binding.alt,
+                    handler: Ext.Function.bind(me.handleEvent, binding.scope||defaultScope, binding.handler||binding.fn, true),
+                    defaultEventAction: (binding.defaultEventAction !== undefined) ? binding.defaultEventAction : me.defaultEventAction
+                });
             }
         }
 
@@ -159,7 +153,7 @@ Ext.define('Ext.util.KeyNav', {
      * Method for filtering out the map argument
      * @private
      * @param {Number} keyCode
-     * @param {Ext.EventObject} event
+     * @param {Ext.event.Event} event
      * @param {Object} options Contains the handler to call
      */
     handleEvent: function(keyCode, event, handler){
@@ -174,8 +168,8 @@ Ext.define('Ext.util.KeyNav', {
 
     /**
      * @cfg {String} defaultEventAction
-     * The method to call on the {@link Ext.EventObject} after this KeyNav intercepts a key. Valid values are {@link
-     * Ext.EventObject#stopEvent}, {@link Ext.EventObject#preventDefault} and {@link Ext.EventObject#stopPropagation}.
+     * The method to call on the {@link Ext.event.Event} after this KeyNav intercepts a key. Valid values are {@link
+     * Ext.event.Event#stopEvent}, {@link Ext.event.Event#preventDefault} and {@link Ext.event.Event#stopPropagation}.
      *
      * If a falsy value is specified, no method is called on the key event.
      */
@@ -190,7 +184,7 @@ Ext.define('Ext.util.KeyNav', {
     forceKeyDown: false,
 
     /**
-     * @cfg {Ext.Component/Ext.Element/HTMLElement/String} target
+     * @cfg {Ext.Component/Ext.dom.Element/HTMLElement/String} target
      * The object on which to listen for the event specified by the {@link #eventName} config option.
      */
 
@@ -273,13 +267,10 @@ Ext.define('Ext.util.KeyNav', {
      * Determines the event to bind to listen for keys. Defaults to the {@link #eventName} value, but
      * may be overridden the {@link #forceKeyDown} setting.
      *
-     * The useKeyDown option on the EventManager modifies the default {@link #eventName} to be `keydown`,
-     * but a configured {@link #eventName} takes priority over this.
-     *
      * @return {String} The type of event to listen for.
      */
     getKeyEvent: function(forceKeyDown, configuredEventName) {
-        if (forceKeyDown || (Ext.EventManager.useKeyDown && !configuredEventName)) {
+        if (forceKeyDown || (Ext.supports.SpecialKeyDownRepeat && !configuredEventName)) {
             return 'keydown';
         } else {
             return configuredEventName||this.eventName;

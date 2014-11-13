@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A selection model that renders a column of checkboxes that can be toggled to
  * select or deselect rows. The default mode for this selection model is MULTI.
@@ -52,7 +32,7 @@ Ext.define('Ext.selection.CheckboxModel', {
     /**
      * @cfg {Boolean} showHeaderCheckbox
      * Configure as `false` to not display the header checkbox at the top of the column.
-     * When {@link Ext.data.Store#buffered} is set to `true`, this configuration will
+     * When the store is a {@link Ext.data.BufferedStore BufferedStore}, this configuration will
      * not be available because the buffered data set does not always contain all data. 
      */
     showHeaderCheckbox: undefined,
@@ -69,6 +49,8 @@ Ext.define('Ext.selection.CheckboxModel', {
     // private
     checkerOnCls: Ext.baseCSSPrefix + 'grid-hd-checker-on',
     
+    tdCls: Ext.baseCSSPrefix + 'grid-cell-special ' + Ext.baseCSSPrefix + 'grid-cell-row-checker',
+    
     constructor: function(){
         var me = this;
         me.callParent(arguments);   
@@ -83,7 +65,7 @@ Ext.define('Ext.selection.CheckboxModel', {
     beforeViewRender: function(view) {
         var me = this,
             owner;
-            
+
         me.callParent(arguments);
 
         // if we have a locked header, only hook up to the first
@@ -132,13 +114,13 @@ Ext.define('Ext.selection.CheckboxModel', {
 
         // Preserve behaviour of false, but not clear why that would ever be done.
         if (checkbox !== false) {
-            if (checkbox == 'first') {
+            if (checkbox === 'first') {
                 checkbox = 0;
-            } else if (checkbox == 'last') {
+            } else if (checkbox === 'last') {
                 checkbox = headerCt.getColumnCount();
             }
             Ext.suspendLayouts();
-            if (view.getStore().buffered) {
+            if (view.getStore().isBufferedStore) {
                 me.showHeaderCheckbox = false;
             }
             headerCt.add(checkbox,  me.getHeaderConfig());
@@ -223,8 +205,9 @@ Ext.define('Ext.selection.CheckboxModel', {
             hideable: false,
             menuDisabled: true,
             dataIndex: '',
+            tdCls: me.tdCls,
             cls: showCheck ? Ext.baseCSSPrefix + 'column-header-checkbox ' : '',
-            renderer: Ext.Function.bind(me.renderer, me),
+            defaultRenderer: me.renderer.bind(me),
             editRenderer: me.editRenderer || me.renderEmpty,
             locked: me.hasLockedHeader()
         };
@@ -246,9 +229,7 @@ Ext.define('Ext.selection.CheckboxModel', {
      * See {@link Ext.grid.column.Column#renderer} for description of allowed parameters.
      */
     renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
-        var baseCSSPrefix = Ext.baseCSSPrefix;
-        metaData.tdCls = baseCSSPrefix + 'grid-cell-special ' + baseCSSPrefix + 'grid-cell-row-checker';
-        return '<div class="' + baseCSSPrefix + 'grid-row-checker">&#160;</div>';
+        return '<div class="' + Ext.baseCSSPrefix + 'grid-row-checker" role="presentation">&#160;</div>';
     },
     
     processSelection: function(view, record, item, index, e){
@@ -336,11 +317,11 @@ Ext.define('Ext.selection.CheckboxModel', {
             selectedCount = 0,
             selected, len, i;
             
-        if (!store.buffered && storeCount > 0) {
+        if (!store.isBufferedStore && storeCount > 0) {
             selected = me.selected;
             hdSelectStatus = true;
             for (i = 0, len = selected.getCount(); i < len; ++i) {
-                if (!me.storeHasSelected(selected.getAt(i))) {
+                if (store.indexOfId(selected.getAt(i).id) === -1) {
                     break;
                 }
                 ++selectedCount;

@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * A specialized SplitButton that contains a menu of {@link Ext.menu.CheckItem} elements. The button automatically
  * cycles through each menu item on click, raising the button's {@link #change} event (or calling the button's
@@ -101,6 +81,15 @@ Ext.define('Ext.button.Cycle', {
      * available choices.
      */
 
+    /**
+     * @event change
+     * Fires after the button's active menu item has changed. Note that if a {@link #changeHandler} function is
+     * set on this CycleButton, it will be called instead on active item change and this change event will not
+     * be fired.
+     * @param {Ext.button.Cycle} this
+     * @param {Ext.menu.CheckItem} item The menu item that was selected
+     */
+
     // @private
     getButtonText: function(item) {
         var me = this,
@@ -168,18 +157,6 @@ Ext.define('Ext.button.Cycle', {
             items,
             i, iLen, item;
 
-        me.addEvents(
-            /**
-             * @event change
-             * Fires after the button's active menu item has changed. Note that if a {@link #changeHandler} function is
-             * set on this CycleButton, it will be called instead on active item change and this change event will not
-             * be fired.
-             * @param {Ext.button.Cycle} this
-             * @param {Ext.menu.CheckItem} item The menu item that was selected
-             */
-            "change"
-        );
-
         if (me.changeHandler) {
             me.on('change', me.changeHandler, me.scope || me);
             delete me.changeHandler;
@@ -218,11 +195,6 @@ Ext.define('Ext.button.Cycle', {
         me.callParent(arguments);
         me.on('click', me.toggleSelected, me);
         me.setActiveItem(checked, me);
-
-        // If configured with a fixed width, the cycling will center a different child item's text each click. Prevent this.
-        if (me.width && me.showText) {
-            me.addCls(Ext.baseCSSPrefix + 'cycle-fixed-width');
-        }
     },
 
     // @private

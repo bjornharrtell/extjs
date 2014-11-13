@@ -1,23 +1,3 @@
-/*
-This file is part of Ext JS 4.2
-
-Copyright (c) 2011-2013 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as
-published by the Free Software Foundation and appearing in the file LICENSE included in the
-packaging of this file.
-
-Please review the following information to ensure the GNU General Public License version 3.0
-requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department
-at http://www.sencha.com/contact.
-
-Build date: 2013-05-16 14:36:50 (f9be68accb407158ba2b1be2c226a6ce1f649314)
-*/
 /**
  * The FocusManager is responsible for globally:
  *
@@ -46,7 +26,6 @@ Ext.define('Ext.FocusManager', {
     },
 
     requires: [
-        'Ext.AbstractComponent',
         'Ext.Component',
         'Ext.ComponentManager',
         'Ext.ComponentQuery',
@@ -89,61 +68,48 @@ Ext.define('Ext.FocusManager', {
         'textfield'
     ],
 
+    /**
+     * @event beforecomponentfocus
+     * Fires before a component becomes focused. Return `false` to prevent
+     * the component from gaining focus.
+     * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
+     * @param {Ext.Component} cmp The component that is being focused
+     * @param {Ext.Component} previousCmp The component that was previously focused,
+     * or `undefined` if there was no previously focused component.
+     */
+
+    /**
+     * @event componentfocus
+     * Fires after a component becomes focused.
+     * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
+     * @param {Ext.Component} cmp The component that has been focused
+     * @param {Ext.Component} previousCmp The component that was previously focused,
+     * or `undefined` if there was no previously focused component.
+     */
+
+    /**
+     * @event disable
+     * Fires when the FocusManager is disabled
+     * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
+     */
+
+    /**
+     * @event enable
+     * Fires when the FocusManager is enabled
+     * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
+     */
+
     constructor: function(config) {
         var me = this,
             CQ = Ext.ComponentQuery;
 
         me.mixins.observable.constructor.call(me, config);
 
-        me.addEvents(
-            /**
-             * @event beforecomponentfocus
-             * Fires before a component becomes focused. Return `false` to prevent
-             * the component from gaining focus.
-             * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
-             * @param {Ext.Component} cmp The component that is being focused
-             * @param {Ext.Component} previousCmp The component that was previously focused,
-             * or `undefined` if there was no previously focused component.
-             */
-            'beforecomponentfocus',
-
-            /**
-             * @event componentfocus
-             * Fires after a component becomes focused.
-             * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
-             * @param {Ext.Component} cmp The component that has been focused
-             * @param {Ext.Component} previousCmp The component that was previously focused,
-             * or `undefined` if there was no previously focused component.
-             */
-            'componentfocus',
-
-            /**
-             * @event disable
-             * Fires when the FocusManager is disabled
-             * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
-             */
-            'disable',
-
-            /**
-             * @event enable
-             * Fires when the FocusManager is enabled
-             * @param {Ext.FocusManager} fm A reference to the FocusManager singleton
-             */
-            'enable'
-        );
-
         me.focusTask = new Ext.util.DelayedTask(me.handleComponentFocus, me);
 
         // Gain control on Component focus, blur, hide and destroy
-        Ext.override(Ext.AbstractComponent, {
-            onFocus: function() {
-                this.callParent(arguments);
-                if (me.enabled && this.hasFocus) {
-                    Array.prototype.unshift.call(arguments, this);
-                    me.onComponentFocus.apply(me, arguments);
-                }
-            },
-            onBlur: function() {
+        Ext.override(Ext.Component, {
+            onBlur: function () {
                 this.callParent(arguments);
                 if (me.enabled && !this.hasFocus) {
                     Array.prototype.unshift.call(arguments, this);
@@ -156,6 +122,13 @@ Ext.define('Ext.FocusManager', {
                     Array.prototype.unshift.call(arguments, this);
                     me.onComponentDestroy.apply(me, arguments);
                 }
+            },
+            onFocus: function () {
+                this.callParent(arguments);
+                if (me.enabled && this.hasFocus) {
+                    Array.prototype.unshift.call(arguments, this);
+                    me.onComponentFocus.apply(me, arguments);
+                }
             }
         });
         Ext.override(Ext.Component, {
@@ -166,23 +139,6 @@ Ext.define('Ext.FocusManager', {
                     me.onComponentHide.apply(me, arguments);
                 }
             }
-        });
-        // Setup KeyNav that's bound to document to catch all
-        // unhandled/bubbled key events for navigation
-        me.keyNav = new Ext.util.KeyNav(Ext.getDoc(), {
-            disabled: true,
-            scope: me,
-
-            backspace: me.focusLast,
-            enter: me.navigateIn,
-            esc: me.navigateOut,
-            tab: me.navigateSiblings,
-            space: me.navigateIn,
-            del: me.focusLast,
-            left: me.navigateSiblings,
-            right: me.navigateSiblings,
-            down: me.navigateSiblings,
-            up: me.navigateSiblings
         });
 
         me.focusData = {};
@@ -243,6 +199,26 @@ Ext.define('Ext.FocusManager', {
         });
     },
 
+    getKeyNav: function() {
+        var me = this;
+        me.keyNav = me.keyNav || new Ext.util.KeyNav(Ext.getDoc(), {
+            disabled: true,
+            scope: me,
+
+            backspace: me.focusLast,
+            enter: me.navigateIn,
+            esc: me.navigateOut,
+            tab: me.navigateSiblings,
+            space: me.navigateIn,
+            del: me.focusLast,
+            left: me.navigateSiblings,
+            right: me.navigateSiblings,
+            down: me.navigateSiblings,
+            up: me.navigateSiblings
+        });
+        return me.keyNav;
+    },
+
     /**
      * Adds the specified xtype to the {@link #whitelist}.
      * @param {String/String[]} xtype Adds the xtype(s) to the {@link #whitelist}.
@@ -283,7 +259,7 @@ Ext.define('Ext.FocusManager', {
         me.removeDOM();
 
         // Stop handling key navigation
-        me.keyNav.disable();
+        me.getKeyNav().disable();
 
         me.fireEvent('disable', me);
     },
@@ -307,11 +283,11 @@ Ext.define('Ext.FocusManager', {
         }
 
         // When calling addFocusListener on Containers, the FocusManager must be enabled, otherwise it won't do it.
-        me.enabled = true;
+        me.enabled = Ext.enableFocusManager = true;
         me.initDOM(options);
 
         // Start handling key navigation
-        me.keyNav.enable();
+        me.getKeyNav().enable();
 
         // Finally, let's focus our global focus el so we start fresh
         me.focusEl.focus();
@@ -455,9 +431,8 @@ Ext.define('Ext.FocusManager', {
         var me = this,
             src = source || me,
             key = e.getKey(),
-            EO = Ext.EventObject,
-            goBack = e.shiftKey || key == EO.LEFT || key == EO.UP,
-            checkWhitelist = key == EO.LEFT || key == EO.RIGHT || key == EO.UP || key == EO.DOWN,
+            goBack = e.shiftKey || key == e.LEFT || key == e.UP,
+            checkWhitelist = key === e.LEFT || key === e.RIGHT || key === e.UP || key === e.DOWN,
             nextSelector = goBack ? 'prev' : 'next',
             idx, next, focusedCmp, siblings;
 
